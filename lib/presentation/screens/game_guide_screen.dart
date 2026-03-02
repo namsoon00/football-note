@@ -53,6 +53,30 @@ class GameGuideScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _GuideSection(
+            title: isKo ? '랭킹 설명' : 'Ranking System',
+            icon: Icons.emoji_events_outlined,
+            lines: isKo
+                ? const [
+                    '랭킹 점수 = (패스 점수×10) + (레벨×15) + (골×60)',
+                    'S: 320점 이상',
+                    'A: 240점 이상',
+                    'B: 170점 이상',
+                    'C: 110점 이상',
+                    'D: 110점 미만',
+                    '골 보너스 비중이 커서, 60초 후 슈팅 성공이 최종 랭킹에 큰 영향을 줍니다.',
+                  ]
+                : const [
+                    'Rank score = (pass score x 10) + (level x 15) + (goals x 60)',
+                    'S: 320+',
+                    'A: 240+',
+                    'B: 170+',
+                    'C: 110+',
+                    'D: below 110',
+                    'Goal bonus has high weight, so final-shot success strongly affects final rank.',
+                  ],
+          ),
+          const SizedBox(height: 12),
+          _GuideSection(
             title: isKo ? '캐릭터 소개' : 'Character Intro',
             icon: Icons.groups_2_outlined,
             lines: isKo
