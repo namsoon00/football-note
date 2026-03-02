@@ -137,6 +137,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _passPressed = false;
   Offset _passAimInput = Offset.zero;
   bool _passAimActive = false;
+  int? _passPointerId;
   bool _passChargeArmed = false;
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
@@ -1495,6 +1496,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _chargedBallSpeed = _ballMinSpeed;
     _effectiveBallSpeed = _ballMinSpeed;
     _passPressed = false;
+    _passPointerId = null;
     _passChargeArmed = false;
   }
 
@@ -1557,6 +1559,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passPressed = false;
     _passAimInput = Offset.zero;
     _passAimActive = false;
+    _passPointerId = null;
     _passChargeArmed = false;
     _gameStarted = false;
     _timeUp = true;
@@ -1656,6 +1659,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passPressed = false;
     _passAimInput = Offset.zero;
     _passAimActive = false;
+    _passPointerId = null;
     _passChargeArmed = false;
     _gameStarted = false;
     _endedByFail = true;
@@ -1715,6 +1719,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passPressed = false;
     _passAimInput = Offset.zero;
     _passAimActive = false;
+    _passPointerId = null;
     _passChargeArmed = false;
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
@@ -1766,10 +1771,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _joystickActive = true;
   }
 
-  void _onPassDown(Offset local) {
+  void _onPassDown(int pointer, Offset local) {
+    if (_passPointerId != null) return;
     if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
       return;
     }
+    _passPointerId = pointer;
     _updatePassAimFromLocal(local);
     _updateAutoAim();
     _passPressed = true;
@@ -1777,12 +1784,15 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _beginCharge();
   }
 
-  void _onPassMove(Offset local) {
+  void _onPassMove(int pointer, Offset local) {
+    if (_passPointerId != pointer) return;
     if (!_passPressed || !_gameStarted || _timeUp || _ballFlying) return;
     _updatePassAimFromLocal(local);
   }
 
-  void _onPassUp([Offset? local]) {
+  void _onPassUp(int pointer, [Offset? local]) {
+    if (_passPointerId != pointer) return;
+    _passPointerId = null;
     if (local != null) {
       _updatePassAimFromLocal(local);
     }
@@ -1803,7 +1813,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimActive = false;
   }
 
-  void _onPassCancel() {
+  void _onPassCancel(int pointer) {
+    if (_passPointerId != pointer) return;
+    _passPointerId = null;
     _passPressed = false;
     _passChargeArmed = false;
     _passAimInput = Offset.zero;
@@ -2489,18 +2501,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     return Positioned(
       right: 10,
       bottom: 12,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (details) =>
-            setState(() => _onPassDown(details.localPosition)),
-        onTapUp: (details) => setState(() => _onPassUp(details.localPosition)),
-        onTapCancel: () => setState(_onPassCancel),
-        onPanStart: (details) =>
-            setState(() => _onPassDown(details.localPosition)),
-        onPanUpdate: (details) =>
-            setState(() => _onPassMove(details.localPosition)),
-        onPanEnd: (_) => setState(() => _onPassUp()),
-        onPanCancel: () => setState(_onPassCancel),
+      child: Listener(
+        onPointerDown: (event) =>
+            setState(() => _onPassDown(event.pointer, event.localPosition)),
+        onPointerMove: (event) =>
+            setState(() => _onPassMove(event.pointer, event.localPosition)),
+        onPointerUp: (event) =>
+            setState(() => _onPassUp(event.pointer, event.localPosition)),
+        onPointerCancel: (event) => _onPassCancel(event.pointer),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
           width: 106,
