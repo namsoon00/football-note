@@ -469,21 +469,10 @@ class _NewsScreenState extends State<NewsScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final uri = Uri.tryParse(article.link);
     if (uri == null || !uri.hasScheme) return;
-    final target = isKo ? _koreanTranslateUri(uri) : uri;
-    await launchUrl(target, mode: LaunchMode.inAppBrowserView);
-  }
-
-  Uri _koreanTranslateUri(Uri original) {
-    return Uri.https(
-      'translate.google.com',
-      '/translate',
-      {
-        'hl': 'ko',
-        'sl': 'auto',
-        'tl': 'ko',
-        'u': original.toString(),
-      },
-    );
+    final mode = isKo
+        ? LaunchMode.externalApplication
+        : LaunchMode.inAppBrowserView;
+    await launchUrl(uri, mode: mode);
   }
 
   void _openSettings(BuildContext context) {
