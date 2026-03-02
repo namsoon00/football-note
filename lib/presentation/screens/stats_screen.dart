@@ -289,9 +289,6 @@ class _StatsScreenState extends State<StatsScreen> {
                   const SizedBox(height: 16),
                   _LiftingSummaryCard(
                     entries: entries,
-                    ageYears: ageYears,
-                    benchmarkService: _benchmarkService,
-                    showAverage: canShowAverage,
                   ),
                 ],
               ),
@@ -921,21 +918,14 @@ class _LegendDot extends StatelessWidget {
 
 class _LiftingSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
-  final int? ageYears;
-  final BenchmarkService benchmarkService;
-  final bool showAverage;
 
   const _LiftingSummaryCard({
     required this.entries,
-    required this.ageYears,
-    required this.benchmarkService,
-    required this.showAverage,
   });
 
   @override
   Widget build(BuildContext context) {
     final bestByPart = <String, _PartBest>{};
-    _PartBest? overallBest;
     for (final entry in entries) {
       entry.liftingByPart.forEach(
         (part, count) {
@@ -944,24 +934,12 @@ class _LiftingSummaryCard extends StatelessWidget {
           if (current == null || count > current.count) {
             bestByPart[part] = _PartBest(count: count, date: entry.date);
           }
-          if (overallBest == null || count > overallBest!.count) {
-            overallBest = _PartBest(count: count, date: entry.date);
-          }
         },
       );
     }
     final sorted = bestByPart.entries.toList()
       ..sort((a, b) => b.value.count.compareTo(a.value.count));
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final totalLifts = entries.fold<int>(
-      0,
-      (sum, e) =>
-          sum +
-          e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
-    );
-    final avgLiftPerSession =
-        entries.isEmpty ? 0 : (totalLifts / entries.length).round();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -970,22 +948,6 @@ class _LiftingSummaryCard extends StatelessWidget {
           title: isKo ? '리프팅 부위 통계' : 'Lifting by Body Part',
         ),
         const SizedBox(height: 12),
-        _StatRow(
-          label: isKo ? '세션 평균' : 'Avg per session',
-          value: showAverage
-              ? '$avgLiftPerSession (${_gapText((avgLiftPerSession - benchmarkService.physicalBenchmarkForAge(ageYears).liftsPerSessionAvg).toDouble(), isKo)})'
-              : '$avgLiftPerSession',
-        ),
-        const SizedBox(height: 8),
-        _StatRow(
-          label: isKo ? '최고 기록' : 'Best Record',
-          value: overallBest == null
-              ? (isKo ? '기록 없음' : 'No record')
-              : (isKo
-                  ? '${overallBest!.count}회 (${_dateText(overallBest!.date)})'
-                  : '${overallBest!.count} (${_dateText(overallBest!.date)})'),
-        ),
-        const SizedBox(height: 8),
         if (sorted.isEmpty)
           Text(isKo ? '리프팅 기록이 없습니다.' : 'No lifting records.')
         else
@@ -1087,30 +1049,6 @@ class _PartBest {
     required this.count,
     required this.date,
   });
-}
-
-class _StatRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _SectionTitle extends StatelessWidget {
