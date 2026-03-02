@@ -139,6 +139,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _passAimActive = false;
   int? _passPointerId;
   bool _passChargeArmed = false;
+  final GlobalKey _passPadKey = GlobalKey();
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
   double get _attackerPaceScale =>
@@ -1771,45 +1772,50 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _joystickActive = true;
   }
 
-  void _onPassDown(int pointer, Offset local) {
+  bool _canStartPassGesture() {
+    return _gameStarted &&
+        !_timeUp &&
+        _phase == _PlayPhase.ready &&
+        !_ballFlying;
+  }
+
+  void _onPassDown(int pointer, Offset globalPosition) {
     if (_passPointerId != null) return;
-    if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
+    if (!_canStartPassGesture()) {
       return;
     }
     _passPointerId = pointer;
-    _updatePassAimFromLocal(local);
+    _updatePassAimFromGlobal(globalPosition);
     _updateAutoAim();
     _passPressed = true;
     _passChargeArmed = true;
     _beginCharge();
   }
 
-  void _onPassMove(int pointer, Offset local) {
+  void _onPassMove(int pointer, Offset globalPosition) {
     if (_passPointerId != pointer) return;
-    if (!_passPressed || !_gameStarted || _timeUp || _ballFlying) return;
-    _updatePassAimFromLocal(local);
+    if (!_passPressed || !_canStartPassGesture()) return;
+    _updatePassAimFromGlobal(globalPosition);
   }
 
-  void _onPassUp(int pointer, [Offset? local]) {
+  void _onPassUp(int pointer, [Offset? globalPosition]) {
     if (_passPointerId != pointer) return;
     _passPointerId = null;
-    if (local != null) {
-      _updatePassAimFromLocal(local);
+    if (globalPosition != null) {
+      _updatePassAimFromGlobal(globalPosition);
     }
     final wasPressed = _passPressed;
     _passPressed = false;
     final wasArmed = _passChargeArmed;
     _passChargeArmed = false;
     if (!wasPressed) return;
-    if (!wasArmed ||
-        !_gameStarted ||
-        _timeUp ||
-        _phase != _PlayPhase.ready ||
-        _ballFlying) {
+    if (!wasArmed || !_canStartPassGesture()) {
+      if (_charging) {
+        _cancelCharge();
+      }
       return;
     }
-    // Fallback: if charge state got dropped by gesture race, still fire
-    // immediately on release at minimum speed.
+    // Fallback: if charge state gets dropped by gesture race, still fire.
     if (!_charging) {
       _charging = true;
       _chargedBallSpeed = _ballMinSpeed;
@@ -1822,13 +1828,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _onPassCancel(int pointer) {
     if (_passPointerId != pointer) return;
     _passPointerId = null;
-    _passPressed = false;
-    _passChargeArmed = false;
-    _passAimInput = Offset.zero;
-    _passAimActive = false;
-    if (_charging) {
-      _cancelCharge();
-    }
+    // iOS can emit cancel during gesture arena conflicts; treat it like release
+    // so pass doesn't get dropped.
+    _onPassUp(pointer);
+  }
+
+  void _updatePassAimFromGlobal(Offset globalPosition) {
+    final ctx = _passPadKey.currentContext;
+    final obj = ctx?.findRenderObject();
+    if (obj is! RenderBox) return;
+    final local = obj.globalToLocal(globalPosition);
+    _updatePassAimFromLocal(local);
   }
 
   void _updatePassAimFromLocal(Offset local) {
@@ -2508,12 +2518,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       right: 10,
       bottom: 12,
       child: Listener(
+        key: _passPadKey,
         onPointerDown: (event) =>
-            setState(() => _onPassDown(event.pointer, event.localPosition)),
+            _onPassDown(event.pointer, event.position),
         onPointerMove: (event) =>
-            setState(() => _onPassMove(event.pointer, event.localPosition)),
+            _onPassMove(event.pointer, event.position),
         onPointerUp: (event) =>
-            setState(() => _onPassUp(event.pointer, event.localPosition)),
+            _onPassUp(event.pointer, event.position),
         onPointerCancel: (event) => _onPassCancel(event.pointer),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
