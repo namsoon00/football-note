@@ -341,31 +341,19 @@ class _DevelopmentCoachCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final dayStart = DateTime(now.year, now.month, now.day);
-    final dayEnd = dayStart.add(const Duration(days: 1));
     final weekStart = dayStart.subtract(Duration(days: dayStart.weekday - 1));
     final weekEnd = weekStart.add(const Duration(days: 7));
-    final monthStart = DateTime(now.year, now.month, 1);
-    final monthEnd = DateTime(now.year, now.month + 1, 1);
+    final weekEndInclusive = weekEnd.subtract(const Duration(days: 1));
 
     final recent = entries
         .where((e) => e.date.isAfter(now.subtract(const Duration(days: 28))))
         .toList();
-    final dayEntries = entries
-        .where((e) => !e.date.isBefore(dayStart) && e.date.isBefore(dayEnd))
-        .toList();
     final weekEntries = entries
         .where((e) => !e.date.isBefore(weekStart) && e.date.isBefore(weekEnd))
         .toList();
-    final monthEntries = entries
-        .where((e) => !e.date.isBefore(monthStart) && e.date.isBefore(monthEnd))
-        .toList();
 
-    final dayMinutes =
-        dayEntries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
     final weekMinutes =
         weekEntries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
-    final monthMinutes =
-        monthEntries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
     final recentMinutes =
         recent.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
     final avgWeeklyMinutes = recentMinutes / 4;
@@ -378,24 +366,8 @@ class _DevelopmentCoachCard extends StatelessWidget {
         ? 0.0
         : avgWeeklySessions / target.weeklySessionsTarget;
 
-    final dailyTargetMinutes =
-        (target.weeklyMinutesTarget / 7).round().clamp(0, 9999);
-    final monthlyTargetMinutes = (target.weeklyMinutesTarget * 4);
-    final dailyTargetSessions =
-        (target.weeklySessionsTarget / 7).clamp(0.0, 10.0);
-    final monthlyTargetSessions = (target.weeklySessionsTarget * 4).toDouble();
     final variantSeed = now.day + (entries.length % 7);
 
-    final dailyAdvice = _buildPeriodAdvice(
-      period: _CoachPeriod.daily,
-      minutes: dayMinutes.toDouble(),
-      sessions: dayEntries.length.toDouble(),
-      targetMinutes: dailyTargetMinutes.toDouble(),
-      targetSessions: dailyTargetSessions,
-      showAverage: showAverage,
-      isKo: isKo,
-      variantSeed: variantSeed,
-    );
     final weeklyAdvice = _buildPeriodAdvice(
       period: _CoachPeriod.weekly,
       minutes: weekMinutes.toDouble(),
@@ -406,17 +378,6 @@ class _DevelopmentCoachCard extends StatelessWidget {
       isKo: isKo,
       variantSeed: variantSeed + 1,
     );
-    final monthlyAdvice = _buildPeriodAdvice(
-      period: _CoachPeriod.monthly,
-      minutes: monthMinutes.toDouble(),
-      sessions: monthEntries.length.toDouble(),
-      targetMinutes: monthlyTargetMinutes.toDouble(),
-      targetSessions: monthlyTargetSessions,
-      showAverage: showAverage,
-      isKo: isKo,
-      variantSeed: variantSeed + 2,
-    );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -479,15 +440,9 @@ class _DevelopmentCoachCard extends StatelessWidget {
           icon: Icons.fact_check_outlined,
           title: isKo ? '평가 기준' : 'Evaluation Basis',
           message: isKo
-              ? '일간: 오늘 00:00~23:59 · 주간: 이번 주(월~일) · 월간: 이번 달(1일~말일)'
-              : 'Daily: today 00:00-23:59 · Weekly: this week (Mon-Sun) · Monthly: current month',
+              ? '주간(월~일) 기준으로 코칭합니다.\n기준 기간: ${_formatDateWithWeekday(weekStart, true)} ~ ${_formatDateWithWeekday(weekEndInclusive, true)}\n위 기간의 훈련 시간과 횟수로 평가합니다.'
+              : 'Coaching is weekly (Mon-Sun).\nRange: ${_formatDateWithWeekday(weekStart, false)} ~ ${_formatDateWithWeekday(weekEndInclusive, false)}\nEvaluation is based on training time and sessions in this range.',
           strong: true,
-        ),
-        const SizedBox(height: 8),
-        _CoachMessage(
-          icon: Icons.today_outlined,
-          title: isKo ? '일간 코칭' : 'Daily Coaching',
-          message: dailyAdvice,
         ),
         const SizedBox(height: 8),
         _CoachMessage(
@@ -495,14 +450,27 @@ class _DevelopmentCoachCard extends StatelessWidget {
           title: isKo ? '주간 코칭' : 'Weekly Coaching',
           message: weeklyAdvice,
         ),
-        const SizedBox(height: 8),
-        _CoachMessage(
-          icon: Icons.calendar_month_outlined,
-          title: isKo ? '월간 코칭' : 'Monthly Coaching',
-          message: monthlyAdvice,
-        ),
       ],
     );
+  }
+
+  String _formatDateWithWeekday(DateTime date, bool isKo) {
+    const koWeekdays = <String>['월', '화', '수', '목', '금', '토', '일'];
+    const enWeekdays = <String>[
+      'Mon',
+      'Tue',
+      'Wed',
+      'Thu',
+      'Fri',
+      'Sat',
+      'Sun'
+    ];
+    final weekday =
+        isKo ? koWeekdays[date.weekday - 1] : enWeekdays[date.weekday - 1];
+    final y = date.year.toString().padLeft(4, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return isKo ? '$y.$m.$d($weekday)' : '$y-$m-$d ($weekday)';
   }
 
   String _buildPeriodAdvice({
