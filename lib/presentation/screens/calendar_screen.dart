@@ -122,7 +122,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded = hasDaySchedule || _calendarExpanded;
+              final isCalendarExpanded =
+                  hasDaySchedule ? _calendarExpanded : true;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -423,12 +424,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       onDeleteEntry: _confirmDeleteEntry,
                       onDeletePlan: _confirmDeletePlan,
                       onListScrollUp: () {
-                        if (isCalendarExpanded) {
+                        if (hasDaySchedule && isCalendarExpanded) {
                           _setCalendarExpanded(false);
                         }
                       },
                       onListReachedBottom: () {
-                        if (!isCalendarExpanded) {
+                        if (hasDaySchedule && !isCalendarExpanded) {
                           _setCalendarExpanded(true);
                         }
                       },
