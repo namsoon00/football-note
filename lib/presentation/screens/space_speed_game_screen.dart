@@ -597,7 +597,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                   x: _passerXPos,
                                   y: _passerYPos,
                                   size: 23,
-                                  color: const Color(0xFF00A7FF),
+                                  color: const Color(0xFFFFD54F),
                                   label: isKo ? '공격수 A' : 'Attacker A',
                                   width: width,
                                   height: height,
@@ -609,7 +609,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                   x: _receiverX,
                                   y: _receiverY,
                                   size: 23,
-                                  color: const Color(0xFF1CCFB8),
+                                  color: const Color(0xFFFFC107),
                                   label: isKo ? '공격수 B' : 'Attacker B',
                                   width: width,
                                   height: height,
@@ -686,10 +686,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                     x: _defenders[i].x,
                                     y: _defenders[i].y,
                                     size: 21,
-                                    color: const Color(0xFFFFB54A),
-                                    label: isKo ? '수비${i + 1}' : 'Def ${i + 1}',
+                                    color: _defenders[i].ghostType.color,
+                                    label: isKo
+                                        ? _defenders[i].ghostType.labelKo
+                                        : _defenders[i].ghostType.labelEn,
                                     width: width,
                                     height: height,
+                                    roleTag: _defenders[i].ghostType.roleTag,
                                   ),
                                 if (_goalChanceActive)
                                   _entity(
@@ -1073,13 +1076,24 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
 
     for (final defender in _defenders) {
-      final passBySpeed =
-          defender.speed * comboBoost * levelBoost * clutchBoost;
+      final passBySpeed = defender.speed *
+          defender.ghostType.speedFactor *
+          comboBoost *
+          levelBoost *
+          clutchBoost;
       defender.x -= passBySpeed * _dt;
       final lanePoint = _lanePointAtX(defender.x);
-      final lanePull = (lanePoint.dy - defender.y) * 1.6 * _dt;
-      defender.y += (defender.vy * passBySpeed * 0.42 * _dt) + lanePull;
-      if (_random.nextDouble() < (defender.turnChance * 1.6)) {
+      final roleTargetY = _roleTargetY(defender, lanePoint.dy);
+      final lanePull =
+          (lanePoint.dy - defender.y) * defender.ghostType.lanePull * _dt;
+      final rolePull =
+          (roleTargetY - defender.y) * defender.ghostType.rolePull * _dt;
+      defender.y +=
+          (defender.vy * passBySpeed * defender.ghostType.wobbleFactor * _dt) +
+              lanePull +
+              rolePull;
+      if (_random.nextDouble() <
+          (defender.turnChance * defender.ghostType.turnFactor)) {
         defender.vy += (_random.nextDouble() * 2 - 1) * defender.turnRadians;
       }
       defender.vy = defender.vy.clamp(-1.5, 1.5);
@@ -1091,7 +1105,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         final furthestX = _furthestDefenderX(except: defender);
         defender.x = math.max(defender.maxX, furthestX + 0.28);
         final lane = _lanePointAtX(defender.x);
-        defender.y = (lane.dy + ((_random.nextDouble() - 0.5) * 0.30))
+        final roleY = _roleTargetY(defender, lane.dy);
+        defender.y = (roleY + ((_random.nextDouble() - 0.5) * 0.20))
             .clamp(defender.minY, defender.maxY);
       }
     }
@@ -1211,7 +1226,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   bool _isIntercepted() {
     for (final defender in _defenders) {
-      if (_distance(_ballX, _ballY, defender.x, defender.y) <= 0.038) {
+      if (_distance(_ballX, _ballY, defender.x, defender.y) <=
+          defender.ghostType.interceptRadius) {
         return true;
       }
     }
@@ -1955,6 +1971,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     const spawnGap = 0.30;
     const laneCount = 5;
     return List<_DefenderState>.generate(defenderCount, (index) {
+      const pattern = <_GhostType>[
+        _GhostType.blue,
+        _GhostType.orange,
+        _GhostType.red,
+        _GhostType.pink,
+      ];
+      final ghostType = pattern[index % pattern.length];
       const minX = -0.20;
       final maxX = 1.24 + (index * spawnGap);
       const minY = 0.10;
@@ -1977,6 +2000,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         maxY: maxY,
         turnChance: 0.08,
         turnRadians: 0.22,
+        ghostType: ghostType,
       );
     });
   }
@@ -2008,6 +2032,23 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final t = ((x - sx) / dx).clamp(0.0, 1.0);
     final y = sy + ((ty - sy) * t);
     return Offset(x, y.clamp(_fieldMinY, _fieldMaxY));
+  }
+
+  double _roleTargetY(_DefenderState defender, double laneY) {
+    switch (defender.ghostType) {
+      case _GhostType.blue:
+        return laneY;
+      case _GhostType.orange:
+        final pressY =
+            _ballFlying ? _ballY : ((_activePasserY + _activeReceiverY) * 0.5);
+        return pressY.clamp(defender.minY, defender.maxY);
+      case _GhostType.red:
+        final markerY = _activePasserY + (math.sin(_keeperPhase * 1.7) * 0.02);
+        return markerY.clamp(defender.minY, defender.maxY);
+      case _GhostType.pink:
+        final predictY = (_activeReceiverY + (_activeReceiverVy * 0.33));
+        return predictY.clamp(defender.minY, defender.maxY);
+    }
   }
 
   double _turnAngle(double vx1, double vy1, double vx2, double vy2) {
@@ -2748,6 +2789,145 @@ enum _GameDifficulty {
   hard,
 }
 
+enum _GhostType {
+  blue,
+  orange,
+  red,
+  pink,
+}
+
+extension _GhostTypeSpec on _GhostType {
+  Color get color {
+    switch (this) {
+      case _GhostType.blue:
+        return const Color(0xFF42A5F5);
+      case _GhostType.orange:
+        return const Color(0xFFFFA726);
+      case _GhostType.red:
+        return const Color(0xFFEF5350);
+      case _GhostType.pink:
+        return const Color(0xFFEC70C0);
+    }
+  }
+
+  double get speedFactor {
+    switch (this) {
+      case _GhostType.blue:
+        return 0.95;
+      case _GhostType.orange:
+        return 1.18;
+      case _GhostType.red:
+        return 1.08;
+      case _GhostType.pink:
+        return 1.00;
+    }
+  }
+
+  double get lanePull {
+    switch (this) {
+      case _GhostType.blue:
+        return 2.0;
+      case _GhostType.orange:
+        return 1.1;
+      case _GhostType.red:
+        return 1.3;
+      case _GhostType.pink:
+        return 1.4;
+    }
+  }
+
+  double get rolePull {
+    switch (this) {
+      case _GhostType.blue:
+        return 1.2;
+      case _GhostType.orange:
+        return 2.2;
+      case _GhostType.red:
+        return 2.0;
+      case _GhostType.pink:
+        return 2.4;
+    }
+  }
+
+  double get wobbleFactor {
+    switch (this) {
+      case _GhostType.blue:
+        return 0.34;
+      case _GhostType.orange:
+        return 0.52;
+      case _GhostType.red:
+        return 0.40;
+      case _GhostType.pink:
+        return 0.46;
+    }
+  }
+
+  double get turnFactor {
+    switch (this) {
+      case _GhostType.blue:
+        return 1.3;
+      case _GhostType.orange:
+        return 1.9;
+      case _GhostType.red:
+        return 1.6;
+      case _GhostType.pink:
+        return 2.0;
+    }
+  }
+
+  double get interceptRadius {
+    switch (this) {
+      case _GhostType.blue:
+        return 0.043;
+      case _GhostType.orange:
+        return 0.034;
+      case _GhostType.red:
+        return 0.046;
+      case _GhostType.pink:
+        return 0.040;
+    }
+  }
+
+  String get labelKo {
+    switch (this) {
+      case _GhostType.blue:
+        return '수비(차단)';
+      case _GhostType.orange:
+        return '수비(압박)';
+      case _GhostType.red:
+        return '수비(마크)';
+      case _GhostType.pink:
+        return '수비(예측)';
+    }
+  }
+
+  String get labelEn {
+    switch (this) {
+      case _GhostType.blue:
+        return 'Blocker';
+      case _GhostType.orange:
+        return 'Presser';
+      case _GhostType.red:
+        return 'Marker';
+      case _GhostType.pink:
+        return 'Anticipator';
+    }
+  }
+
+  String get roleTag {
+    switch (this) {
+      case _GhostType.blue:
+        return 'BLOCK';
+      case _GhostType.orange:
+        return 'PRESS';
+      case _GhostType.red:
+        return 'MARK';
+      case _GhostType.pink:
+        return 'READ';
+    }
+  }
+}
+
 extension _GameDifficultySpec on _GameDifficulty {
   int get defenderCount {
     switch (this) {
@@ -2813,6 +2993,7 @@ class _DefenderState {
   final double maxY;
   final double turnChance;
   final double turnRadians;
+  final _GhostType ghostType;
   double x;
   double y;
   double vx;
@@ -2830,5 +3011,6 @@ class _DefenderState {
     required this.maxY,
     required this.turnChance,
     required this.turnRadians,
+    required this.ghostType,
   });
 }
