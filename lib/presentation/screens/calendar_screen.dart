@@ -286,7 +286,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       onEditEntry: widget.onEdit,
                       onEditPlan: (plan) => _openPlanSheet(
                           day: plan.scheduledAt, editingPlan: plan),
-                      onDeletePlan: _deletePlan,
+                      onDeletePlan: _confirmDeletePlan,
                       onAddPlan: () => _openPlanSheet(day: selected),
                       onListScrollUp: () {
                         if (_calendarExpanded) {
@@ -541,6 +541,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
     await _syncPlanReminders();
   }
 
+  Future<void> _confirmDeletePlan(_TrainingPlan plan) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '계획 삭제' : 'Delete plan'),
+        content: Text(
+          isKo
+              ? '이 훈련 계획을 정말 삭제할까요?'
+              : 'Are you sure you want to delete this training plan?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '삭제' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (shouldDelete == true) {
+      await _deletePlan(plan.id);
+    }
+  }
+
   List<_TrainingPlan> _loadPlans() {
     final raw = widget.optionRepository.getValue<String>(_plansStorageKey);
     if (raw == null || raw.isEmpty) return const <_TrainingPlan>[];
@@ -628,7 +656,7 @@ class _DayTimeline extends StatelessWidget {
   final List<TrainingEntry> dayEntries;
   final ValueChanged<TrainingEntry> onEditEntry;
   final ValueChanged<_TrainingPlan> onEditPlan;
-  final ValueChanged<String> onDeletePlan;
+  final ValueChanged<_TrainingPlan> onDeletePlan;
   final VoidCallback onAddPlan;
   final VoidCallback onListScrollUp;
   final VoidCallback onListReachedBottom;
@@ -747,8 +775,8 @@ class _DayTimeline extends StatelessWidget {
             const SizedBox(height: 8),
             ...sortedPlans.map((plan) => _PlanTile(
                   plan: plan,
-                  onEdit: () => onEditPlan(plan),
-                  onDelete: () => onDeletePlan(plan.id),
+                  onTap: () => onEditPlan(plan),
+                  onDelete: () => onDeletePlan(plan),
                 )),
             const SizedBox(height: 12),
           ],
@@ -776,12 +804,12 @@ class _DayTimeline extends StatelessWidget {
 
 class _PlanTile extends StatelessWidget {
   final _TrainingPlan plan;
-  final VoidCallback onEdit;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _PlanTile({
     required this.plan,
-    required this.onEdit,
+    required this.onTap,
     required this.onDelete,
   });
 
@@ -792,6 +820,7 @@ class _PlanTile extends StatelessWidget {
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
+        onTap: onTap,
         dense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         leading: CircleAvatar(
@@ -812,20 +841,10 @@ class _PlanTile extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: Wrap(
-          spacing: 2,
-          children: [
-            IconButton(
-              tooltip: isKo ? '계획 수정' : 'Edit plan',
-              icon: const Icon(Icons.edit_outlined),
-              onPressed: onEdit,
-            ),
-            IconButton(
-              tooltip: isKo ? '계획 삭제' : 'Delete plan',
-              icon: const Icon(Icons.delete_outline),
-              onPressed: onDelete,
-            ),
-          ],
+        trailing: IconButton(
+          tooltip: isKo ? '계획 삭제' : 'Delete plan',
+          icon: const Icon(Icons.delete_outline),
+          onPressed: onDelete,
         ),
       ),
     );
