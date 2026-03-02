@@ -60,6 +60,9 @@ Issue number가 들어간 커밋은 훅이 `Closes #123` 라인을 자동으로 
 
 Detailed guide: `docs/ISSUE_WORKFLOW.md`
 
+Self-hosted local Codex automation guide:
+`docs/LOCAL_CODEX_AUTOMATION.md`
+
 This project is a starting point for a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:

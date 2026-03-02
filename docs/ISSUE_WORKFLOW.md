@@ -30,3 +30,13 @@ Use GitHub Issues as the remote task source and keep this repo aligned automatic
 - Workflow file: `.github/workflows/issue-queue-sync.yml`
 - Schedule: every 30 minutes (`*/30 * * * *`)
 - Output: `docs/ISSUE_QUEUE.md`
+
+## Local Auto Worker
+- Workflow file: `.github/workflows/issue-auto-worker.yml`
+- Runner: `self-hosted, macOS`
+- Schedule: every 30 minutes (`*/30 * * * *`)
+- Behavior:
+  - picks top open issue from `docs/ISSUE_QUEUE.md`
+  - runs local Codex CLI
+  - commits with issue reference
+  - pushes auto branch and opens/updates PR

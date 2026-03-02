@@ -1,0 +1,42 @@
+name: Issue Auto Worker (Local Codex)
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: issue-auto-worker
+  cancel-in-progress: false
+
+jobs:
+  run-local-codex:
+    runs-on: [self-hosted, macOS]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run issue worker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DEFAULT_BRANCH: main
+          # Optional overrides (Repository Variables/Secrets)
+          CODEX_RUNNER_CMD: ${{ vars.CODEX_RUNNER_CMD }}
+          RUN_VERIFY: ${{ vars.RUN_VERIFY }}
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
+        run: |
+          bash scripts/run_issue_worker.sh
