@@ -51,7 +51,7 @@ class _StatsScreenState extends State<StatsScreen> {
     _benchmarkService = BenchmarkService(widget.optionRepository);
     final today = DateTime.now();
     final end = DateTime(today.year, today.month, today.day);
-    final start = end.subtract(const Duration(days: 27));
+    final start = end.subtract(const Duration(days: 6));
     _selectedRange = DateTimeRange(start: start, end: end);
     _refreshBenchmarks();
   }
@@ -502,15 +502,6 @@ class _DevelopmentCoachCard extends StatelessWidget {
         ],
         const SizedBox(height: 10),
         _CoachMessage(
-          icon: Icons.fact_check_outlined,
-          title: isKo ? '평가 기준' : 'Evaluation Basis',
-          message: isKo
-              ? '선택한 기간 기준으로 코칭합니다.\n기준 기간: ${_formatDateWithWeekday(periodStart, true)} ~ ${_formatDateWithWeekday(periodEnd, true)}\n위 기간의 훈련 시간과 횟수로 평가합니다.'
-              : 'Coaching is based on selected date range.\nRange: ${_formatDateWithWeekday(periodStart, false)} ~ ${_formatDateWithWeekday(periodEnd, false)}\nEvaluation uses training time and sessions in this range.',
-          strong: true,
-        ),
-        const SizedBox(height: 8),
-        _CoachMessage(
           icon: Icons.date_range_outlined,
           title: isKo ? '기간 코칭' : 'Period Coaching',
           message: periodAdvice,
@@ -523,25 +514,6 @@ class _DevelopmentCoachCard extends StatelessWidget {
     if (days <= 1) return _CoachPeriod.daily;
     if (days <= 14) return _CoachPeriod.weekly;
     return _CoachPeriod.monthly;
-  }
-
-  String _formatDateWithWeekday(DateTime date, bool isKo) {
-    const koWeekdays = <String>['월', '화', '수', '목', '금', '토', '일'];
-    const enWeekdays = <String>[
-      'Mon',
-      'Tue',
-      'Wed',
-      'Thu',
-      'Fri',
-      'Sat',
-      'Sun'
-    ];
-    final weekday =
-        isKo ? koWeekdays[date.weekday - 1] : enWeekdays[date.weekday - 1];
-    final y = date.year.toString().padLeft(4, '0');
-    final m = date.month.toString().padLeft(2, '0');
-    final d = date.day.toString().padLeft(2, '0');
-    return isKo ? '$y.$m.$d($weekday)' : '$y-$m-$d ($weekday)';
   }
 
   String _buildPeriodAdvice({
@@ -689,34 +661,42 @@ class _TargetGrowthChart extends StatelessWidget {
     final periodStart =
         DateTime(range.start.year, range.start.month, range.start.day);
     final periodEnd = DateTime(range.end.year, range.end.month, range.end.day);
-    final periodDays = periodEnd.difference(periodStart).inDays + 1;
-    final bucketDays = periodDays <= 21 ? 1 : 7;
-    final bucketStarts = <DateTime>[];
+    final dayPoints = <DateTime>[];
     var cursor = periodStart;
     while (!cursor.isAfter(periodEnd)) {
-      bucketStarts.add(cursor);
-      cursor = cursor.add(Duration(days: bucketDays));
+      dayPoints.add(cursor);
+      cursor = cursor.add(const Duration(days: 1));
     }
 
     final actualSpots = <FlSpot>[];
     final targetSpots = <FlSpot>[];
     final labels = <int, String>{};
-    for (var i = 0; i < bucketStarts.length; i++) {
-      final start = bucketStarts[i];
-      final end = start.add(Duration(days: bucketDays));
+    final workedDays = <DateTime>{};
+    final dailyTarget = (target.weeklyMinutesTarget / 7).round();
+    final labelStep =
+        dayPoints.length <= 10 ? 1 : (dayPoints.length <= 20 ? 2 : 3);
+
+    for (var i = 0; i < dayPoints.length; i++) {
+      final start = dayPoints[i];
+      final end = start.add(const Duration(days: 1));
       final minutes = entries
           .where((e) => !e.date.isBefore(start) && e.date.isBefore(end))
           .fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+      if (minutes > 0) workedDays.add(start);
       actualSpots.add(FlSpot(i.toDouble(), minutes.toDouble()));
       if (showAverage) {
-        final scaledTarget =
-            (target.weeklyMinutesTarget * bucketDays / 7).round();
-        targetSpots.add(FlSpot(i.toDouble(), scaledTarget.toDouble()));
+        targetSpots.add(FlSpot(i.toDouble(), dailyTarget.toDouble()));
       }
-      if (i == 0 || i == bucketStarts.length - 1 || i % 2 == 0) {
+      if (i == 0 || i == dayPoints.length - 1 || i % labelStep == 0) {
         labels[i] = '${start.month}/${start.day}';
       }
     }
+    final workedDateText = workedDays.toList()..sort((a, b) => a.compareTo(b));
+    final workedLabel = workedDateText.isEmpty
+        ? (isKo ? '운동한 날: 없음' : 'Workout days: none')
+        : (isKo
+            ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
+            : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -790,14 +770,19 @@ class _TargetGrowthChart extends StatelessWidget {
           children: [
             _LegendDot(
               color: const Color(0xFF3DDC84),
-              label: isKo ? '실제 훈련 시간' : 'Actual time',
+              label: isKo ? '실제 훈련 시간(일)' : 'Actual time (daily)',
             ),
             if (showAverage)
               _LegendDot(
                 color: const Color(0xFFFFC857),
-                label: isKo ? '평균 목표 시간' : 'Average target time',
+                label: isKo ? '평균 목표 시간(일)' : 'Average target time (daily)',
               ),
           ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          workedLabel,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );
@@ -1247,13 +1232,11 @@ class _CoachMessage extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
-  final bool strong;
 
   const _CoachMessage({
     required this.icon,
     required this.title,
     required this.message,
-    this.strong = false,
   });
 
   @override
@@ -1289,7 +1272,7 @@ class _CoachMessage extends StatelessWidget {
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         height: 1.45,
-                        fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight: FontWeight.w500,
                       ),
                 ),
               ],
