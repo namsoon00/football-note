@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Football Training Log';
 
   @override
-  String get tabLogs => 'Logs';
+  String get tabLogs => 'Training Logs';
 
   @override
   String get tabCalendar => 'Calendar';

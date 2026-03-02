@@ -15,10 +15,7 @@ import '../../domain/repositories/option_repository.dart';
 class ProfileScreen extends StatefulWidget {
   final OptionRepository optionRepository;
 
-  const ProfileScreen({
-    super.key,
-    required this.optionRepository,
-  });
+  const ProfileScreen({super.key, required this.optionRepository});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -31,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late final TextEditingController _weightController;
 
   String _photoPath = '';
+  String _gender = '';
   DateTime? _birthDate;
   DateTime? _soccerStartDate;
   Timer? _saveDebounce;
@@ -48,6 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       text: _formatEditableNumber(profile.weightKg),
     );
     _photoPath = profile.photoUrl;
+    _gender = profile.gender;
     _birthDate = profile.birthDate;
     _soccerStartDate = profile.soccerStartDate;
   }
@@ -65,35 +64,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isKo ? '유저 프로필' : 'Player Profile'),
-      ),
+      appBar: AppBar(title: Text(isKo ? '유저 프로필' : 'Player Profile')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Row(
             children: [
-              _ProfileAvatar(
-                photoSource: _photoPath,
-                onTap: _pickProfilePhoto,
-              ),
+              _ProfileAvatar(photoSource: _photoPath, onTap: _pickProfilePhoto),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  _nameController.text.trim().isEmpty
-                      ? (isKo ? '이름을 입력해 주세요' : 'Enter player name')
-                      : _nameController.text.trim(),
-                  style: Theme.of(context).textTheme.titleMedium,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _nameController.text.trim().isEmpty
+                          ? (isKo ? '이름을 입력해 주세요' : 'Enter player name')
+                          : _nameController.text.trim(),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _genderLabel(_gender, isKo),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
+              if (_photoPath.isNotEmpty)
+                IconButton(
+                  tooltip: isKo ? '사진 삭제' : 'Remove photo',
+                  onPressed: () {
+                    setState(() => _photoPath = '');
+                    _scheduleAutoSave();
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                ),
             ],
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _nameController,
-            decoration: InputDecoration(
-              labelText: isKo ? '이름' : 'Name',
-            ),
+            decoration: InputDecoration(labelText: isKo ? '이름' : 'Name'),
             onChanged: (_) {
               setState(() {});
               _scheduleAutoSave();
@@ -134,18 +145,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: _photoPath.isEmpty
-                  ? null
-                  : () {
-                      setState(() => _photoPath = '');
-                      _scheduleAutoSave();
-                    },
-              icon: const Icon(Icons.delete_outline),
-              label: Text(isKo ? '사진 삭제' : 'Remove photo'),
-            ),
+          DropdownButtonFormField<String>(
+            initialValue: _gender.isEmpty ? null : _gender,
+            decoration: InputDecoration(labelText: isKo ? '성별' : 'Gender'),
+            items: [
+              DropdownMenuItem<String>(
+                value: '',
+                child: Text(isKo ? '미입력' : 'Not set'),
+              ),
+              DropdownMenuItem<String>(
+                value: 'male',
+                child: Text(isKo ? '남성' : 'Male'),
+              ),
+              DropdownMenuItem<String>(
+                value: 'female',
+                child: Text(isKo ? '여성' : 'Female'),
+              ),
+              DropdownMenuItem<String>(
+                value: 'other',
+                child: Text(isKo ? '기타' : 'Other'),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() => _gender = value ?? '');
+              _scheduleAutoSave();
+            },
           ),
           const SizedBox(height: 4),
           ListTile(
@@ -217,6 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         soccerStartDate: _soccerStartDate,
         heightCm: _parseDouble(_heightController.text),
         weightKg: _parseDouble(_weightController.text),
+        gender: _gender,
       );
       await _profileService.save(profile);
     } catch (_) {
@@ -246,6 +271,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return rounded
         .replaceFirst(RegExp(r'0+$'), '')
         .replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  String _genderLabel(String value, bool isKo) {
+    return switch (value) {
+      'male' => isKo ? '남성' : 'Male',
+      'female' => isKo ? '여성' : 'Female',
+      'other' => isKo ? '기타' : 'Other',
+      _ => isKo ? '성별 미입력' : 'Gender not set',
+    };
   }
 
   static final TextInputFormatter _decimalInputFormatter =
@@ -349,11 +383,7 @@ class _ProfileAvatar extends StatelessWidget {
                   width: 2,
                 ),
               ),
-              child: const Icon(
-                Icons.edit,
-                size: 13,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.edit, size: 13, color: Colors.white),
             ),
           ),
         ],

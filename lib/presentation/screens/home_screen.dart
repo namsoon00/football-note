@@ -129,15 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: _index >= 2
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _openCreate(
-                initialDate: _index == 1 ? _calendarSelectedDay : null,
-              ),
-              icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context)!.addEntry),
-            ),
+      floatingActionButton: null,
     );
   }
 

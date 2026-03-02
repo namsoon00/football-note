@@ -8,6 +8,7 @@ class PlayerProfileService {
   static const _soccerStartDateKey = 'profile_soccer_start_date';
   static const _heightCmKey = 'profile_height_cm';
   static const _weightKgKey = 'profile_weight_kg';
+  static const _genderKey = 'profile_gender';
 
   final OptionRepository _options;
 
@@ -23,6 +24,7 @@ class PlayerProfileService {
       soccerStartDate: _tryParseIsoDate(startRaw),
       heightCm: _tryParseDouble(_options.getValue(_heightCmKey)),
       weightKg: _tryParseDouble(_options.getValue(_weightKgKey)),
+      gender: _options.getValue<String>(_genderKey) ?? '',
     );
   }
 
@@ -39,6 +41,7 @@ class PlayerProfileService {
     );
     await _options.setValue(_heightCmKey, profile.heightCm?.toString() ?? '');
     await _options.setValue(_weightKgKey, profile.weightKg?.toString() ?? '');
+    await _options.setValue(_genderKey, profile.gender.trim());
   }
 
   int? ageInYears(PlayerProfile profile, DateTime now) {
@@ -73,7 +76,8 @@ class PlayerProfileService {
   int? _elapsedYears(DateTime? start, DateTime now) {
     if (start == null || start.isAfter(now)) return null;
     var years = now.year - start.year;
-    final beforeAnniversary = now.month < start.month ||
+    final beforeAnniversary =
+        now.month < start.month ||
         (now.month == start.month && now.day < start.day);
     if (beforeAnniversary) years -= 1;
     return years < 0 ? null : years;

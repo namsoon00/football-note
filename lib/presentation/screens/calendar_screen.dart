@@ -81,8 +81,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _calendarExpanded =
         widget.optionRepository.getValue<bool>(_calendarExpandedKey) ?? true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onSelectedDayChanged
-          ?.call(_normalizeDay(_selectedDay ?? _focusedDay));
+      widget.onSelectedDayChanged?.call(
+        _normalizeDay(_selectedDay ?? _focusedDay),
+      );
     });
     unawaited(_syncPlanReminders());
   }
@@ -119,6 +120,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final selected = _normalizeDay(_selectedDay ?? _focusedDay);
               final dayEntries = entryMap[selected] ?? const <TrainingEntry>[];
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
+              final hasDaySchedule =
+                  dayEntries.isNotEmpty || dayPlans.isNotEmpty;
+              final isCalendarExpanded = hasDaySchedule || _calendarExpanded;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -130,9 +134,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -207,7 +211,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   AnimatedSize(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
-                    child: _calendarExpanded
+                    child: isCalendarExpanded
                         ? Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: WatchCartCard(
@@ -234,8 +238,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       _selectedDay = selectedDay;
                                       _focusedDay = focusedDay;
                                     });
-                                    widget.onSelectedDayChanged
-                                        ?.call(_normalizeDay(selectedDay));
+                                    widget.onSelectedDayChanged?.call(
+                                      _normalizeDay(selectedDay),
+                                    );
                                   },
                                   eventLoader: (day) {
                                     final key = _normalizeDay(day);
@@ -284,22 +289,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                      final key = _normalizeDay(day);
-                                      return _CalendarStatusDayCell(
-                                        dayNumber: day.day,
-                                        status: _bestStatusForDay(
-                                          entryMap[key] ??
-                                              const <TrainingEntry>[],
-                                        ),
-                                        isSelected: true,
-                                        isToday: isSameDay(
-                                          day,
-                                          DateTime.now(),
-                                        ),
-                                        isHoliday:
-                                            isKo && holidayMap.containsKey(key),
-                                      );
-                                    },
+                                          final key = _normalizeDay(day);
+                                          return _CalendarStatusDayCell(
+                                            dayNumber: day.day,
+                                            status: _bestStatusForDay(
+                                              entryMap[key] ??
+                                                  const <TrainingEntry>[],
+                                            ),
+                                            isSelected: true,
+                                            isToday: isSameDay(
+                                              day,
+                                              DateTime.now(),
+                                            ),
+                                            isHoliday:
+                                                isKo &&
+                                                holidayMap.containsKey(key),
+                                          );
+                                        },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
@@ -378,12 +384,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 6, bottom: 2),
                     child: GestureDetector(
-                      onTap: () => _setCalendarExpanded(!_calendarExpanded),
+                      onTap: hasDaySchedule
+                          ? () => _setCalendarExpanded(!isCalendarExpanded)
+                          : null,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            _calendarExpanded
+                            isCalendarExpanded
                                 ? Icons.keyboard_arrow_up
                                 : Icons.keyboard_arrow_down,
                             size: 18,
@@ -391,10 +399,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           const SizedBox(width: 4),
                           Text(
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? (_calendarExpanded ? '캘린더 접기' : '캘린더 펼치기')
-                                : (_calendarExpanded
-                                    ? 'Collapse calendar'
-                                    : 'Expand calendar'),
+                                ? (isCalendarExpanded ? '캘린더 접기' : '캘린더 펼치기')
+                                : (isCalendarExpanded
+                                      ? 'Collapse calendar'
+                                      : 'Expand calendar'),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -414,14 +422,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                       onDeleteEntry: _confirmDeleteEntry,
                       onDeletePlan: _confirmDeletePlan,
-                      onAddPlan: () => _openPlanSheet(day: selected),
                       onListScrollUp: () {
-                        if (_calendarExpanded) {
+                        if (isCalendarExpanded) {
                           _setCalendarExpanded(false);
                         }
                       },
                       onListReachedBottom: () {
-                        if (!_calendarExpanded) {
+                        if (!isCalendarExpanded) {
                           _setCalendarExpanded(true);
                         }
                       },
@@ -620,9 +627,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         );
                         Navigator.of(context).pop(
                           _TrainingPlan(
-                            id: editingPlan?.id ??
-                                DateTime.now()
-                                    .microsecondsSinceEpoch
+                            id:
+                                editingPlan?.id ??
+                                DateTime.now().microsecondsSinceEpoch
                                     .toString(),
                             scheduledAt: scheduledAt,
                             category: category,
@@ -863,10 +870,10 @@ class _CalendarStatusDayCell extends StatelessWidget {
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-            ? Colors.red.shade400.withAlpha(170)
-            : (isToday
-                ? colorScheme.primary.withAlpha(150)
-                : Colors.transparent));
+              ? Colors.red.shade400.withAlpha(170)
+              : (isToday
+                    ? colorScheme.primary.withAlpha(150)
+                    : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -937,7 +944,6 @@ class _DayTimeline extends StatelessWidget {
   final ValueChanged<_TrainingPlan> onEditPlan;
   final Future<bool> Function(TrainingEntry) onDeleteEntry;
   final ValueChanged<_TrainingPlan> onDeletePlan;
-  final VoidCallback onAddPlan;
   final VoidCallback onListScrollUp;
   final VoidCallback onListReachedBottom;
 
@@ -949,7 +955,6 @@ class _DayTimeline extends StatelessWidget {
     required this.onEditPlan,
     required this.onDeleteEntry,
     required this.onDeletePlan,
-    required this.onAddPlan,
     required this.onListScrollUp,
     required this.onListReachedBottom,
   });
@@ -988,12 +993,6 @@ class _DayTimeline extends StatelessWidget {
               const SizedBox(height: 8),
             ],
             Text(isKo ? '이 날짜의 기록이 없습니다.' : 'No records for this day.'),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: onAddPlan,
-              icon: const Icon(Icons.add_alarm_outlined),
-              label: Text(isKo ? '훈련 계획 추가' : 'Add training plan'),
-            ),
           ],
         ),
       );
@@ -1164,8 +1163,9 @@ class _EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final locationText =
-        entry.location.trim().isNotEmpty ? entry.location.trim() : '-';
+    final locationText = entry.location.trim().isNotEmpty
+        ? entry.location.trim()
+        : '-';
     final durationText = _formatDurationText(
       entry.durationMinutes,
       isKo: isKo,
@@ -1316,7 +1316,8 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',
