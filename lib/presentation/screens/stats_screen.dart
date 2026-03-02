@@ -13,7 +13,6 @@ import '../widgets/app_background.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
-import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/app_drawer.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'average_benchmark_screen.dart';
@@ -188,110 +187,92 @@ class _StatsScreenState extends State<StatsScreen> {
           ),
           const SizedBox(height: 16),
           if (topMessage != null) ...[
-            WatchCartCard(child: Text(topMessage)),
+            _InlineNotice(text: topMessage),
             const SizedBox(height: 12),
           ],
           if (entries.isEmpty) ...[
-            WatchCartCard(
-              child: Text(
-                isKo
-                    ? '아직 통계가 없어요. 훈련일지를 1개 이상 기록하면 자동으로 표시됩니다.'
-                    : 'No stats yet. Add at least one training entry to see analytics.',
-              ),
+            _InlineNotice(
+              text: isKo
+                  ? '아직 통계가 없어요. 훈련일지를 1개 이상 기록하면 자동으로 표시됩니다.'
+                  : 'No stats yet. Add at least one training entry to see analytics.',
             ),
             const SizedBox(height: 12),
           ] else ...[
             if (!canShowAverage) ...[
-              WatchCartCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isKo
-                          ? '나이/구력 정보를 입력해 주세요'
-                          : 'Enter age and soccer experience',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      isKo
-                          ? '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.'
-                          : 'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.',
-                    ),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _openProfile(context),
-                        icon: const Icon(Icons.person_outline),
-                        label: Text(isKo ? '프로필 입력하기' : 'Open Profile'),
-                      ),
-                    ),
-                  ],
+              _InlineNotice(
+                text: isKo
+                    ? '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.'
+                    : 'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.',
+                title: isKo
+                    ? '나이/구력 정보를 입력해 주세요'
+                    : 'Enter age and soccer experience',
+                trailing: Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _openProfile(context),
+                    icon: const Icon(Icons.person_outline),
+                    label: Text(isKo ? '프로필 입력하기' : 'Open Profile'),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
             ],
-            WatchCartCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _DevelopmentCoachCard(
-                    entries: entries,
-                    ageYears: ageYears,
-                    soccerYears: soccerYears,
-                    isKo: isKo,
-                    showAverage: canShowAverage,
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(
-                    height: 1,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outline
-                        .withValues(alpha: 0.25),
-                  ),
-                  const SizedBox(height: 16),
-                  _TargetGrowthChart(
-                    entries: entries,
-                    ageYears: ageYears,
-                    soccerYears: soccerYears,
-                    isKo: isKo,
-                    showAverage: canShowAverage,
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(
-                    height: 1,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outline
-                        .withValues(alpha: 0.25),
-                  ),
-                  const SizedBox(height: 16),
-                  _BodyAndLiftingBenchmarkCard(
-                    entries: entries,
-                    profile: profile,
-                    ageYears: ageYears,
-                    isKo: isKo,
-                    benchmarkService: _benchmarkService,
-                    showAverage: canShowAverage,
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(
-                    height: 1,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outline
-                        .withValues(alpha: 0.25),
-                  ),
-                  const SizedBox(height: 16),
-                  _LiftingSummaryCard(
-                    entries: entries,
-                  ),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _DevelopmentCoachCard(
+                  entries: entries,
+                  ageYears: ageYears,
+                  soccerYears: soccerYears,
+                  isKo: isKo,
+                  showAverage: canShowAverage,
+                ),
+                const SizedBox(height: 18),
+                Divider(
+                  height: 1,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.25),
+                ),
+                const SizedBox(height: 18),
+                _TargetGrowthChart(
+                  entries: entries,
+                  ageYears: ageYears,
+                  soccerYears: soccerYears,
+                  isKo: isKo,
+                  showAverage: canShowAverage,
+                ),
+                const SizedBox(height: 18),
+                Divider(
+                  height: 1,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.25),
+                ),
+                const SizedBox(height: 18),
+                _BodyAndLiftingBenchmarkCard(
+                  entries: entries,
+                  profile: profile,
+                  ageYears: ageYears,
+                  isKo: isKo,
+                  benchmarkService: _benchmarkService,
+                  showAverage: canShowAverage,
+                ),
+                const SizedBox(height: 18),
+                Divider(
+                  height: 1,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.25),
+                ),
+                const SizedBox(height: 18),
+                _LiftingSummaryCard(
+                  entries: entries,
+                ),
+              ],
             ),
           ],
         ],
@@ -952,44 +933,30 @@ class _LiftingSummaryCard extends StatelessWidget {
           Text(isKo ? '리프팅 기록이 없습니다.' : 'No lifting records.')
         else
           ...sorted.map(
-            (entry) {
-              final max =
-                  sorted.first.value.count <= 0 ? 1 : sorted.first.value.count;
-              final ratio = entry.value.count / max;
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(_partLabel(entry.key, isKo)),
-                        Text(
-                          isKo
-                              ? '${entry.value.count}회 · ${_dateText(entry.value.date)}'
-                              : '${entry.value.count} · ${_dateText(entry.value.date)}',
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+            (entry) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _partLabel(entry.key, isKo),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Text(
+                    isKo ? '${entry.value.count}회' : '${entry.value.count}',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    _dateText(entry.value.date),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: LinearProgressIndicator(
-                        value: ratio.clamp(0.0, 1.0),
-                        minHeight: 7,
-                        color: const Color(0xFF4DD0E1),
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.12),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                  ),
+                ],
+              ),
+            ),
           ),
       ],
     );
@@ -1038,6 +1005,62 @@ class _LiftingSummaryCard extends StatelessWidget {
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');
     return '$y.$m.$d';
+  }
+}
+
+class _InlineNotice extends StatelessWidget {
+  final String text;
+  final String? title;
+  final Widget? trailing;
+
+  const _InlineNotice({
+    required this.text,
+    this.title,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final outline =
+        Theme.of(context).colorScheme.outline.withValues(alpha: 0.3);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            width: 3,
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.75),
+          ),
+        ),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null) ...[
+            Text(
+              title!,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 6),
+          ],
+          Text(text),
+          if (trailing != null) ...[
+            const SizedBox(height: 8),
+            trailing!,
+          ],
+          const SizedBox(height: 2),
+          Divider(height: 1, color: outline),
+        ],
+      ),
+    );
   }
 }
 
