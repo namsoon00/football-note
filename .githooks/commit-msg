@@ -1,5 +1,9 @@
 #!/bin/sh
-# Require an issue number in commit messages, e.g. "#123" or "fix #123".
+# Require an issue number in commit messages, and auto-append a close keyword.
+# Example commit:
+#   feat: improve stats readability (#123)
+# Auto-added line:
+#   Closes #123
 
 MSG_FILE="$1"
 MSG="$(cat "$MSG_FILE")"
@@ -11,6 +15,12 @@ case "$MSG" in
 esac
 
 if printf '%s' "$MSG" | grep -Eiq '#[0-9]+'; then
+  ISSUE_NUM="$(printf '%s' "$MSG" | sed -nE 's/.*#([0-9]+).*/\1/p' | head -n1)"
+  if [ -n "$ISSUE_NUM" ] && [ "$ISSUE_NUM" != "0" ]; then
+    if ! printf '%s' "$MSG" | grep -Eiq '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#[0-9]+'; then
+      printf '\nCloses #%s\n' "$ISSUE_NUM" >> "$MSG_FILE"
+    fi
+  fi
   exit 0
 fi
 

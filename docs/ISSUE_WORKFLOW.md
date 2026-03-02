@@ -18,6 +18,7 @@ Use GitHub Issues as the remote task source and keep this repo aligned automatic
 
 ## Enforced rules
 - Commit message must include `#<issue_number>`.
+- If a commit includes `#<issue_number>`, hook auto-appends `Closes #<issue_number>` (except `#0`).
 - Hook file: `.githooks/commit-msg`
 - Hook setup command:
 

@@ -50,6 +50,9 @@ This repo supports issue-driven remote tasking.
 feat: add profile card spacing (#123)
 ```
 
+Issue number가 들어간 커밋은 훅이 `Closes #123` 라인을 자동으로 붙여
+해당 이슈가 자동 종료되도록 설정되어 있습니다 (`#0` 제외).
+
 3. Issue queue is synced automatically every 30 minutes by GitHub Actions:
 
 - workflow: `.github/workflows/issue-queue-sync.yml`
