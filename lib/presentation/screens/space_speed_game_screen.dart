@@ -130,6 +130,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   List<GameRankingEntry> _rankingHistory = const [];
   Offset _joystickInput = Offset.zero;
   bool _joystickActive = false;
+  bool _passPressed = false;
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
   double get _paceScale => (0.30 + ((_level - 1) * 0.035)).clamp(0.30, 1.0);
@@ -1378,12 +1379,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   void _cancelCharge() {
     if (!_charging) return;
-    setState(() {
-      _charging = false;
-      _chargeStartedAt = null;
-      _chargedBallSpeed = _ballMinSpeed;
-      _effectiveBallSpeed = _ballMinSpeed;
-    });
+    _charging = false;
+    _chargeStartedAt = null;
+    _chargedBallSpeed = _ballMinSpeed;
+    _effectiveBallSpeed = _ballMinSpeed;
+    _passPressed = false;
   }
 
   void _onSuccess() {
@@ -1440,6 +1440,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _chargeStartedAt = null;
     _joystickInput = Offset.zero;
     _joystickActive = false;
+    _passPressed = false;
     _gameStarted = false;
     _timeUp = true;
     _endedByFail = failed;
@@ -1539,6 +1540,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _chargeStartedAt = null;
     _joystickInput = Offset.zero;
     _joystickActive = false;
+    _passPressed = false;
     _gameStarted = false;
     _endedByFail = true;
     _timeUp = true;
@@ -1593,6 +1595,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _aimY = _targetY;
     _joystickInput = Offset.zero;
     _joystickActive = false;
+    _passPressed = false;
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
     _forwardWindow = false;
@@ -1612,19 +1615,47 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
-  void _onJoystickStart(DragStartDetails details) {
-    if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) return;
-    setState(() {
-      _joystickActive = true;
-    });
-  }
-
-  void _onJoystickEnd([DragEndDetails? _]) {
+  void _onJoystickEnd() {
     if (!_joystickActive && _joystickInput.distanceSquared <= 0.0001) return;
     setState(() {
       _joystickActive = false;
       _joystickInput = Offset.zero;
     });
+  }
+
+  void _updateJoystickFromLocal(Offset local) {
+    const center = Offset(44, 44);
+    const radius = 34.0;
+    final delta = local - center;
+    final dist = delta.distance;
+    final clamped = dist <= radius ? delta : delta * (radius / dist);
+    _joystickInput = Offset(clamped.dx / radius, clamped.dy / radius);
+    _joystickActive = true;
+  }
+
+  void _onPassDown() {
+    if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
+      return;
+    }
+    _passPressed = true;
+    _beginCharge();
+  }
+
+  void _onPassUp() {
+    final wasPressed = _passPressed;
+    _passPressed = false;
+    if (!wasPressed) return;
+    if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
+      return;
+    }
+    _releaseChargeAndPass();
+  }
+
+  void _onPassCancel() {
+    _passPressed = false;
+    if (_charging) {
+      _cancelCharge();
+    }
   }
 
   _ForwardPassInfo _forwardPassInfo(double targetX, double targetY) {
@@ -2271,25 +2302,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     return Positioned(
       left: 12,
       bottom: 12,
-      child: GestureDetector(
-        onPanStart: _onJoystickStart,
-        onPanUpdate: (details) {
-          if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) {
-            return;
-          }
-          final local = details.localPosition;
-          const center = Offset(44, 44);
-          final delta = local - center;
-          const radius = 34.0;
-          final dist = delta.distance;
-          final clamped = dist <= radius ? delta : delta * (radius / dist);
-          setState(() {
-            _joystickInput = Offset(clamped.dx / radius, clamped.dy / radius);
-            _joystickActive = true;
-          });
+      child: Listener(
+        onPointerDown: (event) {
+          if (!_gameStarted || _timeUp || _ballFlying) return;
+          setState(() => _updateJoystickFromLocal(event.localPosition));
         },
-        onPanEnd: _onJoystickEnd,
-        onPanCancel: () => _onJoystickEnd(),
+        onPointerMove: (event) {
+          if (!_gameStarted || _timeUp || _ballFlying) return;
+          setState(() => _updateJoystickFromLocal(event.localPosition));
+        },
+        onPointerUp: (_) => _onJoystickEnd(),
+        onPointerCancel: (_) => _onJoystickEnd(),
         child: SizedBox(
           width: 88,
           height: 88,
@@ -2299,11 +2322,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF0B1F2E).withAlpha(210),
+                  color: const Color(0xFF1F2A35).withAlpha(220),
                   border: Border.all(
                     color: _joystickActive
-                        ? const Color(0xFF4DD0E1)
-                        : Colors.white.withAlpha(130),
+                        ? const Color(0xFF8FA3B8)
+                        : Colors.white.withAlpha(110),
                   ),
                 ),
               ),
@@ -2314,13 +2337,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   height: 34,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFFFEE58),
+                    color: const Color(0xFF9AA7B5),
                     border: Border.all(color: Colors.black.withAlpha(90)),
                   ),
                   child: const Icon(
-                    Icons.sports_soccer,
+                    Icons.sports_esports,
                     size: 16,
-                    color: Color(0xFF142437),
+                    color: Color(0xFF12202D),
                   ),
                 ),
               ),
@@ -2335,28 +2358,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     return Positioned(
       right: 12,
       bottom: 12,
-      child: GestureDetector(
-        onTapDown: (_) {
-          if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) {
-            return;
-          }
-          setState(_beginCharge);
-        },
-        onTapUp: (_) {
-          if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) {
-            return;
-          }
-          setState(_releaseChargeAndPass);
-        },
-        onTapCancel: _cancelCharge,
+      child: Listener(
+        onPointerDown: (_) => setState(_onPassDown),
+        onPointerUp: (_) => setState(_onPassUp),
+        onPointerCancel: (_) => setState(_onPassCancel),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          width: 110,
-          height: 66,
+          duration: const Duration(milliseconds: 90),
+          width: 88,
+          height: 88,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            shape: BoxShape.circle,
             color:
-                _charging ? const Color(0xFF2F80ED) : const Color(0xFF1E88E5),
+                _passPressed ? const Color(0xFF6F7E8D) : const Color(0xFF8795A4),
             border: Border.all(color: Colors.white.withAlpha(190)),
             boxShadow: [
               BoxShadow(
@@ -2367,14 +2380,21 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             ],
           ),
           child: Center(
-            child: Text(
-              isKo ? '패스' : 'PASS',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 18,
-                letterSpacing: 0.6,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.sports_soccer, color: Colors.white, size: 28),
+                const SizedBox(height: 2),
+                Text(
+                  isKo ? '패스' : 'PASS',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
