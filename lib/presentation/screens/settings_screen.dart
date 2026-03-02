@@ -446,8 +446,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : const Color.fromRGBO(210, 220, 245, 1);
     return Padding(
       padding: EdgeInsets.only(top: topSpacing, bottom: bottomSpacing),
-      child: SizedBox(
-        height: height,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: height),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth.isFinite
