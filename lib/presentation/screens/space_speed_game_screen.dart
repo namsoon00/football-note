@@ -111,8 +111,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double _targetY = 0.36;
   double _aimX = 0.60;
   double _aimY = 0.36;
-  double? _pointerX;
-  double? _pointerY;
   double _predReceiverTime = 0;
   double _idealBallSpeed = _ballMinSpeed;
   double _effectiveBallSpeed = _ballMinSpeed;
@@ -130,8 +128,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   IconData _reactionIcon = Icons.adjust;
   bool _attackerAIsPasser = true;
   List<GameRankingEntry> _rankingHistory = const [];
+  Offset _joystickInput = Offset.zero;
+  bool _joystickActive = false;
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
+  double get _paceScale => (0.30 + ((_level - 1) * 0.035)).clamp(0.30, 1.0);
 
   double get _pitchZoom {
     if (_finalShotMode) return 1.28;
@@ -514,370 +515,329 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     builder: (context, constraints) {
                       final width = constraints.maxWidth;
                       final height = constraints.maxHeight;
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTapDown: (details) => _onFieldPointerDown(
-                            details.localPosition, width, height),
-                        onTapUp: (details) => _onFieldPointerUp(
-                            details.localPosition, width, height),
-                        onPanStart: (details) => _onFieldPointerDown(
-                            details.localPosition, width, height),
-                        onPanUpdate: (details) {
-                          if (!_gameStarted ||
-                              _phase != _PlayPhase.ready ||
-                              _ballFlying) {
-                            return;
-                          }
-                          setState(() {
-                            _updatePointerFromLocal(
-                                details.localPosition, width, height);
-                            _updateAimFromLocal(
-                                details.localPosition, width, height);
-                          });
-                        },
-                        onPanEnd: (_) {
-                          setState(() {
-                            _releaseChargeAndPass();
-                            _pointerX = null;
-                            _pointerY = null;
-                          });
-                        },
-                        onPanCancel: _cancelCharge,
-                        child: AnimatedScale(
-                          scale: _pitchZoom,
-                          duration: const Duration(milliseconds: 260),
-                          curve: Curves.easeOutCubic,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF132B3E),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                  color:
-                                      const Color(0xFF4DD0E1).withAlpha(180)),
+                      return AnimatedScale(
+                        scale: _pitchZoom,
+                        duration: const Duration(milliseconds: 260),
+                        curve: Curves.easeOutCubic,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF132B3E),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFF4DD0E1).withAlpha(180),
                             ),
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: _MovingPitchPainter(
+                                    scroll: _fieldScrollX,
+                                  ),
+                                ),
+                              ),
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: _ReceiverLanePainter(
+                                    receiverX: _activeReceiverX,
+                                    receiverY: _activeReceiverY,
+                                    vx: _activeReceiverVx,
+                                    vy: _activeReceiverVy,
+                                  ),
+                                ),
+                              ),
+                              if (_goalChanceActive)
+                                const Positioned.fill(
                                   child: CustomPaint(
-                                    painter: _MovingPitchPainter(
-                                      scroll: _fieldScrollX,
+                                    painter: _GoalPainter(
+                                      goalLineX: _goalLineX,
+                                      goalTopY: _goalTopY,
+                                      goalBottomY: _goalBottomY,
                                     ),
                                   ),
                                 ),
-                                Positioned.fill(
-                                  child: CustomPaint(
-                                    painter: _ReceiverLanePainter(
-                                      receiverX: _activeReceiverX,
-                                      receiverY: _activeReceiverY,
-                                      vx: _activeReceiverVx,
-                                      vy: _activeReceiverVy,
-                                    ),
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: _GuidePainter(
+                                    fromX: _activePasserX,
+                                    fromY: _activePasserY,
+                                    toX: showTargetX,
+                                    toY: showTargetY,
+                                    color: const Color(0xB34DD0E1),
                                   ),
                                 ),
-                                if (_goalChanceActive)
-                                  const Positioned.fill(
-                                    child: CustomPaint(
-                                      painter: _GoalPainter(
-                                        goalLineX: _goalLineX,
-                                        goalTopY: _goalTopY,
-                                        goalBottomY: _goalBottomY,
-                                      ),
-                                    ),
-                                  ),
-                                Positioned.fill(
-                                  child: CustomPaint(
-                                    painter: _GuidePainter(
-                                      fromX: _activePasserX,
-                                      fromY: _activePasserY,
-                                      toX: showTargetX,
-                                      toY: showTargetY,
-                                      color: const Color(0xB34DD0E1),
-                                    ),
+                              ),
+                              Positioned(
+                                left: showTargetX * width - 10,
+                                top: showTargetY * height - 10,
+                                child: Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: const Color(0xFFFFE082),
+                                        width: 2),
+                                    color: const Color(0x55FFE082),
                                   ),
                                 ),
+                              ),
+                              _entity(
+                                context,
+                                x: _passerXPos,
+                                y: _passerYPos,
+                                size: 23,
+                                color: const Color(0xFFFFD54F),
+                                label: isKo ? '공격수 A' : 'Attacker A',
+                                width: width,
+                                height: height,
+                                emphasize: _attackerAIsPasser,
+                                roleTag: _attackerAIsPasser
+                                    ? (isKo ? '패스' : 'PASS')
+                                    : (isKo ? '다음' : 'NEXT'),
+                              ),
+                              _entity(
+                                context,
+                                x: _receiverX,
+                                y: _receiverY,
+                                size: 23,
+                                color: const Color(0xFFFFC107),
+                                label: isKo ? '공격수 B' : 'Attacker B',
+                                width: width,
+                                height: height,
+                                emphasize: !_attackerAIsPasser,
+                                roleTag: !_attackerAIsPasser
+                                    ? (isKo ? '패스' : 'PASS')
+                                    : (isKo ? '다음' : 'NEXT'),
+                              ),
+                              if (_reactionLabel.isNotEmpty)
                                 Positioned(
-                                  left: showTargetX * width - 10,
-                                  top: showTargetY * height - 10,
+                                  top: 8,
+                                  left: 10,
+                                  right: 10,
                                   child: Container(
-                                    width: 20,
-                                    height: 20,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: const Color(0xFFFFE082),
-                                          width: 2),
-                                      color: const Color(0x55FFE082),
+                                      color: _reactionColor.withAlpha(230),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                  ),
-                                ),
-                                _entity(
-                                  context,
-                                  x: _passerXPos,
-                                  y: _passerYPos,
-                                  size: 23,
-                                  color: const Color(0xFFFFD54F),
-                                  label: isKo ? '공격수 A' : 'Attacker A',
-                                  width: width,
-                                  height: height,
-                                  emphasize: _attackerAIsPasser,
-                                  roleTag: _attackerAIsPasser
-                                      ? (isKo ? '패스' : 'PASS')
-                                      : (isKo ? '다음' : 'NEXT'),
-                                ),
-                                _entity(
-                                  context,
-                                  x: _receiverX,
-                                  y: _receiverY,
-                                  size: 23,
-                                  color: const Color(0xFFFFC107),
-                                  label: isKo ? '공격수 B' : 'Attacker B',
-                                  width: width,
-                                  height: height,
-                                  emphasize: !_attackerAIsPasser,
-                                  roleTag: !_attackerAIsPasser
-                                      ? (isKo ? '패스' : 'PASS')
-                                      : (isKo ? '다음' : 'NEXT'),
-                                ),
-                                if (_reactionLabel.isNotEmpty)
-                                  Positioned(
-                                    top: 8,
-                                    left: 10,
-                                    right: 10,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: _reactionColor.withAlpha(230),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Icon(
-                                                      _reactionIcon,
-                                                      color: Colors.white,
-                                                      size: 18,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: Text(
-                                                        _reactionLabel,
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.w800,
-                                                          fontSize: 14,
-                                                        ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    _reactionIcon,
+                                                    color: Colors.white,
+                                                    size: 18,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      _reactionLabel,
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        fontSize: 14,
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                if (_reactionDetail
-                                                    .isNotEmpty) ...[
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    _reactionDetail,
-                                                    textAlign: TextAlign.center,
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      height: 1.2,
                                                     ),
                                                   ),
                                                 ],
+                                              ),
+                                              if (_reactionDetail
+                                                  .isNotEmpty) ...[
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  _reactionDetail,
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    height: 1.2,
+                                                  ),
+                                                ),
                                               ],
-                                            ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                for (var i = 0; i < _defenders.length; i++)
-                                  _entity(
-                                    context,
-                                    x: _defenders[i].x,
-                                    y: _defenders[i].y,
-                                    size: 21,
-                                    color: _defenders[i].ghostType.color,
-                                    label: isKo
-                                        ? _defenders[i].ghostType.labelKo
-                                        : _defenders[i].ghostType.labelEn,
-                                    width: width,
-                                    height: height,
-                                    roleTag:
-                                        _defenders[i].ghostType.roleTag(isKo),
-                                  ),
-                                if (_goalChanceActive)
-                                  _entity(
-                                    context,
-                                    x: _goalLineX - 0.01,
-                                    y: _keeperY,
-                                    size: 22,
-                                    color: const Color(0xFFFF6B6B),
-                                    label: isKo ? 'GK' : 'GK',
-                                    width: width,
-                                    height: height,
-                                  ),
+                                ),
+                              for (var i = 0; i < _defenders.length; i++)
                                 _entity(
                                   context,
-                                  x: _ballX,
-                                  y: _ballY,
-                                  size: 12,
-                                  color: Colors.white,
-                                  label: '',
+                                  x: _defenders[i].x,
+                                  y: _defenders[i].y,
+                                  size: 21,
+                                  color: _defenders[i].ghostType.color,
+                                  label: isKo
+                                      ? _defenders[i].ghostType.labelKo
+                                      : _defenders[i].ghostType.labelEn,
+                                  width: width,
+                                  height: height,
+                                  roleTag:
+                                      _defenders[i].ghostType.roleTag(isKo),
+                                ),
+                              if (_goalChanceActive)
+                                _entity(
+                                  context,
+                                  x: _goalLineX - 0.01,
+                                  y: _keeperY,
+                                  size: 22,
+                                  color: const Color(0xFFFF6B6B),
+                                  label: isKo ? 'GK' : 'GK',
                                   width: width,
                                   height: height,
                                 ),
-                                if (_charging &&
-                                    _pointerX != null &&
-                                    _pointerY != null)
-                                  Positioned(
-                                    left: (_pointerX! * width - 30)
-                                        .clamp(6.0, width - 66.0),
-                                    top: (_pointerY! * height - 64)
-                                        .clamp(6.0, height - 54.0),
-                                    child: _PointerGauge(
-                                      ratio: _chargeRatio,
-                                      isKo: isKo,
-                                    ),
+                              _entity(
+                                context,
+                                x: _ballX,
+                                y: _ballY,
+                                size: 12,
+                                color: Colors.white,
+                                label: '',
+                                width: width,
+                                height: height,
+                              ),
+                              if (_charging)
+                                Positioned(
+                                  right: 14,
+                                  bottom: 116,
+                                  child: _PointerGauge(
+                                    ratio: _chargeRatio,
+                                    isKo: isKo,
                                   ),
-                                if (!_gameStarted || _timeUp)
-                                  Positioned.fill(
-                                    child: Container(
-                                      color: Colors.black.withAlpha(96),
-                                      padding: const EdgeInsets.fromLTRB(
-                                          20, 24, 20, 28),
-                                      child: Column(
-                                        children: [
-                                          const Spacer(),
-                                          Container(
-                                            constraints: const BoxConstraints(
-                                                maxWidth: 320),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 14,
-                                            ),
-                                            decoration: BoxDecoration(
+                                ),
+                              _buildJoystickControl(context),
+                              _buildPassButton(context, isKo: isKo),
+                              if (!_gameStarted || _timeUp)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.black.withAlpha(96),
+                                    padding: const EdgeInsets.fromLTRB(
+                                        20, 24, 20, 28),
+                                    child: Column(
+                                      children: [
+                                        const Spacer(),
+                                        Container(
+                                          constraints: const BoxConstraints(
+                                              maxWidth: 320),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 14,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .surface
+                                                .withValues(alpha: 0.97),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            border: Border.all(
                                               color: Theme.of(context)
                                                   .colorScheme
-                                                  .surface
-                                                  .withValues(alpha: 0.97),
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              border: Border.all(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withValues(alpha: 0.8),
-                                                width: 1.3,
+                                                  .primary
+                                                  .withValues(alpha: 0.8),
+                                              width: 1.3,
+                                            ),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Color(0x66000000),
+                                                blurRadius: 16,
+                                                offset: Offset(0, 8),
                                               ),
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                  color: Color(0x66000000),
-                                                  blurRadius: 16,
-                                                  offset: Offset(0, 8),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                if (_timeUp || _endedByFail)
-                                                  Text(
-                                                    isKo
-                                                        ? (_endedByFail
-                                                            ? '경기 종료'
-                                                            : '최종 결과')
-                                                        : (_endedByFail
-                                                            ? 'Match Over'
-                                                            : 'Final Result'),
-                                                    style: const TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                    ),
-                                                  ),
-                                                if (_timeUp || _endedByFail)
-                                                  const SizedBox(height: 12),
-                                                if (_timeUp || _endedByFail)
-                                                  Column(
-                                                    children: [
-                                                      Text(
-                                                        isKo
-                                                            ? '랭킹 ${_finalRanking.isEmpty ? _rankingLabel(_rankScore, isKo) : _finalRanking}'
-                                                            : 'Rank ${_finalRanking.isEmpty ? _rankingLabel(_rankScore, isKo) : _finalRanking}',
-                                                        style: TextStyle(
-                                                          fontSize: 18,
-                                                          fontWeight:
-                                                              FontWeight.w900,
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .colorScheme
-                                                                  .primary,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 6),
-                                                      Text(
-                                                        isKo
-                                                            ? '점수 $_score  레벨 Lv.$_level  골 $_goals'
-                                                            : 'Score $_score  Level Lv.$_level  Goals $_goals',
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                          height: 14),
-                                                    ],
-                                                  ),
-                                                FilledButton.icon(
-                                                  onPressed: _startGame,
-                                                  icon: const Icon(
-                                                    Icons.play_arrow_rounded,
-                                                    size: 24,
-                                                  ),
-                                                  label: Text(
-                                                    isKo
-                                                        ? '게임 시작'
-                                                        : 'Start Game',
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      fontSize: 16,
-                                                    ),
-                                                  ),
-                                                  style: FilledButton.styleFrom(
-                                                    minimumSize:
-                                                        const Size.fromHeight(
-                                                            52),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              14),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (_timeUp || _endedByFail)
+                                                Text(
+                                                  isKo
+                                                      ? (_endedByFail
+                                                          ? '경기 종료'
+                                                          : '최종 결과')
+                                                      : (_endedByFail
+                                                          ? 'Match Over'
+                                                          : 'Final Result'),
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                              if (_timeUp || _endedByFail)
+                                                const SizedBox(height: 12),
+                                              if (_timeUp || _endedByFail)
+                                                Column(
+                                                  children: [
+                                                    Text(
+                                                      isKo
+                                                          ? '랭킹 ${_finalRanking.isEmpty ? _rankingLabel(_rankScore, isKo) : _finalRanking}'
+                                                          : 'Rank ${_finalRanking.isEmpty ? _rankingLabel(_rankScore, isKo) : _finalRanking}',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .primary,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      isKo
+                                                          ? '점수 $_score  레벨 Lv.$_level  골 $_goals'
+                                                          : 'Score $_score  Level Lv.$_level  Goals $_goals',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 14),
+                                                  ],
+                                                ),
+                                              FilledButton.icon(
+                                                onPressed: _startGame,
+                                                icon: const Icon(
+                                                  Icons.play_arrow_rounded,
+                                                  size: 24,
+                                                ),
+                                                label: Text(
+                                                  isKo ? '게임 시작' : 'Start Game',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w800,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                style: FilledButton.styleFrom(
+                                                  minimumSize:
+                                                      const Size.fromHeight(52),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            14),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                              ],
-                            ),
+                                ),
+                            ],
                           ),
                         ),
                       );
@@ -936,6 +896,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         }
         _fieldScrollX = (_fieldScrollX + (_dt * 0.42)) % 1.0;
         _updatePlayers();
+        if (!_gameStarted || _timeUp) return;
         _updateCharge();
         _updateBall();
       });
@@ -985,6 +946,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _updatePlayers() {
+    final paceScale = _paceScale;
     final comboBoost = (1 + (_combo * 0.05)).clamp(1.0, 1.8);
     final levelBoost = (1 + ((_level - 1) * 0.07)).clamp(1.0, 2.1);
     final runSpeed = (0.15 + ((_level - 1) * 0.01)).clamp(0.15, 0.33);
@@ -1031,16 +993,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _receiverVx += 0.018 * forwardBoostB;
     _passerVy += passerAvoidY * 0.045;
     _receiverVy += receiverAvoidY * 0.045;
+    _applyJoystickToActivePasser();
     _passerVx = _passerVx.clamp(0.11, (runSpeed + 0.10) * clutchBoost);
     _receiverVx = _receiverVx.clamp(0.12, (runSpeed + 0.12) * clutchBoost);
     _passerVy = _passerVy.clamp(-0.19, 0.19);
     _receiverVy = _receiverVy.clamp(-0.19, 0.19);
     _passerSpeedMul = 1.0;
     _receiverSpeedMul = 1.0;
-    _passerXPos += _passerVx * _dt;
-    _passerYPos += _passerVy * _dt;
-    _receiverX += _receiverVx * _dt;
-    _receiverY += _receiverVy * _dt;
+    _passerXPos += _passerVx * _dt * paceScale;
+    _passerYPos += _passerVy * _dt * paceScale;
+    _receiverX += _receiverVx * _dt * paceScale;
+    _receiverY += _receiverVy * _dt * paceScale;
 
     const minX = 0.22;
     const maxX = 0.80;
@@ -1103,17 +1066,24 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
           comboBoost *
           levelBoost *
           clutchBoost;
-      defender.x -= passBySpeed * _dt;
+      defender.x -= passBySpeed * _dt * paceScale;
       final lanePoint = _lanePointAtX(defender.x);
       final roleTargetY = _roleTargetY(defender, lanePoint.dy);
-      final lanePull =
-          (lanePoint.dy - defender.y) * defender.ghostType.lanePull * _dt;
-      final rolePull =
-          (roleTargetY - defender.y) * defender.ghostType.rolePull * _dt;
-      defender.y +=
-          (defender.vy * passBySpeed * defender.ghostType.wobbleFactor * _dt) +
-              lanePull +
-              rolePull;
+      final lanePull = (lanePoint.dy - defender.y) *
+          defender.ghostType.lanePull *
+          _dt *
+          paceScale;
+      final rolePull = (roleTargetY - defender.y) *
+          defender.ghostType.rolePull *
+          _dt *
+          paceScale;
+      defender.y += (defender.vy *
+              passBySpeed *
+              defender.ghostType.wobbleFactor *
+              _dt *
+              paceScale) +
+          lanePull +
+          rolePull;
       if (_random.nextDouble() <
           (defender.turnChance * defender.ghostType.turnFactor)) {
         defender.vy += (_random.nextDouble() * 2 - 1) * defender.turnRadians;
@@ -1160,6 +1130,51 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       }
       _fieldScrollX = (_fieldScrollX + (shift * 2.8)).remainder(1.0);
     }
+
+    _updateAutoAim();
+    if (_isActivePasserHitByGhost()) {
+      _onFail(_PassResult.passerHit);
+    }
+  }
+
+  void _applyJoystickToActivePasser() {
+    final input = _joystickInput;
+    if (input.distanceSquared <= 0.0001) return;
+    final controlX = input.dx.clamp(-1.0, 1.0);
+    final controlY = input.dy.clamp(-1.0, 1.0);
+    if (_attackerAIsPasser) {
+      _passerVx += controlX * 0.028;
+      _passerVy += controlY * 0.030;
+    } else {
+      _receiverVx += controlX * 0.028;
+      _receiverVy += controlY * 0.030;
+    }
+  }
+
+  void _updateAutoAim() {
+    if (_charging || _ballFlying) return;
+    if (_goalChanceActive) {
+      _aimX = _goalLineX;
+      final targetY = (_activePasserY + (_activeReceiverVy * 0.20))
+          .clamp(_goalTopY + 0.04, _goalBottomY - 0.04);
+      _aimY = targetY;
+      return;
+    }
+    _aimX = (_activeReceiverX + _leadDistance).clamp(_fieldMinX, _fieldMaxX);
+    _aimY = _activeReceiverY.clamp(_fieldMinY, _fieldMaxY);
+  }
+
+  bool _isActivePasserHitByGhost() {
+    if (_phase != _PlayPhase.ready || _ballFlying || !_gameStarted) {
+      return false;
+    }
+    for (final defender in _defenders) {
+      if (_distance(_activePasserX, _activePasserY, defender.x, defender.y) <=
+          0.050) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void _updateCharge() {
@@ -1177,9 +1192,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       return;
     }
 
+    final ballScale = (0.52 + (_paceScale * 0.48)).clamp(0.52, 1.0);
     _flightElapsed += _dt;
-    _ballX += _ballVx * _dt;
-    _ballY += _ballVy * _dt;
+    _ballX += _ballVx * _dt * ballScale;
+    _ballY += _ballVy * _dt * ballScale;
 
     final currentDistance =
         _distance(_ballX, _ballY, _activeReceiverX, _activeReceiverY);
@@ -1367,8 +1383,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _chargeStartedAt = null;
       _chargedBallSpeed = _ballMinSpeed;
       _effectiveBallSpeed = _ballMinSpeed;
-      _pointerX = null;
-      _pointerY = null;
     });
   }
 
@@ -1424,8 +1438,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballFlying = false;
     _charging = false;
     _chargeStartedAt = null;
-    _pointerX = null;
-    _pointerY = null;
+    _joystickInput = Offset.zero;
+    _joystickActive = false;
     _gameStarted = false;
     _timeUp = true;
     _endedByFail = failed;
@@ -1523,8 +1537,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballFlying = false;
     _charging = false;
     _chargeStartedAt = null;
-    _pointerX = null;
-    _pointerY = null;
+    _joystickInput = Offset.zero;
+    _joystickActive = false;
     _gameStarted = false;
     _endedByFail = true;
     _timeUp = true;
@@ -1577,8 +1591,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _targetY = _receiverY;
     _aimX = _targetX;
     _aimY = _targetY;
-    _pointerX = null;
-    _pointerY = null;
+    _joystickInput = Offset.zero;
+    _joystickActive = false;
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
     _forwardWindow = false;
@@ -1598,93 +1612,19 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
-  void _onFieldPointerDown(Offset local, double width, double height) {
+  void _onJoystickStart(DragStartDetails details) {
     if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) return;
     setState(() {
-      _updatePointerFromLocal(local, width, height);
-      _updateAimFromLocal(local, width, height);
-      _beginCharge();
+      _joystickActive = true;
     });
   }
 
-  void _onFieldPointerUp(Offset local, double width, double height) {
-    if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) return;
+  void _onJoystickEnd([DragEndDetails? _]) {
+    if (!_joystickActive && _joystickInput.distanceSquared <= 0.0001) return;
     setState(() {
-      _updatePointerFromLocal(local, width, height);
-      _updateAimFromLocal(local, width, height);
-      _releaseChargeAndPass();
-      _pointerX = null;
-      _pointerY = null;
+      _joystickActive = false;
+      _joystickInput = Offset.zero;
     });
-  }
-
-  void _updateAimFromLocal(Offset local, double width, double height) {
-    if (width <= 0 || height <= 0) return;
-    final nx = (local.dx / width).clamp(_fieldMinX, _fieldMaxX);
-    final ny = (local.dy / height).clamp(_fieldMinY, _fieldMaxY);
-    if (_goalChanceActive) {
-      _aimX = nx.clamp(0.72, _goalLineX);
-      _aimY = ny.clamp(_goalTopY, _goalBottomY);
-      return;
-    }
-    final end = _forwardOnlyTarget(_rayToBoundary(nx, ny));
-    _aimX = end.dx;
-    _aimY = end.dy;
-  }
-
-  Offset _forwardOnlyTarget(Offset target) {
-    final minForwardX = math.min(_fieldMaxX, _activePasserX + 0.06);
-    return Offset(
-      target.dx.clamp(minForwardX, _fieldMaxX),
-      target.dy.clamp(_fieldMinY, _fieldMaxY),
-    );
-  }
-
-  void _updatePointerFromLocal(Offset local, double width, double height) {
-    if (width <= 0 || height <= 0) return;
-    _pointerX = (local.dx / width).clamp(0.0, 1.0);
-    _pointerY = (local.dy / height).clamp(0.0, 1.0);
-  }
-
-  Offset _rayToBoundary(double aimX, double aimY) {
-    const minX = _fieldMinX;
-    const maxX = _fieldMaxX;
-    const minY = _fieldMinY;
-    const maxY = _fieldMaxY;
-
-    final sx = _activePasserX;
-    final sy = _activePasserY;
-    final dx = aimX - sx;
-    final dy = aimY - sy;
-    if (dx.abs() < 1e-6 && dy.abs() < 1e-6) {
-      return Offset(maxX, sy);
-    }
-
-    final candidates = <double>[];
-    if (dx.abs() > 1e-6) {
-      candidates.add((minX - sx) / dx);
-      candidates.add((maxX - sx) / dx);
-    }
-    if (dy.abs() > 1e-6) {
-      candidates.add((minY - sy) / dy);
-      candidates.add((maxY - sy) / dy);
-    }
-
-    double? bestT;
-    Offset? best;
-    for (final t in candidates) {
-      if (t <= 0) continue;
-      final x = sx + dx * t;
-      final y = sy + dy * t;
-      if (x < minX - 1e-6 || x > maxX + 1e-6) continue;
-      if (y < minY - 1e-6 || y > maxY + 1e-6) continue;
-      if (bestT == null || t < bestT) {
-        bestT = t;
-        best = Offset(x.clamp(minX, maxX), y.clamp(minY, maxY));
-      }
-    }
-
-    return best ?? Offset(aimX.clamp(minX, maxX), aimY.clamp(minY, maxY));
   }
 
   _ForwardPassInfo _forwardPassInfo(double targetX, double targetY) {
@@ -1869,6 +1809,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         _reactionDetail = _koText(
           '수비수에게 먼저 닿아 성공 패스로 인정되지 않았어요.',
           'Defender touched first, so this was not counted as a successful pass.',
+        );
+        return 0;
+      case _PassResult.passerHit:
+        _reactionIcon = Icons.warning_amber_rounded;
+        _reactionColor = const Color(0xFFEB5757);
+        _reactionLabel = _koText(
+          '패서 충돌  게임 종료',
+          'Passer hit  Game over',
+        );
+        _reactionDetail = _koText(
+          '패스하는 팩맨이 고스트와 충돌해 경기가 종료됐어요.',
+          'The passing Pac-Man collided with a ghost and the round ended.',
         );
         return 0;
       case _PassResult.saved:
@@ -2310,6 +2262,122 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => GameRankingScreen(entries: _rankingHistory),
+      ),
+    );
+  }
+
+  Widget _buildJoystickControl(BuildContext context) {
+    final knobOffset = Offset(_joystickInput.dx * 22, _joystickInput.dy * 22);
+    return Positioned(
+      left: 12,
+      bottom: 12,
+      child: GestureDetector(
+        onPanStart: _onJoystickStart,
+        onPanUpdate: (details) {
+          if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) {
+            return;
+          }
+          final local = details.localPosition;
+          const center = Offset(44, 44);
+          final delta = local - center;
+          const radius = 34.0;
+          final dist = delta.distance;
+          final clamped = dist <= radius ? delta : delta * (radius / dist);
+          setState(() {
+            _joystickInput = Offset(clamped.dx / radius, clamped.dy / radius);
+            _joystickActive = true;
+          });
+        },
+        onPanEnd: _onJoystickEnd,
+        onPanCancel: () => _onJoystickEnd(),
+        child: SizedBox(
+          width: 88,
+          height: 88,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF0B1F2E).withAlpha(210),
+                  border: Border.all(
+                    color: _joystickActive
+                        ? const Color(0xFF4DD0E1)
+                        : Colors.white.withAlpha(130),
+                  ),
+                ),
+              ),
+              Transform.translate(
+                offset: knobOffset,
+                child: Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFFFEE58),
+                    border: Border.all(color: Colors.black.withAlpha(90)),
+                  ),
+                  child: const Icon(
+                    Icons.sports_soccer,
+                    size: 16,
+                    color: Color(0xFF142437),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPassButton(BuildContext context, {required bool isKo}) {
+    return Positioned(
+      right: 12,
+      bottom: 12,
+      child: GestureDetector(
+        onTapDown: (_) {
+          if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) {
+            return;
+          }
+          setState(_beginCharge);
+        },
+        onTapUp: (_) {
+          if (!_gameStarted || _phase != _PlayPhase.ready || _ballFlying) {
+            return;
+          }
+          setState(_releaseChargeAndPass);
+        },
+        onTapCancel: _cancelCharge,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          width: 110,
+          height: 66,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color:
+                _charging ? const Color(0xFF2F80ED) : const Color(0xFF1E88E5),
+            border: Border.all(color: Colors.white.withAlpha(190)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(80),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              isKo ? '패스' : 'PASS',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -2819,6 +2887,7 @@ enum _PlayPhase {
 enum _PassResult {
   perfect,
   intercepted,
+  passerHit,
   saved,
   shotReady,
   goalUnlocked,
