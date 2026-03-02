@@ -620,13 +620,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 y: _passerYPos,
                                 size: 29,
                                 color: const Color(0xFFFFD54F),
-                                label: isKo ? '공격수 A' : 'Attacker A',
+                                label: '',
                                 width: width,
                                 height: height,
                                 emphasize: _attackerAIsPasser,
-                                roleTag: _attackerAIsPasser
-                                    ? (isKo ? '패스' : 'PASS')
-                                    : (isKo ? '다음' : 'NEXT'),
+                                roleTag: '',
                               ),
                               _entity(
                                 context,
@@ -634,13 +632,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 y: _receiverY,
                                 size: 29,
                                 color: const Color(0xFFFFC107),
-                                label: isKo ? '공격수 B' : 'Attacker B',
+                                label: '',
                                 width: width,
                                 height: height,
                                 emphasize: !_attackerAIsPasser,
-                                roleTag: !_attackerAIsPasser
-                                    ? (isKo ? '패스' : 'PASS')
-                                    : (isKo ? '다음' : 'NEXT'),
+                                roleTag: '',
                               ),
                               if (_reactionLabel.isNotEmpty)
                                 Positioned(
@@ -711,27 +707,24 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                   context,
                                   x: _defenders[i].x,
                                   y: _defenders[i].y,
-                                  size: 26,
+                                  size: 29,
                                   color: _defenders[i].ghostType.color,
-                                  label: isKo
-                                      ? _defenders[i].ghostType.labelKo
-                                      : _defenders[i].ghostType.labelEn,
+                                  label: '',
                                   width: width,
                                   height: height,
-                                  roleTag: _defenders[i].ghostType.roleTag(
-                                        isKo,
-                                      ),
+                                  roleTag: '',
                                 ),
                               if (_goalChanceActive)
                                 _entity(
                                   context,
                                   x: _goalLineX - 0.01,
                                   y: _keeperY,
-                                  size: 26,
+                                  size: 29,
                                   color: const Color(0xFFFF6B6B),
-                                  label: isKo ? 'GK' : 'GK',
+                                  label: '',
                                   width: width,
                                   height: height,
+                                  roleTag: '',
                                 ),
                               _entity(
                                 context,
@@ -3253,44 +3246,6 @@ extension _GhostTypeSpec on _GhostType {
     }
   }
 
-  String get labelKo {
-    switch (this) {
-      case _GhostType.blue:
-        return '수비(차단)';
-      case _GhostType.orange:
-        return '수비(압박)';
-      case _GhostType.red:
-        return '수비(마크)';
-      case _GhostType.pink:
-        return '수비(예측)';
-    }
-  }
-
-  String get labelEn {
-    switch (this) {
-      case _GhostType.blue:
-        return 'Blocker';
-      case _GhostType.orange:
-        return 'Presser';
-      case _GhostType.red:
-        return 'Marker';
-      case _GhostType.pink:
-        return 'Anticipator';
-    }
-  }
-
-  String roleTag(bool isKo) {
-    switch (this) {
-      case _GhostType.blue:
-        return isKo ? '차단' : 'BLOCK';
-      case _GhostType.orange:
-        return isKo ? '압박' : 'PRESS';
-      case _GhostType.red:
-        return isKo ? '마크' : 'MARK';
-      case _GhostType.pink:
-        return isKo ? '예측' : 'READ';
-    }
-  }
 }
 
 extension _GameDifficultySpec on _GameDifficulty {
