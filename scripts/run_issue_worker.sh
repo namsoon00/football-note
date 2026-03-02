@@ -18,6 +18,7 @@ CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
 CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
 USE_CUSTOM_CODEX_CMD="${USE_CUSTOM_CODEX_CMD:-0}"
 CODEX_UNSAFE="${CODEX_UNSAFE:-1}"
+FORCE_MAIN_MERGE="${FORCE_MAIN_MERGE:-1}"
 
 log() {
   echo "[issue-worker] $*"
@@ -176,5 +177,41 @@ fi
 
 log "Creating/updating PR"
 python3 scripts/create_or_update_pr.py
+
+if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
+  log "Force merging ${HEAD_BRANCH} into ${DEFAULT_BRANCH}"
+  git fetch origin "$DEFAULT_BRANCH" "$HEAD_BRANCH"
+  git checkout "$DEFAULT_BRANCH"
+  git pull --ff-only origin "$DEFAULT_BRANCH"
+  git config user.name "github-actions[bot]"
+  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+  if git merge --no-ff --no-edit "origin/$HEAD_BRANCH"; then
+    git push origin "$DEFAULT_BRANCH"
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -X PATCH \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" \
+      -d '{"state":"closed","state_reason":"completed"}' \
+      >/dev/null || true
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -X POST \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+      -d "{\"body\":\"자동 병합 완료: \`${HEAD_BRANCH}\` -> \`${DEFAULT_BRANCH}\`\\n이슈를 completed로 닫았습니다.\"}" \
+      >/dev/null || true
+  else
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -X POST \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+      -d "{\"body\":\"자동 main 병합 실패: 브랜치 충돌 또는 보호 규칙으로 병합되지 않았습니다. 수동 병합이 필요합니다.\"}" \
+      >/dev/null || true
+    exit 1
+  fi
+fi
 
 log "Done"

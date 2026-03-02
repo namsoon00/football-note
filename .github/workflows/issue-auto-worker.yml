@@ -39,6 +39,7 @@ jobs:
           CODEX_SANDBOX: ${{ vars.CODEX_SANDBOX }}
           CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
           CODEX_UNSAFE: ${{ vars.CODEX_UNSAFE }}
+          FORCE_MAIN_MERGE: ${{ vars.FORCE_MAIN_MERGE }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}
           AUTO_MERGE: ${{ vars.AUTO_MERGE }}
           AUTO_MERGE_METHOD: ${{ vars.AUTO_MERGE_METHOD }}
