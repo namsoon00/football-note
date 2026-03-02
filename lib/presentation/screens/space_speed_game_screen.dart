@@ -1078,6 +1078,16 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       -_playerJoystickMaxVy,
       _playerJoystickMaxVy,
     );
+    // Give the passer a short natural follow-through acceleration right after release.
+    if (_ballFlying && !_goalChanceActive) {
+      final flyingBoost = (0.010 + ((_level - 1) * 0.0015)).clamp(0.010, 0.022);
+      if (passerIsA) {
+        _passerVx = (_passerVx + flyingBoost).clamp(0.10, _playerJoystickMaxVx);
+      } else {
+        _receiverVx =
+            (_receiverVx + flyingBoost).clamp(0.10, _playerJoystickMaxVx);
+      }
+    }
     _passerSpeedMul = 1.0;
     _receiverSpeedMul = 1.0;
     _passerXPos += _passerVx * _dt * attackerPace;
@@ -1523,12 +1533,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final chargeRatio =
         ((_chargedBallSpeed - _ballMinSpeed) / (_ballMaxSpeed - _ballMinSpeed))
             .clamp(0.0, 1.0);
-    final forwardKick = (0.19 + (chargeRatio * 0.17)).clamp(0.19, 0.36);
+    final forwardKick = (0.24 + (chargeRatio * 0.20)).clamp(0.24, 0.44);
     final lateralKick = (passDirY * (0.05 + (chargeRatio * 0.04))).clamp(
       -0.12,
       0.12,
     );
-    const immediateStep = 0.010;
+    const immediateStep = 0.015;
 
     if (passerIsA) {
       _passerVx = math.max(_passerVx, forwardKick);
