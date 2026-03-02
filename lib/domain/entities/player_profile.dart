@@ -5,6 +5,7 @@ class PlayerProfile {
   final DateTime? soccerStartDate;
   final double? heightCm;
   final double? weightKg;
+  final String gender;
 
   const PlayerProfile({
     this.name = '',
@@ -13,6 +14,7 @@ class PlayerProfile {
     this.soccerStartDate,
     this.heightCm,
     this.weightKg,
+    this.gender = '',
   });
 
   bool get isEmpty =>
@@ -21,7 +23,8 @@ class PlayerProfile {
       birthDate == null &&
       soccerStartDate == null &&
       heightCm == null &&
-      weightKg == null;
+      weightKg == null &&
+      gender.trim().isEmpty;
 
   PlayerProfile copyWith({
     String? name,
@@ -30,6 +33,7 @@ class PlayerProfile {
     DateTime? soccerStartDate,
     double? heightCm,
     double? weightKg,
+    String? gender,
     bool clearBirthDate = false,
     bool clearSoccerStartDate = false,
     bool clearHeightCm = false,
@@ -44,6 +48,7 @@ class PlayerProfile {
           : (soccerStartDate ?? this.soccerStartDate),
       heightCm: clearHeightCm ? null : (heightCm ?? this.heightCm),
       weightKg: clearWeightKg ? null : (weightKg ?? this.weightKg),
+      gender: gender ?? this.gender,
     );
   }
 }

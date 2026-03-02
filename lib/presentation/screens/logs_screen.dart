@@ -109,16 +109,20 @@ class _LogsScreenState extends State<LogsScreen> {
               final l10n = AppLocalizations.of(context)!;
 
               return SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Builder(
                       builder: (context) => WatchCartAppBar(
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
-                        profilePhotoSource: widget.optionRepository
-                                .getValue<String>('profile_photo_url') ??
+                        profilePhotoSource:
+                            widget.optionRepository.getValue<String>(
+                              'profile_photo_url',
+                            ) ??
                             '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
@@ -157,16 +161,12 @@ class _LogsScreenState extends State<LogsScreen> {
                     if (allEntries.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Center(
-                          child: Text(l10n.noEntries),
-                        ),
+                        child: Center(child: Text(l10n.noEntries)),
                       )
                     else if (entries.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Center(
-                          child: Text(l10n.noResults),
-                        ),
+                        child: Center(child: Text(l10n.noResults)),
                       )
                     else if (_layout == _LogsLayout.card)
                       MasonryGridView.count(
@@ -507,8 +507,9 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -522,8 +523,10 @@ class _LogsScreenState extends State<LogsScreen> {
           isDense: true,
           filled: true,
           fillColor: fillColor,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: borderColor, width: 1.2),
@@ -595,9 +598,8 @@ class _LogsScreenState extends State<LogsScreen> {
   Future<void> _openProfile(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ProfileScreen(
-          optionRepository: widget.optionRepository,
-        ),
+        builder: (_) =>
+            ProfileScreen(optionRepository: widget.optionRepository),
       ),
     );
     if (mounted) setState(() {});
@@ -634,6 +636,11 @@ class _EntryCard extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
     final l10n = AppLocalizations.of(context)!;
+    final titleProgram = entry.type.isEmpty ? l10n.program : entry.type;
+    final titleLocation = entry.location.trim();
+    final titleText = titleLocation.isEmpty
+        ? titleProgram
+        : '$titleProgram · $titleLocation';
 
     return Material(
       color: Colors.transparent,
@@ -647,20 +654,20 @@ class _EntryCard extends StatelessWidget {
             children: [
               Text(
                 dateText,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize: 12,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontSize: 12),
               ),
               const SizedBox(height: 6),
-              Center(
-                child: _EntryImage(entry: entry),
-              ),
+              Center(child: _EntryImage(entry: entry)),
               const SizedBox(height: 6),
               Text(
-                entry.type.isEmpty ? l10n.program : entry.type,
+                titleText,
                 textAlign: TextAlign.center,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -726,6 +733,9 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
+    final locationText = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
 
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -733,7 +743,8 @@ class _EntryListItem extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         leading: _StatusIcon(status: entry.status),
         title: Text(
-            '${entry.type.isEmpty ? l10n.program : entry.type} · $durationText'),
+          '${entry.type.isEmpty ? l10n.program : entry.type} · $durationText · $locationText',
+        ),
         subtitle: Text(
           [
             '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
@@ -822,11 +833,7 @@ class _EntryImage extends StatelessWidget {
           color: status.color.withAlpha(30),
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          status.icon,
-          size: 28,
-          color: status.color,
-        ),
+        child: Icon(status.icon, size: 28, color: status.color),
       );
     }
 
@@ -845,11 +852,7 @@ class _EntryImage extends StatelessWidget {
                 width: 92,
                 height: 92,
                 color: status.color.withAlpha(20),
-                child: Icon(
-                  status.icon,
-                  size: 28,
-                  color: status.color,
-                ),
+                child: Icon(status.icon, size: 28, color: status.color),
               );
             },
           ),

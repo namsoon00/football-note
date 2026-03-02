@@ -41,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late List<int> _ratingOptions;
   late List<String> _locationOptions;
   late List<String> _programOptions;
+  late List<String> _injuryPartOptions;
 
   late int _defaultDuration;
   late int _defaultIntensity;
@@ -78,39 +79,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
       const [0, 30, 45, 60, 75, 90, 120],
     );
     _ratingOptions = const [1, 2, 3, 4, 5];
-    _locationOptions = widget.optionRepository.getOptions(
-      'locations',
-      [
-        l10n.defaultLocation1,
-        l10n.defaultLocation2,
-        l10n.defaultLocation3,
-      ],
-    );
-    _programOptions = widget.optionRepository.getOptions(
-      'programs',
-      [
-        l10n.defaultProgram1,
-        l10n.defaultProgram2,
-        l10n.defaultProgram3,
-        l10n.defaultProgram4,
-      ],
-    );
+    _locationOptions = widget.optionRepository.getOptions('locations', [
+      l10n.defaultLocation1,
+      l10n.defaultLocation2,
+      l10n.defaultLocation3,
+    ]);
+    _programOptions = widget.optionRepository.getOptions('programs', [
+      l10n.defaultProgram1,
+      l10n.defaultProgram2,
+      l10n.defaultProgram3,
+      l10n.defaultProgram4,
+    ]);
+    _injuryPartOptions = widget.optionRepository.getOptions('injury_parts', [
+      l10n.defaultInjury1,
+      l10n.defaultInjury2,
+      l10n.defaultInjury3,
+      l10n.defaultInjury4,
+      l10n.defaultInjury5,
+    ]);
 
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-            _durationOptions.first;
+        _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
         widget.optionRepository.getValue<int>('default_condition') ?? 3;
     _defaultLocation =
         widget.optionRepository.getValue<String>('default_location') ??
-            _locationOptions.first;
+        _locationOptions.first;
     _defaultProgram =
         widget.optionRepository.getValue<String>('default_program') ??
-            _programOptions.first;
-    _newsBlockedDomains =
-        widget.optionRepository.getOptions('news_blocked_domains', const []);
+        _programOptions.first;
+    _newsBlockedDomains = widget.optionRepository.getOptions(
+      'news_blocked_domains',
+      const [],
+    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -167,7 +171,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
                   icon: const Icon(Icons.cloud_upload_outlined),
                   label: Text(
-                      _backupBusy ? l10n.backupInProgress : l10n.backupToDrive),
+                    _backupBusy ? l10n.backupInProgress : l10n.backupToDrive,
+                  ),
                   style: _elevatedActionStyle(),
                 ),
                 const SizedBox(height: 8),
@@ -188,8 +193,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _autoOnSave,
                   onChanged: (value) async {
                     setState(() => _autoOnSave = value);
-                    await widget.driveBackupService!
-                        .setAutoOnSaveEnabled(value);
+                    await widget.driveBackupService!.setAutoOnSaveEnabled(
+                      value,
+                    );
                   },
                 ),
                 if (widget.driveBackupService!.getLastBackup() != null) ...[
@@ -200,7 +206,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: Text(l10n.lastBackup),
                     subtitle: Text(
                       _formatBackupTime(
-                          widget.driveBackupService!.getLastBackup()!),
+                        widget.driveBackupService!.getLastBackup()!,
+                      ),
                     ),
                   ),
                 ],
@@ -217,8 +224,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed:
-                      _restoreBusy ? null : () => _restoreFromDrive(l10n),
+                  onPressed: _restoreBusy
+                      ? null
+                      : () => _restoreFromDrive(l10n),
                   icon: const Icon(Icons.cloud_download_outlined),
                   label: Text(
                     _restoreBusy
@@ -229,7 +237,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _restoreBusy ||
+                  onPressed:
+                      _restoreBusy ||
                           !widget.driveBackupService!.hasLocalPreRestoreBackup()
                       ? null
                       : () => _restoreLocalBackup(l10n),
@@ -267,11 +276,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               : l10n.languageEnglish,
                           onChanged: (value) {
                             if (value == 'ko') {
-                              widget.localeService
-                                  .setLocale(const Locale('ko', 'KR'));
+                              widget.localeService.setLocale(
+                                const Locale('ko', 'KR'),
+                              );
                             } else {
-                              widget.localeService
-                                  .setLocale(const Locale('en'));
+                              widget.localeService.setLocale(
+                                const Locale('en'),
+                              );
                             }
                           },
                           height: 56,
@@ -285,7 +296,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           options: const [
                             ThemeMode.system,
                             ThemeMode.light,
-                            ThemeMode.dark
+                            ThemeMode.dark,
                           ],
                           optionLabel: (value) {
                             switch (value) {
@@ -382,8 +393,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.reminderTime),
-                subtitle:
-                    Text(widget.settingsService.reminderTime.format(context)),
+                subtitle: Text(
+                  widget.settingsService.reminderTime.format(context),
+                ),
                 trailing: const Icon(Icons.access_time),
                 onTap: () async {
                   final picked = await showTimePicker(
@@ -417,10 +429,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           childrenPadding: const EdgeInsets.only(bottom: 6),
           initiallyExpanded: initiallyExpanded,
           leading: Icon(icon),
-          title: Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          title: Text(title, style: Theme.of(context).textTheme.titleSmall),
           children: children,
         ),
       ),
@@ -433,14 +442,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required List<T> options,
     required String Function(T value) optionLabel,
     required ValueChanged<T> onChanged,
-    double height = 50,
-    double topSpacing = 2,
-    double bottomSpacing = 12,
+    double height = 60,
+    double topSpacing = 6,
+    double bottomSpacing = 8,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -459,11 +469,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               label: Text(label),
               textStyle: TextStyle(fontSize: 14, color: onSurface),
               inputDecorationTheme: InputDecorationTheme(
-                isDense: true,
                 filled: true,
                 fillColor: fillColor,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: borderColor, width: 1.2),
@@ -481,8 +493,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               dropdownMenuEntries: options
-                  .map((option) => DropdownMenuEntry(
-                      value: option, label: optionLabel(option)))
+                  .map(
+                    (option) => DropdownMenuEntry(
+                      value: option,
+                      label: optionLabel(option),
+                    ),
+                  )
                   .toList(),
               onSelected: (value) {
                 if (value != null) onChanged(value);
@@ -495,16 +511,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText =
-        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
+    final defaultDurationText = _defaultDuration <= 0
+        ? l10n.notSet
+        : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           isKo ? '기본값' : 'Default values',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         _buildDefaultTile(
@@ -584,9 +601,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 12),
         Text(
           isKo ? '일지 항목 관리' : 'Journal option manager',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         _buildOptionManagerTile(
@@ -604,8 +621,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() => _durationOptions = updated);
               if (!_durationOptions.contains(_defaultDuration)) {
                 final fallback = _durationOptions.first;
-                await widget.optionRepository
-                    .setValue('default_duration', fallback);
+                await widget.optionRepository.setValue(
+                  'default_duration',
+                  fallback,
+                );
                 if (!mounted) return;
                 setState(() => _defaultDuration = fallback);
               }
@@ -624,8 +643,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() => _locationOptions = updated);
               if (!_locationOptions.contains(_defaultLocation)) {
                 final fallback = _locationOptions.first;
-                await widget.optionRepository
-                    .setValue('default_location', fallback);
+                await widget.optionRepository.setValue(
+                  'default_location',
+                  fallback,
+                );
                 if (!mounted) return;
                 setState(() => _defaultLocation = fallback);
               }
@@ -644,11 +665,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() => _programOptions = updated);
               if (!_programOptions.contains(_defaultProgram)) {
                 final fallback = _programOptions.first;
-                await widget.optionRepository
-                    .setValue('default_program', fallback);
+                await widget.optionRepository.setValue(
+                  'default_program',
+                  fallback,
+                );
                 if (!mounted) return;
                 setState(() => _defaultProgram = fallback);
               }
+            },
+          ),
+        ),
+        _buildOptionManagerTile(
+          title: isKo ? '부상 부위 옵션' : 'Injury part options',
+          subtitle: '${_injuryPartOptions.length}${isKo ? '개 항목' : ' items'}',
+          onTap: () => _manageStringOptions(
+            key: 'injury_parts',
+            title: isKo ? '부상 부위 옵션 관리' : 'Manage injury part options',
+            options: _injuryPartOptions,
+            minKeep: 1,
+            onSaved: (updated) async {
+              setState(() => _injuryPartOptions = updated);
             },
           ),
         ),
@@ -869,8 +905,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized =
-                            sanitize == null ? added : sanitize(added);
+                        final normalized = sanitize == null
+                            ? added
+                            : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1049,9 +1086,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ButtonStyle(
       minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
       padding: WidgetStateProperty.all(
-          const EdgeInsets.symmetric(horizontal: 20, vertical: 14)),
+        const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      ),
       textStyle: WidgetStateProperty.all(
-          const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
@@ -1075,16 +1114,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ButtonStyle(
       minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
       padding: WidgetStateProperty.all(
-          const EdgeInsets.symmetric(horizontal: 20, vertical: 14)),
+        const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      ),
       textStyle: WidgetStateProperty.all(
-          const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       side: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
           return const BorderSide(
-              color: WatchCartConstants.primaryColor, width: 2);
+            color: WatchCartConstants.primaryColor,
+            width: 2,
+          );
         }
         return BorderSide(
           color: WatchCartConstants.primaryColor.withAlpha(160),
@@ -1098,7 +1141,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return null;
       }),
       overlayColor: WidgetStateProperty.all(
-          WatchCartConstants.primaryColor.withAlpha(30)),
+        WatchCartConstants.primaryColor.withAlpha(30),
+      ),
       splashFactory: InkRipple.splashFactory,
     );
   }
@@ -1128,21 +1172,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await widget.driveBackupService!.backup();
       await _refreshSignInState();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.backupSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.backupSuccess)));
     } catch (e, st) {
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
           : l10n.backupFailed;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
         setState(() => _backupBusy = false);
@@ -1178,21 +1223,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _refreshSignInState();
       if (!mounted) return;
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.restoreSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.restoreSuccess)));
     } catch (e, st) {
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
           : l10n.restoreFailed;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
         setState(() => _restoreBusy = false);
@@ -1227,14 +1273,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       widget.settingsService.load();
       if (!mounted) return;
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.restoreLocalSuccess)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.restoreLocalSuccess)));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.restoreLocalFailed)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.restoreLocalFailed)));
     } finally {
       if (mounted) {
         setState(() => _restoreBusy = false);
@@ -1264,8 +1310,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   bool _isYesterday(DateTime date, DateTime now) {
-    final yesterday = DateTime(now.year, now.month, now.day)
-        .subtract(const Duration(days: 1));
+    final yesterday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 1));
     return date.year == yesterday.year &&
         date.month == yesterday.month &&
         date.day == yesterday.day;

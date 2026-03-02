@@ -19,21 +19,21 @@ class WatchCartHomeOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final actionColor = theme.colorScheme.primary;
+    final actionBorder = isDark
+        ? theme.colorScheme.primary.withValues(alpha: 0.58)
+        : const Color.fromRGBO(230, 230, 230, 1);
     return Row(
       children: [
-        _OptionButton(
-          icon: Icons.search,
-          onTap: onSearch,
-        ),
+        _OptionButton(icon: Icons.search, onTap: onSearch),
         const SizedBox(width: 12),
-        _OptionButton(
-          icon: Icons.tune,
-          onTap: onFilter,
-        ),
+        _OptionButton(icon: Icons.tune, onTap: onFilter),
         const SizedBox(width: 12),
         Expanded(
           child: Material(
-            color: WatchCartConstants.primaryColor,
+            color: actionColor,
             borderRadius: BorderRadius.circular(8.0),
             child: InkWell(
               onTap: onAdd,
@@ -45,9 +45,7 @@ class WatchCartHomeOptions extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
-                  border: Border.all(
-                    color: const Color.fromRGBO(230, 230, 230, 1),
-                  ),
+                  border: Border.all(color: actionBorder),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -70,14 +68,14 @@ class WatchCartHomeOptions extends StatelessWidget {
                       child: Center(
                         child: Text(
                           badgeCount.toString(),
-                          style: const TextStyle(
-                            color: WatchCartConstants.primaryColor,
+                          style: TextStyle(
+                            color: actionColor,
                             fontWeight: FontWeight.w600,
                             fontSize: 14.0,
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -110,9 +108,7 @@ class _OptionButton extends StatelessWidget {
           height: 60.0,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(
-              color: const Color.fromRGBO(230, 230, 230, 1),
-            ),
+            border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
           ),
           child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
         ),

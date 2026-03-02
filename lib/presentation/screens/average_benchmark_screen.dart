@@ -42,101 +42,110 @@ class AverageBenchmarkScreen extends StatelessWidget {
           sum +
           e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
     );
-    final avgLiftPerSession =
-        entries.isEmpty ? 0.0 : totalLifts.toDouble() / entries.length;
+    final avgLiftPerSession = entries.isEmpty
+        ? 0.0
+        : totalLifts.toDouble() / entries.length;
 
     final now = DateTime.now();
     final recent = entries
         .where((e) => e.date.isAfter(now.subtract(const Duration(days: 28))))
         .toList();
-    final recentMinutes =
-        recent.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+    final recentMinutes = recent.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
     final avgWeeklyMinutes = recentMinutes / 4;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isKo ? '평균 비교' : 'Average Benchmarks'),
-      ),
+      appBar: AppBar(title: Text(isKo ? '평균 비교' : 'Average Benchmarks')),
       body: AppBackground(
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-            children: [
-              WatchCartCard(
-                child: _MetricRow(
-                  isKo: isKo,
-                  icon: Icons.height_outlined,
-                  title: isKo ? '키' : 'Height',
-                  current: latestHeight == null
-                      ? (isKo ? '미입력' : 'Not set')
-                      : '${latestHeight.toStringAsFixed(1)} cm',
-                  average: '${bodyAvg.heightCmAvg.toStringAsFixed(1)} cm',
-                  gap: latestHeight == null
-                      ? (isKo ? '비교 불가' : 'N/A')
-                      : _gapText(latestHeight - bodyAvg.heightCmAvg, isKo),
-                ),
-              ),
-              const SizedBox(height: 10),
-              WatchCartCard(
-                child: _MetricRow(
-                  isKo: isKo,
-                  icon: Icons.monitor_weight_outlined,
-                  title: isKo ? '몸무게' : 'Weight',
-                  current: latestWeight == null
-                      ? (isKo ? '미입력' : 'Not set')
-                      : '${latestWeight.toStringAsFixed(1)} kg',
-                  average: '${bodyAvg.weightKgAvg.toStringAsFixed(1)} kg',
-                  gap: latestWeight == null
-                      ? (isKo ? '비교 불가' : 'N/A')
-                      : _gapText(latestWeight - bodyAvg.weightKgAvg, isKo),
-                ),
-              ),
-              const SizedBox(height: 10),
-              WatchCartCard(
-                child: _MetricRow(
-                  isKo: isKo,
-                  icon: Icons.sports_soccer_outlined,
-                  title: isKo ? '리프팅(세션 평균)' : 'Lifting (per session)',
-                  current: isKo
-                      ? '${avgLiftPerSession.toStringAsFixed(1)}회'
-                      : '${avgLiftPerSession.toStringAsFixed(1)} reps',
-                  average: isKo
-                      ? '${bodyAvg.liftsPerSessionAvg}회'
-                      : '${bodyAvg.liftsPerSessionAvg} reps',
-                  gap: _gapText(
-                    avgLiftPerSession - bodyAvg.liftsPerSessionAvg,
-                    isKo,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
+                children: [
+                  WatchCartCard(
+                    child: _MetricRow(
+                      isKo: isKo,
+                      icon: Icons.height_outlined,
+                      title: isKo ? '키' : 'Height',
+                      current: latestHeight == null
+                          ? (isKo ? '미입력' : 'Not set')
+                          : '${latestHeight.toStringAsFixed(1)} cm',
+                      average: '${bodyAvg.heightCmAvg.toStringAsFixed(1)} cm',
+                      gap: latestHeight == null
+                          ? (isKo ? '비교 불가' : 'N/A')
+                          : _gapText(latestHeight - bodyAvg.heightCmAvg, isKo),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              WatchCartCard(
-                child: _MetricRow(
-                  isKo: isKo,
-                  icon: Icons.timer_outlined,
-                  title: isKo ? '훈련량(최근 4주 평균)' : 'Training (last 4-week avg)',
-                  current: isKo
-                      ? '${avgWeeklyMinutes.toStringAsFixed(0)}분/주'
-                      : '${avgWeeklyMinutes.toStringAsFixed(0)} min/week',
-                  average: isKo
-                      ? '${trainingAvg.weeklyMinutesTarget}분/주'
-                      : '${trainingAvg.weeklyMinutesTarget} min/week',
-                  gap: _gapText(
-                    avgWeeklyMinutes - trainingAvg.weeklyMinutesTarget,
-                    isKo,
+                  const SizedBox(height: 8),
+                  WatchCartCard(
+                    child: _MetricRow(
+                      isKo: isKo,
+                      icon: Icons.monitor_weight_outlined,
+                      title: isKo ? '몸무게' : 'Weight',
+                      current: latestWeight == null
+                          ? (isKo ? '미입력' : 'Not set')
+                          : '${latestWeight.toStringAsFixed(1)} kg',
+                      average: '${bodyAvg.weightKgAvg.toStringAsFixed(1)} kg',
+                      gap: latestWeight == null
+                          ? (isKo ? '비교 불가' : 'N/A')
+                          : _gapText(latestWeight - bodyAvg.weightKgAvg, isKo),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  WatchCartCard(
+                    child: _MetricRow(
+                      isKo: isKo,
+                      icon: Icons.sports_soccer_outlined,
+                      title: isKo ? '리프팅(세션 평균)' : 'Lifting (per session)',
+                      current: isKo
+                          ? '${avgLiftPerSession.toStringAsFixed(1)}회'
+                          : '${avgLiftPerSession.toStringAsFixed(1)} reps',
+                      average: isKo
+                          ? '${bodyAvg.liftsPerSessionAvg}회'
+                          : '${bodyAvg.liftsPerSessionAvg} reps',
+                      gap: _gapText(
+                        avgLiftPerSession - bodyAvg.liftsPerSessionAvg,
+                        isKo,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  WatchCartCard(
+                    child: _MetricRow(
+                      isKo: isKo,
+                      icon: Icons.timer_outlined,
+                      title: isKo
+                          ? '훈련량(최근 4주 평균)'
+                          : 'Training (last 4-week avg)',
+                      current: isKo
+                          ? '${avgWeeklyMinutes.toStringAsFixed(0)}분/주'
+                          : '${avgWeeklyMinutes.toStringAsFixed(0)} min/week',
+                      average: isKo
+                          ? '${trainingAvg.weeklyMinutesTarget}분/주'
+                          : '${trainingAvg.weeklyMinutesTarget} min/week',
+                      gap: _gapText(
+                        avgWeeklyMinutes - trainingAvg.weeklyMinutesTarget,
+                        isKo,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  WatchCartCard(
+                    child: _SourceSection(
+                      title: isKo ? '기준 출처' : 'References',
+                      sources: sources,
+                      syncedAt: syncedAt,
+                      isKo: isKo,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              WatchCartCard(
-                child: _SourceSection(
-                  title: isKo ? '기준 출처' : 'References',
-                  sources: sources,
-                  syncedAt: syncedAt,
-                  isKo: isKo,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -179,10 +188,7 @@ class _SourceSection extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () => _openLink(source.url),
               icon: const Icon(Icons.open_in_new, size: 16),
-              label: Text(
-                source.title,
-                textAlign: TextAlign.left,
-              ),
+              label: Text(source.title, textAlign: TextAlign.left),
             ),
           ),
         ),
@@ -219,7 +225,7 @@ class _MetricRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(icon: icon, title: title),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         _line(context, isKo ? '현재' : 'Current', current),
         _line(context, isKo ? '평균' : 'Average', average),
         _line(context, isKo ? '차이' : 'Gap', gap),
@@ -229,23 +235,19 @@ class _MetricRow extends StatelessWidget {
 
   Widget _line(BuildContext context, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.74),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.74),
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -256,10 +258,7 @@ class _SectionTitle extends StatelessWidget {
   final IconData icon;
   final String title;
 
-  const _SectionTitle({
-    required this.icon,
-    required this.title,
-  });
+  const _SectionTitle({required this.icon, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -276,9 +275,9 @@ class _SectionTitle extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
           ),
         ],
