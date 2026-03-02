@@ -319,7 +319,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '${_remainingSeconds}s',
+                              isKo
+                                  ? '$_remainingSeconds초'
+                                  : '$_remainingSeconds sec',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
@@ -609,7 +611,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                   width: width,
                                   height: height,
                                   emphasize: _attackerAIsPasser,
-                                  roleTag: _attackerAIsPasser ? 'PASS' : 'NEXT',
+                                  roleTag: _attackerAIsPasser
+                                      ? (isKo ? '패스' : 'PASS')
+                                      : (isKo ? '다음' : 'NEXT'),
                                 ),
                                 _entity(
                                   context,
@@ -621,8 +625,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                   width: width,
                                   height: height,
                                   emphasize: !_attackerAIsPasser,
-                                  roleTag:
-                                      !_attackerAIsPasser ? 'PASS' : 'NEXT',
+                                  roleTag: !_attackerAIsPasser
+                                      ? (isKo ? '패스' : 'PASS')
+                                      : (isKo ? '다음' : 'NEXT'),
                                 ),
                                 if (_reactionLabel.isNotEmpty)
                                   Positioned(
@@ -699,7 +704,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                         : _defenders[i].ghostType.labelEn,
                                     width: width,
                                     height: height,
-                                    roleTag: _defenders[i].ghostType.roleTag,
+                                    roleTag:
+                                        _defenders[i].ghostType.roleTag(isKo),
                                   ),
                                 if (_goalChanceActive)
                                   _entity(
@@ -2963,16 +2969,16 @@ extension _GhostTypeSpec on _GhostType {
     }
   }
 
-  String get roleTag {
+  String roleTag(bool isKo) {
     switch (this) {
       case _GhostType.blue:
-        return 'BLOCK';
+        return isKo ? '차단' : 'BLOCK';
       case _GhostType.orange:
-        return 'PRESS';
+        return isKo ? '압박' : 'PRESS';
       case _GhostType.red:
-        return 'MARK';
+        return isKo ? '마크' : 'MARK';
       case _GhostType.pink:
-        return 'READ';
+        return isKo ? '예측' : 'READ';
     }
   }
 }
