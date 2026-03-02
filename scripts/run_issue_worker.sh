@@ -14,6 +14,8 @@ trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
 : "${GITHUB_REPOSITORY:?Missing GITHUB_REPOSITORY}"
 : "${GITHUB_TOKEN:?Missing GITHUB_TOKEN}"
 DEFAULT_BRANCH="${DEFAULT_BRANCH:-main}"
+CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
+CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
 
 log() {
   echo "[issue-worker] $*"
@@ -61,7 +63,9 @@ else
 fi
 
 if git ls-remote --exit-code --heads origin "$HEAD_BRANCH" >/dev/null 2>&1; then
-  git pull --ff-only origin "$HEAD_BRANCH" || true
+  log "Aligning local branch with origin/${HEAD_BRANCH}"
+  git fetch origin "$HEAD_BRANCH"
+  git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
 fi
 
 PROMPT_FILE="/tmp/codex_issue_${ISSUE_NUMBER}.prompt"
@@ -94,9 +98,11 @@ else
   fi
   log "Running codex CLI"
   if codex exec --help >/dev/null 2>&1; then
-    codex exec "$(cat "$PROMPT_FILE")"
+    codex --sandbox "$CODEX_SANDBOX" --ask-for-approval "$CODEX_APPROVAL" \
+      exec "$(cat "$PROMPT_FILE")"
   else
-    codex "$(cat "$PROMPT_FILE")"
+    codex --sandbox "$CODEX_SANDBOX" --ask-for-approval "$CODEX_APPROVAL" \
+      "$(cat "$PROMPT_FILE")"
   fi
 fi
 
@@ -124,7 +130,12 @@ git add -A
 git commit -m "$COMMIT_TITLE" -m "Closes #${ISSUE_NUMBER}"
 
 log "Pushing branch $HEAD_BRANCH"
-git push -u origin "$HEAD_BRANCH"
+if ! git push -u origin "$HEAD_BRANCH"; then
+  log "Push rejected, rebasing with remote and retrying once"
+  git fetch origin "$HEAD_BRANCH"
+  git rebase "origin/$HEAD_BRANCH"
+  git push -u origin "$HEAD_BRANCH"
+fi
 
 log "Creating/updating PR"
 python3 scripts/create_or_update_pr.py

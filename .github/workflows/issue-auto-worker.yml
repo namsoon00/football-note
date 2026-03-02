@@ -35,6 +35,8 @@ jobs:
           DEFAULT_BRANCH: main
           # Optional overrides (Repository Variables/Secrets)
           CODEX_RUNNER_CMD: ${{ vars.CODEX_RUNNER_CMD }}
+          CODEX_SANDBOX: ${{ vars.CODEX_SANDBOX }}
+          CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |

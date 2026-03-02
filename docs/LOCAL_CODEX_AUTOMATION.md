@@ -26,7 +26,14 @@ Both run every 30 minutes.
 
 ## 4) Optional repository variables
 - `CODEX_RUNNER_CMD`: custom Codex invocation command
+- `CODEX_SANDBOX`: default `workspace-write`
+- `CODEX_APPROVAL`: default `never`
 - `RUN_VERIFY`: set `1` to run `scripts/verify.sh` in worker
+
+## 4-1) Required GitHub Actions permission for PR auto-create
+Repository Settings -> Actions -> General -> Workflow permissions:
+- `Read and write permissions`
+- Enable `Allow GitHub Actions to create and approve pull requests`
 
 ## 5) What happens each run
 1. Pull latest `main`
