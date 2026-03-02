@@ -466,13 +466,13 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Future<void> _openLink(NewsArticle article) async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final uri = Uri.tryParse(article.link);
     if (uri == null || !uri.hasScheme) return;
-    final mode = isKo
-        ? LaunchMode.externalApplication
-        : LaunchMode.inAppBrowserView;
-    await launchUrl(uri, mode: mode);
+    await launchUrl(
+      uri,
+      mode: LaunchMode.inAppBrowserView,
+      browserConfiguration: const BrowserConfiguration(showTitle: true),
+    );
   }
 
   void _openSettings(BuildContext context) {
