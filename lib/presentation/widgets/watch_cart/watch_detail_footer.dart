@@ -17,6 +17,16 @@ class WatchDetailFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = isDark
+        ? theme.colorScheme.primaryContainer
+        : WatchCartConstants.primaryColor;
+    final borderColor = isDark
+        ? theme.colorScheme.outline.withValues(alpha: 0.42)
+        : const Color.fromRGBO(230, 230, 230, 1);
+    final primaryTextColor =
+        isDark ? theme.colorScheme.onPrimaryContainer : Colors.white;
     return Row(
       children: [
         if (onSecondary != null)
@@ -35,7 +45,7 @@ class WatchDetailFooter extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
                   border: Border.all(
-                    color: const Color.fromRGBO(230, 230, 230, 1),
+                    color: borderColor,
                   ),
                 ),
                 child: Icon(secondaryIcon),
@@ -44,27 +54,27 @@ class WatchDetailFooter extends StatelessWidget {
           ),
         Expanded(
           child: Material(
-            color: WatchCartConstants.primaryColor,
+            color: primaryColor,
             borderRadius: BorderRadius.circular(8.0),
             child: InkWell(
               onTap: onPrimary,
               borderRadius: BorderRadius.circular(8.0),
-              splashColor: Colors.white.withAlpha(40),
-              highlightColor: Colors.white.withAlpha(20),
+              splashColor: primaryTextColor.withAlpha(40),
+              highlightColor: primaryTextColor.withAlpha(20),
               child: Container(
                 height: 60.0,
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
                   border: Border.all(
-                    color: const Color.fromRGBO(230, 230, 230, 1),
+                    color: borderColor,
                   ),
                 ),
                 child: Center(
                   child: Text(
                     primaryLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: primaryTextColor,
                       fontWeight: FontWeight.w600,
                       fontSize: 14.0,
                     ),

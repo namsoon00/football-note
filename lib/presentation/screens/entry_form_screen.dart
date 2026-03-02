@@ -193,6 +193,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Widget _buildStatusRow(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final baseChipBg = theme.colorScheme.surfaceContainerHighest;
+    final baseChipBorder = theme.colorScheme.outline.withValues(alpha: 0.45);
+    final disabledColor = theme.colorScheme.onSurface.withValues(alpha: 0.35);
+
     final options = [
       _StatusOption(
           'great', trainingStatusVisual('great').icon, l10n.statusGreat),
@@ -243,11 +249,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       _scheduleAutoSave();
                     },
                     showCheckmark: false,
-                    backgroundColor: Colors.white,
-                    selectedColor: statusColor.withAlpha(28),
-                    disabledColor: const Color(0xFFD3DAE7),
+                    backgroundColor: baseChipBg,
+                    selectedColor: statusColor.withValues(
+                      alpha: isDark ? 0.22 : 0.14,
+                    ),
+                    disabledColor: disabledColor,
                     side: BorderSide(
-                      color: selected ? statusColor : const Color(0xFFC4CFE3),
+                      color: selected ? statusColor : baseChipBorder,
                       width: selected ? 1.6 : 1.2,
                     ),
                   );
@@ -281,9 +289,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final isEdit = widget.entry != null;
     final dateText = DateFormat('yyyy.MM.dd').format(_date);
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final heroAccent = isDark
+        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.65)
+        : WatchCartConstants.primaryColor;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           SizedBox(
@@ -292,11 +305,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               children: [
                 Expanded(
                   child: Container(
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: theme.scaffoldBackgroundColor,
                   ),
                 ),
                 Expanded(
-                  child: Container(color: WatchCartConstants.primaryColor),
+                  child: Container(color: heroAccent),
                 ),
               ],
             ),
@@ -402,9 +415,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.calendar_today,
-                                      size: 18,
-                                      color: WatchCartConstants.primaryColor),
+                                  Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
+                                    color: theme.colorScheme.primary,
+                                  ),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
@@ -753,6 +768,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     TextInputType? keyboardType,
   }) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final outline = theme.colorScheme.outline.withValues(alpha: 0.42);
     final showMic = controller == _notesController ||
         controller == _feedbackController ||
         controller == _goalController;
@@ -772,24 +789,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color.fromRGBO(214, 224, 255, 1),
-            width: 1.4,
-          ),
+          borderSide: BorderSide(color: outline, width: 1.3),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color.fromRGBO(214, 224, 255, 1),
-            width: 1.4,
-          ),
+          borderSide: BorderSide(color: outline, width: 1.3),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: WatchCartConstants.primaryColor,
-            width: 1.8,
-          ),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.8),
         ),
         suffixIcon: showMic
             ? IconButton(
@@ -797,8 +805,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 icon: Icon(
                   isListeningFor ? Icons.mic : Icons.mic_none,
                   color: isListeningFor
-                      ? WatchCartConstants.primaryColor
-                      : Theme.of(context).colorScheme.onSurface,
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
                 ),
               )
             : decoration.suffixIcon,
@@ -1024,19 +1032,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 Icons.expand_more,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : const Color(0xFF9AA5B8),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.42),
               ),
               selectedTrailingIcon: Icon(
                 Icons.expand_less,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : const Color(0xFF9AA5B8),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.42),
               ),
               textStyle: TextStyle(
                 fontSize: 14,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : const Color(0xFF9AA5B8),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.42),
               ),
               inputDecorationTheme: _dropdownDecoration(enabled: enabled),
               dropdownMenuEntries: options
@@ -1090,19 +1107,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 Icons.expand_more,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : const Color(0xFF9AA5B8),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.42),
               ),
               selectedTrailingIcon: Icon(
                 Icons.expand_less,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : const Color(0xFF9AA5B8),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.42),
               ),
               textStyle: TextStyle(
                 fontSize: 14,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : const Color(0xFF9AA5B8),
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.42),
               ),
               inputDecorationTheme: _dropdownDecoration(enabled: enabled),
               dropdownMenuEntries: options
@@ -1137,15 +1163,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   InputDecorationTheme _dropdownDecoration({bool enabled = true}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final disabledBorderColor =
-        isDark ? const Color(0xFF4A556D) : const Color(0xFFD4DBEA);
-    final normalBorderColor = isDark
-        ? const Color(0xFF4A556D)
-        : const Color.fromRGBO(210, 220, 245, 1);
+        Theme.of(context).colorScheme.outline.withValues(alpha: 0.32);
+    final normalBorderColor =
+        Theme.of(context).colorScheme.outline.withValues(alpha: 0.45);
     final fillColor = isDark
         ? const Color(0xFF242D3D)
         : (enabled ? const Color(0xFFF7F8FC) : const Color(0xFFE8EDF6));
     final disabledTextColor =
-        isDark ? const Color(0xFF9AA5B8) : const Color(0xFF9AA5B8);
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.42);
     return InputDecorationTheme(
       isDense: true,
       filled: true,
@@ -1179,8 +1204,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: WatchCartConstants.primaryColor,
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.primary,
           width: 1.8,
         ),
       ),
