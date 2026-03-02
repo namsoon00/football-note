@@ -1,0 +1,1309 @@
+import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
+import 'package:intl/intl.dart';
+
+import '../../application/backup_service.dart';
+import '../../application/benchmark_service.dart';
+import '../../application/locale_service.dart';
+import '../../application/settings_service.dart';
+import '../../domain/repositories/option_repository.dart';
+import '../widgets/watch_cart/constants.dart';
+import '../widgets/watch_cart/watch_cart_card.dart';
+
+class SettingsScreen extends StatefulWidget {
+  final LocaleService localeService;
+  final SettingsService settingsService;
+  final OptionRepository optionRepository;
+  final BackupService? driveBackupService;
+
+  const SettingsScreen({
+    super.key,
+    required this.localeService,
+    required this.settingsService,
+    required this.optionRepository,
+    this.driveBackupService,
+  });
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _backupBusy = false;
+  bool _restoreBusy = false;
+  bool _signInBusy = false;
+  bool _benchmarkSyncBusy = false;
+  bool _signedIn = false;
+  bool _autoDaily = true;
+  bool _autoOnSave = true;
+
+  late List<int> _durationOptions;
+  late List<int> _ratingOptions;
+  late List<String> _locationOptions;
+  late List<String> _programOptions;
+
+  late int _defaultDuration;
+  late int _defaultIntensity;
+  late int _defaultCondition;
+  late String _defaultLocation;
+  late String _defaultProgram;
+  late List<String> _newsBlockedDomains;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshSignInState();
+  }
+
+  Future<void> _refreshSignInState() async {
+    if (widget.driveBackupService == null) return;
+    final signedIn = await widget.driveBackupService!.isSignedIn();
+    if (!mounted) return;
+    setState(() => _signedIn = signedIn);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final current = widget.localeService.locale?.languageCode ?? 'en';
+
+    if (widget.driveBackupService != null) {
+      _autoDaily = widget.driveBackupService!.isAutoDailyEnabled();
+      _autoOnSave = widget.driveBackupService!.isAutoOnSaveEnabled();
+    }
+
+    _durationOptions = widget.optionRepository.getIntOptions(
+      'durations',
+      const [0, 30, 45, 60, 75, 90, 120],
+    );
+    _ratingOptions = const [1, 2, 3, 4, 5];
+    _locationOptions = widget.optionRepository.getOptions(
+      'locations',
+      [
+        l10n.defaultLocation1,
+        l10n.defaultLocation2,
+        l10n.defaultLocation3,
+      ],
+    );
+    _programOptions = widget.optionRepository.getOptions(
+      'programs',
+      [
+        l10n.defaultProgram1,
+        l10n.defaultProgram2,
+        l10n.defaultProgram3,
+        l10n.defaultProgram4,
+      ],
+    );
+
+    _defaultDuration =
+        widget.optionRepository.getValue<int>('default_duration') ??
+            _durationOptions.first;
+    _defaultIntensity =
+        widget.optionRepository.getValue<int>('default_intensity') ?? 3;
+    _defaultCondition =
+        widget.optionRepository.getValue<int>('default_condition') ?? 3;
+    _defaultLocation =
+        widget.optionRepository.getValue<String>('default_location') ??
+            _locationOptions.first;
+    _defaultProgram =
+        widget.optionRepository.getValue<String>('default_program') ??
+            _programOptions.first;
+    _newsBlockedDomains =
+        widget.optionRepository.getOptions('news_blocked_domains', const []);
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(l10n.settings),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (widget.driveBackupService != null) ...[
+            _buildSectionCard(
+              title: l10n.account,
+              icon: Icons.manage_accounts_outlined,
+              initiallyExpanded: true,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _signInBusy
+                      ? null
+                      : () async {
+                          setState(() => _signInBusy = true);
+                          try {
+                            if (_signedIn) {
+                              await widget.driveBackupService!.signOut();
+                              if (!context.mounted) return;
+                              setState(() => _signedIn = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(l10n.signOutDone)),
+                              );
+                            } else {
+                              await widget.driveBackupService!.signIn();
+                              if (!context.mounted) return;
+                              setState(() => _signedIn = true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(l10n.signInWithGoogle)),
+                              );
+                            }
+                          } catch (_) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(l10n.loginRequired)),
+                            );
+                          } finally {
+                            if (mounted) setState(() => _signInBusy = false);
+                          }
+                        },
+                  icon: Icon(_signedIn ? Icons.logout : Icons.login),
+                  label: Text(_signedIn ? l10n.signOut : l10n.signInWithGoogle),
+                  style: _elevatedActionStyle(),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  label: Text(
+                      _backupBusy ? l10n.backupInProgress : l10n.backupToDrive),
+                  style: _elevatedActionStyle(),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.backupDailyEnabled),
+                  subtitle: Text(l10n.backupDailyDesc),
+                  value: _autoDaily,
+                  onChanged: (value) async {
+                    setState(() => _autoDaily = value);
+                    await widget.driveBackupService!.setAutoDailyEnabled(value);
+                  },
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.backupAutoOnSave),
+                  subtitle: Text(l10n.backupAutoOnSaveDesc),
+                  value: _autoOnSave,
+                  onChanged: (value) async {
+                    setState(() => _autoOnSave = value);
+                    await widget.driveBackupService!
+                        .setAutoOnSaveEnabled(value);
+                  },
+                ),
+                if (widget.driveBackupService!.getLastBackup() != null) ...[
+                  const Divider(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.history, size: 20),
+                    title: Text(l10n.lastBackup),
+                    subtitle: Text(
+                      _formatBackupTime(
+                          widget.driveBackupService!.getLastBackup()!),
+                    ),
+                  ),
+                ],
+                if (widget.driveBackupService!.getLocalPreRestoreTime() != null)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.restore, size: 20),
+                    title: Text(l10n.localBackup),
+                    subtitle: Text(
+                      _formatBackupTime(
+                        widget.driveBackupService!.getLocalPreRestoreTime()!,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed:
+                      _restoreBusy ? null : () => _restoreFromDrive(l10n),
+                  icon: const Icon(Icons.cloud_download_outlined),
+                  label: Text(
+                    _restoreBusy
+                        ? l10n.restoreInProgress
+                        : l10n.restoreFromDrive,
+                  ),
+                  style: _outlinedActionStyle(),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _restoreBusy ||
+                          !widget.driveBackupService!.hasLocalPreRestoreBackup()
+                      ? null
+                      : () => _restoreLocalBackup(l10n),
+                  icon: const Icon(Icons.undo),
+                  label: Text(l10n.restoreLocalBackup),
+                  style: _outlinedActionStyle(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+          _buildSectionCard(
+            title: isKo ? '일반 설정' : 'General',
+            icon: Icons.tune,
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final twoColumns = constraints.maxWidth >= 520;
+                  const spacing = 10.0;
+                  final itemWidth = twoColumns
+                      ? (constraints.maxWidth - spacing) / 2
+                      : constraints.maxWidth;
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: 2,
+                    children: [
+                      SizedBox(
+                        width: itemWidth,
+                        child: _buildSelectRow<String>(
+                          label: l10n.language,
+                          value: current,
+                          options: const ['en', 'ko'],
+                          optionLabel: (value) => value == 'ko'
+                              ? l10n.languageKorean
+                              : l10n.languageEnglish,
+                          onChanged: (value) {
+                            if (value == 'ko') {
+                              widget.localeService
+                                  .setLocale(const Locale('ko', 'KR'));
+                            } else {
+                              widget.localeService
+                                  .setLocale(const Locale('en'));
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: itemWidth,
+                        child: _buildSelectRow<ThemeMode>(
+                          label: l10n.theme,
+                          value: widget.settingsService.themeMode,
+                          options: const [
+                            ThemeMode.system,
+                            ThemeMode.light,
+                            ThemeMode.dark
+                          ],
+                          optionLabel: (value) {
+                            switch (value) {
+                              case ThemeMode.light:
+                                return l10n.themeLight;
+                              case ThemeMode.dark:
+                                return l10n.themeDark;
+                              case ThemeMode.system:
+                                return l10n.themeSystem;
+                            }
+                          },
+                          onChanged: (value) =>
+                              widget.settingsService.setThemeMode(value),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _benchmarkSyncBusy
+                    ? null
+                    : () => _refreshBenchmarkData(isKo),
+                icon: _benchmarkSyncBusy
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.sync),
+                label: Text(
+                  _benchmarkSyncBusy
+                      ? (isKo ? '평균 데이터 동기화 중...' : 'Syncing average data...')
+                      : (isKo ? '평균 데이터 지금 새로고침' : 'Refresh Average Data Now'),
+                ),
+                style: _outlinedActionStyle(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildSectionCard(
+            title: l10n.defaults,
+            icon: Icons.tune_outlined,
+            children: [
+              const SizedBox(height: 6),
+              _buildDefaultsAndOptionManager(l10n, isKo),
+              const SizedBox(height: 8),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildSectionCard(
+            title: isKo ? '뉴스 필터' : 'News Filter',
+            icon: Icons.filter_alt_outlined,
+            children: [
+              _buildOptionManagerTile(
+                title: isKo ? '광고 도메인 차단 목록' : 'Blocked ad domains',
+                subtitle:
+                    '${_newsBlockedDomains.length}${isKo ? '개 항목' : ' items'}',
+                onTap: () => _manageStringOptions(
+                  key: 'news_blocked_domains',
+                  title: isKo ? '광고 도메인 차단 목록 관리' : 'Manage blocked ad domains',
+                  options: _newsBlockedDomains,
+                  minKeep: 0,
+                  sanitize: _normalizeDomain,
+                  onSaved: (updated) async {
+                    setState(() => _newsBlockedDomains = updated);
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  isKo
+                      ? '예시: example.com (프로토콜/경로 없이 도메인만 입력)'
+                      : 'Example: example.com (domain only, no path)',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildSectionCard(
+            title: l10n.notifications,
+            icon: Icons.notifications_outlined,
+            children: [
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.reminderEnabled),
+                value: widget.settingsService.reminderEnabled,
+                onChanged: (value) =>
+                    widget.settingsService.setReminderEnabled(value),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.reminderTime),
+                subtitle:
+                    Text(widget.settingsService.reminderTime.format(context)),
+                trailing: const Icon(Icons.access_time),
+                onTap: () async {
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: widget.settingsService.reminderTime,
+                  );
+                  if (picked != null) {
+                    await widget.settingsService.setReminderTime(picked);
+                    if (mounted) setState(() {});
+                  }
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+    bool initiallyExpanded = false,
+  }) {
+    return WatchCartCard(
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: const EdgeInsets.only(bottom: 6),
+          initiallyExpanded: initiallyExpanded,
+          leading: Icon(icon),
+          title: Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectRow<T>({
+    required String label,
+    required T value,
+    required List<T> options,
+    required String Function(T value) optionLabel,
+    required ValueChanged<T> onChanged,
+    double height = 50,
+    double topSpacing = 2,
+    double bottomSpacing = 12,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final borderColor = isDark
+        ? const Color(0xFF4A556D)
+        : const Color.fromRGBO(210, 220, 245, 1);
+    return Padding(
+      padding: EdgeInsets.only(top: topSpacing, bottom: bottomSpacing),
+      child: SizedBox(
+        height: height,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth.isFinite
+                ? constraints.maxWidth
+                : MediaQuery.of(context).size.width - 32;
+            return DropdownMenu<T>(
+              width: availableWidth.clamp(160.0, 720.0),
+              initialSelection: value,
+              label: Text(label),
+              textStyle: TextStyle(fontSize: 14, color: onSurface),
+              inputDecorationTheme: InputDecorationTheme(
+                isDense: true,
+                filled: true,
+                fillColor: fillColor,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: borderColor, width: 1.2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: borderColor, width: 1.2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 1.4,
+                  ),
+                ),
+              ),
+              dropdownMenuEntries: options
+                  .map((option) => DropdownMenuEntry(
+                      value: option, label: optionLabel(option)))
+                  .toList(),
+              onSelected: (value) {
+                if (value != null) onChanged(value);
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
+    final defaultDurationText =
+        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          isKo ? '기본값' : 'Default values',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 8),
+        _buildDefaultTile(
+          label: l10n.defaultDuration,
+          valueText: defaultDurationText,
+          onEdit: () => _pickDefaultDuration(l10n),
+          onDelete: () async {
+            await widget.optionRepository.setValue('default_duration', null);
+            if (!mounted) return;
+            setState(() => _defaultDuration = _durationOptions.first);
+          },
+        ),
+        _buildDefaultTile(
+          label: l10n.defaultIntensity,
+          valueText: '$_defaultIntensity / 5',
+          onEdit: () => _pickDefaultRating(
+            key: 'default_intensity',
+            current: _defaultIntensity,
+            onChanged: (value) => setState(() => _defaultIntensity = value),
+            title: l10n.defaultIntensity,
+          ),
+          onDelete: () async {
+            await widget.optionRepository.setValue('default_intensity', null);
+            if (!mounted) return;
+            setState(() => _defaultIntensity = 3);
+          },
+        ),
+        _buildDefaultTile(
+          label: l10n.defaultCondition,
+          valueText: '$_defaultCondition / 5',
+          onEdit: () => _pickDefaultRating(
+            key: 'default_condition',
+            current: _defaultCondition,
+            onChanged: (value) => setState(() => _defaultCondition = value),
+            title: l10n.defaultCondition,
+          ),
+          onDelete: () async {
+            await widget.optionRepository.setValue('default_condition', null);
+            if (!mounted) return;
+            setState(() => _defaultCondition = 3);
+          },
+        ),
+        _buildDefaultTile(
+          label: l10n.defaultLocation,
+          valueText: _defaultLocation,
+          onEdit: () => _pickDefaultString(
+            key: 'default_location',
+            current: _defaultLocation,
+            options: _locationOptions,
+            title: l10n.defaultLocation,
+            onChanged: (value) => setState(() => _defaultLocation = value),
+          ),
+          onDelete: () async {
+            await widget.optionRepository.setValue('default_location', null);
+            if (!mounted) return;
+            setState(() => _defaultLocation = _locationOptions.first);
+          },
+        ),
+        _buildDefaultTile(
+          label: l10n.defaultProgram,
+          valueText: _defaultProgram,
+          onEdit: () => _pickDefaultString(
+            key: 'default_program',
+            current: _defaultProgram,
+            options: _programOptions,
+            title: l10n.defaultProgram,
+            onChanged: (value) => setState(() => _defaultProgram = value),
+          ),
+          onDelete: () async {
+            await widget.optionRepository.setValue('default_program', null);
+            if (!mounted) return;
+            setState(() => _defaultProgram = _programOptions.first);
+          },
+        ),
+        const SizedBox(height: 12),
+        const Divider(height: 1),
+        const SizedBox(height: 12),
+        Text(
+          isKo ? '일지 항목 관리' : 'Journal option manager',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 8),
+        _buildOptionManagerTile(
+          title: isKo ? '훈련 시간 옵션' : 'Duration options',
+          subtitle:
+              '${_durationOptions.where((e) => e > 0).length}${isKo ? '개 항목' : ' items'}',
+          onTap: () => _manageIntOptions(
+            key: 'durations',
+            title: isKo ? '훈련 시간 옵션 관리' : 'Manage duration options',
+            options: _durationOptions,
+            minKeep: 1,
+            formatLabel: (value) =>
+                value <= 0 ? l10n.notSet : l10n.minutes(value),
+            onSaved: (updated) async {
+              setState(() => _durationOptions = updated);
+              if (!_durationOptions.contains(_defaultDuration)) {
+                final fallback = _durationOptions.first;
+                await widget.optionRepository
+                    .setValue('default_duration', fallback);
+                if (!mounted) return;
+                setState(() => _defaultDuration = fallback);
+              }
+            },
+          ),
+        ),
+        _buildOptionManagerTile(
+          title: isKo ? '장소 옵션' : 'Location options',
+          subtitle: '${_locationOptions.length}${isKo ? '개 항목' : ' items'}',
+          onTap: () => _manageStringOptions(
+            key: 'locations',
+            title: isKo ? '장소 옵션 관리' : 'Manage location options',
+            options: _locationOptions,
+            minKeep: 1,
+            onSaved: (updated) async {
+              setState(() => _locationOptions = updated);
+              if (!_locationOptions.contains(_defaultLocation)) {
+                final fallback = _locationOptions.first;
+                await widget.optionRepository
+                    .setValue('default_location', fallback);
+                if (!mounted) return;
+                setState(() => _defaultLocation = fallback);
+              }
+            },
+          ),
+        ),
+        _buildOptionManagerTile(
+          title: isKo ? '프로그램 옵션' : 'Program options',
+          subtitle: '${_programOptions.length}${isKo ? '개 항목' : ' items'}',
+          onTap: () => _manageStringOptions(
+            key: 'programs',
+            title: isKo ? '프로그램 옵션 관리' : 'Manage program options',
+            options: _programOptions,
+            minKeep: 1,
+            onSaved: (updated) async {
+              setState(() => _programOptions = updated);
+              if (!_programOptions.contains(_defaultProgram)) {
+                final fallback = _programOptions.first;
+                await widget.optionRepository
+                    .setValue('default_program', fallback);
+                if (!mounted) return;
+                setState(() => _defaultProgram = fallback);
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDefaultTile({
+    required String label,
+    required String valueText,
+    required Future<void> Function() onEdit,
+    required Future<void> Function() onDelete,
+  }) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(label),
+      subtitle: Text(valueText),
+      trailing: Wrap(
+        spacing: 4,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: isKo ? '수정' : 'Edit',
+            onPressed: onEdit,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: isKo ? '삭제' : 'Delete',
+            onPressed: onDelete,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionManagerTile({
+    required String title,
+    required String subtitle,
+    required Future<void> Function() onTap,
+  }) {
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    );
+  }
+
+  Future<void> _pickDefaultDuration(AppLocalizations l10n) async {
+    await _pickDefaultInt(
+      key: 'default_duration',
+      current: _defaultDuration,
+      options: _durationOptions,
+      title: l10n.defaultDuration,
+      labelBuilder: (value) => value <= 0 ? l10n.notSet : l10n.minutes(value),
+      onChanged: (value) => setState(() => _defaultDuration = value),
+    );
+  }
+
+  Future<void> _pickDefaultRating({
+    required String key,
+    required int current,
+    required ValueChanged<int> onChanged,
+    required String title,
+  }) async {
+    await _pickDefaultInt(
+      key: key,
+      current: current,
+      options: _ratingOptions,
+      title: title,
+      labelBuilder: (value) => '$value / 5',
+      onChanged: onChanged,
+    );
+  }
+
+  Future<void> _pickDefaultInt({
+    required String key,
+    required int current,
+    required List<int> options,
+    required String title,
+    required String Function(int value) labelBuilder,
+    required ValueChanged<int> onChanged,
+  }) async {
+    final selected = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: options
+                .map(
+                  (option) => ListTile(
+                    title: Text(labelBuilder(option)),
+                    trailing: option == current
+                        ? const Icon(Icons.check_circle)
+                        : const Icon(Icons.circle_outlined),
+                    onTap: () => Navigator.of(context).pop(option),
+                  ),
+                )
+                .toList(growable: false),
+          ),
+        );
+      },
+    );
+    if (selected == null) return;
+    await widget.optionRepository.setValue(key, selected);
+    onChanged(selected);
+  }
+
+  Future<void> _pickDefaultString({
+    required String key,
+    required String current,
+    required List<String> options,
+    required String title,
+    required ValueChanged<String> onChanged,
+  }) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: options
+                .map(
+                  (option) => ListTile(
+                    title: Text(option),
+                    trailing: option == current
+                        ? const Icon(Icons.check_circle)
+                        : const Icon(Icons.circle_outlined),
+                    onTap: () => Navigator.of(context).pop(option),
+                  ),
+                )
+                .toList(growable: false),
+          ),
+        );
+      },
+    );
+    if (selected == null) return;
+    await widget.optionRepository.setValue(key, selected);
+    onChanged(selected);
+  }
+
+  Future<void> _manageStringOptions({
+    required String key,
+    required String title,
+    required List<String> options,
+    required int minKeep,
+    required Future<void> Function(List<String> updated) onSaved,
+    String Function(String value)? sanitize,
+  }) async {
+    var working = [...options];
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  8,
+                  16,
+                  12 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: working
+                          .map(
+                            (option) => InputChip(
+                              label: Text(option),
+                              onPressed: () async {
+                                final edited = await _showTextInputDialog(
+                                  title: isKo ? '항목 수정' : 'Edit option',
+                                  initial: option,
+                                );
+                                if (edited == null || edited.isEmpty) return;
+                                final normalized = sanitize == null
+                                    ? edited
+                                    : sanitize(edited);
+                                if (normalized.isEmpty) return;
+                                setSheetState(() {
+                                  final index = working.indexOf(option);
+                                  if (index >= 0) working[index] = normalized;
+                                });
+                              },
+                              onDeleted: working.length <= minKeep
+                                  ? null
+                                  : () {
+                                      setSheetState(() {
+                                        working.remove(option);
+                                      });
+                                    },
+                              deleteIcon: const Icon(Icons.delete_outline),
+                            ),
+                          )
+                          .toList(growable: false),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final added = await _showTextInputDialog(
+                          title: isKo ? '새 항목 추가' : 'Add option',
+                        );
+                        if (added == null || added.isEmpty) return;
+                        final normalized =
+                            sanitize == null ? added : sanitize(added);
+                        if (normalized.isEmpty ||
+                            working.contains(normalized)) {
+                          return;
+                        }
+                        setSheetState(() => working.add(normalized));
+                      },
+                      icon: const Icon(Icons.add),
+                      label: Text(isKo ? '항목 추가' : 'Add item'),
+                    ),
+                    const SizedBox(height: 10),
+                    FilledButton(
+                      onPressed: () async {
+                        if (working.length < minKeep) return;
+                        await widget.optionRepository.saveOptions(key, working);
+                        await onSaved(working);
+                        if (!context.mounted) return;
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(isKo ? '저장' : 'Save'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _manageIntOptions({
+    required String key,
+    required String title,
+    required List<int> options,
+    required int minKeep,
+    required String Function(int value) formatLabel,
+    required Future<void> Function(List<int> updated) onSaved,
+  }) async {
+    var working = [...options];
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  8,
+                  16,
+                  12 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: working
+                          .map(
+                            (option) => InputChip(
+                              label: Text(formatLabel(option)),
+                              onPressed: () async {
+                                final edited = await _showTextInputDialog(
+                                  title: isKo ? '시간 수정(분)' : 'Edit minutes',
+                                  initial: option.toString(),
+                                  number: true,
+                                );
+                                final parsed = int.tryParse(edited ?? '');
+                                if (parsed == null || parsed < 0) return;
+                                setSheetState(() {
+                                  final index = working.indexOf(option);
+                                  if (index >= 0) working[index] = parsed;
+                                });
+                              },
+                              onDeleted: working.length <= minKeep
+                                  ? null
+                                  : () {
+                                      setSheetState(() {
+                                        working.remove(option);
+                                      });
+                                    },
+                              deleteIcon: const Icon(Icons.delete_outline),
+                            ),
+                          )
+                          .toList(growable: false),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final added = await _showTextInputDialog(
+                          title: isKo ? '새 시간 추가(분)' : 'Add minutes',
+                          number: true,
+                        );
+                        final parsed = int.tryParse(added ?? '');
+                        if (parsed == null ||
+                            parsed < 0 ||
+                            working.contains(parsed)) {
+                          return;
+                        }
+                        setSheetState(() => working.add(parsed));
+                      },
+                      icon: const Icon(Icons.add),
+                      label: Text(isKo ? '항목 추가' : 'Add item'),
+                    ),
+                    const SizedBox(height: 10),
+                    FilledButton(
+                      onPressed: () async {
+                        if (working.length < minKeep) return;
+                        final updated = [...working]..sort();
+                        await widget.optionRepository.saveOptions(key, updated);
+                        await onSaved(updated);
+                        if (!context.mounted) return;
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(isKo ? '저장' : 'Save'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<String?> _showTextInputDialog({
+    required String title,
+    String initial = '',
+    bool number = false,
+  }) async {
+    final controller = TextEditingController(text: initial);
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: number ? TextInputType.number : TextInputType.text,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    return result?.trim();
+  }
+
+  String _normalizeDomain(String input) {
+    final raw = input.trim().toLowerCase();
+    if (raw.isEmpty) return '';
+    final withScheme = raw.contains('://') ? raw : 'https://$raw';
+    final parsed = Uri.tryParse(withScheme);
+    final host = parsed?.host.toLowerCase().trim() ?? raw;
+    if (host.isEmpty) return '';
+    return host;
+  }
+
+  ButtonStyle _elevatedActionStyle() {
+    return ButtonStyle(
+      minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
+      padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 14)),
+      textStyle: WidgetStateProperty.all(
+          const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      elevation: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) return 1;
+        if (states.contains(WidgetState.hovered)) return 7;
+        return 5;
+      }),
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return Colors.black.withAlpha(20);
+        }
+        return null;
+      }),
+      shadowColor: WidgetStateProperty.all(Colors.black.withAlpha(70)),
+      splashFactory: InkRipple.splashFactory,
+    );
+  }
+
+  ButtonStyle _outlinedActionStyle() {
+    return ButtonStyle(
+      minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
+      padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 14)),
+      textStyle: WidgetStateProperty.all(
+          const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      shape: WidgetStateProperty.all(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      side: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return const BorderSide(
+              color: WatchCartConstants.primaryColor, width: 2);
+        }
+        return BorderSide(
+          color: WatchCartConstants.primaryColor.withAlpha(160),
+          width: 1.4,
+        );
+      }),
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return WatchCartConstants.primaryColor.withAlpha(22);
+        }
+        return null;
+      }),
+      overlayColor: WidgetStateProperty.all(
+          WatchCartConstants.primaryColor.withAlpha(30)),
+      splashFactory: InkRipple.splashFactory,
+    );
+  }
+
+  Future<void> _backupToDrive(AppLocalizations l10n) async {
+    if (widget.driveBackupService == null) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.backupToDrive),
+        content: Text(l10n.backupConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    setState(() => _backupBusy = true);
+    try {
+      await widget.driveBackupService!.backup();
+      await _refreshSignInState();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.backupSuccess)),
+      );
+    } catch (e, st) {
+      debugPrint('Drive backup failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      final message = e.toString().contains('sign-in') ||
+              e.toString().contains('Sign in') ||
+              e.toString().contains('cancelled')
+          ? l10n.loginRequired
+          : l10n.backupFailed;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _backupBusy = false);
+      }
+    }
+  }
+
+  Future<void> _restoreFromDrive(AppLocalizations l10n) async {
+    if (widget.driveBackupService == null) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.restoreFromDrive),
+        content: Text(l10n.restoreConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    setState(() => _restoreBusy = true);
+    try {
+      await widget.driveBackupService!.restoreLatest();
+      widget.localeService.load();
+      widget.settingsService.load();
+      await _refreshSignInState();
+      if (!mounted) return;
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.restoreSuccess)),
+      );
+    } catch (e, st) {
+      debugPrint('Drive restore failed: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      final message = e.toString().contains('sign-in') ||
+              e.toString().contains('Sign in') ||
+              e.toString().contains('cancelled')
+          ? l10n.loginRequired
+          : l10n.restoreFailed;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _restoreBusy = false);
+      }
+    }
+  }
+
+  Future<void> _restoreLocalBackup(AppLocalizations l10n) async {
+    if (widget.driveBackupService == null) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.restoreLocalBackup),
+        content: Text(l10n.restoreLocalConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    setState(() => _restoreBusy = true);
+    try {
+      await widget.driveBackupService!.restoreLocalPreBackup();
+      widget.localeService.load();
+      widget.settingsService.load();
+      if (!mounted) return;
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.restoreLocalSuccess)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.restoreLocalFailed)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _restoreBusy = false);
+      }
+    }
+  }
+
+  String _formatBackupTime(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    final l10n = AppLocalizations.of(context)!;
+
+    if (diff.inMinutes < 1) {
+      return l10n.timeJustNow;
+    }
+    if (diff.inMinutes < 60) {
+      return l10n.timeMinutesAgo(diff.inMinutes);
+    }
+    if (diff.inHours < 24) {
+      return l10n.timeHoursAgo(diff.inHours);
+    }
+    if (_isYesterday(date, now)) {
+      return l10n.timeYesterday;
+    }
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.yMMMd(locale).format(date);
+  }
+
+  bool _isYesterday(DateTime date, DateTime now) {
+    final yesterday = DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 1));
+    return date.year == yesterday.year &&
+        date.month == yesterday.month &&
+        date.day == yesterday.day;
+  }
+
+  Future<void> _refreshBenchmarkData(bool isKo) async {
+    setState(() => _benchmarkSyncBusy = true);
+    try {
+      final service = BenchmarkService(widget.optionRepository);
+      await service.refreshFromExternalIfNeeded(force: true);
+      if (!mounted) return;
+      final synced = service.lastSyncedAt();
+      final suffix = synced == null
+          ? ''
+          : ' (${DateFormat('yyyy-MM-dd HH:mm').format(synced.toLocal())})';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo
+                ? '평균 데이터 업데이트 완료$suffix'
+                : 'Average benchmark data updated$suffix',
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo
+                ? '평균 데이터 업데이트에 실패했어요. 네트워크를 확인해 주세요.'
+                : 'Failed to update average benchmark data. Check network.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _benchmarkSyncBusy = false);
+      }
+    }
+  }
+}

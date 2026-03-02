@@ -1,0 +1,547 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appTitle => 'Football Training Log';
+
+  @override
+  String get tabLogs => 'Logs';
+
+  @override
+  String get tabCalendar => 'Calendar';
+
+  @override
+  String get tabStats => 'Stats';
+
+  @override
+  String get tabNews => 'News';
+
+  @override
+  String get tabGame => 'Mini Game';
+
+  @override
+  String get addEntry => 'Add Entry';
+
+  @override
+  String get editEntry => 'Edit Entry';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get newItem => 'New item';
+
+  @override
+  String get trainingDate => 'Training Date';
+
+  @override
+  String get trainingDuration => 'Training Duration';
+
+  @override
+  String minutes(Object value) {
+    return '$value min';
+  }
+
+  @override
+  String times(Object value) {
+    return '$value times';
+  }
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get trainingType => 'Training Type';
+
+  @override
+  String get status => 'Training Status';
+
+  @override
+  String get statusGreat => 'Great';
+
+  @override
+  String get statusGood => 'Good';
+
+  @override
+  String get statusNormal => 'Normal';
+
+  @override
+  String get statusTough => 'Tough';
+
+  @override
+  String get statusRecovery => 'Recovery';
+
+  @override
+  String get typeTechnical => 'Technical';
+
+  @override
+  String get typePhysical => 'Physical';
+
+  @override
+  String get typeTactical => 'Tactical';
+
+  @override
+  String get typeMatch => 'Match';
+
+  @override
+  String get typeRecovery => 'Recovery';
+
+  @override
+  String get intensity => 'Intensity';
+
+  @override
+  String get condition => 'Condition';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get program => 'Program';
+
+  @override
+  String get drills => 'Session Drills';
+
+  @override
+  String get injury => 'Injury';
+
+  @override
+  String get injuryPart => 'Injury Part';
+
+  @override
+  String get painLevel => 'Pain Level (1-10)';
+
+  @override
+  String get rehab => 'Rehab';
+
+  @override
+  String get goal => 'Goal';
+
+  @override
+  String get feedback => 'Feedback';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get growth => 'Growth';
+
+  @override
+  String get height => 'Height (cm)';
+
+  @override
+  String get weight => 'Weight (kg)';
+
+  @override
+  String get calendar => 'Calendar';
+
+  @override
+  String get calendarFormatMonth => 'Month';
+
+  @override
+  String get calendarFormatTwoWeeks => '2 weeks';
+
+  @override
+  String get calendarFormatWeek => 'Week';
+
+  @override
+  String get noEntries => 'No entries yet.';
+
+  @override
+  String get noEntriesForDay => 'No entries for this day.';
+
+  @override
+  String get noResults => 'No entries match your search.';
+
+  @override
+  String get searchHint => 'Search training logs';
+
+  @override
+  String get filterTitle => 'Filter logs';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterInjuryOnly => 'Injury only';
+
+  @override
+  String get filterReset => 'Reset';
+
+  @override
+  String get filterApply => 'Apply';
+
+  @override
+  String get deleteEntry => 'Delete Entry';
+
+  @override
+  String get deleteConfirm => 'Delete this entry?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get statsRecent7 => 'Last 7 days';
+
+  @override
+  String get statsRecent30 => 'Last 30 days';
+
+  @override
+  String get statsTotalSessions => 'Total Sessions';
+
+  @override
+  String get statsTotalMinutes => 'Total Minutes';
+
+  @override
+  String get statsAvgIntensity => 'Avg Intensity';
+
+  @override
+  String get statsAvgCondition => 'Avg Condition';
+
+  @override
+  String get statsInjuryCount => 'Injury Count';
+
+  @override
+  String get statsAvgPain => 'Avg Pain';
+
+  @override
+  String get statsRehabCount => 'Rehab Count';
+
+  @override
+  String get statsSummary => 'Summary';
+
+  @override
+  String get statsTypeRatio => 'Training Program Ratio';
+
+  @override
+  String get statsWeeklyMinutes => 'Weekly Minutes';
+
+  @override
+  String get growthHistory => 'Growth History';
+
+  @override
+  String level(Object value) {
+    return 'Level $value';
+  }
+
+  @override
+  String levelUpRemaining(Object value) {
+    return '$value more to level up';
+  }
+
+  @override
+  String get missionComplete => 'Mission complete! Weekly goal achieved!';
+
+  @override
+  String get missionKeepGoing =>
+      'Great job! Just a bit more to hit 3 sessions this week!';
+
+  @override
+  String get onboard1 => 'Log today’s training';
+
+  @override
+  String get onboard2 => 'Track your growth history';
+
+  @override
+  String get onboard3 => 'Level up with goals';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get heroMessage => 'Great work today! Logging helps you grow faster.';
+
+  @override
+  String get logsHeadline1 => 'Training';
+
+  @override
+  String get logsHeadline2 => 'Sessions';
+
+  @override
+  String get entryHeadline1 => 'Log';
+
+  @override
+  String get entryHeadline2 => 'Your Training';
+
+  @override
+  String get statsHeadline1 => 'Progress';
+
+  @override
+  String get statsHeadline2 => 'Overview';
+
+  @override
+  String get durationNotSet => 'No time';
+
+  @override
+  String get defaultLocation1 => 'School field';
+
+  @override
+  String get defaultLocation2 => 'Community field';
+
+  @override
+  String get defaultLocation3 => 'Indoor gym';
+
+  @override
+  String get defaultProgram1 => 'Fundamentals';
+
+  @override
+  String get defaultProgram2 => 'Physical';
+
+  @override
+  String get defaultProgram3 => 'Tactical';
+
+  @override
+  String get defaultProgram4 => 'Recovery';
+
+  @override
+  String get defaultDrill1 => 'Rondo 5:2';
+
+  @override
+  String get defaultDrill2 => '1v1 defense';
+
+  @override
+  String get defaultDrill3 => 'Shooting reps';
+
+  @override
+  String get defaultDrill4 => 'Sprints';
+
+  @override
+  String get defaultInjury1 => 'Hamstring';
+
+  @override
+  String get defaultInjury2 => 'Knee';
+
+  @override
+  String get defaultInjury3 => 'Ankle';
+
+  @override
+  String get defaultInjury4 => 'Thigh';
+
+  @override
+  String get defaultInjury5 => 'Calf';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageKorean => 'Korean';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get signInFailed => 'Sign-in failed. Please try again.';
+
+  @override
+  String get signedIn => 'Signed in';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get webLoginNotAvailable => 'Google login is not available on web.';
+
+  @override
+  String get backupToDrive => 'Backup to Google Drive';
+
+  @override
+  String get restoreFromDrive => 'Restore from Google Drive';
+
+  @override
+  String get backupConfirm => 'Create a new backup on Google Drive?';
+
+  @override
+  String get restoreConfirm =>
+      'Restore the latest backup from Google Drive? This will replace current data.';
+
+  @override
+  String get backupSuccess => 'Backup completed.';
+
+  @override
+  String get backupFailed => 'Backup failed. Please try again.';
+
+  @override
+  String get restoreSuccess => 'Restore completed.';
+
+  @override
+  String get restoreFailed => 'Restore failed. Please try again.';
+
+  @override
+  String get backupInProgress => 'Backing up...';
+
+  @override
+  String get restoreInProgress => 'Restoring...';
+
+  @override
+  String get backupDailyEnabled => 'Daily backup enabled';
+
+  @override
+  String get backupDailyDesc => 'Backs up once per day when the app opens';
+
+  @override
+  String get backupAutoOnSave => 'Auto backup on save';
+
+  @override
+  String get backupAutoOnSaveDesc =>
+      'Backs up whenever you add or update a log';
+
+  @override
+  String get lastBackup => 'Last backup';
+
+  @override
+  String get timeJustNow => 'Just now';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return '$count hr ago';
+  }
+
+  @override
+  String get timeYesterday => 'Yesterday';
+
+  @override
+  String get restoreLocalBackup => 'Restore local backup';
+
+  @override
+  String get restoreLocalConfirm =>
+      'Restore the backup saved before the last restore? This will replace current data.';
+
+  @override
+  String get restoreLocalSuccess => 'Local restore completed.';
+
+  @override
+  String get restoreLocalFailed => 'Local restore failed. Please try again.';
+
+  @override
+  String get localBackup => 'Local safety backup';
+
+  @override
+  String get loginRequired => 'Please sign in to Google to use Drive backup.';
+
+  @override
+  String get signOutDone => 'Signed out.';
+
+  @override
+  String get voiceNotAvailable =>
+      'Voice input is not available on this device.';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get defaults => 'Defaults';
+
+  @override
+  String get defaultDuration => 'Default Duration';
+
+  @override
+  String get defaultIntensity => 'Default Intensity';
+
+  @override
+  String get defaultCondition => 'Default Condition';
+
+  @override
+  String get defaultLocation => 'Default Location';
+
+  @override
+  String get defaultProgram => 'Default Program';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get reminderEnabled => 'Enable daily reminder';
+
+  @override
+  String get reminderTime => 'Reminder time';
+
+  @override
+  String get photo => 'Photo';
+
+  @override
+  String get addPhoto => 'Add photo';
+
+  @override
+  String get removePhoto => 'Remove';
+
+  @override
+  String get noImage => 'No image yet';
+
+  @override
+  String get imageLoadFailed => 'Failed to load image';
+
+  @override
+  String get more => 'More';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get crop => 'Crop';
+
+  @override
+  String get photoHint => 'Tap the camera icon next to Save to add photos.';
+
+  @override
+  String get reorderPhotos => 'Reorder photos';
+
+  @override
+  String photoIndex(Object value) {
+    return 'Photo $value';
+  }
+
+  @override
+  String photoLimitReached(Object value) {
+    return 'You can add up to $value photos.';
+  }
+}

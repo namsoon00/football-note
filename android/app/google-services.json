@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "771305087734",
+    "project_id": "football-note-efef0",
+    "storage_bucket": "football-note-efef0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771305087734:android:8c00b077f87123f93a02d7",
+        "android_client_info": {
+          "package_name": "com.namsoon.footballnote"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOCkZfaqvG5ZCk-q5ymtUx4jB_8e0pryc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
