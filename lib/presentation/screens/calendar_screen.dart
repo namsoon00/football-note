@@ -124,9 +124,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -217,6 +217,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     defaultBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
+                                        dayNumber: day.day,
                                         status: _bestStatusForDay(
                                           entryMap[key] ??
                                               const <TrainingEntry>[],
@@ -233,6 +234,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     todayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
+                                        dayNumber: day.day,
                                         status: _bestStatusForDay(
                                           entryMap[key] ??
                                               const <TrainingEntry>[],
@@ -248,25 +250,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          return _CalendarStatusDayCell(
-                                            status: _bestStatusForDay(
-                                              entryMap[key] ??
-                                                  const <TrainingEntry>[],
-                                            ),
-                                            isSelected: true,
-                                            isToday: isSameDay(
-                                              day,
-                                              DateTime.now(),
-                                            ),
-                                            isHoliday:
-                                                isKo &&
-                                                holidayMap.containsKey(key),
-                                          );
-                                        },
+                                      final key = _normalizeDay(day);
+                                      return _CalendarStatusDayCell(
+                                        dayNumber: day.day,
+                                        status: _bestStatusForDay(
+                                          entryMap[key] ??
+                                              const <TrainingEntry>[],
+                                        ),
+                                        isSelected: true,
+                                        isToday: isSameDay(
+                                          day,
+                                          DateTime.now(),
+                                        ),
+                                        isHoliday:
+                                            isKo && holidayMap.containsKey(key),
+                                      );
+                                    },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
+                                        dayNumber: day.day,
                                         status: _bestStatusForDay(
                                           entryMap[key] ??
                                               const <TrainingEntry>[],
@@ -356,8 +359,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             Localizations.localeOf(context).languageCode == 'ko'
                                 ? (_calendarExpanded ? '캘린더 접기' : '캘린더 펼치기')
                                 : (_calendarExpanded
-                                      ? 'Collapse calendar'
-                                      : 'Expand calendar'),
+                                    ? 'Collapse calendar'
+                                    : 'Expand calendar'),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -582,9 +585,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         );
                         Navigator.of(context).pop(
                           _TrainingPlan(
-                            id:
-                                editingPlan?.id ??
-                                DateTime.now().microsecondsSinceEpoch
+                            id: editingPlan?.id ??
+                                DateTime.now()
+                                    .microsecondsSinceEpoch
                                     .toString(),
                             scheduledAt: scheduledAt,
                             category: category,
@@ -772,12 +775,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
 }
 
 class _CalendarStatusDayCell extends StatelessWidget {
+  final int dayNumber;
   final String? status;
   final bool isSelected;
   final bool isToday;
   final bool isHoliday;
 
   const _CalendarStatusDayCell({
+    required this.dayNumber,
     required this.status,
     required this.isSelected,
     required this.isToday,
@@ -787,13 +792,16 @@ class _CalendarStatusDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final dayTextColor = isSelected
+        ? colorScheme.primary
+        : (isHoliday ? Colors.red.shade500 : colorScheme.onSurface);
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-              ? Colors.red.shade400.withAlpha(170)
-              : (isToday
-                    ? colorScheme.primary.withAlpha(150)
-                    : Colors.transparent));
+            ? Colors.red.shade400.withAlpha(170)
+            : (isToday
+                ? colorScheme.primary.withAlpha(150)
+                : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -802,16 +810,29 @@ class _CalendarStatusDayCell extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
         curve: Curves.easeOutCubic,
-        width: 34,
-        height: 34,
+        width: 40,
+        height: 44,
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: borderColor, width: 1.2),
         ),
-        child: status == null
-            ? const SizedBox.shrink()
-            : _MiniStatusIcon(status: status!),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '$dayNumber',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: dayTextColor,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(height: 2),
+            if (status != null) _MiniStatusIcon(status: status!),
+          ],
+        ),
       ),
     );
   }
@@ -825,8 +846,9 @@ class _MiniStatusIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final meta = trainingStatusVisual(status);
-    return Padding(
-      padding: const EdgeInsets.all(4),
+    return SizedBox(
+      width: 16,
+      height: 16,
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -836,7 +858,7 @@ class _MiniStatusIcon extends StatelessWidget {
             colors: [meta.gradientStart, meta.gradientEnd],
           ),
         ),
-        child: Icon(meta.icon, size: 14, color: Colors.white),
+        child: Icon(meta.icon, size: 11, color: Colors.white),
       ),
     );
   }
@@ -1206,8 +1228,7 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',
