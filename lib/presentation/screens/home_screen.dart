@@ -36,6 +36,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late int _index;
+  DateTime? _calendarSelectedDay;
 
   @override
   void initState() {
@@ -63,7 +64,10 @@ class _HomeScreenState extends State<HomeScreen> {
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
-        onCreate: _openCreate,
+        onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
+        onSelectedDayChanged: (day) {
+          _calendarSelectedDay = DateTime(day.year, day.month, day.day);
+        },
       ),
       StatsScreen(
         trainingService: widget.trainingService,
@@ -128,14 +132,16 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: _index >= 2
           ? null
           : FloatingActionButton.extended(
-              onPressed: _openCreate,
+              onPressed: () => _openCreate(
+                initialDate: _index == 1 ? _calendarSelectedDay : null,
+              ),
               icon: const Icon(Icons.add),
               label: Text(AppLocalizations.of(context)!.addEntry),
             ),
     );
   }
 
-  Future<void> _openCreate() async {
+  Future<void> _openCreate({DateTime? initialDate}) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => EntryFormScreen(
@@ -144,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
           localeService: widget.localeService,
           settingsService: widget.settingsService,
           driveBackupService: widget.driveBackupService,
+          initialDate: initialDate,
         ),
       ),
     );

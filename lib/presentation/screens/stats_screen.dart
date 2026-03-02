@@ -43,11 +43,16 @@ class StatsScreen extends StatefulWidget {
 
 class _StatsScreenState extends State<StatsScreen> {
   late final BenchmarkService _benchmarkService;
+  late DateTimeRange _selectedRange;
 
   @override
   void initState() {
     super.initState();
     _benchmarkService = BenchmarkService(widget.optionRepository);
+    final today = DateTime.now();
+    final end = DateTime(today.year, today.month, today.day);
+    final start = end.subtract(const Duration(days: 27));
+    _selectedRange = DateTimeRange(start: start, end: end);
     _refreshBenchmarks();
   }
 
@@ -131,6 +136,23 @@ class _StatsScreenState extends State<StatsScreen> {
     final ageYears = profileService.ageInYears(profile, now);
     final soccerYears = profileService.soccerYears(profile, now);
     final canShowAverage = ageYears != null && soccerYears != null;
+    final rangeStart = DateTime(
+      _selectedRange.start.year,
+      _selectedRange.start.month,
+      _selectedRange.start.day,
+    );
+    final rangeEndExclusive = DateTime(
+      _selectedRange.end.year,
+      _selectedRange.end.month,
+      _selectedRange.end.day,
+    ).add(const Duration(days: 1));
+    final filteredEntries = entries
+        .where(
+          (entry) =>
+              !entry.date.isBefore(rangeStart) &&
+              entry.date.isBefore(rangeEndExclusive),
+        )
+        .toList(growable: false);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -161,12 +183,27 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _pickRange(context),
+                icon: const Icon(Icons.date_range_outlined, size: 18),
+                label: Text(_rangeLabel(isKo)),
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(1, 38),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                ),
+              ),
               if (canShowAverage) ...[
                 const SizedBox(width: 10),
                 FilledButton.tonalIcon(
                   onPressed: () => _openAverageBenchmark(
                     context,
-                    entries,
+                    filteredEntries,
                     ageYears,
                     soccerYears,
                   ),
@@ -197,6 +234,13 @@ class _StatsScreenState extends State<StatsScreen> {
                   : 'No stats yet. Add at least one training entry to see analytics.',
             ),
             const SizedBox(height: 12),
+          ] else if (filteredEntries.isEmpty) ...[
+            _InlineNotice(
+              text: isKo
+                  ? '선택한 기간에 훈련 기록이 없습니다.'
+                  : 'No training entries in the selected period.',
+            ),
+            const SizedBox(height: 12),
           ] else ...[
             if (!canShowAverage) ...[
               _InlineNotice(
@@ -221,11 +265,12 @@ class _StatsScreenState extends State<StatsScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _DevelopmentCoachCard(
-                  entries: entries,
+                  entries: filteredEntries,
                   ageYears: ageYears,
                   soccerYears: soccerYears,
                   isKo: isKo,
                   showAverage: canShowAverage,
+                  range: _selectedRange,
                 ),
                 const SizedBox(height: 18),
                 Divider(
@@ -237,11 +282,12 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
                 const SizedBox(height: 18),
                 _TargetGrowthChart(
-                  entries: entries,
+                  entries: filteredEntries,
                   ageYears: ageYears,
                   soccerYears: soccerYears,
                   isKo: isKo,
                   showAverage: canShowAverage,
+                  range: _selectedRange,
                 ),
                 const SizedBox(height: 18),
                 Divider(
@@ -253,7 +299,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
                 const SizedBox(height: 18),
                 _BodyAndLiftingBenchmarkCard(
-                  entries: entries,
+                  entries: filteredEntries,
                   profile: profile,
                   ageYears: ageYears,
                   isKo: isKo,
@@ -270,7 +316,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
                 const SizedBox(height: 18),
                 _LiftingSummaryCard(
-                  entries: entries,
+                  entries: filteredEntries,
                 ),
               ],
             ),
@@ -278,6 +324,33 @@ class _StatsScreenState extends State<StatsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickRange(BuildContext context) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2022, 1, 1),
+      lastDate: DateTime(2032, 12, 31),
+      initialDateRange: _selectedRange,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _selectedRange = DateTimeRange(
+        start:
+            DateTime(picked.start.year, picked.start.month, picked.start.day),
+        end: DateTime(picked.end.year, picked.end.month, picked.end.day),
+      );
+    });
+  }
+
+  String _rangeLabel(bool isKo) {
+    final start = _selectedRange.start;
+    final end = _selectedRange.end;
+    final startText =
+        isKo ? '${start.month}/${start.day}' : '${start.month}/${start.day}';
+    final endText =
+        isKo ? '${end.month}/${end.day}' : '${end.month}/${end.day}';
+    return isKo ? '$startText~$endText' : '$startText-$endText';
   }
 
   void _openSettings(BuildContext context) {
@@ -328,6 +401,7 @@ class _DevelopmentCoachCard extends StatelessWidget {
   final int? soccerYears;
   final bool isKo;
   final bool showAverage;
+  final DateTimeRange range;
 
   const _DevelopmentCoachCard({
     required this.entries,
@@ -335,45 +409,37 @@ class _DevelopmentCoachCard extends StatelessWidget {
     required this.soccerYears,
     required this.isKo,
     required this.showAverage,
+    required this.range,
   });
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final dayStart = DateTime(now.year, now.month, now.day);
-    final weekStart = dayStart.subtract(Duration(days: dayStart.weekday - 1));
-    final weekEnd = weekStart.add(const Duration(days: 7));
-    final weekEndInclusive = weekEnd.subtract(const Duration(days: 1));
-
-    final recent = entries
-        .where((e) => e.date.isAfter(now.subtract(const Duration(days: 28))))
-        .toList();
-    final weekEntries = entries
-        .where((e) => !e.date.isBefore(weekStart) && e.date.isBefore(weekEnd))
-        .toList();
-
-    final weekMinutes =
-        weekEntries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
-    final recentMinutes =
-        recent.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
-    final avgWeeklyMinutes = recentMinutes / 4;
-    final avgWeeklySessions = recent.length / 4;
+    final periodStart =
+        DateTime(range.start.year, range.start.month, range.start.day);
+    final periodEnd = DateTime(range.end.year, range.end.month, range.end.day);
+    final periodDays = periodEnd.difference(periodStart).inDays + 1;
+    final minutes =
+        entries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+    final sessions = entries.length;
     final target = benchmarkTarget(ageYears, soccerYears);
-    final minuteRatio = target.weeklyMinutesTarget <= 0
-        ? 0.0
-        : avgWeeklyMinutes / target.weeklyMinutesTarget;
-    final sessionRatio = target.weeklySessionsTarget <= 0
-        ? 0.0
-        : avgWeeklySessions / target.weeklySessionsTarget;
+    final scaledTargetMinutes =
+        ((target.weeklyMinutesTarget * periodDays) / 7).round();
+    final scaledTargetSessions =
+        ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
+    final minuteRatio =
+        scaledTargetMinutes <= 0 ? 0.0 : minutes / scaledTargetMinutes;
+    final sessionRatio =
+        scaledTargetSessions <= 0 ? 0.0 : sessions / scaledTargetSessions;
 
-    final variantSeed = now.day + (entries.length % 7);
+    final variantSeed = periodStart.day + (entries.length % 7);
 
-    final weeklyAdvice = _buildPeriodAdvice(
-      period: _CoachPeriod.weekly,
-      minutes: weekMinutes.toDouble(),
-      sessions: weekEntries.length.toDouble(),
-      targetMinutes: target.weeklyMinutesTarget.toDouble(),
-      targetSessions: target.weeklySessionsTarget.toDouble(),
+    final period = _periodFromDays(periodDays);
+    final periodAdvice = _buildPeriodAdvice(
+      period: period,
+      minutes: minutes.toDouble(),
+      sessions: sessions.toDouble(),
+      targetMinutes: scaledTargetMinutes.toDouble(),
+      targetSessions: scaledTargetSessions.toDouble(),
       showAverage: showAverage,
       isKo: isKo,
       variantSeed: variantSeed + 1,
@@ -390,9 +456,9 @@ class _DevelopmentCoachCard extends StatelessWidget {
           children: [
             Expanded(
               child: _KpiTile(
-                label: isKo ? '내 훈련 시간' : 'My Time',
+                label: isKo ? '선택 기간 시간' : 'Selected Time',
                 value: _formatMinutesAsTime(
-                  avgWeeklyMinutes.round(),
+                  minutes,
                   isKo: isKo,
                 ),
                 icon: Icons.timer_outlined,
@@ -403,8 +469,7 @@ class _DevelopmentCoachCard extends StatelessWidget {
               child: _KpiTile(
                 label: isKo ? '평균 기준' : 'Avg Target',
                 value: showAverage
-                    ? _formatMinutesAsTime(target.weeklyMinutesTarget,
-                        isKo: isKo)
+                    ? _formatMinutesAsTime(scaledTargetMinutes, isKo: isKo)
                     : (isKo ? '미입력' : 'N/A'),
                 icon: Icons.flag_outlined,
               ),
@@ -412,10 +477,10 @@ class _DevelopmentCoachCard extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: _KpiTile(
-                label: isKo ? '주 훈련 횟수' : 'Sessions',
+                label: isKo ? '선택 기간 횟수' : 'Sessions',
                 value: showAverage
-                    ? '${avgWeeklySessions.toStringAsFixed(1)}/${target.weeklySessionsTarget}'
-                    : avgWeeklySessions.toStringAsFixed(1),
+                    ? '$sessions/$scaledTargetSessions'
+                    : '$sessions',
                 icon: Icons.event_repeat_outlined,
               ),
             ),
@@ -440,18 +505,24 @@ class _DevelopmentCoachCard extends StatelessWidget {
           icon: Icons.fact_check_outlined,
           title: isKo ? '평가 기준' : 'Evaluation Basis',
           message: isKo
-              ? '주간(월~일) 기준으로 코칭합니다.\n기준 기간: ${_formatDateWithWeekday(weekStart, true)} ~ ${_formatDateWithWeekday(weekEndInclusive, true)}\n위 기간의 훈련 시간과 횟수로 평가합니다.'
-              : 'Coaching is weekly (Mon-Sun).\nRange: ${_formatDateWithWeekday(weekStart, false)} ~ ${_formatDateWithWeekday(weekEndInclusive, false)}\nEvaluation is based on training time and sessions in this range.',
+              ? '선택한 기간 기준으로 코칭합니다.\n기준 기간: ${_formatDateWithWeekday(periodStart, true)} ~ ${_formatDateWithWeekday(periodEnd, true)}\n위 기간의 훈련 시간과 횟수로 평가합니다.'
+              : 'Coaching is based on selected date range.\nRange: ${_formatDateWithWeekday(periodStart, false)} ~ ${_formatDateWithWeekday(periodEnd, false)}\nEvaluation uses training time and sessions in this range.',
           strong: true,
         ),
         const SizedBox(height: 8),
         _CoachMessage(
           icon: Icons.date_range_outlined,
-          title: isKo ? '주간 코칭' : 'Weekly Coaching',
-          message: weeklyAdvice,
+          title: isKo ? '기간 코칭' : 'Period Coaching',
+          message: periodAdvice,
         ),
       ],
     );
+  }
+
+  _CoachPeriod _periodFromDays(int days) {
+    if (days <= 1) return _CoachPeriod.daily;
+    if (days <= 14) return _CoachPeriod.weekly;
+    return _CoachPeriod.monthly;
   }
 
   String _formatDateWithWeekday(DateTime date, bool isKo) {
@@ -601,6 +672,7 @@ class _TargetGrowthChart extends StatelessWidget {
   final int? soccerYears;
   final bool isKo;
   final bool showAverage;
+  final DateTimeRange range;
 
   const _TargetGrowthChart({
     required this.entries,
@@ -608,35 +680,40 @@ class _TargetGrowthChart extends StatelessWidget {
     required this.soccerYears,
     required this.isKo,
     required this.showAverage,
+    required this.range,
   });
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
     final target = benchmarkTarget(ageYears, soccerYears);
-    final weekStarts = List.generate(
-      8,
-      (i) {
-        final d = now.subtract(Duration(days: (7 * (7 - i))));
-        return DateTime(d.year, d.month, d.day);
-      },
-    );
+    final periodStart =
+        DateTime(range.start.year, range.start.month, range.start.day);
+    final periodEnd = DateTime(range.end.year, range.end.month, range.end.day);
+    final periodDays = periodEnd.difference(periodStart).inDays + 1;
+    final bucketDays = periodDays <= 21 ? 1 : 7;
+    final bucketStarts = <DateTime>[];
+    var cursor = periodStart;
+    while (!cursor.isAfter(periodEnd)) {
+      bucketStarts.add(cursor);
+      cursor = cursor.add(Duration(days: bucketDays));
+    }
 
     final actualSpots = <FlSpot>[];
     final targetSpots = <FlSpot>[];
     final labels = <int, String>{};
-    for (var i = 0; i < weekStarts.length; i++) {
-      final start = weekStarts[i];
-      final end = start.add(const Duration(days: 7));
+    for (var i = 0; i < bucketStarts.length; i++) {
+      final start = bucketStarts[i];
+      final end = start.add(Duration(days: bucketDays));
       final minutes = entries
           .where((e) => !e.date.isBefore(start) && e.date.isBefore(end))
           .fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
       actualSpots.add(FlSpot(i.toDouble(), minutes.toDouble()));
       if (showAverage) {
-        targetSpots
-            .add(FlSpot(i.toDouble(), target.weeklyMinutesTarget.toDouble()));
+        final scaledTarget =
+            (target.weeklyMinutesTarget * bucketDays / 7).round();
+        targetSpots.add(FlSpot(i.toDouble(), scaledTarget.toDouble()));
       }
-      if (i % 2 == 0) {
+      if (i == 0 || i == bucketStarts.length - 1 || i % 2 == 0) {
         labels[i] = '${start.month}/${start.day}';
       }
     }
@@ -646,8 +723,7 @@ class _TargetGrowthChart extends StatelessWidget {
       children: [
         _SectionTitle(
           icon: Icons.show_chart,
-          title:
-              isKo ? '성장 그래프(실제 vs 평균 목표)' : 'Growth Chart (Actual vs Target)',
+          title: isKo ? '성장 그래프(선택 기간)' : 'Growth Chart (Selected Period)',
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -1279,7 +1355,18 @@ class _ComparisonRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          Row(
+            children: [
+              Expanded(
+                child:
+                    Text(label, style: Theme.of(context).textTheme.labelLarge),
+              ),
+              Text(
+                gap,
+                style: TextStyle(fontWeight: FontWeight.w700, color: gapColor),
+              ),
+            ],
+          ),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1287,18 +1374,6 @@ class _ComparisonRow extends StatelessWidget {
               Text('${isKo ? '현재' : 'Now'}: $current'),
               Text('${isKo ? '평균' : 'Avg'}: $average'),
             ],
-          ),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: gapColor.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              gap,
-              style: TextStyle(fontWeight: FontWeight.w700, color: gapColor),
-            ),
           ),
         ],
       ),

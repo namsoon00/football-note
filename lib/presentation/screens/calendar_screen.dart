@@ -30,6 +30,7 @@ class CalendarScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final ValueChanged<TrainingEntry> onEdit;
   final VoidCallback? onCreate;
+  final ValueChanged<DateTime>? onSelectedDayChanged;
 
   const CalendarScreen({
     super.key,
@@ -40,6 +41,7 @@ class CalendarScreen extends StatefulWidget {
     this.driveBackupService,
     required this.onEdit,
     this.onCreate,
+    this.onSelectedDayChanged,
   });
 
   @override
@@ -78,6 +80,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _plans = _loadPlans();
     _calendarExpanded =
         widget.optionRepository.getValue<bool>(_calendarExpandedKey) ?? true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onSelectedDayChanged
+          ?.call(_normalizeDay(_selectedDay ?? _focusedDay));
+    });
     unawaited(_syncPlanReminders());
   }
 
@@ -164,6 +170,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               _selectedDay = today;
                               _focusedDay = today;
                             });
+                            widget.onSelectedDayChanged?.call(today);
                           },
                           icon: const Icon(Icons.today_outlined, size: 18),
                           label: Text(
@@ -227,6 +234,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       _selectedDay = selectedDay;
                                       _focusedDay = focusedDay;
                                     });
+                                    widget.onSelectedDayChanged
+                                        ?.call(_normalizeDay(selectedDay));
                                   },
                                   eventLoader: (day) {
                                     final key = _normalizeDay(day);

@@ -24,6 +24,7 @@ class EntryFormScreen extends StatefulWidget {
   final SettingsService settingsService;
   final BackupService? driveBackupService;
   final TrainingEntry? entry;
+  final DateTime? initialDate;
 
   const EntryFormScreen({
     super.key,
@@ -33,6 +34,7 @@ class EntryFormScreen extends StatefulWidget {
     required this.settingsService,
     this.driveBackupService,
     this.entry,
+    this.initialDate,
   });
 
   @override
@@ -158,6 +160,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
     } else {
+      if (widget.initialDate != null) {
+        final d = widget.initialDate!;
+        _date = DateTime(d.year, d.month, d.day);
+      }
       _durationMinutes =
           _defaultInt('default_duration', _durationOptions.first);
       _intensity = _defaultInt('default_intensity', 3);

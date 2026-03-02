@@ -1038,7 +1038,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _passerVy += passerAvoidY * 0.045;
       final aheadPressure = passerThreatAhead.clamp(0, 3);
       if (aheadPressure > 0) {
-        _passerVx += (0.016 * aheadPressure) + (math.max(0.0, -passerAvoidX) * 0.045);
+        _passerVx +=
+            (0.016 * aheadPressure) + (math.max(0.0, -passerAvoidX) * 0.045);
         _passerVy += passerAvoidY * 0.060;
       }
       if (passerAvoidY.abs() < 0.015 && aheadPressure > 0) {
@@ -1050,7 +1051,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _receiverVy += receiverAvoidY * 0.045;
       final aheadPressure = receiverThreatAhead.clamp(0, 3);
       if (aheadPressure > 0) {
-        _receiverVx += (0.016 * aheadPressure) + (math.max(0.0, -receiverAvoidX) * 0.045);
+        _receiverVx +=
+            (0.016 * aheadPressure) + (math.max(0.0, -receiverAvoidX) * 0.045);
         _receiverVy += receiverAvoidY * 0.060;
       }
       if (receiverAvoidY.abs() < 0.015 && aheadPressure > 0) {
@@ -1425,6 +1427,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _charging = false;
     _chargeStartedAt = null;
     if (_goalChanceActive) {
+      final passerIsA = _attackerAIsPasser;
       _targetX = _aimX.clamp(0.72, _goalLineX);
       _targetY = _aimY.clamp(_goalTopY, _goalBottomY);
       final dx = _targetX - _activePasserX;
@@ -1448,9 +1451,15 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballFlying = true;
       _phase = _PlayPhase.flying;
       _flightNearMissAwarded = false;
+      _applyImmediatePasserAdvance(
+        passerIsA: passerIsA,
+        passDirX: dirX,
+        passDirY: dirY,
+      );
       _applyPasserBurst(dirX, dirY);
       return;
     }
+    final passerIsA = _attackerAIsPasser;
     final prediction = _predictPassTo(_chargedBallSpeed, _aimX, _aimY);
     _targetX = prediction.targetX;
     _targetY = prediction.targetY;
@@ -1498,7 +1507,38 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballFlying = true;
     _phase = _PlayPhase.flying;
     _flightNearMissAwarded = false;
+    _applyImmediatePasserAdvance(
+      passerIsA: passerIsA,
+      passDirX: passDirX,
+      passDirY: passDirY,
+    );
     _applyPasserBurst(passDirX, passDirY);
+  }
+
+  void _applyImmediatePasserAdvance({
+    required bool passerIsA,
+    required double passDirX,
+    required double passDirY,
+  }) {
+    final chargeRatio =
+        ((_chargedBallSpeed - _ballMinSpeed) / (_ballMaxSpeed - _ballMinSpeed))
+            .clamp(0.0, 1.0);
+    final forwardKick = (0.19 + (chargeRatio * 0.17)).clamp(0.19, 0.36);
+    final lateralKick = (passDirY * (0.05 + (chargeRatio * 0.04))).clamp(
+      -0.12,
+      0.12,
+    );
+    const immediateStep = 0.010;
+
+    if (passerIsA) {
+      _passerVx = math.max(_passerVx, forwardKick);
+      _passerVy = (_passerVy + lateralKick).clamp(-0.28, 0.28);
+      _passerXPos = (_passerXPos + immediateStep).clamp(_fieldMinX, _fieldMaxX);
+    } else {
+      _receiverVx = math.max(_receiverVx, forwardKick);
+      _receiverVy = (_receiverVy + lateralKick).clamp(-0.28, 0.28);
+      _receiverX = (_receiverX + immediateStep).clamp(_fieldMinX, _fieldMaxX);
+    }
   }
 
   void _applyPasserBurst(double dirX, double dirY) {
@@ -2556,12 +2596,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       bottom: 12,
       child: Listener(
         key: _passPadKey,
-        onPointerDown: (event) =>
-            _onPassDown(event.pointer, event.position),
-        onPointerMove: (event) =>
-            _onPassMove(event.pointer, event.position),
-        onPointerUp: (event) =>
-            _onPassUp(event.pointer, event.position),
+        onPointerDown: (event) => _onPassDown(event.pointer, event.position),
+        onPointerMove: (event) => _onPassMove(event.pointer, event.position),
+        onPointerUp: (event) => _onPassUp(event.pointer, event.position),
         onPointerCancel: (event) => _onPassCancel(event.pointer),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
@@ -3101,6 +3138,7 @@ class _PassPrediction {
 }
 
 enum _PlayPhase { ready, flying, roundEnd }
+
 enum _EntityKind { attacker, defender, ball }
 
 enum _PassResult {
@@ -3277,7 +3315,6 @@ extension _GhostTypeSpec on _GhostType {
         return 0.040;
     }
   }
-
 }
 
 extension _GameDifficultySpec on _GameDifficulty {
