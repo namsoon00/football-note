@@ -669,10 +669,10 @@ class _EntryCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
               ),
-              if (entry.notes.isNotEmpty) ...[
+              if (_buildListFocusText(entry).isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
-                  entry.notes,
+                  _buildListFocusText(entry),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -735,8 +735,12 @@ class _EntryListItem extends StatelessWidget {
         title: Text(
             '${entry.type.isEmpty ? l10n.program : entry.type} · $durationText'),
         subtitle: Text(
-          '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
-          maxLines: 1,
+          [
+            '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
+            if (_buildListFocusText(entry).isNotEmpty)
+              _buildListFocusText(entry),
+          ].join('\n'),
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: PopupMenuButton<String>(
@@ -790,6 +794,13 @@ String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
     parts.add(entry.location);
   }
   return parts.join('  •  ');
+}
+
+String _buildListFocusText(TrainingEntry entry) {
+  if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
+  if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
+  if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
+  return '';
 }
 
 class _EntryImage extends StatelessWidget {

@@ -876,12 +876,24 @@ class _EntryTile extends StatelessWidget {
         leading: _StatusIcon(status: entry.status),
         title: Text('${entry.type} · $durationText'),
         subtitle: Text(
-          '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
+          [
+            '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
+            if (_entryFocusText(entry).isNotEmpty) _entryFocusText(entry),
+          ].join('\n'),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
     );
+  }
+
+  String _entryFocusText(TrainingEntry entry) {
+    if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
+    if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
+    if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
+    return '';
   }
 }
 
