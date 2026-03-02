@@ -11,6 +11,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
+import 'game_guide_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -405,19 +406,25 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _goalChanceActive
-                      ? (isKo
-                          ? '최종 슈팅 라운드! 골대 안으로 슛하세요'
-                          : 'Final shot round! Aim inside the goal.')
-                      : (isKo
-                          ? '60초 동안 패스로 점수와 레벨을 올리세요. 종료 후 슈팅 라운드가 시작됩니다.'
-                          : 'Build score and level for 60s. Final shot round starts after time ends.'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _goalChanceActive
+                            ? (isKo ? '현재: 최종 슈팅 라운드' : 'Now: Final shot round')
+                            : (isKo ? '현재: 패스 라운드' : 'Now: Pass round'),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _openGameGuide(context),
+                      icon: const Icon(Icons.menu_book_outlined, size: 16),
+                      label: Text(isKo ? '게임 가이드' : 'Guide'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 if (_goalChanceActive) ...[
@@ -2325,6 +2332,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       ),
     );
     if (mounted) setState(() {});
+  }
+
+  void _openGameGuide(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const GameGuideScreen(),
+      ),
+    );
   }
 }
 
