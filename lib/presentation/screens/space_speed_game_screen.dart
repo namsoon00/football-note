@@ -117,7 +117,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double _aimY = 0.36;
   double? _pointerX;
   double? _pointerY;
-  double _predBallTime = 0;
   double _predReceiverTime = 0;
   double _idealBallSpeed = _ballMinSpeed;
   double _effectiveBallSpeed = _ballMinSpeed;
@@ -238,7 +237,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final preview = _predictPassTo(_chargedBallSpeed, _aimX, _aimY);
     final shotHint = _shotWindowHint(isKo);
 
     final showTargetX = _ballFlying ? _targetX : _aimX;
@@ -256,7 +254,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       body: AppBackground(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -485,6 +483,49 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   ),
                 ],
                 const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2F80ED).withAlpha(28),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: const Color(0xFF2F80ED).withAlpha(120)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _accuracyTier(_overallScorePct).icon,
+                        color: _accuracyTier(_overallScorePct).color,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isKo ? '패스 품질' : 'Pass Quality',
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${_overallScorePct.round()}%',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        isKo
+                            ? _accuracyTier(_overallScorePct).labelKo
+                            : _accuracyTier(_overallScorePct).labelEn,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: _accuracyTier(_overallScorePct).color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
                 SegmentedButton<_GameDifficulty>(
                   segments: [
                     ButtonSegment(
@@ -517,9 +558,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     _resetRound(keepScore: true);
                   },
                 ),
-                const SizedBox(height: 6),
-                _metricsPanel(isKo, preview),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -873,97 +912,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  isKo
-                      ? '공격수는 전진 패스만 가능하며 3초 안에 패스를 해야 합니다. 수비를 제치면 골대가 나타나고 마지막 패스 뒤 슈팅으로 마무리합니다.'
-                      : 'Only forward passes are allowed, and you must pass within 3 seconds. Beat defenders to unlock the goal, then finish with a shot.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _metricsPanel(bool isKo, _PassPrediction preview) {
-    final scheme = Theme.of(context).colorScheme;
-    final ballEta = _ballFlying ? _predBallTime : preview.ballTime;
-    final runnerEta = _ballFlying ? _predReceiverTime : preview.receiverTime;
-    final timingDelta = (ballEta - runnerEta).abs();
-    final receiverSpeed = _activeReceiverSpeedAbs;
-    final displayBallSpeed =
-        _ballFlying ? _effectiveBallSpeed : _chargedBallSpeed;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withAlpha(170),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: scheme.outline.withAlpha(120)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  isKo
-                      ? '공속 ${displayBallSpeed.toStringAsFixed(2)}'
-                      : 'Ball ${displayBallSpeed.toStringAsFixed(2)}',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  isKo
-                      ? '선수속도 ${receiverSpeed.toStringAsFixed(2)}'
-                      : 'Runner ${receiverSpeed.toStringAsFixed(2)}',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  isKo
-                      ? '공도착 ${ballEta.toStringAsFixed(2)}s'
-                      : 'Ball ETA ${ballEta.toStringAsFixed(2)}s',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  isKo
-                      ? '선수도착 ${runnerEta.toStringAsFixed(2)}s'
-                      : 'Runner ETA ${runnerEta.toStringAsFixed(2)}s',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  isKo
-                      ? '오차 ${timingDelta.toStringAsFixed(2)}s'
-                      : 'Delta ${timingDelta.toStringAsFixed(2)}s',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: timingDelta <= 0.12
-                        ? const Color(0xFF0FA968)
-                        : (timingDelta <= 0.22
-                            ? const Color(0xFFF2994A)
-                            : const Color(0xFFEB5757)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _SingleOverallGauge(
-            isKo: isKo,
-            overall: _overallScorePct,
-          ),
-        ],
       ),
     );
   }
@@ -1354,7 +1306,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       final dirY = dy / dist;
       _effectiveBallSpeed =
           _chargedBallSpeed.clamp(_ballMinSpeed, _ballMaxSpeed);
-      _predBallTime = dist / math.max(_effectiveBallSpeed, 0.001);
       _predReceiverTime = 0;
       _ballVx = dirX * _effectiveBallSpeed;
       _ballVy = dirY * _effectiveBallSpeed;
@@ -1378,7 +1329,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (dist < 1e-6) return;
     _passDistance = dist;
 
-    _predBallTime = prediction.ballTime;
     _predReceiverTime = prediction.receiverTime;
     _idealBallSpeed = prediction.idealBallSpeed;
     final forward = _forwardPassInfo(_targetX, _targetY);
@@ -1405,8 +1355,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         (1 - (0.20 * (bodyTurn / math.pi))).clamp(0.78, 1.0);
     _effectiveBallSpeed = (_chargedBallSpeed * bodyTurnPenalty)
         .clamp(_ballMinSpeed, _ballMaxSpeed);
-    _predBallTime = dist / math.max(_effectiveBallSpeed, 0.001);
-
     _ballVx = passDirX * _effectiveBallSpeed;
     _ballVy = passDirY * _effectiveBallSpeed;
     _ballX = _activePasserX;
@@ -2445,55 +2393,6 @@ class _ReceivingWindowEval {
     required this.inside,
     required this.fit,
   });
-}
-
-class _SingleOverallGauge extends StatelessWidget {
-  final bool isKo;
-  final double overall;
-
-  const _SingleOverallGauge({
-    required this.isKo,
-    required this.overall,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final v = overall.clamp(0, 100).toDouble();
-    return Row(
-      children: [
-        SizedBox(
-          width: 72,
-          child: Text(
-            isKo ? '패스 품질' : 'Pass Quality',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: v / 100,
-              minHeight: 8,
-              color: const Color(0xFF4DD0E1),
-              backgroundColor: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.15),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 64,
-          child: Text(
-            '${v.toStringAsFixed(0)}%',
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _HypeBar extends StatelessWidget {
