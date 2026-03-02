@@ -138,6 +138,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   Offset _passAimInput = Offset.zero;
   bool _passAimActive = false;
   int? _passPointerId;
+  bool _passChargeArmed = false;
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
   double get _attackerPaceScale =>
@@ -1496,6 +1497,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _effectiveBallSpeed = _ballMinSpeed;
     _passPressed = false;
     _passPointerId = null;
+    _passChargeArmed = false;
   }
 
   void _onSuccess() {
@@ -1558,6 +1560,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimInput = Offset.zero;
     _passAimActive = false;
     _passPointerId = null;
+    _passChargeArmed = false;
     _gameStarted = false;
     _timeUp = true;
     _endedByFail = failed;
@@ -1657,6 +1660,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimInput = Offset.zero;
     _passAimActive = false;
     _passPointerId = null;
+    _passChargeArmed = false;
     _gameStarted = false;
     _endedByFail = true;
     _timeUp = true;
@@ -1716,6 +1720,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimInput = Offset.zero;
     _passAimActive = false;
     _passPointerId = null;
+    _passChargeArmed = false;
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
     _forwardWindow = false;
@@ -1768,13 +1773,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   void _onPassDown(int pointer, Offset local) {
     if (_passPointerId != null) return;
-    _passPointerId = pointer;
     if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
       return;
     }
+    _passPointerId = pointer;
     _updatePassAimFromLocal(local);
     _updateAutoAim();
     _passPressed = true;
+    _passChargeArmed = true;
     _beginCharge();
   }
 
@@ -1790,8 +1796,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _updatePassAimFromLocal(local);
     final wasPressed = _passPressed;
     _passPressed = false;
+    final wasArmed = _passChargeArmed;
+    _passChargeArmed = false;
     if (!wasPressed) return;
-    if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
+    if (!wasArmed ||
+        !_gameStarted ||
+        _timeUp ||
+        _phase != _PlayPhase.ready ||
+        _ballFlying) {
       return;
     }
     _releaseChargeAndPass();
@@ -1803,6 +1815,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (_passPointerId != pointer) return;
     _passPointerId = null;
     _passPressed = false;
+    _passChargeArmed = false;
     _passAimInput = Offset.zero;
     _passAimActive = false;
     if (_charging) {
@@ -2520,12 +2533,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                 Transform.translate(
                   offset: Offset(_passAimInput.dx * 14, _passAimInput.dy * 14),
                   child: Container(
-                    width: 26,
-                    height: 26,
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withAlpha(42),
-                      border: Border.all(color: Colors.white.withAlpha(160)),
+                      color: Colors.black.withAlpha(28),
+                      border: Border.all(color: Colors.white.withAlpha(150)),
+                    ),
+                    child: const Icon(
+                      Icons.sports_soccer,
+                      size: 16,
+                      color: Colors.white,
                     ),
                   ),
                 ),
