@@ -178,6 +178,7 @@ fi
 log "Creating/updating PR"
 python3 scripts/create_or_update_pr.py
 
+log "FORCE_MAIN_MERGE=$FORCE_MAIN_MERGE"
 if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
   log "Force merging ${HEAD_BRANCH} into ${DEFAULT_BRANCH}"
   git fetch origin "$DEFAULT_BRANCH" "$HEAD_BRANCH"
