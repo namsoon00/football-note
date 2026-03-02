@@ -1808,6 +1808,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         _ballFlying) {
       return;
     }
+    // Fallback: if charge state got dropped by gesture race, still fire
+    // immediately on release at minimum speed.
+    if (!_charging) {
+      _charging = true;
+      _chargedBallSpeed = _ballMinSpeed;
+    }
     _releaseChargeAndPass();
     _passAimInput = Offset.zero;
     _passAimActive = false;
