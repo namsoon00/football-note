@@ -444,7 +444,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                       child: Text(
                         _goalChanceActive
                             ? (isKo ? '현재: 최종 슈팅 라운드' : 'Now: Final shot round')
-                            : (isKo ? '현재: 패스 라운드' : 'Now: Pass round'),
+                            : (isKo ? '현재: 일반 라운드' : 'Now: Normal round'),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
@@ -1617,8 +1617,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _syncDefendersForLevel();
     _reactionLabel = _koText('레벨 업! Lv.$_level', 'Level Up! Lv.$_level');
     _reactionDetail = _koText(
-      '수비수가 더 빨라지고 압박이 강해집니다.',
-      'Defenders get faster and pressure increases.',
+      '수비가 더 빨라지고 강해집니다.',
+      'Defenders get faster and stronger.',
     );
     _reactionIcon = Icons.trending_up_rounded;
     _reactionColor = const Color(0xFF2F80ED);
@@ -2559,20 +2559,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     ),
                   ),
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isKo ? '패스 패드' : 'PASS PAD',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 10,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ],
-                ),
+                const SizedBox.shrink(),
               ],
             ),
           ),
