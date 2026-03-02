@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -41,14 +42,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = _profileService.load();
     _nameController = TextEditingController(text: profile.name);
     _heightController = TextEditingController(
-      text: profile.heightCm == null
-          ? ''
-          : profile.heightCm!.toStringAsFixed(1).replaceAll('.0', ''),
+      text: _formatEditableNumber(profile.heightCm),
     );
     _weightController = TextEditingController(
-      text: profile.weightKg == null
-          ? ''
-          : profile.weightKg!.toStringAsFixed(1).replaceAll('.0', ''),
+      text: _formatEditableNumber(profile.weightKg),
     );
     _photoPath = profile.photoUrl;
     _birthDate = profile.birthDate;
@@ -111,9 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: [_decimalInputFormatter],
                   decoration: InputDecoration(
                     labelText: isKo ? '키(cm)' : 'Height (cm)',
-                    hintText: '150',
+                    hintText: '150.5',
                   ),
                   onChanged: (_) => _scheduleAutoSave(),
                 ),
@@ -125,6 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: [_decimalInputFormatter],
                   decoration: InputDecoration(
                     labelText: isKo ? '몸무게(kg)' : 'Weight (kg)',
                     hintText: '42.5',
@@ -240,6 +239,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (value.isEmpty) return null;
     return double.tryParse(value.replaceAll(',', '.'));
   }
+
+  String _formatEditableNumber(double? value) {
+    if (value == null) return '';
+    final rounded = value.toStringAsFixed(2);
+    return rounded
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  static final TextInputFormatter _decimalInputFormatter =
+      TextInputFormatter.withFunction((oldValue, newValue) {
+    final text = newValue.text;
+    if (text.isEmpty) return newValue;
+    final normalized = text.replaceAll(',', '.');
+    if (!RegExp(r'^\d*(?:\.\d{0,2})?$').hasMatch(normalized)) {
+      return oldValue;
+    }
+    return newValue;
+  });
 
   Future<void> _pickProfilePhoto() async {
     try {
