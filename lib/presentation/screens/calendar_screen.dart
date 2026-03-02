@@ -173,7 +173,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        FilledButton.tonalIcon(
+                        OutlinedButton.icon(
                           onPressed: () =>
                               _openPlanSheet(day: _selectedDay ?? _focusedDay),
                           icon: const Icon(Icons.add_alarm_outlined, size: 20),
@@ -182,7 +182,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ? '훈련 계획 추가'
                                 : 'Add Training Plan',
                           ),
-                          style: FilledButton.styleFrom(
+                          style: OutlinedButton.styleFrom(
                             visualDensity: VisualDensity.compact,
                             minimumSize: const Size(1, 40),
                             maximumSize: const Size(210, 40),
