@@ -179,7 +179,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         'programs',
       );
       _status = 'normal';
+      unawaited(_applyLatestEntryDefaults());
     }
+  }
+
+  Future<void> _applyLatestEntryDefaults() async {
+    final latest = await widget.trainingService.latestEntry();
+    if (!mounted || latest == null || widget.entry != null) return;
+    setState(() {
+      _durationMinutes = _initIntSelection(
+          'durations', _durationOptions, latest.durationMinutes);
+      _location =
+          _initSelection('locations', _locationOptions, latest.location);
+    });
   }
 
   int _defaultInt(String key, int fallback) {

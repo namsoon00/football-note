@@ -412,6 +412,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         day: plan.scheduledAt,
                         editingPlan: plan,
                       ),
+                      onDeleteEntry: _confirmDeleteEntry,
                       onDeletePlan: _confirmDeletePlan,
                       onAddPlan: () => _openPlanSheet(day: selected),
                       onListScrollUp: () {
@@ -695,6 +696,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
+  Future<bool> _confirmDeleteEntry(TrainingEntry entry) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '일지 삭제' : 'Delete log'),
+        content: Text(
+          isKo
+              ? '이 훈련 일지를 정말 삭제할까요?'
+              : 'Are you sure you want to delete this training log?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '삭제' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (shouldDelete == true) {
+      await widget.trainingService.delete(entry);
+      return true;
+    }
+    return false;
+  }
+
   List<_TrainingPlan> _loadPlans() {
     final raw = widget.optionRepository.getValue<String>(_plansStorageKey);
     if (raw == null || raw.isEmpty) return const <_TrainingPlan>[];
@@ -904,6 +935,7 @@ class _DayTimeline extends StatelessWidget {
   final List<TrainingEntry> dayEntries;
   final ValueChanged<TrainingEntry> onEditEntry;
   final ValueChanged<_TrainingPlan> onEditPlan;
+  final Future<bool> Function(TrainingEntry) onDeleteEntry;
   final ValueChanged<_TrainingPlan> onDeletePlan;
   final VoidCallback onAddPlan;
   final VoidCallback onListScrollUp;
@@ -915,6 +947,7 @@ class _DayTimeline extends StatelessWidget {
     required this.dayEntries,
     required this.onEditEntry,
     required this.onEditPlan,
+    required this.onDeleteEntry,
     required this.onDeletePlan,
     required this.onAddPlan,
     required this.onListScrollUp,
@@ -1039,9 +1072,28 @@ class _DayTimeline extends StatelessWidget {
             ...sortedEntries.map(
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: _EntryTile(
-                  entry: entry,
-                  onTap: () => onEditEntry(entry),
+                child: Dismissible(
+                  key: ValueKey(
+                    'entry-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                  ),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) => onDeleteEntry(entry),
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                  child: _EntryTile(
+                    entry: entry,
+                    onTap: () => onEditEntry(entry),
+                  ),
                 ),
               ),
             ),

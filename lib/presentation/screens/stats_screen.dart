@@ -200,7 +200,7 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
               if (canShowAverage) ...[
                 const SizedBox(width: 10),
-                FilledButton.tonalIcon(
+                OutlinedButton.icon(
                   onPressed: () => _openAverageBenchmark(
                     context,
                     filteredEntries,
@@ -209,7 +209,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                   icon: const Icon(Icons.analytics_outlined, size: 18),
                   label: Text(isKo ? '평균 비교' : 'Averages'),
-                  style: FilledButton.styleFrom(
+                  style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     minimumSize: const Size(1, 38),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,

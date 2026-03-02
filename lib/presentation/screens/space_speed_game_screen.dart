@@ -69,7 +69,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   int _weeklyBest = 0;
   int _level = 1;
   bool _gameStarted = false;
-  int _remainingSeconds = 60;
+  int _remainingSeconds = 20;
   bool _timeUp = false;
   bool _endedByFail = false;
   bool _finalShotMode = false;
@@ -944,7 +944,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _timeUp = false;
       _endedByFail = false;
       _finalRanking = '';
-      _remainingSeconds = 60;
+      _remainingSeconds = 20;
       _score = 0;
       _goals = 0;
       _combo = 0;
@@ -1124,12 +1124,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         _passerXPos = (_passerXPos + 0.014).clamp(minX, maxX);
         _passerVx = (_passerVx + 0.05).clamp(0.07, 0.26);
       }
-    }
-
-    final d = _distance(_passerXPos, _passerYPos, _receiverX, _receiverY);
-    if (d < 0.16) {
-      _receiverY = (_receiverY + 0.06).clamp(minY, maxY);
-      _passerYPos = (_passerYPos - 0.06).clamp(minY, maxY);
     }
 
     if (_goalChanceActive) {
