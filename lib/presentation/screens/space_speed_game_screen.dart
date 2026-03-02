@@ -620,6 +620,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 y: _passerYPos,
                                 size: 29,
                                 color: const Color(0xFFFFD54F),
+                                kind: _EntityKind.attacker,
                                 label: '',
                                 width: width,
                                 height: height,
@@ -632,6 +633,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 y: _receiverY,
                                 size: 29,
                                 color: const Color(0xFFFFC107),
+                                kind: _EntityKind.attacker,
                                 label: '',
                                 width: width,
                                 height: height,
@@ -709,6 +711,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                   y: _defenders[i].y,
                                   size: 29,
                                   color: _defenders[i].ghostType.color,
+                                  kind: _EntityKind.defender,
                                   label: '',
                                   width: width,
                                   height: height,
@@ -721,6 +724,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                   y: _keeperY,
                                   size: 29,
                                   color: const Color(0xFFFF6B6B),
+                                  kind: _EntityKind.defender,
                                   label: '',
                                   width: width,
                                   height: height,
@@ -732,6 +736,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 y: _ballY,
                                 size: 12,
                                 color: Colors.white,
+                                kind: _EntityKind.ball,
                                 label: '',
                                 width: width,
                                 height: height,
@@ -2321,6 +2326,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     required double y,
     required double size,
     required Color color,
+    required _EntityKind kind,
     required String label,
     required double width,
     required double height,
@@ -2328,9 +2334,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     String roleTag = '',
   }) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final isBall = label.isEmpty;
-    final isAttacker = label.startsWith('Attacker') || label.startsWith('공격수');
-    final isDefender = label.startsWith('Def ') || label.startsWith('수비');
     return Positioned(
       left: x * width - size / 2,
       top: y * height - size / 2,
@@ -2340,22 +2343,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             width: size,
             height: size,
             child: CustomPaint(
-              painter: isBall
-                  ? _BallEntityPainter(color: color, emphasize: emphasize)
-                  : (isAttacker
-                      ? _PacmanEntityPainter(
-                          color: color,
-                          emphasize: emphasize,
-                        )
-                      : (isDefender
-                          ? _GhostEntityPainter(
-                              color: color,
-                              emphasize: emphasize,
-                            )
-                          : _BallEntityPainter(
-                              color: color,
-                              emphasize: emphasize,
-                            ))),
+              painter: switch (kind) {
+                _EntityKind.ball => _BallEntityPainter(
+                    color: color,
+                    emphasize: emphasize,
+                  ),
+                _EntityKind.attacker => _PacmanEntityPainter(
+                    color: color,
+                    emphasize: emphasize,
+                  ),
+                _EntityKind.defender => _GhostEntityPainter(
+                    color: color,
+                    emphasize: emphasize,
+                  ),
+              },
             ),
           ),
           if (roleTag.isNotEmpty)
@@ -3057,6 +3058,7 @@ class _PassPrediction {
 }
 
 enum _PlayPhase { ready, flying, roundEnd }
+enum _EntityKind { attacker, defender, ball }
 
 enum _PassResult {
   perfect,
