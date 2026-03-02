@@ -14,10 +14,19 @@ trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
 : "${GITHUB_REPOSITORY:?Missing GITHUB_REPOSITORY}"
 : "${GITHUB_TOKEN:?Missing GITHUB_TOKEN}"
 DEFAULT_BRANCH="${DEFAULT_BRANCH:-main}"
+CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
+CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
+USE_CUSTOM_CODEX_CMD="${USE_CUSTOM_CODEX_CMD:-0}"
+CODEX_UNSAFE="${CODEX_UNSAFE:-1}"
 
 log() {
   echo "[issue-worker] $*"
 }
+
+# Some self-hosted macOS runners deny /tmp fallback paths used by xcrun/git.
+TMP_BASE="$ROOT_DIR/.tmp"
+mkdir -p "$TMP_BASE"
+export TMPDIR="$TMP_BASE"
 
 log "Syncing repository"
 git fetch origin "$DEFAULT_BRANCH"
@@ -32,6 +41,9 @@ if [[ -z "${ISSUE_NUMBER:-}" ]]; then
   log "No queued issue found."
   exit 0
 fi
+# Queue sync updates docs/ISSUE_QUEUE.md on main; discard it for feature branch work
+# to avoid checkout/rebase conflicts.
+git restore --worktree --staged docs/ISSUE_QUEUE.md 2>/dev/null || true
 
 ISSUE_JSON="$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}")"
 ISSUE_STATE="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("state",""))' <<< "$ISSUE_JSON")"
@@ -61,7 +73,9 @@ else
 fi
 
 if git ls-remote --exit-code --heads origin "$HEAD_BRANCH" >/dev/null 2>&1; then
-  git pull --ff-only origin "$HEAD_BRANCH" || true
+  log "Aligning local branch with origin/${HEAD_BRANCH}"
+  git fetch origin "$HEAD_BRANCH"
+  git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
 fi
 
 PROMPT_FILE="/tmp/codex_issue_${ISSUE_NUMBER}.prompt"
@@ -84,25 +98,54 @@ PROMPT
 
 export ISSUE_NUMBER ISSUE_TITLE ISSUE_URL ISSUE_BODY HEAD_BRANCH BASE_BRANCH="$DEFAULT_BRANCH" CODEX_PROMPT_FILE="$PROMPT_FILE"
 
-if [[ -n "${CODEX_RUNNER_CMD:-}" ]]; then
-  log "Running custom Codex command"
-  bash -lc "$CODEX_RUNNER_CMD"
+if [[ "$USE_CUSTOM_CODEX_CMD" == "1" && -n "${CODEX_RUNNER_CMD:-}" ]]; then
+  log "Running custom Codex command in $ROOT_DIR"
+  log "Custom command: $CODEX_RUNNER_CMD"
+  bash -lc "cd \"$ROOT_DIR\" && $CODEX_RUNNER_CMD"
 else
+  if [[ -n "${CODEX_RUNNER_CMD:-}" ]]; then
+    log "Ignoring CODEX_RUNNER_CMD because USE_CUSTOM_CODEX_CMD!=1"
+  fi
   if ! command -v codex >/dev/null 2>&1; then
     log "codex CLI not found. Set CODEX_RUNNER_CMD or install codex."
     exit 1
   fi
-  log "Running codex CLI"
+  log "Running codex CLI (sandbox=$CODEX_SANDBOX, approval=$CODEX_APPROVAL, unsafe=$CODEX_UNSAFE)"
   if codex exec --help >/dev/null 2>&1; then
-    codex exec "$(cat "$PROMPT_FILE")"
+    if [[ "$CODEX_UNSAFE" == "1" ]]; then
+      codex -C "$ROOT_DIR" \
+        --dangerously-bypass-approvals-and-sandbox \
+        exec "$(cat "$PROMPT_FILE")"
+    else
+      codex -C "$ROOT_DIR" \
+        --sandbox "$CODEX_SANDBOX" \
+        --ask-for-approval "$CODEX_APPROVAL" \
+        exec "$(cat "$PROMPT_FILE")"
+    fi
   else
-    codex "$(cat "$PROMPT_FILE")"
+    if [[ "$CODEX_UNSAFE" == "1" ]]; then
+      codex -C "$ROOT_DIR" \
+        --dangerously-bypass-approvals-and-sandbox \
+        "$(cat "$PROMPT_FILE")"
+    else
+      codex -C "$ROOT_DIR" \
+        --sandbox "$CODEX_SANDBOX" \
+        --ask-for-approval "$CODEX_APPROVAL" \
+        "$(cat "$PROMPT_FILE")"
+    fi
   fi
 fi
 
 if git diff --quiet; then
   log "No changes produced by Codex."
-  exit 0
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -X POST \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+    -d "{\"body\":\"자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (권한/샌드박스/프롬프트를 점검하세요)\"}" \
+    >/dev/null || true
+  exit 1
 fi
 
 if [[ "${RUN_VERIFY:-0}" == "1" ]]; then
@@ -124,7 +167,12 @@ git add -A
 git commit -m "$COMMIT_TITLE" -m "Closes #${ISSUE_NUMBER}"
 
 log "Pushing branch $HEAD_BRANCH"
-git push -u origin "$HEAD_BRANCH"
+if ! git push -u origin "$HEAD_BRANCH"; then
+  log "Push rejected, rebasing with remote and retrying once"
+  git fetch origin "$HEAD_BRANCH"
+  git rebase "origin/$HEAD_BRANCH"
+  git push -u origin "$HEAD_BRANCH"
+fi
 
 log "Creating/updating PR"
 python3 scripts/create_or_update_pr.py

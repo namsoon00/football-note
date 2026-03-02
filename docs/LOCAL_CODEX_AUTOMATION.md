@@ -26,7 +26,21 @@ Both run every 30 minutes.
 
 ## 4) Optional repository variables
 - `CODEX_RUNNER_CMD`: custom Codex invocation command
+- `USE_CUSTOM_CODEX_CMD`: set `1` only if you really want to use `CODEX_RUNNER_CMD`
+- `CODEX_SANDBOX`: default `workspace-write`
+- `CODEX_APPROVAL`: default `never`
+- `CODEX_UNSAFE`: default `1` (uses `--dangerously-bypass-approvals-and-sandbox`)
 - `RUN_VERIFY`: set `1` to run `scripts/verify.sh` in worker
+- `AUTO_MERGE`: default `1` (try merge PR to `main` automatically)
+- `AUTO_MERGE_METHOD`: `squash` (default), `merge`, or `rebase`
+
+## 4-1) Required GitHub Actions permission for PR auto-create
+Repository Settings -> Actions -> General -> Workflow permissions:
+- `Read and write permissions`
+- Enable `Allow GitHub Actions to create and approve pull requests`
+
+Repository Settings -> General:
+- Enable `Allow auto-merge` (recommended)
 
 ## 5) What happens each run
 1. Pull latest `main`

@@ -35,7 +35,13 @@ jobs:
           DEFAULT_BRANCH: main
           # Optional overrides (Repository Variables/Secrets)
           CODEX_RUNNER_CMD: ${{ vars.CODEX_RUNNER_CMD }}
+          USE_CUSTOM_CODEX_CMD: ${{ vars.USE_CUSTOM_CODEX_CMD }}
+          CODEX_SANDBOX: ${{ vars.CODEX_SANDBOX }}
+          CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
+          CODEX_UNSAFE: ${{ vars.CODEX_UNSAFE }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}
+          AUTO_MERGE: ${{ vars.AUTO_MERGE }}
+          AUTO_MERGE_METHOD: ${{ vars.AUTO_MERGE_METHOD }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |
           bash scripts/run_issue_worker.sh
