@@ -16,10 +16,16 @@ trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
 DEFAULT_BRANCH="${DEFAULT_BRANCH:-main}"
 CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
 CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
+USE_CUSTOM_CODEX_CMD="${USE_CUSTOM_CODEX_CMD:-0}"
 
 log() {
   echo "[issue-worker] $*"
 }
+
+# Some self-hosted macOS runners deny /tmp fallback paths used by xcrun/git.
+TMP_BASE="$ROOT_DIR/.tmp"
+mkdir -p "$TMP_BASE"
+export TMPDIR="$TMP_BASE"
 
 log "Syncing repository"
 git fetch origin "$DEFAULT_BRANCH"
@@ -91,11 +97,14 @@ PROMPT
 
 export ISSUE_NUMBER ISSUE_TITLE ISSUE_URL ISSUE_BODY HEAD_BRANCH BASE_BRANCH="$DEFAULT_BRANCH" CODEX_PROMPT_FILE="$PROMPT_FILE"
 
-if [[ -n "${CODEX_RUNNER_CMD:-}" ]]; then
+if [[ "$USE_CUSTOM_CODEX_CMD" == "1" && -n "${CODEX_RUNNER_CMD:-}" ]]; then
   log "Running custom Codex command in $ROOT_DIR"
   log "Custom command: $CODEX_RUNNER_CMD"
   bash -lc "cd \"$ROOT_DIR\" && $CODEX_RUNNER_CMD"
 else
+  if [[ -n "${CODEX_RUNNER_CMD:-}" ]]; then
+    log "Ignoring CODEX_RUNNER_CMD because USE_CUSTOM_CODEX_CMD!=1"
+  fi
   if ! command -v codex >/dev/null 2>&1; then
     log "codex CLI not found. Set CODEX_RUNNER_CMD or install codex."
     exit 1

@@ -26,6 +26,7 @@ Both run every 30 minutes.
 
 ## 4) Optional repository variables
 - `CODEX_RUNNER_CMD`: custom Codex invocation command
+- `USE_CUSTOM_CODEX_CMD`: set `1` only if you really want to use `CODEX_RUNNER_CMD`
 - `CODEX_SANDBOX`: default `workspace-write`
 - `CODEX_APPROVAL`: default `never`
 - `RUN_VERIFY`: set `1` to run `scripts/verify.sh` in worker
