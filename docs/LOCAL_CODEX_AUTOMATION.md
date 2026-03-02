@@ -29,6 +29,7 @@ Both run every 30 minutes.
 - `USE_CUSTOM_CODEX_CMD`: set `1` only if you really want to use `CODEX_RUNNER_CMD`
 - `CODEX_SANDBOX`: default `workspace-write`
 - `CODEX_APPROVAL`: default `never`
+- `CODEX_UNSAFE`: default `1` (uses `--dangerously-bypass-approvals-and-sandbox`)
 - `RUN_VERIFY`: set `1` to run `scripts/verify.sh` in worker
 
 ## 4-1) Required GitHub Actions permission for PR auto-create

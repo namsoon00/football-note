@@ -17,6 +17,7 @@ DEFAULT_BRANCH="${DEFAULT_BRANCH:-main}"
 CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
 CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
 USE_CUSTOM_CODEX_CMD="${USE_CUSTOM_CODEX_CMD:-0}"
+CODEX_UNSAFE="${CODEX_UNSAFE:-1}"
 
 log() {
   echo "[issue-worker] $*"
@@ -109,23 +110,42 @@ else
     log "codex CLI not found. Set CODEX_RUNNER_CMD or install codex."
     exit 1
   fi
-  log "Running codex CLI (sandbox=$CODEX_SANDBOX, approval=$CODEX_APPROVAL)"
+  log "Running codex CLI (sandbox=$CODEX_SANDBOX, approval=$CODEX_APPROVAL, unsafe=$CODEX_UNSAFE)"
   if codex exec --help >/dev/null 2>&1; then
-    codex -C "$ROOT_DIR" \
-      --sandbox "$CODEX_SANDBOX" \
-      --ask-for-approval "$CODEX_APPROVAL" \
-      exec "$(cat "$PROMPT_FILE")"
+    if [[ "$CODEX_UNSAFE" == "1" ]]; then
+      codex -C "$ROOT_DIR" \
+        --dangerously-bypass-approvals-and-sandbox \
+        exec "$(cat "$PROMPT_FILE")"
+    else
+      codex -C "$ROOT_DIR" \
+        --sandbox "$CODEX_SANDBOX" \
+        --ask-for-approval "$CODEX_APPROVAL" \
+        exec "$(cat "$PROMPT_FILE")"
+    fi
   else
-    codex -C "$ROOT_DIR" \
-      --sandbox "$CODEX_SANDBOX" \
-      --ask-for-approval "$CODEX_APPROVAL" \
-      "$(cat "$PROMPT_FILE")"
+    if [[ "$CODEX_UNSAFE" == "1" ]]; then
+      codex -C "$ROOT_DIR" \
+        --dangerously-bypass-approvals-and-sandbox \
+        "$(cat "$PROMPT_FILE")"
+    else
+      codex -C "$ROOT_DIR" \
+        --sandbox "$CODEX_SANDBOX" \
+        --ask-for-approval "$CODEX_APPROVAL" \
+        "$(cat "$PROMPT_FILE")"
+    fi
   fi
 fi
 
 if git diff --quiet; then
   log "No changes produced by Codex."
-  exit 0
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -X POST \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+    -d "{\"body\":\"자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (권한/샌드박스/프롬프트를 점검하세요)\"}" \
+    >/dev/null || true
+  exit 1
 fi
 
 if [[ "${RUN_VERIFY:-0}" == "1" ]]; then

@@ -38,6 +38,7 @@ jobs:
           USE_CUSTOM_CODEX_CMD: ${{ vars.USE_CUSTOM_CODEX_CMD }}
           CODEX_SANDBOX: ${{ vars.CODEX_SANDBOX }}
           CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
+          CODEX_UNSAFE: ${{ vars.CODEX_UNSAFE }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |
