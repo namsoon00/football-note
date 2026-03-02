@@ -92,19 +92,24 @@ PROMPT
 export ISSUE_NUMBER ISSUE_TITLE ISSUE_URL ISSUE_BODY HEAD_BRANCH BASE_BRANCH="$DEFAULT_BRANCH" CODEX_PROMPT_FILE="$PROMPT_FILE"
 
 if [[ -n "${CODEX_RUNNER_CMD:-}" ]]; then
-  log "Running custom Codex command"
-  bash -lc "$CODEX_RUNNER_CMD"
+  log "Running custom Codex command in $ROOT_DIR"
+  log "Custom command: $CODEX_RUNNER_CMD"
+  bash -lc "cd \"$ROOT_DIR\" && $CODEX_RUNNER_CMD"
 else
   if ! command -v codex >/dev/null 2>&1; then
     log "codex CLI not found. Set CODEX_RUNNER_CMD or install codex."
     exit 1
   fi
-  log "Running codex CLI"
+  log "Running codex CLI (sandbox=$CODEX_SANDBOX, approval=$CODEX_APPROVAL)"
   if codex exec --help >/dev/null 2>&1; then
-    codex --sandbox "$CODEX_SANDBOX" --ask-for-approval "$CODEX_APPROVAL" \
+    codex -C "$ROOT_DIR" \
+      --sandbox "$CODEX_SANDBOX" \
+      --ask-for-approval "$CODEX_APPROVAL" \
       exec "$(cat "$PROMPT_FILE")"
   else
-    codex --sandbox "$CODEX_SANDBOX" --ask-for-approval "$CODEX_APPROVAL" \
+    codex -C "$ROOT_DIR" \
+      --sandbox "$CODEX_SANDBOX" \
+      --ask-for-approval "$CODEX_APPROVAL" \
       "$(cat "$PROMPT_FILE")"
   fi
 fi
