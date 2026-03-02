@@ -34,6 +34,9 @@ if [[ -z "${ISSUE_NUMBER:-}" ]]; then
   log "No queued issue found."
   exit 0
 fi
+# Queue sync updates docs/ISSUE_QUEUE.md on main; discard it for feature branch work
+# to avoid checkout/rebase conflicts.
+git restore --worktree --staged docs/ISSUE_QUEUE.md 2>/dev/null || true
 
 ISSUE_JSON="$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}")"
 ISSUE_STATE="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("state",""))' <<< "$ISSUE_JSON")"
