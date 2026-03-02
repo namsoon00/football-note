@@ -148,6 +148,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ),
                           ),
                         ),
+                        IconButton(
+                          tooltip:
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? '오늘로 이동'
+                                  : 'Go to today',
+                          onPressed: () {
+                            final today = _normalizeDay(DateTime.now());
+                            setState(() {
+                              _selectedDay = today;
+                              _focusedDay = today;
+                            });
+                          },
+                          icon: const Icon(Icons.today_outlined),
+                        ),
                         FilledButton.tonalIcon(
                           onPressed: () =>
                               _openPlanSheet(day: _selectedDay ?? _focusedDay),
