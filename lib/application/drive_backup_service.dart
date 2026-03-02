@@ -457,6 +457,13 @@ class DriveBackupService implements BackupRepository {
     };
   }
 
+  @visibleForTesting
+  Map<String, dynamic> buildBackupForTesting() => _buildBackup();
+
+  @visibleForTesting
+  Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
+      _restoreFromMap(data);
+
   Future<void> _restoreFromMap(Map<String, dynamic> data) async {
     final entries = (data['entries'] as List?) ?? const [];
     final options = (data['options'] as Map?) ?? const {};
@@ -466,14 +473,14 @@ class DriveBackupService implements BackupRepository {
     await _trainingBox.clear();
     for (final raw in entries) {
       if (raw is Map) {
-        _trainingBox.add(_entryFromMap(raw.cast<String, dynamic>()));
+        await _trainingBox.add(_entryFromMap(raw.cast<String, dynamic>()));
       }
     }
 
     await _optionBox.clear();
     for (final entry in options.entries) {
       if (entry.key is String && !_excludedOptionKeys.contains(entry.key)) {
-        _optionBox.put(entry.key, entry.value);
+        await _optionBox.put(entry.key, entry.value);
       }
     }
     if (localPreRestoreRaw is String) {
