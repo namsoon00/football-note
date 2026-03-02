@@ -20,17 +20,19 @@ class GameGuideScreen extends StatelessWidget {
             lines: isKo
                 ? const [
                     '1) 60초 동안 패스를 성공시켜 점수와 레벨을 올립니다.',
-                    '2) 패스는 길게 눌렀다가 놓으면 발사됩니다.',
-                    '3) 수비수에게 공이 닿으면 즉시 종료됩니다.',
-                    '4) 60초 종료 후 최종 슈팅 라운드가 시작됩니다.',
-                    '5) 슈팅 성공 시 보너스 점수와 함께 최종 랭킹이 표시됩니다.',
+                    '2) 패스 버튼을 누른 뒤 떼면 발사됩니다.',
+                    '3) 누른 상태에서 드래그해 패스 방향과 길이를 조절할 수 있습니다.',
+                    '4) 수비수에게 공이 닿으면 즉시 종료됩니다.',
+                    '5) 60초 종료 후 최종 슈팅 라운드가 시작됩니다.',
+                    '6) 슈팅 성공 시 보너스 점수와 함께 최종 랭킹이 표시됩니다.',
                   ]
                 : const [
                     '1) Build score and level with successful passes for 60 seconds.',
-                    '2) Hold and release to pass.',
-                    '3) Match ends immediately if the ball is intercepted.',
-                    '4) Final shot round starts after 60 seconds.',
-                    '5) A successful shot gives bonus score and final rank.',
+                    '2) Press and release the pass button to pass.',
+                    '3) Drag while holding to control pass direction and distance.',
+                    '4) Match ends immediately if the ball is intercepted.',
+                    '5) Final shot round starts after 60 seconds.',
+                    '6) A successful shot gives bonus score and final rank.',
                   ],
           ),
           const SizedBox(height: 12),
