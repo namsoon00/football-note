@@ -131,9 +131,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   Offset _joystickInput = Offset.zero;
   bool _joystickActive = false;
   bool _passPressed = false;
+  Offset _passAimInput = Offset.zero;
+  bool _passAimActive = false;
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
-  double get _paceScale => (0.30 + ((_level - 1) * 0.035)).clamp(0.30, 1.0);
+  double get _attackerPaceScale => (1.0 + ((_level - 1) * 0.055)).clamp(1.0, 2.0);
+  double get _defenderPaceScale => (0.48 + ((_level - 1) * 0.060)).clamp(0.48, 1.9);
 
   double get _pitchZoom {
     if (_finalShotMode) return 1.28;
@@ -947,7 +950,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _updatePlayers() {
-    final paceScale = _paceScale;
+    final attackerPace = _attackerPaceScale;
+    final defenderPace = _defenderPaceScale;
     final comboBoost = (1 + (_combo * 0.05)).clamp(1.0, 1.8);
     final levelBoost = (1 + ((_level - 1) * 0.07)).clamp(1.0, 2.1);
     final runSpeed = (0.15 + ((_level - 1) * 0.01)).clamp(0.15, 0.33);
@@ -980,31 +984,47 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       }
     }
 
-    if (_random.nextDouble() < 0.05) {
+    final passerIsA = _attackerAIsPasser;
+    if (!passerIsA && _random.nextDouble() < 0.05) {
       _passerVx += (_random.nextDouble() * 0.08) - 0.02;
       _passerVy += (_random.nextDouble() * 0.16) - 0.08;
     }
-    if (_random.nextDouble() < 0.05) {
+    if (passerIsA && _random.nextDouble() < 0.05) {
       _receiverVx += (_random.nextDouble() * 0.08) - 0.02;
       _receiverVy += (_random.nextDouble() * 0.16) - 0.08;
     }
     final forwardBoost = (1.0 + (passerAvoidX.abs() * 0.18)).clamp(1.0, 1.5);
     final forwardBoostB = (1.0 + (receiverAvoidX.abs() * 0.18)).clamp(1.0, 1.5);
-    _passerVx += 0.018 * forwardBoost;
-    _receiverVx += 0.018 * forwardBoostB;
-    _passerVy += passerAvoidY * 0.045;
-    _receiverVy += receiverAvoidY * 0.045;
+    if (!passerIsA) {
+      _passerVx += 0.018 * forwardBoost;
+      _passerVy += passerAvoidY * 0.045;
+    }
+    if (passerIsA) {
+      _receiverVx += 0.018 * forwardBoostB;
+      _receiverVy += receiverAvoidY * 0.045;
+    }
     _applyJoystickToActivePasser();
-    _passerVx = _passerVx.clamp(0.11, (runSpeed + 0.10) * clutchBoost);
-    _receiverVx = _receiverVx.clamp(0.12, (runSpeed + 0.12) * clutchBoost);
-    _passerVy = _passerVy.clamp(-0.19, 0.19);
-    _receiverVy = _receiverVy.clamp(-0.19, 0.19);
+    if (passerIsA) {
+      _passerVx *= 0.82;
+      _passerVy *= 0.82;
+    } else {
+      _receiverVx *= 0.82;
+      _receiverVy *= 0.82;
+    }
+    _passerVx = passerIsA
+        ? _passerVx.clamp(-0.30, 0.30)
+        : _passerVx.clamp(0.11, (runSpeed + 0.10) * clutchBoost);
+    _receiverVx = passerIsA
+        ? _receiverVx.clamp(0.12, (runSpeed + 0.12) * clutchBoost)
+        : _receiverVx.clamp(-0.30, 0.30);
+    _passerVy = _passerVy.clamp(-0.24, 0.24);
+    _receiverVy = _receiverVy.clamp(-0.24, 0.24);
     _passerSpeedMul = 1.0;
     _receiverSpeedMul = 1.0;
-    _passerXPos += _passerVx * _dt * paceScale;
-    _passerYPos += _passerVy * _dt * paceScale;
-    _receiverX += _receiverVx * _dt * paceScale;
-    _receiverY += _receiverVy * _dt * paceScale;
+    _passerXPos += _passerVx * _dt * attackerPace;
+    _passerYPos += _passerVy * _dt * attackerPace;
+    _receiverX += _receiverVx * _dt * attackerPace;
+    _receiverY += _receiverVy * _dt * attackerPace;
 
     const minX = 0.22;
     const maxX = 0.80;
@@ -1030,12 +1050,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (_activeReceiverX < (_activePasserX + minForwardGap)) {
       if (_attackerAIsPasser) {
         _receiverVx = (_receiverVx + 0.08).clamp(0.12, 0.38);
-        _passerVx = (_passerVx - 0.03).clamp(0.10, 0.34);
         _receiverX = (_receiverX + 0.018).clamp(minX, maxX);
       } else {
-        _passerVx = (_passerVx + 0.08).clamp(0.12, 0.38);
-        _receiverVx = (_receiverVx - 0.03).clamp(0.10, 0.34);
         _passerXPos = (_passerXPos + 0.018).clamp(minX, maxX);
+        _passerVx = (_passerVx + 0.08).clamp(0.12, 0.38);
       }
     }
 
@@ -1067,22 +1085,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
           comboBoost *
           levelBoost *
           clutchBoost;
-      defender.x -= passBySpeed * _dt * paceScale;
+      defender.x -= passBySpeed * _dt * defenderPace;
       final lanePoint = _lanePointAtX(defender.x);
       final roleTargetY = _roleTargetY(defender, lanePoint.dy);
-      final lanePull = (lanePoint.dy - defender.y) *
-          defender.ghostType.lanePull *
-          _dt *
-          paceScale;
-      final rolePull = (roleTargetY - defender.y) *
-          defender.ghostType.rolePull *
-          _dt *
-          paceScale;
+      final lanePull =
+          (lanePoint.dy - defender.y) * defender.ghostType.lanePull * _dt * defenderPace;
+      final rolePull =
+          (roleTargetY - defender.y) * defender.ghostType.rolePull * _dt * defenderPace;
       defender.y += (defender.vy *
               passBySpeed *
               defender.ghostType.wobbleFactor *
               _dt *
-              paceScale) +
+              defenderPace) +
           lanePull +
           rolePull;
       if (_random.nextDouble() <
@@ -1152,17 +1166,40 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
+  void _stopActivePasser() {
+    if (_attackerAIsPasser) {
+      _passerVx = 0;
+      _passerVy = 0;
+    } else {
+      _receiverVx = 0;
+      _receiverVy = 0;
+    }
+  }
+
   void _updateAutoAim() {
-    if (_charging || _ballFlying) return;
+    if (_ballFlying) return;
     if (_goalChanceActive) {
-      _aimX = _goalLineX;
-      final targetY = (_activePasserY + (_activeReceiverVy * 0.20))
+      var aimX = _goalLineX;
+      var aimY = (_activePasserY + (_activeReceiverVy * 0.20))
           .clamp(_goalTopY + 0.04, _goalBottomY - 0.04);
-      _aimY = targetY;
+      if (_passAimActive) {
+        aimX = (aimX + (_passAimInput.dx * 0.06)).clamp(0.72, _goalLineX);
+        aimY = (aimY + (_passAimInput.dy * 0.18))
+            .clamp(_goalTopY + 0.02, _goalBottomY - 0.02);
+      }
+      _aimX = aimX;
+      _aimY = aimY;
       return;
     }
-    _aimX = (_activeReceiverX + _leadDistance).clamp(_fieldMinX, _fieldMaxX);
-    _aimY = _activeReceiverY.clamp(_fieldMinY, _fieldMaxY);
+    var aimX = (_activeReceiverX + _leadDistance).clamp(_fieldMinX, _fieldMaxX);
+    var aimY = _activeReceiverY.clamp(_fieldMinY, _fieldMaxY);
+    if (_passAimActive) {
+      final minForwardX = math.min(_fieldMaxX, _activePasserX + 0.06);
+      aimX = (aimX + (_passAimInput.dx * 0.22)).clamp(minForwardX, _fieldMaxX);
+      aimY = (aimY + (_passAimInput.dy * 0.24)).clamp(_fieldMinY, _fieldMaxY);
+    }
+    _aimX = aimX;
+    _aimY = aimY;
   }
 
   bool _isActivePasserHitByGhost() {
@@ -1193,7 +1230,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       return;
     }
 
-    final ballScale = (0.52 + (_paceScale * 0.48)).clamp(0.52, 1.0);
+    final ballScale = (0.80 + ((_attackerPaceScale - 1.0) * 0.35)).clamp(0.80, 1.35);
     _flightElapsed += _dt;
     _ballX += _ballVx * _dt * ballScale;
     _ballY += _ballVy * _dt * ballScale;
@@ -1441,6 +1478,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _joystickInput = Offset.zero;
     _joystickActive = false;
     _passPressed = false;
+    _passAimInput = Offset.zero;
+    _passAimActive = false;
     _gameStarted = false;
     _timeUp = true;
     _endedByFail = failed;
@@ -1481,6 +1520,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passerVy = 0;
     _receiverVx = _receiverVx.abs().clamp(0.14, 0.26);
     _receiverVy = 0;
+    _stopActivePasser();
 
     _targetX = (_activeReceiverX + _leadDistance).clamp(_fieldMinX, _fieldMaxX);
     _targetY = _activeReceiverY;
@@ -1541,6 +1581,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _joystickInput = Offset.zero;
     _joystickActive = false;
     _passPressed = false;
+    _passAimInput = Offset.zero;
+    _passAimActive = false;
     _gameStarted = false;
     _endedByFail = true;
     _timeUp = true;
@@ -1562,7 +1604,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _phase = _PlayPhase.ready;
     _passerXPos = 0.14;
     _passerYPos = 0.68;
-    _passerVx = 0.14;
+    _passerVx = 0;
     _passerVy = 0;
     _passerSpeedMul = 1.0;
     _receiverX = 0.34;
@@ -1596,6 +1638,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _joystickInput = Offset.zero;
     _joystickActive = false;
     _passPressed = false;
+    _passAimInput = Offset.zero;
+    _passAimActive = false;
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
     _forwardWindow = false;
@@ -1606,6 +1650,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _keeperVy = _random.nextBool() ? 0.45 : -0.45;
     _fieldScrollX = 0;
     _noPassElapsed = 0;
+    _stopActivePasser();
     if (!keepScore) {
       _lastAccuracy = 0;
       _reactionLabel = '';
@@ -1633,15 +1678,22 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _joystickActive = true;
   }
 
-  void _onPassDown() {
+  void _onPassDown(Offset local) {
     if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
       return;
     }
+    _updatePassAimFromLocal(local);
     _passPressed = true;
     _beginCharge();
   }
 
-  void _onPassUp() {
+  void _onPassMove(Offset local) {
+    if (!_passPressed || !_gameStarted || _timeUp || _ballFlying) return;
+    _updatePassAimFromLocal(local);
+  }
+
+  void _onPassUp(Offset local) {
+    _updatePassAimFromLocal(local);
     final wasPressed = _passPressed;
     _passPressed = false;
     if (!wasPressed) return;
@@ -1649,13 +1701,28 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       return;
     }
     _releaseChargeAndPass();
+    _passAimInput = Offset.zero;
+    _passAimActive = false;
   }
 
   void _onPassCancel() {
     _passPressed = false;
+    _passAimInput = Offset.zero;
+    _passAimActive = false;
     if (_charging) {
       _cancelCharge();
     }
+  }
+
+  void _updatePassAimFromLocal(Offset local) {
+    const center = Offset(44, 44);
+    const radius = 34.0;
+    final delta = local - center;
+    final dist = delta.distance;
+    final clamped = dist <= radius ? delta : delta * (radius / dist);
+    _passAimInput = Offset(clamped.dx / radius, clamped.dy / radius);
+    _passAimActive = _passAimInput.distanceSquared > 0.0004;
+    _updateAutoAim();
   }
 
   _ForwardPassInfo _forwardPassInfo(double targetX, double targetY) {
@@ -2359,8 +2426,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       right: 12,
       bottom: 12,
       child: Listener(
-        onPointerDown: (_) => setState(_onPassDown),
-        onPointerUp: (_) => setState(_onPassUp),
+        onPointerDown: (event) => setState(() => _onPassDown(event.localPosition)),
+        onPointerMove: (event) => setState(() => _onPassMove(event.localPosition)),
+        onPointerUp: (event) => setState(() => _onPassUp(event.localPosition)),
         onPointerCancel: (_) => setState(_onPassCancel),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
@@ -2380,19 +2448,36 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             ],
           ),
           child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                const Icon(Icons.sports_soccer, color: Colors.white, size: 28),
-                const SizedBox(height: 2),
-                Text(
-                  isKo ? '패스' : 'PASS',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 11,
-                    letterSpacing: 0.4,
+                Transform.translate(
+                  offset: Offset(_passAimInput.dx * 9, _passAimInput.dy * 9),
+                  child: Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withAlpha(42),
+                      border: Border.all(color: Colors.white.withAlpha(160)),
+                    ),
                   ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.sports_soccer, color: Colors.white, size: 28),
+                    const SizedBox(height: 2),
+                    Text(
+                      isKo ? '패스' : 'PASS',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
