@@ -215,4 +215,8 @@ if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
   fi
 fi
 
+log "Syncing local checkout to ${DEFAULT_BRANCH}"
+git checkout "$DEFAULT_BRANCH"
+git pull --ff-only origin "$DEFAULT_BRANCH"
+
 log "Done"
