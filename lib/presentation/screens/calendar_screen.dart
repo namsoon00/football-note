@@ -148,12 +148,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          tooltip:
-                              Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '오늘로 이동'
-                                  : 'Go to today',
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            minimumSize: const Size(1, 40),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                          ),
                           onPressed: () {
                             final today = _normalizeDay(DateTime.now());
                             setState(() {
@@ -161,8 +165,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               _focusedDay = today;
                             });
                           },
-                          icon: const Icon(Icons.today_outlined),
+                          icon: const Icon(Icons.today_outlined, size: 18),
+                          label: Text(
+                            Localizations.localeOf(context).languageCode == 'ko'
+                                ? '오늘'
+                                : 'Today',
+                          ),
                         ),
+                        const SizedBox(width: 6),
                         FilledButton.tonalIcon(
                           onPressed: () =>
                               _openPlanSheet(day: _selectedDay ?? _focusedDay),
