@@ -114,6 +114,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double _targetY = 0.36;
   double _aimX = 0.60;
   double _aimY = 0.36;
+  bool _flightGuideLocked = false;
+  double _flightGuideFromX = 0.60;
+  double _flightGuideFromY = 0.36;
+  double _flightGuideToX = 0.60;
+  double _flightGuideToY = 0.36;
   double _predReceiverTime = 0;
   double _idealBallSpeed = _ballMinSpeed;
   double _effectiveBallSpeed = _ballMinSpeed;
@@ -248,8 +253,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final shotHint = _shotWindowHint(isKo);
 
-    final showTargetX = _ballFlying ? _targetX : _aimX;
-    final showTargetY = _ballFlying ? _targetY : _aimY;
+    final showGuideFromX = (_ballFlying && _flightGuideLocked)
+        ? _flightGuideFromX
+        : _activePasserX;
+    final showGuideFromY = (_ballFlying && _flightGuideLocked)
+        ? _flightGuideFromY
+        : _activePasserY;
+    final showTargetX = (_ballFlying && _flightGuideLocked)
+        ? _flightGuideToX
+        : (_ballFlying ? _targetX : _aimX);
+    final showTargetY = (_ballFlying && _flightGuideLocked)
+        ? _flightGuideToY
+        : (_ballFlying ? _targetY : _aimY);
 
     return Scaffold(
       drawer: AppDrawer(
@@ -590,8 +605,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                               Positioned.fill(
                                 child: CustomPaint(
                                   painter: _GuidePainter(
-                                    fromX: _activePasserX,
-                                    fromY: _activePasserY,
+                                    fromX: showGuideFromX,
+                                    fromY: showGuideFromY,
                                     toX: showTargetX,
                                     toY: showTargetY,
                                     color: const Color(0xB34DD0E1),
@@ -1209,6 +1224,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballX -= shift;
       _targetX = (_targetX - shift).clamp(_fieldMinX, _fieldMaxX);
       _aimX = (_aimX - shift).clamp(_fieldMinX, _fieldMaxX);
+      if (_flightGuideLocked) {
+        _flightGuideFromX =
+            (_flightGuideFromX - shift).clamp(_fieldMinX, _fieldMaxX);
+        _flightGuideToX =
+            (_flightGuideToX - shift).clamp(_fieldMinX, _fieldMaxX);
+      }
       for (final defender in _defenders) {
         defender.x -= shift;
       }
@@ -1455,6 +1476,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballFlying = true;
       _phase = _PlayPhase.flying;
       _flightNearMissAwarded = false;
+      _lockFlightGuide(
+        fromX: _activePasserX,
+        fromY: _activePasserY,
+        toX: _targetX,
+        toY: _targetY,
+      );
       _applyImmediatePasserAdvance(
         passerIsA: passerIsA,
         passDirX: dirX,
@@ -1511,6 +1538,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballFlying = true;
     _phase = _PlayPhase.flying;
     _flightNearMissAwarded = false;
+    _lockFlightGuide(
+      fromX: _activePasserX,
+      fromY: _activePasserY,
+      toX: _targetX,
+      toY: _targetY,
+    );
     _applyImmediatePasserAdvance(
       passerIsA: passerIsA,
       passDirX: passDirX,
@@ -1543,6 +1576,23 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _receiverVy = (_receiverVy + lateralKick).clamp(-0.28, 0.28);
       _receiverX = (_receiverX + immediateStep).clamp(_fieldMinX, _fieldMaxX);
     }
+  }
+
+  void _lockFlightGuide({
+    required double fromX,
+    required double fromY,
+    required double toX,
+    required double toY,
+  }) {
+    _flightGuideLocked = true;
+    _flightGuideFromX = fromX;
+    _flightGuideFromY = fromY;
+    _flightGuideToX = toX;
+    _flightGuideToY = toY;
+  }
+
+  void _clearFlightGuide() {
+    _flightGuideLocked = false;
   }
 
   void _applyPasserBurst(double dirX, double dirY) {
@@ -1587,6 +1637,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _onSuccess() {
+    _clearFlightGuide();
     _setReaction(_PassResult.perfect);
     _attackerAIsPasser = !_attackerAIsPasser;
     _score += 1;
@@ -1637,6 +1688,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _finishMatch({bool failed = false}) {
     _phase = _PlayPhase.roundEnd;
     _ballFlying = false;
+    _clearFlightGuide();
     _charging = false;
     _chargeStartedAt = null;
     _joystickInput = Offset.zero;
@@ -1659,6 +1711,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _onFail([_PassResult result = _PassResult.miss]) {
+    _clearFlightGuide();
     _combo = 0;
     _setReaction(result);
     if (_finalShotMode) {
@@ -1671,6 +1724,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _continueAfterSuccess() {
     _phase = _PlayPhase.ready;
     _ballFlying = false;
+    _clearFlightGuide();
     _charging = false;
     _chargeStartedAt = null;
     _chargedBallSpeed = _ballMinSpeed;
@@ -1737,6 +1791,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _endGameOnFail() {
     _phase = _PlayPhase.roundEnd;
     _ballFlying = false;
+    _clearFlightGuide();
     _charging = false;
     _chargeStartedAt = null;
     _joystickInput = Offset.zero;
@@ -1784,6 +1839,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       );
 
     _ballFlying = false;
+    _clearFlightGuide();
     _ballX = _passerXPos;
     _ballY = _passerYPos;
     _ballVx = 0;
