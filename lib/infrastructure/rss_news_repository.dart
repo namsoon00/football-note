@@ -60,45 +60,29 @@ class RssNewsRepository implements NewsRepository {
 
   static const List<_FeedConfig> _feeds = [
     _FeedConfig(
-      id: 'google_kleague_ko',
-      name: 'Google News · K리그',
-      url:
-          'https://news.google.com/rss/search?q=K%EB%A6%AC%EA%B7%B8&hl=ko&gl=KR&ceid=KR:ko',
-    ),
-    _FeedConfig(
-      id: 'google_domestic_ko',
-      name: 'Google News · 국내축구',
-      url:
-          'https://news.google.com/rss/search?q=%EA%B5%AD%EB%82%B4%20%EC%B6%95%EA%B5%AC&hl=ko&gl=KR&ceid=KR:ko',
-    ),
-    _FeedConfig(
-      id: 'google_kfa_ko',
-      name: 'Google News · 대한축구협회',
-      url:
-          'https://news.google.com/rss/search?q=%EB%8C%80%ED%95%9C%EC%B6%95%EA%B5%AC%ED%98%91%ED%9A%8C&hl=ko&gl=KR&ceid=KR:ko',
-    ),
-    _FeedConfig(
       id: 'bbc_football_en',
       name: 'BBC Sport',
       url: 'https://feeds.bbci.co.uk/sport/football/rss.xml',
     ),
     _FeedConfig(
-      id: 'google_premier_en',
-      name: 'Google News · Premier League',
-      url:
-          'https://news.google.com/rss/search?q=Premier%20League%20football&hl=en-US&gl=US&ceid=US:en',
+      id: 'bbc_premier_league_en',
+      name: 'BBC Sport · Premier League',
+      url: 'https://feeds.bbci.co.uk/sport/football/premier-league/rss.xml',
     ),
     _FeedConfig(
-      id: 'google_ucl_en',
-      name: 'Google News · Champions League',
-      url:
-          'https://news.google.com/rss/search?q=UEFA%20Champions%20League%20football&hl=en-US&gl=US&ceid=US:en',
+      id: 'bbc_champions_league_en',
+      name: 'BBC Sport · Champions League',
+      url: 'https://feeds.bbci.co.uk/sport/football/champions-league/rss.xml',
     ),
     _FeedConfig(
-      id: 'google_laliga_en',
-      name: 'Google News · La Liga',
-      url:
-          'https://news.google.com/rss/search?q=La%20Liga%20football&hl=en-US&gl=US&ceid=US:en',
+      id: 'skysports_football_en',
+      name: 'Sky Sports · Football',
+      url: 'https://www.skysports.com/rss/12040',
+    ),
+    _FeedConfig(
+      id: 'espn_fc_en',
+      name: 'ESPN FC',
+      url: 'https://www.espn.com/espn/rss/soccer/news',
     ),
   ];
 
