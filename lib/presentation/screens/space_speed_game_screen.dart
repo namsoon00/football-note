@@ -54,8 +54,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   static const _goalLineX = 0.965;
   static const _goalTopY = 0.30;
   static const _goalBottomY = 0.70;
-  static const _joystickAccelX = 0.068;
-  static const _joystickAccelY = 0.072;
+  static const _joystickAccelX = 0.11;
+  static const _joystickAccelY = 0.116;
+  static const _playerJoystickMaxVx = 0.86;
+  static const _playerJoystickMaxVy = 0.74;
 
   final _random = math.Random();
   Timer? _timer;
@@ -156,6 +158,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double get _activeReceiverVx => _attackerAIsPasser ? _receiverVx : _passerVx;
   double get _activeReceiverVy => _attackerAIsPasser ? _receiverVy : _passerVy;
   double get _passAimStrength => _passAimInput.distance.clamp(0.0, 1.0);
+  double get _passLengthScale => (0.80 + (_passAimStrength * 0.75)).clamp(0.80, 1.55);
 
   _ShotWindowHint _shotWindowHint(bool isKo) {
     if (!_goalChanceActive) {
@@ -1008,20 +1011,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
     _applyJoystickToActivePasser();
     if (passerIsA) {
-      _passerVx *= 0.93;
-      _passerVy *= 0.93;
+      _passerVx *= 0.95;
+      _passerVy *= 0.95;
     } else {
-      _receiverVx *= 0.93;
-      _receiverVy *= 0.93;
+      _receiverVx *= 0.95;
+      _receiverVy *= 0.95;
     }
     _passerVx = passerIsA
-        ? _passerVx.clamp(-0.58, 0.58)
+        ? _passerVx.clamp(-_playerJoystickMaxVx, _playerJoystickMaxVx)
         : _passerVx.clamp(0.11, (runSpeed + 0.10) * clutchBoost);
     _receiverVx = passerIsA
         ? _receiverVx.clamp(0.12, (runSpeed + 0.12) * clutchBoost)
-        : _receiverVx.clamp(-0.58, 0.58);
-    _passerVy = _passerVy.clamp(-0.48, 0.48);
-    _receiverVy = _receiverVy.clamp(-0.48, 0.48);
+        : _receiverVx.clamp(-_playerJoystickMaxVx, _playerJoystickMaxVx);
+    _passerVy = _passerVy.clamp(-_playerJoystickMaxVy, _playerJoystickMaxVy);
+    _receiverVy = _receiverVy.clamp(-_playerJoystickMaxVy, _playerJoystickMaxVy);
     _passerSpeedMul = 1.0;
     _receiverSpeedMul = 1.0;
     _passerXPos += _passerVx * _dt * attackerPace;
@@ -1160,7 +1163,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (input.distanceSquared <= 0.0001) return;
     final controlX = input.dx.clamp(-1.0, 1.0);
     final controlY = input.dy.clamp(-1.0, 1.0);
-    final boost = (1.0 + (input.distance * 0.70)).clamp(1.0, 1.70);
+    final boost = (1.0 + (input.distance * 1.10)).clamp(1.0, 2.10);
     if (_attackerAIsPasser) {
       _passerVx += controlX * _joystickAccelX * boost;
       _passerVy += controlY * _joystickAccelY * boost;
@@ -1405,7 +1408,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     );
     final bodyTurnPenalty =
         (1 - (0.20 * (bodyTurn / math.pi))).clamp(0.78, 1.0);
-    _effectiveBallSpeed = (_chargedBallSpeed * bodyTurnPenalty)
+    _effectiveBallSpeed = (_chargedBallSpeed * bodyTurnPenalty * _passLengthScale)
         .clamp(_ballMinSpeed, _ballMaxSpeed);
     _ballVx = passDirX * _effectiveBallSpeed;
     _ballVy = passDirY * _effectiveBallSpeed;
@@ -1700,7 +1703,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
       return;
     }
-    _updatePassAimFromLocal(local);
+    _passAimInput = Offset.zero;
+    _passAimActive = false;
+    _updateAutoAim();
     _passPressed = true;
     _beginCharge();
   }
