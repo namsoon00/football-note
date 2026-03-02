@@ -43,6 +43,8 @@ class NewsScreen extends StatefulWidget {
 }
 
 class _NewsScreenState extends State<NewsScreen> {
+  static const String _titleTranslateEnabledKey =
+      'news_title_translate_enabled';
   late final NewsService _newsService;
   late final List<NewsChannel> _channels;
   late Set<String> _selectedChannelIds;
@@ -63,6 +65,9 @@ class _NewsScreenState extends State<NewsScreen> {
   };
   bool _isLoading = false;
   bool _hadError = false;
+  bool _titleTranslateEnabled = false;
+  bool _titleTranslateInitialized = false;
+  bool _guideShownOnce = false;
   int _loadToken = 0;
 
   @override
@@ -72,6 +77,18 @@ class _NewsScreenState extends State<NewsScreen> {
     _channels = _newsService.channels();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _loadProgressive();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_titleTranslateInitialized) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final stored = widget.optionRepository.getValue<bool>(
+      _titleTranslateEnabledKey,
+    );
+    _titleTranslateEnabled = stored ?? isKo;
+    _titleTranslateInitialized = true;
   }
 
   @override
@@ -132,6 +149,21 @@ class _NewsScreenState extends State<NewsScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (isKo)
+                        IconButton(
+                          tooltip:
+                              _titleTranslateEnabled ? '제목 번역 켜짐' : '제목 번역 꺼짐',
+                          onPressed: _toggleTitleTranslate,
+                          icon: Icon(
+                            Icons.translate_rounded,
+                            color: _titleTranslateEnabled
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.55),
+                          ),
+                        ),
                       TextButton(
                         onPressed: _openChannelPicker,
                         child: Text(isKo ? '채널 선택' : 'Channels'),
@@ -473,8 +505,20 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Future<void> _openLink(NewsArticle article) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final uri = Uri.tryParse(article.link);
     if (uri == null || !uri.hasScheme) return;
+    if (isKo && !_guideShownOnce) {
+      _guideShownOnce = true;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('기사 화면 우측 상단 메뉴에서 번역 기능을 사용할 수 있어요.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
     await launchUrl(
       uri,
       mode: LaunchMode.inAppBrowserView,
@@ -483,7 +527,7 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   String _displayTitle(NewsArticle article, bool isKo) {
-    if (!isKo) return article.title;
+    if (!isKo || !_titleTranslateEnabled) return article.title;
     final key = article.link.trim();
     if (key.isEmpty) return article.title;
     final translated = _translatedTitlesByLink[key];
@@ -513,6 +557,16 @@ class _NewsScreenState extends State<NewsScreen> {
     }).whenComplete(() {
       _translatingLinks.remove(key);
     });
+  }
+
+  Future<void> _toggleTitleTranslate() async {
+    setState(() {
+      _titleTranslateEnabled = !_titleTranslateEnabled;
+    });
+    await widget.optionRepository.setValue(
+      _titleTranslateEnabledKey,
+      _titleTranslateEnabled,
+    );
   }
 
   Future<String> _translateToKorean(String text) async {
