@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import 'game_guide_screen.dart';
+import 'game_ranking_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -38,6 +40,7 @@ class SpaceSpeedGameScreen extends StatefulWidget {
 class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   static const _weeklyBestPrefix = 'space_speed_weekly_best_';
   static const _difficultyKey = 'space_speed_difficulty';
+  static const _rankingHistoryKey = 'space_speed_ranking_history_v1';
 
   static const _dt = 0.05;
   static const _passerX = 0.10;
@@ -126,6 +129,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   Color _reactionColor = const Color(0xFF8FA3BF);
   IconData _reactionIcon = Icons.adjust;
   bool _attackerAIsPasser = true;
+  List<GameRankingEntry> _rankingHistory = const [];
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
 
@@ -425,6 +429,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                       onPressed: () => _openGameGuide(context),
                       icon: const Icon(Icons.menu_book_outlined, size: 16),
                       label: Text(isKo ? '게임 가이드' : 'Guide'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _openRankingScreen(context),
+                      icon: const Icon(Icons.emoji_events_outlined, size: 16),
+                      label: Text(isKo ? '랭킹' : 'Ranking'),
                     ),
                   ],
                 ),
@@ -1423,6 +1432,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _goalChanceActive = false;
     _finalShotMode = false;
     _finalRanking = _rankingLabel(_rankScore, true);
+    _appendRankingRecord();
     _updateWeeklyBest();
     _gameTimer?.cancel();
   }
@@ -1519,6 +1529,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _endedByFail = true;
     _timeUp = true;
     _finalRanking = _rankingLabel(_rankScore, true);
+    _appendRankingRecord();
     _updateWeeklyBest();
     _gameTimer?.cancel();
   }
@@ -2145,6 +2156,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _weeklyBest =
         widget.optionRepository.getValue<int>('$_weeklyBestPrefix$_weekKey') ??
             0;
+    _rankingHistory = _loadRankingHistory();
   }
 
   void _updateWeeklyBest() {
@@ -2291,6 +2303,56 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       MaterialPageRoute(
         builder: (_) => const GameGuideScreen(),
       ),
+    );
+  }
+
+  void _openRankingScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => GameRankingScreen(entries: _rankingHistory),
+      ),
+    );
+  }
+
+  List<GameRankingEntry> _loadRankingHistory() {
+    final raw = widget.optionRepository.getValue<String>(_rankingHistoryKey);
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      final items = decoded
+          .whereType<Map>()
+          .map((e) => GameRankingEntry.fromMap(e.cast<String, dynamic>()))
+          .whereType<GameRankingEntry>()
+          .toList(growable: false);
+      return items;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> _appendRankingRecord() async {
+    final record = GameRankingEntry(
+      playedAt: DateTime.now(),
+      score: _score,
+      level: _level,
+      goals: _goals,
+      rankScore: _rankScore,
+      rankLabel: _rankingLabel(_rankScore, false),
+      difficulty: _difficulty.name,
+    );
+    final next = [..._rankingHistory, record]..sort((a, b) {
+        final score = b.rankScore.compareTo(a.rankScore);
+        if (score != 0) return score;
+        return b.playedAt.compareTo(a.playedAt);
+      });
+    if (next.length > 100) {
+      next.removeRange(100, next.length);
+    }
+    _rankingHistory = next;
+    await widget.optionRepository.setValue(
+      _rankingHistoryKey,
+      jsonEncode(_rankingHistory.map((e) => e.toMap()).toList(growable: false)),
     );
   }
 }
