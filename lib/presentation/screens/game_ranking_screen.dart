@@ -50,36 +50,31 @@ class GameRankingEntry {
 class GameRankingScreen extends StatelessWidget {
   final List<GameRankingEntry> entries;
 
-  const GameRankingScreen({
-    super.key,
-    required this.entries,
-  });
+  const GameRankingScreen({super.key, required this.entries});
 
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final sorted = [...entries]..sort((a, b) {
+    final sorted = [...entries]
+      ..sort((a, b) {
         final score = b.rankScore.compareTo(a.rankScore);
         if (score != 0) return score;
         return b.playedAt.compareTo(a.playedAt);
       });
+    final top10 = sorted.take(10).toList(growable: false);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isKo ? '게임 랭킹' : 'Game Rankings'),
-      ),
-      body: sorted.isEmpty
+      appBar: AppBar(title: Text(isKo ? '게임 랭킹' : 'Game Rankings')),
+      body: top10.isEmpty
           ? Center(
-              child: Text(
-                isKo ? '아직 랭킹 기록이 없습니다.' : 'No ranking records yet.',
-              ),
+              child: Text(isKo ? '아직 랭킹 기록이 없습니다.' : 'No ranking records yet.'),
             )
           : ListView.separated(
               padding: const EdgeInsets.all(12),
-              itemCount: sorted.length,
+              itemCount: top10.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                final entry = sorted[index];
+                final entry = top10[index];
                 final rankNo = index + 1;
                 final dateText =
                     '${entry.playedAt.year}.${entry.playedAt.month.toString().padLeft(2, '0')}.${entry.playedAt.day.toString().padLeft(2, '0')}';
@@ -90,9 +85,7 @@ class GameRankingScreen extends StatelessWidget {
                       horizontal: 12,
                       vertical: 6,
                     ),
-                    leading: CircleAvatar(
-                      child: Text('$rankNo'),
-                    ),
+                    leading: CircleAvatar(child: Text('$rankNo')),
                     title: Text(
                       isKo
                           ? '${entry.rankLabel}등급 · 점수 ${entry.score}'
