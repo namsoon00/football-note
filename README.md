@@ -34,6 +34,29 @@ Single entrypoint for common project tasks:
 ./scripts/cli.sh help
 ```
 
+## Issue Workflow
+
+This repo supports issue-driven remote tasking.
+
+1. Install repo hooks once:
+
+```bash
+./scripts/setup_git_hooks.sh
+```
+
+2. Commit messages must include an issue number:
+
+```text
+feat: add profile card spacing (#123)
+```
+
+3. Issue queue is synced automatically every 30 minutes by GitHub Actions:
+
+- workflow: `.github/workflows/issue-queue-sync.yml`
+- queue file: `docs/ISSUE_QUEUE.md`
+
+Detailed guide: `docs/ISSUE_WORKFLOW.md`
+
 This project is a starting point for a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:

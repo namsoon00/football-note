@@ -1,0 +1,19 @@
+#!/bin/sh
+# Require an issue number in commit messages, e.g. "#123" or "fix #123".
+
+MSG_FILE="$1"
+MSG="$(cat "$MSG_FILE")"
+
+case "$MSG" in
+  Merge*|Revert*|fixup!*|squash!*)
+    exit 0
+    ;;
+esac
+
+if printf '%s' "$MSG" | grep -Eiq '#[0-9]+'; then
+  exit 0
+fi
+
+echo "ERROR: Commit message must include a GitHub issue number (example: #123)." >&2
+echo "Example: feat: add ranking persistence (#42)" >&2
+exit 1
