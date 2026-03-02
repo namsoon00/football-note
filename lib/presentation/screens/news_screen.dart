@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -46,6 +49,8 @@ class _NewsScreenState extends State<NewsScreen> {
   final List<NewsArticle> _articles = <NewsArticle>[];
   final Set<String> _seenLinks = <String>{};
   final Set<String> _seenTitles = <String>{};
+  final Map<String, String> _translatedTitlesByLink = <String, String>{};
+  final Set<String> _translatingLinks = <String>{};
   static const Set<String> _blockedHosts = <String>{
     'ad.doubleclick.net',
     'doubleclick.net',
@@ -213,7 +218,7 @@ class _NewsScreenState extends State<NewsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              article.title,
+                              _displayTitle(article, isKo),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -358,6 +363,8 @@ class _NewsScreenState extends State<NewsScreen> {
       _articles.clear();
       _seenLinks.clear();
       _seenTitles.clear();
+      _translatedTitlesByLink.clear();
+      _translatingLinks.clear();
     });
     if (channelIds.isEmpty) {
       if (!mounted || token != _loadToken) return;
@@ -466,19 +473,79 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Future<void> _openLink(NewsArticle article) async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final uri = Uri.tryParse(article.link);
     if (uri == null || !uri.hasScheme) return;
-    final openUri = isKo
-        ? Uri.parse(
-            'https://translate.google.com/translate?sl=auto&tl=ko&u=${Uri.encodeComponent(uri.toString())}',
-          )
-        : uri;
     await launchUrl(
-      openUri,
+      uri,
       mode: LaunchMode.inAppBrowserView,
       browserConfiguration: const BrowserConfiguration(showTitle: true),
     );
+  }
+
+  String _displayTitle(NewsArticle article, bool isKo) {
+    if (!isKo) return article.title;
+    final key = article.link.trim();
+    if (key.isEmpty) return article.title;
+    final translated = _translatedTitlesByLink[key];
+    if (translated != null && translated.isNotEmpty) {
+      return translated;
+    }
+    _queueTitleTranslation(article);
+    return article.title;
+  }
+
+  void _queueTitleTranslation(NewsArticle article) {
+    final key = article.link.trim();
+    if (key.isEmpty || _translatingLinks.contains(key)) return;
+    final originalTitle = article.title.trim();
+    if (originalTitle.isEmpty || RegExp(r'[가-힣]').hasMatch(originalTitle)) {
+      return;
+    }
+    _translatingLinks.add(key);
+    _translateToKorean(originalTitle).then((translated) {
+      if (!mounted) return;
+      final value = translated.trim();
+      if (value.isNotEmpty && value != originalTitle) {
+        setState(() {
+          _translatedTitlesByLink[key] = value;
+        });
+      }
+    }).whenComplete(() {
+      _translatingLinks.remove(key);
+    });
+  }
+
+  Future<String> _translateToKorean(String text) async {
+    try {
+      final uri = Uri.https(
+        'translate.googleapis.com',
+        '/translate_a/single',
+        <String, String>{
+          'client': 'gtx',
+          'sl': 'auto',
+          'tl': 'ko',
+          'dt': 't',
+          'q': text,
+        },
+      );
+      final response = await http.get(uri).timeout(const Duration(seconds: 4));
+      if (response.statusCode != 200) return text;
+      final decoded = jsonDecode(response.body);
+      if (decoded is! List || decoded.isEmpty || decoded.first is! List) {
+        return text;
+      }
+      final segments = decoded.first as List;
+      final buffer = StringBuffer();
+      for (final segment in segments) {
+        if (segment is List && segment.isNotEmpty && segment.first is String) {
+          buffer.write(segment.first as String);
+        }
+      }
+      final result = buffer.toString().trim();
+      return result.isEmpty ? text : result;
+    } catch (_) {
+      return text;
+    }
   }
 
   void _openSettings(BuildContext context) {
