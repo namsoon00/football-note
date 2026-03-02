@@ -497,43 +497,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     _resetRound(keepScore: true);
                   },
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .outline
-                          .withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.rule_folder_outlined,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _difficultyDefinition(_difficulty, isKo),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 4),
                 Expanded(
                   child: LayoutBuilder(
@@ -2161,23 +2124,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
           _GhostType.red,
           _GhostType.pink,
         ];
-    }
-  }
-
-  String _difficultyDefinition(_GameDifficulty difficulty, bool isKo) {
-    switch (difficulty) {
-      case _GameDifficulty.easy:
-        return isKo
-            ? '초급: 수비수 3~6명 · 블루/오렌지 고스트만 등장 · 패스 라인 읽기 연습 중심'
-            : 'Easy: 3-6 defenders · Blue/Orange ghosts only · Focus on reading pass lanes';
-      case _GameDifficulty.medium:
-        return isKo
-            ? '중급: 수비수 5~9명 · 블루/오렌지/레드 조합 · 압박+마킹 상황 대응'
-            : 'Medium: 5-9 defenders · Blue/Orange/Red mix · Handle pressure + marking';
-      case _GameDifficulty.hard:
-        return isKo
-            ? '고급: 수비수 7~12명 · 4색 고스트 전부 등장 · 예측 차단과 빠른 의사결정'
-            : 'Hard: 7-12 defenders · All 4 ghost types · Anticipation cuts and fast decisions';
     }
   }
 
