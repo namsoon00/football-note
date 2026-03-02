@@ -2201,38 +2201,36 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
     final isBall = label.isEmpty;
+    final isAttacker = label.startsWith('Attacker') || label.startsWith('공격수');
+    final isDefender = label.startsWith('Def ') || label.startsWith('수비');
     return Positioned(
       left: x * width - size / 2,
       top: y * height - size / 2,
       child: Column(
         children: [
-          Container(
+          SizedBox(
             width: size,
             height: size,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isBall
-                    ? const Color(0xFF0F172A)
-                    : (emphasize
-                        ? const Color(0xFFFFF59D)
-                        : Colors.white.withAlpha(220)),
-                width: isBall ? 1.5 : (emphasize ? 2.2 : 1.0),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(45),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-                if (emphasize)
-                  const BoxShadow(
-                    color: Color(0x99FFF59D),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-              ],
+            child: CustomPaint(
+              painter: isBall
+                  ? _BallEntityPainter(
+                      color: color,
+                      emphasize: emphasize,
+                    )
+                  : (isAttacker
+                      ? _PacmanEntityPainter(
+                          color: color,
+                          emphasize: emphasize,
+                        )
+                      : (isDefender
+                          ? _GhostEntityPainter(
+                              color: color,
+                              emphasize: emphasize,
+                            )
+                          : _BallEntityPainter(
+                              color: color,
+                              emphasize: emphasize,
+                            ))),
             ),
           ),
           if (roleTag.isNotEmpty)
@@ -2509,6 +2507,141 @@ class _MovingPitchPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _MovingPitchPainter oldDelegate) {
     return oldDelegate.scroll != scroll;
+  }
+}
+
+class _BallEntityPainter extends CustomPainter {
+  final Color color;
+  final bool emphasize;
+
+  const _BallEntityPainter({
+    required this.color,
+    required this.emphasize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final radius = size.shortestSide / 2;
+    final center = Offset(size.width / 2, size.height / 2);
+    final fill = Paint()..color = color;
+    final border = Paint()
+      ..color = emphasize ? const Color(0xFFFFF59D) : const Color(0xE6FFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = emphasize ? 2.2 : 1.0;
+    canvas.drawCircle(center, radius, fill);
+    canvas.drawCircle(center, radius - 0.6, border);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BallEntityPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.emphasize != emphasize;
+  }
+}
+
+class _PacmanEntityPainter extends CustomPainter {
+  final Color color;
+  final bool emphasize;
+
+  const _PacmanEntityPainter({
+    required this.color,
+    required this.emphasize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final radius = size.shortestSide / 2;
+    final center = Offset(size.width / 2, size.height / 2);
+    const mouth = 0.78; // radians
+    final fill = Paint()..color = color;
+    final border = Paint()
+      ..color = emphasize ? const Color(0xFFFFF59D) : const Color(0xE6FFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = emphasize ? 2.2 : 1.0;
+
+    final path = Path()
+      ..moveTo(center.dx, center.dy)
+      ..arcTo(
+        Rect.fromCircle(center: center, radius: radius),
+        mouth / 2,
+        (math.pi * 2) - mouth,
+        false,
+      )
+      ..close();
+    canvas.drawPath(path, fill);
+    canvas.drawPath(path, border);
+
+    final eyePaint = Paint()..color = const Color(0xCC0F172A);
+    canvas.drawCircle(
+      Offset(center.dx + (radius * 0.16), center.dy - (radius * 0.35)),
+      radius * 0.12,
+      eyePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PacmanEntityPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.emphasize != emphasize;
+  }
+}
+
+class _GhostEntityPainter extends CustomPainter {
+  final Color color;
+  final bool emphasize;
+
+  const _GhostEntityPainter({
+    required this.color,
+    required this.emphasize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final path = Path()
+      ..moveTo(w * 0.2, h * 0.92)
+      ..quadraticBezierTo(w * 0.25, h * 0.80, w * 0.30, h * 0.92)
+      ..quadraticBezierTo(w * 0.38, h * 0.80, w * 0.46, h * 0.92)
+      ..quadraticBezierTo(w * 0.54, h * 0.80, w * 0.62, h * 0.92)
+      ..quadraticBezierTo(w * 0.70, h * 0.80, w * 0.78, h * 0.92)
+      ..lineTo(w * 0.80, h * 0.38)
+      ..arcToPoint(
+        Offset(w * 0.20, h * 0.38),
+        radius: Radius.elliptical(w * 0.30, h * 0.30),
+        clockwise: false,
+      )
+      ..close();
+
+    final fill = Paint()..color = color;
+    final border = Paint()
+      ..color = emphasize ? const Color(0xFFFFF59D) : const Color(0xE6FFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = emphasize ? 2.2 : 1.0;
+    canvas.drawPath(path, fill);
+    canvas.drawPath(path, border);
+
+    final eyeWhite = Paint()..color = Colors.white.withAlpha(235);
+    final pupil = Paint()..color = const Color(0xFF0F172A);
+    canvas.drawOval(
+      Rect.fromCenter(
+          center: Offset(w * 0.40, h * 0.50),
+          width: w * 0.15,
+          height: h * 0.21),
+      eyeWhite,
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+          center: Offset(w * 0.60, h * 0.50),
+          width: w * 0.15,
+          height: h * 0.21),
+      eyeWhite,
+    );
+    canvas.drawCircle(Offset(w * 0.43, h * 0.52), w * 0.035, pupil);
+    canvas.drawCircle(Offset(w * 0.63, h * 0.52), w * 0.035, pupil);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GhostEntityPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.emphasize != emphasize;
   }
 }
 
