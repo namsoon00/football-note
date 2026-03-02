@@ -19,6 +19,7 @@ CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
 USE_CUSTOM_CODEX_CMD="${USE_CUSTOM_CODEX_CMD:-0}"
 CODEX_UNSAFE="${CODEX_UNSAFE:-1}"
 FORCE_MAIN_MERGE="${FORCE_MAIN_MERGE:-1}"
+LOCAL_SYNC_REPO_PATH="${LOCAL_SYNC_REPO_PATH:-/Users/namsoon00/Devel/football_note/football_note}"
 
 log() {
   echo "[issue-worker] $*"
@@ -218,5 +219,16 @@ fi
 log "Syncing local checkout to ${DEFAULT_BRANCH}"
 git checkout "$DEFAULT_BRANCH"
 git pull --ff-only origin "$DEFAULT_BRANCH"
+
+if [[ "$LOCAL_SYNC_REPO_PATH" != "$ROOT_DIR" ]]; then
+  if [[ -d "$LOCAL_SYNC_REPO_PATH/.git" ]]; then
+    log "Syncing external local repo at ${LOCAL_SYNC_REPO_PATH}"
+    git -C "$LOCAL_SYNC_REPO_PATH" fetch origin "$DEFAULT_BRANCH"
+    git -C "$LOCAL_SYNC_REPO_PATH" checkout "$DEFAULT_BRANCH"
+    git -C "$LOCAL_SYNC_REPO_PATH" pull --ff-only origin "$DEFAULT_BRANCH"
+  else
+    log "Skipping external local sync (not a git repo): ${LOCAL_SYNC_REPO_PATH}"
+  fi
+fi
 
 log "Done"

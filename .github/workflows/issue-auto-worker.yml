@@ -40,6 +40,7 @@ jobs:
           CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
           CODEX_UNSAFE: ${{ vars.CODEX_UNSAFE }}
           FORCE_MAIN_MERGE: "1"
+          LOCAL_SYNC_REPO_PATH: ${{ vars.LOCAL_SYNC_REPO_PATH }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}
           AUTO_MERGE: ${{ vars.AUTO_MERGE }}
           AUTO_MERGE_METHOD: ${{ vars.AUTO_MERGE_METHOD }}

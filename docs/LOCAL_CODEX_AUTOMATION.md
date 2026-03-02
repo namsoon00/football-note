@@ -34,6 +34,7 @@ Both run every 30 minutes.
 - `AUTO_MERGE`: default `1` (try merge PR to `main` automatically)
 - `AUTO_MERGE_METHOD`: `squash` (default), `merge`, or `rebase`
 - `FORCE_MAIN_MERGE`: default `1` (merge worker branch directly into `main` and close issue)
+- `LOCAL_SYNC_REPO_PATH`: optional local repo path to run extra `git pull` after merge
 
 ## 4-1) Required GitHub Actions permission for PR auto-create
 Repository Settings -> Actions -> General -> Workflow permissions:
