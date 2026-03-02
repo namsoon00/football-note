@@ -50,10 +50,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   static const _goalLineX = 0.965;
   static const _goalTopY = 0.30;
   static const _goalBottomY = 0.70;
-  static const _goalUnlockPasses = 6;
-  static const _finalPassForShot = 1;
-  static const _hypeMax = 100.0;
-  static const _feverDuration = 8.0;
 
   final _random = math.Random();
   Timer? _timer;
@@ -68,6 +64,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   int _remainingSeconds = 60;
   bool _timeUp = false;
   bool _endedByFail = false;
+  bool _finalShotMode = false;
+  String _finalRanking = '';
   late String _weekKey;
 
   _GameDifficulty _difficulty = _GameDifficulty.medium;
@@ -87,16 +85,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   final List<_DefenderState> _defenders = <_DefenderState>[];
   static const int _levelUpEveryPasses = 3;
   bool _goalChanceActive = false;
-  bool _goalVisible = false;
-  int _passesSinceGoal = 0;
-  int _passesAfterGoalVisible = 0;
   double _keeperY = (_goalTopY + _goalBottomY) / 2;
   double _keeperVy = 0.45;
   double _keeperPhase = 0;
   double _fieldScrollX = 0;
-  double _hype = 0;
-  bool _feverActive = false;
-  double _feverLeft = 0;
   bool _flightNearMissAwarded = false;
 
   bool _charging = false;
@@ -122,30 +114,23 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double _effectiveBallSpeed = _ballMinSpeed;
   double _passDistance = 0;
   double _lastAccuracy = 0;
-  double _overallScorePct = 0;
   double _closestReceiverDistance = 999;
   double _timingDiffAtClosest = 999;
   bool _forwardWindow = false;
   double _forwardAlignment = 0;
   double _leadAlongMove = 0;
   double _lastControlProbability = 0;
-  double _lastFitScore = 0;
-  double _lastDirectionalScore = 0;
-  double _lastLeadScore = 0;
-  double _lastTimingScore = 0;
-  double _lastSpeedScore = 0;
-  double _lastDistanceScore = 0;
-  double _lastTimingGap = 0;
   String _reactionLabel = '';
   String _reactionDetail = '';
   Color _reactionColor = const Color(0xFF8FA3BF);
   IconData _reactionIcon = Icons.adjust;
   bool _attackerAIsPasser = true;
 
+  int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
+
   double get _pitchZoom {
-    if (_goalChanceActive) return 1.10;
-    if (_feverActive) return 1.08;
-    if (_goalVisible) return 1.05;
+    if (_finalShotMode) return 1.28;
+    if (_goalChanceActive) return 1.16;
     return 1.0;
   }
 
@@ -402,12 +387,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                         child: Column(
                           children: [
                             Text(
-                              isKo ? '골' : 'Goals',
+                              isKo ? '랭킹' : 'Rank',
                               style: Theme.of(context).textTheme.labelSmall,
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$_goals',
+                              _rankingLabel(_rankScore, isKo),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w900,
@@ -424,27 +409,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                 Text(
                   _goalChanceActive
                       ? (isKo
-                          ? '슈팅 찬스! 골대 안으로 슛하세요'
-                          : 'Shot chance! Aim inside the goal.')
-                      : !_goalVisible
-                          ? (isKo
-                              ? '수비를 제치세요: 패스 ${(_goalUnlockPasses - _passesSinceGoal).clamp(1, _goalUnlockPasses)}회 후 골대 등장'
-                              : 'Beat defenders: goal appears in ${(_goalUnlockPasses - _passesSinceGoal).clamp(1, _goalUnlockPasses)} passes')
-                          : (isKo
-                              ? '골대 등장! 마지막 패스 ${(_finalPassForShot - _passesAfterGoalVisible).clamp(1, _finalPassForShot)}회 후 슛'
-                              : 'Goal unlocked! Shoot after ${(_finalPassForShot - _passesAfterGoalVisible).clamp(1, _finalPassForShot)} final pass'),
+                          ? '최종 슈팅 라운드! 골대 안으로 슛하세요'
+                          : 'Final shot round! Aim inside the goal.')
+                      : (isKo
+                          ? '60초 동안 패스로 점수와 레벨을 올리세요. 종료 후 슈팅 라운드가 시작됩니다.'
+                          : 'Build score and level for 60s. Final shot round starts after time ends.'),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                 ),
                 const SizedBox(height: 6),
-                _HypeBar(
-                  isKo: isKo,
-                  hype: _hype,
-                  feverActive: _feverActive,
-                  feverLeft: _feverLeft,
-                ),
                 if (_goalChanceActive) ...[
                   const SizedBox(height: 6),
                   Container(
@@ -482,49 +457,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2F80ED).withAlpha(28),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: const Color(0xFF2F80ED).withAlpha(120)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _accuracyTier(_overallScorePct).icon,
-                        color: _accuracyTier(_overallScorePct).color,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        isKo ? '패스 품질' : 'Pass Quality',
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${_overallScorePct.round()}%',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        isKo
-                            ? _accuracyTier(_overallScorePct).labelKo
-                            : _accuracyTier(_overallScorePct).labelEn,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: _accuracyTier(_overallScorePct).color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 6),
                 SegmentedButton<_GameDifficulty>(
                   segments: [
@@ -624,31 +556,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                     ),
                                   ),
                                 ),
-                                if (_goalVisible || _goalChanceActive)
-                                  Positioned(
-                                    right: width * (1 - _goalLineX) - 2,
-                                    top: height * _goalTopY,
-                                    child: Container(
-                                      width: 5,
-                                      height:
-                                          (height * (_goalBottomY - _goalTopY))
-                                              .clamp(60, height * 0.7),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withAlpha(235),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                if (_goalVisible || _goalChanceActive)
-                                  Positioned(
-                                    left: width * _goalLineX - 2,
-                                    top: height * _goalTopY,
-                                    child: Container(
-                                      width: (width * 0.06).clamp(24, 44),
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withAlpha(235),
-                                        borderRadius: BorderRadius.circular(4),
+                                if (_goalChanceActive)
+                                  const Positioned.fill(
+                                    child: CustomPaint(
+                                      painter: _GoalPainter(
+                                        goalLineX: _goalLineX,
+                                        goalTopY: _goalTopY,
+                                        goalBottomY: _goalBottomY,
                                       ),
                                     ),
                                   ),
@@ -777,7 +691,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                     width: width,
                                     height: height,
                                   ),
-                                if (_goalVisible || _goalChanceActive)
+                                if (_goalChanceActive)
                                   _entity(
                                     context,
                                     x: _goalLineX - 0.01,
@@ -855,12 +769,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                 if (_timeUp || _endedByFail)
                                                   Text(
                                                     isKo
-                                                        ? (_timeUp
-                                                            ? '시간 종료! 성공 패스 $_score회'
-                                                            : '실패로 종료! 성공 패스 $_score회')
-                                                        : (_timeUp
-                                                            ? 'Time Up! Successful Passes $_score'
-                                                            : 'Round Ended on Miss! Successful Passes $_score'),
+                                                        ? (_endedByFail
+                                                            ? '경기 종료'
+                                                            : '최종 결과')
+                                                        : (_endedByFail
+                                                            ? 'Match Over'
+                                                            : 'Final Result'),
                                                     style: const TextStyle(
                                                       fontSize: 18,
                                                       fontWeight:
@@ -869,6 +783,39 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                   ),
                                                 if (_timeUp || _endedByFail)
                                                   const SizedBox(height: 12),
+                                                if (_timeUp || _endedByFail)
+                                                  Column(
+                                                    children: [
+                                                      Text(
+                                                        isKo
+                                                            ? '랭킹 ${_finalRanking.isEmpty ? _rankingLabel(_rankScore, isKo) : _finalRanking}'
+                                                            : 'Rank ${_finalRanking.isEmpty ? _rankingLabel(_rankScore, isKo) : _finalRanking}',
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 6),
+                                                      Text(
+                                                        isKo
+                                                            ? '점수 $_score  레벨 Lv.$_level  골 $_goals'
+                                                            : 'Score $_score  Level Lv.$_level  Goals $_goals',
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 14),
+                                                    ],
+                                                  ),
                                                 FilledButton.icon(
                                                   onPressed: _startGame,
                                                   icon: const Icon(
@@ -962,15 +909,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         } else {
           _noPassElapsed = 0;
         }
-        final scrollBoost = _feverActive ? 1.45 : 1.0;
-        _fieldScrollX = (_fieldScrollX + (_dt * 0.42 * scrollBoost)) % 1.0;
-        if (_feverActive) {
-          _feverLeft = (_feverLeft - _dt).clamp(0, _feverDuration);
-          if (_feverLeft <= 0) {
-            _feverActive = false;
-            _setReaction(_PassResult.feverEnd);
-          }
-        }
+        _fieldScrollX = (_fieldScrollX + (_dt * 0.42)) % 1.0;
         _updatePlayers();
         _updateCharge();
         _updateBall();
@@ -984,18 +923,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _gameStarted = true;
       _timeUp = false;
       _endedByFail = false;
+      _finalRanking = '';
       _remainingSeconds = 60;
       _score = 0;
       _goals = 0;
       _combo = 0;
-      _passesSinceGoal = 0;
-      _passesAfterGoalVisible = 0;
-      _goalVisible = false;
+      _finalShotMode = false;
       _goalChanceActive = false;
       _attackerAIsPasser = true;
-      _hype = 0;
-      _feverActive = false;
-      _feverLeft = 0;
       _level = 1;
       _resetRound(keepScore: false);
       _reactionLabel = '';
@@ -1016,14 +951,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       setState(() {
         _remainingSeconds = (_remainingSeconds - 1).clamp(0, 999);
         if (_remainingSeconds <= 0) {
-          _timeUp = true;
-          _gameStarted = false;
-          _ballFlying = false;
-          _charging = false;
-          _chargeStartedAt = null;
-          _pointerX = null;
-          _pointerY = null;
-          _updateWeeklyBest();
+          _remainingSeconds = 0;
+          _enterFinalShotMode();
           timer.cancel();
         }
       });
@@ -1035,7 +964,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final levelBoost = (1 + ((_level - 1) * 0.07)).clamp(1.0, 2.1);
     final runSpeed = (0.15 + ((_level - 1) * 0.01)).clamp(0.15, 0.33);
     final clutchBoost = _remainingSeconds <= 15 ? 1.28 : 1.0;
-    final feverBoost = _feverActive ? 1.18 : 1.0;
     const avoidRadius = 0.22;
     var passerAvoidX = 0.0;
     var passerAvoidY = 0.0;
@@ -1146,7 +1074,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     for (final defender in _defenders) {
       final passBySpeed =
-          defender.speed * comboBoost * levelBoost * clutchBoost * feverBoost;
+          defender.speed * comboBoost * levelBoost * clutchBoost;
       defender.x -= passBySpeed * _dt;
       final lanePoint = _lanePointAtX(defender.x);
       final lanePull = (lanePoint.dy - defender.y) * 1.6 * _dt;
@@ -1166,6 +1094,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         defender.y = (lane.dy + ((_random.nextDouble() - 0.5) * 0.30))
             .clamp(defender.minY, defender.maxY);
       }
+    }
+
+    if (_finalShotMode) {
+      const targetShooterX = 0.72;
+      const targetSupportX = 0.62;
+      if (_attackerAIsPasser) {
+        _passerXPos += (targetShooterX - _passerXPos) * 0.14;
+        _receiverX += (targetSupportX - _receiverX) * 0.12;
+      } else {
+        _receiverX += (targetShooterX - _receiverX) * 0.14;
+        _passerXPos += (targetSupportX - _passerXPos) * 0.12;
+      }
+      _passerYPos = _passerYPos.clamp(0.28, 0.82);
+      _receiverY = _receiverY.clamp(0.22, 0.86);
     }
 
     final leadX = math.max(_passerXPos, _receiverX);
@@ -1376,10 +1318,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
     if (nearest > 0.038 && nearest <= 0.070) {
       _flightNearMissAwarded = true;
-      _addHype(22);
-      if (_remainingSeconds <= 15 && _gameStarted) {
-        _remainingSeconds = (_remainingSeconds + 1).clamp(0, 99);
-      }
       _setReaction(_PassResult.nearMiss);
     }
   }
@@ -1399,41 +1337,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _onSuccess() {
     _setReaction(_PassResult.perfect);
     _attackerAIsPasser = !_attackerAIsPasser;
-    _score += _feverActive ? 2 : 1;
+    _score += 1;
     _combo += 1;
-    _passesSinceGoal += 1;
-    if (_goalVisible) {
-      _passesAfterGoalVisible += 1;
-    }
     _maybeLevelUp();
     _updateWeeklyBest();
-    _addHype(_feverActive ? 10 : 17);
-    if (!_goalVisible && _passesSinceGoal >= _goalUnlockPasses) {
-      _goalVisible = true;
-      _passesAfterGoalVisible = 0;
-      _setReaction(_PassResult.goalUnlocked);
-      _continueAfterSuccess();
-      return;
-    }
-    if (_goalVisible &&
-        !_goalChanceActive &&
-        _passesAfterGoalVisible >= _finalPassForShot) {
-      _activateGoalChance();
-      return;
-    }
     _continueAfterSuccess();
   }
 
   void _onGoalScored() {
     _goals += 1;
-    _score += _feverActive ? 3 : 1;
-    _passesSinceGoal = 0;
-    _passesAfterGoalVisible = 0;
-    _goalVisible = false;
+    _score += 3;
     _goalChanceActive = false;
+    _finalShotMode = false;
     _setReaction(_PassResult.goal);
-    _addHype(28);
-    _continueAfterSuccess();
+    _finishMatch();
   }
 
   void _activateGoalChance() {
@@ -1456,22 +1373,38 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballY = _activePasserY;
   }
 
-  void _onFail([_PassResult result = _PassResult.miss]) {
-    _combo = 0;
-    _hype = (_hype * 0.35).clamp(0, _hypeMax);
-    _feverActive = false;
-    _feverLeft = 0;
-    _setReaction(result);
-    _endGameOnFail();
+  void _enterFinalShotMode() {
+    _finalShotMode = true;
+    _defenders.clear();
+    _noPassElapsed = 0;
+    _activateGoalChance();
+    _setReaction(_PassResult.shotReady);
   }
 
-  void _addHype(double amount) {
-    _hype = (_hype + amount).clamp(0, _hypeMax);
-    if (!_feverActive && _hype >= _hypeMax) {
-      _feverActive = true;
-      _feverLeft = _feverDuration;
-      _hype = 0;
-      _setReaction(_PassResult.feverStart);
+  void _finishMatch({bool failed = false}) {
+    _phase = _PlayPhase.roundEnd;
+    _ballFlying = false;
+    _charging = false;
+    _chargeStartedAt = null;
+    _pointerX = null;
+    _pointerY = null;
+    _gameStarted = false;
+    _timeUp = true;
+    _endedByFail = failed;
+    _goalChanceActive = false;
+    _finalShotMode = false;
+    _finalRanking = _rankingLabel(_rankScore, true);
+    _updateWeeklyBest();
+    _gameTimer?.cancel();
+  }
+
+  void _onFail([_PassResult result = _PassResult.miss]) {
+    _combo = 0;
+    _setReaction(result);
+    if (_finalShotMode) {
+      _finishMatch(failed: true);
+    } else {
+      _endGameOnFail();
     }
   }
 
@@ -1550,6 +1483,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _pointerY = null;
     _gameStarted = false;
     _endedByFail = true;
+    _timeUp = true;
+    _finalRanking = _rankingLabel(_rankScore, true);
     _updateWeeklyBest();
     _gameTimer?.cancel();
   }
@@ -1559,13 +1494,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _score = 0;
       _goals = 0;
       _combo = 0;
-      _passesSinceGoal = 0;
-      _passesAfterGoalVisible = 0;
-      _goalVisible = false;
+      _finalShotMode = false;
       _goalChanceActive = false;
-      _hype = 0;
-      _feverActive = false;
-      _feverLeft = 0;
     }
 
     _phase = _PlayPhase.ready;
@@ -1616,7 +1546,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _noPassElapsed = 0;
     if (!keepScore) {
       _lastAccuracy = 0;
-      _overallScorePct = 0;
       _reactionLabel = '';
       _reactionDetail = '';
       _reactionColor = const Color(0xFF8FA3BF);
@@ -1832,38 +1761,21 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (byCenter) probability += 0.10;
     if (_forwardWindow) probability += 0.04;
 
-    _lastFitScore = fitScore;
-    _lastDirectionalScore = directionalScore;
-    _lastLeadScore = leadScore;
-    _lastTimingScore = timingScore;
-    _lastSpeedScore = speedScore;
-    _lastDistanceScore = distanceScore;
-    _lastTimingGap = timingGap;
-
     return probability.clamp(0.20, 0.99);
   }
 
   String _qualityDetailText(double controlPct) {
-    final directionPct = (_lastDirectionalScore * 100).round();
-    final timingPct = (_lastTimingScore * 100).round();
-    final speedPct = (_lastSpeedScore * 100).round();
-    final fitPct = (_lastFitScore * 100).round();
-    final leadPct = (_lastLeadScore * 100).round();
-    final distPct = (_lastDistanceScore * 100).round();
-    final gap = _lastTimingGap.toStringAsFixed(2);
-    final isHigh = controlPct >= 75;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-
     if (isKo) {
-      if (isHigh) {
-        return '패스 품질 좋음: 방향정렬 $directionPct% · 타이밍 $timingPct% · 수신안정 $fitPct% · 속도매칭 $speedPct% · 리드 $leadPct% · 거리 $distPct% (오차 $gap s)';
-      }
-      return '패스 품질 낮음: 방향정렬 $directionPct% / 타이밍 $timingPct% / 수신안정 $fitPct% / 속도매칭 $speedPct% / 리드 $leadPct% / 거리 $distPct% (오차 $gap s)';
+      if (controlPct >= 88) return '패스 품질 최고';
+      if (controlPct >= 72) return '패스 품질 좋음';
+      if (controlPct >= 56) return '패스 품질 보통';
+      return '패스 품질 낮음';
     }
-    if (isHigh) {
-      return 'Good pass quality: direction $directionPct% · timing $timingPct% · receive fit $fitPct% · speed match $speedPct% · lead $leadPct% · distance $distPct% (gap $gap s)';
-    }
-    return 'Lower pass quality: direction $directionPct% / timing $timingPct% / receive fit $fitPct% / speed match $speedPct% / lead $leadPct% / distance $distPct% (gap $gap s)';
+    if (controlPct >= 88) return 'Pass quality: elite';
+    if (controlPct >= 72) return 'Pass quality: good';
+    if (controlPct >= 56) return 'Pass quality: fair';
+    return 'Pass quality: low';
   }
 
   int _setReaction(
@@ -1886,9 +1798,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final base =
         (timingScore * 0.55 + positionScore * 0.25 + speedScore * 0.20) * 100;
     _lastAccuracy = result == _PassResult.perfect ? base : 0;
-    _overallScorePct = (result == _PassResult.perfect ? _lastAccuracy : 0)
-        .clamp(0, 100)
-        .toDouble();
 
     switch (result) {
       case _PassResult.perfect:
@@ -1896,7 +1805,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             (controlProbability ?? _lastControlProbability).clamp(0.20, 0.99);
         final controlPct = controlProb * 100;
         _lastAccuracy = controlPct;
-        _overallScorePct = controlPct;
         final tier = _accuracyTier(_lastAccuracy);
         _reactionIcon = tier.icon;
         _reactionColor = tier.color;
@@ -1971,32 +1879,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
           'Near miss!',
         );
         _reactionDetail = _koText(
-          '수비 바로 옆을 스쳐 지나갔어요. 하이프 게이지 상승!',
-          'Ball grazed past a defender. Hype increased!',
-        );
-        return 0;
-      case _PassResult.feverStart:
-        _reactionIcon = Icons.flash_on;
-        _reactionColor = const Color(0xFFFFC107);
-        _reactionLabel = _koText(
-          '피버 모드 시작!',
-          'Fever mode on!',
-        );
-        _reactionDetail = _koText(
-          '8초 동안 패스 점수 보너스와 속도감이 올라갑니다.',
-          'For 8s, bonus pass points and higher tempo.',
-        );
-        return 0;
-      case _PassResult.feverEnd:
-        _reactionIcon = Icons.bolt;
-        _reactionColor = const Color(0xFF607D8B);
-        _reactionLabel = _koText(
-          '피버 종료',
-          'Fever ended',
-        );
-        _reactionDetail = _koText(
-          '리듬을 유지해서 다시 피버를 노려보세요.',
-          'Keep the rhythm to trigger fever again.',
+          '수비 바로 옆을 스쳐 지나갔어요.',
+          'Ball grazed past a defender.',
         );
         return 0;
       case _PassResult.tooFast:
@@ -2146,6 +2030,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (accuracy >= 60) return _AccuracyTier.good;
     if (accuracy >= 45) return _AccuracyTier.okay;
     return _AccuracyTier.low;
+  }
+
+  String _rankingLabel(int rankScore, bool isKo) {
+    if (rankScore >= 320) return 'S';
+    if (rankScore >= 240) return 'A';
+    if (rankScore >= 170) return 'B';
+    if (rankScore >= 110) return 'C';
+    return isKo ? 'D' : 'D';
   }
 
   String _koText(String ko, String en) {
@@ -2393,85 +2285,6 @@ class _ReceivingWindowEval {
   });
 }
 
-class _HypeBar extends StatelessWidget {
-  final bool isKo;
-  final double hype;
-  final bool feverActive;
-  final double feverLeft;
-
-  const _HypeBar({
-    required this.isKo,
-    required this.hype,
-    required this.feverActive,
-    required this.feverLeft,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final pct = (hype / 100).clamp(0.0, 1.0);
-    final label = feverActive
-        ? (isKo
-            ? '피버 ${feverLeft.toStringAsFixed(1)}s'
-            : 'Fever ${feverLeft.toStringAsFixed(1)}s')
-        : (isKo
-            ? '하이프 ${hype.toStringAsFixed(0)}%'
-            : 'Hype ${hype.toStringAsFixed(0)}%');
-    final color =
-        feverActive ? const Color(0xFFFFC107) : const Color(0xFF4DD0E1);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withAlpha(170),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withAlpha(120)),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 90,
-            child: Text(
-              feverActive
-                  ? (isKo ? '피버 모드' : 'Fever Mode')
-                  : (isKo ? '하이프' : 'Hype'),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: feverActive ? (feverLeft / 8.0).clamp(0.0, 1.0) : pct,
-                minHeight: 9,
-                color: color,
-                backgroundColor: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.14),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 12,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _MovingPitchPainter extends CustomPainter {
   final double scroll;
 
@@ -2507,6 +2320,64 @@ class _MovingPitchPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _MovingPitchPainter oldDelegate) {
     return oldDelegate.scroll != scroll;
+  }
+}
+
+class _GoalPainter extends CustomPainter {
+  final double goalLineX;
+  final double goalTopY;
+  final double goalBottomY;
+
+  const _GoalPainter({
+    required this.goalLineX,
+    required this.goalTopY,
+    required this.goalBottomY,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final left = goalLineX * size.width;
+    final top = goalTopY * size.height;
+    final bottom = goalBottomY * size.height;
+    final depth = (size.width * 0.06).clamp(24.0, 54.0);
+    final post = Paint()
+      ..color = Colors.white.withAlpha(240)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2;
+    final net = Paint()
+      ..color = Colors.white.withAlpha(80)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    final shadow = Paint()
+      ..color = const Color(0x55000000)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.4;
+
+    final frontRect = Rect.fromLTRB(left, top, left + depth, bottom);
+    canvas.drawLine(
+      Offset(frontRect.left + 1.0, top + 1.5),
+      Offset(frontRect.left + 1.0, bottom + 1.5),
+      shadow,
+    );
+    canvas.drawRect(frontRect, post);
+
+    const rows = 6;
+    const cols = 5;
+    for (var r = 1; r < rows; r++) {
+      final y = top + ((bottom - top) * (r / rows));
+      canvas.drawLine(Offset(left, y), Offset(left + depth, y), net);
+    }
+    for (var c = 1; c < cols; c++) {
+      final x = left + (depth * (c / cols));
+      canvas.drawLine(Offset(x, top), Offset(x, bottom), net);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GoalPainter oldDelegate) {
+    return oldDelegate.goalLineX != goalLineX ||
+        oldDelegate.goalTopY != goalTopY ||
+        oldDelegate.goalBottomY != goalBottomY;
   }
 }
 
@@ -2795,8 +2666,6 @@ enum _PassResult {
   goalUnlocked,
   goal,
   nearMiss,
-  feverStart,
-  feverEnd,
   tooFast,
   tooSlow,
   miss,
