@@ -990,6 +990,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     var passerAvoidY = 0.0;
     var receiverAvoidX = 0.0;
     var receiverAvoidY = 0.0;
+    var passerThreatAhead = 0;
+    var receiverThreatAhead = 0;
     for (final defender in _defenders) {
       final passerDx = _passerXPos - defender.x;
       final passerDy = _passerYPos - defender.y;
@@ -1000,6 +1002,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         final strength = (avoidRadius - passerDist) / avoidRadius;
         passerAvoidX += (passerDx / passerDist) * strength;
         passerAvoidY += (passerDy / passerDist) * strength;
+        if (defender.x > _passerXPos) {
+          passerThreatAhead++;
+        }
       }
 
       final receiverDx = _receiverX - defender.x;
@@ -1011,6 +1016,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         final strength = (avoidRadius - receiverDist) / avoidRadius;
         receiverAvoidX += (receiverDx / receiverDist) * strength;
         receiverAvoidY += (receiverDy / receiverDist) * strength;
+        if (defender.x > _receiverX) {
+          receiverThreatAhead++;
+        }
       }
     }
 
@@ -1028,10 +1036,26 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (!passerIsA) {
       _passerVx += 0.018 * forwardBoost;
       _passerVy += passerAvoidY * 0.045;
+      final aheadPressure = passerThreatAhead.clamp(0, 3);
+      if (aheadPressure > 0) {
+        _passerVx += (0.016 * aheadPressure) + (math.max(0.0, -passerAvoidX) * 0.045);
+        _passerVy += passerAvoidY * 0.060;
+      }
+      if (passerAvoidY.abs() < 0.015 && aheadPressure > 0) {
+        _passerVy += (_random.nextBool() ? 1 : -1) * 0.020;
+      }
     }
     if (passerIsA) {
       _receiverVx += 0.018 * forwardBoostB;
       _receiverVy += receiverAvoidY * 0.045;
+      final aheadPressure = receiverThreatAhead.clamp(0, 3);
+      if (aheadPressure > 0) {
+        _receiverVx += (0.016 * aheadPressure) + (math.max(0.0, -receiverAvoidX) * 0.045);
+        _receiverVy += receiverAvoidY * 0.060;
+      }
+      if (receiverAvoidY.abs() < 0.015 && aheadPressure > 0) {
+        _receiverVy += (_random.nextBool() ? 1 : -1) * 0.020;
+      }
     }
     _applyJoystickToActivePasser();
     if (passerIsA) {
@@ -1424,6 +1448,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballFlying = true;
       _phase = _PlayPhase.flying;
       _flightNearMissAwarded = false;
+      _applyPasserBurst(dirX, dirY);
       return;
     }
     final prediction = _predictPassTo(_chargedBallSpeed, _aimX, _aimY);
@@ -1473,6 +1498,24 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballFlying = true;
     _phase = _PlayPhase.flying;
     _flightNearMissAwarded = false;
+    _applyPasserBurst(passDirX, passDirY);
+  }
+
+  void _applyPasserBurst(double dirX, double dirY) {
+    final normalizedCharge =
+        ((_chargedBallSpeed - _ballMinSpeed) / (_ballMaxSpeed - _ballMinSpeed))
+            .clamp(0.0, 1.0);
+    final burst = (0.16 + (normalizedCharge * 0.18)).clamp(0.16, 0.34);
+    final vxBoost = (math.max(0.12, dirX) * burst).clamp(0.12, 0.40);
+    final vyBoost = (dirY * (burst * 0.45)).clamp(-0.16, 0.16);
+
+    if (_attackerAIsPasser) {
+      _passerVx = math.max(_passerVx, vxBoost);
+      _passerVy = ((_passerVy * 0.45) + vyBoost).clamp(-0.26, 0.26);
+    } else {
+      _receiverVx = math.max(_receiverVx, vxBoost);
+      _receiverVy = ((_receiverVy * 0.45) + vyBoost).clamp(-0.26, 0.26);
+    }
   }
 
   void _trackNearMiss() {
