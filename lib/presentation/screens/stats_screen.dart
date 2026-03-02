@@ -233,42 +233,65 @@ class _StatsScreenState extends State<StatsScreen> {
               const SizedBox(height: 12),
             ],
             WatchCartCard(
-              child: _DevelopmentCoachCard(
-                entries: entries,
-                ageYears: ageYears,
-                soccerYears: soccerYears,
-                isKo: isKo,
-                showAverage: canShowAverage,
-              ),
-            ),
-            const SizedBox(height: 12),
-            WatchCartCard(
-              child: _TargetGrowthChart(
-                entries: entries,
-                ageYears: ageYears,
-                soccerYears: soccerYears,
-                isKo: isKo,
-                showAverage: canShowAverage,
-              ),
-            ),
-            const SizedBox(height: 12),
-            WatchCartCard(
-              child: _BodyAndLiftingBenchmarkCard(
-                entries: entries,
-                profile: profile,
-                ageYears: ageYears,
-                isKo: isKo,
-                benchmarkService: _benchmarkService,
-                showAverage: canShowAverage,
-              ),
-            ),
-            const SizedBox(height: 12),
-            WatchCartCard(
-              child: _LiftingSummaryCard(
-                entries: entries,
-                ageYears: ageYears,
-                benchmarkService: _benchmarkService,
-                showAverage: canShowAverage,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _DevelopmentCoachCard(
+                    entries: entries,
+                    ageYears: ageYears,
+                    soccerYears: soccerYears,
+                    isKo: isKo,
+                    showAverage: canShowAverage,
+                  ),
+                  const SizedBox(height: 16),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.25),
+                  ),
+                  const SizedBox(height: 16),
+                  _TargetGrowthChart(
+                    entries: entries,
+                    ageYears: ageYears,
+                    soccerYears: soccerYears,
+                    isKo: isKo,
+                    showAverage: canShowAverage,
+                  ),
+                  const SizedBox(height: 16),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.25),
+                  ),
+                  const SizedBox(height: 16),
+                  _BodyAndLiftingBenchmarkCard(
+                    entries: entries,
+                    profile: profile,
+                    ageYears: ageYears,
+                    isKo: isKo,
+                    benchmarkService: _benchmarkService,
+                    showAverage: canShowAverage,
+                  ),
+                  const SizedBox(height: 16),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.25),
+                  ),
+                  const SizedBox(height: 16),
+                  _LiftingSummaryCard(
+                    entries: entries,
+                    ageYears: ageYears,
+                    benchmarkService: _benchmarkService,
+                    showAverage: canShowAverage,
+                  ),
+                ],
               ),
             ),
           ],
@@ -897,26 +920,30 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
+    final accent = Theme.of(context).colorScheme.primary;
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            color: accent,
+            borderRadius: BorderRadius.circular(999),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 8),
+        Icon(icon, size: 18, color: accent),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.1,
+                ),
+          ),
+        ),
+      ],
     );
   }
 }
