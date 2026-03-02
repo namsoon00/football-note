@@ -466,10 +466,16 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Future<void> _openLink(NewsArticle article) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final uri = Uri.tryParse(article.link);
     if (uri == null || !uri.hasScheme) return;
+    final openUri = isKo
+        ? Uri.parse(
+            'https://translate.google.com/translate?sl=auto&tl=ko&u=${Uri.encodeComponent(uri.toString())}',
+          )
+        : uri;
     await launchUrl(
-      uri,
+      openUri,
       mode: LaunchMode.inAppBrowserView,
       browserConfiguration: const BrowserConfiguration(showTitle: true),
     );
