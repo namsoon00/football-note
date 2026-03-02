@@ -40,6 +40,8 @@ jobs:
           CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
           CODEX_UNSAFE: ${{ vars.CODEX_UNSAFE }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}
+          AUTO_MERGE: ${{ vars.AUTO_MERGE }}
+          AUTO_MERGE_METHOD: ${{ vars.AUTO_MERGE_METHOD }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |
           bash scripts/run_issue_worker.sh

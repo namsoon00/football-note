@@ -52,6 +52,8 @@ def main() -> int:
     issue_title = env("ISSUE_TITLE")
     branch = env("HEAD_BRANCH")
     base_branch = os.environ.get("BASE_BRANCH", "main")
+    auto_merge = os.environ.get("AUTO_MERGE", "1").strip() == "1"
+    merge_method = os.environ.get("AUTO_MERGE_METHOD", "squash").strip() or "squash"
 
     owner = repo.split("/", 1)[0]
     head_q = urllib.parse.urlencode({"state": "open", "head": f"{owner}:{branch}", "base": base_branch})
@@ -59,9 +61,11 @@ def main() -> int:
     if not isinstance(existing, list):
         raise RuntimeError("Unexpected PR query payload")
 
+    pr_number: int | None = None
     if existing:
         pr = existing[0]
         pr_url = pr.get("html_url", "")
+        pr_number = int(pr.get("number", 0) or 0)
     else:
         title = f"Auto: {issue_title} (#{issue_number})"
         body = (
@@ -84,6 +88,7 @@ def main() -> int:
             if not isinstance(created, dict):
                 raise RuntimeError("Unexpected PR creation payload")
             pr_url = created.get("html_url", "")
+            pr_number = int(created.get("number", 0) or 0)
         except RuntimeError as exc:
             text = str(exc)
             manual_pr_url = (
@@ -107,6 +112,39 @@ def main() -> int:
 
     if pr_url:
         post_issue_comment(repo, issue_number, token, f"자동 작업 브랜치 PR이 준비되었습니다: {pr_url}")
+
+    if auto_merge and pr_number:
+        try:
+            merged = request(
+                "PUT",
+                f"{API}/repos/{repo}/pulls/{pr_number}/merge",
+                token,
+                {
+                    "merge_method": merge_method,
+                    "commit_title": f"Auto-merge: {issue_title} (#{issue_number})",
+                },
+            )
+            if isinstance(merged, dict) and merged.get("merged") is True:
+                post_issue_comment(
+                    repo,
+                    issue_number,
+                    token,
+                    f"자동 머지 완료: PR #{pr_number} ({merge_method})",
+                )
+            else:
+                post_issue_comment(
+                    repo,
+                    issue_number,
+                    token,
+                    f"PR #{pr_number} 자동 머지를 시도했지만 완료되지 않았습니다. 응답: `{merged}`",
+                )
+        except RuntimeError as exc:
+            post_issue_comment(
+                repo,
+                issue_number,
+                token,
+                f"PR #{pr_number} 자동 머지 실패: `{exc}`",
+            )
 
     print(pr_url)
     return 0
