@@ -24,10 +24,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Check local Python
+        run: |
+          python3 --version
 
       - name: Run issue worker
         env:
