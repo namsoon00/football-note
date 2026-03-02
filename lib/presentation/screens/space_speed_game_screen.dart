@@ -2569,12 +2569,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.sports_soccer,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                    const SizedBox(height: 2),
                     Text(
                       isKo ? '패스 패드' : 'PASS PAD',
                       style: const TextStyle(
