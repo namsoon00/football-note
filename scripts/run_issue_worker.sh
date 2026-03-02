@@ -38,7 +38,16 @@ git pull --ff-only origin "$DEFAULT_BRANCH"
 log "Refreshing queue file"
 python3 scripts/sync_issue_queue.py || true
 
-ISSUE_NUMBER="$(grep -Eo '#[0-9]+' docs/ISSUE_QUEUE.md | head -n1 | tr -d '#')"
+if [[ ! -f "docs/ISSUE_QUEUE.md" ]]; then
+  log "Queue file not found. Exiting."
+  exit 0
+fi
+
+ISSUE_NUMBER="$(
+  (
+    grep -Eo '#[0-9]+' docs/ISSUE_QUEUE.md || true
+  ) | head -n1 | tr -d '#'
+)"
 if [[ -z "${ISSUE_NUMBER:-}" ]]; then
   log "No queued issue found."
   exit 0
