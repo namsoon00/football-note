@@ -137,7 +137,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _passPressed = false;
   Offset _passAimInput = Offset.zero;
   bool _passAimActive = false;
-  int? _passPointerId;
   bool _passChargeArmed = false;
 
   int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
@@ -1496,7 +1495,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _chargedBallSpeed = _ballMinSpeed;
     _effectiveBallSpeed = _ballMinSpeed;
     _passPressed = false;
-    _passPointerId = null;
     _passChargeArmed = false;
   }
 
@@ -1559,7 +1557,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passPressed = false;
     _passAimInput = Offset.zero;
     _passAimActive = false;
-    _passPointerId = null;
     _passChargeArmed = false;
     _gameStarted = false;
     _timeUp = true;
@@ -1659,7 +1656,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passPressed = false;
     _passAimInput = Offset.zero;
     _passAimActive = false;
-    _passPointerId = null;
     _passChargeArmed = false;
     _gameStarted = false;
     _endedByFail = true;
@@ -1719,7 +1715,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passPressed = false;
     _passAimInput = Offset.zero;
     _passAimActive = false;
-    _passPointerId = null;
     _passChargeArmed = false;
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
@@ -1771,12 +1766,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _joystickActive = true;
   }
 
-  void _onPassDown(int pointer, Offset local) {
-    if (_passPointerId != null) return;
+  void _onPassDown(Offset local) {
     if (!_gameStarted || _timeUp || _phase != _PlayPhase.ready || _ballFlying) {
       return;
     }
-    _passPointerId = pointer;
     _updatePassAimFromLocal(local);
     _updateAutoAim();
     _passPressed = true;
@@ -1784,16 +1777,15 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _beginCharge();
   }
 
-  void _onPassMove(int pointer, Offset local) {
-    if (_passPointerId != pointer) return;
+  void _onPassMove(Offset local) {
     if (!_passPressed || !_gameStarted || _timeUp || _ballFlying) return;
     _updatePassAimFromLocal(local);
   }
 
-  void _onPassUp(int pointer, Offset local) {
-    if (_passPointerId != pointer) return;
-    _passPointerId = null;
-    _updatePassAimFromLocal(local);
+  void _onPassUp([Offset? local]) {
+    if (local != null) {
+      _updatePassAimFromLocal(local);
+    }
     final wasPressed = _passPressed;
     _passPressed = false;
     final wasArmed = _passChargeArmed;
@@ -1811,9 +1803,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimActive = false;
   }
 
-  void _onPassCancel(int pointer) {
-    if (_passPointerId != pointer) return;
-    _passPointerId = null;
+  void _onPassCancel() {
     _passPressed = false;
     _passChargeArmed = false;
     _passAimInput = Offset.zero;
@@ -1824,8 +1814,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _updatePassAimFromLocal(Offset local) {
-    const center = Offset(44, 44);
-    const radius = 34.0;
+    const center = Offset(53, 53);
+    const radius = 41.0;
     final delta = local - center;
     final dist = delta.distance;
     final clamped = dist <= radius ? delta : delta * (radius / dist);
@@ -2497,21 +2487,24 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   Widget _buildPassButton(BuildContext context, {required bool isKo}) {
     return Positioned(
-      right: 12,
+      right: 10,
       bottom: 12,
-      child: Listener(
-        onPointerDown: (event) =>
-            setState(() => _onPassDown(event.pointer, event.localPosition)),
-        onPointerMove: (event) =>
-            setState(() => _onPassMove(event.pointer, event.localPosition)),
-        onPointerUp: (event) =>
-            setState(() => _onPassUp(event.pointer, event.localPosition)),
-        onPointerCancel: (event) =>
-            setState(() => _onPassCancel(event.pointer)),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (details) =>
+            setState(() => _onPassDown(details.localPosition)),
+        onTapUp: (details) => setState(() => _onPassUp(details.localPosition)),
+        onTapCancel: () => setState(_onPassCancel),
+        onPanStart: (details) =>
+            setState(() => _onPassDown(details.localPosition)),
+        onPanUpdate: (details) =>
+            setState(() => _onPassMove(details.localPosition)),
+        onPanEnd: (_) => setState(() => _onPassUp()),
+        onPanCancel: () => setState(_onPassCancel),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
-          width: 88,
-          height: 88,
+          width: 106,
+          height: 106,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: _passPressed
@@ -2531,10 +2524,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
               alignment: Alignment.center,
               children: [
                 Transform.translate(
-                  offset: Offset(_passAimInput.dx * 14, _passAimInput.dy * 14),
+                  offset: Offset(_passAimInput.dx * 22, _passAimInput.dy * 22),
                   child: Container(
-                    width: 30,
-                    height: 30,
+                    width: 36,
+                    height: 36,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -2543,7 +2536,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     ),
                     child: const Icon(
                       Icons.sports_soccer,
-                      size: 16,
+                      size: 18,
                       color: Colors.white,
                     ),
                   ),
@@ -2554,11 +2547,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     const Icon(
                       Icons.sports_soccer,
                       color: Colors.white,
-                      size: 28,
+                      size: 30,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isKo ? '패스조준' : 'PASS AIM',
+                      isKo ? '패스 패드' : 'PASS PAD',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
