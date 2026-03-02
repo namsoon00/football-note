@@ -274,6 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   .setLocale(const Locale('en'));
                             }
                           },
+                          height: 56,
                         ),
                       ),
                       SizedBox(
@@ -462,7 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 filled: true,
                 fillColor: fillColor,
                 contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: borderColor, width: 1.2),

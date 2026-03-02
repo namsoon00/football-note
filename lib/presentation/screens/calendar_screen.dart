@@ -1164,9 +1164,6 @@ class _EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final programText = entry.program.trim().isNotEmpty
-        ? entry.program.trim()
-        : (entry.type.trim().isNotEmpty ? entry.type.trim() : '-');
     final locationText =
         entry.location.trim().isNotEmpty ? entry.location.trim() : '-';
     final durationText = _formatDurationText(
@@ -1179,14 +1176,13 @@ class _EntryTile extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         leading: _StatusIcon(status: entry.status),
-        title: Text('${entry.type} · $durationText'),
+        title: Text('${entry.type} · $durationText · $locationText'),
         subtitle: Text(
           [
-            '${l10n.program} $programText · ${l10n.location} $locationText',
             '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
             if (_entryFocusText(entry).isNotEmpty) _entryFocusText(entry),
           ].join('\n'),
-          maxLines: 3,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: const Icon(Icons.chevron_right),
