@@ -934,15 +934,24 @@ class _LiftingSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final byPart = <String, int>{};
+    final bestByPart = <String, _PartBest>{};
+    _PartBest? overallBest;
     for (final entry in entries) {
       entry.liftingByPart.forEach(
-        (part, count) => byPart.update(part, (value) => value + count,
-            ifAbsent: () => count),
+        (part, count) {
+          if (count <= 0) return;
+          final current = bestByPart[part];
+          if (current == null || count > current.count) {
+            bestByPart[part] = _PartBest(count: count, date: entry.date);
+          }
+          if (overallBest == null || count > overallBest!.count) {
+            overallBest = _PartBest(count: count, date: entry.date);
+          }
+        },
       );
     }
-    final sorted = byPart.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final sorted = bestByPart.entries.toList()
+      ..sort((a, b) => b.value.count.compareTo(a.value.count));
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final totalLifts = entries.fold<int>(
       0,
@@ -968,13 +977,23 @@ class _LiftingSummaryCard extends StatelessWidget {
               : '$avgLiftPerSession',
         ),
         const SizedBox(height: 8),
+        _StatRow(
+          label: isKo ? '최고 기록' : 'Best Record',
+          value: overallBest == null
+              ? (isKo ? '기록 없음' : 'No record')
+              : (isKo
+                  ? '${overallBest!.count}회 (${_dateText(overallBest!.date)})'
+                  : '${overallBest!.count} (${_dateText(overallBest!.date)})'),
+        ),
+        const SizedBox(height: 8),
         if (sorted.isEmpty)
           Text(isKo ? '리프팅 기록이 없습니다.' : 'No lifting records.')
         else
           ...sorted.map(
             (entry) {
-              final max = sorted.first.value <= 0 ? 1 : sorted.first.value;
-              final ratio = entry.value / max;
+              final max =
+                  sorted.first.value.count <= 0 ? 1 : sorted.first.value.count;
+              final ratio = entry.value.count / max;
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Column(
@@ -985,7 +1004,9 @@ class _LiftingSummaryCard extends StatelessWidget {
                       children: [
                         Text(_partLabel(entry.key, isKo)),
                         Text(
-                          AppLocalizations.of(context)!.times(entry.value),
+                          isKo
+                              ? '${entry.value.count}회 · ${_dateText(entry.value.date)}'
+                              : '${entry.value.count} · ${_dateText(entry.value.date)}',
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ],
@@ -994,7 +1015,7 @@ class _LiftingSummaryCard extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(999),
                       child: LinearProgressIndicator(
-                        value: ratio.clamp(0, 1),
+                        value: ratio.clamp(0.0, 1.0),
                         minHeight: 7,
                         color: const Color(0xFF4DD0E1),
                         backgroundColor: Theme.of(context)
@@ -1049,6 +1070,23 @@ class _LiftingSummaryCard extends StatelessWidget {
         return key;
     }
   }
+
+  String _dateText(DateTime date) {
+    final y = date.year.toString().padLeft(4, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '$y.$m.$d';
+  }
+}
+
+class _PartBest {
+  final int count;
+  final DateTime date;
+
+  const _PartBest({
+    required this.count,
+    required this.date,
+  });
 }
 
 class _StatRow extends StatelessWidget {
