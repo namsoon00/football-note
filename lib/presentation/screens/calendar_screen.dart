@@ -188,8 +188,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   firstDay: DateTime(2022),
                                   lastDay: DateTime(2032),
                                   sixWeekMonthsEnforced: false,
-                                  rowHeight: 35,
-                                  daysOfWeekHeight: 18,
+                                  rowHeight: 52,
+                                  daysOfWeekHeight: 24,
                                   calendarFormat: _calendarFormat,
                                   onPageChanged: (focusedDay) {
                                     _focusedDay = focusedDay;
@@ -212,27 +212,68 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       holidayMap
                                           .containsKey(_normalizeDay(day)),
                                   calendarBuilders: CalendarBuilders(
-                                    holidayBuilder: isKo
-                                        ? (context, day, focusedDay) {
-                                            return Center(
-                                              child: Text(
-                                                '${day.day}',
-                                                style: TextStyle(
-                                                  color: Colors.red.shade500,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        : null,
+                                    markerBuilder: (context, day, events) {
+                                      final markers =
+                                          _buildTrainingTypeMarkers(events);
+                                      if (markers.isEmpty) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 2),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: markers,
+                                        ),
+                                      );
+                                    },
                                   ),
                                   calendarStyle: CalendarStyle(
                                     outsideDaysVisible: false,
-                                    markerDecoration: const BoxDecoration(
-                                      color: WatchCartConstants.primaryColor,
-                                      shape: BoxShape.circle,
+                                    markersAlignment: Alignment.bottomCenter,
+                                    markersAutoAligned: false,
+                                    canMarkersOverflow: false,
+                                    markersMaxCount: 3,
+                                    defaultTextStyle: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                    weekendTextStyle: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                    outsideTextStyle: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.35),
+                                    ),
+                                    todayTextStyle: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary,
+                                    ),
+                                    selectedTextStyle: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary,
                                     ),
                                     holidayTextStyle: TextStyle(
+                                      fontSize: 15,
                                       color: Colors.red.shade500,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -241,7 +282,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     formatButtonVisible: false,
                                     titleCentered: true,
                                     titleTextStyle: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 17,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -611,6 +652,79 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   DateTime _normalizeDay(DateTime day) =>
       DateTime(day.year, day.month, day.day);
+
+  List<Widget> _buildTrainingTypeMarkers(List<TrainingEntry> events) {
+    if (events.isEmpty) return const <Widget>[];
+    final typeIcons = <IconData>[];
+    for (final entry in events) {
+      final icon = _iconForTrainingType(entry.type);
+      if (!typeIcons.contains(icon)) {
+        typeIcons.add(icon);
+      }
+    }
+    if (typeIcons.isEmpty) return const <Widget>[];
+
+    final markerWidgets = <Widget>[];
+    final maxIcons = typeIcons.length > 2 ? 2 : typeIcons.length;
+    for (var i = 0; i < maxIcons; i++) {
+      markerWidgets.add(
+        Padding(
+          padding: EdgeInsets.only(right: i == maxIcons - 1 ? 0 : 2),
+          child: Icon(
+            typeIcons[i],
+            size: 11,
+            color: WatchCartConstants.primaryColor,
+          ),
+        ),
+      );
+    }
+    final extraCount = typeIcons.length - maxIcons;
+    if (extraCount > 0) {
+      markerWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(left: 2),
+          child: Text(
+            '+$extraCount',
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: WatchCartConstants.primaryColor,
+            ),
+          ),
+        ),
+      );
+    }
+    return markerWidgets;
+  }
+
+  IconData _iconForTrainingType(String rawType) {
+    final type = rawType.trim().toLowerCase();
+    if (type.contains('드리블') || type.contains('dribble')) {
+      return Icons.directions_run_rounded;
+    }
+    if (type.contains('슈팅') ||
+        type.contains('shoot') ||
+        type.contains('shot')) {
+      return Icons.sports_soccer_rounded;
+    }
+    if (type.contains('패스') || type.contains('pass')) {
+      return Icons.compare_arrows_rounded;
+    }
+    if (type.contains('체력') ||
+        type.contains('fitness') ||
+        type.contains('conditioning')) {
+      return Icons.fitness_center_rounded;
+    }
+    if (type.contains('경기') ||
+        type.contains('match') ||
+        type.contains('game')) {
+      return Icons.emoji_events_rounded;
+    }
+    if (type.contains('리프팅') || type.contains('juggling')) {
+      return Icons.sports_soccer;
+    }
+    return Icons.sports_rounded;
+  }
 
   Map<DateTime, String> _buildKoreanHolidayMap(DateTime from, DateTime to) {
     final result = <DateTime, String>{};
