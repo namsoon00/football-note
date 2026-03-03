@@ -14,7 +14,6 @@ import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../widgets/watch_cart/constants.dart';
-import '../widgets/watch_cart/watch_detail_footer.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import 'settings_screen.dart';
@@ -46,6 +45,7 @@ class EntryFormScreen extends StatefulWidget {
 class _EntryFormScreenState extends State<EntryFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _notesController = TextEditingController();
+  final _drillsController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
   final _goalController = TextEditingController();
@@ -143,6 +143,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         entry.durationMinutes,
       );
       _notesController.text = entry.notes;
+      _drillsController.text = entry.drills;
       _intensity = entry.intensity;
       _mood = entry.mood;
       _type = _initSelection('programs', _programOptions, entry.program);
@@ -322,6 +323,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _autoSaveTimer?.cancel();
     unawaited(_speech.cancel());
     _notesController.dispose();
+    _drillsController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
     _goalController.dispose();
@@ -341,6 +343,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final dateText = DateFormat('yyyy.MM.dd').format(_date);
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final isDark = theme.brightness == Brightness.dark;
     final heroAccent = isDark
         ? theme.colorScheme.primaryContainer.withValues(alpha: 0.65)
@@ -380,39 +383,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               icon: const Icon(Icons.arrow_back),
                               tooltip: l10n.cancel,
                             ),
-                            if (isEdit)
-                              IconButton(
-                                onPressed:
-                                    (_saveInProgress || _deleteInProgress)
-                                    ? null
-                                    : _confirmAndDelete,
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: l10n.deleteEntry,
-                              ),
-                            PopupMenuButton<_EntryMenuAction>(
-                              tooltip: l10n.more,
-                              onSelected: (action) {
-                                switch (action) {
-                                  case _EntryMenuAction.save:
-                                    _save();
-                                    break;
-                                  case _EntryMenuAction.discard:
-                                    Navigator.of(context).maybePop();
-                                    break;
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                if (!isEdit)
-                                  PopupMenuItem(
-                                    value: _EntryMenuAction.save,
-                                    child: Text(l10n.save),
-                                  ),
-                                PopupMenuItem(
-                                  value: _EntryMenuAction.discard,
-                                  child: Text(l10n.cancel),
-                                ),
-                              ],
-                              child: const Icon(Icons.more_vert),
+                            TextButton.icon(
+                              onPressed: (_saveInProgress || _deleteInProgress)
+                                  ? null
+                                  : _save,
+                              icon: const Icon(Icons.save_outlined, size: 18),
+                              label: Text(l10n.save),
                             ),
                           ],
                         ),
@@ -434,13 +410,53 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 24.0,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            if (_fortuneComment.trim().isNotEmpty) {
+                              _showFortuneRevealDialog(_fortuneComment.trim());
+                              return;
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  isKo
+                                      ? '먼저 저장하면 오늘의 재미 운세를 확인할 수 있어요.'
+                                      : 'Save first to view your fun fortune for today.',
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.auto_awesome, size: 16),
+                          label: Text(isKo ? '재미운세' : 'Fortune'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    WatchCartCard(
+                      child: _buildEmphasizedField(
+                        controller: _drillsController,
+                        minLines: 3,
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          labelText: isKo ? '훈련 방법' : 'Training Method',
+                          hintText: isKo
+                              ? '예) 1:1 압박 회피 패턴, 3인 드릴 순환 규칙, 코칭 포인트'
+                              : 'e.g. 1v1 pressure escape pattern, 3-player drill cycle, coaching points',
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -796,43 +812,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         ],
                       ),
                     ),
-                    if (_fortuneComment.trim().isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      WatchCartCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '오늘의 재미 운세'
-                                        : 'Today\'s Fun Fortune',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w800),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(_fortuneComment),
-                          ],
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 20),
-                    if (!isEdit)
-                      WatchDetailFooter(
-                        primaryLabel: l10n.save,
-                        onPrimary: _save,
-                      )
-                    else
+                    if (isEdit)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -905,11 +886,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final showMic =
         controller == _notesController ||
         controller == _feedbackController ||
-        controller == _goalController;
+        controller == _goalController ||
+        controller == _drillsController;
     final isListeningFor = _isListening && _listeningController == controller;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-
-    return TextFormField(
+    final voiceHelper = isKo
+        ? '음성 입력 버튼으로 말하면 텍스트로 자동 입력됩니다.'
+        : 'Use the voice input button to dictate this field.';
+    final field = TextFormField(
       controller: controller,
       minLines: minLines,
       maxLines: maxLines,
@@ -956,20 +940,29 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             ? (isKo
                   ? '마이크가 활성화됐어요. 이어서 말하면 텍스트에 계속 추가됩니다.'
                   : 'Microphone is active. Speak now to keep appending text.')
-            : decoration.helperText,
+            : (showMic && enabled ? voiceHelper : decoration.helperText),
         helperMaxLines: 2,
-        suffixIcon: showMic
-            ? IconButton(
-                onPressed: () => _toggleListening(controller, l10n),
-                icon: Icon(
-                  isListeningFor ? Icons.mic : Icons.mic_none,
-                  color: isListeningFor
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.onSurfaceVariant,
-                ),
-              )
-            : decoration.suffixIcon,
       ),
+    );
+    if (!showMic || !enabled) return field;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        field,
+        const SizedBox(height: 6),
+        OutlinedButton.icon(
+          onPressed: () => _toggleListening(controller, l10n),
+          icon: Icon(
+            isListeningFor ? Icons.mic : Icons.keyboard_voice_outlined,
+            size: 18,
+          ),
+          label: Text(
+            isListeningFor
+                ? (isKo ? '음성 입력 중지' : 'Stop Voice')
+                : (isKo ? '음성 입력' : 'Voice Input'),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1153,7 +1146,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         notes: _notesController.text.trim(),
         location: _location,
         program: _type,
-        drills: '',
+        drills: _drillsController.text.trim(),
         club: '',
         injuryPart: injuryPart,
         painLevel: painLevel,
@@ -1691,5 +1684,3 @@ class _StatusOption {
 
   const _StatusOption(this.value, this.icon, this.label);
 }
-
-enum _EntryMenuAction { save, discard }
