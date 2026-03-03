@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../application/local_fortune_service.dart';
 import '../../application/local_rule_coaching_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/training_service.dart';
@@ -58,6 +59,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _liftCoreController = TextEditingController();
   final _speech = stt.SpeechToText();
   final _coachingService = LocalRuleCoachingService();
+  final _fortuneService = LocalFortuneService();
   TextEditingController? _listeningController;
   String _lastRecognizedWords = '';
   int _listeningSession = 0;
@@ -86,6 +88,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _rehab = false;
   bool _liftingEnabled = false;
   String _coachComment = '';
+  String _fortuneComment = '';
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -156,6 +159,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _goalController.text = entry.goal;
       _feedbackController.text = entry.feedback;
       _coachComment = entry.coachComment;
+      _fortuneComment = entry.fortuneComment;
       _imagePaths
         ..clear()
         ..addAll(
@@ -191,6 +195,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _type = _defaultString('default_program', _programOptions, 'programs');
       _status = 'normal';
       _coachComment = '';
+      _fortuneComment = '';
       unawaited(_applyLatestEntryDefaults());
     }
   }
@@ -807,6 +812,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         ),
                       ),
                     ],
+                    if (_fortuneComment.trim().isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      WatchCartCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? '오늘의 운세'
+                                  : 'Today\'s Fortune',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(_fortuneComment),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     if (!isEdit)
                       WatchDetailFooter(
@@ -1125,7 +1152,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         history: allEntries,
         isKo: isKo,
       );
+      final fortuneComment = _fortuneService.generate(
+        entry: draftEntry,
+        profile: profile,
+        history: allEntries,
+        isKo: isKo,
+      );
       _coachComment = coachComment;
+      _fortuneComment = fortuneComment;
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -1151,6 +1185,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         status: draftEntry.status,
         liftingByPart: draftEntry.liftingByPart,
         coachComment: coachComment,
+        fortuneComment: fortuneComment,
       );
 
       if (widget.entry == null) {

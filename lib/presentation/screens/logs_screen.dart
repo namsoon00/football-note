@@ -878,6 +878,9 @@ String _buildListFocusText(TrainingEntry entry) {
   if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
   if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
   if (entry.coachComment.trim().isNotEmpty) return entry.coachComment.trim();
+  if (entry.fortuneComment.trim().isNotEmpty) {
+    return entry.fortuneComment.trim();
+  }
   if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
   return '';
 }
