@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -89,6 +90,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _liftingEnabled = false;
   String _coachComment = '';
   String _fortuneComment = '';
+  String _fortuneRecommendation = '';
+  String _fortuneRecommendedProgram = '';
+  bool _fortuneExpanded = false;
+  List<_FortuneHistoryItem> _fortuneHistory = const [];
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -135,6 +140,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         l10n.defaultInjury5,
       ],
     );
+    _fortuneHistory = _loadFortuneHistory();
 
     final entry = widget.entry;
     if (entry != null) {
@@ -160,6 +166,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _feedbackController.text = entry.feedback;
       _coachComment = entry.coachComment;
       _fortuneComment = entry.fortuneComment;
+      _fortuneRecommendation = entry.fortuneRecommendation;
+      _fortuneRecommendedProgram = entry.fortuneRecommendedProgram;
+      _fortuneExpanded = false;
       _imagePaths
         ..clear()
         ..addAll(
@@ -196,6 +205,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _status = 'normal';
       _coachComment = '';
       _fortuneComment = '';
+      _fortuneRecommendation = '';
+      _fortuneRecommendedProgram = '';
+      _fortuneExpanded = false;
       unawaited(_applyLatestEntryDefaults());
     }
   }
@@ -818,18 +830,92 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '오늘의 운세'
-                                  : 'Today\'s Fortune',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    Localizations.localeOf(context)
+                                                .languageCode ==
+                                            'ko'
+                                        ? '오늘의 운세'
+                                        : 'Today\'s Fortune',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: _openFortuneHistorySheet,
+                                  child: Text(
+                                    Localizations.localeOf(context)
+                                                .languageCode ==
+                                            'ko'
+                                        ? '이력'
+                                        : 'History',
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 8),
-                            Text(_fortuneComment),
+                            Text(
+                              _fortuneExpanded
+                                  ? _fortuneComment
+                                  : _fortuneComment.split('\n').take(3).join(
+                                        '\n',
+                                      ),
+                              maxLines: _fortuneExpanded ? null : 4,
+                              overflow: _fortuneExpanded
+                                  ? TextOverflow.visible
+                                  : TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    setState(
+                                      () =>
+                                          _fortuneExpanded = !_fortuneExpanded,
+                                    );
+                                  },
+                                  icon: Icon(
+                                    _fortuneExpanded
+                                        ? Icons.unfold_less
+                                        : Icons.unfold_more,
+                                  ),
+                                  label: Text(
+                                    Localizations.localeOf(context)
+                                                .languageCode ==
+                                            'ko'
+                                        ? (_fortuneExpanded ? '간단히' : '상세히')
+                                        : (_fortuneExpanded
+                                            ? 'Simple'
+                                            : 'Detailed'),
+                                  ),
+                                ),
+                                if (_fortuneRecommendation.trim().isNotEmpty)
+                                  OutlinedButton.icon(
+                                    onPressed: _applyFortuneRecommendation,
+                                    icon: const Icon(Icons.bolt_outlined),
+                                    label: Text(
+                                      Localizations.localeOf(context)
+                                                  .languageCode ==
+                                              'ko'
+                                          ? '추천 훈련 적용'
+                                          : 'Apply recommendation',
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            if (_fortuneRecommendation.trim().isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(_fortuneRecommendation),
+                            ],
                           ],
                         ),
                       ),
@@ -1152,14 +1238,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         history: allEntries,
         isKo: isKo,
       );
-      final fortuneComment = _fortuneService.generate(
+      final fortune = _fortuneService.generateResult(
         entry: draftEntry,
         profile: profile,
         history: allEntries,
         isKo: isKo,
       );
+      final fortuneComment = fortune.fortuneText;
       _coachComment = coachComment;
       _fortuneComment = fortuneComment;
+      _fortuneRecommendation = fortune.recommendationText;
+      _fortuneRecommendedProgram = fortune.recommendedProgram;
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -1186,6 +1275,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         liftingByPart: draftEntry.liftingByPart,
         coachComment: coachComment,
         fortuneComment: fortuneComment,
+        fortuneRecommendation: fortune.recommendationText,
+        fortuneRecommendedProgram: fortune.recommendedProgram,
       );
 
       if (widget.entry == null) {
@@ -1209,6 +1300,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         await widget.trainingService.update(editingKey, entry);
       }
       if (!mounted) return;
+      await _appendFortuneHistory(
+        comment: fortuneComment,
+        recommendation: fortune.recommendationText,
+        recommendedProgram: fortune.recommendedProgram,
+        date: entry.date,
+      );
+      if (!mounted) return;
       if (popAfterSave) {
         Navigator.of(context).pop();
       }
@@ -1219,6 +1317,111 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (mounted) setState(() {});
       }
     }
+  }
+
+  List<_FortuneHistoryItem> _loadFortuneHistory() {
+    final raw = widget.optionRepository.getValue<String>('fortune_history_v1');
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      final parsed = decoded
+          .whereType<Map>()
+          .map(
+            (e) => _FortuneHistoryItem.fromMap(
+              e.map(
+                (key, value) => MapEntry(key.toString(), value),
+              ),
+            ),
+          )
+          .whereType<_FortuneHistoryItem>()
+          .toList(growable: false);
+      return parsed;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> _appendFortuneHistory({
+    required String comment,
+    required String recommendation,
+    required String recommendedProgram,
+    required DateTime date,
+  }) async {
+    if (comment.trim().isEmpty) return;
+    final current = _loadFortuneHistory();
+    final next = [
+      _FortuneHistoryItem(
+        date: date,
+        comment: comment.trim(),
+        recommendation: recommendation.trim(),
+        recommendedProgram: recommendedProgram.trim(),
+      ),
+      ...current,
+    ];
+    final capped = next.take(7).toList(growable: false);
+    final encoded = jsonEncode(capped.map((e) => e.toMap()).toList());
+    await widget.optionRepository.setValue('fortune_history_v1', encoded);
+    if (!mounted) return;
+    setState(() => _fortuneHistory = capped);
+  }
+
+  void _applyFortuneRecommendation() {
+    final program = _fortuneRecommendedProgram.trim();
+    if (program.isEmpty) return;
+    setState(() => _type = program);
+    _scheduleAutoSave();
+  }
+
+  Future<void> _openFortuneHistorySheet() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final history = _fortuneHistory;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: history.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        isKo ? '아직 운세 이력이 없습니다.' : 'No fortune history yet.',
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: history.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, index) {
+                      final item = history[index];
+                      return ListTile(
+                        tileColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        title: Text(
+                          DateFormat('yyyy.MM.dd').format(item.date),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(
+                          '${item.comment}\n${item.recommendation}',
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        );
+      },
+    );
   }
 
   List<String> _loadOptions({
@@ -1587,3 +1790,36 @@ class _StatusOption {
 }
 
 enum _EntryMenuAction { save, discard }
+
+class _FortuneHistoryItem {
+  final DateTime date;
+  final String comment;
+  final String recommendation;
+  final String recommendedProgram;
+
+  const _FortuneHistoryItem({
+    required this.date,
+    required this.comment,
+    required this.recommendation,
+    required this.recommendedProgram,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'date': date.toIso8601String(),
+        'comment': comment,
+        'recommendation': recommendation,
+        'recommendedProgram': recommendedProgram,
+      };
+
+  static _FortuneHistoryItem? fromMap(Map<String, dynamic> map) {
+    final rawDate = map['date']?.toString();
+    final parsed = rawDate == null ? null : DateTime.tryParse(rawDate);
+    if (parsed == null) return null;
+    return _FortuneHistoryItem(
+      date: parsed,
+      comment: map['comment']?.toString() ?? '',
+      recommendation: map['recommendation']?.toString() ?? '',
+      recommendedProgram: map['recommendedProgram']?.toString() ?? '',
+    );
+  }
+}

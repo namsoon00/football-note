@@ -74,6 +74,12 @@ class TrainingEntry extends HiveObject {
   @HiveField(29)
   final String fortuneComment;
 
+  @HiveField(30)
+  final String fortuneRecommendation;
+
+  @HiveField(31)
+  final String fortuneRecommendedProgram;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -99,6 +105,8 @@ class TrainingEntry extends HiveObject {
     this.liftingByPart = const {},
     this.coachComment = '',
     this.fortuneComment = '',
+    this.fortuneRecommendation = '',
+    this.fortuneRecommendedProgram = '',
   });
 }
 
@@ -146,13 +154,15 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
           const {},
       coachComment: (fields[28] as String?) ?? '',
       fortuneComment: (fields[29] as String?) ?? '',
+      fortuneRecommendation: (fields[30] as String?) ?? '',
+      fortuneRecommendedProgram: (fields[31] as String?) ?? '',
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(24)
+      ..writeByte(26)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -200,6 +210,10 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(28)
       ..write(obj.coachComment)
       ..writeByte(29)
-      ..write(obj.fortuneComment);
+      ..write(obj.fortuneComment)
+      ..writeByte(30)
+      ..write(obj.fortuneRecommendation)
+      ..writeByte(31)
+      ..write(obj.fortuneRecommendedProgram);
   }
 }

@@ -614,6 +614,8 @@ class DriveBackupService implements BackupRepository {
         'liftingByPart': entry.liftingByPart,
         'coachComment': entry.coachComment,
         'fortuneComment': entry.fortuneComment,
+        'fortuneRecommendation': entry.fortuneRecommendation,
+        'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
       };
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
@@ -656,6 +658,9 @@ class DriveBackupService implements BackupRepository {
               const {},
       coachComment: map['coachComment'] as String? ?? '',
       fortuneComment: map['fortuneComment'] as String? ?? '',
+      fortuneRecommendation: map['fortuneRecommendation'] as String? ?? '',
+      fortuneRecommendedProgram:
+          map['fortuneRecommendedProgram'] as String? ?? '',
     );
   }
 }

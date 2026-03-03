@@ -3,8 +3,20 @@ import 'dart:math' as math;
 import '../domain/entities/player_profile.dart';
 import '../domain/entities/training_entry.dart';
 
+class LocalFortuneResult {
+  final String fortuneText;
+  final String recommendationText;
+  final String recommendedProgram;
+
+  const LocalFortuneResult({
+    required this.fortuneText,
+    required this.recommendationText,
+    required this.recommendedProgram,
+  });
+}
+
 class LocalFortuneService {
-  String generate({
+  LocalFortuneResult generateResult({
     required TrainingEntry entry,
     required PlayerProfile profile,
     required List<TrainingEntry> history,
@@ -79,26 +91,54 @@ class LocalFortuneService {
         ? '분석 근거: 날짜/요일/계절, 프로필(나이·구력·별자리), 최근 14일 추세, 훈련 부하(시간·강도·컨디션), 부상·통증, 목표·메모, 리프팅 분포.'
         : 'Signals used: date/weekday/season, profile (age/experience/zodiac), 14-day trend, load (time/intensity/condition), injury/pain, goal/notes, lifting distribution.';
 
-    if (isKo) {
-      return '오늘의 축구 운세\n'
-          '에너지 $energy · 집중 $focus · 팀워크 $teamwork · 회복 $recovery\n'
-          '행운 컬러: $color · 행운 시간: $time · 키워드: $keyword\n'
-          '$contextLine\n'
-          '$profileLine\n'
-          '$trainingLine\n'
-          '주의: $caution\n'
-          '추천 액션: $tip\n'
-          '$basisLine';
-    }
-    return 'Today\'s Soccer Fortune\n'
-        'Energy $energy · Focus $focus · Teamwork $teamwork · Recovery $recovery\n'
-        'Lucky color: $color · Lucky time: $time · Keyword: $keyword\n'
-        '$contextLine\n'
-        '$profileLine\n'
-        '$trainingLine\n'
-        'Caution: $caution\n'
-        'Suggested action: $tip\n'
-        '$basisLine';
+    final rec = _recommendProgram(
+      isKo: isKo,
+      entry: entry,
+      energy: energy,
+      focus: focus,
+      recovery: recovery,
+      trendScore: trendScore,
+    );
+
+    final fortuneText = isKo
+        ? '오늘의 축구 운세\n'
+            '에너지 $energy · 집중 $focus · 팀워크 $teamwork · 회복 $recovery\n'
+            '행운 컬러: $color · 행운 시간: $time · 키워드: $keyword\n'
+            '$contextLine\n'
+            '$profileLine\n'
+            '$trainingLine\n'
+            '주의: $caution\n'
+            '추천 액션: $tip\n'
+            '$basisLine'
+        : 'Today\'s Soccer Fortune\n'
+            'Energy $energy · Focus $focus · Teamwork $teamwork · Recovery $recovery\n'
+            'Lucky color: $color · Lucky time: $time · Keyword: $keyword\n'
+            '$contextLine\n'
+            '$profileLine\n'
+            '$trainingLine\n'
+            'Caution: $caution\n'
+            'Suggested action: $tip\n'
+            '$basisLine';
+
+    return LocalFortuneResult(
+      fortuneText: fortuneText,
+      recommendationText: rec.$2,
+      recommendedProgram: rec.$1,
+    );
+  }
+
+  String generate({
+    required TrainingEntry entry,
+    required PlayerProfile profile,
+    required List<TrainingEntry> history,
+    required bool isKo,
+  }) {
+    return generateResult(
+      entry: entry,
+      profile: profile,
+      history: history,
+      isKo: isKo,
+    ).fortuneText;
   }
 
   int _seed(
@@ -134,9 +174,8 @@ class LocalFortuneService {
   }
 
   int _streakDays(List<TrainingEntry> all, DateTime today) {
-    final daySet = all
-        .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
-        .toSet();
+    final daySet =
+        all.map((e) => DateTime(e.date.year, e.date.month, e.date.day)).toSet();
     var streak = 0;
     for (var i = 0; i < 30; i++) {
       final day = today.subtract(Duration(days: i));
@@ -206,6 +245,71 @@ class LocalFortuneService {
     ];
     return _pick(isKo ? variantsKo : variantsEn, seed);
   }
+
+  String _pick(List<String> values, int seed) {
+    if (values.isEmpty) return '';
+    return values[seed.abs() % values.length];
+  }
+
+  List<String> _luckyColors(bool isKo) => isKo
+      ? const ['민트', '하늘색', '화이트', '코발트', '라임', '오렌지']
+      : const ['Mint', 'Sky blue', 'White', 'Cobalt', 'Lime', 'Orange'];
+
+  List<String> _luckyTimes(bool isKo) => isKo
+      ? const [
+          '06:30-07:10',
+          '09:00-09:40',
+          '16:30-17:20',
+          '18:10-18:50',
+          '20:00-20:40'
+        ]
+      : const [
+          '06:30-07:10',
+          '09:00-09:40',
+          '16:30-17:20',
+          '18:10-18:50',
+          '20:00-20:40'
+        ];
+
+  List<String> _keywords(bool isKo) => isKo
+      ? const ['첫 터치', '시야', '밸런스', '타이밍', '연결', '침착함', '리듬']
+      : const [
+          'First touch',
+          'Vision',
+          'Balance',
+          'Timing',
+          'Link-up',
+          'Composure',
+          'Rhythm'
+        ];
+
+  List<String> _cautions(bool isKo) => isKo
+      ? const [
+          '초반 오버페이스를 피하고 워밍업을 충분히 하세요.',
+          '강도는 좋지만 무리한 방향 전환은 줄이세요.',
+          '후반 집중 저하 구간에서 실수가 늘 수 있어요.',
+          '동작 크기를 키우기보다 정확도를 먼저 지키세요.',
+        ]
+      : const [
+          'Avoid early overpacing and complete a full warm-up.',
+          'Load is good, but reduce aggressive direction changes.',
+          'Late-session focus dip may increase mistakes.',
+          'Prioritize precision before increasing movement size.',
+        ];
+
+  List<String> _tips(bool isKo) => isKo
+      ? const [
+          '첫 10분: 짧은 패스 성공률 목표를 정하고 시작하세요.',
+          '중반 20분: 2터치 이내 플레이 비율을 높여보세요.',
+          '마무리 10분: 오늘 성공 장면 3가지를 메모로 남기세요.',
+          '훈련 직후 수분/스트레칭 루틴을 바로 실행하세요.',
+        ]
+      : const [
+          'First 10 min: start with a short-pass accuracy target.',
+          'Middle 20 min: increase the share of 2-touch actions.',
+          'Last 10 min: log three successful moments today.',
+          'Run hydration/stretching routine immediately after training.',
+        ];
 
   String _zodiac(DateTime? birthDate, bool isKo) {
     if (birthDate == null) return isKo ? '미입력' : 'n/a';
@@ -282,68 +386,43 @@ class LocalFortuneService {
     return isKo ? '겨울: 워밍업 품질 최우선' : 'Winter: warm-up quality first';
   }
 
-  String _pick(List<String> values, int seed) {
-    if (values.isEmpty) return '';
-    return values[seed.abs() % values.length];
+  (String, String) _recommendProgram({
+    required bool isKo,
+    required TrainingEntry entry,
+    required int energy,
+    required int focus,
+    required int recovery,
+    required int trendScore,
+  }) {
+    if (entry.injury || (entry.painLevel ?? 0) >= 5 || recovery < 45) {
+      return (
+        isKo ? '회복' : 'Recovery',
+        isKo
+            ? '회복 세션을 추천해요: 40~50분, 저강도 볼터치 + 가동성 + 마무리 스트레칭.'
+            : 'Recommended recovery session: 40-50 min, low-intensity ball touch + mobility + cooldown stretch.',
+      );
+    }
+    if (energy >= 72 && focus >= 68 && trendScore >= 30) {
+      return (
+        isKo ? '전술' : 'Tactical',
+        isKo
+            ? '전술 세션을 추천해요: 패스 선택 속도와 위치 전환 패턴을 중심으로 60~75분.'
+            : 'Recommended tactical session: 60-75 min focused on pass decision speed and position transitions.',
+      );
+    }
+    if (focus < 55) {
+      return (
+        isKo ? '기본기' : 'Fundamentals',
+        isKo
+            ? '기본기 세션을 추천해요: 첫 터치와 짧은 패스 정확도 루틴을 45~60분.'
+            : 'Recommended fundamentals session: 45-60 min on first touch and short-pass accuracy routines.',
+      );
+    }
+    return (
+      isKo ? '피지컬' : 'Physical',
+      isKo
+          ? '피지컬 세션을 추천해요: 인터벌 이동 + 코어 안정 + 마무리 볼컨트롤 55~70분.'
+          : 'Recommended physical session: 55-70 min with interval movement + core stability + finishing ball control.',
+    );
   }
-
-  List<String> _luckyColors(bool isKo) => isKo
-      ? const ['민트', '하늘색', '화이트', '코발트', '라임', '오렌지']
-      : const ['Mint', 'Sky blue', 'White', 'Cobalt', 'Lime', 'Orange'];
-
-  List<String> _luckyTimes(bool isKo) => isKo
-      ? const [
-          '06:30-07:10',
-          '09:00-09:40',
-          '16:30-17:20',
-          '18:10-18:50',
-          '20:00-20:40'
-        ]
-      : const [
-          '06:30-07:10',
-          '09:00-09:40',
-          '16:30-17:20',
-          '18:10-18:50',
-          '20:00-20:40'
-        ];
-
-  List<String> _keywords(bool isKo) => isKo
-      ? const ['첫 터치', '시야', '밸런스', '타이밍', '연결', '침착함', '리듬']
-      : const [
-          'First touch',
-          'Vision',
-          'Balance',
-          'Timing',
-          'Link-up',
-          'Composure',
-          'Rhythm'
-        ];
-
-  List<String> _cautions(bool isKo) => isKo
-      ? const [
-          '초반 오버페이스를 피하고 워밍업을 충분히 하세요.',
-          '강도는 좋지만 무리한 방향 전환은 줄이세요.',
-          '후반 집중 저하 구간에서 실수가 늘 수 있어요.',
-          '동작 크기를 키우기보다 정확도를 먼저 지키세요.',
-        ]
-      : const [
-          'Avoid early overpacing and complete a full warm-up.',
-          'Load is good, but reduce aggressive direction changes.',
-          'Late-session focus dip may increase mistakes.',
-          'Prioritize precision before increasing movement size.',
-        ];
-
-  List<String> _tips(bool isKo) => isKo
-      ? const [
-          '첫 10분: 짧은 패스 성공률 목표를 정하고 시작하세요.',
-          '중반 20분: 2터치 이내 플레이 비율을 높여보세요.',
-          '마무리 10분: 오늘 성공 장면 3가지를 메모로 남기세요.',
-          '훈련 직후 수분/스트레칭 루틴을 바로 실행하세요.',
-        ]
-      : const [
-          'First 10 min: start with a short-pass accuracy target.',
-          'Middle 20 min: increase the share of 2-touch actions.',
-          'Last 10 min: log three successful moments today.',
-          'Run hydration/stretching routine immediately after training.',
-        ];
 }
