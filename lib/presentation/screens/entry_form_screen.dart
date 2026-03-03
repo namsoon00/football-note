@@ -56,7 +56,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _liftCoreController = TextEditingController();
   final _speech = stt.SpeechToText();
   TextEditingController? _listeningController;
-  String _listeningBaseText = '';
+  String _lastRecognizedWords = '';
+  int _listeningSession = 0;
   bool _isListening = false;
 
   List<String> _locationOptions = [];
@@ -78,6 +79,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _status = 'normal';
   bool _injury = false;
   bool _rehab = false;
+  bool _liftingEnabled = false;
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -144,6 +146,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
       _rehab = entry.rehab;
+      _liftingEnabled = entry.liftingByPart.values.any((value) => value > 0);
       _goalController.text = entry.goal;
       _feedbackController.text = entry.feedback;
       _imagePaths
@@ -262,8 +265,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor =
-                      selected ? statusColor : statusColor.withAlpha(170);
+                  final iconColor = selected
+                      ? statusColor
+                      : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -274,8 +278,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -674,6 +679,20 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? '리프팅 기록'
+                                  : 'Lifting Record',
+                            ),
+                            value: _liftingEnabled,
+                            onChanged: (value) {
+                              setState(() => _liftingEnabled = value);
+                              _scheduleAutoSave();
+                            },
+                          ),
                           Text(
                             '리프팅(부위별 횟수)',
                             style: Theme.of(context).textTheme.titleSmall,
@@ -684,6 +703,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               Expanded(
                                 child: _buildEmphasizedField(
                                   controller: _liftChestController,
+                                  enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
                                     labelText: '인프론트',
@@ -695,6 +715,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               Expanded(
                                 child: _buildEmphasizedField(
                                   controller: _liftBackController,
+                                  enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
                                     labelText: '인사이드',
@@ -710,6 +731,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               Expanded(
                                 child: _buildEmphasizedField(
                                   controller: _liftLegsController,
+                                  enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
                                     labelText: '아웃사이드',
@@ -721,6 +743,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               Expanded(
                                 child: _buildEmphasizedField(
                                   controller: _liftShouldersController,
+                                  enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
                                     labelText: '무릎',
@@ -736,6 +759,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               Expanded(
                                 child: _buildEmphasizedField(
                                   controller: _liftArmsController,
+                                  enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
                                     labelText: '머리',
@@ -747,6 +771,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               Expanded(
                                 child: _buildEmphasizedField(
                                   controller: _liftCoreController,
+                                  enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
                                     labelText: '가슴',
@@ -771,13 +796,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         child: Text(
                           _autoSaving
                               ? (Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '자동 저장 중...'
-                                  : 'Autosaving...')
+                                        'ko'
+                                    ? '자동 저장 중...'
+                                    : 'Autosaving...')
                               : (Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '수정 내용이 자동 저장됩니다.'
-                                  : 'Changes are saved automatically.'),
+                                        'ko'
+                                    ? '수정 내용이 자동 저장됩니다.'
+                                    : 'Changes are saved automatically.'),
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
@@ -804,7 +829,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final outline = theme.colorScheme.outline.withValues(alpha: 0.42);
-    final showMic = controller == _notesController ||
+    final disabledOutline = theme.colorScheme.outline.withValues(alpha: 0.26);
+    final disabledText = theme.colorScheme.onSurface.withValues(alpha: 0.45);
+    final fillColor = enabled
+        ? theme.colorScheme.surfaceContainerHighest
+        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
+    final showMic =
+        controller == _notesController ||
         controller == _feedbackController ||
         controller == _goalController;
     final isListeningFor = _isListening && _listeningController == controller;
@@ -817,9 +848,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       enabled: enabled,
       keyboardType:
           keyboardType ?? (maxLines == null ? TextInputType.multiline : null),
+      style: TextStyle(
+        color: enabled ? theme.colorScheme.onSurface : disabledText,
+      ),
       decoration: decoration.copyWith(
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        fillColor: fillColor,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 12,
@@ -832,14 +866,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: outline, width: 1.3),
         ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: disabledOutline, width: 1.2),
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.8),
         ),
+        labelStyle: TextStyle(
+          color: enabled
+              ? theme.colorScheme.onSurfaceVariant
+              : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.46),
+        ),
+        hintStyle: TextStyle(
+          color: enabled
+              ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8)
+              : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.44),
+        ),
         helperText: isListeningFor
             ? (isKo
-                ? '마이크가 활성화됐어요. 이어서 말하면 텍스트에 계속 추가됩니다.'
-                : 'Microphone is active. Speak now to keep appending text.')
+                  ? '마이크가 활성화됐어요. 이어서 말하면 텍스트에 계속 추가됩니다.'
+                  : 'Microphone is active. Speak now to keep appending text.')
             : decoration.helperText,
         helperMaxLines: 2,
         suffixIcon: showMic
@@ -862,13 +910,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     AppLocalizations l10n,
   ) async {
     if (_isListening) {
+      _listeningSession++;
       if (_listeningController == controller) {
         await _speech.stop();
         if (!mounted) return;
         setState(() {
           _isListening = false;
           _listeningController = null;
-          _listeningBaseText = '';
+          _lastRecognizedWords = '';
         });
         return;
       }
@@ -877,28 +926,31 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       setState(() {
         _isListening = false;
         _listeningController = null;
-        _listeningBaseText = '';
+        _lastRecognizedWords = '';
       });
     }
 
+    final listeningSession = ++_listeningSession;
     final available = await _speech.initialize(
       onStatus: (status) {
+        if (listeningSession != _listeningSession) return;
         if (status == 'done' || status == 'notListening') {
           if (mounted) {
             setState(() {
               _isListening = false;
               _listeningController = null;
-              _listeningBaseText = '';
+              _lastRecognizedWords = '';
             });
           }
         }
       },
       onError: (_) {
+        if (listeningSession != _listeningSession) return;
         if (mounted) {
           setState(() {
             _isListening = false;
             _listeningController = null;
-            _listeningBaseText = '';
+            _lastRecognizedWords = '';
           });
         }
       },
@@ -913,7 +965,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     setState(() {
       _isListening = true;
       _listeningController = controller;
-      _listeningBaseText = controller.text;
+      _lastRecognizedWords = '';
     });
     if (!mounted) return;
     final locale = Localizations.localeOf(context).toString();
@@ -921,19 +973,36 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     await _speech.listen(
       localeId: localeId,
       onResult: (result) {
+        if (listeningSession != _listeningSession) return;
         final recognized = result.recognizedWords.trim();
         if (recognized.isNotEmpty) {
-          final base = _listeningBaseText;
-          final separator =
-              base.isEmpty || base.trimRight().length != base.length ? '' : ' ';
-          final nextText = '$base$separator$recognized';
+          var appendChunk = recognized;
+          final lastRecognized = _lastRecognizedWords;
+          if (lastRecognized.isNotEmpty) {
+            if (recognized.startsWith(lastRecognized)) {
+              appendChunk = recognized.substring(lastRecognized.length).trim();
+            } else if (lastRecognized.startsWith(recognized)) {
+              appendChunk = '';
+            }
+          }
+          if (appendChunk.isEmpty) {
+            _lastRecognizedWords = recognized;
+            return;
+          }
+          final currentText = controller.text;
+          final needsSpacing =
+              currentText.isNotEmpty && !RegExp(r'\s$').hasMatch(currentText);
+          final separator = needsSpacing ? ' ' : '';
+          final nextText = '$currentText$separator$appendChunk';
           if (controller.text != nextText) {
             controller.value = controller.value.copyWith(
               text: nextText,
               selection: TextSelection.collapsed(offset: nextText.length),
               composing: TextRange.empty,
             );
+            _scheduleAutoSave();
           }
+          _lastRecognizedWords = recognized;
         }
       },
     );
@@ -979,14 +1048,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final painLevel = _injury ? _parseInt(_painController.text) : null;
       final durationMinutes = _durationMinutes;
       final profile = PlayerProfileService(widget.optionRepository).load();
-      final liftingByPart = <String, int>{
-        'infront': _parseLiftCount(_liftChestController.text),
-        'inside': _parseLiftCount(_liftBackController.text),
-        'outside': _parseLiftCount(_liftLegsController.text),
-        'muple': _parseLiftCount(_liftShouldersController.text),
-        'head': _parseLiftCount(_liftArmsController.text),
-        'chest': _parseLiftCount(_liftCoreController.text),
-      }..removeWhere((_, value) => value <= 0);
+      final liftingByPart = _liftingEnabled
+          ? (<String, int>{
+              'infront': _parseLiftCount(_liftChestController.text),
+              'inside': _parseLiftCount(_liftBackController.text),
+              'outside': _parseLiftCount(_liftLegsController.text),
+              'muple': _parseLiftCount(_liftShouldersController.text),
+              'head': _parseLiftCount(_liftArmsController.text),
+              'chest': _parseLiftCount(_liftCoreController.text),
+            }..removeWhere((_, value) => value <= 0))
+          : <String, int>{};
 
       final entry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),

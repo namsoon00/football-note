@@ -224,6 +224,11 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: widget.onCreate,
+        icon: const Icon(Icons.add),
+        label: Text(AppLocalizations.of(context)!.addEntry),
+      ),
     );
   }
 
@@ -603,7 +608,10 @@ class _LogsScreenState extends State<LogsScreen> {
       widget.optionRepository.setValue(_statusFilterKey, filters.status),
       widget.optionRepository.setValue(_locationFilterKey, filters.location),
       widget.optionRepository.setValue(_programFilterKey, filters.program),
-      widget.optionRepository.setValue(_injuryOnlyFilterKey, filters.injuryOnly),
+      widget.optionRepository.setValue(
+        _injuryOnlyFilterKey,
+        filters.injuryOnly,
+      ),
     ]);
   }
 
