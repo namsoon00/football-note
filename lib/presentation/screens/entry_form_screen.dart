@@ -59,6 +59,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _lastRecognizedWords = '';
   int _listeningSession = 0;
   bool _isListening = false;
+  bool _speechInitialized = false;
+  bool _speechAvailable = false;
 
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
@@ -265,9 +267,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -278,9 +279,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -312,7 +312,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
-    unawaited(_speech.stop());
+    unawaited(_speech.cancel());
     _notesController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
@@ -796,13 +796,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         child: Text(
                           _autoSaving
                               ? (Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '자동 저장 중...'
-                                    : 'Autosaving...')
+                                      'ko'
+                                  ? '자동 저장 중...'
+                                  : 'Autosaving...')
                               : (Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '수정 내용이 자동 저장됩니다.'
-                                    : 'Changes are saved automatically.'),
+                                      'ko'
+                                  ? '수정 내용이 자동 저장됩니다.'
+                                  : 'Changes are saved automatically.'),
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
@@ -834,8 +834,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _notesController ||
+    final showMic = controller == _notesController ||
         controller == _feedbackController ||
         controller == _goalController;
     final isListeningFor = _isListening && _listeningController == controller;
@@ -886,8 +885,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ),
         helperText: isListeningFor
             ? (isKo
-                  ? '마이크가 활성화됐어요. 이어서 말하면 텍스트에 계속 추가됩니다.'
-                  : 'Microphone is active. Speak now to keep appending text.')
+                ? '마이크가 활성화됐어요. 이어서 말하면 텍스트에 계속 추가됩니다.'
+                : 'Microphone is active. Speak now to keep appending text.')
             : decoration.helperText,
         helperMaxLines: 2,
         suffixIcon: showMic
@@ -912,7 +911,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (_isListening) {
       _listeningSession++;
       if (_listeningController == controller) {
-        await _speech.stop();
+        await _speech.cancel();
         if (!mounted) return;
         setState(() {
           _isListening = false;
@@ -921,7 +920,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         });
         return;
       }
-      await _speech.stop();
+      await _speech.cancel();
       if (!mounted) return;
       setState(() {
         _isListening = false;
@@ -930,31 +929,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       });
     }
 
-    final listeningSession = ++_listeningSession;
-    final available = await _speech.initialize(
-      onStatus: (status) {
-        if (listeningSession != _listeningSession) return;
-        if (status == 'done' || status == 'notListening') {
-          if (mounted) {
-            setState(() {
-              _isListening = false;
-              _listeningController = null;
-              _lastRecognizedWords = '';
-            });
-          }
-        }
-      },
-      onError: (_) {
-        if (listeningSession != _listeningSession) return;
-        if (mounted) {
-          setState(() {
-            _isListening = false;
-            _listeningController = null;
-            _lastRecognizedWords = '';
-          });
-        }
-      },
-    );
+    final available = await _ensureSpeechInitialized();
     if (!available) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -962,6 +937,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       ).showSnackBar(SnackBar(content: Text(l10n.voiceNotAvailable)));
       return;
     }
+    final listeningSession = ++_listeningSession;
     setState(() {
       _isListening = true;
       _listeningController = controller;
@@ -991,12 +967,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             return;
           }
           final currentText = controller.text;
-          final needsSpacing =
-              !isKoreanLocale &&
+          final needsSpacing = !isKoreanLocale &&
               currentText.isNotEmpty &&
               !RegExp(r'\s$').hasMatch(currentText);
           final separator = needsSpacing ? ' ' : '';
           final nextText = '$currentText$separator$appendChunk';
+          final normalizedNext = nextText.trimRight();
+          final normalizedCurrent = currentText.trimRight();
+          if (normalizedCurrent.isNotEmpty &&
+              normalizedCurrent == normalizedNext) {
+            _lastRecognizedWords = recognized;
+            return;
+          }
           if (controller.text != nextText) {
             controller.value = controller.value.copyWith(
               text: nextText,
@@ -1009,6 +991,33 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         }
       },
     );
+  }
+
+  Future<bool> _ensureSpeechInitialized() async {
+    if (_speechInitialized) return _speechAvailable;
+    _speechInitialized = true;
+    _speechAvailable = await _speech.initialize(
+      onStatus: (status) {
+        if (!_isListening) return;
+        if (status == 'done' || status == 'notListening') {
+          if (!mounted) return;
+          setState(() {
+            _isListening = false;
+            _listeningController = null;
+            _lastRecognizedWords = '';
+          });
+        }
+      },
+      onError: (_) {
+        if (!mounted) return;
+        setState(() {
+          _isListening = false;
+          _listeningController = null;
+          _lastRecognizedWords = '';
+        });
+      },
+    );
+    return _speechAvailable;
   }
 
   Future<void> _pickDate() async {
