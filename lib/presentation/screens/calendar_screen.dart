@@ -124,8 +124,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded =
-                  hasDaySchedule ? _calendarExpanded : true;
+              final isCalendarExpanded = hasDaySchedule
+                  ? _calendarExpanded
+                  : true;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -137,9 +138,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -292,22 +293,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                      final key = _normalizeDay(day);
-                                      return _CalendarStatusDayCell(
-                                        dayNumber: day.day,
-                                        status: _bestStatusForDay(
-                                          entryMap[key] ??
-                                              const <TrainingEntry>[],
-                                        ),
-                                        isSelected: true,
-                                        isToday: isSameDay(
-                                          day,
-                                          DateTime.now(),
-                                        ),
-                                        isHoliday:
-                                            isKo && holidayMap.containsKey(key),
-                                      );
-                                    },
+                                          final key = _normalizeDay(day);
+                                          return _CalendarStatusDayCell(
+                                            dayNumber: day.day,
+                                            status: _bestStatusForDay(
+                                              entryMap[key] ??
+                                                  const <TrainingEntry>[],
+                                            ),
+                                            isSelected: true,
+                                            isToday: isSameDay(
+                                              day,
+                                              DateTime.now(),
+                                            ),
+                                            isHoliday:
+                                                isKo &&
+                                                holidayMap.containsKey(key),
+                                          );
+                                        },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
@@ -332,9 +334,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.92)
                                           : Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withValues(alpha: 0.88),
+                                                .colorScheme
+                                                .primary
+                                                .withValues(alpha: 0.88),
                                       shape: BoxShape.circle,
                                     ),
                                     defaultTextStyle: TextStyle(
@@ -413,8 +415,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             Localizations.localeOf(context).languageCode == 'ko'
                                 ? (isCalendarExpanded ? '캘린더 접기' : '캘린더 펼치기')
                                 : (isCalendarExpanded
-                                    ? 'Collapse calendar'
-                                    : 'Expand calendar'),
+                                      ? 'Collapse calendar'
+                                      : 'Expand calendar'),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -658,9 +660,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         );
                         Navigator.of(context).pop(
                           _TrainingPlan(
-                            id: editingPlan?.id ??
-                                DateTime.now()
-                                    .microsecondsSinceEpoch
+                            id:
+                                editingPlan?.id ??
+                                DateTime.now().microsecondsSinceEpoch
                                     .toString(),
                             scheduledAt: scheduledAt,
                             category: category,
@@ -910,10 +912,10 @@ class _CalendarStatusDayCell extends StatelessWidget {
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-            ? Colors.red.shade400.withAlpha(170)
-            : (isToday
-                ? colorScheme.primary.withAlpha(150)
-                : Colors.transparent));
+              ? Colors.red.shade400.withAlpha(170)
+              : (isToday
+                    ? colorScheme.primary.withAlpha(150)
+                    : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -1200,8 +1202,9 @@ class _EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final locationText =
-        entry.location.trim().isNotEmpty ? entry.location.trim() : '-';
+    final locationText = entry.location.trim().isNotEmpty
+        ? entry.location.trim()
+        : '-';
     final durationText = _formatDurationText(
       entry.durationMinutes,
       isKo: isKo,
@@ -1242,7 +1245,6 @@ class _EntryTile extends StatelessWidget {
   String _entryFocusText(TrainingEntry entry) {
     if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
     if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
-    if (entry.coachComment.trim().isNotEmpty) return entry.coachComment.trim();
     if (entry.fortuneComment.trim().isNotEmpty) {
       return entry.fortuneComment.trim();
     }
@@ -1368,7 +1370,8 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',
