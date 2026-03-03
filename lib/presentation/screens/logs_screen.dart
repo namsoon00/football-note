@@ -207,16 +207,16 @@ class _LogsScreenState extends State<LogsScreen> {
                                   horizontal: 14,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .errorContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.errorContainer,
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Icon(
                                   Icons.delete_outline,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onErrorContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
                                 ),
                               ),
                               child: _EntryCard(
@@ -235,10 +235,35 @@ class _LogsScreenState extends State<LogsScreen> {
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final entry = entries[index];
-                          return _EntryListItem(
-                            entry: entry,
-                            onEdit: () => _onEntryTap(entry),
-                            onDelete: () => _confirmDelete(context, entry),
+                          return Dismissible(
+                            key: ValueKey(
+                              'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                            ),
+                            direction: DismissDirection.endToStart,
+                            confirmDismiss: (_) =>
+                                _confirmDelete(context, entry),
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                Icons.delete_outline,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                              ),
+                            ),
+                            child: _EntryListItem(
+                              entry: entry,
+                              onEdit: () => _onEntryTap(entry),
+                            ),
                           );
                         },
                       ),
@@ -750,13 +775,8 @@ class _EntryCard extends StatelessWidget {
 class _EntryListItem extends StatelessWidget {
   final TrainingEntry entry;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
-  const _EntryListItem({
-    required this.entry,
-    required this.onEdit,
-    required this.onDelete,
-  });
+  const _EntryListItem({required this.entry, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -769,6 +789,8 @@ class _EntryListItem extends StatelessWidget {
     final locationText = entry.location.trim().isEmpty
         ? '-'
         : entry.location.trim();
+    final focusText = _buildListFocusText(entry);
+    final focusTextColor = Theme.of(context).colorScheme.primary;
 
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -778,49 +800,25 @@ class _EntryListItem extends StatelessWidget {
         title: Text(
           '${entry.type.isEmpty ? l10n.program : entry.type} · $durationText · $locationText',
         ),
-        subtitle: Text(
-          [
-            '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
-            if (_buildListFocusText(entry).isNotEmpty)
-              _buildListFocusText(entry),
-          ].join('\n'),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: PopupMenuButton<String>(
-          tooltip: l10n.edit,
-          onSelected: (value) {
-            if (value == 'edit') {
-              onEdit();
-              return;
-            }
-            if (value == 'delete') {
-              onDelete();
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem<String>(
-              value: 'edit',
-              child: Row(
-                children: [
-                  const Icon(Icons.edit_outlined, size: 18),
-                  const SizedBox(width: 8),
-                  Text(l10n.edit),
-                ],
-              ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            PopupMenuItem<String>(
-              value: 'delete',
-              child: Row(
-                children: [
-                  const Icon(Icons.delete_outline, size: 18),
-                  const SizedBox(width: 8),
-                  Text(l10n.delete),
-                ],
+            if (focusText.isNotEmpty)
+              Text(
+                focusText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: focusTextColor),
               ),
-            ),
           ],
         ),
+        trailing: const Icon(Icons.chevron_right),
         onTap: onEdit,
       ),
     );
