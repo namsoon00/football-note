@@ -877,6 +877,7 @@ String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
 String _buildListFocusText(TrainingEntry entry) {
   if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
   if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
+  if (entry.coachComment.trim().isNotEmpty) return entry.coachComment.trim();
   if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
   return '';
 }

@@ -332,9 +332,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.92)
                                           : Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(alpha: 0.88),
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.88),
                                       shape: BoxShape.circle,
                                     ),
                                     defaultTextStyle: TextStyle(
@@ -1242,6 +1242,7 @@ class _EntryTile extends StatelessWidget {
   String _entryFocusText(TrainingEntry entry) {
     if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
     if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
+    if (entry.coachComment.trim().isNotEmpty) return entry.coachComment.trim();
     if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
     return '';
   }

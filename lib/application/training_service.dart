@@ -13,6 +13,8 @@ class TrainingService {
 
   Stream<List<TrainingEntry>> watchEntries() => _repository.watchAll();
 
+  Future<List<TrainingEntry>> allEntries() => _repository.getAll();
+
   Future<TrainingEntry?> latestEntry() async {
     final entries = await _repository.getAll();
     if (entries.isEmpty) return null;

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../application/local_rule_coaching_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/training_service.dart';
 import '../../application/player_profile_service.dart';
@@ -56,6 +57,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _liftArmsController = TextEditingController();
   final _liftCoreController = TextEditingController();
   final _speech = stt.SpeechToText();
+  final _coachingService = LocalRuleCoachingService();
   TextEditingController? _listeningController;
   String _lastRecognizedWords = '';
   int _listeningSession = 0;
@@ -83,6 +85,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _injury = false;
   bool _rehab = false;
   bool _liftingEnabled = false;
+  String _coachComment = '';
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -152,6 +155,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _liftingEnabled = entry.liftingByPart.values.any((value) => value > 0);
       _goalController.text = entry.goal;
       _feedbackController.text = entry.feedback;
+      _coachComment = entry.coachComment;
       _imagePaths
         ..clear()
         ..addAll(
@@ -186,6 +190,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _type = _defaultString('default_program', _programOptions, 'programs');
       _status = 'normal';
+      _coachComment = '';
       unawaited(_applyLatestEntryDefaults());
     }
   }
@@ -780,6 +785,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         ],
                       ),
                     ),
+                    if (_coachComment.trim().isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      WatchCartCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? 'AI 코칭'
+                                  : 'AI Coaching',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(_coachComment),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     if (!isEdit)
                       WatchDetailFooter(
@@ -1052,10 +1079,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
 
     try {
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
       final injuryPart = _injury ? _injuryPartController.text.trim() : '';
       final painLevel = _injury ? _parseInt(_painController.text) : null;
       final durationMinutes = _durationMinutes;
       final profile = PlayerProfileService(widget.optionRepository).load();
+      final allEntries = await widget.trainingService.allEntries();
       final liftingByPart = _liftingEnabled
           ? (<String, int>{
               'infront': _parseLiftCount(_liftChestController.text),
@@ -1067,7 +1096,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             }..removeWhere((_, value) => value <= 0))
           : <String, int>{};
 
-      final entry = TrainingEntry(
+      final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
         durationMinutes: durationMinutes,
         intensity: _intensity,
@@ -1090,6 +1119,38 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         imagePaths: _imagePaths,
         status: _status,
         liftingByPart: liftingByPart,
+      );
+      final coachComment = _coachingService.generate(
+        entry: draftEntry,
+        history: allEntries,
+        isKo: isKo,
+      );
+      _coachComment = coachComment;
+
+      final entry = TrainingEntry(
+        date: draftEntry.date,
+        durationMinutes: draftEntry.durationMinutes,
+        intensity: draftEntry.intensity,
+        type: draftEntry.type,
+        mood: draftEntry.mood,
+        injury: draftEntry.injury,
+        notes: draftEntry.notes,
+        location: draftEntry.location,
+        program: draftEntry.program,
+        drills: draftEntry.drills,
+        club: draftEntry.club,
+        injuryPart: draftEntry.injuryPart,
+        painLevel: draftEntry.painLevel,
+        rehab: draftEntry.rehab,
+        goal: draftEntry.goal,
+        feedback: draftEntry.feedback,
+        heightCm: draftEntry.heightCm,
+        weightKg: draftEntry.weightKg,
+        imagePath: draftEntry.imagePath,
+        imagePaths: draftEntry.imagePaths,
+        status: draftEntry.status,
+        liftingByPart: draftEntry.liftingByPart,
+        coachComment: coachComment,
       );
 
       if (widget.entry == null) {

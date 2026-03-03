@@ -68,6 +68,9 @@ class TrainingEntry extends HiveObject {
   @HiveField(27)
   final Map<String, int> liftingByPart;
 
+  @HiveField(28)
+  final String coachComment;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -91,6 +94,7 @@ class TrainingEntry extends HiveObject {
     this.imagePaths = const [],
     this.status = 'normal',
     this.liftingByPart = const {},
+    this.coachComment = '',
   });
 }
 
@@ -136,13 +140,14 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
                 (value is num) ? value.toInt() : 0,
               )) ??
           const {},
+      coachComment: (fields[28] as String?) ?? '',
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(22)
+      ..writeByte(23)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -186,6 +191,8 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(26)
       ..write(obj.status)
       ..writeByte(27)
-      ..write(obj.liftingByPart);
+      ..write(obj.liftingByPart)
+      ..writeByte(28)
+      ..write(obj.coachComment);
   }
 }
