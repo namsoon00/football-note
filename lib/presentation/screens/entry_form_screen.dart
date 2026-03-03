@@ -56,6 +56,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _liftCoreController = TextEditingController();
   final _speech = stt.SpeechToText();
   TextEditingController? _listeningController;
+  String _listeningBaseText = '';
   bool _isListening = false;
 
   List<String> _locationOptions = [];
@@ -155,8 +156,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _liftChestController.text = _liftingText(entry.liftingByPart, 'infront');
       _liftBackController.text = _liftingText(entry.liftingByPart, 'inside');
       _liftLegsController.text = _liftingText(entry.liftingByPart, 'outside');
-      _liftShouldersController.text =
-          _liftingText(entry.liftingByPart, 'muple');
+      _liftShouldersController.text = _liftingText(
+        entry.liftingByPart,
+        'muple',
+      );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
     } else {
@@ -164,8 +167,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         final d = widget.initialDate!;
         _date = DateTime(d.year, d.month, d.day);
       }
-      _durationMinutes =
-          _defaultInt('default_duration', _durationOptions.first);
+      _durationMinutes = _defaultInt(
+        'default_duration',
+        _durationOptions.first,
+      );
       _intensity = _defaultInt('default_intensity', 3);
       _mood = _defaultInt('default_condition', 3);
       _location = _defaultString(
@@ -173,11 +178,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _locationOptions,
         'locations',
       );
-      _type = _defaultString(
-        'default_program',
-        _programOptions,
-        'programs',
-      );
+      _type = _defaultString('default_program', _programOptions, 'programs');
       _status = 'normal';
       unawaited(_applyLatestEntryDefaults());
     }
@@ -188,9 +189,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (!mounted || latest == null || widget.entry != null) return;
     setState(() {
       _durationMinutes = _initIntSelection(
-          'durations', _durationOptions, latest.durationMinutes);
-      _location =
-          _initSelection('locations', _locationOptions, latest.location);
+        'durations',
+        _durationOptions,
+        latest.durationMinutes,
+      );
+      _location = _initSelection(
+        'locations',
+        _locationOptions,
+        latest.location,
+      );
     });
   }
 
@@ -219,14 +226,26 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
     final options = [
       _StatusOption(
-          'great', trainingStatusVisual('great').icon, l10n.statusGreat),
+        'great',
+        trainingStatusVisual('great').icon,
+        l10n.statusGreat,
+      ),
       _StatusOption('good', trainingStatusVisual('good').icon, l10n.statusGood),
       _StatusOption(
-          'normal', trainingStatusVisual('normal').icon, l10n.statusNormal),
+        'normal',
+        trainingStatusVisual('normal').icon,
+        l10n.statusNormal,
+      ),
       _StatusOption(
-          'tough', trainingStatusVisual('tough').icon, l10n.statusTough),
-      _StatusOption('recovery', trainingStatusVisual('recovery').icon,
-          l10n.statusRecovery),
+        'tough',
+        trainingStatusVisual('tough').icon,
+        l10n.statusTough,
+      ),
+      _StatusOption(
+        'recovery',
+        trainingStatusVisual('recovery').icon,
+        l10n.statusRecovery,
+      ),
     ];
 
     return Column(
@@ -288,6 +307,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
+    unawaited(_speech.stop());
     _notesController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
@@ -322,13 +342,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
-                    color: theme.scaffoldBackgroundColor,
-                  ),
+                  child: Container(color: theme.scaffoldBackgroundColor),
                 ),
-                Expanded(
-                  child: Container(color: heroAccent),
-                ),
+                Expanded(child: Container(color: heroAccent)),
               ],
             ),
           ),
@@ -420,15 +436,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outline
-                                      .withAlpha(140),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withAlpha(140),
                                 ),
                               ),
                               child: Row(
@@ -448,9 +463,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                           l10n.trainingDate,
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurface,
                                           ),
                                         ),
                                         const SizedBox(height: 6),
@@ -625,7 +640,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               onUpdated: (list) =>
                                   setState(() => _injuryPartOptions = list),
                               onSelected: (value) => setState(
-                                  () => _injuryPartController.text = value),
+                                () => _injuryPartController.text = value,
+                              ),
                             ),
                             enabled: _injury,
                           ),
@@ -792,6 +808,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         controller == _feedbackController ||
         controller == _goalController;
     final isListeningFor = _isListening && _listeningController == controller;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
 
     return TextFormField(
       controller: controller,
@@ -803,8 +820,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       decoration: decoration.copyWith(
         filled: true,
         fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: outline, width: 1.3),
@@ -817,6 +836,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.8),
         ),
+        helperText: isListeningFor
+            ? (isKo
+                ? '마이크가 활성화됐어요. 이어서 말하면 텍스트에 계속 추가됩니다.'
+                : 'Microphone is active. Speak now to keep appending text.')
+            : decoration.helperText,
+        helperMaxLines: 2,
         suffixIcon: showMic
             ? IconButton(
                 onPressed: () => _toggleListening(controller, l10n),
@@ -843,6 +868,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         setState(() {
           _isListening = false;
           _listeningController = null;
+          _listeningBaseText = '';
         });
         return;
       }
@@ -851,6 +877,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       setState(() {
         _isListening = false;
         _listeningController = null;
+        _listeningBaseText = '';
       });
     }
 
@@ -861,6 +888,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             setState(() {
               _isListening = false;
               _listeningController = null;
+              _listeningBaseText = '';
             });
           }
         }
@@ -870,20 +898,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           setState(() {
             _isListening = false;
             _listeningController = null;
+            _listeningBaseText = '';
           });
         }
       },
     );
     if (!available) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.voiceNotAvailable)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.voiceNotAvailable)));
       return;
     }
     setState(() {
       _isListening = true;
       _listeningController = controller;
+      _listeningBaseText = controller.text;
     });
     if (!mounted) return;
     final locale = Localizations.localeOf(context).toString();
@@ -891,11 +921,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     await _speech.listen(
       localeId: localeId,
       onResult: (result) {
-        final text = result.recognizedWords.trim();
-        if (text.isNotEmpty) {
-          controller.text = text;
-          controller.selection =
-              TextSelection.collapsed(offset: controller.text.length);
+        final recognized = result.recognizedWords.trim();
+        if (recognized.isNotEmpty) {
+          final base = _listeningBaseText;
+          final separator =
+              base.isEmpty || base.trimRight().length != base.length ? '' : ' ';
+          final nextText = '$base$separator$recognized';
+          if (controller.text != nextText) {
+            controller.value = controller.value.copyWith(
+              text: nextText,
+              selection: TextSelection.collapsed(offset: nextText.length),
+              composing: TextRange.empty,
+            );
+          }
         }
       },
     );
@@ -924,10 +962,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     });
   }
 
-  Future<void> _save({
-    bool popAfterSave = true,
-    bool silent = false,
-  }) async {
+  Future<void> _save({bool popAfterSave = true, bool silent = false}) async {
     if (_saveInProgress) return;
     if (_autoSaving) return;
     if (!(_formKey.currentState?.validate() ?? false)) {
@@ -1050,35 +1085,31 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 Icons.expand_more,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.42),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.42),
               ),
               selectedTrailingIcon: Icon(
                 Icons.expand_less,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.42),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.42),
               ),
               textStyle: TextStyle(
                 fontSize: 14,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.42),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.42),
               ),
               inputDecorationTheme: _dropdownDecoration(enabled: enabled),
               dropdownMenuEntries: options
-                  .map((option) => DropdownMenuEntry(
-                        value: option,
-                        label: option,
-                      ))
+                  .map(
+                    (option) => DropdownMenuEntry(value: option, label: option),
+                  )
                   .toList(),
               onSelected: (value) {
                 if (value != null && enabled) {
@@ -1125,35 +1156,34 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 Icons.expand_more,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.42),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.42),
               ),
               selectedTrailingIcon: Icon(
                 Icons.expand_less,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.42),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.42),
               ),
               textStyle: TextStyle(
                 fontSize: 14,
                 color: enabled
                     ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.42),
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.42),
               ),
               inputDecorationTheme: _dropdownDecoration(enabled: enabled),
               dropdownMenuEntries: options
-                  .map((option) => DropdownMenuEntry(
-                        value: option,
-                        label: optionLabel(option),
-                      ))
+                  .map(
+                    (option) => DropdownMenuEntry(
+                      value: option,
+                      label: optionLabel(option),
+                    ),
+                  )
                   .toList(),
               onSelected: (value) {
                 if (value != null && enabled) {
@@ -1180,15 +1210,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   InputDecorationTheme _dropdownDecoration({bool enabled = true}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final disabledBorderColor =
-        Theme.of(context).colorScheme.outline.withValues(alpha: 0.32);
-    final normalBorderColor =
-        Theme.of(context).colorScheme.outline.withValues(alpha: 0.45);
+    final disabledBorderColor = Theme.of(
+      context,
+    ).colorScheme.outline.withValues(alpha: 0.32);
+    final normalBorderColor = Theme.of(
+      context,
+    ).colorScheme.outline.withValues(alpha: 0.45);
     final fillColor = isDark
         ? const Color(0xFF242D3D)
         : (enabled ? const Color(0xFFF7F8FC) : const Color(0xFFE8EDF6));
-    final disabledTextColor =
-        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.42);
+    final disabledTextColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.42);
     return InputDecorationTheme(
       isDense: true,
       filled: true,
@@ -1215,10 +1248,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-          color: disabledBorderColor,
-          width: 1.2,
-        ),
+        borderSide: BorderSide(color: disabledBorderColor, width: 1.2),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
