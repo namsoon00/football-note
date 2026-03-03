@@ -112,6 +112,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
+              final isDark = Theme.of(context).brightness == Brightness.dark;
               final entries = snapshot.data ?? [];
               final entryMap = _groupByDay(entries);
               final planMap = _groupPlansByDay(_plans);
@@ -326,6 +327,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   ),
                                   calendarStyle: CalendarStyle(
                                     outsideDaysVisible: false,
+                                    markerSize: 6,
+                                    markerDecoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.92)
+                                          : Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                                .withValues(alpha: 0.88),
+                                      shape: BoxShape.circle,
+                                    ),
                                     defaultTextStyle: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
