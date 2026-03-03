@@ -1180,19 +1180,31 @@ class _EntryTile extends StatelessWidget {
       isKo: isKo,
       fallback: l10n.durationNotSet,
     );
+    final focusText = _entryFocusText(entry);
+    final focusTextColor = Theme.of(context).colorScheme.primary;
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         leading: _StatusIcon(status: entry.status),
         title: Text('${entry.type} · $durationText · $locationText'),
-        subtitle: Text(
-          [
-            '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
-            if (_entryFocusText(entry).isNotEmpty) _entryFocusText(entry),
-          ].join('\n'),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (focusText.isNotEmpty)
+              Text(
+                focusText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: focusTextColor),
+              ),
+          ],
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
