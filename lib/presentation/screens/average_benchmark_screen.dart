@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../application/benchmark_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../widgets/app_background.dart';
-import '../widgets/watch_cart/watch_cart_card.dart';
 
 class AverageBenchmarkScreen extends StatelessWidget {
   final List<TrainingEntry> entries;
@@ -46,9 +45,8 @@ class AverageBenchmarkScreen extends StatelessWidget {
           sum +
           e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
     );
-    final avgLiftPerSession = entries.isEmpty
-        ? 0.0
-        : totalLifts.toDouble() / entries.length;
+    final avgLiftPerSession =
+        entries.isEmpty ? 0.0 : totalLifts.toDouble() / entries.length;
 
     final now = DateTime.now();
     final recent = entries
@@ -71,90 +69,78 @@ class AverageBenchmarkScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
                 children: [
-                  WatchCartCard(
-                    child: _ComparisonSection(
-                      isKo: isKo,
-                      items: [
-                        _ComparisonItem(
-                          label: isKo ? '키' : 'Height',
-                          current: latestHeight == null
-                              ? (isKo ? '미입력' : 'Not set')
-                              : '${latestHeight.toStringAsFixed(1)}cm',
-                          average:
-                              '${bodyAvg.heightCmAvg.toStringAsFixed(1)}cm',
-                          gap: latestHeight == null
-                              ? (isKo ? '비교 불가' : 'N/A')
-                              : _gapText(
-                                  latestHeight - bodyAvg.heightCmAvg,
-                                  isKo,
-                                ),
-                          isPositive:
-                              latestHeight != null &&
-                              latestHeight - bodyAvg.heightCmAvg >= 0,
+                  _ComparisonSection(
+                    isKo: isKo,
+                    items: [
+                      _ComparisonItem(
+                        label: isKo ? '키' : 'Height',
+                        current: latestHeight == null
+                            ? (isKo ? '미입력' : 'Not set')
+                            : '${latestHeight.toStringAsFixed(1)}cm',
+                        average: '${bodyAvg.heightCmAvg.toStringAsFixed(1)}cm',
+                        gap: latestHeight == null
+                            ? (isKo ? '비교 불가' : 'N/A')
+                            : _gapText(
+                                latestHeight - bodyAvg.heightCmAvg,
+                                isKo,
+                              ),
+                        isPositive: latestHeight != null &&
+                            latestHeight - bodyAvg.heightCmAvg >= 0,
+                      ),
+                      _ComparisonItem(
+                        label: isKo ? '몸무게' : 'Weight',
+                        current: latestWeight == null
+                            ? (isKo ? '미입력' : 'Not set')
+                            : '${latestWeight.toStringAsFixed(1)}kg',
+                        average: '${bodyAvg.weightKgAvg.toStringAsFixed(1)}kg',
+                        gap: latestWeight == null
+                            ? (isKo ? '비교 불가' : 'N/A')
+                            : _gapText(
+                                latestWeight - bodyAvg.weightKgAvg,
+                                isKo,
+                              ),
+                        isPositive: latestWeight != null &&
+                            latestWeight - bodyAvg.weightKgAvg >= 0,
+                      ),
+                      _ComparisonItem(
+                        label: isKo ? '리프팅/세션' : 'Lifting/Session',
+                        current: isKo
+                            ? '${avgLiftPerSession.toStringAsFixed(1)}회'
+                            : '${avgLiftPerSession.toStringAsFixed(1)} reps',
+                        average: isKo
+                            ? '${bodyAvg.liftsPerSessionAvg}회'
+                            : '${bodyAvg.liftsPerSessionAvg} reps',
+                        gap: _gapText(
+                          avgLiftPerSession - bodyAvg.liftsPerSessionAvg,
+                          isKo,
                         ),
-                        _ComparisonItem(
-                          label: isKo ? '몸무게' : 'Weight',
-                          current: latestWeight == null
-                              ? (isKo ? '미입력' : 'Not set')
-                              : '${latestWeight.toStringAsFixed(1)}kg',
-                          average:
-                              '${bodyAvg.weightKgAvg.toStringAsFixed(1)}kg',
-                          gap: latestWeight == null
-                              ? (isKo ? '비교 불가' : 'N/A')
-                              : _gapText(
-                                  latestWeight - bodyAvg.weightKgAvg,
-                                  isKo,
-                                ),
-                          isPositive:
-                              latestWeight != null &&
-                              latestWeight - bodyAvg.weightKgAvg >= 0,
+                        isPositive:
+                            avgLiftPerSession - bodyAvg.liftsPerSessionAvg >= 0,
+                      ),
+                      _ComparisonItem(
+                        label: isKo ? '훈련량(최근 4주 평균)' : 'Training (4-week avg)',
+                        current: isKo
+                            ? '${avgWeeklyMinutes.toStringAsFixed(0)}분/주'
+                            : '${avgWeeklyMinutes.toStringAsFixed(0)} min/week',
+                        average: isKo
+                            ? '${trainingAvg.weeklyMinutesTarget}분/주'
+                            : '${trainingAvg.weeklyMinutesTarget} min/week',
+                        gap: _gapText(
+                          avgWeeklyMinutes - trainingAvg.weeklyMinutesTarget,
+                          isKo,
                         ),
-                        _ComparisonItem(
-                          label: isKo ? '리프팅/세션' : 'Lifting/Session',
-                          current: isKo
-                              ? '${avgLiftPerSession.toStringAsFixed(1)}회'
-                              : '${avgLiftPerSession.toStringAsFixed(1)} reps',
-                          average: isKo
-                              ? '${bodyAvg.liftsPerSessionAvg}회'
-                              : '${bodyAvg.liftsPerSessionAvg} reps',
-                          gap: _gapText(
-                            avgLiftPerSession - bodyAvg.liftsPerSessionAvg,
-                            isKo,
-                          ),
-                          isPositive:
-                              avgLiftPerSession - bodyAvg.liftsPerSessionAvg >=
-                              0,
-                        ),
-                        _ComparisonItem(
-                          label: isKo
-                              ? '훈련량(최근 4주 평균)'
-                              : 'Training (4-week avg)',
-                          current: isKo
-                              ? '${avgWeeklyMinutes.toStringAsFixed(0)}분/주'
-                              : '${avgWeeklyMinutes.toStringAsFixed(0)} min/week',
-                          average: isKo
-                              ? '${trainingAvg.weeklyMinutesTarget}분/주'
-                              : '${trainingAvg.weeklyMinutesTarget} min/week',
-                          gap: _gapText(
-                            avgWeeklyMinutes - trainingAvg.weeklyMinutesTarget,
-                            isKo,
-                          ),
-                          isPositive:
-                              avgWeeklyMinutes -
-                                  trainingAvg.weeklyMinutesTarget >=
-                              0,
-                        ),
-                      ],
-                    ),
+                        isPositive: avgWeeklyMinutes -
+                                trainingAvg.weeklyMinutesTarget >=
+                            0,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
-                  WatchCartCard(
-                    child: _SourceSection(
-                      title: isKo ? '기준 출처' : 'References',
-                      sources: sources,
-                      syncedAt: syncedAt,
-                      isKo: isKo,
-                    ),
+                  _SourceSection(
+                    title: isKo ? '기준 출처' : 'References',
+                    sources: sources,
+                    syncedAt: syncedAt,
+                    isKo: isKo,
                   ),
                 ],
               ),
@@ -267,39 +253,38 @@ class _ComparisonRow extends StatelessWidget {
     final gapColor = item.isPositive
         ? const Color(0xFF3DDC84)
         : Theme.of(context).colorScheme.error;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                item.label,
+                style: Theme.of(context).textTheme.labelLarge,
               ),
-              Text(
-                item.gap,
-                style: TextStyle(fontWeight: FontWeight.w700, color: gapColor),
+            ),
+            Text(
+              item.gap,
+              style: TextStyle(fontWeight: FontWeight.w700, color: gapColor),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(child: Text('${isKo ? '현재' : 'Now'}: ${item.current}')),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                '${isKo ? '평균' : 'Avg'}: ${item.average}',
+                textAlign: TextAlign.right,
               ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('${isKo ? '현재' : 'Now'}: ${item.current}'),
-              Text('${isKo ? '평균' : 'Avg'}: ${item.average}'),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -312,26 +297,19 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-            ),
+    return Row(
+      children: [
+        Icon(icon, size: 18),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
