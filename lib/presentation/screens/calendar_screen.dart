@@ -122,8 +122,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded =
-                  hasDaySchedule ? _calendarExpanded : true;
+              final isCalendarExpanded = hasDaySchedule
+                  ? _calendarExpanded
+                  : true;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -441,6 +442,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
       ),
+      floatingActionButton: widget.onCreate == null
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: widget.onCreate,
+              icon: const Icon(Icons.add),
+              label: Text(AppLocalizations.of(context)!.addEntry),
+            ),
     );
   }
 
