@@ -969,6 +969,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     });
     if (!mounted) return;
     final locale = Localizations.localeOf(context).toString();
+    final isKoreanLocale = locale.startsWith('ko');
     final localeId = locale.startsWith('ko') ? 'ko_KR' : null;
     await _speech.listen(
       localeId: localeId,
@@ -991,7 +992,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           }
           final currentText = controller.text;
           final needsSpacing =
-              currentText.isNotEmpty && !RegExp(r'\s$').hasMatch(currentText);
+              !isKoreanLocale &&
+              currentText.isNotEmpty &&
+              !RegExp(r'\s$').hasMatch(currentText);
           final separator = needsSpacing ? ' ' : '';
           final nextText = '$currentText$separator$appendChunk';
           if (controller.text != nextText) {
