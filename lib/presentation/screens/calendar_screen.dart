@@ -945,8 +945,8 @@ class _MiniStatusIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final meta = trainingStatusVisual(status);
     return SizedBox(
-      width: 16,
-      height: 16,
+      width: 22,
+      height: 22,
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -956,7 +956,7 @@ class _MiniStatusIcon extends StatelessWidget {
             colors: [meta.gradientStart, meta.gradientEnd],
           ),
         ),
-        child: Icon(meta.icon, size: 11, color: Colors.white),
+        child: Icon(meta.icon, size: 14, color: Colors.white),
       ),
     );
   }
