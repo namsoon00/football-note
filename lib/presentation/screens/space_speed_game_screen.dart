@@ -118,7 +118,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double _aimY = 0.36;
   bool _flightGuideLocked = false;
   double _flightGuideFromX = 0.60;
+  double _flightGuideFromY = 0.36;
   double _flightGuideToX = 0.60;
+  double _flightGuideToY = 0.36;
   double _predReceiverTime = 0;
   double _idealBallSpeed = _ballMinSpeed;
   double _effectiveBallSpeed = _ballMinSpeed;
@@ -252,7 +254,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final shotHint = _shotWindowHint(isKo);
-    final showPassGuide = !_ballFlying && _passPressed;
+    final showPassGuide = _passPressed || (_ballFlying && _flightGuideLocked);
+    final guideFromX =
+        (_ballFlying && _flightGuideLocked) ? _flightGuideFromX : _activePasserX;
+    final guideFromY =
+        (_ballFlying && _flightGuideLocked) ? _flightGuideFromY : _activePasserY;
+    final guideToX = (_ballFlying && _flightGuideLocked) ? _flightGuideToX : _aimX;
+    final guideToY = (_ballFlying && _flightGuideLocked) ? _flightGuideToY : _aimY;
 
     return Scaffold(
       drawer: AppDrawer(
@@ -594,18 +602,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 Positioned.fill(
                                   child: CustomPaint(
                                     painter: _GuidePainter(
-                                      fromX: _activePasserX,
-                                      fromY: _activePasserY,
-                                      toX: _aimX,
-                                      toY: _aimY,
+                                      fromX: guideFromX,
+                                      fromY: guideFromY,
+                                      toX: guideToX,
+                                      toY: guideToY,
                                       color: const Color(0xB34DD0E1),
                                     ),
                                   ),
                                 ),
                               if (showPassGuide)
                                 Positioned(
-                                  left: _aimX * width - 10,
-                                  top: _aimY * height - 10,
+                                  left: guideToX * width - 10,
+                                  top: guideToY * height - 10,
                                   child: Container(
                                     width: 20,
                                     height: 20,
@@ -1523,7 +1531,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballFlying = true;
       _phase = _PlayPhase.flying;
       _flightNearMissAwarded = false;
-      _lockFlightGuide(fromX: _activePasserX, toX: _targetX);
+      _lockFlightGuide(
+        fromX: _activePasserX,
+        fromY: _activePasserY,
+        toX: _targetX,
+        toY: _targetY,
+      );
       _applyImmediatePasserAdvance(
         passerIsA: passerIsA,
         passDirX: dirX,
@@ -1581,7 +1594,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballFlying = true;
     _phase = _PlayPhase.flying;
     _flightNearMissAwarded = false;
-    _lockFlightGuide(fromX: _activePasserX, toX: _targetX);
+    _lockFlightGuide(
+      fromX: _activePasserX,
+      fromY: _activePasserY,
+      toX: _targetX,
+      toY: _targetY,
+    );
     _applyImmediatePasserAdvance(
       passerIsA: passerIsA,
       passDirX: passDirX,
@@ -1616,10 +1634,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
-  void _lockFlightGuide({required double fromX, required double toX}) {
+  void _lockFlightGuide({
+    required double fromX,
+    required double fromY,
+    required double toX,
+    required double toY,
+  }) {
     _flightGuideLocked = true;
     _flightGuideFromX = fromX;
+    _flightGuideFromY = fromY;
     _flightGuideToX = toX;
+    _flightGuideToY = toY;
   }
 
   void _clearFlightGuide() {
