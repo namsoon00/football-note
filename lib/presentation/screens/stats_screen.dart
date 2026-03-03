@@ -198,28 +198,6 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                 ),
               ),
-              if (canShowAverage) ...[
-                const SizedBox(width: 10),
-                OutlinedButton.icon(
-                  onPressed: () => _openAverageBenchmark(
-                    context,
-                    filteredEntries,
-                    ageYears,
-                    soccerYears,
-                  ),
-                  icon: const Icon(Icons.analytics_outlined, size: 18),
-                  label: Text(isKo ? '평균 비교' : 'Averages'),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(1, 38),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 16),
@@ -305,6 +283,14 @@ class _StatsScreenState extends State<StatsScreen> {
                   isKo: isKo,
                   benchmarkService: _benchmarkService,
                   showAverage: canShowAverage,
+                  onReferenceTap: canShowAverage
+                      ? () => _openAverageBenchmark(
+                            context,
+                            filteredEntries,
+                            ageYears,
+                            soccerYears,
+                          )
+                      : null,
                 ),
                 const SizedBox(height: 18),
                 Divider(
@@ -796,6 +782,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
   final bool isKo;
   final BenchmarkService benchmarkService;
   final bool showAverage;
+  final VoidCallback? onReferenceTap;
 
   const _BodyAndLiftingBenchmarkCard({
     required this.entries,
@@ -804,6 +791,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
     required this.isKo,
     required this.benchmarkService,
     required this.showAverage,
+    required this.onReferenceTap,
   });
 
   @override
@@ -827,6 +815,22 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
         _SectionTitle(
           icon: Icons.balance,
           title: isKo ? '평균 비교' : 'Average Comparison',
+          trailing: onReferenceTap == null
+              ? null
+              : OutlinedButton.icon(
+                  onPressed: onReferenceTap,
+                  icon: const Icon(Icons.analytics_outlined, size: 16),
+                  label: Text(isKo ? '기준 출처' : 'References'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(1, 34),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(height: 12),
         if (!showAverage) ...[
@@ -1106,10 +1110,12 @@ class _PartBest {
 class _SectionTitle extends StatelessWidget {
   final IconData icon;
   final String title;
+  final Widget? trailing;
 
   const _SectionTitle({
     required this.icon,
     required this.title,
+    this.trailing,
   });
 
   @override
@@ -1137,6 +1143,10 @@ class _SectionTitle extends StatelessWidget {
                 ),
           ),
         ),
+        if (trailing != null) ...[
+          const SizedBox(width: 8),
+          trailing!,
+        ],
       ],
     );
   }
