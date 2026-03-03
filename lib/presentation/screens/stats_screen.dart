@@ -954,16 +954,17 @@ class _LiftingSummaryCard extends StatelessWidget {
     final sorted = bestByPart.entries.toList()
       ..sort((a, b) => b.value.count.compareTo(a.value.count));
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(
           icon: Icons.sports_soccer_outlined,
-          title: isKo ? '리프팅 부위 통계' : 'Lifting by Body Part',
+          title: l10n.liftingByBodyPartTitle,
         ),
         const SizedBox(height: 12),
         if (sorted.isEmpty)
-          Text(isKo ? '리프팅 기록이 없습니다.' : 'No lifting records.')
+          Text(l10n.liftingNoRecords)
         else
           ...sorted.map(
             (entry) => Padding(
@@ -972,7 +973,7 @@ class _LiftingSummaryCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      _partLabel(entry.key, isKo),
+                      _partLabel(entry.key, l10n),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -995,39 +996,39 @@ class _LiftingSummaryCard extends StatelessWidget {
     );
   }
 
-  String _partLabel(String key, bool isKo) {
+  String _partLabel(String key, AppLocalizations l10n) {
     switch (key) {
       case 'infront':
-        return isKo ? '인프론트' : 'Infront';
+        return l10n.liftingPartInfront;
       case 'inside':
-        return isKo ? '인사이드' : 'Inside';
+        return l10n.liftingPartInside;
       case 'outside':
-        return isKo ? '아웃사이드' : 'Outside';
+        return l10n.liftingPartOutside;
       case 'muple':
-        return isKo ? '무릎' : 'Knee';
+        return l10n.liftingPartMuple;
       case 'head':
-        return isKo ? '머리' : 'Head';
+        return l10n.liftingPartHead;
       case 'chest':
-        return isKo ? '가슴' : 'Chest';
+        return l10n.liftingPartChest;
       // Legacy keys from earlier lifting implementations.
       case 'left_foot':
-        return isKo ? '인프론트(기존)' : 'Infront (Legacy)';
+        return '${l10n.liftingPartInfront} (${l10n.legacyLabel})';
       case 'right_foot':
-        return isKo ? '인사이드(기존)' : 'Inside (Legacy)';
+        return '${l10n.liftingPartInside} (${l10n.legacyLabel})';
       case 'left_thigh':
-        return isKo ? '아웃사이드(기존)' : 'Outside (Legacy)';
+        return '${l10n.liftingPartOutside} (${l10n.legacyLabel})';
       case 'right_thigh':
-        return isKo ? '무릎(기존)' : 'Knee (Legacy)';
+        return '${l10n.liftingPartMuple} (${l10n.legacyLabel})';
       case 'back':
-        return isKo ? '인사이드(구버전)' : 'Inside (Old)';
+        return '${l10n.liftingPartInside} (${l10n.oldLabel})';
       case 'legs':
-        return isKo ? '아웃사이드(구버전)' : 'Outside (Old)';
+        return '${l10n.liftingPartOutside} (${l10n.oldLabel})';
       case 'shoulders':
-        return isKo ? '무릎(구버전)' : 'Knee (Old)';
+        return '${l10n.liftingPartMuple} (${l10n.oldLabel})';
       case 'arms':
-        return isKo ? '머리(기존)' : 'Head (Legacy)';
+        return '${l10n.liftingPartHead} (${l10n.legacyLabel})';
       case 'core':
-        return isKo ? '가슴(기존)' : 'Chest (Legacy)';
+        return '${l10n.liftingPartChest} (${l10n.legacyLabel})';
       default:
         return key;
     }

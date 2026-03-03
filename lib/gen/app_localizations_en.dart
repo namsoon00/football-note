@@ -458,6 +458,42 @@ class AppLocalizationsEn extends AppLocalizations {
       'Voice input is not available on this device.';
 
   @override
+  String get liftingRecord => 'Lifting Record';
+
+  @override
+  String get liftingByPart => 'Lifting (reps by part)';
+
+  @override
+  String get liftingPartInfront => 'Infront';
+
+  @override
+  String get liftingPartInside => 'Inside';
+
+  @override
+  String get liftingPartOutside => 'Outside';
+
+  @override
+  String get liftingPartMuple => 'Muple';
+
+  @override
+  String get liftingPartHead => 'Head';
+
+  @override
+  String get liftingPartChest => 'Chest';
+
+  @override
+  String get liftingByBodyPartTitle => 'Lifting by Body Part';
+
+  @override
+  String get liftingNoRecords => 'No lifting records.';
+
+  @override
+  String get legacyLabel => 'Legacy';
+
+  @override
+  String get oldLabel => 'Old';
+
+  @override
   String get confirm => 'Confirm';
 
   @override

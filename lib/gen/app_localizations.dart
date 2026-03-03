@@ -962,6 +962,78 @@ abstract class AppLocalizations {
   /// **'Voice input is not available on this device.'**
   String get voiceNotAvailable;
 
+  /// No description provided for @liftingRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting Record'**
+  String get liftingRecord;
+
+  /// No description provided for @liftingByPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting (reps by part)'**
+  String get liftingByPart;
+
+  /// No description provided for @liftingPartInfront.
+  ///
+  /// In en, this message translates to:
+  /// **'Infront'**
+  String get liftingPartInfront;
+
+  /// No description provided for @liftingPartInside.
+  ///
+  /// In en, this message translates to:
+  /// **'Inside'**
+  String get liftingPartInside;
+
+  /// No description provided for @liftingPartOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside'**
+  String get liftingPartOutside;
+
+  /// No description provided for @liftingPartMuple.
+  ///
+  /// In en, this message translates to:
+  /// **'Muple'**
+  String get liftingPartMuple;
+
+  /// No description provided for @liftingPartHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Head'**
+  String get liftingPartHead;
+
+  /// No description provided for @liftingPartChest.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest'**
+  String get liftingPartChest;
+
+  /// No description provided for @liftingByBodyPartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting by Body Part'**
+  String get liftingByBodyPartTitle;
+
+  /// No description provided for @liftingNoRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No lifting records.'**
+  String get liftingNoRecords;
+
+  /// No description provided for @legacyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy'**
+  String get legacyLabel;
+
+  /// No description provided for @oldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Old'**
+  String get oldLabel;
+
   /// No description provided for @confirm.
   ///
   /// In en, this message translates to:

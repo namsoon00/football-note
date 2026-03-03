@@ -453,6 +453,42 @@ class AppLocalizationsKo extends AppLocalizations {
   String get voiceNotAvailable => '이 기기에서는 음성 입력을 사용할 수 없어요.';
 
   @override
+  String get liftingRecord => '리프팅 기록';
+
+  @override
+  String get liftingByPart => '리프팅(부위별 횟수)';
+
+  @override
+  String get liftingPartInfront => '인프론트';
+
+  @override
+  String get liftingPartInside => '인사이드';
+
+  @override
+  String get liftingPartOutside => '아웃사이드';
+
+  @override
+  String get liftingPartMuple => '무플';
+
+  @override
+  String get liftingPartHead => '머리';
+
+  @override
+  String get liftingPartChest => '가슴';
+
+  @override
+  String get liftingByBodyPartTitle => '리프팅 부위 통계';
+
+  @override
+  String get liftingNoRecords => '리프팅 기록이 없습니다.';
+
+  @override
+  String get legacyLabel => '기존';
+
+  @override
+  String get oldLabel => '구버전';
+
+  @override
   String get confirm => '확인';
 
   @override

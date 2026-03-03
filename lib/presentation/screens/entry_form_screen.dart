@@ -682,12 +682,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         children: [
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: Text(
-                              Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '리프팅 기록'
-                                  : 'Lifting Record',
-                            ),
+                            title: Text(l10n.liftingRecord),
                             value: _liftingEnabled,
                             onChanged: (value) {
                               setState(() => _liftingEnabled = value);
@@ -695,7 +690,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             },
                           ),
                           Text(
-                            '리프팅(부위별 횟수)',
+                            l10n.liftingByPart,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                           const SizedBox(height: 8),
@@ -706,8 +701,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   controller: _liftChestController,
                                   enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    labelText: '인프론트',
+                                  decoration: InputDecoration(
+                                    labelText: l10n.liftingPartInfront,
                                     hintText: '0',
                                   ),
                                 ),
@@ -718,8 +713,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   controller: _liftBackController,
                                   enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    labelText: '인사이드',
+                                  decoration: InputDecoration(
+                                    labelText: l10n.liftingPartInside,
                                     hintText: '0',
                                   ),
                                 ),
@@ -734,8 +729,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   controller: _liftLegsController,
                                   enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    labelText: '아웃사이드',
+                                  decoration: InputDecoration(
+                                    labelText: l10n.liftingPartOutside,
                                     hintText: '0',
                                   ),
                                 ),
@@ -746,8 +741,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   controller: _liftShouldersController,
                                   enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    labelText: '무릎',
+                                  decoration: InputDecoration(
+                                    labelText: l10n.liftingPartMuple,
                                     hintText: '0',
                                   ),
                                 ),
@@ -762,8 +757,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   controller: _liftArmsController,
                                   enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    labelText: '머리',
+                                  decoration: InputDecoration(
+                                    labelText: l10n.liftingPartHead,
                                     hintText: '0',
                                   ),
                                 ),
@@ -774,8 +769,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   controller: _liftCoreController,
                                   enabled: _liftingEnabled,
                                   keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                    labelText: '가슴',
+                                  decoration: InputDecoration(
+                                    labelText: l10n.liftingPartChest,
                                     hintText: '0',
                                   ),
                                 ),
