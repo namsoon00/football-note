@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../application/backup_service.dart';
 import '../../application/benchmark_service.dart';
 import '../../application/locale_service.dart';
+import '../../application/localized_option_defaults.dart';
 import '../../application/settings_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/watch_cart/constants.dart';
@@ -84,12 +87,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
       l10n.defaultLocation2,
       l10n.defaultLocation3,
     ]);
+    final localizedLocationDefaults = [
+      l10n.defaultLocation1,
+      l10n.defaultLocation2,
+      l10n.defaultLocation3,
+    ];
+    final normalizedLocations = LocalizedOptionDefaults.normalizeOptions(
+      key: 'locations',
+      stored: _locationOptions,
+      localizedDefaults: localizedLocationDefaults,
+    );
+    if (!_sameStringList(_locationOptions, normalizedLocations)) {
+      _locationOptions = normalizedLocations;
+      widget.optionRepository.saveOptions('locations', normalizedLocations);
+    }
     _programOptions = widget.optionRepository.getOptions('programs', [
       l10n.defaultProgram1,
       l10n.defaultProgram2,
       l10n.defaultProgram3,
       l10n.defaultProgram4,
     ]);
+    final localizedProgramDefaults = [
+      l10n.defaultProgram1,
+      l10n.defaultProgram2,
+      l10n.defaultProgram3,
+      l10n.defaultProgram4,
+    ];
+    final normalizedPrograms = LocalizedOptionDefaults.normalizeOptions(
+      key: 'programs',
+      stored: _programOptions,
+      localizedDefaults: localizedProgramDefaults,
+    );
+    if (!_sameStringList(_programOptions, normalizedPrograms)) {
+      _programOptions = normalizedPrograms;
+      widget.optionRepository.saveOptions('programs', normalizedPrograms);
+    }
     _injuryPartOptions = widget.optionRepository.getOptions('injury_parts', [
       l10n.defaultInjury1,
       l10n.defaultInjury2,
@@ -100,17 +132,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-        _durationOptions.first;
+            _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
         widget.optionRepository.getValue<int>('default_condition') ?? 3;
-    _defaultLocation =
-        widget.optionRepository.getValue<String>('default_location') ??
-        _locationOptions.first;
-    _defaultProgram =
-        widget.optionRepository.getValue<String>('default_program') ??
-        _programOptions.first;
+    final storedDefaultLocation = widget.optionRepository.getValue<String>(
+      'default_location',
+    );
+    _defaultLocation = LocalizedOptionDefaults.normalizeDefaultValue(
+      key: 'default_location',
+      storedValue: storedDefaultLocation,
+      localizedDefaults: localizedLocationDefaults,
+      options: _locationOptions,
+    );
+    if (storedDefaultLocation != _defaultLocation) {
+      unawaited(
+        widget.optionRepository.setValue('default_location', _defaultLocation),
+      );
+    }
+
+    final storedDefaultProgram = widget.optionRepository.getValue<String>(
+      'default_program',
+    );
+    _defaultProgram = LocalizedOptionDefaults.normalizeDefaultValue(
+      key: 'default_program',
+      storedValue: storedDefaultProgram,
+      localizedDefaults: localizedProgramDefaults,
+      options: _programOptions,
+    );
+    if (storedDefaultProgram != _defaultProgram) {
+      unawaited(
+        widget.optionRepository.setValue('default_program', _defaultProgram),
+      );
+    }
     _newsBlockedDomains = widget.optionRepository.getOptions(
       'news_blocked_domains',
       const [],
@@ -224,9 +279,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _restoreBusy
-                      ? null
-                      : () => _restoreFromDrive(l10n),
+                  onPressed:
+                      _restoreBusy ? null : () => _restoreFromDrive(l10n),
                   icon: const Icon(Icons.cloud_download_outlined),
                   label: Text(
                     _restoreBusy
@@ -237,8 +291,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed:
-                      _restoreBusy ||
+                  onPressed: _restoreBusy ||
                           !widget.driveBackupService!.hasLocalPreRestoreBackup()
                       ? null
                       : () => _restoreLocalBackup(l10n),
@@ -436,6 +489,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  bool _sameStringList(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   Widget _buildSelectRow<T>({
     required String label,
     required T value,
@@ -448,9 +509,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -511,9 +571,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText = _defaultDuration <= 0
-        ? l10n.notSet
-        : l10n.minutes(_defaultDuration);
+    final defaultDurationText =
+        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -905,9 +964,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized = sanitize == null
-                            ? added
-                            : sanitize(added);
+                        final normalized =
+                            sanitize == null ? added : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1179,8 +1237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1230,8 +1287,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired

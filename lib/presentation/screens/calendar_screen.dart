@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/localized_option_defaults.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -122,9 +123,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded = hasDaySchedule
-                  ? _calendarExpanded
-                  : true;
+              final isCalendarExpanded =
+                  hasDaySchedule ? _calendarExpanded : true;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -136,9 +136,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -291,23 +291,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          return _CalendarStatusDayCell(
-                                            dayNumber: day.day,
-                                            status: _bestStatusForDay(
-                                              entryMap[key] ??
-                                                  const <TrainingEntry>[],
-                                            ),
-                                            isSelected: true,
-                                            isToday: isSameDay(
-                                              day,
-                                              DateTime.now(),
-                                            ),
-                                            isHoliday:
-                                                isKo &&
-                                                holidayMap.containsKey(key),
-                                          );
-                                        },
+                                      final key = _normalizeDay(day);
+                                      return _CalendarStatusDayCell(
+                                        dayNumber: day.day,
+                                        status: _bestStatusForDay(
+                                          entryMap[key] ??
+                                              const <TrainingEntry>[],
+                                        ),
+                                        isSelected: true,
+                                        isToday: isSameDay(
+                                          day,
+                                          DateTime.now(),
+                                        ),
+                                        isHoliday:
+                                            isKo && holidayMap.containsKey(key),
+                                      );
+                                    },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
@@ -403,8 +402,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             Localizations.localeOf(context).languageCode == 'ko'
                                 ? (isCalendarExpanded ? '캘린더 접기' : '캘린더 펼치기')
                                 : (isCalendarExpanded
-                                      ? 'Collapse calendar'
-                                      : 'Expand calendar'),
+                                    ? 'Collapse calendar'
+                                    : 'Expand calendar'),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -464,11 +463,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
-    final categories = widget.optionRepository.getOptions('programs', [
+    final rawCategories = widget.optionRepository.getOptions('programs', [
       l10n.defaultProgram1,
       l10n.defaultProgram2,
       l10n.defaultProgram3,
     ]);
+    final categories = LocalizedOptionDefaults.normalizeOptions(
+      key: 'programs',
+      stored: rawCategories,
+      localizedDefaults: [
+        l10n.defaultProgram1,
+        l10n.defaultProgram2,
+        l10n.defaultProgram3,
+      ],
+    );
+    if (!_sameStringList(rawCategories, categories)) {
+      widget.optionRepository.saveOptions('programs', categories);
+    }
     var planDay = editingPlan?.scheduledAt ?? day;
     var category = editingPlan?.category ?? categories.first;
     var time = TimeOfDay(
@@ -636,9 +647,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         );
                         Navigator.of(context).pop(
                           _TrainingPlan(
-                            id:
-                                editingPlan?.id ??
-                                DateTime.now().microsecondsSinceEpoch
+                            id: editingPlan?.id ??
+                                DateTime.now()
+                                    .microsecondsSinceEpoch
                                     .toString(),
                             scheduledAt: scheduledAt,
                             category: category,
@@ -710,6 +721,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (shouldDelete == true) {
       await _deletePlan(plan.id);
     }
+  }
+
+  bool _sameStringList(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   Future<bool> _confirmDeleteEntry(TrainingEntry entry) async {
@@ -879,10 +898,10 @@ class _CalendarStatusDayCell extends StatelessWidget {
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-              ? Colors.red.shade400.withAlpha(170)
-              : (isToday
-                    ? colorScheme.primary.withAlpha(150)
-                    : Colors.transparent));
+            ? Colors.red.shade400.withAlpha(170)
+            : (isToday
+                ? colorScheme.primary.withAlpha(150)
+                : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -1172,9 +1191,8 @@ class _EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final locationText = entry.location.trim().isNotEmpty
-        ? entry.location.trim()
-        : '-';
+    final locationText =
+        entry.location.trim().isNotEmpty ? entry.location.trim() : '-';
     final durationText = _formatDurationText(
       entry.durationMinutes,
       isKo: isKo,
@@ -1337,8 +1355,7 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',

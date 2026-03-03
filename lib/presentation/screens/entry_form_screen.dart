@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../application/localized_option_defaults.dart';
 import '../../application/training_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../domain/entities/training_entry.dart';
@@ -1133,7 +1134,24 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required String key,
     required List<String> defaults,
   }) {
-    return widget.optionRepository.getOptions(key, defaults);
+    final stored = widget.optionRepository.getOptions(key, defaults);
+    final normalized = LocalizedOptionDefaults.normalizeOptions(
+      key: key,
+      stored: stored,
+      localizedDefaults: defaults,
+    );
+    if (!_sameStringList(stored, normalized)) {
+      widget.optionRepository.saveOptions(key, normalized);
+    }
+    return normalized;
+  }
+
+  bool _sameStringList(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   String _initSelection(String key, List<String> options, String value) {

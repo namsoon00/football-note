@@ -14,6 +14,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
+import '../../application/localized_option_defaults.dart';
 import '../../domain/entities/training_entry.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
@@ -80,24 +81,51 @@ class _LogsScreenState extends State<LogsScreen> {
       l10n.defaultLocation2,
       l10n.defaultLocation3,
     ]);
+    final normalizedLocations = LocalizedOptionDefaults.normalizeOptions(
+      key: 'locations',
+      stored: _locationOptions,
+      localizedDefaults: [
+        l10n.defaultLocation1,
+        l10n.defaultLocation2,
+        l10n.defaultLocation3,
+      ],
+    );
+    if (!_sameStringList(_locationOptions, normalizedLocations)) {
+      _locationOptions = normalizedLocations;
+      widget.optionRepository.saveOptions('locations', normalizedLocations);
+    }
     _programOptions = widget.optionRepository.getOptions('programs', [
       l10n.defaultProgram1,
       l10n.defaultProgram2,
       l10n.defaultProgram3,
       l10n.defaultProgram4,
     ]);
+    final normalizedPrograms = LocalizedOptionDefaults.normalizeOptions(
+      key: 'programs',
+      stored: _programOptions,
+      localizedDefaults: [
+        l10n.defaultProgram1,
+        l10n.defaultProgram2,
+        l10n.defaultProgram3,
+        l10n.defaultProgram4,
+      ],
+    );
+    if (!_sameStringList(_programOptions, normalizedPrograms)) {
+      _programOptions = normalizedPrograms;
+      widget.optionRepository.saveOptions('programs', normalizedPrograms);
+    }
     final savedLayout =
         widget.optionRepository.getValue<String>(_layoutKey) ?? 'card';
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -136,9 +164,9 @@ class _LogsScreenState extends State<LogsScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -426,6 +454,14 @@ class _LogsScreenState extends State<LogsScreen> {
     }).toList();
   }
 
+  bool _sameStringList(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   Future<void> _openFilterSheet(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     final statusValue = _statusFilter;
@@ -578,9 +614,8 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -720,9 +755,8 @@ class _EntryCard extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final titleLocation = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final titleLocation =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
@@ -792,9 +826,8 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final locationText = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final locationText =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
 
