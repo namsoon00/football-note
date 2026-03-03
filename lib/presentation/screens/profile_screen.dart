@@ -32,6 +32,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   DateTime? _birthDate;
   DateTime? _soccerStartDate;
   Timer? _saveDebounce;
+  bool _saveInProgress = false;
+  PlayerProfile? _pendingProfileSave;
 
   @override
   void initState() {
@@ -54,6 +56,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _saveDebounce?.cancel();
+    _pendingProfileSave = _buildCurrentProfile();
+    unawaited(_flushQueuedSaves());
     _nameController.dispose();
     _heightController.dispose();
     _weightController.dispose();
@@ -63,146 +67,158 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    return Scaffold(
-      appBar: AppBar(title: Text(isKo ? '유저 프로필' : 'Player Profile')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Row(
-            children: [
-              _ProfileAvatar(photoSource: _photoPath, onTap: _pickProfilePhoto),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _nameController.text.trim().isEmpty
-                          ? (isKo ? '이름을 입력해 주세요' : 'Enter player name')
-                          : _nameController.text.trim(),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _genderLabel(_gender, isKo),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _saveLatestNow();
+        if (!context.mounted) return;
+        Navigator.of(context).pop(result);
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(isKo ? '유저 프로필' : 'Player Profile')),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Row(
+              children: [
+                _ProfileAvatar(
+                  photoSource: _photoPath,
+                  onTap: _pickProfilePhoto,
                 ),
-              ),
-              if (_photoPath.isNotEmpty)
-                IconButton(
-                  tooltip: isKo ? '사진 삭제' : 'Remove photo',
-                  onPressed: () {
-                    setState(() => _photoPath = '');
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _nameController.text.trim().isEmpty
+                            ? (isKo ? '이름을 입력해 주세요' : 'Enter player name')
+                            : _nameController.text.trim(),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _genderLabel(_gender, isKo),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                if (_photoPath.isNotEmpty)
+                  IconButton(
+                    tooltip: isKo ? '사진 삭제' : 'Remove photo',
+                    onPressed: () {
+                      setState(() => _photoPath = '');
+                      _scheduleAutoSave();
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(labelText: isKo ? '이름' : 'Name'),
+              onChanged: (_) {
+                setState(() {});
+                _scheduleAutoSave();
+              },
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _heightController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [_decimalInputFormatter],
+                    decoration: InputDecoration(
+                      labelText: isKo ? '키(cm)' : 'Height (cm)',
+                      hintText: '150.5',
+                    ),
+                    onChanged: (_) => _scheduleAutoSave(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _weightController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [_decimalInputFormatter],
+                    decoration: InputDecoration(
+                      labelText: isKo ? '몸무게(kg)' : 'Weight (kg)',
+                      hintText: '42.5',
+                    ),
+                    onChanged: (_) => _scheduleAutoSave(),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              initialValue: _gender.isEmpty ? null : _gender,
+              decoration: InputDecoration(labelText: isKo ? '성별' : 'Gender'),
+              items: [
+                DropdownMenuItem<String>(
+                  value: '',
+                  child: Text(isKo ? '미입력' : 'Not set'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'male',
+                  child: Text(isKo ? '남성' : 'Male'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'female',
+                  child: Text(isKo ? '여성' : 'Female'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'other',
+                  child: Text(isKo ? '기타' : 'Other'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() => _gender = value ?? '');
+                _scheduleAutoSave();
+              },
+            ),
+            const SizedBox(height: 4),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(isKo ? '생년월일' : 'Birth date'),
+              subtitle: Text(_formatDate(_birthDate, isKo)),
+              trailing: IconButton(
+                icon: const Icon(Icons.event),
+                onPressed: () => _pickDate(
+                  initial: _birthDate,
+                  onPicked: (value) {
+                    setState(() => _birthDate = value);
                     _scheduleAutoSave();
                   },
-                  icon: const Icon(Icons.delete_outline),
                 ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _nameController,
-            decoration: InputDecoration(labelText: isKo ? '이름' : 'Name'),
-            onChanged: (_) {
-              setState(() {});
-              _scheduleAutoSave();
-            },
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _heightController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [_decimalInputFormatter],
-                  decoration: InputDecoration(
-                    labelText: isKo ? '키(cm)' : 'Height (cm)',
-                    hintText: '150.5',
-                  ),
-                  onChanged: (_) => _scheduleAutoSave(),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextField(
-                  controller: _weightController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [_decimalInputFormatter],
-                  decoration: InputDecoration(
-                    labelText: isKo ? '몸무게(kg)' : 'Weight (kg)',
-                    hintText: '42.5',
-                  ),
-                  onChanged: (_) => _scheduleAutoSave(),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          DropdownButtonFormField<String>(
-            initialValue: _gender.isEmpty ? null : _gender,
-            decoration: InputDecoration(labelText: isKo ? '성별' : 'Gender'),
-            items: [
-              DropdownMenuItem<String>(
-                value: '',
-                child: Text(isKo ? '미입력' : 'Not set'),
-              ),
-              DropdownMenuItem<String>(
-                value: 'male',
-                child: Text(isKo ? '남성' : 'Male'),
-              ),
-              DropdownMenuItem<String>(
-                value: 'female',
-                child: Text(isKo ? '여성' : 'Female'),
-              ),
-              DropdownMenuItem<String>(
-                value: 'other',
-                child: Text(isKo ? '기타' : 'Other'),
-              ),
-            ],
-            onChanged: (value) {
-              setState(() => _gender = value ?? '');
-              _scheduleAutoSave();
-            },
-          ),
-          const SizedBox(height: 4),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(isKo ? '생년월일' : 'Birth date'),
-            subtitle: Text(_formatDate(_birthDate, isKo)),
-            trailing: IconButton(
-              icon: const Icon(Icons.event),
-              onPressed: () => _pickDate(
-                initial: _birthDate,
-                onPicked: (value) {
-                  setState(() => _birthDate = value);
-                  _scheduleAutoSave();
-                },
               ),
             ),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(isKo ? '축구 시작일' : 'Soccer start date'),
-            subtitle: Text(_formatDate(_soccerStartDate, isKo)),
-            trailing: IconButton(
-              icon: const Icon(Icons.sports_soccer),
-              onPressed: () => _pickDate(
-                initial: _soccerStartDate,
-                onPicked: (value) {
-                  setState(() => _soccerStartDate = value);
-                  _scheduleAutoSave();
-                },
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(isKo ? '축구 시작일' : 'Soccer start date'),
+              subtitle: Text(_formatDate(_soccerStartDate, isKo)),
+              trailing: IconButton(
+                icon: const Icon(Icons.sports_soccer),
+                onPressed: () => _pickDate(
+                  initial: _soccerStartDate,
+                  onPicked: (value) {
+                    setState(() => _soccerStartDate = value);
+                    _scheduleAutoSave();
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -229,21 +245,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _scheduleAutoSave() {
     _saveDebounce?.cancel();
-    _saveDebounce = Timer(const Duration(milliseconds: 350), _saveProfile);
+    _saveDebounce = Timer(
+      const Duration(milliseconds: 350),
+      () => unawaited(_queueLatestProfileSave()),
+    );
   }
 
-  Future<void> _saveProfile() async {
+  PlayerProfile _buildCurrentProfile() {
+    return PlayerProfile(
+      name: _nameController.text.trim(),
+      photoUrl: _photoPath.trim(),
+      birthDate: _birthDate,
+      soccerStartDate: _soccerStartDate,
+      heightCm: _parseDouble(_heightController.text),
+      weightKg: _parseDouble(_weightController.text),
+      gender: _gender,
+    );
+  }
+
+  Future<void> _saveLatestNow() async {
+    _saveDebounce?.cancel();
+    await _queueLatestProfileSave();
+  }
+
+  Future<void> _queueLatestProfileSave() async {
+    _pendingProfileSave = _buildCurrentProfile();
+    await _flushQueuedSaves();
+  }
+
+  Future<void> _flushQueuedSaves() async {
+    if (_saveInProgress) return;
+    _saveInProgress = true;
     try {
-      final profile = PlayerProfile(
-        name: _nameController.text.trim(),
-        photoUrl: _photoPath.trim(),
-        birthDate: _birthDate,
-        soccerStartDate: _soccerStartDate,
-        heightCm: _parseDouble(_heightController.text),
-        weightKg: _parseDouble(_weightController.text),
-        gender: _gender,
-      );
-      await _profileService.save(profile);
+      while (true) {
+        final profile = _pendingProfileSave;
+        if (profile == null) break;
+        _pendingProfileSave = null;
+        await _profileService.save(profile);
+      }
     } catch (_) {
       if (!mounted) return;
       final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -256,6 +295,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       );
+    } finally {
+      _saveInProgress = false;
     }
   }
 
