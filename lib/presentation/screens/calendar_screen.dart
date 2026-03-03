@@ -891,6 +891,7 @@ class _CalendarStatusDayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasTraining = status != null;
     final colorScheme = Theme.of(context).colorScheme;
     final dayTextColor = isSelected
         ? colorScheme.primary
@@ -917,22 +918,19 @@ class _CalendarStatusDayCell extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: borderColor, width: 1.2),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '$dayNumber',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: dayTextColor,
-                height: 1.0,
+        child: hasTraining
+            ? Center(child: _MiniStatusIcon(status: status!))
+            : Center(
+                child: Text(
+                  '$dayNumber',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: dayTextColor,
+                    height: 1.0,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            if (status != null) _MiniStatusIcon(status: status!),
-          ],
-        ),
       ),
     );
   }
