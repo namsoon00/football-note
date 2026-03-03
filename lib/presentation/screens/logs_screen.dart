@@ -188,16 +188,41 @@ class _LogsScreenState extends State<LogsScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 2,
-                        mainAxisSpacing: 6,
-                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
                         itemCount: entries.length,
                         itemBuilder: (context, index) {
                           final entry = entries[index];
                           return ZoomIn(
-                            child: _EntryCard(
-                              entry: entry,
-                              onEdit: () => _onEntryTap(entry),
-                              onDelete: () => _confirmDelete(context, entry),
+                            child: Dismissible(
+                              key: ValueKey(
+                                'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                              ),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (_) =>
+                                  _confirmDelete(context, entry),
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .errorContainer,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Icon(
+                                  Icons.delete_outline,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onErrorContainer,
+                                ),
+                              ),
+                              child: _EntryCard(
+                                entry: entry,
+                                onEdit: () => _onEntryTap(entry),
+                              ),
                             ),
                           );
                         },
@@ -574,7 +599,7 @@ class _LogsScreenState extends State<LogsScreen> {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, TrainingEntry entry) async {
+  Future<bool> _confirmDelete(BuildContext context, TrainingEntry entry) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -595,7 +620,9 @@ class _LogsScreenState extends State<LogsScreen> {
 
     if (result == true) {
       await widget.trainingService.delete(entry);
+      return true;
     }
+    return false;
   }
 
   void _onEntryTap(TrainingEntry entry) {
@@ -656,13 +683,8 @@ class _LogFilters {
 class _EntryCard extends StatelessWidget {
   final TrainingEntry entry;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
-  const _EntryCard({
-    required this.entry,
-    required this.onEdit,
-    required this.onDelete,
-  });
+  const _EntryCard({required this.entry, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -681,7 +703,7 @@ class _EntryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onEdit,
         child: WatchCartCard(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -691,9 +713,9 @@ class _EntryCard extends StatelessWidget {
                   context,
                 ).textTheme.titleSmall?.copyWith(fontSize: 12),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Center(child: _EntryImage(entry: entry)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 titleText,
                 textAlign: TextAlign.center,
@@ -710,35 +732,13 @@ class _EntryCard extends StatelessWidget {
                 style: const TextStyle(fontSize: 12),
               ),
               if (_buildListFocusText(entry).isNotEmpty) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   _buildListFocusText(entry),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton.icon(
-                    onPressed: onEdit,
-                    icon: const Icon(Icons.edit_outlined, size: 16),
-                    label: Text(
-                      l10n.edit,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: onDelete,
-                    icon: const Icon(Icons.delete_outline, size: 16),
-                    label: Text(
-                      l10n.delete,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -860,8 +860,8 @@ class _EntryImage extends StatelessWidget {
     if (images.isEmpty) {
       final status = _statusMeta(entry.status);
       return Container(
-        width: 64,
-        height: 64,
+        width: 58,
+        height: 58,
         decoration: BoxDecoration(
           color: status.color.withAlpha(30),
           shape: BoxShape.circle,
@@ -876,14 +876,14 @@ class _EntryImage extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Image.file(
             File(images.first),
-            height: 92,
-            width: 92,
+            height: 80,
+            width: 80,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) {
               final status = _statusMeta(entry.status);
               return Container(
-                width: 92,
-                height: 92,
+                width: 80,
+                height: 80,
                 color: status.color.withAlpha(20),
                 child: Icon(status.icon, size: 28, color: status.color),
               );
