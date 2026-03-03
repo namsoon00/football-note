@@ -717,10 +717,13 @@ class _EntryCard extends StatelessWidget {
     final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
     final l10n = AppLocalizations.of(context)!;
     final titleProgram = entry.type.isEmpty ? l10n.program : entry.type;
-    final titleLocation = entry.location.trim();
-    final titleText = titleLocation.isEmpty
-        ? titleProgram
-        : '$titleProgram · $titleLocation';
+    final durationText = entry.durationMinutes > 0
+        ? l10n.minutes(entry.durationMinutes)
+        : l10n.durationNotSet;
+    final titleLocation = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
+    final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
 
@@ -830,9 +833,6 @@ class _EntryListItem extends StatelessWidget {
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
   final parts = <String>[];
-  if (entry.durationMinutes > 0) {
-    parts.add(l10n.minutes(entry.durationMinutes));
-  }
   parts.add('${l10n.intensity} ${entry.intensity}');
   parts.add('${l10n.condition} ${entry.mood}');
   if (entry.location.isNotEmpty) {
