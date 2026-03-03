@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../domain/entities/player_profile.dart';
 import '../domain/entities/training_entry.dart';
 
@@ -11,6 +13,14 @@ class LocalFortuneService {
     final date = DateTime(entry.date.year, entry.date.month, entry.date.day);
     final age = _age(profile.birthDate, date);
     final soccerYears = _age(profile.soccerStartDate, date);
+    final recent14 = history
+        .where((e) => !e.date.isBefore(date.subtract(const Duration(days: 14))))
+        .toList();
+    final streak = _streakDays([...history, entry], date);
+    final trendScore = _trendScore(recent14);
+    final zodiac = _zodiac(profile.birthDate, isKo);
+    final weekdayTone = _weekdayTone(date.weekday, isKo);
+    final seasonTone = _seasonTone(date.month, isKo);
     final baseSeed = _seed(date, entry, profile, history);
 
     final energy = _score(
@@ -18,7 +28,8 @@ class LocalFortuneService {
           (entry.mood * 10) +
           (entry.intensity * 6) +
           (entry.durationMinutes ~/ 6) +
-          (entry.injury ? -18 : 6),
+          (entry.injury ? -18 : 6) +
+          (trendScore ~/ 5),
     );
     final focus = _score(
       50 +
@@ -51,30 +62,43 @@ class LocalFortuneService {
       isKo: isKo,
       age: age,
       soccerYears: soccerYears,
+      zodiac: zodiac,
       seed: baseSeed + 59,
     );
     final trainingLine = _trainingBlendLine(
       isKo: isKo,
       entry: entry,
+      streak: streak,
+      trendScore: trendScore,
       seed: baseSeed + 67,
     );
+    final contextLine = isKo
+        ? '날짜 흐름: $weekdayTone · 계절 리듬: $seasonTone'
+        : 'Date signal: $weekdayTone · Seasonal rhythm: $seasonTone';
+    final basisLine = isKo
+        ? '분석 근거: 날짜/요일/계절, 프로필(나이·구력·별자리), 최근 14일 추세, 훈련 부하(시간·강도·컨디션), 부상·통증, 목표·메모, 리프팅 분포.'
+        : 'Signals used: date/weekday/season, profile (age/experience/zodiac), 14-day trend, load (time/intensity/condition), injury/pain, goal/notes, lifting distribution.';
 
     if (isKo) {
       return '오늘의 축구 운세\n'
           '에너지 $energy · 집중 $focus · 팀워크 $teamwork · 회복 $recovery\n'
           '행운 컬러: $color · 행운 시간: $time · 키워드: $keyword\n'
+          '$contextLine\n'
           '$profileLine\n'
           '$trainingLine\n'
           '주의: $caution\n'
-          '추천 액션: $tip';
+          '추천 액션: $tip\n'
+          '$basisLine';
     }
     return 'Today\'s Soccer Fortune\n'
         'Energy $energy · Focus $focus · Teamwork $teamwork · Recovery $recovery\n'
         'Lucky color: $color · Lucky time: $time · Keyword: $keyword\n'
+        '$contextLine\n'
         '$profileLine\n'
         '$trainingLine\n'
         'Caution: $caution\n'
-        'Suggested action: $tip';
+        'Suggested action: $tip\n'
+        '$basisLine';
   }
 
   int _seed(
@@ -99,6 +123,32 @@ class LocalFortuneService {
 
   int _score(num raw) => raw.round().clamp(1, 99);
 
+  int _trendScore(List<TrainingEntry> recent) {
+    if (recent.isEmpty) return 0;
+    final minutes = recent.fold<int>(0, (s, e) => s + e.durationMinutes);
+    final intensity = recent.fold<int>(0, (s, e) => s + e.intensity);
+    final mood = recent.fold<int>(0, (s, e) => s + e.mood);
+    final injuries = recent.where((e) => e.injury).length;
+    final quality = (minutes / math.max(1, recent.length)) ~/ 10;
+    return quality + intensity + mood - (injuries * 6);
+  }
+
+  int _streakDays(List<TrainingEntry> all, DateTime today) {
+    final daySet = all
+        .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
+        .toSet();
+    var streak = 0;
+    for (var i = 0; i < 30; i++) {
+      final day = today.subtract(Duration(days: i));
+      if (daySet.contains(day)) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
   int? _age(DateTime? from, DateTime at) {
     if (from == null) return null;
     var years = at.year - from.year;
@@ -113,6 +163,7 @@ class LocalFortuneService {
     required bool isKo,
     required int? age,
     required int? soccerYears,
+    required String zodiac,
     required int seed,
   }) {
     if (age == null && soccerYears == null) {
@@ -127,14 +178,16 @@ class LocalFortuneService {
             ], seed);
     }
     if (isKo) {
-      return '프로필 반영: ${age != null ? '나이 $age세' : '나이 미입력'} · ${soccerYears != null ? '구력 $soccerYears년' : '구력 미입력'} 기준으로 리듬을 분석했어요.';
+      return '프로필 반영: ${age != null ? '나이 $age세' : '나이 미입력'} · ${soccerYears != null ? '구력 $soccerYears년' : '구력 미입력'} · 별자리 $zodiac 기준으로 리듬을 분석했어요.';
     }
-    return 'Profile blend: ${age != null ? 'age $age' : 'age n/a'} · ${soccerYears != null ? '$soccerYears years experience' : 'experience n/a'} used for rhythm analysis.';
+    return 'Profile blend: ${age != null ? 'age $age' : 'age n/a'} · ${soccerYears != null ? '$soccerYears years experience' : 'experience n/a'} · zodiac $zodiac used for rhythm analysis.';
   }
 
   String _trainingBlendLine({
     required bool isKo,
     required TrainingEntry entry,
+    required int streak,
+    required int trendScore,
     required int seed,
   }) {
     final kind = entry.program.trim().isNotEmpty
@@ -142,16 +195,91 @@ class LocalFortuneService {
         : entry.type.trim();
     final typeText = kind.isEmpty ? (isKo ? '기본 훈련' : 'base training') : kind;
     final variantsKo = <String>[
-      '$typeText 패턴에서 템포 조절 운이 좋습니다. 첫 15분 리듬을 빠르게 잡아보세요.',
-      '$typeText 흐름에서 선택 타이밍이 좋게 들어옵니다. 패스/터치 결정을 빠르게 가져가세요.',
-      '$typeText 훈련에서 반복 정확도가 상승하는 날입니다. 횟수보다 성공 패턴을 고정하세요.',
+      '$typeText 패턴에서 템포 조절 운이 좋습니다. 첫 15분 리듬을 빠르게 잡아보세요. (연속 $streak일, 추세 $trendScore)',
+      '$typeText 흐름에서 선택 타이밍이 좋게 들어옵니다. 패스/터치 결정을 빠르게 가져가세요. (연속 $streak일, 추세 $trendScore)',
+      '$typeText 훈련에서 반복 정확도가 상승하는 날입니다. 횟수보다 성공 패턴을 고정하세요. (연속 $streak일, 추세 $trendScore)',
     ];
     final variantsEn = <String>[
-      'In $typeText, tempo control luck is strong. Set rhythm early in the first 15 min.',
-      'In $typeText, decision timing is favorable. Make pass/touch choices quickly.',
-      'In $typeText, repetition accuracy is likely to rise. Lock successful patterns over volume.',
+      'In $typeText, tempo control luck is strong. Set rhythm early in the first 15 min. (streak $streak, trend $trendScore)',
+      'In $typeText, decision timing is favorable. Make pass/touch choices quickly. (streak $streak, trend $trendScore)',
+      'In $typeText, repetition accuracy is likely to rise. Lock successful patterns over volume. (streak $streak, trend $trendScore)',
     ];
     return _pick(isKo ? variantsKo : variantsEn, seed);
+  }
+
+  String _zodiac(DateTime? birthDate, bool isKo) {
+    if (birthDate == null) return isKo ? '미입력' : 'n/a';
+    final m = birthDate.month;
+    final d = birthDate.day;
+    if ((m == 3 && d >= 21) || (m == 4 && d <= 19)) {
+      return isKo ? '양자리' : 'Aries';
+    }
+    if ((m == 4 && d >= 20) || (m == 5 && d <= 20)) {
+      return isKo ? '황소자리' : 'Taurus';
+    }
+    if ((m == 5 && d >= 21) || (m == 6 && d <= 21)) {
+      return isKo ? '쌍둥이자리' : 'Gemini';
+    }
+    if ((m == 6 && d >= 22) || (m == 7 && d <= 22)) {
+      return isKo ? '게자리' : 'Cancer';
+    }
+    if ((m == 7 && d >= 23) || (m == 8 && d <= 22)) {
+      return isKo ? '사자자리' : 'Leo';
+    }
+    if ((m == 8 && d >= 23) || (m == 9 && d <= 22)) {
+      return isKo ? '처녀자리' : 'Virgo';
+    }
+    if ((m == 9 && d >= 23) || (m == 10 && d <= 22)) {
+      return isKo ? '천칭자리' : 'Libra';
+    }
+    if ((m == 10 && d >= 23) || (m == 11 && d <= 22)) {
+      return isKo ? '전갈자리' : 'Scorpio';
+    }
+    if ((m == 11 && d >= 23) || (m == 12 && d <= 24)) {
+      return isKo ? '사수자리' : 'Sagittarius';
+    }
+    if ((m == 12 && d >= 25) || (m == 1 && d <= 19)) {
+      return isKo ? '염소자리' : 'Capricorn';
+    }
+    if ((m == 1 && d >= 20) || (m == 2 && d <= 18)) {
+      return isKo ? '물병자리' : 'Aquarius';
+    }
+    return isKo ? '물고기자리' : 'Pisces';
+  }
+
+  String _weekdayTone(int weekday, bool isKo) {
+    const ko = <int, String>{
+      DateTime.monday: '월요일 스타트 집중력 상승',
+      DateTime.tuesday: '화요일 반복 훈련 적합',
+      DateTime.wednesday: '수요일 리듬 안정',
+      DateTime.thursday: '목요일 전환 속도 유리',
+      DateTime.friday: '금요일 감각 회복 유리',
+      DateTime.saturday: '토요일 실전 감각 상승',
+      DateTime.sunday: '일요일 회복·정리 적합',
+    };
+    const en = <int, String>{
+      DateTime.monday: 'Monday start-focus boost',
+      DateTime.tuesday: 'Tuesday repetition-friendly',
+      DateTime.wednesday: 'Wednesday rhythm stability',
+      DateTime.thursday: 'Thursday transition speed edge',
+      DateTime.friday: 'Friday touch recovery edge',
+      DateTime.saturday: 'Saturday match-feel boost',
+      DateTime.sunday: 'Sunday recovery/reset fit',
+    };
+    return (isKo ? ko : en)[weekday]!;
+  }
+
+  String _seasonTone(int month, bool isKo) {
+    if (month >= 3 && month <= 5) {
+      return isKo ? '봄: 기술 흡수력 상승' : 'Spring: skill absorption up';
+    }
+    if (month >= 6 && month <= 8) {
+      return isKo ? '여름: 수분·회복 관리 중요' : 'Summer: hydration/recovery critical';
+    }
+    if (month >= 9 && month <= 11) {
+      return isKo ? '가을: 강도 상승 유리' : 'Autumn: load increase favorable';
+    }
+    return isKo ? '겨울: 워밍업 품질 최우선' : 'Winter: warm-up quality first';
   }
 
   String _pick(List<String> values, int seed) {
