@@ -74,6 +74,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Timer? _autoSaveTimer;
   bool _autoSaving = false;
   bool _saveInProgress = false;
+  bool _deleteInProgress = false;
   int? _editingKey;
 
   DateTime _date = DateTime.now();
@@ -379,6 +380,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               icon: const Icon(Icons.arrow_back),
                               tooltip: l10n.cancel,
                             ),
+                            if (isEdit)
+                              IconButton(
+                                onPressed:
+                                    (_saveInProgress || _deleteInProgress)
+                                    ? null
+                                    : _confirmAndDelete,
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: l10n.deleteEntry,
+                              ),
                             PopupMenuButton<_EntryMenuAction>(
                               tooltip: l10n.more,
                               onSelected: (action) {
@@ -823,21 +833,47 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         onPrimary: _save,
                       )
                     else
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4, bottom: 4),
-                        child: Text(
-                          _autoSaving
-                              ? (Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '자동 저장 중...'
-                                    : 'Autosaving...')
-                              : (Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '수정 내용이 자동 저장됩니다.'
-                                    : 'Changes are saved automatically.'),
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: (_saveInProgress || _deleteInProgress)
+                                ? null
+                                : _confirmAndDelete,
+                            icon: const Icon(Icons.delete_outline),
+                            label: Text(l10n.deleteEntry),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: theme.colorScheme.error,
+                              side: BorderSide(
+                                color: theme.colorScheme.error.withValues(
+                                  alpha: 0.7,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4, bottom: 4),
+                            child: Text(
+                              _autoSaving
+                                  ? (Localizations.localeOf(
+                                              context,
+                                            ).languageCode ==
+                                            'ko'
+                                        ? '자동 저장 중...'
+                                        : 'Autosaving...')
+                                  : (Localizations.localeOf(
+                                              context,
+                                            ).languageCode ==
+                                            'ko'
+                                        ? '수정 내용이 자동 저장됩니다.'
+                                        : 'Changes are saved automatically.'),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        ],
                       ),
                     const SizedBox(height: 24),
                   ],
@@ -1242,6 +1278,53 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         );
       },
     );
+  }
+
+  Future<void> _confirmAndDelete() async {
+    if (widget.entry == null || _deleteInProgress) return;
+    final l10n = AppLocalizations.of(context)!;
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteEntry),
+        content: Text(l10n.deleteConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true) return;
+
+    _deleteInProgress = true;
+    if (mounted) setState(() {});
+    _autoSaveTimer?.cancel();
+    try {
+      final entries = await widget.trainingService.allEntries();
+      final key = _editingKey;
+      TrainingEntry target = widget.entry!;
+      if (key != null) {
+        for (final item in entries) {
+          if (item.key == key) {
+            target = item;
+            break;
+          }
+        }
+      }
+      await widget.trainingService.delete(target);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } finally {
+      _deleteInProgress = false;
+      if (mounted) setState(() {});
+    }
   }
 
   List<String> _loadOptions({
