@@ -119,13 +119,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -164,9 +164,9 @@ class _LogsScreenState extends State<LogsScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -614,8 +614,9 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -755,8 +756,9 @@ class _EntryCard extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final titleLocation =
-        entry.location.trim().isEmpty ? '-' : entry.location.trim();
+    final titleLocation = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
     final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
@@ -826,8 +828,9 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final locationText =
-        entry.location.trim().isEmpty ? '-' : entry.location.trim();
+    final locationText = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
 
@@ -877,7 +880,6 @@ String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
 String _buildListFocusText(TrainingEntry entry) {
   if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
   if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
-  if (entry.coachComment.trim().isNotEmpty) return entry.coachComment.trim();
   if (entry.fortuneComment.trim().isNotEmpty) {
     return entry.fortuneComment.trim();
   }
