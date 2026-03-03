@@ -47,6 +47,10 @@ class LogsScreen extends StatefulWidget {
 class _LogsScreenState extends State<LogsScreen> {
   static const String _allFilterValue = '__all__';
   static const String _layoutKey = 'logs_layout';
+  static const String _statusFilterKey = 'logs_filter_status';
+  static const String _locationFilterKey = 'logs_filter_location';
+  static const String _programFilterKey = 'logs_filter_program';
+  static const String _injuryOnlyFilterKey = 'logs_filter_injury_only';
   final TextEditingController _searchController = TextEditingController();
   bool _showSearch = false;
   String _searchQuery = '';
@@ -85,6 +89,17 @@ class _LogsScreenState extends State<LogsScreen> {
     final savedLayout =
         widget.optionRepository.getValue<String>(_layoutKey) ?? 'card';
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
+    _statusFilter =
+        widget.optionRepository.getValue<String>(_statusFilterKey) ??
+        _allFilterValue;
+    _locationFilter =
+        widget.optionRepository.getValue<String>(_locationFilterKey) ??
+        _allFilterValue;
+    _programFilter =
+        widget.optionRepository.getValue<String>(_programFilterKey) ??
+        _allFilterValue;
+    _injuryOnly =
+        widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
 
   @override
@@ -400,7 +415,7 @@ class _LogsScreenState extends State<LogsScreen> {
                     onChanged: (value) =>
                         setModalState(() => localStatus = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _buildFilterDropdown(
                     label: l10n.location,
                     value: localLocation,
@@ -408,7 +423,7 @@ class _LogsScreenState extends State<LogsScreen> {
                     onChanged: (value) =>
                         setModalState(() => localLocation = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _buildFilterDropdown(
                     label: l10n.program,
                     value: localProgram,
@@ -416,7 +431,7 @@ class _LogsScreenState extends State<LogsScreen> {
                     onChanged: (value) =>
                         setModalState(() => localProgram = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   SwitchListTile(
                     value: localInjuryOnly,
                     onChanged: (value) =>
@@ -474,6 +489,7 @@ class _LogsScreenState extends State<LogsScreen> {
       _programFilter = result.program;
       _injuryOnly = result.injuryOnly;
     });
+    await _persistFilters(result);
   }
 
   List<DropdownMenuEntry<String>> _statusEntries(AppLocalizations l10n) {
@@ -514,7 +530,7 @@ class _LogsScreenState extends State<LogsScreen> {
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
     return SizedBox(
-      height: 50,
+      height: 54,
       child: DropdownMenu<String>(
         initialSelection: value,
         label: Text(label),
@@ -525,7 +541,7 @@ class _LogsScreenState extends State<LogsScreen> {
           fillColor: fillColor,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
-            vertical: 8,
+            vertical: 10,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
@@ -580,6 +596,15 @@ class _LogsScreenState extends State<LogsScreen> {
   void _onEntryTap(TrainingEntry entry) {
     HapticFeedback.selectionClick();
     widget.onEdit(entry);
+  }
+
+  Future<void> _persistFilters(_LogFilters filters) async {
+    await Future.wait([
+      widget.optionRepository.setValue(_statusFilterKey, filters.status),
+      widget.optionRepository.setValue(_locationFilterKey, filters.location),
+      widget.optionRepository.setValue(_programFilterKey, filters.program),
+      widget.optionRepository.setValue(_injuryOnlyFilterKey, filters.injuryOnly),
+    ]);
   }
 
   void _openSettings(BuildContext context) {
