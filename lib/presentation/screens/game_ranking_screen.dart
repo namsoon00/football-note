@@ -85,7 +85,7 @@ class GameRankingScreen extends StatelessWidget {
                       horizontal: 12,
                       vertical: 6,
                     ),
-                    leading: CircleAvatar(child: Text('$rankNo')),
+                    leading: _rankLeading(rankNo),
                     title: Text(
                       isKo
                           ? '${entry.rankLabel}등급 · 점수 ${entry.score}'
@@ -121,5 +121,27 @@ class GameRankingScreen extends StatelessWidget {
       default:
         return isKo ? '중급' : 'Medium';
     }
+  }
+
+  Widget _rankLeading(int rankNo) {
+    if (rankNo == 1) {
+      return const CircleAvatar(
+        backgroundColor: Color(0xFFFFE082),
+        child: Icon(Icons.emoji_events, color: Color(0xFF8D6E00)),
+      );
+    }
+    if (rankNo == 2) {
+      return const CircleAvatar(
+        backgroundColor: Color(0xFFE5E7EB),
+        child: Icon(Icons.military_tech, color: Color(0xFF6B7280)),
+      );
+    }
+    if (rankNo == 3) {
+      return const CircleAvatar(
+        backgroundColor: Color(0xFFF2C6A6),
+        child: Icon(Icons.military_tech, color: Color(0xFF8D5A34)),
+      );
+    }
+    return CircleAvatar(child: Text('$rankNo'));
   }
 }
