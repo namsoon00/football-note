@@ -721,6 +721,8 @@ class _EntryCard extends StatelessWidget {
     final titleText = titleLocation.isEmpty
         ? titleProgram
         : '$titleProgram · $titleLocation';
+    final focusText = _buildListFocusText(entry);
+    final focusTextColor = Theme.of(context).colorScheme.primary;
 
     return Material(
       color: Colors.transparent,
@@ -756,12 +758,13 @@ class _EntryCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
               ),
-              if (_buildListFocusText(entry).isNotEmpty) ...[
+              if (focusText.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
-                  _buildListFocusText(entry),
+                  focusText,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: focusTextColor),
                 ),
               ],
             ],
