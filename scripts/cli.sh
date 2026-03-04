@@ -12,6 +12,7 @@ Usage:
 
 Commands:
   verify    Run full verification (includes iOS simulator build/run)
+  verify-push  Verify, then commit and push main
   fix       Run auto-fix steps and checks
   test      Run flutter tests
   analyze   Run flutter analyze
@@ -41,6 +42,10 @@ cmd="${1:-help}"
 case "${cmd}" in
   verify)
     ./scripts/verify.sh
+    ;;
+  verify-push)
+    shift || true
+    ./scripts/verify_commit_push.sh "$@"
     ;;
   fix)
     ./scripts/fix.sh
