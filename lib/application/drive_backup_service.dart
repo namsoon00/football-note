@@ -591,6 +591,7 @@ class DriveBackupService implements BackupRepository {
 
   Map<String, dynamic> _entryToMap(TrainingEntry entry) => {
         'date': entry.date.toIso8601String(),
+        'createdAt': entry.createdAt.toIso8601String(),
         'durationMinutes': entry.durationMinutes,
         'intensity': entry.intensity,
         'type': entry.type,
@@ -631,8 +632,18 @@ class DriveBackupService implements BackupRepository {
       return DateTime.now();
     }
 
+    DateTime parseCreatedAt(DateTime fallback) {
+      final value = map['createdAt'];
+      if (value is String) {
+        return DateTime.tryParse(value) ?? fallback;
+      }
+      return fallback;
+    }
+
+    final date = parseDate();
+
     return TrainingEntry(
-      date: parseDate(),
+      date: date,
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 0,
       intensity: (map['intensity'] as num?)?.toInt() ?? 3,
       type: map['type'] as String? ?? '',
@@ -673,6 +684,7 @@ class DriveBackupService implements BackupRepository {
       improvements:
           (map['improvements'] as String?) ?? (map['notes'] as String? ?? ''),
       nextGoal: (map['nextGoal'] as String?) ?? (map['goal'] as String? ?? ''),
+      createdAt: parseCreatedAt(date),
     );
   }
 }

@@ -1235,6 +1235,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final goodPoints = _goodPointsController.text.trim();
       final improvements = _improvementsController.text.trim();
       final nextGoal = _nextGoalController.text.trim();
+      final createdAt = widget.entry?.createdAt ?? DateTime.now();
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -1263,6 +1264,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         goodPoints: goodPoints,
         improvements: improvements,
         nextGoal: nextGoal,
+        createdAt: createdAt,
       );
       final fortune = _fortuneService.generateResult(
         entry: draftEntry,
@@ -1304,6 +1306,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         goodPoints: draftEntry.goodPoints,
         improvements: draftEntry.improvements,
         nextGoal: draftEntry.nextGoal,
+        createdAt: draftEntry.createdAt,
       );
 
       if (widget.entry == null) {

@@ -18,14 +18,14 @@ class TrainingService {
   Future<TrainingEntry?> latestEntry() async {
     final entries = await _repository.getAll();
     if (entries.isEmpty) return null;
-    entries.sort((a, b) => b.date.compareTo(a.date));
+    entries.sort(TrainingEntry.compareByRecentCreated);
     return entries.first;
   }
 
   Future<TrainingEntry?> latestWithGrowth() async {
     final entries = await _repository.getAll();
     if (entries.isEmpty) return null;
-    entries.sort((a, b) => b.date.compareTo(a.date));
+    entries.sort(TrainingEntry.compareByRecentCreated);
     for (final entry in entries) {
       if (entry.heightCm != null || entry.weightKg != null) {
         return entry;
