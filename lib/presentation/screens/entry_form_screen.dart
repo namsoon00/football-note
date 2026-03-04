@@ -576,9 +576,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             TextButton.icon(
                               onPressed: (_saveInProgress || _deleteInProgress)
                                   ? null
-                                  : _save,
-                              icon: const Icon(Icons.save_outlined, size: 18),
-                              label: Text(l10n.save),
+                                  : (isEdit ? _confirmAndDelete : _save),
+                              icon: Icon(
+                                isEdit
+                                    ? Icons.delete_outline
+                                    : Icons.save_outlined,
+                                size: 18,
+                              ),
+                              label:
+                                  Text(isEdit ? l10n.deleteEntry : l10n.save),
                             ),
                           ],
                         ),
@@ -759,28 +765,36 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _buildIntSelectRow(
-                            label: l10n.intensity,
-                            value: _intensity,
-                            options: _ratingOptions,
-                            optionLabel: (value) => '$value / 5',
-                            onChanged: (value) {
-                              setState(() => _intensity = value);
-                              _scheduleAutoSave();
-                            },
-                            onAdd: null,
-                          ),
-                          const SizedBox(height: 18),
-                          _buildIntSelectRow(
-                            label: l10n.condition,
-                            value: _mood,
-                            options: _ratingOptions,
-                            optionLabel: (value) => '$value / 5',
-                            onChanged: (value) {
-                              setState(() => _mood = value);
-                              _scheduleAutoSave();
-                            },
-                            onAdd: null,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildIntSelectRow(
+                                  label: l10n.intensity,
+                                  value: _intensity,
+                                  options: _ratingOptions,
+                                  optionLabel: (value) => '$value / 5',
+                                  onChanged: (value) {
+                                    setState(() => _intensity = value);
+                                    _scheduleAutoSave();
+                                  },
+                                  onAdd: null,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildIntSelectRow(
+                                  label: l10n.condition,
+                                  value: _mood,
+                                  options: _ratingOptions,
+                                  optionLabel: (value) => '$value / 5',
+                                  onChanged: (value) {
+                                    setState(() => _mood = value);
+                                    _scheduleAutoSave();
+                                  },
+                                  onAdd: null,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1002,23 +1016,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          OutlinedButton.icon(
-                            onPressed: (_saveInProgress || _deleteInProgress)
-                                ? null
-                                : _confirmAndDelete,
-                            icon: const Icon(Icons.delete_outline),
-                            label: Text(l10n.deleteEntry),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: theme.colorScheme.error,
-                              side: BorderSide(
-                                color: theme.colorScheme.error.withValues(
-                                  alpha: 0.7,
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
                           Padding(
                             padding: const EdgeInsets.only(top: 4, bottom: 4),
                             child: Text(
