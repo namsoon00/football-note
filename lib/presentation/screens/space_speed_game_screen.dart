@@ -1167,11 +1167,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         _receiverX = _receiverX.clamp(minX, maxX);
       }
       if (_passerYPos <= minY || _passerYPos >= maxY) {
-        _passerVy = -_passerVy;
+        _passerVy = 0;
         _passerYPos = _passerYPos.clamp(minY, maxY);
       }
       if (_receiverY <= minY || _receiverY >= maxY) {
-        _receiverVy = -_receiverVy;
+        _receiverVy = 0;
         _receiverY = _receiverY.clamp(minY, maxY);
       }
       const minForwardGap = 0.10;
