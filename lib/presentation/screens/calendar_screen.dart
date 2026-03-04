@@ -1243,6 +1243,10 @@ class _EntryTile extends StatelessWidget {
   }
 
   String _entryFocusText(TrainingEntry entry) {
+    if (entry.goalFocuses.isNotEmpty) return entry.goalFocuses.join(', ');
+    if (entry.nextGoal.trim().isNotEmpty) return entry.nextGoal.trim();
+    if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
+    if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
     if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
     if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
     if (entry.fortuneComment.trim().isNotEmpty) {

@@ -616,6 +616,10 @@ class DriveBackupService implements BackupRepository {
         'fortuneComment': entry.fortuneComment,
         'fortuneRecommendation': entry.fortuneRecommendation,
         'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
+        'goalFocuses': entry.goalFocuses,
+        'goodPoints': entry.goodPoints,
+        'improvements': entry.improvements,
+        'nextGoal': entry.nextGoal,
       };
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
@@ -661,6 +665,14 @@ class DriveBackupService implements BackupRepository {
       fortuneRecommendation: map['fortuneRecommendation'] as String? ?? '',
       fortuneRecommendedProgram:
           map['fortuneRecommendedProgram'] as String? ?? '',
+      goalFocuses:
+          (map['goalFocuses'] as List?)?.map((e) => e.toString()).toList() ??
+              const <String>[],
+      goodPoints:
+          (map['goodPoints'] as String?) ?? (map['feedback'] as String? ?? ''),
+      improvements:
+          (map['improvements'] as String?) ?? (map['notes'] as String? ?? ''),
+      nextGoal: (map['nextGoal'] as String?) ?? (map['goal'] as String? ?? ''),
     );
   }
 }

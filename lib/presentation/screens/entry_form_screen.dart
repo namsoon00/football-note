@@ -44,12 +44,12 @@ class EntryFormScreen extends StatefulWidget {
 
 class _EntryFormScreenState extends State<EntryFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _notesController = TextEditingController();
+  final _goodPointsController = TextEditingController();
+  final _improvementsController = TextEditingController();
+  final _nextGoalController = TextEditingController();
   final _drillsController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
-  final _goalController = TextEditingController();
-  final _feedbackController = TextEditingController();
   final _liftChestController = TextEditingController();
   final _liftBackController = TextEditingController();
   final _liftLegsController = TextEditingController();
@@ -67,8 +67,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
+  List<String> _dailyGoalOptions = [];
   List<int> _durationOptions = [];
   List<String> _injuryPartOptions = [];
+  final Set<String> _selectedDailyGoals = <String>{};
   final List<int> _ratingOptions = [1, 2, 3, 4, 5];
   bool _optionsLoaded = false;
   Timer? _autoSaveTimer;
@@ -119,6 +121,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         l10n.defaultProgram4,
       ],
     );
+    _dailyGoalOptions = _loadOptions(
+      key: 'daily_goals',
+      defaults: _defaultDailyGoals(),
+    );
     _durationOptions = _loadIntOptions(
       key: 'durations',
       defaults: const [0, 30, 45, 60, 75, 90, 120],
@@ -142,7 +148,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _notesController.text = entry.notes;
+      _goodPointsController.text = entry.goodPoints.isNotEmpty
+          ? entry.goodPoints
+          : entry.feedback;
+      _improvementsController.text = entry.improvements.isNotEmpty
+          ? entry.improvements
+          : entry.notes;
+      _nextGoalController.text = entry.nextGoal.isNotEmpty
+          ? entry.nextGoal
+          : entry.goal;
       _drillsController.text = entry.drills;
       _intensity = entry.intensity;
       _mood = entry.mood;
@@ -154,8 +168,25 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _painController.text = entry.painLevel?.toString() ?? '';
       _rehab = entry.rehab;
       _liftingEnabled = entry.liftingByPart.values.any((value) => value > 0);
-      _goalController.text = entry.goal;
-      _feedbackController.text = entry.feedback;
+      _selectedDailyGoals
+        ..clear()
+        ..addAll(entry.goalFocuses);
+      var hasNewDailyGoalOption = false;
+      for (final goal in _selectedDailyGoals) {
+        if (!_dailyGoalOptions.contains(goal)) {
+          _dailyGoalOptions.add(goal);
+          hasNewDailyGoalOption = true;
+        }
+      }
+      if (hasNewDailyGoalOption) {
+        widget.optionRepository.saveOptions('daily_goals', _dailyGoalOptions);
+      }
+      if (entry.goalFocuses.isEmpty && entry.goal.trim().isNotEmpty) {
+        final legacyGoal = entry.goal.trim();
+        if (_dailyGoalOptions.contains(legacyGoal)) {
+          _selectedDailyGoals.add(legacyGoal);
+        }
+      }
       _fortuneComment = entry.fortuneComment;
       _imagePaths
         ..clear()
@@ -194,6 +225,21 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _fortuneComment = '';
       unawaited(_applyLatestEntryDefaults());
     }
+  }
+
+  List<String> _defaultDailyGoals() {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    if (isKo) {
+      return const ['드리블', '패스 정확도', '슈팅', '체력', '수비 위치 선정', '퍼스트 터치'];
+    }
+    return const [
+      'Dribbling',
+      'Passing Accuracy',
+      'Shooting',
+      'Fitness',
+      'Defensive Positioning',
+      'First Touch',
+    ];
   }
 
   Future<void> _applyLatestEntryDefaults() async {
@@ -318,16 +364,77 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
+  Widget _buildDailyGoalSelector() {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final title = isKo ? '오늘의 목표(복수 선택)' : 'Today goals (multi-select)';
+    final hint = isKo
+        ? '선택한 항목이 오늘의 목표로 저장됩니다.'
+        : 'Selected items are saved as today goals.';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+            ),
+            IconButton(
+              onPressed: () => _addOption(
+                key: 'daily_goals',
+                title: isKo ? '오늘의 목표 추가' : 'Add Today Goal',
+                options: _dailyGoalOptions,
+                onUpdated: (list) => setState(() => _dailyGoalOptions = list),
+                onSelected: (value) {
+                  setState(() {
+                    _selectedDailyGoals.add(value);
+                  });
+                  _scheduleAutoSave();
+                },
+              ),
+              icon: const Icon(Icons.add),
+              tooltip: isKo ? '목표 추가' : 'Add goal',
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final option in _dailyGoalOptions)
+              FilterChip(
+                label: Text(option),
+                selected: _selectedDailyGoals.contains(option),
+                onSelected: (selected) {
+                  setState(() {
+                    if (selected) {
+                      _selectedDailyGoals.add(option);
+                    } else {
+                      _selectedDailyGoals.remove(option);
+                    }
+                  });
+                  _scheduleAutoSave();
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(hint, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     _autoSaveTimer?.cancel();
     unawaited(_speech.cancel());
-    _notesController.dispose();
+    _goodPointsController.dispose();
+    _improvementsController.dispose();
+    _nextGoalController.dispose();
     _drillsController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
-    _goalController.dispose();
-    _feedbackController.dispose();
     _liftChestController.dispose();
     _liftBackController.dispose();
     _liftLegsController.dispose();
@@ -612,34 +719,43 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     const SizedBox(height: 16),
                     WatchCartCard(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          _buildDailyGoalSelector(),
+                          const SizedBox(height: 12),
                           _buildEmphasizedField(
-                            controller: _goalController,
+                            controller: _goodPointsController,
                             minLines: 2,
                             maxLines: null,
                             decoration: InputDecoration(
-                              labelText: l10n.goal,
-                              hintText: l10n.goal,
+                              labelText: isKo ? '잘한 점' : 'What went well',
+                              hintText: isKo
+                                  ? '오늘 잘된 플레이를 적어보세요.'
+                                  : 'Write what you did well today.',
                             ),
                           ),
                           const SizedBox(height: 12),
                           _buildEmphasizedField(
-                            controller: _feedbackController,
+                            controller: _improvementsController,
                             minLines: 3,
                             maxLines: null,
                             decoration: InputDecoration(
-                              labelText: l10n.feedback,
-                              hintText: l10n.feedback,
+                              labelText: isKo ? '아쉬운 점' : 'What to improve',
+                              hintText: isKo
+                                  ? '다음에 보완할 부분을 적어보세요.'
+                                  : 'Write what needs improvement.',
                             ),
                           ),
                           const SizedBox(height: 12),
                           _buildEmphasizedField(
-                            controller: _notesController,
+                            controller: _nextGoalController,
                             minLines: 4,
                             maxLines: null,
                             decoration: InputDecoration(
-                              labelText: l10n.notes,
-                              hintText: l10n.notes,
+                              labelText: isKo ? '다음 목표' : 'Next goal',
+                              hintText: isKo
+                                  ? '다음 훈련 목표를 적어보세요.'
+                                  : 'Write your next training goal.',
                             ),
                           ),
                         ],
@@ -884,9 +1000,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
     final showMic =
-        controller == _notesController ||
-        controller == _feedbackController ||
-        controller == _goalController ||
+        controller == _goodPointsController ||
+        controller == _improvementsController ||
+        controller == _nextGoalController ||
         controller == _drillsController;
     final isListeningFor = _isListening && _listeningController == controller;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -1135,6 +1251,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               'chest': _parseLiftCount(_liftCoreController.text),
             }..removeWhere((_, value) => value <= 0))
           : <String, int>{};
+      final selectedGoals = _selectedDailyGoals.toList()..sort();
+      final goodPoints = _goodPointsController.text.trim();
+      final improvements = _improvementsController.text.trim();
+      final nextGoal = _nextGoalController.text.trim();
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -1143,7 +1263,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         type: _type,
         mood: _mood,
         injury: _injury,
-        notes: _notesController.text.trim(),
+        notes: improvements,
         location: _location,
         program: _type,
         drills: _drillsController.text.trim(),
@@ -1151,14 +1271,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         injuryPart: injuryPart,
         painLevel: painLevel,
         rehab: _injury ? _rehab : false,
-        goal: _goalController.text.trim(),
-        feedback: _feedbackController.text.trim(),
+        goal: nextGoal,
+        feedback: goodPoints,
         heightCm: profile.heightCm,
         weightKg: profile.weightKg,
         imagePath: _imagePaths.isNotEmpty ? _imagePaths.first : '',
         imagePaths: _imagePaths,
         status: _status,
         liftingByPart: liftingByPart,
+        goalFocuses: selectedGoals,
+        goodPoints: goodPoints,
+        improvements: improvements,
+        nextGoal: nextGoal,
       );
       final fortune = _fortuneService.generateResult(
         entry: draftEntry,
@@ -1196,6 +1320,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         fortuneComment: fortuneComment,
         fortuneRecommendation: '',
         fortuneRecommendedProgram: '',
+        goalFocuses: draftEntry.goalFocuses,
+        goodPoints: draftEntry.goodPoints,
+        improvements: draftEntry.improvements,
+        nextGoal: draftEntry.nextGoal,
       );
 
       if (widget.entry == null) {

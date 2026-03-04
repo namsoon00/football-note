@@ -445,6 +445,10 @@ class _LogsScreenState extends State<LogsScreen> {
         entry.program,
         entry.type,
         entry.location,
+        entry.goalFocuses.join(' '),
+        entry.goodPoints,
+        entry.improvements,
+        entry.nextGoal,
         entry.notes,
         entry.goal,
         entry.feedback,
@@ -878,6 +882,12 @@ String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
 }
 
 String _buildListFocusText(TrainingEntry entry) {
+  if (entry.goalFocuses.isNotEmpty) {
+    return entry.goalFocuses.join(', ');
+  }
+  if (entry.nextGoal.trim().isNotEmpty) return entry.nextGoal.trim();
+  if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
+  if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
   if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
   if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
   if (entry.fortuneComment.trim().isNotEmpty) {
