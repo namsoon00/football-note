@@ -362,10 +362,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Widget _buildDailyGoalSelector() {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final title = isKo ? '오늘의 목표(복수 선택)' : 'Today goals (multi-select)';
-    final hint = isKo
-        ? '선택한 항목이 오늘의 목표로 저장됩니다.'
-        : 'Selected items are saved as today goals.';
+    final title = isKo ? '오늘의 목표' : 'Today goals';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -415,8 +412,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               ),
           ],
         ),
-        const SizedBox(height: 6),
-        Text(hint, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
