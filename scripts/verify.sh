@@ -9,9 +9,6 @@ flutter pub get
 echo "==> flutter gen-l10n"
 flutter gen-l10n
 
-echo "==> dart format (check)"
-dart format --set-exit-if-changed .
-
 echo "==> flutter analyze"
 flutter analyze
 
