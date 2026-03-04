@@ -698,6 +698,30 @@ class _TargetGrowthChart extends StatelessWidget {
             LineChartData(
               gridData: const FlGridData(show: false),
               borderData: FlBorderData(show: false),
+              lineTouchData: LineTouchData(
+                handleBuiltInTouches: true,
+                touchTooltipData: LineTouchTooltipData(
+                  fitInsideHorizontally: true,
+                  fitInsideVertically: true,
+                  getTooltipItems: (touchedSpots) {
+                    return touchedSpots.map((spot) {
+                      final label = spot.barIndex == 0
+                          ? (isKo ? '실제' : 'Actual')
+                          : (isKo ? '목표' : 'Target');
+                      final timeText =
+                          _formatMinutesAsTime(spot.y.round(), isKo: isKo);
+                      return LineTooltipItem(
+                        '$label: $timeText',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+              ),
               titlesData: FlTitlesData(
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
