@@ -391,29 +391,121 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           ],
         ),
         const SizedBox(height: 6),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final option in _dailyGoalOptions)
-              FilterChip(
-                label: Text(option),
-                selected: _selectedDailyGoals.contains(option),
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedDailyGoals.add(option);
-                    } else {
-                      _selectedDailyGoals.remove(option);
-                    }
-                  });
-                  _scheduleAutoSave();
-                },
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _selectedDailyGoalsSummary(isKo),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ),
-          ],
+              TextButton.icon(
+                onPressed: _dailyGoalOptions.isEmpty
+                    ? null
+                    : () => _openDailyGoalPicker(isKo),
+                icon: const Icon(Icons.checklist, size: 18),
+                label: Text(isKo ? '선택' : 'Select'),
+              ),
+            ],
+          ),
         ),
       ],
     );
+  }
+
+  String _selectedDailyGoalsSummary(bool isKo) {
+    if (_selectedDailyGoals.isEmpty) {
+      return isKo ? '선택된 목표 없음' : 'No goals selected';
+    }
+    final selected = _dailyGoalOptions
+        .where(_selectedDailyGoals.contains)
+        .toList(growable: false);
+    if (selected.isEmpty) {
+      return isKo
+          ? '${_selectedDailyGoals.length}개 선택됨'
+          : '${_selectedDailyGoals.length} selected';
+    }
+    return selected.join(', ');
+  }
+
+  Future<void> _openDailyGoalPicker(bool isKo) async {
+    final working = Set<String>.from(_selectedDailyGoals);
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, sheetSetState) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isKo ? '오늘의 목표 선택' : 'Select today goals',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text(isKo ? '완료' : 'Done'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final option in _dailyGoalOptions)
+                          CheckboxListTile(
+                            value: working.contains(option),
+                            title: Text(option),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (checked) {
+                              sheetSetState(() {
+                                if (checked ?? false) {
+                                  working.add(option);
+                                } else {
+                                  working.remove(option);
+                                }
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (saved != true || !mounted) return;
+    setState(() {
+      _selectedDailyGoals
+        ..clear()
+        ..addAll(working);
+    });
+    _scheduleAutoSave();
   }
 
   @override
