@@ -59,7 +59,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _speech = stt.SpeechToText();
   final _fortuneService = LocalFortuneService();
   TextEditingController? _listeningController;
-  String _lastRecognizedWords = '';
+  String _sessionRecognizedWords = '';
+  bool _sessionCommitted = false;
   int _listeningSession = 0;
   bool _isListening = false;
   bool _speechInitialized = false;
@@ -148,15 +149,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
-      _improvementsController.text = entry.improvements.isNotEmpty
-          ? entry.improvements
-          : entry.notes;
-      _nextGoalController.text = entry.nextGoal.isNotEmpty
-          ? entry.nextGoal
-          : entry.goal;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
+      _improvementsController.text =
+          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
+      _nextGoalController.text =
+          entry.nextGoal.isNotEmpty ? entry.nextGoal : entry.goal;
       _drillsController.text = entry.drills;
       _intensity = entry.intensity;
       _mood = entry.mood;
@@ -320,9 +318,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -333,9 +330,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -955,17 +951,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             child: Text(
                               _autoSaving
                                   ? (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '자동 저장 중...'
-                                        : 'Autosaving...')
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '자동 저장 중...'
+                                      : 'Autosaving...')
                                   : (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '수정 내용이 자동 저장됩니다.'
-                                        : 'Changes are saved automatically.'),
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '수정 내용이 자동 저장됩니다.'
+                                      : 'Changes are saved automatically.'),
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
@@ -999,16 +995,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _nextGoalController ||
         controller == _drillsController;
     final isListeningFor = _isListening && _listeningController == controller;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final voiceHelper = isKo
-        ? '음성 입력 버튼으로 말하면 텍스트로 자동 입력됩니다.'
-        : 'Use the voice input button to dictate this field.';
+        ? '녹음을 시작하고 종료하면 텍스트로 변환됩니다.'
+        : 'Start recording and tap again to convert to text.';
     final field = TextFormField(
       controller: controller,
       minLines: minLines,
@@ -1054,8 +1049,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ),
         helperText: isListeningFor
             ? (isKo
-                  ? '마이크가 활성화됐어요. 이어서 말하면 텍스트에 계속 추가됩니다.'
-                  : 'Microphone is active. Speak now to keep appending text.')
+                ? '녹음 중이에요. 종료하면 텍스트로 변환됩니다.'
+                : 'Recording in progress. Tap again to convert to text.')
             : (showMic && enabled ? voiceHelper : decoration.helperText),
         helperMaxLines: 2,
       ),
@@ -1069,13 +1064,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         OutlinedButton.icon(
           onPressed: () => _toggleListening(controller, l10n),
           icon: Icon(
-            isListeningFor ? Icons.mic : Icons.keyboard_voice_outlined,
+            isListeningFor ? Icons.stop_circle : Icons.fiber_manual_record,
             size: 18,
           ),
           label: Text(
             isListeningFor
-                ? (isKo ? '음성 입력 중지' : 'Stop Voice')
-                : (isKo ? '음성 입력' : 'Voice Input'),
+                ? (isKo ? '녹음 종료' : 'Stop Recording')
+                : (isKo ? '녹음 시작' : 'Start Recording'),
           ),
         ),
       ],
@@ -1088,23 +1083,33 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   ) async {
     if (_isListening) {
       _listeningSession++;
-      if (_listeningController == controller) {
-        await _speech.cancel();
-        if (!mounted) return;
+      final wasListeningForSameController = _listeningController == controller;
+      final controllerToCommit = _listeningController;
+      final recognizedToCommit = _sessionRecognizedWords;
+      final shouldCommit = !_sessionCommitted;
+      final locale = Localizations.localeOf(context).toString();
+      if (mounted) {
         setState(() {
           _isListening = false;
           _listeningController = null;
-          _lastRecognizedWords = '';
+          _sessionRecognizedWords = '';
+          _sessionCommitted = false;
         });
-        return;
       }
       await _speech.cancel();
       if (!mounted) return;
-      setState(() {
-        _isListening = false;
-        _listeningController = null;
-        _lastRecognizedWords = '';
-      });
+      if (wasListeningForSameController) {
+        if (shouldCommit &&
+            controllerToCommit != null &&
+            recognizedToCommit.trim().isNotEmpty) {
+          _commitRecognizedText(
+            controller: controllerToCommit,
+            recognized: recognizedToCommit,
+            isKoreanLocale: locale.startsWith('ko'),
+          );
+        }
+        return;
+      }
     }
 
     final available = await _ensureSpeechInitialized();
@@ -1119,55 +1124,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     setState(() {
       _isListening = true;
       _listeningController = controller;
-      _lastRecognizedWords = '';
+      _sessionRecognizedWords = '';
+      _sessionCommitted = false;
     });
     if (!mounted) return;
     final locale = Localizations.localeOf(context).toString();
-    final isKoreanLocale = locale.startsWith('ko');
     final localeId = locale.startsWith('ko') ? 'ko_KR' : null;
     await _speech.listen(
       localeId: localeId,
       onResult: (result) {
         if (listeningSession != _listeningSession) return;
         final recognized = result.recognizedWords.trim();
-        if (recognized.isNotEmpty) {
-          var appendChunk = recognized;
-          final lastRecognized = _lastRecognizedWords;
-          if (lastRecognized.isNotEmpty) {
-            if (recognized.startsWith(lastRecognized)) {
-              appendChunk = recognized.substring(lastRecognized.length).trim();
-            } else if (lastRecognized.startsWith(recognized)) {
-              appendChunk = '';
-            }
-          }
-          if (appendChunk.isEmpty) {
-            _lastRecognizedWords = recognized;
-            return;
-          }
-          final currentText = controller.text;
-          final needsSpacing =
-              !isKoreanLocale &&
-              currentText.isNotEmpty &&
-              !RegExp(r'\s$').hasMatch(currentText);
-          final separator = needsSpacing ? ' ' : '';
-          final nextText = '$currentText$separator$appendChunk';
-          final normalizedNext = nextText.trimRight();
-          final normalizedCurrent = currentText.trimRight();
-          if (normalizedCurrent.isNotEmpty &&
-              normalizedCurrent == normalizedNext) {
-            _lastRecognizedWords = recognized;
-            return;
-          }
-          if (controller.text != nextText) {
-            controller.value = controller.value.copyWith(
-              text: nextText,
-              selection: TextSelection.collapsed(offset: nextText.length),
-              composing: TextRange.empty,
-            );
-            _scheduleAutoSave();
-          }
-          _lastRecognizedWords = recognized;
-        }
+        if (recognized.isEmpty) return;
+        _sessionRecognizedWords = recognized;
       },
     );
   }
@@ -1179,11 +1148,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       onStatus: (status) {
         if (!_isListening) return;
         if (status == 'done' || status == 'notListening') {
+          if (_listeningController != null &&
+              !_sessionCommitted &&
+              _sessionRecognizedWords.trim().isNotEmpty) {
+            final locale = Localizations.localeOf(context).toString();
+            _commitRecognizedText(
+              controller: _listeningController!,
+              recognized: _sessionRecognizedWords,
+              isKoreanLocale: locale.startsWith('ko'),
+            );
+          }
           if (!mounted) return;
           setState(() {
             _isListening = false;
             _listeningController = null;
-            _lastRecognizedWords = '';
+            _sessionRecognizedWords = '';
+            _sessionCommitted = false;
           });
         }
       },
@@ -1192,11 +1172,42 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         setState(() {
           _isListening = false;
           _listeningController = null;
-          _lastRecognizedWords = '';
+          _sessionRecognizedWords = '';
+          _sessionCommitted = false;
         });
       },
     );
     return _speechAvailable;
+  }
+
+  void _commitRecognizedText({
+    required TextEditingController controller,
+    required String recognized,
+    required bool isKoreanLocale,
+  }) {
+    final normalized = recognized.trim();
+    if (normalized.isEmpty || _sessionCommitted) return;
+
+    final currentText = controller.text;
+    final normalizedCurrent = currentText.trimRight();
+    if (normalizedCurrent.isNotEmpty &&
+        normalizedCurrent.endsWith(normalized)) {
+      _sessionCommitted = true;
+      return;
+    }
+
+    final needsSpacing = !isKoreanLocale &&
+        currentText.isNotEmpty &&
+        !RegExp(r'\s$').hasMatch(currentText);
+    final separator = needsSpacing ? ' ' : '';
+    final nextText = '$currentText$separator$normalized';
+    controller.value = controller.value.copyWith(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: nextText.length),
+      composing: TextRange.empty,
+    );
+    _sessionCommitted = true;
+    _scheduleAutoSave();
   }
 
   Future<void> _pickDate() async {
