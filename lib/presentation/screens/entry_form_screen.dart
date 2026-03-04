@@ -550,20 +550,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     ),
                     const SizedBox(height: 12),
                     WatchCartCard(
-                      child: _buildEmphasizedField(
-                        controller: _drillsController,
-                        minLines: 3,
-                        maxLines: null,
-                        decoration: InputDecoration(
-                          labelText: isKo ? '훈련 방법' : 'Training Method',
-                          hintText: isKo
-                              ? '예) 1:1 압박 회피 패턴, 3인 드릴 순환 규칙, 코칭 포인트'
-                              : 'e.g. 1v1 pressure escape pattern, 3-player drill cycle, coaching points',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    WatchCartCard(
                       child: Column(
                         children: [
                           _buildStatusRow(l10n),
@@ -997,13 +983,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
     final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
-        controller == _nextGoalController ||
-        controller == _drillsController;
+        controller == _nextGoalController;
     final isListeningFor = _isListening && _listeningController == controller;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final voiceHelper = isKo
-        ? '녹음을 시작하고 종료하면 텍스트로 변환됩니다.'
-        : 'Start recording and tap again to convert to text.';
     final field = TextFormField(
       controller: controller,
       minLines: minLines,
@@ -1047,34 +1028,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8)
               : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.44),
         ),
-        helperText: isListeningFor
-            ? (isKo
-                ? '녹음 중이에요. 종료하면 텍스트로 변환됩니다.'
-                : 'Recording in progress. Tap again to convert to text.')
-            : (showMic && enabled ? voiceHelper : decoration.helperText),
-        helperMaxLines: 2,
+        helperText: decoration.helperText,
+        helperMaxLines: decoration.helperMaxLines,
+        suffixIcon: showMic && enabled
+            ? IconButton(
+                onPressed: () => _toggleListening(controller, l10n),
+                icon: Icon(
+                  isListeningFor ? Icons.mic : Icons.mic_none,
+                  color: isListeningFor
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            : decoration.suffixIcon,
       ),
     );
-    if (!showMic || !enabled) return field;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        field,
-        const SizedBox(height: 6),
-        OutlinedButton.icon(
-          onPressed: () => _toggleListening(controller, l10n),
-          icon: Icon(
-            isListeningFor ? Icons.stop_circle : Icons.fiber_manual_record,
-            size: 18,
-          ),
-          label: Text(
-            isListeningFor
-                ? (isKo ? '녹음 종료' : 'Stop Recording')
-                : (isKo ? '녹음 시작' : 'Start Recording'),
-          ),
-        ),
-      ],
-    );
+    return field;
   }
 
   Future<void> _toggleListening(
