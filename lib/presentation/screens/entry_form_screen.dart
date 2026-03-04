@@ -17,6 +17,7 @@ import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import 'settings_screen.dart';
+import 'training_method_board_screen.dart';
 
 class EntryFormScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -588,20 +589,36 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             ),
                           ],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.settings),
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => SettingsScreen(
-                                  localeService: widget.localeService,
-                                  settingsService: widget.settingsService,
-                                  optionRepository: widget.optionRepository,
-                                  driveBackupService: widget.driveBackupService,
-                                ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.sports_soccer,
+                                color: _drillsController.text.trim().isNotEmpty
+                                    ? theme.colorScheme.primary
+                                    : null,
                               ),
-                            );
-                          },
+                              tooltip:
+                                  isKo ? '훈련 방법 보드' : 'Training Method Board',
+                              onPressed: _openTrainingMethodBoard,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.settings),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => SettingsScreen(
+                                      localeService: widget.localeService,
+                                      settingsService: widget.settingsService,
+                                      optionRepository: widget.optionRepository,
+                                      driveBackupService:
+                                          widget.driveBackupService,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -1275,6 +1292,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       setState(() => _date = picked);
       _scheduleAutoSave();
     }
+  }
+
+  Future<void> _openTrainingMethodBoard() async {
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => TrainingMethodBoardScreen(
+          initialLayoutJson: _drillsController.text,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    if (_drillsController.text == result) return;
+    setState(() {
+      _drillsController.text = result;
+    });
+    _scheduleAutoSave();
   }
 
   void _scheduleAutoSave() {
