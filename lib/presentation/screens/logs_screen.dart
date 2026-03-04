@@ -16,6 +16,7 @@ import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../domain/entities/training_entry.dart';
+import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import 'settings_screen.dart';
@@ -799,6 +800,10 @@ class _EntryCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
               ),
+              if (_hasTrainingBoard(entry.drills)) ...[
+                const SizedBox(height: 6),
+                _TrainingBoardThumb(layoutRaw: entry.drills),
+              ],
               if (focusText.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -852,6 +857,14 @@ class _EntryListItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+            if (_hasTrainingBoard(entry.drills))
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: _TrainingBoardThumb(
+                  layoutRaw: entry.drills,
+                  compact: true,
+                ),
+              ),
             if (focusText.isNotEmpty)
               Text(
                 focusText,
@@ -868,13 +881,120 @@ class _EntryListItem extends StatelessWidget {
   }
 }
 
+bool _hasTrainingBoard(String raw) {
+  final layout = TrainingMethodLayout.decode(raw);
+  return layout.pages.any((p) => p.items.isNotEmpty);
+}
+
+class _TrainingBoardThumb extends StatelessWidget {
+  final String? layoutRaw;
+  final bool compact;
+
+  const _TrainingBoardThumb({
+    required this.layoutRaw,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = TrainingMethodLayout.decode(layoutRaw ?? '');
+    final previewItems = layout.pages.isNotEmpty
+        ? layout.pages.first.items
+        : const <TrainingMethodItem>[];
+    final itemCount = compact
+        ? previewItems.length
+        : layout.pages.fold<int>(0, (sum, p) => sum + p.items.length);
+    return Container(
+      height: compact ? 24 : 42,
+      width: compact ? 72 : double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final h = constraints.maxHeight;
+          return Stack(
+            children: [
+              CustomPaint(painter: _ThumbPitchPainter()),
+              ...previewItems.take(compact ? 6 : 10).map((item) {
+                final icon = switch (item.type) {
+                  'cone' => Icons.change_history,
+                  'player' => Icons.person,
+                  'ball' => Icons.sports_soccer,
+                  'ladder' => Icons.view_week,
+                  _ => Icons.circle,
+                };
+                return Positioned(
+                  left: (item.x * w).clamp(4, w - 12),
+                  top: (item.y * h).clamp(2, h - 12),
+                  child: Icon(
+                    icon,
+                    size: compact ? 9 : 11,
+                    color: Color(item.colorValue).withValues(alpha: 0.95),
+                  ),
+                );
+              }),
+              if (!compact)
+                Positioned(
+                  right: 6,
+                  top: 4,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '$itemCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ThumbPitchPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    canvas.drawRect(
+      Rect.fromLTWH(2, 2, size.width - 4, size.height - 4),
+      line,
+    );
+    canvas.drawLine(Offset(centerX, 2), Offset(centerX, size.height - 2), line);
+    canvas.drawCircle(Offset(centerX, centerY), 7, line);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
   final parts = <String>[];
   parts.add('${l10n.intensity} ${entry.intensity}');
   parts.add('${l10n.condition} ${entry.mood}');
-  if (entry.location.isNotEmpty) {
-    parts.add(entry.location);
-  }
   return parts.join('  •  ');
 }
 
