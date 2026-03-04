@@ -80,6 +80,18 @@ class TrainingEntry extends HiveObject {
   @HiveField(31)
   final String fortuneRecommendedProgram;
 
+  @HiveField(32)
+  final List<String> goalFocuses;
+
+  @HiveField(33)
+  final String goodPoints;
+
+  @HiveField(34)
+  final String improvements;
+
+  @HiveField(35)
+  final String nextGoal;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -107,6 +119,10 @@ class TrainingEntry extends HiveObject {
     this.fortuneComment = '',
     this.fortuneRecommendation = '',
     this.fortuneRecommendedProgram = '',
+    this.goalFocuses = const [],
+    this.goodPoints = '',
+    this.improvements = '',
+    this.nextGoal = '',
   });
 }
 
@@ -122,6 +138,12 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       final key = reader.readByte();
       fields[key] = reader.read();
     }
+    final legacyNotes = (fields[6] as String?) ?? '';
+    final legacyGoal = (fields[20] as String?) ?? '';
+    final legacyFeedback = (fields[21] as String?) ?? '';
+    final goodPoints = (fields[33] as String?) ?? legacyFeedback;
+    final improvements = (fields[34] as String?) ?? legacyNotes;
+    final nextGoal = (fields[35] as String?) ?? legacyGoal;
     return TrainingEntry(
       date: fields[0] as DateTime,
       durationMinutes: fields[1] as int,
@@ -129,7 +151,7 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       type: fields[3] as String,
       mood: fields[4] as int,
       injury: fields[5] as bool,
-      notes: fields[6] as String,
+      notes: legacyNotes.isNotEmpty ? legacyNotes : improvements,
       location: fields[7] as String,
       program: (fields[8] as String?) ?? '',
       drills: (fields[9] as String?) ?? '',
@@ -137,32 +159,40 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       injuryPart: (fields[17] as String?) ?? '',
       painLevel: fields[18] as int?,
       rehab: (fields[19] as bool?) ?? false,
-      goal: (fields[20] as String?) ?? '',
-      feedback: (fields[21] as String?) ?? '',
+      goal: legacyGoal.isNotEmpty ? legacyGoal : nextGoal,
+      feedback: legacyFeedback.isNotEmpty ? legacyFeedback : goodPoints,
       heightCm: fields[22] as double?,
       weightKg: fields[23] as double?,
       imagePath: (fields[24] as String?) ?? '',
-      imagePaths: (fields[25] as List?)?.cast<String>() ??
+      imagePaths:
+          (fields[25] as List?)?.cast<String>() ??
           ((fields[24] as String?)?.isNotEmpty ?? false
               ? [fields[24] as String]
               : []),
       status: (fields[26] as String?) ?? 'normal',
-      liftingByPart: (fields[27] as Map?)?.map((key, value) => MapEntry(
-                key.toString(),
-                (value is num) ? value.toInt() : 0,
-              )) ??
+      liftingByPart:
+          (fields[27] as Map?)?.map(
+            (key, value) =>
+                MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
+          ) ??
           const {},
       coachComment: (fields[28] as String?) ?? '',
       fortuneComment: (fields[29] as String?) ?? '',
       fortuneRecommendation: (fields[30] as String?) ?? '',
       fortuneRecommendedProgram: (fields[31] as String?) ?? '',
+      goalFocuses:
+          (fields[32] as List?)?.map((e) => e.toString()).toList() ??
+          const <String>[],
+      goodPoints: goodPoints,
+      improvements: improvements,
+      nextGoal: nextGoal,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(26)
+      ..writeByte(30)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -214,6 +244,14 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(30)
       ..write(obj.fortuneRecommendation)
       ..writeByte(31)
-      ..write(obj.fortuneRecommendedProgram);
+      ..write(obj.fortuneRecommendedProgram)
+      ..writeByte(32)
+      ..write(obj.goalFocuses)
+      ..writeByte(33)
+      ..write(obj.goodPoints)
+      ..writeByte(34)
+      ..write(obj.improvements)
+      ..writeByte(35)
+      ..write(obj.nextGoal);
   }
 }
