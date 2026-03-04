@@ -1,4 +1,6 @@
-# Agent Working Rules
+# agent.md
+
+This file mirrors agent workflow expectations for this repository.
 
 ## Verification (Mandatory)
 - After any code change, run `./scripts/verify.sh` from repo root before final response.
