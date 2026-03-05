@@ -109,15 +109,19 @@ PROMPT
 
 export ISSUE_NUMBER ISSUE_TITLE ISSUE_URL ISSUE_BODY HEAD_BRANCH BASE_BRANCH="$DEFAULT_BRANCH" CODEX_PROMPT_FILE="$PROMPT_FILE"
 
+CODEX_EXIT=0
+set +e
 if [[ "$USE_CUSTOM_CODEX_CMD" == "1" && -n "${CODEX_RUNNER_CMD:-}" ]]; then
   log "Running custom Codex command in $ROOT_DIR"
   log "Custom command: $CODEX_RUNNER_CMD"
   bash -lc "cd \"$ROOT_DIR\" && $CODEX_RUNNER_CMD"
+  CODEX_EXIT=$?
 else
   if [[ -n "${CODEX_RUNNER_CMD:-}" ]]; then
     log "Ignoring CODEX_RUNNER_CMD because USE_CUSTOM_CODEX_CMD!=1"
   fi
   if ! command -v codex >/dev/null 2>&1; then
+    set -e
     log "codex CLI not found. Set CODEX_RUNNER_CMD or install codex."
     exit 1
   fi
@@ -127,24 +131,33 @@ else
       codex -C "$ROOT_DIR" \
         --dangerously-bypass-approvals-and-sandbox \
         exec "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
     else
       codex -C "$ROOT_DIR" \
         --sandbox "$CODEX_SANDBOX" \
         --ask-for-approval "$CODEX_APPROVAL" \
         exec "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
     fi
   else
     if [[ "$CODEX_UNSAFE" == "1" ]]; then
       codex -C "$ROOT_DIR" \
         --dangerously-bypass-approvals-and-sandbox \
         "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
     else
       codex -C "$ROOT_DIR" \
         --sandbox "$CODEX_SANDBOX" \
         --ask-for-approval "$CODEX_APPROVAL" \
         "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
     fi
   fi
+fi
+set -e
+
+if [[ "$CODEX_EXIT" != "0" ]]; then
+  log "Codex command exited with status ${CODEX_EXIT}. Checking git state before deciding failure."
 fi
 
 HAS_WORKTREE_CHANGES=1
@@ -163,6 +176,11 @@ if git diff --quiet; then
     exit 0
   fi
   log "No local changes, but branch is ${AHEAD_COUNT} commit(s) ahead of ${DEFAULT_BRANCH}. Continuing."
+fi
+
+if [[ "$CODEX_EXIT" != "0" ]]; then
+  log "Failing run because Codex exited non-zero and there are pending changes/commits to inspect."
+  exit "$CODEX_EXIT"
 fi
 
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
