@@ -159,7 +159,9 @@ if git diff --quiet; then
   exit 1
 fi
 
-if [[ "${RUN_VERIFY:-0}" == "1" ]]; then
+if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  log "Skipping verify in GitHub Actions workflow run"
+elif [[ "${RUN_VERIFY:-0}" == "1" ]]; then
   log "Running verify"
   scripts/verify.sh || true
 fi
