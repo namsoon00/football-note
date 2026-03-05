@@ -19,6 +19,7 @@ class TrainingMethodBoardScreen extends StatefulWidget {
 
 class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
   late List<_BoardPageState> _pages;
+  final TextEditingController _methodController = TextEditingController();
   int _pageIndex = 0;
   int _nextId = 1;
   int? _selectedItemId;
@@ -31,6 +32,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
   void initState() {
     super.initState();
     _restore();
+    _methodController.text = _currentPage.methodText;
   }
 
   void _restore() {
@@ -40,6 +42,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
       final page = entry.value;
       return _BoardPageState(
         name: page.name.trim().isEmpty ? 'Step ${i + 1}' : page.name,
+        methodText: page.methodText,
         items: page.items
             .map(
               (e) => _BoardItem(
@@ -47,7 +50,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
                 type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
                 x: e.x,
                 y: e.y,
-                size: e.size,
+                size: 32,
                 rotationDeg: e.rotationDeg,
                 color: Color(e.colorValue),
               ),
@@ -57,7 +60,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
     }).toList(growable: true);
     if (_pages.isEmpty) {
       _pages = <_BoardPageState>[
-        const _BoardPageState(name: 'Step 1', items: <_BoardItem>[])
+        _BoardPageState(name: 'Step 1', methodText: '', items: <_BoardItem>[])
       ];
     }
   }
@@ -68,6 +71,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           .map(
             (p) => TrainingMethodPage(
               name: p.name,
+              methodText: p.methodText,
               items: p.items
                   .map(
                     (e) => TrainingMethodItem(
@@ -124,9 +128,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
   void _addPage() {
     setState(() {
       _pages.add(_BoardPageState(
-          name: 'Step ${_pages.length + 1}', items: <_BoardItem>[]));
+        name: 'Step ${_pages.length + 1}',
+        methodText: '',
+        items: <_BoardItem>[],
+      ));
       _pageIndex = _pages.length - 1;
       _selectedItemId = null;
+      _methodController.text = _currentPage.methodText;
     });
   }
 
@@ -136,7 +144,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
       _pages.removeAt(_pageIndex);
       _pageIndex = _pageIndex.clamp(0, _pages.length - 1);
       _selectedItemId = null;
+      _methodController.text = _currentPage.methodText;
     });
+  }
+
+  @override
+  void dispose() {
+    _methodController.dispose();
+    super.dispose();
   }
 
   @override
@@ -163,6 +178,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           children: [
             _buildPageHeader(isKo),
             const SizedBox(height: 8),
+            _buildMethodTextInput(isKo),
+            const SizedBox(height: 8),
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -186,9 +203,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
                         ),
                         for (final item in _currentPage.items)
                           Positioned(
-                            left: (item.x * width) - (item.size / 2),
-                            top: (item.y * height) - (item.size / 2),
+                            left: (item.x * width) - 26,
+                            top: (item.y * height) - 26,
                             child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: _playMode
                                   ? null
                                   : () =>
@@ -221,10 +239,16 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
                                         item.y = nextY.clamp(0.03, 0.97);
                                       });
                                     },
-                              child: _BoardToken(
-                                item: item,
-                                selected:
-                                    !_playMode && item.id == _selectedItemId,
+                              child: SizedBox(
+                                width: 52,
+                                height: 52,
+                                child: Center(
+                                  child: _BoardToken(
+                                    item: item,
+                                    selected: !_playMode &&
+                                        item.id == _selectedItemId,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -237,7 +261,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
             const SizedBox(height: 10),
             if (!_playMode) _buildToolButtons(isKo),
             if (!_playMode) const SizedBox(height: 8),
-            if (!_playMode) _buildItemEditor(isKo),
+            if (!_playMode) _buildSelectedTools(isKo),
           ],
         ),
       ),
@@ -270,6 +294,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
               setState(() {
                 _pageIndex = value;
                 _selectedItemId = null;
+                _methodController.text = _currentPage.methodText;
               });
             },
           ),
@@ -297,6 +322,24 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildMethodTextInput(bool isKo) {
+    return TextField(
+      controller: _methodController,
+      minLines: 2,
+      maxLines: 3,
+      decoration: InputDecoration(
+        labelText: isKo ? '훈련 방법 메모' : 'Training method note',
+        hintText: isKo
+            ? '예) 콘 사이 2터치 드리블 후 패스'
+            : 'e.g. Two-touch dribble between cones then pass',
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: (value) {
+        _currentPage.methodText = value;
+      },
     );
   }
 
@@ -355,13 +398,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
     );
   }
 
-  Widget _buildItemEditor(bool isKo) {
+  Widget _buildSelectedTools(bool isKo) {
     final selected = _selectedItem;
     if (selected == null) {
       return Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          isKo ? '요소를 탭해서 편집하세요.' : 'Tap an item to edit.',
+          isKo
+              ? '요소를 탭한 뒤 이동하거나 색상을 선택하세요.'
+              : 'Tap an item, then move it or choose color.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
       );
@@ -380,7 +425,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
             children: [
               Expanded(
                 child: Text(
-                  isKo ? '선택 요소 편집' : 'Selected item',
+                  isKo ? '선택 요소' : 'Selected item',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -391,25 +436,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
               ),
             ],
           ),
-          _sliderRow(
-            label: isKo ? '크기' : 'Size',
-            value: selected.size,
-            min: 18,
-            max: 56,
-            onChanged: (v) => setState(() => selected.size = v),
-          ),
-          _sliderRow(
-            label: isKo ? '회전' : 'Rotation',
-            value: selected.rotationDeg,
-            min: -180,
-            max: 180,
-            onChanged: (v) => setState(() => selected.rotationDeg = v),
+          Text(
+            isKo ? '색상 지정' : 'Assign color',
+            style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _tokenColors.map((c) {
+            children: _presetColors.map((c) {
               final selectedColor = c.toARGB32() == selected.color.toARGB32();
               return InkWell(
                 onTap: () => setState(() => selected.color = c),
@@ -433,36 +468,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
       ),
     );
   }
-
-  Widget _sliderRow({
-    required String label,
-    required double value,
-    required double min,
-    required double max,
-    required ValueChanged<double> onChanged,
-  }) {
-    return Row(
-      children: [
-        SizedBox(width: 64, child: Text(label)),
-        Expanded(
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            onChanged: onChanged,
-          ),
-        ),
-        SizedBox(width: 36, child: Text(value.round().toString())),
-      ],
-    );
-  }
 }
 
 class _BoardPageState {
   final String name;
+  String methodText;
   final List<_BoardItem> items;
 
-  const _BoardPageState({required this.name, required this.items});
+  _BoardPageState({
+    required this.name,
+    required this.methodText,
+    required this.items,
+  });
 }
 
 class _BoardItem {
@@ -503,15 +520,12 @@ Color _defaultColorFor(_BoardItemType type) {
   };
 }
 
-const List<Color> _tokenColors = <Color>[
-  Color(0xFFFFFFFF),
+const List<Color> _presetColors = <Color>[
   Color(0xFFFFB300),
   Color(0xFF42A5F5),
+  Color(0xFF43A047),
+  Color(0xFFFB8C00),
   Color(0xFFE53935),
-  Color(0xFFAB47BC),
-  Color(0xFF26A69A),
-  Color(0xFFFF7043),
-  Color(0xFF8D6E63),
 ];
 
 class _BoardToken extends StatelessWidget {
@@ -531,8 +545,8 @@ class _BoardToken extends StatelessWidget {
     return Transform.rotate(
       angle: (item.rotationDeg * math.pi) / 180,
       child: Container(
-        width: item.size,
-        height: item.size,
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.18),
           shape: BoxShape.circle,
@@ -551,7 +565,7 @@ class _BoardToken extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Icon(icon, size: item.size * 0.55, color: item.color),
+        child: Icon(icon, size: 18, color: item.color),
       ),
     );
   }

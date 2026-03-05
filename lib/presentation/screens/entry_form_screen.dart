@@ -593,7 +593,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           children: [
                             IconButton(
                               icon: Icon(
-                                Icons.sports_soccer,
+                                Icons.stadium_outlined,
                                 color: _drillsController.text.trim().isNotEmpty
                                     ? theme.colorScheme.primary
                                     : null,

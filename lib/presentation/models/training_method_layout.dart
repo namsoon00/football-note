@@ -58,9 +58,14 @@ class TrainingMethodLayout {
 
 class TrainingMethodPage {
   final String name;
+  final String methodText;
   final List<TrainingMethodItem> items;
 
-  const TrainingMethodPage({required this.name, required this.items});
+  const TrainingMethodPage({
+    required this.name,
+    this.methodText = '',
+    required this.items,
+  });
 
   factory TrainingMethodPage.fromMap(Map<String, dynamic> map) {
     final rawItems = map['items'];
@@ -68,6 +73,7 @@ class TrainingMethodPage {
       name: (map['name'] as String?)?.trim().isNotEmpty == true
           ? (map['name'] as String)
           : 'Step',
+      methodText: (map['methodText'] as String?) ?? '',
       items: rawItems is List
           ? rawItems
               .whereType<Map>()
@@ -79,6 +85,7 @@ class TrainingMethodPage {
 
   Map<String, dynamic> toMap() => {
         'name': name,
+        'methodText': methodText,
         'items': items.map((e) => e.toMap()).toList(growable: false),
       };
 }
