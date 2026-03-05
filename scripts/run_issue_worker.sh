@@ -160,10 +160,13 @@ if [[ "$CODEX_EXIT" != "0" ]]; then
   log "Codex command exited with status ${CODEX_EXIT}. Checking git state before deciding failure."
 fi
 
+AHEAD_COUNT="$(git rev-list --count "${DEFAULT_BRANCH}..HEAD")"
 HAS_WORKTREE_CHANGES=1
-if git diff --quiet; then
+if \
+  git diff --quiet && \
+  git diff --cached --quiet && \
+  [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
   HAS_WORKTREE_CHANGES=0
-  AHEAD_COUNT="$(git rev-list --count "${DEFAULT_BRANCH}..HEAD")"
   if [[ "$AHEAD_COUNT" == "0" ]]; then
     log "No changes produced by Codex and no pending commits on ${HEAD_BRANCH}."
     curl -sS \
@@ -179,8 +182,12 @@ if git diff --quiet; then
 fi
 
 if [[ "$CODEX_EXIT" != "0" ]]; then
+  if [[ "$HAS_WORKTREE_CHANGES" == "0" && "$AHEAD_COUNT" != "0" ]]; then
+    log "Codex exited non-zero, but branch already has ${AHEAD_COUNT} commit(s) to merge. Continuing."
+  else
   log "Failing run because Codex exited non-zero and there are pending changes/commits to inspect."
   exit "$CODEX_EXIT"
+  fi
 fi
 
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
