@@ -57,6 +57,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _liftShouldersController = TextEditingController();
   final _liftArmsController = TextEditingController();
   final _liftCoreController = TextEditingController();
+  final _jumpRopeController = TextEditingController();
   final _speech = stt.SpeechToText();
   final _fortuneService = LocalFortuneService();
   TextEditingController? _listeningController;
@@ -203,6 +204,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
     } else {
       if (widget.initialDate != null) {
         final d = widget.initialDate!;
@@ -525,6 +528,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _liftShouldersController.dispose();
     _liftArmsController.dispose();
     _liftCoreController.dispose();
+    _jumpRopeController.dispose();
     super.dispose();
   }
 
@@ -874,52 +878,52 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               _scheduleAutoSave();
                             },
                           ),
-                          _buildSelectRow(
-                            label: l10n.injuryPart,
-                            value: _injuryPartController.text.isEmpty
-                                ? l10n.notSet
-                                : _injuryPartController.text,
-                            options: [l10n.notSet, ..._injuryPartOptions],
-                            onChanged: (value) {
-                              setState(() {
-                                _injuryPartController.text =
-                                    value == l10n.notSet ? '' : value;
-                              });
-                              _scheduleAutoSave();
-                            },
-                            onAdd: () => _addOption(
-                              key: 'injury_parts',
-                              title: l10n.injuryPart,
-                              options: _injuryPartOptions,
-                              onUpdated: (list) =>
-                                  setState(() => _injuryPartOptions = list),
-                              onSelected: (value) => setState(
-                                () => _injuryPartController.text = value,
+                          if (_injury) ...[
+                            _buildSelectRow(
+                              label: l10n.injuryPart,
+                              value: _injuryPartController.text.isEmpty
+                                  ? l10n.notSet
+                                  : _injuryPartController.text,
+                              options: [l10n.notSet, ..._injuryPartOptions],
+                              onChanged: (value) {
+                                setState(() {
+                                  _injuryPartController.text =
+                                      value == l10n.notSet ? '' : value;
+                                });
+                                _scheduleAutoSave();
+                              },
+                              onAdd: () => _addOption(
+                                key: 'injury_parts',
+                                title: l10n.injuryPart,
+                                options: _injuryPartOptions,
+                                onUpdated: (list) =>
+                                    setState(() => _injuryPartOptions = list),
+                                onSelected: (value) => setState(
+                                  () => _injuryPartController.text = value,
+                                ),
+                              ),
+                              enabled: _injury,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildEmphasizedField(
+                              controller: _painController,
+                              enabled: _injury,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: l10n.painLevel,
+                                hintText: '4',
                               ),
                             ),
-                            enabled: _injury,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildEmphasizedField(
-                            controller: _painController,
-                            enabled: _injury,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: l10n.painLevel,
-                              hintText: '4',
+                            SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(l10n.rehab),
+                              value: _rehab,
+                              onChanged: (value) {
+                                setState(() => _rehab = value);
+                                _scheduleAutoSave();
+                              },
                             ),
-                          ),
-                          SwitchListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(l10n.rehab),
-                            value: _rehab,
-                            onChanged: _injury
-                                ? (value) {
-                                    setState(() => _rehab = value);
-                                    _scheduleAutoSave();
-                                  }
-                                : null,
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -937,95 +941,108 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               _scheduleAutoSave();
                             },
                           ),
-                          Text(
-                            l10n.liftingByPart,
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftChestController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartInfront,
-                                    hintText: '0',
+                          if (_liftingEnabled) ...[
+                            Text(
+                              l10n.liftingByPart,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildEmphasizedField(
+                                    controller: _liftChestController,
+                                    enabled: _liftingEnabled,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.liftingPartInfront,
+                                      hintText: '0',
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftBackController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartInside,
-                                    hintText: '0',
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildEmphasizedField(
+                                    controller: _liftBackController,
+                                    enabled: _liftingEnabled,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.liftingPartInside,
+                                      hintText: '0',
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftLegsController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartOutside,
-                                    hintText: '0',
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildEmphasizedField(
+                                    controller: _liftLegsController,
+                                    enabled: _liftingEnabled,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.liftingPartOutside,
+                                      hintText: '0',
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftShouldersController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartMuple,
-                                    hintText: '0',
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildEmphasizedField(
+                                    controller: _liftShouldersController,
+                                    enabled: _liftingEnabled,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.liftingPartMuple,
+                                      hintText: '0',
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftArmsController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartHead,
-                                    hintText: '0',
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildEmphasizedField(
+                                    controller: _liftArmsController,
+                                    enabled: _liftingEnabled,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.liftingPartHead,
+                                      hintText: '0',
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftCoreController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartChest,
-                                    hintText: '0',
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildEmphasizedField(
+                                    controller: _liftCoreController,
+                                    enabled: _liftingEnabled,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: l10n.liftingPartChest,
+                                      hintText: '0',
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    WatchCartCard(
+                      child: _buildEmphasizedField(
+                        controller: _jumpRopeController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: isKo ? '줄넘기 횟수' : 'Jump rope count',
+                          hintText: '0',
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -1353,6 +1370,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final improvements = _improvementsController.text.trim();
       final nextGoal = _nextGoalController.text.trim();
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
+      final jumpRopeCount =
+          _parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0;
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -1382,6 +1401,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         improvements: improvements,
         nextGoal: nextGoal,
         createdAt: createdAt,
+        jumpRopeCount: jumpRopeCount,
       );
       final fortune = _fortuneService.generateResult(
         entry: draftEntry,
@@ -1424,6 +1444,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         improvements: draftEntry.improvements,
         nextGoal: draftEntry.nextGoal,
         createdAt: draftEntry.createdAt,
+        jumpRopeCount: draftEntry.jumpRopeCount,
       );
 
       if (widget.entry == null) {

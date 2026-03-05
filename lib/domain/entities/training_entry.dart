@@ -95,6 +95,9 @@ class TrainingEntry extends HiveObject {
   @HiveField(36)
   final DateTime createdAt;
 
+  @HiveField(37)
+  final int jumpRopeCount;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -127,6 +130,7 @@ class TrainingEntry extends HiveObject {
     this.improvements = '',
     this.nextGoal = '',
     DateTime? createdAt,
+    this.jumpRopeCount = 0,
   }) : createdAt = createdAt ?? DateTime.now();
 
   static int compareByRecentCreated(TrainingEntry a, TrainingEntry b) {
@@ -194,13 +198,14 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       improvements: improvements,
       nextGoal: nextGoal,
       createdAt: (fields[36] as DateTime?) ?? (fields[0] as DateTime),
+      jumpRopeCount: (fields[37] as num?)?.toInt() ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(31)
+      ..writeByte(32)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -262,6 +267,8 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(35)
       ..write(obj.nextGoal)
       ..writeByte(36)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(37)
+      ..write(obj.jumpRopeCount);
   }
 }

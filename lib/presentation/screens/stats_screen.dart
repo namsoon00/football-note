@@ -242,23 +242,6 @@ class _StatsScreenState extends State<StatsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _DevelopmentCoachCard(
-                  entries: filteredEntries,
-                  ageYears: ageYears,
-                  soccerYears: soccerYears,
-                  isKo: isKo,
-                  showAverage: canShowAverage,
-                  range: _selectedRange,
-                ),
-                const SizedBox(height: 18),
-                Divider(
-                  height: 1,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.25),
-                ),
-                const SizedBox(height: 18),
                 _TargetGrowthChart(
                   entries: filteredEntries,
                   ageYears: ageYears,
@@ -304,6 +287,16 @@ class _StatsScreenState extends State<StatsScreen> {
                 _LiftingSummaryCard(
                   entries: filteredEntries,
                 ),
+                const SizedBox(height: 18),
+                Divider(
+                  height: 1,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.25),
+                ),
+                const SizedBox(height: 18),
+                _JumpRopeSummaryCard(entries: filteredEntries),
               ],
             ),
           ],
@@ -381,247 +374,131 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 }
 
-class _DevelopmentCoachCard extends StatelessWidget {
-  final List<TrainingEntry> entries;
-  final int? ageYears;
-  final int? soccerYears;
-  final bool isKo;
-  final bool showAverage;
-  final DateTimeRange range;
-
-  const _DevelopmentCoachCard({
-    required this.entries,
-    required this.ageYears,
-    required this.soccerYears,
-    required this.isKo,
-    required this.showAverage,
-    required this.range,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final periodStart =
-        DateTime(range.start.year, range.start.month, range.start.day);
-    final periodEnd = DateTime(range.end.year, range.end.month, range.end.day);
-    final periodDays = periodEnd.difference(periodStart).inDays + 1;
-    final minutes =
-        entries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
-    final sessions = entries.length;
-    final target = benchmarkTarget(ageYears, soccerYears);
-    final scaledTargetMinutes =
-        ((target.weeklyMinutesTarget * periodDays) / 7).round();
-    final scaledTargetSessions =
-        ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
-    final minuteRatio =
-        scaledTargetMinutes <= 0 ? 0.0 : minutes / scaledTargetMinutes;
-    final sessionRatio =
-        scaledTargetSessions <= 0 ? 0.0 : sessions / scaledTargetSessions;
-
-    final variantSeed = periodStart.day + (entries.length % 7);
-
-    final period = _periodFromDays(periodDays);
-    final periodAdvice = _buildPeriodAdvice(
-      period: period,
-      minutes: minutes.toDouble(),
-      sessions: sessions.toDouble(),
-      targetMinutes: scaledTargetMinutes.toDouble(),
-      targetSessions: scaledTargetSessions.toDouble(),
-      showAverage: showAverage,
-      isKo: isKo,
-      variantSeed: variantSeed + 1,
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionTitle(
-          icon: Icons.trending_up,
-          title: isKo ? '성장 코치' : 'Growth Coach',
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _KpiTile(
-                label: isKo ? '선택 기간 시간' : 'Selected Time',
-                value: _formatMinutesAsTime(
-                  minutes,
-                  isKo: isKo,
-                ),
-                icon: Icons.timer_outlined,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _KpiTile(
-                label: isKo ? '평균 기준' : 'Avg Target',
-                value: showAverage
-                    ? _formatMinutesAsTime(scaledTargetMinutes, isKo: isKo)
-                    : (isKo ? '미입력' : 'N/A'),
-                icon: Icons.flag_outlined,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _KpiTile(
-                label: isKo ? '선택 기간 횟수' : 'Sessions',
-                value: showAverage
-                    ? '$sessions/$scaledTargetSessions'
-                    : '$sessions',
-                icon: Icons.event_repeat_outlined,
-              ),
-            ),
-          ],
-        ),
-        if (showAverage) ...[
-          const SizedBox(height: 8),
-          _RatioBar(
-            label: isKo ? '훈련량 달성률' : 'Minutes Progress',
-            ratio: minuteRatio,
-            tint: const Color(0xFF4DD0E1),
-          ),
-          const SizedBox(height: 8),
-          _RatioBar(
-            label: isKo ? '횟수 달성률' : 'Session Progress',
-            ratio: sessionRatio,
-            tint: const Color(0xFF3DDC84),
-          ),
-        ],
-        const SizedBox(height: 10),
-        _CoachMessage(
-          icon: Icons.date_range_outlined,
-          title: isKo ? '기간 코칭' : 'Period Coaching',
-          message: periodAdvice,
-        ),
-      ],
-    );
-  }
-
-  _CoachPeriod _periodFromDays(int days) {
-    if (days <= 1) return _CoachPeriod.daily;
-    if (days <= 14) return _CoachPeriod.weekly;
-    return _CoachPeriod.monthly;
-  }
-
-  String _buildPeriodAdvice({
-    required _CoachPeriod period,
-    required double minutes,
-    required double sessions,
-    required double targetMinutes,
-    required double targetSessions,
-    required bool showAverage,
-    required bool isKo,
-    required int variantSeed,
-  }) {
-    final ratio = showAverage
-        ? (targetMinutes <= 0 ? 0.0 : (minutes / targetMinutes))
-        : _heuristicRatio(period, minutes);
-    final sessionRatio = showAverage
-        ? (targetSessions <= 0 ? 0.0 : (sessions / targetSessions))
-        : _heuristicSessionRatio(period, sessions);
-    final combined = ((ratio * 0.65) + (sessionRatio * 0.35)).clamp(0.0, 2.0);
-    final gapMinutes =
-        showAverage ? math.max(0.0, targetMinutes - minutes).round() : 0;
-    final gapSessions =
-        showAverage ? math.max(0.0, targetSessions - sessions).ceil() : 0;
-    final variant = variantSeed % 3;
-
-    if (combined >= 1.0) {
-      final lines = isKo
-          ? <String>[
-              '${_periodName(period, true)} 목표 이상입니다. 지금 리듬을 유지하고 마지막 10분은 첫 터치/패스 정확도에 집중하세요.',
-              '${_periodName(period, true)} 페이스가 매우 좋아요. 다음 훈련은 약한 발 컨트롤을 추가해 성장 폭을 키워보세요.',
-              '${_periodName(period, true)} 기준으로 안정권입니다. 강도는 유지하고 회복 루틴(스트레칭/수면)도 챙기면 더 좋아요.',
-            ]
-          : <String>[
-              '${_periodName(period, false)} target exceeded. Keep the rhythm and spend the final 10 minutes on first touch and passing accuracy.',
-              '${_periodName(period, false)} pace is strong. Add weak-foot control in the next session for better growth.',
-              '${_periodName(period, false)} level is stable. Keep intensity and reinforce recovery habits.',
-            ];
-      return lines[variant];
-    }
-
-    if (combined >= 0.7) {
-      final lines = isKo
-          ? <String>[
-              '${_periodName(period, true)} 기준 거의 도달했습니다. ${showAverage ? '${_formatMinutesAsTime(gapMinutes, isKo: true)} + $gapSessions회' : '한 세션'}만 보완하면 목표권입니다.',
-              '${_periodName(period, true)} 흐름이 좋습니다. 남은 훈련은 드리블-패스 연계 반복을 넣어 완성도를 올려보세요.',
-              '${_periodName(period, true)} 상위 구간 직전입니다. 짧고 집중도 높은 세션을 1회 추가해 보세요.',
-            ]
-          : <String>[
-              '${_periodName(period, false)} is close to target. ${showAverage ? '${_formatMinutesAsTime(gapMinutes, isKo: false)} + $gapSessions sessions' : 'one focused session'} can close the gap.',
-              '${_periodName(period, false)} trend is positive. Add dribble-pass transition drills in the remaining sessions.',
-              '${_periodName(period, false)} is near upper band. Add one short high-focus session to break through.',
-            ];
-      return lines[variant];
-    }
-
-    if (showAverage) {
-      final lines = isKo
-          ? <String>[
-              '${_periodName(period, true)} 기준이 부족합니다. 최소 ${_formatMinutesAsTime(gapMinutes, isKo: true)}와 $gapSessions회 추가가 필요해요.',
-              '${_periodName(period, true)} 대비 훈련량이 낮습니다. 우선 횟수를 먼저 채우고(짧게라도), 그다음 시간을 늘려보세요.',
-              '${_periodName(period, true)} 목표와 차이가 큽니다. 이번에는 강도보다 규칙성(정해진 요일 고정)에 집중하세요.',
-            ]
-          : <String>[
-              '${_periodName(period, false)} is below target. Add at least ${_formatMinutesAsTime(gapMinutes, isKo: false)} and $gapSessions sessions.',
-              '${_periodName(period, false)} volume is low. Prioritize session count first, then increase total minutes.',
-              '${_periodName(period, false)} gap is significant. Focus on consistency before intensity.',
-            ];
-      return lines[variant];
-    }
-
-    final lines = isKo
-        ? <String>[
-            '${_periodName(period, true)} 기준으로 볼 때 훈련이 적습니다. 이번 기간은 횟수를 먼저 늘려 리듬을 만들어요.',
-            '${_periodName(period, true)} 데이터상 누적량이 부족해요. 짧아도 좋으니 끊기지 않게 이어가는 것이 우선입니다.',
-            '${_periodName(period, true)} 기준 평가에서 개선이 필요합니다. 같은 시간대에 고정 훈련을 잡아보세요.',
-          ]
-        : <String>[
-            '${_periodName(period, false)} suggests low activity. Increase frequency first to build rhythm.',
-            '${_periodName(period, false)} data shows low accumulation. Keep sessions continuous even if short.',
-            '${_periodName(period, false)} needs improvement. Try fixed-time training slots for consistency.',
-          ];
-    return lines[variant];
-  }
-
-  double _heuristicRatio(_CoachPeriod period, double minutes) {
-    switch (period) {
-      case _CoachPeriod.daily:
-        return (minutes / 50).clamp(0.0, 2.0);
-      case _CoachPeriod.weekly:
-        return (minutes / 220).clamp(0.0, 2.0);
-      case _CoachPeriod.monthly:
-        return (minutes / 880).clamp(0.0, 2.0);
-    }
-  }
-
-  double _heuristicSessionRatio(_CoachPeriod period, double sessions) {
-    switch (period) {
-      case _CoachPeriod.daily:
-        return sessions >= 1 ? 1.0 : 0.0;
-      case _CoachPeriod.weekly:
-        return (sessions / 4).clamp(0.0, 2.0);
-      case _CoachPeriod.monthly:
-        return (sessions / 16).clamp(0.0, 2.0);
-    }
-  }
-
-  String _periodName(_CoachPeriod period, bool isKo) {
-    switch (period) {
-      case _CoachPeriod.daily:
-        return isKo ? '일간' : 'Daily';
-      case _CoachPeriod.weekly:
-        return isKo ? '주간' : 'Weekly';
-      case _CoachPeriod.monthly:
-        return isKo ? '월간' : 'Monthly';
-    }
-  }
-}
-
 enum _CoachPeriod {
   daily,
   weekly,
   monthly,
+}
+
+_CoachPeriod _periodFromDays(int days) {
+  if (days <= 1) return _CoachPeriod.daily;
+  if (days <= 14) return _CoachPeriod.weekly;
+  return _CoachPeriod.monthly;
+}
+
+String _buildPeriodAdvice({
+  required _CoachPeriod period,
+  required double minutes,
+  required double sessions,
+  required double targetMinutes,
+  required double targetSessions,
+  required bool showAverage,
+  required bool isKo,
+  required int variantSeed,
+}) {
+  final ratio = showAverage
+      ? (targetMinutes <= 0 ? 0.0 : (minutes / targetMinutes))
+      : _heuristicRatio(period, minutes);
+  final sessionRatio = showAverage
+      ? (targetSessions <= 0 ? 0.0 : (sessions / targetSessions))
+      : _heuristicSessionRatio(period, sessions);
+  final combined = ((ratio * 0.65) + (sessionRatio * 0.35)).clamp(0.0, 2.0);
+  final gapMinutes =
+      showAverage ? math.max(0.0, targetMinutes - minutes).round() : 0;
+  final gapSessions =
+      showAverage ? math.max(0.0, targetSessions - sessions).ceil() : 0;
+  final variant = variantSeed % 3;
+
+  if (combined >= 1.0) {
+    final lines = isKo
+        ? <String>[
+            '${_periodName(period, true)} 목표 이상입니다. 지금 리듬을 유지하고 마지막 10분은 첫 터치/패스 정확도에 집중하세요.',
+            '${_periodName(period, true)} 페이스가 매우 좋아요. 다음 훈련은 약한 발 컨트롤을 추가해 성장 폭을 키워보세요.',
+            '${_periodName(period, true)} 기준으로 안정권입니다. 강도는 유지하고 회복 루틴(스트레칭/수면)도 챙기면 더 좋아요.',
+          ]
+        : <String>[
+            '${_periodName(period, false)} target exceeded. Keep the rhythm and spend the final 10 minutes on first touch and passing accuracy.',
+            '${_periodName(period, false)} pace is strong. Add weak-foot control in the next session for better growth.',
+            '${_periodName(period, false)} level is stable. Keep intensity and reinforce recovery habits.',
+          ];
+    return lines[variant];
+  }
+
+  if (combined >= 0.7) {
+    final lines = isKo
+        ? <String>[
+            '${_periodName(period, true)} 기준 거의 도달했습니다. ${showAverage ? '${_formatMinutesAsTime(gapMinutes, isKo: true)} + $gapSessions회' : '한 세션'}만 보완하면 목표권입니다.',
+            '${_periodName(period, true)} 흐름이 좋습니다. 남은 훈련은 드리블-패스 연계 반복을 넣어 완성도를 올려보세요.',
+            '${_periodName(period, true)} 상위 구간 직전입니다. 짧고 집중도 높은 세션을 1회 추가해 보세요.',
+          ]
+        : <String>[
+            '${_periodName(period, false)} is close to target. ${showAverage ? '${_formatMinutesAsTime(gapMinutes, isKo: false)} + $gapSessions sessions' : 'one focused session'} can close the gap.',
+            '${_periodName(period, false)} trend is positive. Add dribble-pass transition drills in the remaining sessions.',
+            '${_periodName(period, false)} is near upper band. Add one short high-focus session to break through.',
+          ];
+    return lines[variant];
+  }
+
+  if (showAverage) {
+    final lines = isKo
+        ? <String>[
+            '${_periodName(period, true)} 기준이 부족합니다. 최소 ${_formatMinutesAsTime(gapMinutes, isKo: true)}와 $gapSessions회 추가가 필요해요.',
+            '${_periodName(period, true)} 대비 훈련량이 낮습니다. 우선 횟수를 먼저 채우고(짧게라도), 그다음 시간을 늘려보세요.',
+            '${_periodName(period, true)} 목표와 차이가 큽니다. 이번에는 강도보다 규칙성(정해진 요일 고정)에 집중하세요.',
+          ]
+        : <String>[
+            '${_periodName(period, false)} is below target. Add at least ${_formatMinutesAsTime(gapMinutes, isKo: false)} and $gapSessions sessions.',
+            '${_periodName(period, false)} volume is low. Prioritize session count first, then increase total minutes.',
+            '${_periodName(period, false)} gap is significant. Focus on consistency before intensity.',
+          ];
+    return lines[variant];
+  }
+
+  final lines = isKo
+      ? <String>[
+          '${_periodName(period, true)} 기준으로 볼 때 훈련이 적습니다. 이번 기간은 횟수를 먼저 늘려 리듬을 만들어요.',
+          '${_periodName(period, true)} 데이터상 누적량이 부족해요. 짧아도 좋으니 끊기지 않게 이어가는 것이 우선입니다.',
+          '${_periodName(period, true)} 기준 평가에서 개선이 필요합니다. 같은 시간대에 고정 훈련을 잡아보세요.',
+        ]
+      : <String>[
+          '${_periodName(period, false)} suggests low activity. Increase frequency first to build rhythm.',
+          '${_periodName(period, false)} data shows low accumulation. Keep sessions continuous even if short.',
+          '${_periodName(period, false)} needs improvement. Try fixed-time training slots for consistency.',
+        ];
+  return lines[variant];
+}
+
+double _heuristicRatio(_CoachPeriod period, double minutes) {
+  switch (period) {
+    case _CoachPeriod.daily:
+      return (minutes / 50).clamp(0.0, 2.0);
+    case _CoachPeriod.weekly:
+      return (minutes / 220).clamp(0.0, 2.0);
+    case _CoachPeriod.monthly:
+      return (minutes / 880).clamp(0.0, 2.0);
+  }
+}
+
+double _heuristicSessionRatio(_CoachPeriod period, double sessions) {
+  switch (period) {
+    case _CoachPeriod.daily:
+      return sessions >= 1 ? 1.0 : 0.0;
+    case _CoachPeriod.weekly:
+      return (sessions / 4).clamp(0.0, 2.0);
+    case _CoachPeriod.monthly:
+      return (sessions / 16).clamp(0.0, 2.0);
+  }
+}
+
+String _periodName(_CoachPeriod period, bool isKo) {
+  switch (period) {
+    case _CoachPeriod.daily:
+      return isKo ? '일간' : 'Daily';
+    case _CoachPeriod.weekly:
+      return isKo ? '주간' : 'Weekly';
+    case _CoachPeriod.monthly:
+      return isKo ? '월간' : 'Monthly';
+  }
 }
 
 class _TargetGrowthChart extends StatelessWidget {
@@ -683,6 +560,25 @@ class _TargetGrowthChart extends StatelessWidget {
         : (isKo
             ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
             : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
+    final periodDays = periodEnd.difference(periodStart).inDays + 1;
+    final totalMinutes =
+        entries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+    final sessions = entries.length;
+    final scaledTargetMinutes =
+        ((target.weeklyMinutesTarget * periodDays) / 7).round();
+    final scaledTargetSessions =
+        ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
+    final period = _periodFromDays(periodDays);
+    final periodAdvice = _buildPeriodAdvice(
+      period: period,
+      minutes: totalMinutes.toDouble(),
+      sessions: sessions.toDouble(),
+      targetMinutes: scaledTargetMinutes.toDouble(),
+      targetSessions: scaledTargetSessions.toDouble(),
+      showAverage: showAverage,
+      isKo: isKo,
+      variantSeed: periodStart.day + (entries.length % 7) + 1,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -793,6 +689,12 @@ class _TargetGrowthChart extends StatelessWidget {
         Text(
           workedLabel,
           style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 10),
+        _CoachMessage(
+          icon: Icons.date_range_outlined,
+          title: isKo ? '기간 코칭' : 'Period Coaching',
+          message: periodAdvice,
         ),
       ],
     );
@@ -964,17 +866,35 @@ class _LiftingSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bestByPart = <String, _PartBest>{};
+    final recordsByPart = <String, List<_PartRecord>>{};
     for (final entry in entries) {
       entry.liftingByPart.forEach(
         (part, count) {
           if (count <= 0) return;
+          recordsByPart.putIfAbsent(part, () => <_PartRecord>[]).add(
+                _PartRecord(count: count, date: entry.date),
+              );
           final current = bestByPart[part];
           if (current == null || count > current.count) {
-            bestByPart[part] = _PartBest(count: count, date: entry.date);
+            bestByPart[part] =
+                _PartBest(count: count, date: entry.date, increase: 0);
           }
         },
       );
     }
+    recordsByPart.forEach((part, records) {
+      records.sort((a, b) => b.count.compareTo(a.count));
+      final best = records.first.count;
+      final prev = records.length > 1 ? records[1].count : 0;
+      final current = bestByPart[part];
+      if (current != null) {
+        bestByPart[part] = _PartBest(
+          count: current.count,
+          date: current.date,
+          increase: (best - prev).clamp(0, 999999),
+        );
+      }
+    });
     final sorted = bestByPart.entries.toList()
       ..sort((a, b) => b.value.count.compareTo(a.value.count));
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -1005,6 +925,19 @@ class _LiftingSummaryCard extends StatelessWidget {
                     isKo ? '${entry.value.count}회' : '${entry.value.count}',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
+                  if (entry.value.increase > 0) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      isKo
+                          ? '(+${entry.value.increase})'
+                          : '(+${entry.value.increase})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
                   const SizedBox(width: 10),
                   Text(
                     _dateText(entry.value.date),
@@ -1063,6 +996,64 @@ class _LiftingSummaryCard extends StatelessWidget {
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');
     return '$y.$m.$d';
+  }
+}
+
+class _JumpRopeSummaryCard extends StatelessWidget {
+  final List<TrainingEntry> entries;
+
+  const _JumpRopeSummaryCard({
+    required this.entries,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final valid = entries
+        .where((e) => e.jumpRopeCount > 0)
+        .map((e) => e.jumpRopeCount)
+        .toList(growable: false);
+    final total = valid.fold<int>(0, (sum, v) => sum + v);
+    final best = valid.isEmpty ? 0 : valid.reduce(math.max);
+    final avg = valid.isEmpty ? 0 : (total / valid.length).round();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+          icon: Icons.fitness_center_outlined,
+          title: isKo ? '줄넘기 통계' : 'Jump Rope Stats',
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _KpiTile(
+                label: isKo ? '총 횟수' : 'Total',
+                value: '$total',
+                icon: Icons.tag_outlined,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _KpiTile(
+                label: isKo ? '최고 기록' : 'Best',
+                value: '$best',
+                icon: Icons.emoji_events_outlined,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _KpiTile(
+                label: isKo ? '평균' : 'Average',
+                value: '$avg',
+                icon: Icons.analytics_outlined,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
@@ -1125,8 +1116,20 @@ class _InlineNotice extends StatelessWidget {
 class _PartBest {
   final int count;
   final DateTime date;
+  final int increase;
 
   const _PartBest({
+    required this.count,
+    required this.date,
+    required this.increase,
+  });
+}
+
+class _PartRecord {
+  final int count;
+  final DateTime date;
+
+  const _PartRecord({
     required this.count,
     required this.date,
   });
@@ -1216,49 +1219,6 @@ class _KpiTile extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _RatioBar extends StatelessWidget {
-  final String label;
-  final double ratio;
-  final Color tint;
-
-  const _RatioBar({
-    required this.label,
-    required this.ratio,
-    required this.tint,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final p = ratio.clamp(0.0, 1.2);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
-            Text(
-              '${(p * 100).toStringAsFixed(0)}%',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(
-            value: p <= 1 ? p : 1,
-            minHeight: 9,
-            color: tint,
-            backgroundColor:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.14),
-          ),
-        ),
-      ],
     );
   }
 }

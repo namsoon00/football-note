@@ -621,6 +621,7 @@ class DriveBackupService implements BackupRepository {
         'goodPoints': entry.goodPoints,
         'improvements': entry.improvements,
         'nextGoal': entry.nextGoal,
+        'jumpRopeCount': entry.jumpRopeCount,
       };
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
@@ -685,6 +686,7 @@ class DriveBackupService implements BackupRepository {
           (map['improvements'] as String?) ?? (map['notes'] as String? ?? ''),
       nextGoal: (map['nextGoal'] as String?) ?? (map['goal'] as String? ?? ''),
       createdAt: parseCreatedAt(date),
+      jumpRopeCount: (map['jumpRopeCount'] as num?)?.toInt() ?? 0,
     );
   }
 }
