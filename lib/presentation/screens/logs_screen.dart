@@ -765,6 +765,10 @@ class _EntryCard extends StatelessWidget {
     final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
+    final trainingBoardLayout = TrainingMethodLayout.decode(entry.drills);
+    final hasTrainingBoard = trainingBoardLayout.pages.any(
+      (page) => page.items.isNotEmpty,
+    );
 
     return Material(
       color: Colors.transparent,
@@ -800,9 +804,9 @@ class _EntryCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
               ),
-              if (_hasTrainingBoard(entry.drills)) ...[
+              if (hasTrainingBoard) ...[
                 const SizedBox(height: 6),
-                _TrainingBoardThumb(layoutRaw: entry.drills),
+                _TrainingBoardThumb(layout: trainingBoardLayout),
               ],
               if (focusText.isNotEmpty) ...[
                 const SizedBox(height: 4),
@@ -873,21 +877,15 @@ class _EntryListItem extends StatelessWidget {
   }
 }
 
-bool _hasTrainingBoard(String raw) {
-  final layout = TrainingMethodLayout.decode(raw);
-  return layout.pages.any((p) => p.items.isNotEmpty);
-}
-
 class _TrainingBoardThumb extends StatelessWidget {
-  final String? layoutRaw;
+  final TrainingMethodLayout layout;
 
   const _TrainingBoardThumb({
-    required this.layoutRaw,
+    required this.layout,
   });
 
   @override
   Widget build(BuildContext context) {
-    final layout = TrainingMethodLayout.decode(layoutRaw ?? '');
     final previewItems = layout.pages.isNotEmpty
         ? layout.pages.first.items
         : const <TrainingMethodItem>[];
