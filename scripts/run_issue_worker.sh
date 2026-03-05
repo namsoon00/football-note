@@ -147,16 +147,22 @@ else
   fi
 fi
 
+HAS_WORKTREE_CHANGES=1
 if git diff --quiet; then
-  log "No changes produced by Codex."
-  curl -sS \
-    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-    -H "Accept: application/vnd.github+json" \
-    -X POST \
-    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
-    -d "{\"body\":\"자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (권한/샌드박스/프롬프트를 점검하세요)\"}" \
-    >/dev/null || true
-  exit 1
+  HAS_WORKTREE_CHANGES=0
+  AHEAD_COUNT="$(git rev-list --count "${DEFAULT_BRANCH}..HEAD")"
+  if [[ "$AHEAD_COUNT" == "0" ]]; then
+    log "No changes produced by Codex and no pending commits on ${HEAD_BRANCH}."
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -X POST \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+      -d "{\"body\":\"자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (이미 반영되었거나 추가 수정이 필요합니다)\"}" \
+      >/dev/null || true
+    exit 0
+  fi
+  log "No local changes, but branch is ${AHEAD_COUNT} commit(s) ahead of ${DEFAULT_BRANCH}. Continuing."
 fi
 
 if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
@@ -175,16 +181,25 @@ print(f"feat: {clean} (#{num})")
 PY
 )"
 
-log "Committing changes"
-git add -A
-git commit -m "$COMMIT_TITLE" -m "Closes #${ISSUE_NUMBER}"
+if [[ "$HAS_WORKTREE_CHANGES" == "1" ]]; then
+  log "Committing changes"
+  git add -A
+  git commit -m "$COMMIT_TITLE" -m "Closes #${ISSUE_NUMBER}"
 
-log "Pushing branch $HEAD_BRANCH"
-if ! git push -u origin "$HEAD_BRANCH"; then
-  log "Push rejected, rebasing with remote and retrying once"
-  git fetch origin "$HEAD_BRANCH"
-  git rebase "origin/$HEAD_BRANCH"
-  git push -u origin "$HEAD_BRANCH"
+  log "Pushing branch $HEAD_BRANCH"
+  if ! git push -u origin "$HEAD_BRANCH"; then
+    log "Push rejected, rebasing with remote and retrying once"
+    git fetch origin "$HEAD_BRANCH"
+    git rebase "origin/$HEAD_BRANCH"
+    git push -u origin "$HEAD_BRANCH"
+  fi
+else
+  if ! git ls-remote --exit-code --heads origin "$HEAD_BRANCH" >/dev/null 2>&1; then
+    log "Pushing existing local commits to new remote branch $HEAD_BRANCH"
+    git push -u origin "$HEAD_BRANCH"
+  else
+    log "Skipping commit/push; using existing commits on $HEAD_BRANCH"
+  fi
 fi
 
 log "Creating/updating PR"
