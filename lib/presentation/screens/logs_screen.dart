@@ -857,14 +857,6 @@ class _EntryListItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            if (_hasTrainingBoard(entry.drills))
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: _TrainingBoardThumb(
-                  layoutRaw: entry.drills,
-                  compact: true,
-                ),
-              ),
             if (focusText.isNotEmpty)
               Text(
                 focusText,
@@ -888,11 +880,9 @@ bool _hasTrainingBoard(String raw) {
 
 class _TrainingBoardThumb extends StatelessWidget {
   final String? layoutRaw;
-  final bool compact;
 
   const _TrainingBoardThumb({
     required this.layoutRaw,
-    this.compact = false,
   });
 
   @override
@@ -901,12 +891,10 @@ class _TrainingBoardThumb extends StatelessWidget {
     final previewItems = layout.pages.isNotEmpty
         ? layout.pages.first.items
         : const <TrainingMethodItem>[];
-    final itemCount = compact
-        ? previewItems.length
-        : layout.pages.fold<int>(0, (sum, p) => sum + p.items.length);
+    final itemCount = layout.pages.fold<int>(0, (sum, p) => sum + p.items.length);
     return Container(
-      height: compact ? 24 : 42,
-      width: compact ? 72 : double.infinity,
+      height: 42,
+      width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         gradient: const LinearGradient(
@@ -923,7 +911,7 @@ class _TrainingBoardThumb extends StatelessWidget {
           return Stack(
             children: [
               CustomPaint(painter: _ThumbPitchPainter()),
-              ...previewItems.take(compact ? 6 : 10).map((item) {
+              ...previewItems.take(10).map((item) {
                 final icon = switch (item.type) {
                   'cone' => Icons.change_history,
                   'player' => Icons.person,
@@ -936,32 +924,31 @@ class _TrainingBoardThumb extends StatelessWidget {
                   top: (item.y * h).clamp(2, h - 12),
                   child: Icon(
                     icon,
-                    size: compact ? 9 : 11,
+                    size: 11,
                     color: Color(item.colorValue).withValues(alpha: 0.95),
                   ),
                 );
               }),
-              if (!compact)
-                Positioned(
-                  right: 6,
-                  top: 4,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '$itemCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
+              Positioned(
+                right: 6,
+                top: 4,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$itemCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
+              ),
             ],
           );
         },
