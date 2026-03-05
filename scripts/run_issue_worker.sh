@@ -185,8 +185,8 @@ if [[ "$CODEX_EXIT" != "0" ]]; then
   if [[ "$HAS_WORKTREE_CHANGES" == "0" && "$AHEAD_COUNT" != "0" ]]; then
     log "Codex exited non-zero, but branch already has ${AHEAD_COUNT} commit(s) to merge. Continuing."
   else
-  log "Failing run because Codex exited non-zero and there are pending changes/commits to inspect."
-  exit "$CODEX_EXIT"
+    log "Failing run because Codex exited non-zero and there are pending changes/commits to inspect."
+    exit "$CODEX_EXIT"
   fi
 fi
 
