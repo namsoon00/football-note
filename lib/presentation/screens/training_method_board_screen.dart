@@ -6,10 +6,12 @@ import '../models/training_method_layout.dart';
 
 class TrainingMethodBoardScreen extends StatefulWidget {
   final String initialLayoutJson;
+  final List<TrainingBoardPreset> presets;
 
   const TrainingMethodBoardScreen({
     super.key,
     required this.initialLayoutJson,
+    this.presets = const <TrainingBoardPreset>[],
   });
 
   @override
@@ -23,8 +25,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
   int _pageIndex = 0;
   int _nextId = 1;
   int? _selectedItemId;
-  bool _snapToGrid = true;
-  bool _playMode = false;
 
   _BoardPageState get _currentPage => _pages[_pageIndex];
 
@@ -148,6 +148,81 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
     });
   }
 
+  void _dismissKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
+
+  void _applyPreset(TrainingBoardPreset preset) {
+    final layout = TrainingMethodLayout.decode(preset.layoutJson);
+    final rebuiltPages = <_BoardPageState>[];
+    for (final pageEntry in layout.pages.asMap().entries) {
+      final i = pageEntry.key;
+      final page = pageEntry.value;
+      rebuiltPages.add(
+        _BoardPageState(
+          name: page.name.trim().isEmpty ? 'Step ${i + 1}' : page.name,
+          methodText: page.methodText,
+          items: page.items
+              .map(
+                (e) => _BoardItem(
+                  id: _nextId++,
+                  type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
+                  x: e.x,
+                  y: e.y,
+                  size: 32,
+                  rotationDeg: e.rotationDeg,
+                  color: Color(e.colorValue),
+                ),
+              )
+              .toList(growable: true),
+        ),
+      );
+    }
+    setState(() {
+      _pages = rebuiltPages.isEmpty
+          ? <_BoardPageState>[
+              _BoardPageState(
+                name: 'Step 1',
+                methodText: '',
+                items: <_BoardItem>[],
+              ),
+            ]
+          : rebuiltPages;
+      _pageIndex = 0;
+      _selectedItemId = null;
+      _methodController.text = _currentPage.methodText;
+    });
+  }
+
+  Future<void> _showPresetPicker(bool isKo) async {
+    final selected = await showModalBottomSheet<TrainingBoardPreset>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: ListView.builder(
+            itemCount: widget.presets.length,
+            itemBuilder: (context, index) {
+              final preset = widget.presets[index];
+              return ListTile(
+                leading: const Icon(Icons.dashboard_customize_outlined),
+                title: Text(preset.label),
+                onTap: () => Navigator.of(context).pop(preset),
+              );
+            },
+          ),
+        );
+      },
+    );
+    if (!mounted || selected == null) return;
+    _applyPreset(selected);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isKo ? '기존 훈련 보드를 불러왔습니다.' : 'Training board loaded.'),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _methodController.dispose();
@@ -159,12 +234,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '훈련 방법 보드' : 'Training Method Board'),
+        title: Text(isKo ? '훈련 보드' : 'Training Board'),
         actions: [
+          if (widget.presets.isNotEmpty)
+            IconButton(
+              tooltip: isKo ? '기존 보드 불러오기' : 'Load existing board',
+              icon: const Icon(Icons.library_books_outlined),
+              onPressed: () => _showPresetPicker(isKo),
+            ),
           IconButton(
-            tooltip: isKo ? '재생 모드' : 'Play mode',
-            icon: Icon(_playMode ? Icons.pause_circle : Icons.play_circle),
-            onPressed: () => setState(() => _playMode = !_playMode),
+            tooltip: isKo ? '키보드 닫기' : 'Hide keyboard',
+            icon: const Icon(Icons.keyboard_hide_outlined),
+            onPressed: _dismissKeyboard,
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(_serialize()),
@@ -172,97 +253,86 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-        child: Column(
-          children: [
-            _buildPageHeader(isKo),
-            const SizedBox(height: 8),
-            _buildMethodTextInput(isKo),
-            const SizedBox(height: 8),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final height = constraints.maxHeight;
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        CustomPaint(
-                          size: Size(width, height),
-                          painter: _PitchPainter(
-                              showGrid: _snapToGrid && !_playMode),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: _dismissKeyboard,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+          child: Column(
+            children: [
+              _buildPageHeader(isKo),
+              const SizedBox(height: 8),
+              _buildMethodTextInput(isKo),
+              const SizedBox(height: 8),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    final height = constraints.maxHeight;
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
                         ),
-                        for (final item in _currentPage.items)
-                          Positioned(
-                            left: (item.x * width) - 26,
-                            top: (item.y * height) - 26,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: _playMode
-                                  ? null
-                                  : () =>
-                                      setState(() => _selectedItemId = item.id),
-                              onLongPress: _playMode
-                                  ? null
-                                  : () => setState(() {
-                                        _currentPage.items.removeWhere(
-                                            (e) => e.id == item.id);
-                                        if (_selectedItemId == item.id) {
-                                          _selectedItemId = null;
-                                        }
-                                      }),
-                              onPanUpdate: _playMode
-                                  ? null
-                                  : (details) {
-                                      final dx = details.delta.dx / width;
-                                      final dy = details.delta.dy / height;
-                                      var nextX =
-                                          (item.x + dx).clamp(0.03, 0.97);
-                                      var nextY =
-                                          (item.y + dy).clamp(0.03, 0.97);
-                                      if (_snapToGrid) {
-                                        const grid = 0.04;
-                                        nextX = (nextX / grid).round() * grid;
-                                        nextY = (nextY / grid).round() * grid;
-                                      }
-                                      setState(() {
-                                        item.x = nextX.clamp(0.03, 0.97);
-                                        item.y = nextY.clamp(0.03, 0.97);
-                                      });
-                                    },
-                              child: SizedBox(
-                                width: 52,
-                                height: 52,
-                                child: Center(
-                                  child: _BoardToken(
-                                    item: item,
-                                    selected: !_playMode &&
-                                        item.id == _selectedItemId,
+                      ),
+                      child: Stack(
+                        children: [
+                          CustomPaint(
+                            size: Size(width, height),
+                            painter: const _PitchPainter(),
+                          ),
+                          for (final item in _currentPage.items)
+                            Positioned(
+                              left: (item.x * width) - 26,
+                              top: (item.y * height) - 26,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () =>
+                                    setState(() => _selectedItemId = item.id),
+                                onLongPress: () => setState(() {
+                                  _currentPage.items
+                                      .removeWhere((e) => e.id == item.id);
+                                  if (_selectedItemId == item.id) {
+                                    _selectedItemId = null;
+                                  }
+                                }),
+                                onPanUpdate: (details) {
+                                  final dx = details.delta.dx / width;
+                                  final dy = details.delta.dy / height;
+                                  final nextX = (item.x + dx).clamp(0.03, 0.97);
+                                  final nextY = (item.y + dy).clamp(0.03, 0.97);
+                                  setState(() {
+                                    item.x = nextX;
+                                    item.y = nextY;
+                                  });
+                                },
+                                child: SizedBox(
+                                  width: 52,
+                                  height: 52,
+                                  child: Center(
+                                    child: _BoardToken(
+                                      item: item,
+                                      selected: item.id == _selectedItemId,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            if (!_playMode) _buildToolButtons(isKo),
-            if (!_playMode) const SizedBox(height: 8),
-            if (!_playMode) _buildSelectedTools(isKo),
-          ],
+              const SizedBox(height: 10),
+              _buildToolButtons(isKo),
+              const SizedBox(height: 8),
+              _buildSelectedTools(isKo),
+            ],
+          ),
         ),
       ),
     );
@@ -310,17 +380,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           icon: const Icon(Icons.indeterminate_check_box_outlined),
           tooltip: isKo ? '스텝 삭제' : 'Remove step',
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(isKo ? '격자' : 'Grid'),
-            Switch(
-              value: _snapToGrid,
-              onChanged:
-                  _playMode ? null : (v) => setState(() => _snapToGrid = v),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -330,13 +389,20 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
       controller: _methodController,
       minLines: 2,
       maxLines: 3,
+      textInputAction: TextInputAction.done,
       decoration: InputDecoration(
-        labelText: isKo ? '훈련 방법 메모' : 'Training method note',
+        labelText: isKo ? '훈련 보드 메모' : 'Training board note',
         hintText: isKo
             ? '예) 콘 사이 2터치 드리블 후 패스'
             : 'e.g. Two-touch dribble between cones then pass',
+        suffixIcon: IconButton(
+          tooltip: isKo ? '키보드 닫기' : 'Hide keyboard',
+          icon: const Icon(Icons.keyboard_hide_outlined),
+          onPressed: _dismissKeyboard,
+        ),
         border: const OutlineInputBorder(),
       ),
+      onSubmitted: (_) => _dismissKeyboard(),
       onChanged: (value) {
         _currentPage.methodText = value;
       },
@@ -572,9 +638,7 @@ class _BoardToken extends StatelessWidget {
 }
 
 class _PitchPainter extends CustomPainter {
-  final bool showGrid;
-
-  const _PitchPainter({required this.showGrid});
+  const _PitchPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -584,18 +648,6 @@ class _PitchPainter extends CustomPainter {
       ..strokeWidth = 2;
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-
-    if (showGrid) {
-      final grid = Paint()
-        ..color = Colors.white.withValues(alpha: 0.08)
-        ..strokeWidth = 1;
-      for (double x = 0; x <= size.width; x += size.width * 0.08) {
-        canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
-      }
-      for (double y = 0; y <= size.height; y += size.height * 0.08) {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
-      }
-    }
 
     canvas.drawRect(
         Rect.fromLTWH(8, 8, size.width - 16, size.height - 16), line);
@@ -610,6 +662,16 @@ class _PitchPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PitchPainter oldDelegate) {
-    return oldDelegate.showGrid != showGrid;
+    return false;
   }
+}
+
+class TrainingBoardPreset {
+  final String label;
+  final String layoutJson;
+
+  const TrainingBoardPreset({
+    required this.label,
+    required this.layoutJson,
+  });
 }

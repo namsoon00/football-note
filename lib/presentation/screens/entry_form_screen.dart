@@ -16,6 +16,7 @@ import '../../application/backup_service.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
+import '../models/training_method_layout.dart';
 import 'settings_screen.dart';
 import 'training_method_board_screen.dart';
 
@@ -602,8 +603,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                     ? theme.colorScheme.primary
                                     : null,
                               ),
-                              tooltip:
-                                  isKo ? '훈련 방법 보드' : 'Training Method Board',
+                              tooltip: isKo ? '훈련 보드' : 'Training Board',
                               onPressed: _openTrainingMethodBoard,
                             ),
                             IconButton(
@@ -1312,10 +1312,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _openTrainingMethodBoard() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final entries = await widget.trainingService.allEntries();
+    if (!mounted) return;
+    entries.sort(TrainingEntry.compareByRecentCreated);
+    final presets = _buildTrainingBoardPresets(entries, isKo);
     final result = await Navigator.of(context).push<String>(
       MaterialPageRoute(
         builder: (_) => TrainingMethodBoardScreen(
           initialLayoutJson: _drillsController.text,
+          presets: presets,
         ),
       ),
     );
@@ -1325,6 +1331,42 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _drillsController.text = result;
     });
     _scheduleAutoSave();
+  }
+
+  List<TrainingBoardPreset> _buildTrainingBoardPresets(
+    List<TrainingEntry> entries,
+    bool isKo,
+  ) {
+    final presets = <TrainingBoardPreset>[];
+    final dedupe = <String>{};
+
+    for (final entry in entries) {
+      final raw = entry.drills.trim();
+      if (raw.isEmpty) continue;
+      final layout = TrainingMethodLayout.decode(raw);
+      final hasContent = layout.pages.any(
+        (page) => page.items.isNotEmpty || page.methodText.trim().isNotEmpty,
+      );
+      if (!hasContent) continue;
+
+      final encoded = layout.encode();
+      if (!dedupe.add(encoded)) continue;
+
+      final stamp = DateFormat('yyyy.MM.dd HH:mm:ss').format(entry.createdAt);
+      final detail = entry.program.trim().isNotEmpty
+          ? entry.program.trim()
+          : (entry.location.trim().isNotEmpty
+              ? entry.location.trim()
+              : (isKo ? '훈련 기록' : 'Training entry'));
+      presets.add(
+        TrainingBoardPreset(
+          label: '$stamp · $detail',
+          layoutJson: encoded,
+        ),
+      );
+      if (presets.length >= 30) break;
+    }
+    return presets;
   }
 
   void _scheduleAutoSave() {
