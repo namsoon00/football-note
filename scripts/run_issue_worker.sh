@@ -30,6 +30,13 @@ TMP_BASE="$ROOT_DIR/.tmp"
 mkdir -p "$TMP_BASE"
 export TMPDIR="$TMP_BASE"
 
+cleanup_tmp_artifacts() {
+  # Keep repo-local TMPDIR, but ignore transient files from toolchains.
+  if [[ -d "$TMP_BASE" ]]; then
+    find "$TMP_BASE" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+  fi
+}
+
 log "Syncing repository"
 git fetch origin "$DEFAULT_BRANCH"
 git checkout "$DEFAULT_BRANCH"
@@ -161,6 +168,7 @@ if [[ "$CODEX_EXIT" != "0" ]]; then
 fi
 
 AHEAD_COUNT="$(git rev-list --count "${DEFAULT_BRANCH}..HEAD")"
+cleanup_tmp_artifacts
 HAS_WORKTREE_CHANGES=1
 if \
   git diff --quiet && \
