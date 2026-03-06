@@ -21,7 +21,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabStats => '통계';
 
   @override
-  String get tabNews => '뉴스';
+  String get tabNews => '오늘의 소식';
 
   @override
   String get tabGame => '미니게임';

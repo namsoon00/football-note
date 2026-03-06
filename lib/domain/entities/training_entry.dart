@@ -98,6 +98,9 @@ class TrainingEntry extends HiveObject {
   @HiveField(37)
   final int jumpRopeCount;
 
+  @HiveField(38)
+  final int jumpRopeMinutes;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -131,6 +134,7 @@ class TrainingEntry extends HiveObject {
     this.nextGoal = '',
     DateTime? createdAt,
     this.jumpRopeCount = 0,
+    this.jumpRopeMinutes = 0,
   }) : createdAt = createdAt ?? DateTime.now();
 
   static int compareByRecentCreated(TrainingEntry a, TrainingEntry b) {
@@ -178,12 +182,14 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       heightCm: fields[22] as double?,
       weightKg: fields[23] as double?,
       imagePath: (fields[24] as String?) ?? '',
-      imagePaths: (fields[25] as List?)?.cast<String>() ??
+      imagePaths:
+          (fields[25] as List?)?.cast<String>() ??
           ((fields[24] as String?)?.isNotEmpty ?? false
               ? [fields[24] as String]
               : []),
       status: (fields[26] as String?) ?? 'normal',
-      liftingByPart: (fields[27] as Map?)?.map(
+      liftingByPart:
+          (fields[27] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
           ) ??
@@ -192,20 +198,22 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       fortuneComment: (fields[29] as String?) ?? '',
       fortuneRecommendation: (fields[30] as String?) ?? '',
       fortuneRecommendedProgram: (fields[31] as String?) ?? '',
-      goalFocuses: (fields[32] as List?)?.map((e) => e.toString()).toList() ??
+      goalFocuses:
+          (fields[32] as List?)?.map((e) => e.toString()).toList() ??
           const <String>[],
       goodPoints: goodPoints,
       improvements: improvements,
       nextGoal: nextGoal,
       createdAt: (fields[36] as DateTime?) ?? (fields[0] as DateTime),
       jumpRopeCount: (fields[37] as num?)?.toInt() ?? 0,
+      jumpRopeMinutes: (fields[38] as num?)?.toInt() ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(32)
+      ..writeByte(33)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -269,6 +277,8 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(36)
       ..write(obj.createdAt)
       ..writeByte(37)
-      ..write(obj.jumpRopeCount);
+      ..write(obj.jumpRopeCount)
+      ..writeByte(38)
+      ..write(obj.jumpRopeMinutes);
   }
 }

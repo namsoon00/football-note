@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabNews.
   ///
   /// In en, this message translates to:
-  /// **'News'**
+  /// **'Today News'**
   String get tabNews;
 
   /// No description provided for @tabGame.

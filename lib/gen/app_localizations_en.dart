@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabStats => 'Stats';
 
   @override
-  String get tabNews => 'News';
+  String get tabNews => 'Today News';
 
   @override
   String get tabGame => 'Mini Game';
