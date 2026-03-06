@@ -12,24 +12,24 @@ import '../domain/entities/training_entry.dart';
 import '../domain/repositories/backup_repository.dart';
 
 class DriveBackupService implements BackupRepository {
-  DriveBackupService(this._trainingBox, this._optionBox,
-      {GoogleSignIn? googleSignIn,
-      FirebaseAuth? firebaseAuth,
-      String? webClientId})
-      : _googleSignIn = googleSignIn ??
-            (kIsWeb
-                ? null
-                : GoogleSignIn(
-                    clientId:
-                        webClientId != null && webClientId.trim().isNotEmpty
-                            ? webClientId.trim()
-                            : null,
-                    scopes: const [
-                      'email',
-                      _driveScope,
-                    ],
-                  )),
-        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth();
+  DriveBackupService(
+    this._trainingBox,
+    this._optionBox, {
+    GoogleSignIn? googleSignIn,
+    FirebaseAuth? firebaseAuth,
+    String? webClientId,
+  }) : _googleSignIn =
+           googleSignIn ??
+           (kIsWeb
+               ? null
+               : GoogleSignIn(
+                   clientId:
+                       webClientId != null && webClientId.trim().isNotEmpty
+                       ? webClientId.trim()
+                       : null,
+                   scopes: const ['email', _driveScope],
+                 )),
+       _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth();
 
   final Box<TrainingEntry> _trainingBox;
   final Box _optionBox;
@@ -75,7 +75,8 @@ class DriveBackupService implements BackupRepository {
     } catch (e, st) {
       if (!_isAuthError(e)) rethrow;
       debugPrint(
-          'Drive sign-in/scope missing. Reauthenticating and retrying backup.');
+        'Drive sign-in/scope missing. Reauthenticating and retrying backup.',
+      );
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
@@ -181,7 +182,8 @@ class DriveBackupService implements BackupRepository {
     } catch (e, st) {
       if (!_isAuthError(e)) rethrow;
       debugPrint(
-          'Drive sign-in/scope missing. Reauthenticating and retrying restore.');
+        'Drive sign-in/scope missing. Reauthenticating and retrying restore.',
+      );
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
@@ -201,15 +203,17 @@ class DriveBackupService implements BackupRepository {
 
   Future<drive.DriveApi> _driveApi({required bool requireInteractive}) async {
     if (kIsWeb) {
-      final accessToken =
-          await _ensureWebAccessToken(requireInteractive: requireInteractive);
+      final accessToken = await _ensureWebAccessToken(
+        requireInteractive: requireInteractive,
+      );
       final client = _GoogleAuthClient({
         'Authorization': 'Bearer $accessToken',
       });
       return drive.DriveApi(client);
     }
-    final account =
-        await _ensureSignedIn(requireInteractive: requireInteractive);
+    final account = await _ensureSignedIn(
+      requireInteractive: requireInteractive,
+    );
     final authHeaders = await account.authHeaders;
     final client = _GoogleAuthClient(authHeaders);
     return drive.DriveApi(client);
@@ -342,7 +346,8 @@ class DriveBackupService implements BackupRepository {
 
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {
     final result = await api.files.list(
-      q: "mimeType='application/vnd.google-apps.folder' and "
+      q:
+          "mimeType='application/vnd.google-apps.folder' and "
           "name='$_folderName' and trashed=false",
       spaces: 'drive',
       $fields: 'files(id,name)',
@@ -428,10 +433,12 @@ class DriveBackupService implements BackupRepository {
       throw StateError('No backup file found.');
     }
 
-    final media = await driveApi.files.get(
-      file.id!,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await driveApi.files.get(
+              file.id!,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
 
     final content = await utf8.decoder.bind(media.stream).join();
     final data = jsonDecode(content) as Map<String, dynamic>;
@@ -590,39 +597,40 @@ class DriveBackupService implements BackupRepository {
   }
 
   Map<String, dynamic> _entryToMap(TrainingEntry entry) => {
-        'date': entry.date.toIso8601String(),
-        'createdAt': entry.createdAt.toIso8601String(),
-        'durationMinutes': entry.durationMinutes,
-        'intensity': entry.intensity,
-        'type': entry.type,
-        'mood': entry.mood,
-        'injury': entry.injury,
-        'notes': entry.notes,
-        'location': entry.location,
-        'program': entry.program,
-        'drills': entry.drills,
-        'club': entry.club,
-        'injuryPart': entry.injuryPart,
-        'painLevel': entry.painLevel,
-        'rehab': entry.rehab,
-        'goal': entry.goal,
-        'feedback': entry.feedback,
-        'heightCm': entry.heightCm,
-        'weightKg': entry.weightKg,
-        'imagePath': entry.imagePath,
-        'imagePaths': entry.imagePaths,
-        'status': entry.status,
-        'liftingByPart': entry.liftingByPart,
-        'coachComment': entry.coachComment,
-        'fortuneComment': entry.fortuneComment,
-        'fortuneRecommendation': entry.fortuneRecommendation,
-        'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
-        'goalFocuses': entry.goalFocuses,
-        'goodPoints': entry.goodPoints,
-        'improvements': entry.improvements,
-        'nextGoal': entry.nextGoal,
-        'jumpRopeCount': entry.jumpRopeCount,
-      };
+    'date': entry.date.toIso8601String(),
+    'createdAt': entry.createdAt.toIso8601String(),
+    'durationMinutes': entry.durationMinutes,
+    'intensity': entry.intensity,
+    'type': entry.type,
+    'mood': entry.mood,
+    'injury': entry.injury,
+    'notes': entry.notes,
+    'location': entry.location,
+    'program': entry.program,
+    'drills': entry.drills,
+    'club': entry.club,
+    'injuryPart': entry.injuryPart,
+    'painLevel': entry.painLevel,
+    'rehab': entry.rehab,
+    'goal': entry.goal,
+    'feedback': entry.feedback,
+    'heightCm': entry.heightCm,
+    'weightKg': entry.weightKg,
+    'imagePath': entry.imagePath,
+    'imagePaths': entry.imagePaths,
+    'status': entry.status,
+    'liftingByPart': entry.liftingByPart,
+    'coachComment': entry.coachComment,
+    'fortuneComment': entry.fortuneComment,
+    'fortuneRecommendation': entry.fortuneRecommendation,
+    'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
+    'goalFocuses': entry.goalFocuses,
+    'goodPoints': entry.goodPoints,
+    'improvements': entry.improvements,
+    'nextGoal': entry.nextGoal,
+    'jumpRopeCount': entry.jumpRopeCount,
+    'jumpRopeMinutes': entry.jumpRopeMinutes,
+  };
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
     DateTime parseDate() {
@@ -667,11 +675,11 @@ class DriveBackupService implements BackupRepository {
           (map['imagePaths'] as List?)?.cast<String>() ?? const <String>[],
       status: map['status'] as String? ?? 'normal',
       liftingByPart:
-          (map['liftingByPart'] as Map?)?.map((key, value) => MapEntry(
-                    key.toString(),
-                    (value is num) ? value.toInt() : 0,
-                  )) ??
-              const {},
+          (map['liftingByPart'] as Map?)?.map(
+            (key, value) =>
+                MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
+          ) ??
+          const {},
       coachComment: map['coachComment'] as String? ?? '',
       fortuneComment: map['fortuneComment'] as String? ?? '',
       fortuneRecommendation: map['fortuneRecommendation'] as String? ?? '',
@@ -679,7 +687,7 @@ class DriveBackupService implements BackupRepository {
           map['fortuneRecommendedProgram'] as String? ?? '',
       goalFocuses:
           (map['goalFocuses'] as List?)?.map((e) => e.toString()).toList() ??
-              const <String>[],
+          const <String>[],
       goodPoints:
           (map['goodPoints'] as String?) ?? (map['feedback'] as String? ?? ''),
       improvements:
@@ -687,6 +695,7 @@ class DriveBackupService implements BackupRepository {
       nextGoal: (map['nextGoal'] as String?) ?? (map['goal'] as String? ?? ''),
       createdAt: parseCreatedAt(date),
       jumpRopeCount: (map['jumpRopeCount'] as num?)?.toInt() ?? 0,
+      jumpRopeMinutes: (map['jumpRopeMinutes'] as num?)?.toInt() ?? 0,
     );
   }
 }

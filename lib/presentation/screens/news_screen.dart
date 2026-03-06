@@ -42,9 +42,10 @@ class NewsScreen extends StatefulWidget {
   State<NewsScreen> createState() => _NewsScreenState();
 }
 
-class _NewsScreenState extends State<NewsScreen> {
+class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
+  static const Duration _autoRefreshInterval = Duration(minutes: 15);
   late final NewsService _newsService;
   late final List<NewsChannel> _channels;
   late Set<String> _selectedChannelIds;
@@ -69,13 +70,27 @@ class _NewsScreenState extends State<NewsScreen> {
   bool _titleTranslateInitialized = false;
   bool _guideShownOnce = false;
   int _loadToken = 0;
+  DateTime? _lastLoadedAt;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _newsService = NewsService(RssNewsRepository(widget.optionRepository));
     _channels = _newsService.channels();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
+    _loadProgressive(force: true);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
     _loadProgressive();
   }
 
@@ -113,8 +128,10 @@ class _NewsScreenState extends State<NewsScreen> {
                 child: Builder(
                   builder: (context) => WatchCartAppBar(
                     onMenuTap: () => Scaffold.of(context).openDrawer(),
-                    profilePhotoSource: widget.optionRepository
-                            .getValue<String>('profile_photo_url') ??
+                    profilePhotoSource:
+                        widget.optionRepository.getValue<String>(
+                          'profile_photo_url',
+                        ) ??
                         '',
                     onProfileTap: () => _openProfile(context),
                     onSettingsTap: () => _openSettings(context),
@@ -128,16 +145,18 @@ class _NewsScreenState extends State<NewsScreen> {
                   child: Text(
                     l10n.tabNews,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: WatchCartCard(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       const Icon(Icons.rss_feed, size: 18),
@@ -151,17 +170,16 @@ class _NewsScreenState extends State<NewsScreen> {
                       ),
                       if (isKo)
                         IconButton(
-                          tooltip:
-                              _titleTranslateEnabled ? '제목 번역 켜짐' : '제목 번역 꺼짐',
+                          tooltip: _titleTranslateEnabled
+                              ? '제목 번역 켜짐'
+                              : '제목 번역 꺼짐',
                           onPressed: _toggleTitleTranslate,
                           icon: Icon(
                             Icons.translate_rounded,
                             color: _titleTranslateEnabled
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.55),
+                                : Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.55),
                           ),
                         ),
                       TextButton(
@@ -174,7 +192,7 @@ class _NewsScreenState extends State<NewsScreen> {
               ),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: _loadProgressive,
+                  onRefresh: () => _loadProgressive(force: true),
                   child: _buildNewsBody(isKo),
                 ),
               ),
@@ -239,8 +257,10 @@ class _NewsScreenState extends State<NewsScreen> {
                 borderRadius: BorderRadius.circular(14),
                 onTap: () => _openLink(article),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 6,
+                  ),
                   child: Row(
                     children: [
                       _NewsThumb(imageUrl: article.imageUrl),
@@ -347,23 +367,26 @@ class _NewsScreenState extends State<NewsScreen> {
                     SizedBox(
                       height: 320,
                       child: ListView(
-                        children: _channels.map((channel) {
-                          return CheckboxListTile(
-                            dense: true,
-                            value: temp.contains(channel.id),
-                            title: Text(channel.name),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (checked) {
-                              setSheetState(() {
-                                if (checked == true) {
-                                  temp.add(channel.id);
-                                } else {
-                                  temp.remove(channel.id);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(growable: false),
+                        children: _channels
+                            .map((channel) {
+                              return CheckboxListTile(
+                                dense: true,
+                                value: temp.contains(channel.id),
+                                title: Text(channel.name),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                onChanged: (checked) {
+                                  setSheetState(() {
+                                    if (checked == true) {
+                                      temp.add(channel.id);
+                                    } else {
+                                      temp.remove(channel.id);
+                                    }
+                                  });
+                                },
+                              );
+                            })
+                            .toList(growable: false),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -383,10 +406,13 @@ class _NewsScreenState extends State<NewsScreen> {
     setState(() {
       _selectedChannelIds = selected;
     });
-    _loadProgressive();
+    _loadProgressive(force: true);
   }
 
-  Future<void> _loadProgressive() async {
+  Future<void> _loadProgressive({bool force = false}) async {
+    if (!force && !_shouldRefreshByPolicy()) {
+      return;
+    }
     final channelIds = _selectedChannelIds.toList(growable: false);
     final token = ++_loadToken;
     setState(() {
@@ -404,25 +430,36 @@ class _NewsScreenState extends State<NewsScreen> {
       return;
     }
 
-    final tasks = channelIds.map((id) async {
-      try {
-        final chunk = await _newsService.latest(id);
-        if (!mounted || token != _loadToken) return;
-        if (chunk.isEmpty) return;
-        setState(() {
-          _mergeChunk(chunk);
-        });
-      } catch (_) {
-        if (!mounted || token != _loadToken) return;
-        setState(() {
-          _hadError = true;
-        });
-      }
-    }).toList(growable: false);
+    final tasks = channelIds
+        .map((id) async {
+          try {
+            final chunk = await _newsService.latest(id);
+            if (!mounted || token != _loadToken) return;
+            if (chunk.isEmpty) return;
+            setState(() {
+              _mergeChunk(chunk);
+            });
+          } catch (_) {
+            if (!mounted || token != _loadToken) return;
+            setState(() {
+              _hadError = true;
+            });
+          }
+        })
+        .toList(growable: false);
 
     await Future.wait(tasks);
     if (!mounted || token != _loadToken) return;
-    setState(() => _isLoading = false);
+    setState(() {
+      _isLoading = false;
+      _lastLoadedAt = DateTime.now();
+    });
+  }
+
+  bool _shouldRefreshByPolicy() {
+    final last = _lastLoadedAt;
+    if (last == null) return true;
+    return DateTime.now().difference(last) >= _autoRefreshInterval;
   }
 
   void _mergeChunk(List<NewsArticle> chunk) {
@@ -482,8 +519,10 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Set<String> _allBlockedHosts() {
-    final custom =
-        widget.optionRepository.getOptions('news_blocked_domains', const []);
+    final custom = widget.optionRepository.getOptions(
+      'news_blocked_domains',
+      const [],
+    );
     final merged = <String>{..._blockedHosts};
     for (final value in custom) {
       final normalized = _normalizeDomain(value);
@@ -546,17 +585,19 @@ class _NewsScreenState extends State<NewsScreen> {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle).then((translated) {
-      if (!mounted) return;
-      final value = translated.trim();
-      if (value.isNotEmpty && value != originalTitle) {
-        setState(() {
-          _translatedTitlesByLink[key] = value;
+    _translateToKorean(originalTitle)
+        .then((translated) {
+          if (!mounted) return;
+          final value = translated.trim();
+          if (value.isNotEmpty && value != originalTitle) {
+            setState(() {
+              _translatedTitlesByLink[key] = value;
+            });
+          }
+        })
+        .whenComplete(() {
+          _translatingLinks.remove(key);
         });
-      }
-    }).whenComplete(() {
-      _translatingLinks.remove(key);
-    });
   }
 
   Future<void> _toggleTitleTranslate() async {
@@ -618,14 +659,11 @@ class _NewsScreenState extends State<NewsScreen> {
   Future<void> _openProfile(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ProfileScreen(
-          optionRepository: widget.optionRepository,
-        ),
+        builder: (_) =>
+            ProfileScreen(optionRepository: widget.optionRepository),
       ),
     );
-    if (mounted) {
-      _loadProgressive();
-    }
+    if (mounted) _loadProgressive();
   }
 }
 

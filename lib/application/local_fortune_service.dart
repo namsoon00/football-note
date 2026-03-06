@@ -38,14 +38,14 @@ class LocalFortuneService {
     final boost = _pick(isKo ? _boostsKo : _boostsEn, baseSeed + 41);
 
     final fortuneText = isKo
-        ? '오늘의 랜덤 운세\n'
+        ? '오늘의 운세\n'
               '키워드: $moodKeyword\n'
               '행운 아이템: $luckyObject\n'
               '행운 간식: $luckySnack\n'
               '오늘의 미션: $mission\n'
               '$message\n'
               '$boost'
-        : 'Today\'s Random Fortune\n'
+        : 'Today fortune\n'
               'Keyword: $moodKeyword\n'
               'Lucky item: $luckyObject\n'
               'Lucky snack: $luckySnack\n'
@@ -101,10 +101,10 @@ class LocalFortuneService {
 }
 
 const List<String> _luckyObjectsKo = [
-  '왼쪽 주머니 동전',
-  '네모난 포스트잇',
-  '살짝 구겨진 영수증',
-  '검은색 볼펜',
+  '주머니 속 동전',
+  '네모 메모지',
+  '연필 한 자루',
+  '검은 볼펜',
   '물병 뚜껑',
 ];
 
@@ -118,10 +118,10 @@ const List<String> _luckyObjectsEn = [
 
 const List<String> _luckySnacksKo = [
   '초코 우유 한 모금',
-  '딸기맛 젤리 두 개',
-  '바삭한 과자 한 줌',
-  '미니 붕어빵 하나',
-  '시원한 아이스티',
+  '딸기 젤리 두 개',
+  '과자 한 줌',
+  '바나나 한 조각',
+  '시원한 물 한 컵',
 ];
 
 const List<String> _luckySnacksEn = [
@@ -133,11 +133,11 @@ const List<String> _luckySnacksEn = [
 ];
 
 const List<String> _moodKeywordsKo = [
-  '은근한 자신감',
-  '뜻밖의 타이밍',
-  '여유 있는 농담',
-  '디테일 집착',
-  '슬쩍 웃기는 센스',
+  '차분한 자신감',
+  '좋은 타이밍',
+  '밝은 기분',
+  '집중력',
+  '웃는 에너지',
 ];
 
 const List<String> _moodKeywordsEn = [
@@ -149,11 +149,11 @@ const List<String> _moodKeywordsEn = [
 ];
 
 const List<String> _missionsKo = [
-  '메시지 답장에 느낌표 하나 더 붙이기',
-  '엘리베이터 문 닫힘 버튼 먼저 누르지 않기',
-  '오늘 만난 사람 이름 한 번 더 불러주기',
-  '물 마실 때 어깨 힘 빼고 3초 멈추기',
-  '하늘 사진 한 장 찍어두기',
+  '인사할 때 먼저 웃어보기',
+  '물 한 컵 천천히 마시기',
+  '고마워요 한 번 더 말하기',
+  '하늘을 3초 바라보기',
+  '스트레칭 1분 하기',
 ];
 
 const List<String> _missionsEn = [
@@ -165,11 +165,11 @@ const List<String> _missionsEn = [
 ];
 
 const List<String> _messagesKo = [
-  '작은 우연이 계속 겹치면 오늘은 네 편입니다.',
-  '별거 아닌 선택이 의외로 좋은 결과를 데려옵니다.',
-  '사소한 친절 하나가 다음 순서를 바꿉니다.',
-  '오늘은 타이밍이 반 박자 늦을수록 더 정확합니다.',
-  '급하지 않게 움직이면 오히려 일이 빨라집니다.',
+  '천천히 해도 오늘은 잘 풀려요.',
+  '작은 선택이 좋은 결과를 만들어요.',
+  '친절한 말 한마디가 큰 힘이 돼요.',
+  '조금만 집중하면 실수가 줄어요.',
+  '급하지 않게 하면 더 잘할 수 있어요.',
 ];
 
 const List<String> _messagesEn = [
@@ -181,11 +181,11 @@ const List<String> _messagesEn = [
 ];
 
 const List<String> _boostsKo = [
-  '보너스: 오른손보다 왼손으로 문 열면 소소한 럭키 확률 상승.',
-  '보너스: 첫 대화에서 한 번 웃으면 흐름이 부드러워집니다.',
-  '보너스: 정리 정돈 3분만 하면 머리가 맑아집니다.',
-  '보너스: 오늘 숫자 7을 보면 잠깐 심호흡.',
-  '보너스: 의자에서 일어날 때 기지개 한 번이 행운 스위치입니다.',
+  '보너스: 숨을 크게 한 번 쉬면 마음이 편해져요.',
+  '보너스: 어깨를 툭 털고 시작해 보세요.',
+  '보너스: 자리 정리 3분이면 집중이 쉬워져요.',
+  '보너스: 숫자 7을 보면 소원을 생각해 보세요.',
+  '보너스: 기지개를 켜면 몸이 가벼워져요.',
 ];
 
 const List<String> _boostsEn = [

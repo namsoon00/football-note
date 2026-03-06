@@ -44,6 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late List<int> _ratingOptions;
   late List<String> _locationOptions;
   late List<String> _programOptions;
+  late List<String> _dailyGoalOptions;
   late List<String> _injuryPartOptions;
 
   late int _defaultDuration;
@@ -129,10 +130,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       l10n.defaultInjury4,
       l10n.defaultInjury5,
     ]);
+    _dailyGoalOptions = widget.optionRepository.getOptions(
+      'daily_goals',
+      _defaultDailyGoals(isKo),
+    );
 
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-            _durationOptions.first;
+        _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -279,8 +284,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed:
-                      _restoreBusy ? null : () => _restoreFromDrive(l10n),
+                  onPressed: _restoreBusy
+                      ? null
+                      : () => _restoreFromDrive(l10n),
                   icon: const Icon(Icons.cloud_download_outlined),
                   label: Text(
                     _restoreBusy
@@ -291,7 +297,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _restoreBusy ||
+                  onPressed:
+                      _restoreBusy ||
                           !widget.driveBackupService!.hasLocalPreRestoreBackup()
                       ? null
                       : () => _restoreLocalBackup(l10n),
@@ -509,8 +516,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -571,8 +579,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText =
-        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
+    final defaultDurationText = _defaultDuration <= 0
+        ? l10n.notSet
+        : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -731,6 +740,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (!mounted) return;
                 setState(() => _defaultProgram = fallback);
               }
+            },
+          ),
+        ),
+        _buildOptionManagerTile(
+          title: isKo ? '훈련 목표 옵션' : 'Training goal options',
+          subtitle: '${_dailyGoalOptions.length}${isKo ? '개 항목' : ' items'}',
+          onTap: () => _manageStringOptions(
+            key: 'daily_goals',
+            title: isKo ? '훈련 목표 옵션 관리' : 'Manage training goal options',
+            options: _dailyGoalOptions,
+            minKeep: 1,
+            onSaved: (updated) async {
+              setState(() => _dailyGoalOptions = updated);
             },
           ),
         ),
@@ -964,8 +986,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized =
-                            sanitize == null ? added : sanitize(added);
+                        final normalized = sanitize == null
+                            ? added
+                            : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1140,6 +1163,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return host;
   }
 
+  List<String> _defaultDailyGoals(bool isKo) {
+    if (isKo) {
+      return const ['드리블', '패스 정확도', '슈팅', '체력', '수비 위치 선정', '퍼스트 터치'];
+    }
+    return const [
+      'Dribbling',
+      'Passing Accuracy',
+      'Shooting',
+      'Fitness',
+      'Defensive Positioning',
+      'First Touch',
+    ];
+  }
+
   ButtonStyle _elevatedActionStyle() {
     return ButtonStyle(
       minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
@@ -1237,7 +1274,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1287,7 +1325,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired

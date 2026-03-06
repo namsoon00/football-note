@@ -37,17 +37,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late int _index;
   DateTime? _calendarSelectedDay;
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     _index = widget.initialIndex;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final navBackground = Theme.of(context).colorScheme.surface;
-    final pages = [
+    _pages = [
       LogsScreen(
         trainingService: widget.trainingService,
         localeService: widget.localeService,
@@ -92,9 +88,13 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
       ),
     ];
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final navBackground = Theme.of(context).colorScheme.surface;
     return Scaffold(
-      body: pages[_index],
+      body: IndexedStack(index: _index, children: _pages),
       bottomNavigationBar: NavigationBar(
         backgroundColor: navBackground,
         indicatorColor: Theme.of(context).colorScheme.primary.withAlpha(38),

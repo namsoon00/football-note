@@ -95,8 +95,11 @@ class _StatsScreenState extends State<StatsScreen> {
               }
               final entries = snapshot.data ?? const <TrainingEntry>[];
               try {
-                return _buildStatsContent(context,
-                    entries: entries, isKo: isKo);
+                return _buildStatsContent(
+                  context,
+                  entries: entries,
+                  isKo: isKo,
+                );
               } catch (_) {
                 return _buildStatsContent(
                   context,
@@ -162,8 +165,10 @@ class _StatsScreenState extends State<StatsScreen> {
           Builder(
             builder: (context) => WatchCartAppBar(
               onMenuTap: () => Scaffold.of(context).openDrawer(),
-              profilePhotoSource: widget.optionRepository
-                      .getValue<String>('profile_photo_url') ??
+              profilePhotoSource:
+                  widget.optionRepository.getValue<String>(
+                    'profile_photo_url',
+                  ) ??
                   '',
               onProfileTap: () => _openProfile(context),
               onSettingsTap: () => _openSettings(context),
@@ -253,10 +258,9 @@ class _StatsScreenState extends State<StatsScreen> {
                 const SizedBox(height: 18),
                 Divider(
                   height: 1,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.25),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.25),
                 ),
                 const SizedBox(height: 18),
                 _BodyAndLiftingBenchmarkCard(
@@ -268,32 +272,28 @@ class _StatsScreenState extends State<StatsScreen> {
                   showAverage: canShowAverage,
                   onReferenceTap: canShowAverage
                       ? () => _openAverageBenchmark(
-                            context,
-                            filteredEntries,
-                            ageYears,
-                            soccerYears,
-                          )
+                          context,
+                          filteredEntries,
+                          ageYears,
+                          soccerYears,
+                        )
                       : null,
                 ),
                 const SizedBox(height: 18),
                 Divider(
                   height: 1,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.25),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.25),
                 ),
                 const SizedBox(height: 18),
-                _LiftingSummaryCard(
-                  entries: filteredEntries,
-                ),
+                _LiftingSummaryCard(entries: filteredEntries),
                 const SizedBox(height: 18),
                 Divider(
                   height: 1,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.25),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.25),
                 ),
                 const SizedBox(height: 18),
                 _JumpRopeSummaryCard(entries: filteredEntries),
@@ -306,17 +306,20 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Future<void> _pickRange(BuildContext context) async {
-    final picked = await showDateRangePicker(
+    final picked = await showModalBottomSheet<DateTimeRange>(
       context: context,
-      firstDate: DateTime(2022, 1, 1),
-      lastDate: DateTime(2032, 12, 31),
-      initialDateRange: _selectedRange,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _StatsRangePickerSheet(initialRange: _selectedRange),
     );
     if (picked == null || !mounted) return;
     setState(() {
       _selectedRange = DateTimeRange(
-        start:
-            DateTime(picked.start.year, picked.start.month, picked.start.day),
+        start: DateTime(
+          picked.start.year,
+          picked.start.month,
+          picked.start.day,
+        ),
         end: DateTime(picked.end.year, picked.end.month, picked.end.day),
       );
     });
@@ -325,10 +328,12 @@ class _StatsScreenState extends State<StatsScreen> {
   String _rangeLabel(bool isKo) {
     final start = _selectedRange.start;
     final end = _selectedRange.end;
-    final startText =
-        isKo ? '${start.month}/${start.day}' : '${start.month}/${start.day}';
-    final endText =
-        isKo ? '${end.month}/${end.day}' : '${end.month}/${end.day}';
+    final startText = isKo
+        ? '${start.month}/${start.day}'
+        : '${start.month}/${start.day}';
+    final endText = isKo
+        ? '${end.month}/${end.day}'
+        : '${end.month}/${end.day}';
     return isKo ? '$startText~$endText' : '$startText-$endText';
   }
 
@@ -348,9 +353,8 @@ class _StatsScreenState extends State<StatsScreen> {
   void _openProfile(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ProfileScreen(
-          optionRepository: widget.optionRepository,
-        ),
+        builder: (_) =>
+            ProfileScreen(optionRepository: widget.optionRepository),
       ),
     );
   }
@@ -374,11 +378,7 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 }
 
-enum _CoachPeriod {
-  daily,
-  weekly,
-  monthly,
-}
+enum _CoachPeriod { daily, weekly, monthly }
 
 _CoachPeriod _periodFromDays(int days) {
   if (days <= 1) return _CoachPeriod.daily;
@@ -403,10 +403,12 @@ String _buildPeriodAdvice({
       ? (targetSessions <= 0 ? 0.0 : (sessions / targetSessions))
       : _heuristicSessionRatio(period, sessions);
   final combined = ((ratio * 0.65) + (sessionRatio * 0.35)).clamp(0.0, 2.0);
-  final gapMinutes =
-      showAverage ? math.max(0.0, targetMinutes - minutes).round() : 0;
-  final gapSessions =
-      showAverage ? math.max(0.0, targetSessions - sessions).ceil() : 0;
+  final gapMinutes = showAverage
+      ? math.max(0.0, targetMinutes - minutes).round()
+      : 0;
+  final gapSessions = showAverage
+      ? math.max(0.0, targetSessions - sessions).ceil()
+      : 0;
   final variant = variantSeed % 3;
 
   if (combined >= 1.0) {
@@ -501,6 +503,155 @@ String _periodName(_CoachPeriod period, bool isKo) {
   }
 }
 
+class _StatsRangePickerSheet extends StatefulWidget {
+  final DateTimeRange initialRange;
+
+  const _StatsRangePickerSheet({required this.initialRange});
+
+  @override
+  State<_StatsRangePickerSheet> createState() => _StatsRangePickerSheetState();
+}
+
+class _StatsRangePickerSheetState extends State<_StatsRangePickerSheet> {
+  late DateTime _start;
+  late DateTime _end;
+  bool _selectingEnd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _start = _normalize(widget.initialRange.start);
+    _end = _normalize(widget.initialRange.end);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              isKo ? '통계 기간 선택' : 'Select period',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isKo
+                  ? '저장 버튼 없이 바로 적용됩니다. ${_selectingEnd ? '종료일을 선택해 주세요.' : '시작일을 선택해 주세요.'}'
+                  : 'Applied immediately. ${_selectingEnd ? 'Select end date.' : 'Select start date.'}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _DateChip(
+                  label: isKo ? '시작' : 'Start',
+                  value: _start,
+                  selected: !_selectingEnd,
+                  onTap: () => setState(() => _selectingEnd = false),
+                ),
+                _DateChip(
+                  label: isKo ? '종료' : 'End',
+                  value: _end,
+                  selected: _selectingEnd,
+                  onTap: () => setState(() => _selectingEnd = true),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            CalendarDatePicker(
+              initialDate: _selectingEnd ? _end : _start,
+              firstDate: DateTime(2022, 1, 1),
+              lastDate: DateTime(2032, 12, 31),
+              onDateChanged: (picked) {
+                final day = _normalize(picked);
+                if (_selectingEnd) {
+                  var start = _start;
+                  var end = day;
+                  if (end.isBefore(start)) {
+                    final tmp = start;
+                    start = end;
+                    end = tmp;
+                  }
+                  Navigator.of(
+                    context,
+                  ).pop(DateTimeRange(start: start, end: end));
+                  return;
+                }
+                setState(() {
+                  _start = day;
+                  if (_end.isBefore(_start)) {
+                    _end = _start;
+                  }
+                  _selectingEnd = true;
+                });
+              },
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(isKo ? '취소' : 'Cancel'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  DateTime _normalize(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
+}
+
+class _DateChip extends StatelessWidget {
+  final String label;
+  final DateTime value;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _DateChip({
+    required this.label,
+    required this.value,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? colorScheme.primary.withValues(alpha: 0.12)
+              : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected
+                ? colorScheme.primary
+                : colorScheme.outline.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Text(
+          '$label ${value.month}/${value.day}',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: selected ? colorScheme.primary : colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _TargetGrowthChart extends StatelessWidget {
   final List<TrainingEntry> entries;
   final int? ageYears;
@@ -521,8 +672,11 @@ class _TargetGrowthChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final target = benchmarkTarget(ageYears, soccerYears);
-    final periodStart =
-        DateTime(range.start.year, range.start.month, range.start.day);
+    final periodStart = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
     final periodEnd = DateTime(range.end.year, range.end.month, range.end.day);
     final dayPoints = <DateTime>[];
     var cursor = periodStart;
@@ -536,8 +690,9 @@ class _TargetGrowthChart extends StatelessWidget {
     final labels = <int, String>{};
     final workedDays = <DateTime>{};
     final dailyTarget = (target.weeklyMinutesTarget / 7).round();
-    final labelStep =
-        dayPoints.length <= 10 ? 1 : (dayPoints.length <= 20 ? 2 : 3);
+    final labelStep = dayPoints.length <= 10
+        ? 1
+        : (dayPoints.length <= 20 ? 2 : 3);
 
     for (var i = 0; i < dayPoints.length; i++) {
       final start = dayPoints[i];
@@ -558,14 +713,16 @@ class _TargetGrowthChart extends StatelessWidget {
     final workedLabel = workedDateText.isEmpty
         ? (isKo ? '운동한 날: 없음' : 'Workout days: none')
         : (isKo
-            ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
-            : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
+              ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
+              : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
     final periodDays = periodEnd.difference(periodStart).inDays + 1;
-    final totalMinutes =
-        entries.fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
     final sessions = entries.length;
-    final scaledTargetMinutes =
-        ((target.weeklyMinutesTarget * periodDays) / 7).round();
+    final scaledTargetMinutes = ((target.weeklyMinutesTarget * periodDays) / 7)
+        .round();
     final scaledTargetSessions =
         ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
     final period = _periodFromDays(periodDays);
@@ -604,8 +761,10 @@ class _TargetGrowthChart extends StatelessWidget {
                       final label = spot.barIndex == 0
                           ? (isKo ? '실제' : 'Actual')
                           : (isKo ? '목표' : 'Target');
-                      final timeText =
-                          _formatMinutesAsTime(spot.y.round(), isKo: isKo);
+                      final timeText = _formatMinutesAsTime(
+                        spot.y.round(),
+                        isKo: isKo,
+                      );
                       return LineTooltipItem(
                         '$label: $timeText',
                         const TextStyle(
@@ -686,10 +845,7 @@ class _TargetGrowthChart extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text(
-          workedLabel,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text(workedLabel, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: 10),
         _CoachMessage(
           icon: Icons.date_range_outlined,
@@ -731,8 +887,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           sum +
           e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
     );
-    final avgLiftPerSession =
-        entries.isEmpty ? 0 : (totalLifts / entries.length).round();
+    final avgLiftPerSession = entries.isEmpty
+        ? 0
+        : (totalLifts / entries.length).round();
     final benchmark = benchmarkService.physicalBenchmarkForAge(ageYears);
 
     return Column(
@@ -779,9 +936,10 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestHeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-                  ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
-                  : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive: showAverage &&
+              ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
+              : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive:
+              showAverage &&
               latestHeight != null &&
               latestHeight - benchmark.heightCmAvg >= 0,
         ),
@@ -798,9 +956,10 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestWeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-                  ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
-                  : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive: showAverage &&
+              ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
+              : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive:
+              showAverage &&
               latestWeight != null &&
               latestWeight - benchmark.weightKgAvg >= 0,
         ),
@@ -818,7 +977,8 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
                   isKo,
                 )
               : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive: showAverage &&
+          isPositive:
+              showAverage &&
               avgLiftPerSession - benchmark.liftsPerSessionAvg >= 0,
         ),
       ],
@@ -859,28 +1019,27 @@ class _LegendDot extends StatelessWidget {
 class _LiftingSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
 
-  const _LiftingSummaryCard({
-    required this.entries,
-  });
+  const _LiftingSummaryCard({required this.entries});
 
   @override
   Widget build(BuildContext context) {
     final bestByPart = <String, _PartBest>{};
     final recordsByPart = <String, List<_PartRecord>>{};
     for (final entry in entries) {
-      entry.liftingByPart.forEach(
-        (part, count) {
-          if (count <= 0) return;
-          recordsByPart.putIfAbsent(part, () => <_PartRecord>[]).add(
-                _PartRecord(count: count, date: entry.date),
-              );
-          final current = bestByPart[part];
-          if (current == null || count > current.count) {
-            bestByPart[part] =
-                _PartBest(count: count, date: entry.date, increase: 0);
-          }
-        },
-      );
+      entry.liftingByPart.forEach((part, count) {
+        if (count <= 0) return;
+        recordsByPart
+            .putIfAbsent(part, () => <_PartRecord>[])
+            .add(_PartRecord(count: count, date: entry.date));
+        final current = bestByPart[part];
+        if (current == null || count > current.count) {
+          bestByPart[part] = _PartBest(
+            count: count,
+            date: entry.date,
+            increase: 0,
+          );
+        }
+      });
     }
     recordsByPart.forEach((part, records) {
       records.sort((a, b) => b.count.compareTo(a.count));
@@ -942,8 +1101,8 @@ class _LiftingSummaryCard extends StatelessWidget {
                   Text(
                     _dateText(entry.value.date),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -1002,20 +1161,23 @@ class _LiftingSummaryCard extends StatelessWidget {
 class _JumpRopeSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
 
-  const _JumpRopeSummaryCard({
-    required this.entries,
-  });
+  const _JumpRopeSummaryCard({required this.entries});
 
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final valid = entries
-        .where((e) => e.jumpRopeCount > 0)
-        .map((e) => e.jumpRopeCount)
+        .where((e) => e.jumpRopeCount > 0 || e.jumpRopeMinutes > 0)
         .toList(growable: false);
-    final total = valid.fold<int>(0, (sum, v) => sum + v);
-    final best = valid.isEmpty ? 0 : valid.reduce(math.max);
-    final avg = valid.isEmpty ? 0 : (total / valid.length).round();
+    final totalCount = valid.fold<int>(0, (sum, e) => sum + e.jumpRopeCount);
+    final totalMinutes = valid.fold<int>(
+      0,
+      (sum, e) => sum + e.jumpRopeMinutes,
+    );
+    final bestCount = valid.isEmpty
+        ? 0
+        : valid.map((e) => e.jumpRopeCount).reduce(math.max);
+    final avgCount = valid.isEmpty ? 0 : (totalCount / valid.length).round();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1030,23 +1192,35 @@ class _JumpRopeSummaryCard extends StatelessWidget {
             Expanded(
               child: _KpiTile(
                 label: isKo ? '총 횟수' : 'Total',
-                value: '$total',
+                value: '$totalCount',
                 icon: Icons.tag_outlined,
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: _KpiTile(
-                label: isKo ? '최고 기록' : 'Best',
-                value: '$best',
+                label: isKo ? '총 시간(분)' : 'Total min',
+                value: '$totalMinutes',
+                icon: Icons.timer_outlined,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _KpiTile(
+                label: isKo ? '최고 횟수' : 'Best count',
+                value: '$bestCount',
                 icon: Icons.emoji_events_outlined,
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: _KpiTile(
-                label: isKo ? '평균' : 'Average',
-                value: '$avg',
+                label: isKo ? '평균 횟수' : 'Avg count',
+                value: '$avgCount',
                 icon: Icons.analytics_outlined,
               ),
             ),
@@ -1062,30 +1236,27 @@ class _InlineNotice extends StatelessWidget {
   final String? title;
   final Widget? trailing;
 
-  const _InlineNotice({
-    required this.text,
-    this.title,
-    this.trailing,
-  });
+  const _InlineNotice({required this.text, this.title, this.trailing});
 
   @override
   Widget build(BuildContext context) {
-    final outline =
-        Theme.of(context).colorScheme.outline.withValues(alpha: 0.3);
+    final outline = Theme.of(
+      context,
+    ).colorScheme.outline.withValues(alpha: 0.3);
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
             width: 3,
-            color:
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.75),
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.75),
           ),
         ),
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.35),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -1094,17 +1265,14 @@ class _InlineNotice extends StatelessWidget {
           if (title != null) ...[
             Text(
               title!,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
           ],
           Text(text),
-          if (trailing != null) ...[
-            const SizedBox(height: 8),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(height: 8), trailing!],
           const SizedBox(height: 2),
           Divider(height: 1, color: outline),
         ],
@@ -1129,10 +1297,7 @@ class _PartRecord {
   final int count;
   final DateTime date;
 
-  const _PartRecord({
-    required this.count,
-    required this.date,
-  });
+  const _PartRecord({required this.count, required this.date});
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -1140,11 +1305,7 @@ class _SectionTitle extends StatelessWidget {
   final String title;
   final Widget? trailing;
 
-  const _SectionTitle({
-    required this.icon,
-    required this.title,
-    this.trailing,
-  });
+  const _SectionTitle({required this.icon, required this.title, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -1166,15 +1327,12 @@ class _SectionTitle extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.1,
-                ),
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.1,
+            ),
           ),
         ),
-        if (trailing != null) ...[
-          const SizedBox(width: 8),
-          trailing!,
-        ],
+        if (trailing != null) ...[const SizedBox(width: 8), trailing!],
       ],
     );
   }
@@ -1213,9 +1371,9 @@ class _KpiTile extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -1258,17 +1416,17 @@ class _CoachMessage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        height: 1.45,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    height: 1.45,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -1336,8 +1494,10 @@ class _ComparisonRow extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child:
-                    Text(label, style: Theme.of(context).textTheme.labelLarge),
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
               ),
               Text(
                 gap,
