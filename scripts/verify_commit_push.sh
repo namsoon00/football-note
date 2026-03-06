@@ -6,16 +6,18 @@ cd "$(dirname "$0")/.."
 usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/verify_commit_push.sh -m "<commit message>" [-b "<branch-name>"]
+  ./scripts/verify_commit_push.sh -m "<commit message>" [-b "<branch-name>"] [--issue "<number>"]
 
 Options:
   -m, --message   Commit message (required)
   -b, --branch    Work branch name (optional)
+  --issue         GitHub issue number to close after push (optional)
 EOF
 }
 
 commit_message=""
 work_branch=""
+issue_number=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -26,6 +28,10 @@ while [[ $# -gt 0 ]]; do
     -b|--branch)
       shift
       work_branch="${1:-}"
+      ;;
+    --issue)
+      shift
+      issue_number="${1:-}"
       ;;
     -h|--help)
       usage
@@ -46,11 +52,74 @@ if [[ -z "${commit_message}" ]]; then
   exit 1
 fi
 
+if [[ -n "${issue_number}" ]] && ! [[ "${issue_number}" =~ ^[0-9]+$ ]]; then
+  echo "Issue number must be numeric: ${issue_number}"
+  exit 1
+fi
+
 slugify() {
   echo "$1" \
     | tr '[:upper:]' '[:lower:]' \
     | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' \
     | cut -c1-40
+}
+
+infer_repo_from_origin() {
+  local origin_url repo
+  origin_url="$(git remote get-url origin)"
+  if [[ "${origin_url}" =~ ^git@github.com:(.+)\.git$ ]]; then
+    repo="${BASH_REMATCH[1]}"
+  elif [[ "${origin_url}" =~ ^https://github.com/(.+)\.git$ ]]; then
+    repo="${BASH_REMATCH[1]}"
+  elif [[ "${origin_url}" =~ ^https://github.com/(.+)$ ]]; then
+    repo="${BASH_REMATCH[1]}"
+  else
+    repo=""
+  fi
+  echo "${repo}"
+}
+
+close_issue() {
+  local issue="$1"
+  local repo token merge_sha
+  repo="${GITHUB_REPOSITORY:-$(infer_repo_from_origin)}"
+  token="${GITHUB_TOKEN:-}"
+  merge_sha="$(git rev-parse --short HEAD)"
+
+  if [[ -z "${repo}" ]]; then
+    echo "Cannot resolve GitHub repository. Set GITHUB_REPOSITORY."
+    return 1
+  fi
+
+  if command -v gh >/dev/null 2>&1; then
+    echo "==> gh issue close #${issue} (${repo})"
+    gh issue close "${issue}" \
+      --repo "${repo}" \
+      --comment "Merged into main at ${merge_sha}."
+    return $?
+  fi
+
+  if [[ -z "${token}" ]]; then
+    echo "Cannot close issue #${issue}: gh CLI not found and GITHUB_TOKEN is not set."
+    return 1
+  fi
+
+  echo "==> close issue #${issue} via GitHub API (${repo})"
+  curl -sS \
+    -H "Authorization: Bearer ${token}" \
+    -H "Accept: application/vnd.github+json" \
+    -X PATCH \
+    "https://api.github.com/repos/${repo}/issues/${issue}" \
+    -d '{"state":"closed","state_reason":"completed"}' \
+    >/dev/null
+
+  curl -sS \
+    -H "Authorization: Bearer ${token}" \
+    -H "Accept: application/vnd.github+json" \
+    -X POST \
+    "https://api.github.com/repos/${repo}/issues/${issue}/comments" \
+    -d "{\"body\":\"Merged into main at ${merge_sha}.\"}" \
+    >/dev/null
 }
 
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
@@ -105,3 +174,7 @@ git merge --no-ff "${work_branch}" -m "merge: ${commit_message}"
 
 echo "==> git push origin main"
 git push origin main
+
+if [[ -n "${issue_number}" ]]; then
+  close_issue "${issue_number}"
+fi
