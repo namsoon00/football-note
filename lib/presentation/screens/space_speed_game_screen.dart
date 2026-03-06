@@ -2761,11 +2761,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       bottom: 12,
       child: Listener(
         onPointerDown: (event) {
-          if (!_gameStarted || _timeUp || _ballFlying) return;
+          if (!_gameStarted || _timeUp) return;
           setState(() => _onJoystickStart(event.pointer, event.localPosition));
         },
         onPointerMove: (event) {
-          if (!_gameStarted || _timeUp || _ballFlying) return;
+          if (!_gameStarted || _timeUp) return;
           setState(() => _onJoystickMove(event.pointer, event.localPosition));
         },
         onPointerUp: (event) => _onJoystickEnd(event.pointer),

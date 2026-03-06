@@ -111,6 +111,19 @@ void main() {
     expect(optionBox.get('session_started_at'), timestamp);
   });
 
+  test('backs up and restores non-string option keys with v3 schema', () async {
+    await optionBox.put(404, 'legacy_key_data');
+    await optionBox.put(true, 123);
+
+    final backup = service.buildBackupForTesting();
+    await optionBox.clear();
+
+    await service.restoreFromMapForTesting(backup);
+
+    expect(optionBox.get(404), 'legacy_key_data');
+    expect(optionBox.get(true), 123);
+  });
+
   test('restores legacy v1 backup payload', () async {
     final legacy = <String, dynamic>{
       'version': 1,

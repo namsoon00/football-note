@@ -92,7 +92,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _injury = false;
   bool _rehab = false;
   bool _liftingEnabled = false;
-  String _fortuneComment = '';
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -129,10 +128,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       key: 'daily_goals',
       defaults: _defaultDailyGoals(),
     );
+    final normalizedDailyGoals = LocalizedOptionDefaults.normalizeOptions(
+      key: 'daily_goals',
+      stored: _dailyGoalOptions,
+      localizedDefaults: _defaultDailyGoals(),
+    );
+    if (!_sameStringList(_dailyGoalOptions, normalizedDailyGoals)) {
+      _dailyGoalOptions = normalizedDailyGoals;
+      widget.optionRepository.saveOptions('daily_goals', normalizedDailyGoals);
+    }
     _nextGoalOptions = _loadOptions(
       key: 'next_goals',
       defaults: _defaultNextGoals(),
     );
+    final normalizedNextGoals = LocalizedOptionDefaults.normalizeOptions(
+      key: 'next_goals',
+      stored: _nextGoalOptions,
+      localizedDefaults: _defaultNextGoals(),
+    );
+    if (!_sameStringList(_nextGoalOptions, normalizedNextGoals)) {
+      _nextGoalOptions = normalizedNextGoals;
+      widget.optionRepository.saveOptions('next_goals', normalizedNextGoals);
+    }
     _durationOptions = _loadIntOptions(
       key: 'durations',
       defaults: const [0, 30, 45, 60, 75, 90, 120],
@@ -156,15 +173,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
-      _improvementsController.text = entry.improvements.isNotEmpty
-          ? entry.improvements
-          : entry.notes;
-      _nextGoalController.text = entry.nextGoal.isNotEmpty
-          ? entry.nextGoal
-          : entry.goal;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
+      _improvementsController.text =
+          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
+      _nextGoalController.text =
+          entry.nextGoal.isNotEmpty ? entry.nextGoal : entry.goal;
       if (_nextGoalController.text.trim().isNotEmpty &&
           !_nextGoalOptions.contains(_nextGoalController.text.trim())) {
         _nextGoalOptions.add(_nextGoalController.text.trim());
@@ -200,7 +214,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           _selectedDailyGoals.add(legacyGoal);
         }
       }
-      _fortuneComment = entry.fortuneComment;
       _imagePaths
         ..clear()
         ..addAll(
@@ -217,12 +230,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _jumpRopeController.text = entry.jumpRopeCount > 0
-          ? entry.jumpRopeCount.toString()
-          : '';
-      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
-          ? entry.jumpRopeMinutes.toString()
-          : '';
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
+      _jumpRopeMinutesController.text =
+          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
     } else {
       if (widget.initialDate != null) {
         final d = widget.initialDate!;
@@ -241,7 +252,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _type = _defaultString('default_program', _programOptions, 'programs');
       _status = 'normal';
-      _fortuneComment = '';
       unawaited(_applyLatestEntryDefaults());
     }
   }
@@ -359,9 +369,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -372,9 +381,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -623,12 +631,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     OutlinedButton.icon(
                       onPressed: _openTrainingMethodBoard,
                       icon: Icon(
-                        Icons.dashboard_customize_outlined,
+                        Icons.developer_board_outlined,
                         color: _drillsController.text.trim().isNotEmpty
                             ? theme.colorScheme.primary
                             : null,
                       ),
-                      label: Text(isKo ? '훈련보드' : 'Board'),
+                      label: Text(isKo ? '훈련보드' : 'Training board'),
                       style: OutlinedButton.styleFrom(
                         visualDensity: VisualDensity.compact,
                         minimumSize: const Size(1, 40),
@@ -648,40 +656,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     Expanded(
                       child: Text(
                         '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onSurface,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.topRight,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            if (_fortuneComment.trim().isNotEmpty) {
-                              _showFortuneRevealDialog(_fortuneComment.trim());
-                              return;
-                            }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  isKo
-                                      ? '먼저 저장하면 오늘의 운세를 볼 수 있어요.'
-                                      : 'Save first to view your fortune for today.',
-                                ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.auto_awesome, size: 16),
-                          label: Text(isKo ? '오늘의운세' : 'Today fortune'),
-                        ),
+                        softWrap: true,
                       ),
                     ),
                   ],
@@ -881,9 +861,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         options: [l10n.notSet, ..._nextGoalOptions],
                         onChanged: (value) {
                           setState(() {
-                            _nextGoalController.text = value == l10n.notSet
-                                ? ''
-                                : value;
+                            _nextGoalController.text =
+                                value == l10n.notSet ? '' : value;
                           });
                           _scheduleAutoSave();
                         },
@@ -934,9 +913,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           options: [l10n.notSet, ..._injuryPartOptions],
                           onChanged: (value) {
                             setState(() {
-                              _injuryPartController.text = value == l10n.notSet
-                                  ? ''
-                                  : value;
+                              _injuryPartController.text =
+                                  value == l10n.notSet ? '' : value;
                             });
                             _scheduleAutoSave();
                           },
@@ -1104,9 +1082,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               controller: _jumpRopeMinutesController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                labelText: isKo
-                                    ? '줄넘기 시간(분)'
-                                    : 'Jump rope time (min)',
+                                labelText:
+                                    isKo ? '줄넘기 시간(분)' : 'Jump rope time (min)',
                                 hintText: '0',
                               ),
                             ),
@@ -1136,13 +1113,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         child: Text(
                           _autoSaving
                               ? (Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '자동 저장 중...'
-                                    : 'Autosaving...')
+                                      'ko'
+                                  ? '자동 저장 중...'
+                                  : 'Autosaving...')
                               : (Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '수정 내용이 자동 저장됩니다.'
-                                    : 'Changes are saved automatically.'),
+                                      'ko'
+                                  ? '수정 내용이 자동 저장됩니다.'
+                                  : 'Changes are saved automatically.'),
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
@@ -1174,8 +1151,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _nextGoalController;
     final isListeningFor = _isListening && _listeningController == controller;
@@ -1359,8 +1335,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1433,8 +1408,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final detail = entry.program.trim().isNotEmpty
           ? entry.program.trim()
           : (entry.location.trim().isNotEmpty
-                ? entry.location.trim()
-                : (isKo ? '훈련 기록' : 'Training entry'));
+              ? entry.location.trim()
+              : (isKo ? '훈련 기록' : 'Training entry'));
       presets.add(
         TrainingBoardPreset(label: '$stamp · $detail', layoutJson: encoded),
       );
@@ -1488,8 +1463,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
       final jumpRopeCount =
           _parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0;
-      final jumpRopeMinutes =
-          _parseInt(
+      final jumpRopeMinutes = _parseInt(
             _jumpRopeMinutesController.text.trim(),
           )?.clamp(0, 1000000) ??
           0;
@@ -1532,7 +1506,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         isKo: isKo,
       );
       final fortuneComment = fortune.fortuneText;
-      _fortuneComment = fortuneComment;
 
       final entry = TrainingEntry(
         date: draftEntry.date,

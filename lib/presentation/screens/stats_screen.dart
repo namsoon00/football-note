@@ -307,6 +307,8 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Future<void> _pickRange(BuildContext context) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final theme = Theme.of(context);
+    final rangeColor = theme.colorScheme.primary.withValues(alpha: 0.22);
     final picked = await showDateRangePicker(
       context: context,
       initialDateRange: _selectedRange,
@@ -315,6 +317,19 @@ class _StatsScreenState extends State<StatsScreen> {
       helpText: isKo ? '통계 기간 선택' : 'Select period',
       confirmText: isKo ? '적용' : 'Apply',
       cancelText: isKo ? '취소' : 'Cancel',
+      builder: (context, child) {
+        return Theme(
+          data: theme.copyWith(
+            datePickerTheme: DatePickerThemeData(
+              rangeSelectionBackgroundColor: rangeColor,
+              rangeSelectionOverlayColor: WidgetStateProperty.resolveWith(
+                (states) => theme.colorScheme.primary.withValues(alpha: 0.12),
+              ),
+            ),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
     if (picked == null || !mounted) return;
     setState(() {
