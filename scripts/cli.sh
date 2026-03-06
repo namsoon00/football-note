@@ -11,6 +11,8 @@ Usage:
   ./scripts/cli.sh <command>
 
 Commands:
+  coding    Coding agent flow (verify -> branch merge -> push main)
+  build     Build agent flow (ios/android/all)
   verify    Run full verification (includes iOS simulator build/run)
   verify-push  Verify, commit on work branch, merge/push main (supports --issue N)
   fix       Run auto-fix steps and checks
@@ -40,6 +42,14 @@ run_ios() {
 cmd="${1:-help}"
 
 case "${cmd}" in
+  coding)
+    shift || true
+    ./scripts/coding_agent.sh "$@"
+    ;;
+  build)
+    shift || true
+    ./scripts/build_agent.sh "${1:-all}"
+    ;;
   verify)
     ./scripts/verify.sh
     ;;

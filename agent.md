@@ -15,3 +15,9 @@ This file mirrors agent workflow expectations for this repository.
 - If a PR flow is requested, use: feature branch -> commit -> pull request -> merge to `main`.
 - If an issue number is provided, close the issue after main push (and leave a merge comment).
 - In the final response, always include the commit hash applied on `main`.
+
+## Agent Split (Mandatory)
+- Coding agent: `./scripts/coding_agent.sh` (or `./scripts/cli.sh coding ...`)
+  - Scope: code changes, verify, branch merge, main push, optional issue close.
+- Build agent: `./scripts/build_agent.sh` (or `./scripts/cli.sh build ...`)
+  - Scope: build/release artifacts only (iOS/Android), no code edits and no git writes.
