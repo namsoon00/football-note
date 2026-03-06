@@ -31,6 +31,14 @@
 .pub/
 .tmp/
 /build/
+android/key.properties
+android/app/upload-keystore.jks
+android/app/*.keystore
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+.env
 
 # Web related
 
