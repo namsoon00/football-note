@@ -46,6 +46,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
   static const Duration _autoRefreshInterval = Duration(minutes: 15);
+  static DateTime? _cachedLoadedAt;
+  static Set<String>? _cachedChannelIds;
+  static final List<NewsArticle> _cachedArticles = <NewsArticle>[];
   late final NewsService _newsService;
   late final List<NewsChannel> _channels;
   late Set<String> _selectedChannelIds;
@@ -79,7 +82,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     _newsService = NewsService(RssNewsRepository(widget.optionRepository));
     _channels = _newsService.channels();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
-    _loadProgressive(force: true);
+    _applyCacheIfValid();
+    _loadProgressive();
   }
 
   @override
@@ -418,11 +422,13 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     setState(() {
       _isLoading = true;
       _hadError = false;
-      _articles.clear();
-      _seenLinks.clear();
-      _seenTitles.clear();
-      _translatedTitlesByLink.clear();
-      _translatingLinks.clear();
+      if (force) {
+        _articles.clear();
+        _seenLinks.clear();
+        _seenTitles.clear();
+        _translatedTitlesByLink.clear();
+        _translatingLinks.clear();
+      }
     });
     if (channelIds.isEmpty) {
       if (!mounted || token != _loadToken) return;
@@ -453,14 +459,45 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     setState(() {
       _isLoading = false;
       _lastLoadedAt = DateTime.now();
+      _cachedLoadedAt = _lastLoadedAt;
+      _cachedChannelIds = Set<String>.from(_selectedChannelIds);
+      _cachedArticles
+        ..clear()
+        ..addAll(_articles);
     });
   }
 
   bool _shouldRefreshByPolicy() {
-    final last = _lastLoadedAt;
+    final last = _lastLoadedAt ?? _cachedLoadedAt;
     if (last == null) return true;
     return DateTime.now().difference(last) >= _autoRefreshInterval;
   }
+
+  void _applyCacheIfValid() {
+    final cachedAt = _cachedLoadedAt;
+    final cachedChannels = _cachedChannelIds;
+    if (cachedAt == null || cachedChannels == null) return;
+    if (DateTime.now().difference(cachedAt) >= _autoRefreshInterval) return;
+    if (!_hasSameChannels(_selectedChannelIds, cachedChannels)) return;
+    if (_cachedArticles.isEmpty) return;
+    _articles
+      ..clear()
+      ..addAll(_cachedArticles);
+    _seenLinks
+      ..clear()
+      ..addAll(_articles.map((a) => a.link.trim()).where((v) => v.isNotEmpty));
+    _seenTitles
+      ..clear()
+      ..addAll(
+        _articles
+            .map((a) => a.title.trim().toLowerCase())
+            .where((v) => v.isNotEmpty),
+      );
+    _lastLoadedAt = cachedAt;
+  }
+
+  bool _hasSameChannels(Set<String> a, Set<String> b) =>
+      a.length == b.length && a.containsAll(b);
 
   void _mergeChunk(List<NewsArticle> chunk) {
     for (final article in chunk) {

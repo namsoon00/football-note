@@ -72,6 +72,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
   List<String> _dailyGoalOptions = [];
+  List<String> _nextGoalOptions = [];
   List<int> _durationOptions = [];
   List<String> _injuryPartOptions = [];
   final Set<String> _selectedDailyGoals = <String>{};
@@ -129,6 +130,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       key: 'daily_goals',
       defaults: _defaultDailyGoals(),
     );
+    _nextGoalOptions = _loadOptions(
+      key: 'next_goals',
+      defaults: _defaultNextGoals(),
+    );
     _durationOptions = _loadIntOptions(
       key: 'durations',
       defaults: const [0, 30, 45, 60, 75, 90, 120],
@@ -161,6 +166,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _nextGoalController.text = entry.nextGoal.isNotEmpty
           ? entry.nextGoal
           : entry.goal;
+      if (_nextGoalController.text.trim().isNotEmpty &&
+          !_nextGoalOptions.contains(_nextGoalController.text.trim())) {
+        _nextGoalOptions.add(_nextGoalController.text.trim());
+        widget.optionRepository.saveOptions('next_goals', _nextGoalOptions);
+      }
       _drillsController.text = entry.drills;
       _intensity = entry.intensity;
       _mood = entry.mood;
@@ -249,6 +259,26 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       'Fitness',
       'Defensive Positioning',
       'First Touch',
+    ];
+  }
+
+  List<String> _defaultNextGoals() {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    if (isKo) {
+      return const [
+        '패스 정확도 높이기',
+        '약발 사용 늘리기',
+        '퍼스트 터치 안정화',
+        '수비 위치 선정 연습',
+        '드리블 속도 올리기',
+      ];
+    }
+    return const [
+      'Improve passing accuracy',
+      'Use weak foot more',
+      'Stabilize first touch',
+      'Practice defensive positioning',
+      'Increase dribble speed',
     ];
   }
 
@@ -610,12 +640,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           children: [
                             IconButton(
                               icon: Icon(
-                                Icons.draw_outlined,
+                                Icons.edit_note_rounded,
                                 color: _drillsController.text.trim().isNotEmpty
                                     ? theme.colorScheme.primary
                                     : null,
                               ),
-                              tooltip: isKo ? '훈련 보드' : 'Training Board',
+                              tooltip: isKo
+                                  ? '훈련 보드 그리기'
+                                  : 'Draw training board',
                               onPressed: _openTrainingMethodBoard,
                             ),
                           ],
@@ -844,6 +876,32 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               hintText: isKo
                                   ? '다음에 보완할 부분을 적어보세요.'
                                   : 'Write what needs improvement.',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSelectRow(
+                            label: isKo ? '훈련 목표' : 'Training goal',
+                            value: _nextGoalController.text.trim().isEmpty
+                                ? l10n.notSet
+                                : _nextGoalController.text.trim(),
+                            options: [l10n.notSet, ..._nextGoalOptions],
+                            onChanged: (value) {
+                              setState(() {
+                                _nextGoalController.text = value == l10n.notSet
+                                    ? ''
+                                    : value;
+                              });
+                              _scheduleAutoSave();
+                            },
+                            onAdd: () => _addOption(
+                              key: 'next_goals',
+                              title: isKo ? '훈련 목표' : 'Training goal',
+                              options: _nextGoalOptions,
+                              onUpdated: (list) =>
+                                  setState(() => _nextGoalOptions = list),
+                              onSelected: (value) => setState(
+                                () => _nextGoalController.text = value,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),

@@ -571,26 +571,21 @@ class _StatsRangePickerSheetState extends State<_StatsRangePickerSheet> {
               lastDate: DateTime(2032, 12, 31),
               onDateChanged: (picked) {
                 final day = _normalize(picked);
+                var start = _start;
+                var end = _end;
                 if (_selectingEnd) {
-                  var start = _start;
-                  var end = day;
-                  if (end.isBefore(start)) {
-                    final tmp = start;
-                    start = end;
-                    end = tmp;
-                  }
-                  Navigator.of(
-                    context,
-                  ).pop(DateTimeRange(start: start, end: end));
-                  return;
+                  end = day;
+                } else {
+                  start = day;
                 }
-                setState(() {
-                  _start = day;
-                  if (_end.isBefore(_start)) {
-                    _end = _start;
-                  }
-                  _selectingEnd = true;
-                });
+                if (end.isBefore(start)) {
+                  final tmp = start;
+                  start = end;
+                  end = tmp;
+                }
+                Navigator.of(
+                  context,
+                ).pop(DateTimeRange(start: start, end: end));
               },
             ),
             const SizedBox(height: 8),
