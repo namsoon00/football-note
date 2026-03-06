@@ -32,6 +32,8 @@ This project supports automated iOS/Android deployment through GitHub Actions an
 - `ANDROID_KEY_PASSWORD`
 - `PLAY_JSON_KEY`: Google Play service-account JSON content
 
+Workflow runs `./scripts/check_release_secrets.sh ios|android` first and fails fast with an explicit missing-key list.
+
 ## One-time Platform Setup
 
 ### iOS
