@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -92,6 +93,38 @@ void main() {
     expect(optionBox.get('reminder_enabled'), false);
     expect(optionBox.get('reminder_time'), '07:30');
     expect(optionBox.get('default_duration'), 90);
+    expect(optionBox.get('type_options'), ['technique', 'tactics']);
+  });
+
+  test('backs up and restores typed option values in v2 schema', () async {
+    final bytes = Uint8List.fromList([1, 2, 3, 4]);
+    final timestamp = DateTime(2026, 1, 6, 7, 30);
+    await optionBox.put('binary_blob', bytes);
+    await optionBox.put('session_started_at', timestamp);
+
+    final backup = service.buildBackupForTesting();
+    await optionBox.clear();
+
+    await service.restoreFromMapForTesting(backup);
+
+    expect(optionBox.get('binary_blob'), bytes);
+    expect(optionBox.get('session_started_at'), timestamp);
+  });
+
+  test('restores legacy v1 backup payload', () async {
+    final legacy = <String, dynamic>{
+      'version': 1,
+      'createdAt': '2026-01-01T00:00:00.000',
+      'entries': const [],
+      'options': <String, dynamic>{
+        'theme_mode': 'dark',
+        'type_options': ['technique', 'tactics'],
+      },
+    };
+
+    await service.restoreFromMapForTesting(legacy);
+
+    expect(optionBox.get('theme_mode'), 'dark');
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
   });
 }

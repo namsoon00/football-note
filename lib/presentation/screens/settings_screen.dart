@@ -135,10 +135,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'daily_goals',
       _defaultDailyGoals(isKo),
     );
+    final localizedDailyGoalDefaults = _defaultDailyGoals(isKo);
+    final normalizedDailyGoals = LocalizedOptionDefaults.normalizeOptions(
+      key: 'daily_goals',
+      stored: _dailyGoalOptions,
+      localizedDefaults: localizedDailyGoalDefaults,
+    );
+    if (!_sameStringList(_dailyGoalOptions, normalizedDailyGoals)) {
+      _dailyGoalOptions = normalizedDailyGoals;
+      widget.optionRepository.saveOptions('daily_goals', normalizedDailyGoals);
+    }
     _nextGoalOptions = widget.optionRepository.getOptions(
       'next_goals',
       _defaultNextGoals(isKo),
     );
+    final localizedNextGoalDefaults = _defaultNextGoals(isKo);
+    final normalizedNextGoals = LocalizedOptionDefaults.normalizeOptions(
+      key: 'next_goals',
+      stored: _nextGoalOptions,
+      localizedDefaults: localizedNextGoalDefaults,
+    );
+    if (!_sameStringList(_nextGoalOptions, normalizedNextGoals)) {
+      _nextGoalOptions = normalizedNextGoals;
+      widget.optionRepository.saveOptions('next_goals', normalizedNextGoals);
+    }
 
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??

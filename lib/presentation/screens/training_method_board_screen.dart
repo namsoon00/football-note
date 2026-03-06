@@ -37,30 +37,35 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
 
   void _restore() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
-    _pages = layout.pages.asMap().entries.map((entry) {
-      final i = entry.key;
-      final page = entry.value;
-      return _BoardPageState(
-        name: page.name.trim().isEmpty ? 'Step ${i + 1}' : page.name,
-        methodText: page.methodText,
-        items: page.items
-            .map(
-              (e) => _BoardItem(
-                id: _nextId++,
-                type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
-                x: e.x,
-                y: e.y,
-                size: 32,
-                rotationDeg: e.rotationDeg,
-                color: Color(e.colorValue),
-              ),
-            )
-            .toList(growable: true),
-      );
-    }).toList(growable: true);
+    _pages = layout.pages
+        .asMap()
+        .entries
+        .map((entry) {
+          final i = entry.key;
+          final page = entry.value;
+          return _BoardPageState(
+            name: page.name.trim().isEmpty ? 'Step ${i + 1}' : page.name,
+            methodText: page.methodText,
+            items: page.items
+                .map(
+                  (e) => _BoardItem(
+                    id: _nextId++,
+                    type:
+                        _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
+                    x: e.x,
+                    y: e.y,
+                    size: 32,
+                    rotationDeg: e.rotationDeg,
+                    color: Color(e.colorValue),
+                  ),
+                )
+                .toList(growable: true),
+          );
+        })
+        .toList(growable: true);
     if (_pages.isEmpty) {
       _pages = <_BoardPageState>[
-        _BoardPageState(name: 'Step 1', methodText: '', items: <_BoardItem>[])
+        _BoardPageState(name: 'Step 1', methodText: '', items: <_BoardItem>[]),
       ];
     }
   }
@@ -127,11 +132,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
 
   void _addPage() {
     setState(() {
-      _pages.add(_BoardPageState(
-        name: 'Step ${_pages.length + 1}',
-        methodText: '',
-        items: <_BoardItem>[],
-      ));
+      _pages.add(
+        _BoardPageState(
+          name: 'Step ${_pages.length + 1}',
+          methodText: '',
+          items: <_BoardItem>[],
+        ),
+      );
       _pageIndex = _pages.length - 1;
       _selectedItemId = null;
       _methodController.text = _currentPage.methodText;
@@ -242,11 +249,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
               icon: const Icon(Icons.library_books_outlined),
               onPressed: () => _showPresetPicker(isKo),
             ),
-          IconButton(
-            tooltip: isKo ? '키보드 닫기' : 'Hide keyboard',
-            icon: const Icon(Icons.keyboard_hide_outlined),
-            onPressed: _dismissKeyboard,
-          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(_serialize()),
             child: Text(isKo ? '저장' : 'Save'),
@@ -293,8 +295,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
                                 onTap: () =>
                                     setState(() => _selectedItemId = item.id),
                                 onLongPress: () => setState(() {
-                                  _currentPage.items
-                                      .removeWhere((e) => e.id == item.id);
+                                  _currentPage.items.removeWhere(
+                                    (e) => e.id == item.id,
+                                  );
                                   if (_selectedItemId == item.id) {
                                     _selectedItemId = null;
                                   }
@@ -415,29 +418,33 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
       runSpacing: 8,
       children: [
         _toolButton(
-            isKo: isKo,
-            ko: '콘',
-            en: 'Cone',
-            icon: Icons.change_history,
-            onTap: () => _addItem(_BoardItemType.cone)),
+          isKo: isKo,
+          ko: '콘',
+          en: 'Cone',
+          icon: Icons.change_history,
+          onTap: () => _addItem(_BoardItemType.cone),
+        ),
         _toolButton(
-            isKo: isKo,
-            ko: '사람',
-            en: 'Player',
-            icon: Icons.person,
-            onTap: () => _addItem(_BoardItemType.player)),
+          isKo: isKo,
+          ko: '사람',
+          en: 'Player',
+          icon: Icons.person,
+          onTap: () => _addItem(_BoardItemType.player),
+        ),
         _toolButton(
-            isKo: isKo,
-            ko: '공',
-            en: 'Ball',
-            icon: Icons.sports_soccer,
-            onTap: () => _addItem(_BoardItemType.ball)),
+          isKo: isKo,
+          ko: '공',
+          en: 'Ball',
+          icon: Icons.sports_soccer,
+          onTap: () => _addItem(_BoardItemType.ball),
+        ),
         _toolButton(
-            isKo: isKo,
-            ko: '사다리',
-            en: 'Ladder',
-            icon: Icons.view_week,
-            onTap: () => _addItem(_BoardItemType.ladder)),
+          isKo: isKo,
+          ko: '사다리',
+          en: 'Ladder',
+          icon: Icons.view_week,
+          onTap: () => _addItem(_BoardItemType.ladder),
+        ),
         OutlinedButton.icon(
           onPressed: () => setState(() {
             _currentPage.items.clear();
@@ -510,25 +517,28 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _presetColors.map((c) {
-              final selectedColor = c.toARGB32() == selected.color.toARGB32();
-              return InkWell(
-                onTap: () => setState(() => selected.color = c),
-                borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: c,
-                    border: Border.all(
-                      color: selectedColor ? Colors.white : Colors.black26,
-                      width: selectedColor ? 2.4 : 1.0,
+            children: _presetColors
+                .map((c) {
+                  final selectedColor =
+                      c.toARGB32() == selected.color.toARGB32();
+                  return InkWell(
+                    onTap: () => setState(() => selected.color = c),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: c,
+                        border: Border.all(
+                          color: selectedColor ? Colors.white : Colors.black26,
+                          width: selectedColor ? 2.4 : 1.0,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }).toList(growable: false),
+                  );
+                })
+                .toList(growable: false),
           ),
         ],
       ),
@@ -617,8 +627,9 @@ class _BoardToken extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.18),
           shape: BoxShape.circle,
           border: Border.all(
-            color:
-                selected ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            color: selected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.55),
             width: selected ? 2.2 : 1.2,
           ),
           boxShadow: selected
@@ -650,7 +661,9 @@ class _PitchPainter extends CustomPainter {
     final centerY = size.height / 2;
 
     canvas.drawRect(
-        Rect.fromLTWH(8, 8, size.width - 16, size.height - 16), line);
+      Rect.fromLTWH(8, 8, size.width - 16, size.height - 16),
+      line,
+    );
     canvas.drawLine(Offset(centerX, 8), Offset(centerX, size.height - 8), line);
     canvas.drawCircle(Offset(centerX, centerY), 42, line);
     canvas.drawRect(Rect.fromLTWH(8, (size.height / 2) - 56, 74, 112), line);
@@ -670,8 +683,5 @@ class TrainingBoardPreset {
   final String label;
   final String layoutJson;
 
-  const TrainingBoardPreset({
-    required this.label,
-    required this.layoutJson,
-  });
+  const TrainingBoardPreset({required this.label, required this.layoutJson});
 }
