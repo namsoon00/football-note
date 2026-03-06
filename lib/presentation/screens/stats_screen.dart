@@ -306,11 +306,15 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Future<void> _pickRange(BuildContext context) async {
-    final picked = await showModalBottomSheet<DateTimeRange>(
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final picked = await showDateRangePicker(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _StatsRangePickerSheet(initialRange: _selectedRange),
+      initialDateRange: _selectedRange,
+      firstDate: DateTime(2022, 1, 1),
+      lastDate: DateTime(2032, 12, 31),
+      helpText: isKo ? '통계 기간 선택' : 'Select period',
+      confirmText: isKo ? '적용' : 'Apply',
+      cancelText: isKo ? '취소' : 'Cancel',
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -500,150 +504,6 @@ String _periodName(_CoachPeriod period, bool isKo) {
       return isKo ? '주간' : 'Weekly';
     case _CoachPeriod.monthly:
       return isKo ? '월간' : 'Monthly';
-  }
-}
-
-class _StatsRangePickerSheet extends StatefulWidget {
-  final DateTimeRange initialRange;
-
-  const _StatsRangePickerSheet({required this.initialRange});
-
-  @override
-  State<_StatsRangePickerSheet> createState() => _StatsRangePickerSheetState();
-}
-
-class _StatsRangePickerSheetState extends State<_StatsRangePickerSheet> {
-  late DateTime _start;
-  late DateTime _end;
-  bool _selectingEnd = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _start = _normalize(widget.initialRange.start);
-    _end = _normalize(widget.initialRange.end);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              isKo ? '통계 기간 선택' : 'Select period',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              isKo
-                  ? '저장 버튼 없이 바로 적용됩니다. ${_selectingEnd ? '종료일을 선택해 주세요.' : '시작일을 선택해 주세요.'}'
-                  : 'Applied immediately. ${_selectingEnd ? 'Select end date.' : 'Select start date.'}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _DateChip(
-                  label: isKo ? '시작' : 'Start',
-                  value: _start,
-                  selected: !_selectingEnd,
-                  onTap: () => setState(() => _selectingEnd = false),
-                ),
-                _DateChip(
-                  label: isKo ? '종료' : 'End',
-                  value: _end,
-                  selected: _selectingEnd,
-                  onTap: () => setState(() => _selectingEnd = true),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            CalendarDatePicker(
-              initialDate: _selectingEnd ? _end : _start,
-              firstDate: DateTime(2022, 1, 1),
-              lastDate: DateTime(2032, 12, 31),
-              onDateChanged: (picked) {
-                final day = _normalize(picked);
-                var start = _start;
-                var end = _end;
-                if (_selectingEnd) {
-                  end = day;
-                } else {
-                  start = day;
-                }
-                if (end.isBefore(start)) {
-                  final tmp = start;
-                  start = end;
-                  end = tmp;
-                }
-                Navigator.of(
-                  context,
-                ).pop(DateTimeRange(start: start, end: end));
-              },
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(isKo ? '취소' : 'Cancel'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  DateTime _normalize(DateTime value) =>
-      DateTime(value.year, value.month, value.day);
-}
-
-class _DateChip extends StatelessWidget {
-  final String label;
-  final DateTime value;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _DateChip({
-    required this.label,
-    required this.value,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected
-              ? colorScheme.primary.withValues(alpha: 0.12)
-              : colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: selected
-                ? colorScheme.primary
-                : colorScheme.outline.withValues(alpha: 0.35),
-          ),
-        ),
-        child: Text(
-          '$label ${value.month}/${value.day}',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: selected ? colorScheme.primary : colorScheme.onSurface,
-          ),
-        ),
-      ),
-    );
   }
 }
 

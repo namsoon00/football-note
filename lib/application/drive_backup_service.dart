@@ -18,18 +18,17 @@ class DriveBackupService implements BackupRepository {
     GoogleSignIn? googleSignIn,
     FirebaseAuth? firebaseAuth,
     String? webClientId,
-  }) : _googleSignIn =
-           googleSignIn ??
-           (kIsWeb
-               ? null
-               : GoogleSignIn(
-                   clientId:
-                       webClientId != null && webClientId.trim().isNotEmpty
-                       ? webClientId.trim()
-                       : null,
-                   scopes: const ['email', _driveScope],
-                 )),
-       _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth();
+  })  : _googleSignIn = googleSignIn ??
+            (kIsWeb
+                ? null
+                : GoogleSignIn(
+                    clientId:
+                        webClientId != null && webClientId.trim().isNotEmpty
+                            ? webClientId.trim()
+                            : null,
+                    scopes: const ['email', _driveScope],
+                  )),
+        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth();
 
   final Box<TrainingEntry> _trainingBox;
   final Box _optionBox;
@@ -66,6 +65,9 @@ class DriveBackupService implements BackupRepository {
     _localPreRestoreKey,
     _localPreRestoreAtKey,
   };
+  static const _backupVersion = 2;
+  static const _typedValueKey = '__type';
+  static const _typedDataKey = 'data';
 
   @override
   Future<void> backup() async {
@@ -346,8 +348,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {
     final result = await api.files.list(
-      q:
-          "mimeType='application/vnd.google-apps.folder' and "
+      q: "mimeType='application/vnd.google-apps.folder' and "
           "name='$_folderName' and trashed=false",
       spaces: 'drive',
       $fields: 'files(id,name)',
@@ -433,12 +434,10 @@ class DriveBackupService implements BackupRepository {
       throw StateError('No backup file found.');
     }
 
-    final media =
-        await driveApi.files.get(
-              file.id!,
-              downloadOptions: drive.DownloadOptions.fullMedia,
-            )
-            as drive.Media;
+    final media = await driveApi.files.get(
+      file.id!,
+      downloadOptions: drive.DownloadOptions.fullMedia,
+    ) as drive.Media;
 
     final content = await utf8.decoder.bind(media.stream).join();
     final data = jsonDecode(content) as Map<String, dynamic>;
@@ -450,14 +449,14 @@ class DriveBackupService implements BackupRepository {
     final options = <String, dynamic>{};
     for (final key in _optionBox.keys) {
       if (key is String && !_excludedOptionKeys.contains(key)) {
-        final jsonSafe = _toJsonSafe(_optionBox.get(key));
+        final jsonSafe = _toBackupValue(_optionBox.get(key));
         if (jsonSafe != _unsupportedValue) {
           options[key] = jsonSafe;
         }
       }
     }
     return {
-      'version': 1,
+      'version': _backupVersion,
       'createdAt': DateTime.now().toIso8601String(),
       'entries': entries,
       'options': options,
@@ -472,6 +471,7 @@ class DriveBackupService implements BackupRepository {
       _restoreFromMap(data);
 
   Future<void> _restoreFromMap(Map<String, dynamic> data) async {
+    final version = (data['version'] as num?)?.toInt() ?? 1;
     final entries = (data['entries'] as List?) ?? const [];
     final options = (data['options'] as Map?) ?? const {};
     final localPreRestoreRaw = _optionBox.get(_localPreRestoreKey);
@@ -487,7 +487,10 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.clear();
     for (final entry in options.entries) {
       if (entry.key is String && !_excludedOptionKeys.contains(entry.key)) {
-        await _optionBox.put(entry.key, entry.value);
+        await _optionBox.put(
+          entry.key,
+          _fromBackupValue(entry.value, version: version),
+        );
       }
     }
     if (localPreRestoreRaw is String) {
@@ -537,17 +540,34 @@ class DriveBackupService implements BackupRepository {
 
   static const _unsupportedValue = Object();
 
-  dynamic _toJsonSafe(dynamic value) {
+  dynamic _toBackupValue(dynamic value) {
     if (value == null || value is String || value is bool || value is num) {
       return value;
     }
     if (value is DateTime) {
-      return value.toIso8601String();
+      return {
+        _typedValueKey: 'datetime',
+        _typedDataKey: value.toIso8601String(),
+      };
+    }
+    if (value is Uint8List) {
+      return {_typedValueKey: 'bytes', _typedDataKey: base64Encode(value)};
+    }
+    if (value is Set) {
+      final result = <dynamic>[];
+      for (final item in value) {
+        final converted = _toBackupValue(item);
+        if (converted == _unsupportedValue) {
+          return _unsupportedValue;
+        }
+        result.add(converted);
+      }
+      return {_typedValueKey: 'set', _typedDataKey: result};
     }
     if (value is List) {
       final result = <dynamic>[];
       for (final item in value) {
-        final converted = _toJsonSafe(item);
+        final converted = _toBackupValue(item);
         if (converted == _unsupportedValue) {
           return _unsupportedValue;
         }
@@ -562,7 +582,7 @@ class DriveBackupService implements BackupRepository {
         if (key is! String) {
           return _unsupportedValue;
         }
-        final converted = _toJsonSafe(entry.value);
+        final converted = _toBackupValue(entry.value);
         if (converted == _unsupportedValue) {
           return _unsupportedValue;
         }
@@ -571,6 +591,55 @@ class DriveBackupService implements BackupRepository {
       return result;
     }
     return _unsupportedValue;
+  }
+
+  dynamic _fromBackupValue(dynamic value, {required int version}) {
+    if (value is Map) {
+      if (version >= 2 &&
+          value[_typedValueKey] is String &&
+          value.containsKey(_typedDataKey)) {
+        final type = value[_typedValueKey] as String;
+        final data = value[_typedDataKey];
+        switch (type) {
+          case 'datetime':
+            if (data is String) {
+              return DateTime.tryParse(data) ?? data;
+            }
+            return data;
+          case 'bytes':
+            if (data is String) {
+              try {
+                return base64Decode(data);
+              } catch (_) {
+                return data;
+              }
+            }
+            return data;
+          case 'set':
+            if (data is List) {
+              return data
+                  .map((item) => _fromBackupValue(item, version: version))
+                  .toSet();
+            }
+            return <dynamic>{};
+          default:
+            return data;
+        }
+      }
+      final mapped = <String, dynamic>{};
+      for (final entry in value.entries) {
+        final key = entry.key;
+        if (key is! String) continue;
+        mapped[key] = _fromBackupValue(entry.value, version: version);
+      }
+      return mapped;
+    }
+    if (value is List) {
+      return value
+          .map((item) => _fromBackupValue(item, version: version))
+          .toList(growable: true);
+    }
+    return value;
   }
 
   bool _isInsufficientScopeError(Object error) {
@@ -597,40 +666,40 @@ class DriveBackupService implements BackupRepository {
   }
 
   Map<String, dynamic> _entryToMap(TrainingEntry entry) => {
-    'date': entry.date.toIso8601String(),
-    'createdAt': entry.createdAt.toIso8601String(),
-    'durationMinutes': entry.durationMinutes,
-    'intensity': entry.intensity,
-    'type': entry.type,
-    'mood': entry.mood,
-    'injury': entry.injury,
-    'notes': entry.notes,
-    'location': entry.location,
-    'program': entry.program,
-    'drills': entry.drills,
-    'club': entry.club,
-    'injuryPart': entry.injuryPart,
-    'painLevel': entry.painLevel,
-    'rehab': entry.rehab,
-    'goal': entry.goal,
-    'feedback': entry.feedback,
-    'heightCm': entry.heightCm,
-    'weightKg': entry.weightKg,
-    'imagePath': entry.imagePath,
-    'imagePaths': entry.imagePaths,
-    'status': entry.status,
-    'liftingByPart': entry.liftingByPart,
-    'coachComment': entry.coachComment,
-    'fortuneComment': entry.fortuneComment,
-    'fortuneRecommendation': entry.fortuneRecommendation,
-    'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
-    'goalFocuses': entry.goalFocuses,
-    'goodPoints': entry.goodPoints,
-    'improvements': entry.improvements,
-    'nextGoal': entry.nextGoal,
-    'jumpRopeCount': entry.jumpRopeCount,
-    'jumpRopeMinutes': entry.jumpRopeMinutes,
-  };
+        'date': entry.date.toIso8601String(),
+        'createdAt': entry.createdAt.toIso8601String(),
+        'durationMinutes': entry.durationMinutes,
+        'intensity': entry.intensity,
+        'type': entry.type,
+        'mood': entry.mood,
+        'injury': entry.injury,
+        'notes': entry.notes,
+        'location': entry.location,
+        'program': entry.program,
+        'drills': entry.drills,
+        'club': entry.club,
+        'injuryPart': entry.injuryPart,
+        'painLevel': entry.painLevel,
+        'rehab': entry.rehab,
+        'goal': entry.goal,
+        'feedback': entry.feedback,
+        'heightCm': entry.heightCm,
+        'weightKg': entry.weightKg,
+        'imagePath': entry.imagePath,
+        'imagePaths': entry.imagePaths,
+        'status': entry.status,
+        'liftingByPart': entry.liftingByPart,
+        'coachComment': entry.coachComment,
+        'fortuneComment': entry.fortuneComment,
+        'fortuneRecommendation': entry.fortuneRecommendation,
+        'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
+        'goalFocuses': entry.goalFocuses,
+        'goodPoints': entry.goodPoints,
+        'improvements': entry.improvements,
+        'nextGoal': entry.nextGoal,
+        'jumpRopeCount': entry.jumpRopeCount,
+        'jumpRopeMinutes': entry.jumpRopeMinutes,
+      };
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
     DateTime parseDate() {
@@ -674,8 +743,7 @@ class DriveBackupService implements BackupRepository {
       imagePaths:
           (map['imagePaths'] as List?)?.cast<String>() ?? const <String>[],
       status: map['status'] as String? ?? 'normal',
-      liftingByPart:
-          (map['liftingByPart'] as Map?)?.map(
+      liftingByPart: (map['liftingByPart'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
           ) ??
@@ -687,7 +755,7 @@ class DriveBackupService implements BackupRepository {
           map['fortuneRecommendedProgram'] as String? ?? '',
       goalFocuses:
           (map['goalFocuses'] as List?)?.map((e) => e.toString()).toList() ??
-          const <String>[],
+              const <String>[],
       goodPoints:
           (map['goodPoints'] as String?) ?? (map['feedback'] as String? ?? ''),
       improvements:

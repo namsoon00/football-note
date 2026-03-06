@@ -9,6 +9,29 @@ class LocalizedOptionDefaults {
     ['Fundamentals', 'Physical', 'Tactical', 'Recovery'],
   ];
 
+  static const List<List<String>> _dailyGoalVariants = [
+    ['드리블', '패스 정확도', '슈팅', '체력', '수비 위치 선정', '퍼스트 터치'],
+    [
+      'Dribbling',
+      'Passing Accuracy',
+      'Shooting',
+      'Fitness',
+      'Defensive Positioning',
+      'First Touch',
+    ],
+  ];
+
+  static const List<List<String>> _nextGoalVariants = [
+    ['패스 정확도 높이기', '약발 사용 늘리기', '퍼스트 터치 안정화', '수비 위치 선정 연습', '드리블 속도 올리기'],
+    [
+      'Improve passing accuracy',
+      'Use weak foot more',
+      'Stabilize first touch',
+      'Practice defensive positioning',
+      'Increase dribble speed',
+    ],
+  ];
+
   static List<String> normalizeOptions({
     required String key,
     required List<String> stored,
@@ -21,7 +44,8 @@ class LocalizedOptionDefaults {
     for (final item in stored) {
       final value = item.trim();
       if (value.isEmpty) continue;
-      final mapped = _translateKnownValue(
+      final mapped =
+          _translateKnownValue(
             value: value,
             variants: variants,
             localizedDefaults: localizedDefaults,
@@ -70,6 +94,10 @@ class LocalizedOptionDefaults {
       case 'programs':
       case 'default_program':
         return _programVariants;
+      case 'daily_goals':
+        return _dailyGoalVariants;
+      case 'next_goals':
+        return _nextGoalVariants;
       default:
         return null;
     }

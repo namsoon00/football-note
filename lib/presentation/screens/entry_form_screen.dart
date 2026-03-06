@@ -13,7 +13,6 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
-import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import '../models/training_method_layout.dart';
@@ -581,95 +580,90 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final isDark = theme.brightness == Brightness.dark;
-    final heroAccent = isDark
-        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.65)
-        : WatchCartConstants.primaryColor;
-
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: Stack(
-        children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.3,
-            child: Row(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            onChanged: _scheduleAutoSave,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Container(color: theme.scaffoldBackgroundColor),
-                ),
-                Expanded(child: Container(color: heroAccent)),
-              ],
-            ),
-          ),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                onChanged: _scheduleAutoSave,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () => Navigator.of(context).maybePop(),
-                              icon: const Icon(Icons.arrow_back),
-                              tooltip: l10n.cancel,
-                            ),
-                            TextButton.icon(
-                              onPressed: (_saveInProgress || _deleteInProgress)
-                                  ? null
-                                  : (isEdit ? _confirmAndDelete : _save),
-                              icon: Icon(
-                                isEdit
-                                    ? Icons.delete_outline
-                                    : Icons.save_outlined,
-                                size: 18,
-                              ),
-                              label: Text(
-                                isEdit ? l10n.deleteEntry : l10n.save,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.edit_note_rounded,
-                                color: _drillsController.text.trim().isNotEmpty
-                                    ? theme.colorScheme.primary
-                                    : null,
-                              ),
-                              tooltip: isKo
-                                  ? '훈련 보드 그리기'
-                                  : 'Draw training board',
-                              onPressed: _openTrainingMethodBoard,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
+                    Expanded(
+                      child: Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            icon: const Icon(Icons.arrow_back),
+                            tooltip: l10n.cancel,
                           ),
+                          TextButton.icon(
+                            onPressed: (_saveInProgress || _deleteInProgress)
+                                ? null
+                                : (isEdit ? _confirmAndDelete : _save),
+                            icon: Icon(
+                              isEdit
+                                  ? Icons.delete_outline
+                                  : Icons.save_outlined,
+                              size: 18,
+                            ),
+                            label: Text(isEdit ? l10n.deleteEntry : l10n.save),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: _openTrainingMethodBoard,
+                      icon: Icon(
+                        Icons.dashboard_customize_outlined,
+                        color: _drillsController.text.trim().isNotEmpty
+                            ? theme.colorScheme.primary
+                            : null,
+                      ),
+                      label: Text(isKo ? '훈련보드' : 'Board'),
+                      style: OutlinedButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        minimumSize: const Size(1, 40),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
                         ),
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.topRight,
+                        child: OutlinedButton.icon(
                           onPressed: () {
                             if (_fortuneComment.trim().isNotEmpty) {
                               _showFortuneRevealDialog(_fortuneComment.trim());
@@ -688,486 +682,478 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           icon: const Icon(Icons.auto_awesome, size: 16),
                           label: Text(isKo ? '오늘의운세' : 'Today fortune'),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    WatchCartCard(
-                      child: Column(
-                        children: [
-                          _buildStatusRow(l10n),
-                          const SizedBox(height: 12),
-                          InkWell(
-                            onTap: _pickDate,
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.outline.withAlpha(140),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.calendar_today,
-                                    size: 18,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          l10n.trainingDate,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurface,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          dateText,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(Icons.chevron_right),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildIntSelectRow(
-                            label: l10n.trainingDuration,
-                            value: _durationMinutes,
-                            options: _durationOptions,
-                            optionLabel: (value) =>
-                                value == 0 ? l10n.notSet : l10n.minutes(value),
-                            onChanged: (value) {
-                              setState(() => _durationMinutes = value);
-                              _scheduleAutoSave();
-                            },
-                            onAdd: () => _addIntOption(
-                              key: 'durations',
-                              title: l10n.trainingDuration,
-                              options: _durationOptions,
-                              onUpdated: (list) =>
-                                  setState(() => _durationOptions = list),
-                              onSelected: (value) =>
-                                  setState(() => _durationMinutes = value),
-                              hint: '90',
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _buildSelectRow(
-                            label: l10n.location,
-                            value: _location,
-                            options: _locationOptions,
-                            onChanged: (value) {
-                              setState(() => _location = value);
-                              _scheduleAutoSave();
-                            },
-                            onAdd: () => _addOption(
-                              key: 'locations',
-                              title: l10n.location,
-                              options: _locationOptions,
-                              onUpdated: (list) =>
-                                  setState(() => _locationOptions = list),
-                              onSelected: (value) =>
-                                  setState(() => _location = value),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildSelectRow(
-                            label: l10n.program,
-                            value: _type,
-                            options: _programOptions,
-                            onChanged: (value) {
-                              setState(() => _type = value);
-                              _scheduleAutoSave();
-                            },
-                            onAdd: () => _addOption(
-                              key: 'programs',
-                              title: l10n.program,
-                              options: _programOptions,
-                              onUpdated: (list) =>
-                                  setState(() => _programOptions = list),
-                              onSelected: (value) =>
-                                  setState(() => _type = value),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildIntSelectRow(
-                                  label: l10n.intensity,
-                                  value: _intensity,
-                                  options: _ratingOptions,
-                                  optionLabel: (value) => '$value / 5',
-                                  onChanged: (value) {
-                                    setState(() => _intensity = value);
-                                    _scheduleAutoSave();
-                                  },
-                                  onAdd: null,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildIntSelectRow(
-                                  label: l10n.condition,
-                                  value: _mood,
-                                  options: _ratingOptions,
-                                  optionLabel: (value) => '$value / 5',
-                                  onChanged: (value) {
-                                    setState(() => _mood = value);
-                                    _scheduleAutoSave();
-                                  },
-                                  onAdd: null,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    WatchCartCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDailyGoalSelector(),
-                          const SizedBox(height: 12),
-                          _buildEmphasizedField(
-                            controller: _goodPointsController,
-                            minLines: 2,
-                            maxLines: null,
-                            decoration: InputDecoration(
-                              labelText: isKo ? '잘한 점' : 'What went well',
-                              hintText: isKo
-                                  ? '오늘 잘된 플레이를 적어보세요.'
-                                  : 'Write what you did well today.',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildEmphasizedField(
-                            controller: _improvementsController,
-                            minLines: 3,
-                            maxLines: null,
-                            decoration: InputDecoration(
-                              labelText: isKo ? '아쉬운 점' : 'What to improve',
-                              hintText: isKo
-                                  ? '다음에 보완할 부분을 적어보세요.'
-                                  : 'Write what needs improvement.',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSelectRow(
-                            label: isKo ? '훈련 목표' : 'Training goal',
-                            value: _nextGoalController.text.trim().isEmpty
-                                ? l10n.notSet
-                                : _nextGoalController.text.trim(),
-                            options: [l10n.notSet, ..._nextGoalOptions],
-                            onChanged: (value) {
-                              setState(() {
-                                _nextGoalController.text = value == l10n.notSet
-                                    ? ''
-                                    : value;
-                              });
-                              _scheduleAutoSave();
-                            },
-                            onAdd: () => _addOption(
-                              key: 'next_goals',
-                              title: isKo ? '훈련 목표' : 'Training goal',
-                              options: _nextGoalOptions,
-                              onUpdated: (list) =>
-                                  setState(() => _nextGoalOptions = list),
-                              onSelected: (value) => setState(
-                                () => _nextGoalController.text = value,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildEmphasizedField(
-                            controller: _nextGoalController,
-                            minLines: 4,
-                            maxLines: null,
-                            decoration: InputDecoration(
-                              labelText: isKo ? '다음 목표' : 'Next goal',
-                              hintText: isKo
-                                  ? '다음 훈련 목표를 적어보세요.'
-                                  : 'Write your next training goal.',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    WatchCartCard(
-                      child: Column(
-                        children: [
-                          SwitchListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(l10n.injury),
-                            value: _injury,
-                            onChanged: (value) {
-                              setState(() => _injury = value);
-                              _scheduleAutoSave();
-                            },
-                          ),
-                          if (_injury) ...[
-                            _buildSelectRow(
-                              label: l10n.injuryPart,
-                              value: _injuryPartController.text.isEmpty
-                                  ? l10n.notSet
-                                  : _injuryPartController.text,
-                              options: [l10n.notSet, ..._injuryPartOptions],
-                              onChanged: (value) {
-                                setState(() {
-                                  _injuryPartController.text =
-                                      value == l10n.notSet ? '' : value;
-                                });
-                                _scheduleAutoSave();
-                              },
-                              onAdd: () => _addOption(
-                                key: 'injury_parts',
-                                title: l10n.injuryPart,
-                                options: _injuryPartOptions,
-                                onUpdated: (list) =>
-                                    setState(() => _injuryPartOptions = list),
-                                onSelected: (value) => setState(
-                                  () => _injuryPartController.text = value,
-                                ),
-                              ),
-                              enabled: _injury,
-                            ),
-                            const SizedBox(height: 12),
-                            _buildEmphasizedField(
-                              controller: _painController,
-                              enabled: _injury,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: l10n.painLevel,
-                                hintText: '4',
-                              ),
-                            ),
-                            SwitchListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(l10n.rehab),
-                              value: _rehab,
-                              onChanged: (value) {
-                                setState(() => _rehab = value);
-                                _scheduleAutoSave();
-                              },
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    WatchCartCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SwitchListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(l10n.liftingRecord),
-                            value: _liftingEnabled,
-                            onChanged: (value) {
-                              setState(() => _liftingEnabled = value);
-                              _scheduleAutoSave();
-                            },
-                          ),
-                          if (_liftingEnabled) ...[
-                            Text(
-                              l10n.liftingByPart,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildEmphasizedField(
-                                    controller: _liftChestController,
-                                    enabled: _liftingEnabled,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: l10n.liftingPartInfront,
-                                      hintText: '0',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildEmphasizedField(
-                                    controller: _liftBackController,
-                                    enabled: _liftingEnabled,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: l10n.liftingPartInside,
-                                      hintText: '0',
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildEmphasizedField(
-                                    controller: _liftLegsController,
-                                    enabled: _liftingEnabled,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: l10n.liftingPartOutside,
-                                      hintText: '0',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildEmphasizedField(
-                                    controller: _liftShouldersController,
-                                    enabled: _liftingEnabled,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: l10n.liftingPartMuple,
-                                      hintText: '0',
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildEmphasizedField(
-                                    controller: _liftArmsController,
-                                    enabled: _liftingEnabled,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: l10n.liftingPartHead,
-                                      hintText: '0',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildEmphasizedField(
-                                    controller: _liftCoreController,
-                                    enabled: _liftingEnabled,
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: l10n.liftingPartChest,
-                                      hintText: '0',
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    WatchCartCard(
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _jumpRopeController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: isKo
-                                        ? '줄넘기 횟수'
-                                        : 'Jump rope count',
-                                    hintText: '0',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _jumpRopeMinutesController,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: isKo
-                                        ? '줄넘기 시간(분)'
-                                        : 'Jump rope time (min)',
-                                    hintText: '0',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(
-                        isKo
-                            ? '줄넘기 시간은 분 단위로 입력해 주세요.'
-                            : 'Enter jump rope time in minutes.',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    if (isEdit)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4, bottom: 4),
-                            child: Text(
-                              _autoSaving
-                                  ? (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '자동 저장 중...'
-                                        : 'Autosaving...')
-                                  : (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '수정 내용이 자동 저장됩니다.'
-                                        : 'Changes are saved automatically.'),
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 24),
                   ],
                 ),
-              ),
+                const SizedBox(height: 12),
+                WatchCartCard(
+                  child: Column(
+                    children: [
+                      _buildStatusRow(l10n),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withAlpha(140),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.trainingDate,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      dateText,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildIntSelectRow(
+                        label: l10n.trainingDuration,
+                        value: _durationMinutes,
+                        options: _durationOptions,
+                        optionLabel: (value) =>
+                            value == 0 ? l10n.notSet : l10n.minutes(value),
+                        onChanged: (value) {
+                          setState(() => _durationMinutes = value);
+                          _scheduleAutoSave();
+                        },
+                        onAdd: () => _addIntOption(
+                          key: 'durations',
+                          title: l10n.trainingDuration,
+                          options: _durationOptions,
+                          onUpdated: (list) =>
+                              setState(() => _durationOptions = list),
+                          onSelected: (value) =>
+                              setState(() => _durationMinutes = value),
+                          hint: '90',
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _buildSelectRow(
+                        label: l10n.location,
+                        value: _location,
+                        options: _locationOptions,
+                        onChanged: (value) {
+                          setState(() => _location = value);
+                          _scheduleAutoSave();
+                        },
+                        onAdd: () => _addOption(
+                          key: 'locations',
+                          title: l10n.location,
+                          options: _locationOptions,
+                          onUpdated: (list) =>
+                              setState(() => _locationOptions = list),
+                          onSelected: (value) =>
+                              setState(() => _location = value),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildSelectRow(
+                        label: l10n.program,
+                        value: _type,
+                        options: _programOptions,
+                        onChanged: (value) {
+                          setState(() => _type = value);
+                          _scheduleAutoSave();
+                        },
+                        onAdd: () => _addOption(
+                          key: 'programs',
+                          title: l10n.program,
+                          options: _programOptions,
+                          onUpdated: (list) =>
+                              setState(() => _programOptions = list),
+                          onSelected: (value) => setState(() => _type = value),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildIntSelectRow(
+                              label: l10n.intensity,
+                              value: _intensity,
+                              options: _ratingOptions,
+                              optionLabel: (value) => '$value / 5',
+                              onChanged: (value) {
+                                setState(() => _intensity = value);
+                                _scheduleAutoSave();
+                              },
+                              onAdd: null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildIntSelectRow(
+                              label: l10n.condition,
+                              value: _mood,
+                              options: _ratingOptions,
+                              optionLabel: (value) => '$value / 5',
+                              onChanged: (value) {
+                                setState(() => _mood = value);
+                                _scheduleAutoSave();
+                              },
+                              onAdd: null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                WatchCartCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildDailyGoalSelector(),
+                      const SizedBox(height: 12),
+                      _buildEmphasizedField(
+                        controller: _goodPointsController,
+                        minLines: 2,
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          labelText: isKo ? '잘한 점' : 'What went well',
+                          hintText: isKo
+                              ? '오늘 잘된 플레이를 적어보세요.'
+                              : 'Write what you did well today.',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildEmphasizedField(
+                        controller: _improvementsController,
+                        minLines: 3,
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          labelText: isKo ? '아쉬운 점' : 'What to improve',
+                          hintText: isKo
+                              ? '다음에 보완할 부분을 적어보세요.'
+                              : 'Write what needs improvement.',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSelectRow(
+                        label: isKo ? '훈련 목표' : 'Training goal',
+                        value: _nextGoalController.text.trim().isEmpty
+                            ? l10n.notSet
+                            : _nextGoalController.text.trim(),
+                        options: [l10n.notSet, ..._nextGoalOptions],
+                        onChanged: (value) {
+                          setState(() {
+                            _nextGoalController.text = value == l10n.notSet
+                                ? ''
+                                : value;
+                          });
+                          _scheduleAutoSave();
+                        },
+                        onAdd: () => _addOption(
+                          key: 'next_goals',
+                          title: isKo ? '훈련 목표' : 'Training goal',
+                          options: _nextGoalOptions,
+                          onUpdated: (list) =>
+                              setState(() => _nextGoalOptions = list),
+                          onSelected: (value) =>
+                              setState(() => _nextGoalController.text = value),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildEmphasizedField(
+                        controller: _nextGoalController,
+                        minLines: 4,
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          labelText: isKo ? '다음 목표' : 'Next goal',
+                          hintText: isKo
+                              ? '다음 훈련 목표를 적어보세요.'
+                              : 'Write your next training goal.',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                WatchCartCard(
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.injury),
+                        value: _injury,
+                        onChanged: (value) {
+                          setState(() => _injury = value);
+                          _scheduleAutoSave();
+                        },
+                      ),
+                      if (_injury) ...[
+                        _buildSelectRow(
+                          label: l10n.injuryPart,
+                          value: _injuryPartController.text.isEmpty
+                              ? l10n.notSet
+                              : _injuryPartController.text,
+                          options: [l10n.notSet, ..._injuryPartOptions],
+                          onChanged: (value) {
+                            setState(() {
+                              _injuryPartController.text = value == l10n.notSet
+                                  ? ''
+                                  : value;
+                            });
+                            _scheduleAutoSave();
+                          },
+                          onAdd: () => _addOption(
+                            key: 'injury_parts',
+                            title: l10n.injuryPart,
+                            options: _injuryPartOptions,
+                            onUpdated: (list) =>
+                                setState(() => _injuryPartOptions = list),
+                            onSelected: (value) => setState(
+                              () => _injuryPartController.text = value,
+                            ),
+                          ),
+                          enabled: _injury,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildEmphasizedField(
+                          controller: _painController,
+                          enabled: _injury,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: l10n.painLevel,
+                            hintText: '4',
+                          ),
+                        ),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(l10n.rehab),
+                          value: _rehab,
+                          onChanged: (value) {
+                            setState(() => _rehab = value);
+                            _scheduleAutoSave();
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                WatchCartCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.liftingRecord),
+                        value: _liftingEnabled,
+                        onChanged: (value) {
+                          setState(() => _liftingEnabled = value);
+                          _scheduleAutoSave();
+                        },
+                      ),
+                      if (_liftingEnabled) ...[
+                        Text(
+                          l10n.liftingByPart,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildEmphasizedField(
+                                controller: _liftChestController,
+                                enabled: _liftingEnabled,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.liftingPartInfront,
+                                  hintText: '0',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildEmphasizedField(
+                                controller: _liftBackController,
+                                enabled: _liftingEnabled,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.liftingPartInside,
+                                  hintText: '0',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildEmphasizedField(
+                                controller: _liftLegsController,
+                                enabled: _liftingEnabled,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.liftingPartOutside,
+                                  hintText: '0',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildEmphasizedField(
+                                controller: _liftShouldersController,
+                                enabled: _liftingEnabled,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.liftingPartMuple,
+                                  hintText: '0',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildEmphasizedField(
+                                controller: _liftArmsController,
+                                enabled: _liftingEnabled,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.liftingPartHead,
+                                  hintText: '0',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildEmphasizedField(
+                                controller: _liftCoreController,
+                                enabled: _liftingEnabled,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.liftingPartChest,
+                                  hintText: '0',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                WatchCartCard(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEmphasizedField(
+                              controller: _jumpRopeController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: isKo ? '줄넘기 횟수' : 'Jump rope count',
+                                hintText: '0',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildEmphasizedField(
+                              controller: _jumpRopeMinutesController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: isKo
+                                    ? '줄넘기 시간(분)'
+                                    : 'Jump rope time (min)',
+                                hintText: '0',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    isKo
+                        ? '줄넘기 시간은 분 단위로 입력해 주세요.'
+                        : 'Enter jump rope time in minutes.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (isEdit)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: Text(
+                          _autoSaving
+                              ? (Localizations.localeOf(context).languageCode ==
+                                        'ko'
+                                    ? '자동 저장 중...'
+                                    : 'Autosaving...')
+                              : (Localizations.localeOf(context).languageCode ==
+                                        'ko'
+                                    ? '수정 내용이 자동 저장됩니다.'
+                                    : 'Changes are saved automatically.'),
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
