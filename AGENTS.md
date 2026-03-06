@@ -9,6 +9,6 @@
 - If full verify cannot complete due environment limits (for example simulator unavailable), report the exact blocking step and still include completed steps' results.
 
 ## Git Workflow (Mandatory)
-- Default workflow is direct commit on `main` without creating a PR, unless the user explicitly asks for a PR flow.
+- Default workflow is branch-based merge to `main` (no PR by default): create work branch -> commit -> merge to `main` with a merge commit -> push `main`.
 - If a PR flow is requested, use: feature branch -> commit -> pull request -> merge to `main`.
 - In the final response, always include the commit hash applied on `main`.

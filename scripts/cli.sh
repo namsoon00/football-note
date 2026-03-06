@@ -12,7 +12,7 @@ Usage:
 
 Commands:
   verify    Run full verification (includes iOS simulator build/run)
-  verify-push  Verify, then commit and push main
+  verify-push  Verify, commit on work branch, merge to main, then push main
   fix       Run auto-fix steps and checks
   test      Run flutter tests
   analyze   Run flutter analyze
