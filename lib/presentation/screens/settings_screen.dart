@@ -162,7 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-        _durationOptions.first;
+            _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -309,9 +309,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _restoreBusy
-                      ? null
-                      : () => _restoreFromDrive(l10n),
+                  onPressed:
+                      _restoreBusy ? null : () => _restoreFromDrive(l10n),
                   icon: const Icon(Icons.cloud_download_outlined),
                   label: Text(
                     _restoreBusy
@@ -322,8 +321,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed:
-                      _restoreBusy ||
+                  onPressed: _restoreBusy ||
                           !widget.driveBackupService!.hasLocalPreRestoreBackup()
                       ? null
                       : () => _restoreLocalBackup(l10n),
@@ -541,9 +539,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -604,9 +601,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText = _defaultDuration <= 0
-        ? l10n.notSet
-        : l10n.minutes(_defaultDuration);
+    final defaultDurationText =
+        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -786,9 +782,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: '${_nextGoalOptions.length}${isKo ? '개 항목' : ' items'}',
           onTap: () => _manageStringOptions(
             key: 'next_goals',
-            title: isKo
-                ? '다음 훈련 목표 옵션 관리'
-                : 'Manage next training goal options',
+            title:
+                isKo ? '다음 훈련 목표 옵션 관리' : 'Manage next training goal options',
             options: _nextGoalOptions,
             minKeep: 1,
             onSaved: (updated) async {
@@ -1026,9 +1021,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized = sanitize == null
-                            ? added
-                            : sanitize(added);
+                        final normalized =
+                            sanitize == null ? added : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1333,8 +1327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1351,22 +1344,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _restoreFromDrive(AppLocalizations l10n) async {
     if (widget.driveBackupService == null) return;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.restoreFromDrive),
-        content: Text(l10n.restoreConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.confirm),
-          ),
-        ],
-      ),
+    final confirm = await _confirmRestoreAction(
+      l10n: l10n,
+      title: l10n.restoreFromDrive,
+      message: l10n.restoreConfirm,
     );
     if (confirm != true) return;
     setState(() => _restoreBusy = true);
@@ -1384,8 +1365,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1402,22 +1382,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _restoreLocalBackup(AppLocalizations l10n) async {
     if (widget.driveBackupService == null) return;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.restoreLocalBackup),
-        content: Text(l10n.restoreLocalConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.confirm),
-          ),
-        ],
-      ),
+    final confirm = await _confirmRestoreAction(
+      l10n: l10n,
+      title: l10n.restoreLocalBackup,
+      message: l10n.restoreLocalConfirm,
     );
     if (confirm != true) return;
     setState(() => _restoreBusy = true);
@@ -1472,6 +1440,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return date.year == yesterday.year &&
         date.month == yesterday.month &&
         date.day == yesterday.day;
+  }
+
+  Future<bool> _confirmRestoreAction({
+    required AppLocalizations l10n,
+    required String title,
+    required String message,
+  }) async {
+    final firstConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    if (firstConfirm != true) return false;
+    if (!mounted) return false;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final secondConfirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '복원 재확인' : 'Restore confirmation'),
+        content: Text(
+          isKo
+              ? '정말 복원할까요? 현재 데이터는 백업 데이터로 교체됩니다.'
+              : 'Do you really want to restore? Current data will be replaced.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    return secondConfirm == true;
   }
 
   Future<void> _refreshBenchmarkData(bool isKo) async {
