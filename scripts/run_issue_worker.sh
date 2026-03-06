@@ -25,6 +25,50 @@ log() {
   echo "[issue-worker] $*"
 }
 
+issue_state() {
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" \
+    | python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("state",""))'
+}
+
+close_issue_completed() {
+  local message="${1:-자동 머지 반영으로 이슈를 completed로 닫았습니다.}"
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -X PATCH \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" \
+    -d '{"state":"closed","state_reason":"completed"}' \
+    >/dev/null || true
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -X POST \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+    -d "{\"body\":\"${message}\"}" \
+    >/dev/null || true
+}
+
+ensure_issue_closed_if_merged() {
+  log "Verifying merge status for ${HEAD_BRANCH} -> ${DEFAULT_BRANCH}"
+  git fetch origin "$DEFAULT_BRANCH" "$HEAD_BRANCH" >/dev/null 2>&1 || true
+
+  if git merge-base --is-ancestor "origin/$HEAD_BRANCH" "origin/$DEFAULT_BRANCH"; then
+    local state
+    state="$(issue_state)"
+    if [[ "$state" == "open" ]]; then
+      log "Issue #${ISSUE_NUMBER} is still open after merge; closing explicitly."
+      close_issue_completed "main 반영 완료를 확인하여 이슈를 자동 종료했습니다."
+    else
+      log "Issue #${ISSUE_NUMBER} already closed."
+    fi
+  else
+    log "HEAD branch is not merged into ${DEFAULT_BRANCH}; issue remains open."
+  fi
+}
+
 # Some self-hosted macOS runners deny /tmp fallback paths used by xcrun/git.
 TMP_BASE="$ROOT_DIR/.tmp"
 mkdir -p "$TMP_BASE"
@@ -249,20 +293,7 @@ if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
 
   if git merge --no-ff --no-edit "origin/$HEAD_BRANCH"; then
     git push origin "$DEFAULT_BRANCH"
-    curl -sS \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      -X PATCH \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" \
-      -d '{"state":"closed","state_reason":"completed"}' \
-      >/dev/null || true
-    curl -sS \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      -X POST \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
-      -d "{\"body\":\"자동 병합 완료: \`${HEAD_BRANCH}\` -> \`${DEFAULT_BRANCH}\`\\n이슈를 completed로 닫았습니다.\"}" \
-      >/dev/null || true
+    close_issue_completed "자동 병합 완료: \`${HEAD_BRANCH}\` -> \`${DEFAULT_BRANCH}\`\\n이슈를 completed로 닫았습니다."
   else
     curl -sS \
       -H "Authorization: Bearer ${GITHUB_TOKEN}" \
@@ -274,6 +305,8 @@ if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
     exit 1
   fi
 fi
+
+ensure_issue_closed_if_merged
 
 log "Syncing local checkout to ${DEFAULT_BRANCH}"
 git checkout "$DEFAULT_BRANCH"
