@@ -241,7 +241,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '훈련 보드' : 'Training Board'),
+        title: Text(isKo ? '훈련보드' : 'Training Board'),
         actions: [
           if (widget.presets.isNotEmpty)
             IconButton(
@@ -398,11 +398,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
         hintText: isKo
             ? '예) 콘 사이 2터치 드리블 후 패스'
             : 'e.g. Two-touch dribble between cones then pass',
-        suffixIcon: IconButton(
-          tooltip: isKo ? '키보드 닫기' : 'Hide keyboard',
-          icon: const Icon(Icons.keyboard_hide_outlined),
-          onPressed: _dismissKeyboard,
-        ),
         border: const OutlineInputBorder(),
       ),
       onSubmitted: (_) => _dismissKeyboard(),
@@ -452,6 +447,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           }),
           icon: const Icon(Icons.delete_sweep_outlined),
           label: Text(isKo ? '초기화' : 'Clear'),
+          style: OutlinedButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            minimumSize: const Size(1, 40),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          ),
         ),
       ],
     );
@@ -468,6 +469,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
       onPressed: onTap,
       icon: Icon(icon),
       label: Text(isKo ? ko : en),
+      style: OutlinedButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        minimumSize: const Size(1, 40),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      ),
     );
   }
 
