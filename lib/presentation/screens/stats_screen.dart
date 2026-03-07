@@ -174,7 +174,7 @@ class _StatsScreenState extends State<StatsScreen> {
               onSettingsTap: () => _openSettings(context),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           TabScreenTitle(
             title: '${l10n.statsHeadline1} ${l10n.statsHeadline2}',
             trailing: Row(

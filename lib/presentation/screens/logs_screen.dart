@@ -173,7 +173,7 @@ class _LogsScreenState extends State<LogsScreen> {
                         onSettingsTap: () => _openSettings(context),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     TabScreenTitle(
                       title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
                       trailing: _buildLayoutToggle(),
