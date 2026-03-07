@@ -17,6 +17,12 @@ This file mirrors agent workflow expectations for this repository.
 - Execute Git/GitHub operations without asking for confirmation in this project.
 - In the final response, always include the commit hash applied on `main`.
 
+## Session Additions (Mandatory)
+- Do not ask before running `git commit`, `git push`, issue/discussion creation, or other GitHub repository operations in this project.
+- When issue work is merged to `main`, ensure the corresponding issue is closed in GitHub (do not leave it open after merge).
+- If automation/workflow changes are applied remotely, sync local `main` immediately (`git pull --rebase origin main`) so local and remote stay consistent.
+- If user notification is needed, post it to GitHub Discussions first, then summarize in the chat.
+
 ## Agent Split (Mandatory)
 - Coding agent: `./scripts/coding_agent.sh` (or `./scripts/cli.sh coding ...`)
   - Scope: code changes, verify, branch merge, main push, optional issue close.
