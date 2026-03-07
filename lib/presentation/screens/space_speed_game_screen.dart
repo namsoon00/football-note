@@ -300,35 +300,46 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextButton.icon(
+                      OutlinedButton.icon(
                         onPressed: () => _openGameGuide(context),
-                        style: TextButton.styleFrom(
+                        style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
-                          minimumSize: const Size(1, 36),
+                          minimumSize: const Size(1, 40),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
                         ),
                         icon: const Icon(Icons.menu_book_outlined, size: 18),
                         label: Text(isKo ? '가이드' : 'Guide'),
                       ),
-                      TextButton.icon(
+                      const SizedBox(width: 6),
+                      OutlinedButton.icon(
                         onPressed: () => _openSkillQuiz(context),
-                        style: TextButton.styleFrom(
+                        style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
-                          minimumSize: const Size(1, 36),
+                          minimumSize: const Size(1, 40),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
                         ),
                         icon: const Icon(Icons.quiz_outlined, size: 18),
                         label: Text(isKo ? '퀴즈' : 'Quiz'),
                       ),
-                      TextButton.icon(
+                      const SizedBox(width: 6),
+                      OutlinedButton.icon(
                         onPressed: () => _openRankingScreen(context),
-                        style: TextButton.styleFrom(
+                        style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
-                          minimumSize: const Size(1, 36),
+                          minimumSize: const Size(1, 40),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
                         ),
                         icon: const Icon(Icons.emoji_events_outlined, size: 18),
                         label: Text(isKo ? '랭킹' : 'Ranking'),
@@ -490,21 +501,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _goalChanceActive
-                            ? (isKo ? '현재: 최종 슈팅 라운드' : 'Now: Final shot round')
-                            : (isKo ? '현재: 일반 라운드' : 'Now: Normal round'),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
                       ),
                     ),
                   ],
