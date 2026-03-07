@@ -28,7 +28,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
   int _nextId = 1;
   int? _selectedItemId;
   bool _penMode = false;
-  final Color _penColor = const Color(0xFFFFFFFF);
+  Color _penColor = const Color(0xFF000000);
   List<Offset>? _activeStroke;
   String _lastSavedLayout = '';
 
@@ -46,43 +46,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
 
   void _restore() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
-    _pages = layout.pages
-        .asMap()
-        .entries
-        .map((entry) {
-          final i = entry.key;
-          final page = entry.value;
-          return _BoardPageState(
-            name: page.name.trim().isEmpty ? 'Step ${i + 1}' : page.name,
-            methodText: page.methodText,
-            items: page.items
-                .map(
-                  (e) => _BoardItem(
-                    id: _nextId++,
-                    type:
-                        _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
-                    x: e.x,
-                    y: e.y,
-                    size: 32,
-                    rotationDeg: e.rotationDeg,
-                    color: Color(e.colorValue),
-                  ),
-                )
-                .toList(growable: true),
-            strokes: page.strokes
-                .map(
-                  (stroke) => _BoardStroke(
-                    points: stroke.points
-                        .map((point) => Offset(point.x, point.y))
-                        .toList(growable: false),
-                    color: Color(stroke.colorValue),
-                    width: stroke.width,
-                  ),
-                )
-                .toList(growable: true),
-          );
-        })
-        .toList(growable: true);
+    _pages = layout.pages.asMap().entries.map((entry) {
+      final i = entry.key;
+      final page = entry.value;
+      return _BoardPageState(
+        name: page.name.trim().isEmpty ? 'Step ${i + 1}' : page.name,
+        methodText: page.methodText,
+        items: page.items
+            .map(
+              (e) => _BoardItem(
+                id: _nextId++,
+                type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
+                x: e.x,
+                y: e.y,
+                size: 32,
+                rotationDeg: e.rotationDeg,
+                color: Color(e.colorValue),
+              ),
+            )
+            .toList(growable: true),
+        strokes: page.strokes
+            .map(
+              (stroke) => _BoardStroke(
+                points: stroke.points
+                    .map((point) => Offset(point.x, point.y))
+                    .toList(growable: false),
+                color: Color(stroke.colorValue),
+                width: stroke.width,
+              ),
+            )
+            .toList(growable: true),
+      );
+    }).toList(growable: true);
     if (_pages.isEmpty) {
       _pages = <_BoardPageState>[
         _BoardPageState(
@@ -510,7 +505,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
                                           }),
                                           onPanUpdate: (details) {
                                             final dx = details.delta.dx / width;
-                                            final dy = details.delta.dy / height;
+                                            final dy =
+                                                details.delta.dy / height;
                                             final nextX =
                                                 (item.x + dx).clamp(0.03, 0.97);
                                             final nextY =
@@ -671,9 +667,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           onPressed: _currentPage.strokes.isEmpty
               ? null
               : () => setState(() {
-                  _currentPage.strokes.clear();
-                  _activeStroke = null;
-                }),
+                    _currentPage.strokes.clear();
+                    _activeStroke = null;
+                  }),
           icon: const Icon(Icons.layers_clear_outlined),
           label: Text(isKo ? '펜 지우기' : 'Clear ink'),
           style: OutlinedButton.styleFrom(
@@ -726,13 +722,61 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
   Widget _buildSelectedTools(bool isKo) {
     final selected = _selectedItem;
     if (_penMode) {
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          isKo
-              ? '펜 모드: 보드 영역을 드래그해 그릴 수 있습니다.'
-              : 'Pen mode: drag on the board to draw.',
-          style: Theme.of(context).textTheme.bodySmall,
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isKo
+                  ? '펜 모드: 보드 영역을 드래그해 그릴 수 있습니다.'
+                  : 'Pen mode: drag on the board to draw.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isKo ? '펜 색상' : 'Pen color',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _penColors.map((c) {
+                final selectedColor = c.toARGB32() == _penColor.toARGB32();
+                return InkWell(
+                  onTap: () => setState(() => _penColor = c),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: c,
+                      border: Border.all(
+                        color: selectedColor ? Colors.white : Colors.black26,
+                        width: selectedColor ? 2.4 : 1.0,
+                      ),
+                    ),
+                    child: selectedColor
+                        ? Icon(
+                            Icons.check,
+                            size: 14,
+                            color: c.computeLuminance() < 0.45
+                                ? Colors.white
+                                : Colors.black87,
+                          )
+                        : null,
+                  ),
+                );
+              }).toList(growable: false),
+            ),
+          ],
         ),
       );
     }
@@ -780,28 +824,25 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _presetColors
-                .map((c) {
-                  final selectedColor =
-                      c.toARGB32() == selected.color.toARGB32();
-                  return InkWell(
-                    onTap: () => setState(() => selected.color = c),
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: c,
-                        border: Border.all(
-                          color: selectedColor ? Colors.white : Colors.black26,
-                          width: selectedColor ? 2.4 : 1.0,
-                        ),
-                      ),
+            children: _presetColors.map((c) {
+              final selectedColor = c.toARGB32() == selected.color.toARGB32();
+              return InkWell(
+                onTap: () => setState(() => selected.color = c),
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: c,
+                    border: Border.all(
+                      color: selectedColor ? Colors.white : Colors.black26,
+                      width: selectedColor ? 2.4 : 1.0,
                     ),
-                  );
-                })
-                .toList(growable: false),
+                  ),
+                ),
+              );
+            }).toList(growable: false),
           ),
         ],
       ),
@@ -888,6 +929,16 @@ const List<Color> _presetColors = <Color>[
   Color(0xFFE53935),
 ];
 
+const List<Color> _penColors = <Color>[
+  Color(0xFF000000),
+  Color(0xFFFFFFFF),
+  Color(0xFFFFEB3B),
+  Color(0xFF42A5F5),
+  Color(0xFF43A047),
+  Color(0xFFFB8C00),
+  Color(0xFFE53935),
+];
+
 class _BoardToken extends StatelessWidget {
   final _BoardItem item;
   final bool selected;
@@ -911,9 +962,8 @@ class _BoardToken extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.18),
           shape: BoxShape.circle,
           border: Border.all(
-            color: selected
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.55),
+            color:
+                selected ? Colors.white : Colors.white.withValues(alpha: 0.55),
             width: selected ? 2.2 : 1.2,
           ),
           boxShadow: selected
