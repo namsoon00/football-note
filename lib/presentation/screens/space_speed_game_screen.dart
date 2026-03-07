@@ -11,6 +11,7 @@ import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/tab_screen_title.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import 'game_guide_screen.dart';
 import 'game_ranking_screen.dart';
@@ -294,6 +295,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                TabScreenTitle(title: isKo ? '게임' : 'Game'),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
@@ -2607,14 +2610,16 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     bool markControllable = false,
   }) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
+    final controllablePadding = markControllable ? 14.0 : 0.0;
+    final visualSize = size + (controllablePadding * 2);
     return Positioned(
-      left: x * width - size / 2,
-      top: y * height - size / 2,
+      left: x * width - visualSize / 2,
+      top: y * height - visualSize / 2,
       child: Column(
         children: [
           SizedBox(
-            width: size,
-            height: size,
+            width: visualSize,
+            height: visualSize,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -2639,33 +2644,33 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   ),
                 if (markControllable)
                   Container(
-                    width: size + 6,
-                    height: size + 6,
+                    width: size + 18,
+                    height: size + 18,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: const Color(0xFFFF5252),
-                        width: 2.4,
+                        width: 3.0,
                       ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x99FF5252),
-                          blurRadius: 12,
-                          spreadRadius: 2,
+                          blurRadius: 16,
+                          spreadRadius: 4,
                         ),
                       ],
                     ),
                   ),
                 if (markControllable)
                   Container(
-                    width: math.max(4.0, size - 7),
-                    height: math.max(4.0, size - 7),
+                    width: size + 8,
+                    height: size + 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0x40FF5252),
+                      color: const Color(0x36FF5252),
                       border: Border.all(
                         color: const Color(0xFFFF8A80),
-                        width: 2.2,
+                        width: 2.6,
                       ),
                     ),
                   ),

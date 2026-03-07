@@ -14,6 +14,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/tab_screen_title.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'average_benchmark_screen.dart';
 import 'profile_screen.dart';
@@ -165,8 +166,7 @@ class _StatsScreenState extends State<StatsScreen> {
           Builder(
             builder: (context) => WatchCartAppBar(
               onMenuTap: () => Scaffold.of(context).openDrawer(),
-              profilePhotoSource:
-                  widget.optionRepository.getValue<String>(
+              profilePhotoSource: widget.optionRepository.getValue<String>(
                     'profile_photo_url',
                   ) ??
                   '',
@@ -175,49 +175,41 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '${l10n.statsHeadline1} ${l10n.statsHeadline2}',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
+          TabScreenTitle(
+            title: '${l10n.statsHeadline1} ${l10n.statsHeadline2}',
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                OutlinedButton(
+                  onPressed: _setRecentWeekRange,
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(1, 38),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: Text(isKo ? '최근 1주일' : 'Last 7 days'),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _pickRange(context),
+                  icon: const Icon(Icons.date_range_outlined, size: 18),
+                  label: Text(_rangeLabel(isKo)),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(1, 38),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton(
-                onPressed: _setRecentWeekRange,
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  minimumSize: const Size(1, 38),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                ),
-                child: Text(isKo ? '최근 1주일' : 'Last 7 days'),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: () => _pickRange(context),
-                icon: const Icon(Icons.date_range_outlined, size: 18),
-                label: Text(_rangeLabel(isKo)),
-                style: OutlinedButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  minimumSize: const Size(1, 38),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           if (topMessage != null) ...[
@@ -286,11 +278,11 @@ class _StatsScreenState extends State<StatsScreen> {
                   showAverage: canShowAverage,
                   onReferenceTap: canShowAverage
                       ? () => _openAverageBenchmark(
-                          context,
-                          filteredEntries,
-                          ageYears,
-                          soccerYears,
-                        )
+                            context,
+                            filteredEntries,
+                            ageYears,
+                            soccerYears,
+                          )
                       : null,
                 ),
                 const SizedBox(height: 18),
@@ -361,12 +353,10 @@ class _StatsScreenState extends State<StatsScreen> {
   String _rangeLabel(bool isKo) {
     final start = _selectedRange.start;
     final end = _selectedRange.end;
-    final startText = isKo
-        ? '${start.month}/${start.day}'
-        : '${start.month}/${start.day}';
-    final endText = isKo
-        ? '${end.month}/${end.day}'
-        : '${end.month}/${end.day}';
+    final startText =
+        isKo ? '${start.month}/${start.day}' : '${start.month}/${start.day}';
+    final endText =
+        isKo ? '${end.month}/${end.day}' : '${end.month}/${end.day}';
     return isKo ? '$startText~$endText' : '$startText-$endText';
   }
 
@@ -445,12 +435,10 @@ String _buildPeriodAdvice({
       ? (targetSessions <= 0 ? 0.0 : (sessions / targetSessions))
       : _heuristicSessionRatio(period, sessions);
   final combined = ((ratio * 0.65) + (sessionRatio * 0.35)).clamp(0.0, 2.0);
-  final gapMinutes = showAverage
-      ? math.max(0.0, targetMinutes - minutes).round()
-      : 0;
-  final gapSessions = showAverage
-      ? math.max(0.0, targetSessions - sessions).ceil()
-      : 0;
+  final gapMinutes =
+      showAverage ? math.max(0.0, targetMinutes - minutes).round() : 0;
+  final gapSessions =
+      showAverage ? math.max(0.0, targetSessions - sessions).ceil() : 0;
   final variant = variantSeed % 3;
 
   if (combined >= 1.0) {
@@ -583,9 +571,8 @@ class _TargetGrowthChart extends StatelessWidget {
     final labels = <int, String>{};
     final workedDays = <DateTime>{};
     final dailyTarget = (target.weeklyMinutesTarget / 7).round();
-    final labelStep = dayPoints.length <= 10
-        ? 1
-        : (dayPoints.length <= 20 ? 2 : 3);
+    final labelStep =
+        dayPoints.length <= 10 ? 1 : (dayPoints.length <= 20 ? 2 : 3);
 
     for (var i = 0; i < dayPoints.length; i++) {
       final start = dayPoints[i];
@@ -606,16 +593,16 @@ class _TargetGrowthChart extends StatelessWidget {
     final workedLabel = workedDateText.isEmpty
         ? (isKo ? '운동한 날: 없음' : 'Workout days: none')
         : (isKo
-              ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
-              : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
+            ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
+            : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
     final periodDays = periodEnd.difference(periodStart).inDays + 1;
     final totalMinutes = entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
     );
     final sessions = entries.length;
-    final scaledTargetMinutes = ((target.weeklyMinutesTarget * periodDays) / 7)
-        .round();
+    final scaledTargetMinutes =
+        ((target.weeklyMinutesTarget * periodDays) / 7).round();
     final scaledTargetSessions =
         ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
     final period = _periodFromDays(periodDays);
@@ -780,9 +767,8 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           sum +
           e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
     );
-    final avgLiftPerSession = entries.isEmpty
-        ? 0
-        : (totalLifts / entries.length).round();
+    final avgLiftPerSession =
+        entries.isEmpty ? 0 : (totalLifts / entries.length).round();
     final benchmark = benchmarkService.physicalBenchmarkForAge(ageYears);
 
     return Column(
@@ -829,10 +815,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestHeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestHeight != null &&
               latestHeight - benchmark.heightCmAvg >= 0,
         ),
@@ -849,10 +834,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestWeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestWeight != null &&
               latestWeight - benchmark.weightKgAvg >= 0,
         ),
@@ -870,8 +854,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
                   isKo,
                 )
               : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+          isPositive: showAverage &&
               avgLiftPerSession - benchmark.liftsPerSessionAvg >= 0,
         ),
       ],
@@ -994,8 +977,8 @@ class _LiftingSummaryCard extends StatelessWidget {
                   Text(
                     _dateText(entry.value.date),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ],
               ),
@@ -1067,9 +1050,8 @@ class _JumpRopeSummaryCard extends StatelessWidget {
       0,
       (sum, e) => sum + e.jumpRopeMinutes,
     );
-    final bestCount = valid.isEmpty
-        ? 0
-        : valid.map((e) => e.jumpRopeCount).reduce(math.max);
+    final bestCount =
+        valid.isEmpty ? 0 : valid.map((e) => e.jumpRopeCount).reduce(math.max);
     final avgCount = valid.isEmpty ? 0 : (totalCount / valid.length).round();
 
     return Column(
@@ -1220,9 +1202,9 @@ class _SectionTitle extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.1,
-            ),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.1,
+                ),
           ),
         ),
         if (trailing != null) ...[const SizedBox(width: 8), trailing!],
@@ -1317,9 +1299,9 @@ class _CoachMessage extends StatelessWidget {
                 Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.45,
-                    fontWeight: FontWeight.w500,
-                  ),
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ],
             ),
