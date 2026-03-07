@@ -173,21 +173,39 @@ class _LogsScreenState extends State<LogsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final title = Text(
+                          '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                            fontSize: 24.0,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
-                        ),
-                        _buildLayoutToggle(),
-                      ],
+                        );
+                        final toggle = _buildLayoutToggle();
+                        if (constraints.maxWidth < 420) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              title,
+                              const SizedBox(height: 8),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: toggle,
+                              ),
+                            ],
+                          );
+                        }
+                        return Row(
+                          children: [
+                            Expanded(child: title),
+                            const SizedBox(width: 8),
+                            toggle,
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     WatchCartHomeOptions(

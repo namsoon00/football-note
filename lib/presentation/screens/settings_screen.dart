@@ -45,7 +45,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late List<String> _locationOptions;
   late List<String> _programOptions;
   late List<String> _dailyGoalOptions;
-  late List<String> _nextGoalOptions;
   late List<String> _injuryPartOptions;
 
   late int _defaultDuration;
@@ -145,21 +144,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _dailyGoalOptions = normalizedDailyGoals;
       widget.optionRepository.saveOptions('daily_goals', normalizedDailyGoals);
     }
-    _nextGoalOptions = widget.optionRepository.getOptions(
-      'next_goals',
-      _defaultNextGoals(isKo),
-    );
-    final localizedNextGoalDefaults = _defaultNextGoals(isKo);
-    final normalizedNextGoals = LocalizedOptionDefaults.normalizeOptions(
-      key: 'next_goals',
-      stored: _nextGoalOptions,
-      localizedDefaults: localizedNextGoalDefaults,
-    );
-    if (!_sameStringList(_nextGoalOptions, normalizedNextGoals)) {
-      _nextGoalOptions = normalizedNextGoals;
-      widget.optionRepository.saveOptions('next_goals', normalizedNextGoals);
-    }
-
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
             _durationOptions.first;
@@ -778,20 +762,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         _buildOptionManagerTile(
-          title: isKo ? '다음 훈련 목표 옵션' : 'Next training goal options',
-          subtitle: '${_nextGoalOptions.length}${isKo ? '개 항목' : ' items'}',
-          onTap: () => _manageStringOptions(
-            key: 'next_goals',
-            title:
-                isKo ? '다음 훈련 목표 옵션 관리' : 'Manage next training goal options',
-            options: _nextGoalOptions,
-            minKeep: 1,
-            onSaved: (updated) async {
-              setState(() => _nextGoalOptions = updated);
-            },
-          ),
-        ),
-        _buildOptionManagerTile(
           title: isKo ? '부상 부위 옵션' : 'Injury part options',
           subtitle: '${_injuryPartOptions.length}${isKo ? '개 항목' : ' items'}',
           onTap: () => _manageStringOptions(
@@ -1208,25 +1178,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'Fitness',
       'Defensive Positioning',
       'First Touch',
-    ];
-  }
-
-  List<String> _defaultNextGoals(bool isKo) {
-    if (isKo) {
-      return const [
-        '패스 정확도 높이기',
-        '약발 사용 늘리기',
-        '퍼스트 터치 안정화',
-        '수비 위치 선정 연습',
-        '드리블 속도 올리기',
-      ];
-    }
-    return const [
-      'Improve passing accuracy',
-      'Use weak foot more',
-      'Stabilize first touch',
-      'Practice defensive positioning',
-      'Increase dribble speed',
     ];
   }
 

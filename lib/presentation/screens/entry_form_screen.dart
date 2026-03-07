@@ -46,7 +46,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _goodPointsController = TextEditingController();
   final _improvementsController = TextEditingController();
-  final _nextGoalController = TextEditingController();
   final _drillsController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
@@ -71,7 +70,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
   List<String> _dailyGoalOptions = [];
-  List<String> _nextGoalOptions = [];
   List<int> _durationOptions = [];
   List<String> _injuryPartOptions = [];
   final Set<String> _selectedDailyGoals = <String>{};
@@ -137,19 +135,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _dailyGoalOptions = normalizedDailyGoals;
       widget.optionRepository.saveOptions('daily_goals', normalizedDailyGoals);
     }
-    _nextGoalOptions = _loadOptions(
-      key: 'next_goals',
-      defaults: _defaultNextGoals(),
-    );
-    final normalizedNextGoals = LocalizedOptionDefaults.normalizeOptions(
-      key: 'next_goals',
-      stored: _nextGoalOptions,
-      localizedDefaults: _defaultNextGoals(),
-    );
-    if (!_sameStringList(_nextGoalOptions, normalizedNextGoals)) {
-      _nextGoalOptions = normalizedNextGoals;
-      widget.optionRepository.saveOptions('next_goals', normalizedNextGoals);
-    }
     _durationOptions = _loadIntOptions(
       key: 'durations',
       defaults: const [0, 30, 45, 60, 75, 90, 120],
@@ -177,13 +162,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
       _improvementsController.text =
           entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
-      _nextGoalController.text =
-          entry.nextGoal.isNotEmpty ? entry.nextGoal : entry.goal;
-      if (_nextGoalController.text.trim().isNotEmpty &&
-          !_nextGoalOptions.contains(_nextGoalController.text.trim())) {
-        _nextGoalOptions.add(_nextGoalController.text.trim());
-        widget.optionRepository.saveOptions('next_goals', _nextGoalOptions);
-      }
       _drillsController.text = entry.drills;
       _intensity = entry.intensity;
       _mood = entry.mood;
@@ -268,26 +246,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       'Fitness',
       'Defensive Positioning',
       'First Touch',
-    ];
-  }
-
-  List<String> _defaultNextGoals() {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    if (isKo) {
-      return const [
-        '패스 정확도 높이기',
-        '약발 사용 늘리기',
-        '퍼스트 터치 안정화',
-        '수비 위치 선정 연습',
-        '드리블 속도 올리기',
-      ];
-    }
-    return const [
-      'Improve passing accuracy',
-      'Use weak foot more',
-      'Stabilize first touch',
-      'Practice defensive positioning',
-      'Increase dribble speed',
     ];
   }
 
@@ -566,7 +524,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     unawaited(_speech.cancel());
     _goodPointsController.dispose();
     _improvementsController.dispose();
-    _nextGoalController.dispose();
     _drillsController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
@@ -1116,8 +1073,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
     final showMic = controller == _goodPointsController ||
-        controller == _improvementsController ||
-        controller == _nextGoalController;
+        controller == _improvementsController;
     final isListeningFor = _isListening && _listeningController == controller;
     final field = TextFormField(
       controller: controller,
