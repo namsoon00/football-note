@@ -15,6 +15,7 @@ import '../widgets/watch_cart/main_app_bar.dart';
 import 'game_guide_screen.dart';
 import 'game_ranking_screen.dart';
 import 'profile_screen.dart';
+import 'skill_quiz_screen.dart';
 import 'settings_screen.dart';
 
 class SpaceSpeedGameScreen extends StatefulWidget {
@@ -467,6 +468,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                       onPressed: () => _openGameGuide(context),
                       icon: const Icon(Icons.menu_book_outlined, size: 16),
                       label: Text(isKo ? '게임 가이드' : 'Guide'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _openSkillQuiz(context),
+                      icon: const Icon(Icons.quiz_outlined, size: 16),
+                      label: Text(isKo ? '스킬 퀴즈' : 'Quiz'),
                     ),
                     TextButton.icon(
                       onPressed: () => _openRankingScreen(context),
@@ -2743,6 +2749,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         builder: (_) => GameRankingScreen(entries: _rankingHistory),
       ),
     );
+  }
+
+  void _openSkillQuiz(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SkillQuizScreen()));
   }
 
   Widget _buildJoystickControl(BuildContext context) {

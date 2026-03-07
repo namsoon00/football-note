@@ -157,9 +157,9 @@ class TrainingMethodStroke {
     final rawPoints = map['points'];
     final parsedPoints = rawPoints is List
         ? rawPoints
-              .whereType<Map>()
-              .map((e) => TrainingMethodPoint.fromMap(e.cast<String, dynamic>()))
-              .toList(growable: false)
+            .whereType<Map>()
+            .map((e) => TrainingMethodPoint.fromMap(e.cast<String, dynamic>()))
+            .toList(growable: false)
         : const <TrainingMethodPoint>[];
     return TrainingMethodStroke(
       points: parsedPoints,
