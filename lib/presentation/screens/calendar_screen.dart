@@ -131,7 +131,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: Builder(
                       builder: (context) => WatchCartAppBar(
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
@@ -145,7 +145,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
