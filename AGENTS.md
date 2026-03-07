@@ -11,7 +11,7 @@
 ## Git Workflow (Mandatory)
 - Default workflow is branch-based merge to `main` (no PR by default): create work branch -> commit -> merge to `main` with a merge commit -> push `main`.
 - If a PR flow is requested, use: feature branch -> commit -> pull request -> merge to `main`.
-- If an issue number is provided, close the issue after main push (and leave a merge comment).
+- If an issue number is provided or detected from commit message `#<number>`, close the issue after main push (and leave a merge comment).
 - In the final response, always include the commit hash applied on `main`.
 
 ## Agent Split (Mandatory)

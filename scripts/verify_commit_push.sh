@@ -57,6 +57,15 @@ if [[ -n "${issue_number}" ]] && ! [[ "${issue_number}" =~ ^[0-9]+$ ]]; then
   exit 1
 fi
 
+infer_issue_from_message() {
+  local raw="$1"
+  if [[ "${raw}" =~ \#([0-9]+) ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo ""
+  fi
+}
+
 slugify() {
   echo "$1" \
     | tr '[:upper:]' '[:lower:]' \
@@ -124,6 +133,13 @@ close_issue() {
 
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
 
+if [[ -z "${issue_number}" ]]; then
+  issue_number="$(infer_issue_from_message "${commit_message}")"
+  if [[ -n "${issue_number}" ]]; then
+    echo "==> inferred issue #${issue_number} from commit message"
+  fi
+fi
+
 if [[ "${current_branch}" == "main" ]]; then
   echo "==> git pull --rebase origin main"
   git pull --rebase origin main
@@ -164,13 +180,21 @@ echo "==> git add -A"
 git add -A
 
 echo "==> git commit"
-git commit -m "${commit_message}"
+if [[ -n "${issue_number}" ]]; then
+  git commit -m "${commit_message}" -m "Closes #${issue_number}"
+else
+  git commit -m "${commit_message}"
+fi
 
 echo "==> git checkout main"
 git checkout main
 
 echo "==> git merge --no-ff ${work_branch}"
-git merge --no-ff "${work_branch}" -m "merge: ${commit_message}"
+if [[ -n "${issue_number}" ]]; then
+  git merge --no-ff "${work_branch}" -m "merge: ${commit_message}" -m "Closes #${issue_number}"
+else
+  git merge --no-ff "${work_branch}" -m "merge: ${commit_message}"
+fi
 
 echo "==> git push origin main"
 git push origin main
