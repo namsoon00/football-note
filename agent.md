@@ -14,6 +14,7 @@ This file mirrors agent workflow expectations for this repository.
 - Default workflow is branch-based merge to `main` (no PR by default): create work branch -> commit -> merge to `main` with a merge commit -> push `main`.
 - If a PR flow is requested, use: feature branch -> commit -> pull request -> merge to `main`.
 - If an issue number is provided, close the issue after main push (and leave a merge comment).
+- Execute Git/GitHub operations without asking for confirmation in this project.
 - In the final response, always include the commit hash applied on `main`.
 
 ## Agent Split (Mandatory)
@@ -21,3 +22,6 @@ This file mirrors agent workflow expectations for this repository.
   - Scope: code changes, verify, branch merge, main push, optional issue close.
 - Build agent: `./scripts/build_agent.sh` (or `./scripts/cli.sh build ...`)
   - Scope: build/release artifacts only (iOS/Android), no code edits and no git writes.
+
+## Communication (Mandatory)
+- If there is anything to notify the user about, leave it in GitHub Discussions for this repository.
