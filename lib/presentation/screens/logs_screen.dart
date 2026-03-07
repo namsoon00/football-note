@@ -10,6 +10,7 @@ import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/watch_cart/home_options.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
+import '../widgets/tab_screen_title.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
@@ -173,24 +174,9 @@ class _LogsScreenState extends State<LogsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 24.0,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildLayoutToggle(),
-                      ],
+                    TabScreenTitle(
+                      title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
+                      trailing: _buildLayoutToggle(),
                     ),
                     const SizedBox(height: 12),
                     WatchCartHomeOptions(

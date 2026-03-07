@@ -18,6 +18,7 @@ import '../../infrastructure/rss_news_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
+import '../widgets/tab_screen_title.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -144,18 +145,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    l10n.tabNews,
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
+                child: TabScreenTitle(title: l10n.tabNews),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),

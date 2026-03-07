@@ -19,6 +19,7 @@ import '../widgets/app_drawer.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
+import '../widgets/tab_screen_title.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -148,66 +149,64 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            AppLocalizations.of(context)!.calendar,
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurface,
+                    child: TabScreenTitle(
+                      title: AppLocalizations.of(context)!.calendar,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              minimumSize: const Size(1, 40),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                            ),
+                            onPressed: () {
+                              final today = _normalizeDay(DateTime.now());
+                              setState(() {
+                                _selectedDay = today;
+                                _focusedDay = today;
+                              });
+                              widget.onSelectedDayChanged?.call(today);
+                            },
+                            icon: const Icon(Icons.today_outlined, size: 18),
+                            label: Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? '오늘'
+                                  : 'Today',
                             ),
                           ),
-                        ),
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            minimumSize: const Size(1, 40),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
+                          const SizedBox(width: 6),
+                          OutlinedButton.icon(
+                            onPressed: () => _openPlanSheet(
+                                day: _selectedDay ?? _focusedDay),
+                            icon: const Icon(
+                              Icons.add_alarm_outlined,
+                              size: 20,
+                            ),
+                            label: Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? '훈련 계획 추가'
+                                  : 'Add Training Plan',
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              minimumSize: const Size(1, 40),
+                              maximumSize: const Size(210, 40),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
                             ),
                           ),
-                          onPressed: () {
-                            final today = _normalizeDay(DateTime.now());
-                            setState(() {
-                              _selectedDay = today;
-                              _focusedDay = today;
-                            });
-                            widget.onSelectedDayChanged?.call(today);
-                          },
-                          icon: const Icon(Icons.today_outlined, size: 18),
-                          label: Text(
-                            Localizations.localeOf(context).languageCode == 'ko'
-                                ? '오늘'
-                                : 'Today',
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        OutlinedButton.icon(
-                          onPressed: () =>
-                              _openPlanSheet(day: _selectedDay ?? _focusedDay),
-                          icon: const Icon(Icons.add_alarm_outlined, size: 20),
-                          label: Text(
-                            Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 계획 추가'
-                                : 'Add Training Plan',
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            minimumSize: const Size(1, 40),
-                            maximumSize: const Size(210, 40),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
