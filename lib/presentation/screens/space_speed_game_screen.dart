@@ -2638,12 +2638,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF80DEEA),
+                        color: const Color(0xFFFF5252),
                         width: 2.4,
                       ),
                       boxShadow: const [
                         BoxShadow(
-                          color: Color(0x8A80DEEA),
+                          color: Color(0x99FF5252),
                           blurRadius: 12,
                           spreadRadius: 2,
                         ),
@@ -2656,9 +2656,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     height: math.max(4.0, size - 7),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0x334DD0E1),
+                      color: const Color(0x40FF5252),
                       border: Border.all(
-                        color: const Color(0xFF26C6DA),
+                        color: const Color(0xFFFF8A80),
                         width: 2.2,
                       ),
                     ),
