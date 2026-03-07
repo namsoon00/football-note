@@ -189,6 +189,20 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
               ),
               const SizedBox(width: 8),
+              OutlinedButton(
+                onPressed: _setRecentWeekRange,
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  minimumSize: const Size(1, 38),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                ),
+                child: Text(isKo ? '최근 1주일' : 'Last 7 days'),
+              ),
+              const SizedBox(width: 8),
               OutlinedButton.icon(
                 onPressed: () => _pickRange(context),
                 icon: const Icon(Icons.date_range_outlined, size: 18),
@@ -354,6 +368,15 @@ class _StatsScreenState extends State<StatsScreen> {
         ? '${end.month}/${end.day}'
         : '${end.month}/${end.day}';
     return isKo ? '$startText~$endText' : '$startText-$endText';
+  }
+
+  void _setRecentWeekRange() {
+    final today = DateTime.now();
+    final end = DateTime(today.year, today.month, today.day);
+    final start = end.subtract(const Duration(days: 6));
+    setState(() {
+      _selectedRange = DateTimeRange(start: start, end: end);
+    });
   }
 
   void _openSettings(BuildContext context) {
