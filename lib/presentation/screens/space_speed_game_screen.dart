@@ -276,7 +276,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       body: AppBackground(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -285,14 +285,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     onMenuTap: () => Scaffold.of(context).openDrawer(),
                     profilePhotoSource:
                         widget.optionRepository.getValue<String>(
-                          'profile_photo_url',
-                        ) ??
-                        '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                     onProfileTap: () => _openProfile(context),
                     onSettingsTap: () => _openSettings(context),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -459,8 +459,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                             ? (isKo ? '현재: 최종 슈팅 라운드' : 'Now: Final shot round')
                             : (isKo ? '현재: 일반 라운드' : 'Now: Normal round'),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ),
                     TextButton.icon(
@@ -735,8 +735,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                         vertical: 7,
                                       ),
                                       decoration: BoxDecoration(
-                                        color:
-                                            _lastShotOutcome ==
+                                        color: _lastShotOutcome ==
                                                 _ShotOutcome.goal
                                             ? const Color(0xCC0FA968)
                                             : const Color(0xCCEB5757),
@@ -748,8 +747,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                         _lastShotOutcome == _ShotOutcome.goal
                                             ? (isKo ? '골 성공 액션' : 'Goal action')
                                             : (isKo
-                                                  ? '슈팅 실패 액션'
-                                                  : 'Missed shot action'),
+                                                ? '슈팅 실패 액션'
+                                                : 'Missed shot action'),
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w800,
@@ -855,11 +854,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                 Text(
                                                   isKo
                                                       ? (_endedByFail
-                                                            ? '경기 종료'
-                                                            : '최종 결과')
+                                                          ? '경기 종료'
+                                                          : '최종 결과')
                                                       : (_endedByFail
-                                                            ? 'Match Over'
-                                                            : 'Final Result'),
+                                                          ? 'Match Over'
+                                                          : 'Final Result'),
                                                   style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w800,
@@ -917,8 +916,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                          14,
-                                                        ),
+                                                      14,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
@@ -952,14 +951,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final minForwardX = math.min(_fieldMaxX, _activePasserX + 0.06);
     final leadX = targetX.clamp(minForwardX, _fieldMaxX);
     final leadY = targetY.clamp(_fieldMinY, _fieldMaxY);
-    final predTime =
-        _distance(_activePasserX, _activePasserY, leadX, leadY) /
+    final predTime = _distance(_activePasserX, _activePasserY, leadX, leadY) /
         math.max(ballSpeed, 0.001);
     final receiverTime =
         _distance(_activeReceiverX, _activeReceiverY, leadX, leadY) /
-        _activeReceiverSpeedAbs;
-    final idealSpeed =
-        _distance(_activePasserX, _activePasserY, leadX, leadY) /
+            _activeReceiverSpeedAbs;
+    final idealSpeed = _distance(_activePasserX, _activePasserY, leadX, leadY) /
         math.max(receiverTime, 0.001);
     return _PassPrediction(
       targetX: leadX,
@@ -1220,8 +1217,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     if (!freezeShotScene) {
       for (final defender in _defenders) {
-        final passBySpeed =
-            defender.speed *
+        final passBySpeed = defender.speed *
             defender.ghostType.speedFactor *
             comboBoost *
             levelBoost *
@@ -1229,18 +1225,15 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         defender.x -= passBySpeed * _dt * defenderPace;
         final lanePoint = _lanePointAtX(defender.x);
         final roleTargetY = _roleTargetY(defender, lanePoint.dy);
-        final lanePull =
-            (lanePoint.dy - defender.y) *
+        final lanePull = (lanePoint.dy - defender.y) *
             defender.ghostType.lanePull *
             _dt *
             defenderPace;
-        final rolePull =
-            (roleTargetY - defender.y) *
+        final rolePull = (roleTargetY - defender.y) *
             defender.ghostType.rolePull *
             _dt *
             defenderPace;
-        defender.y +=
-            (defender.vy *
+        defender.y += (defender.vy *
                 passBySpeed *
                 defender.ghostType.wobbleFactor *
                 _dt *
@@ -1321,7 +1314,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final controlX = input.dx.clamp(-1.0, 1.0);
     final controlY = input.dy.clamp(-1.0, 1.0);
     final boost = (1.0 + (input.distance * 1.35)).clamp(1.0, 2.55);
-    final controlA = _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
+    final controlA =
+        _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
     if (controlA) {
       _passerVx += controlX * _joystickAccelX * boost;
       _passerVy += controlY * _joystickAccelY * boost;
@@ -1332,7 +1326,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _stopControlledAttacker() {
-    final controlA = _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
+    final controlA =
+        _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
     if (controlA) {
       _passerVx = 0;
       _passerVy = 0;
@@ -1370,9 +1365,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       final distanceByAim = 0.14 + (strength * 0.62);
       final fallbackX =
           (_activeReceiverX + _leadDistance + (_passAimInput.dx * 0.28)).clamp(
-            minForwardX,
-            _fieldMaxX,
-          );
+        minForwardX,
+        _fieldMaxX,
+      );
       final fallbackY = (_activeReceiverY + (_passAimInput.dy * 0.32)).clamp(
         _fieldMinY,
         _fieldMaxY,
@@ -1459,8 +1454,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         return;
       }
 
-      final outShot =
-          _ballX > 1.02 ||
+      final outShot = _ballX > 1.02 ||
           _ballY < 0.05 ||
           _ballY > 0.95 ||
           _flightElapsed > 3.2;
@@ -1472,11 +1466,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     final caughtByCenter =
         _distance(_ballX, _ballY, _activeReceiverX, _activeReceiverY) <=
-        (_forwardWindow ? 0.060 : 0.045);
+            (_forwardWindow ? 0.060 : 0.045);
     final receivingEval = _receivingWindowEvaluation();
     final caughtByWindow = receivingEval.inside;
-    final controllableCenter =
-        caughtByCenter &&
+    final controllableCenter = caughtByCenter &&
         receivingEval.along >= -(receivingEval.backReach * 0.20);
     if (controllableCenter || caughtByWindow) {
       if (caughtByWindow && !caughtByCenter) {
@@ -1494,8 +1487,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     final reachedTarget =
         _distance(_ballX, _ballY, _targetX, _targetY) <= 0.025;
-    final out =
-        _ballX > 1.02 ||
+    final out = _ballX > 1.02 ||
         _ballY < -0.05 ||
         _ballY > 1.05 ||
         _flightElapsed > 3.0;
@@ -1602,9 +1594,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     );
     _effectiveBallSpeed =
         (_chargedBallSpeed * bodyTurnPenalty * _passLengthScale).clamp(
-          _ballMinSpeed,
-          _ballMaxSpeed,
-        );
+      _ballMinSpeed,
+      _ballMaxSpeed,
+    );
     _ballVx = passDirX * _effectiveBallSpeed;
     _ballVy = passDirY * _effectiveBallSpeed;
     final holdPoint = _activePasserBallHoldPoint();
@@ -2121,31 +2113,27 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final along = relX * dirX + relY * dirY;
     final lateral = (relX * perpX + relY * perpY).abs();
 
-    final speedNorm =
-        ((_effectiveBallSpeed - _ballMinSpeed) /
-                (_ballMaxSpeed - _ballMinSpeed))
-            .clamp(0.0, 1.0);
-    final runnerNorm =
-        ((speed - _difficulty.receiverBaseSpeed) /
-                math.max(_difficulty.receiverRange, 0.001))
-            .clamp(0.0, 1.0);
+    final speedNorm = ((_effectiveBallSpeed - _ballMinSpeed) /
+            (_ballMaxSpeed - _ballMinSpeed))
+        .clamp(0.0, 1.0);
+    final runnerNorm = ((speed - _difficulty.receiverBaseSpeed) /
+            math.max(_difficulty.receiverRange, 0.001))
+        .clamp(0.0, 1.0);
 
     // Soccer receive window: more range forward, moderate side tolerance,
     // and smaller room behind the runner.
     final anticipationTime = _predReceiverTime.clamp(0.20, 0.95);
-    final forwardReach =
-        (0.09 +
-                (runnerNorm * 0.02) +
-                (speed * anticipationTime * 0.22) +
-                (_forwardWindow ? 0.012 : 0.0))
-            .clamp(0.09, 0.17);
+    final forwardReach = (0.09 +
+            (runnerNorm * 0.02) +
+            (speed * anticipationTime * 0.22) +
+            (_forwardWindow ? 0.012 : 0.0))
+        .clamp(0.09, 0.17);
     final backReach = (0.008 + ((1 - speedNorm) * 0.006)).clamp(0.006, 0.014);
-    final lateralReach =
-        (0.070 +
-                (runnerNorm * 0.020) +
-                (_forwardWindow ? 0.010 : 0.0) -
-                (speedNorm * 0.010))
-            .clamp(0.055, 0.100);
+    final lateralReach = (0.070 +
+            (runnerNorm * 0.020) +
+            (_forwardWindow ? 0.010 : 0.0) -
+            (speedNorm * 0.010))
+        .clamp(0.055, 0.100);
 
     final inside =
         along >= -backReach && along <= forwardReach && lateral <= lateralReach;
@@ -2179,25 +2167,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }) {
     // Data-inspired weighting: pass control quality is strongly driven by
     // pass angle/direction, arrival timing, and relative speed.
-    final speedGapRatio =
-        ((_effectiveBallSpeed - _idealBallSpeed).abs() /
-                math.max(_idealBallSpeed, 0.001))
-            .clamp(0.0, 1.5);
+    final speedGapRatio = ((_effectiveBallSpeed - _idealBallSpeed).abs() /
+            math.max(_idealBallSpeed, 0.001))
+        .clamp(0.0, 1.5);
     final timingScore = (1 - (timingGap / 0.55)).clamp(0.0, 1.0);
     final speedScore = (1 - (speedGapRatio / 1.0)).clamp(0.0, 1.0);
-    final distanceScore = (1 - ((_passDistance - 0.42).abs() / 0.45))
-        .clamp(0.0, 1.0)
-        .toDouble();
-    final directionalScore = ((_forwardAlignment + 0.15) / 1.15)
-        .clamp(0.0, 1.0)
-        .toDouble();
-    final leadScore = (1 - ((_leadAlongMove - 0.08).abs() / 0.28))
-        .clamp(0.0, 1.0)
-        .toDouble();
+    final distanceScore =
+        (1 - ((_passDistance - 0.42).abs() / 0.45)).clamp(0.0, 1.0).toDouble();
+    final directionalScore =
+        ((_forwardAlignment + 0.15) / 1.15).clamp(0.0, 1.0).toDouble();
+    final leadScore =
+        (1 - ((_leadAlongMove - 0.08).abs() / 0.28)).clamp(0.0, 1.0).toDouble();
     final fitScore = receivingEval.fit;
 
-    var probability =
-        (fitScore * 0.36) +
+    var probability = (fitScore * 0.36) +
         (directionalScore * 0.19) +
         (leadScore * 0.10) +
         (timingScore * 0.18) +
@@ -2230,10 +2213,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final positionGap = _closestReceiverDistance.isFinite
         ? _closestReceiverDistance
         : _distance(_ballX, _ballY, _receiverX, _receiverY);
-    final speedGapRatio =
-        ((_effectiveBallSpeed - _idealBallSpeed).abs() /
-                math.max(_idealBallSpeed, 0.001))
-            .clamp(0.0, 1.5);
+    final speedGapRatio = ((_effectiveBallSpeed - _idealBallSpeed).abs() /
+            math.max(_idealBallSpeed, 0.001))
+        .clamp(0.0, 1.5);
 
     final timingScore = (1 - (timingGap / 0.35)).clamp(0.0, 1.0);
     final positionScore = (1 - (positionGap / 0.14)).clamp(0.0, 1.0);
@@ -2244,8 +2226,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     switch (result) {
       case _PassResult.perfect:
-        final controlProb = (controlProbability ?? _lastControlProbability)
-            .clamp(0.20, 0.99);
+        final controlProb =
+            (controlProbability ?? _lastControlProbability).clamp(0.20, 0.99);
         final controlPct = controlProb * 100;
         _lastAccuracy = controlPct;
         final tier = _accuracyTier(_lastAccuracy);
@@ -2332,8 +2314,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         _reactionLabel = speedCause
             ? _koText('빠름(속도)  누르는 시간을 줄이세요', 'Too fast (speed)  hold shorter')
             : leadCause
-            ? _koText('빠름(리드)  목표를 조금 뒤로', 'Too fast (lead)  aim slightly back')
-            : _koText('빠름  속도/방향을 함께 조절', 'Too fast  tune speed and aim');
+                ? _koText(
+                    '빠름(리드)  목표를 조금 뒤로', 'Too fast (lead)  aim slightly back')
+                : _koText('빠름  속도/방향을 함께 조절', 'Too fast  tune speed and aim');
         _reactionDetail = _koText(
           '공이 선수보다 일찍 도착해 안정적인 첫 터치가 어려웠어요.',
           'Ball arrived earlier than runner timing, reducing first-touch control.',
@@ -2386,8 +2369,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       final maxX = 1.24 + (index * spawnGap);
       const minY = 0.10;
       const maxY = 0.90;
-      final speed =
-          difficulty.defenderBaseSpeed +
+      final speed = difficulty.defenderBaseSpeed +
           (_random.nextDouble() * difficulty.defenderRange);
       final laneIndex = index % laneCount;
       final laneCenter = minY + ((laneIndex + 0.5) / laneCount) * (maxY - minY);
@@ -2485,9 +2467,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       case _GhostType.blue:
         return laneY;
       case _GhostType.orange:
-        final pressY = _ballFlying
-            ? _ballY
-            : ((_activePasserY + _activeReceiverY) * 0.5);
+        final pressY =
+            _ballFlying ? _ballY : ((_activePasserY + _activeReceiverY) * 0.5);
         return pressY.clamp(defender.minY, defender.maxY);
       case _GhostType.red:
         final markerY = _activePasserY + (math.sin(_keeperPhase * 1.7) * 0.02);
@@ -2507,13 +2488,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   double get _activeReceiverSpeedAbs => math.max(
-    0.001,
-    math.sqrt(
-          _activeReceiverVx * _activeReceiverVx +
-              _activeReceiverVy * _activeReceiverVy,
-        ) *
-        (_attackerAIsPasser ? _receiverSpeedMul : _passerSpeedMul),
-  );
+        0.001,
+        math.sqrt(
+              _activeReceiverVx * _activeReceiverVx +
+                  _activeReceiverVy * _activeReceiverVy,
+            ) *
+            (_attackerAIsPasser ? _receiverSpeedMul : _passerSpeedMul),
+      );
 
   _AccuracyTier _accuracyTier(double accuracy) {
     if (accuracy >= 90) return _AccuracyTier.perfect;
@@ -2579,7 +2560,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
     _weeklyBest =
         widget.optionRepository.getValue<int>('$_weeklyBestPrefix$_weekKey') ??
-        0;
+            0;
     _rankingHistory = _loadRankingHistory();
   }
 
@@ -2686,17 +2667,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   size: Size.square(size),
                   painter: switch (kind) {
                     _EntityKind.ball => _BallEntityPainter(
-                      color: color,
-                      emphasize: emphasize,
-                    ),
+                        color: color,
+                        emphasize: emphasize,
+                      ),
                     _EntityKind.attacker => _PacmanEntityPainter(
-                      color: color,
-                      emphasize: emphasize,
-                    ),
+                        color: color,
+                        emphasize: emphasize,
+                      ),
                     _EntityKind.defender => _GhostEntityPainter(
-                      color: color,
-                      emphasize: emphasize,
-                    ),
+                        color: color,
+                        emphasize: emphasize,
+                      ),
                   },
                 ),
               ],
@@ -2886,17 +2867,16 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const [];
-      final items =
-          decoded
-              .whereType<Map>()
-              .map((e) => GameRankingEntry.fromMap(e.cast<String, dynamic>()))
-              .whereType<GameRankingEntry>()
-              .toList()
-            ..sort((a, b) {
-              final score = b.rankScore.compareTo(a.rankScore);
-              if (score != 0) return score;
-              return b.playedAt.compareTo(a.playedAt);
-            });
+      final items = decoded
+          .whereType<Map>()
+          .map((e) => GameRankingEntry.fromMap(e.cast<String, dynamic>()))
+          .whereType<GameRankingEntry>()
+          .toList()
+        ..sort((a, b) {
+          final score = b.rankScore.compareTo(a.rankScore);
+          if (score != 0) return score;
+          return b.playedAt.compareTo(a.playedAt);
+        });
       if (items.length > _maxRankingEntries) {
         items.removeRange(_maxRankingEntries, items.length);
       }
@@ -2916,8 +2896,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       rankLabel: _rankingLabel(_rankScore, false),
       difficulty: _difficulty.name,
     );
-    final next = [..._rankingHistory, record]
-      ..sort((a, b) {
+    final next = [..._rankingHistory, record]..sort((a, b) {
         final score = b.rankScore.compareTo(a.rankScore);
         if (score != 0) return score;
         return b.playedAt.compareTo(a.playedAt);
