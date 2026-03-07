@@ -295,7 +295,29 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TabScreenTitle(title: isKo ? '게임' : 'Game'),
+                TabScreenTitle(
+                  title: isKo ? '게임' : 'Game',
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: isKo ? '게임 가이드' : 'Guide',
+                        onPressed: () => _openGameGuide(context),
+                        icon: const Icon(Icons.menu_book_outlined, size: 20),
+                      ),
+                      IconButton(
+                        tooltip: isKo ? '스킬 퀴즈' : 'Quiz',
+                        onPressed: () => _openSkillQuiz(context),
+                        icon: const Icon(Icons.quiz_outlined, size: 20),
+                      ),
+                      IconButton(
+                        tooltip: isKo ? '랭킹' : 'Ranking',
+                        onPressed: () => _openRankingScreen(context),
+                        icon: const Icon(Icons.emoji_events_outlined, size: 20),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -466,21 +488,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                       ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => _openGameGuide(context),
-                      icon: const Icon(Icons.menu_book_outlined, size: 16),
-                      label: Text(isKo ? '게임 가이드' : 'Guide'),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => _openSkillQuiz(context),
-                      icon: const Icon(Icons.quiz_outlined, size: 16),
-                      label: Text(isKo ? '스킬 퀴즈' : 'Quiz'),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => _openRankingScreen(context),
-                      icon: const Icon(Icons.emoji_events_outlined, size: 16),
-                      label: Text(isKo ? '랭킹' : 'Ranking'),
                     ),
                   ],
                 ),
