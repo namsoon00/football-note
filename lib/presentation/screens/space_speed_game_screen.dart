@@ -300,20 +300,38 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        tooltip: isKo ? '게임 가이드' : 'Guide',
+                      TextButton.icon(
                         onPressed: () => _openGameGuide(context),
-                        icon: const Icon(Icons.menu_book_outlined, size: 20),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          minimumSize: const Size(1, 36),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                        ),
+                        icon: const Icon(Icons.menu_book_outlined, size: 18),
+                        label: Text(isKo ? '가이드' : 'Guide'),
                       ),
-                      IconButton(
-                        tooltip: isKo ? '스킬 퀴즈' : 'Quiz',
+                      TextButton.icon(
                         onPressed: () => _openSkillQuiz(context),
-                        icon: const Icon(Icons.quiz_outlined, size: 20),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          minimumSize: const Size(1, 36),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                        ),
+                        icon: const Icon(Icons.quiz_outlined, size: 18),
+                        label: Text(isKo ? '퀴즈' : 'Quiz'),
                       ),
-                      IconButton(
-                        tooltip: isKo ? '랭킹' : 'Ranking',
+                      TextButton.icon(
                         onPressed: () => _openRankingScreen(context),
-                        icon: const Icon(Icons.emoji_events_outlined, size: 20),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          minimumSize: const Size(1, 36),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                        ),
+                        icon: const Icon(Icons.emoji_events_outlined, size: 18),
+                        label: Text(isKo ? '랭킹' : 'Ranking'),
                       ),
                     ],
                   ),
