@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @tabLogs.
   ///
   /// In en, this message translates to:
-  /// **'Training Logs'**
+  /// **'Logs'**
   String get tabLogs;
 
   /// No description provided for @tabCalendar.

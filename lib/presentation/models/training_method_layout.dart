@@ -60,11 +60,13 @@ class TrainingMethodPage {
   final String name;
   final String methodText;
   final List<TrainingMethodItem> items;
+  final List<TrainingMethodStroke> strokes;
 
   const TrainingMethodPage({
     required this.name,
     this.methodText = '',
     required this.items,
+    this.strokes = const <TrainingMethodStroke>[],
   });
 
   factory TrainingMethodPage.fromMap(Map<String, dynamic> map) {
@@ -80,6 +82,14 @@ class TrainingMethodPage {
               .map((e) => TrainingMethodItem.fromMap(e.cast<String, dynamic>()))
               .toList(growable: false)
           : const <TrainingMethodItem>[],
+      strokes: (map['strokes'] is List)
+          ? (map['strokes'] as List)
+              .whereType<Map>()
+              .map(
+                (e) => TrainingMethodStroke.fromMap(e.cast<String, dynamic>()),
+              )
+              .toList(growable: false)
+          : const <TrainingMethodStroke>[],
     );
   }
 
@@ -87,6 +97,7 @@ class TrainingMethodPage {
         'name': name,
         'methodText': methodText,
         'items': items.map((e) => e.toMap()).toList(growable: false),
+        'strokes': strokes.map((e) => e.toMap()).toList(growable: false),
       };
 }
 
@@ -129,4 +140,53 @@ class TrainingMethodItem {
         'rotationDeg': rotationDeg,
         'colorValue': colorValue,
       };
+}
+
+class TrainingMethodStroke {
+  final List<TrainingMethodPoint> points;
+  final int colorValue;
+  final double width;
+
+  const TrainingMethodStroke({
+    required this.points,
+    this.colorValue = 0xFFFFFFFF,
+    this.width = 3.0,
+  });
+
+  factory TrainingMethodStroke.fromMap(Map<String, dynamic> map) {
+    final rawPoints = map['points'];
+    final parsedPoints = rawPoints is List
+        ? rawPoints
+              .whereType<Map>()
+              .map((e) => TrainingMethodPoint.fromMap(e.cast<String, dynamic>()))
+              .toList(growable: false)
+        : const <TrainingMethodPoint>[];
+    return TrainingMethodStroke(
+      points: parsedPoints,
+      colorValue: (map['colorValue'] as num?)?.toInt() ?? 0xFFFFFFFF,
+      width: ((map['width'] as num?)?.toDouble() ?? 3.0).clamp(1.0, 12.0),
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+        'points': points.map((e) => e.toMap()).toList(growable: false),
+        'colorValue': colorValue,
+        'width': width,
+      };
+}
+
+class TrainingMethodPoint {
+  final double x;
+  final double y;
+
+  const TrainingMethodPoint({required this.x, required this.y});
+
+  factory TrainingMethodPoint.fromMap(Map<String, dynamic> map) {
+    return TrainingMethodPoint(
+      x: ((map['x'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0),
+      y: ((map['y'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0),
+    );
+  }
+
+  Map<String, dynamic> toMap() => {'x': x, 'y': y};
 }

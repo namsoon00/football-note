@@ -1079,13 +1079,15 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     final passerIsA = _attackerAIsPasser;
     final controlPasser = _isControllingPasser;
-    final aiPasser = !controlPasser;
+    final controlA = controlPasser ? passerIsA : !passerIsA;
+    final aiA = !controlA;
+    final aiPasser = controlPasser ? !passerIsA : passerIsA;
     final freezeShotScene = _freezeShotScene;
-    if (aiPasser && _random.nextDouble() < 0.05) {
+    if (aiA && _random.nextDouble() < 0.05) {
       _passerVx += (_random.nextDouble() * 0.08) - 0.02;
       _passerVy += (_random.nextDouble() * 0.16) - 0.08;
     }
-    if (!aiPasser && _random.nextDouble() < 0.05) {
+    if (!aiA && _random.nextDouble() < 0.05) {
       _receiverVx += (_random.nextDouble() * 0.08) - 0.02;
       _receiverVy += (_random.nextDouble() * 0.16) - 0.08;
     }
@@ -1119,18 +1121,24 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
     if (!freezeShotScene) {
       _applyJoystickToControlledAttacker();
-      if (controlPasser) {
+      if (controlA) {
         _passerVx *= 0.94;
         _passerVy *= 0.94;
       } else {
         _receiverVx *= 0.94;
         _receiverVy *= 0.94;
       }
-      _passerVx = controlPasser
+      _passerVx = controlA
           ? _passerVx.clamp(-_playerJoystickMaxVx, _playerJoystickMaxVx)
-          : _passerVx.clamp(0.06, (runSpeed + 0.06) * clutchBoost);
-      _receiverVx = controlPasser
-          ? _receiverVx.clamp(0.07, (runSpeed + 0.07) * clutchBoost)
+          : _passerVx.clamp(
+              aiPasser ? 0.06 : 0.07,
+              (runSpeed + (aiPasser ? 0.06 : 0.07)) * clutchBoost,
+            );
+      _receiverVx = controlA
+          ? _receiverVx.clamp(
+              aiPasser ? 0.06 : 0.07,
+              (runSpeed + (aiPasser ? 0.06 : 0.07)) * clutchBoost,
+            )
           : _receiverVx.clamp(-_playerJoystickMaxVx, _playerJoystickMaxVx);
       _passerVy = _passerVy.clamp(-_playerJoystickMaxVy, _playerJoystickMaxVy);
       _receiverVy = _receiverVy.clamp(
@@ -1313,7 +1321,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final controlX = input.dx.clamp(-1.0, 1.0);
     final controlY = input.dy.clamp(-1.0, 1.0);
     final boost = (1.0 + (input.distance * 1.35)).clamp(1.0, 2.55);
-    if (_isControllingPasser) {
+    final controlA = _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
+    if (controlA) {
       _passerVx += controlX * _joystickAccelX * boost;
       _passerVy += controlY * _joystickAccelY * boost;
     } else {
@@ -1323,7 +1332,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _stopControlledAttacker() {
-    if (_isControllingPasser) {
+    final controlA = _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
+    if (controlA) {
       _passerVx = 0;
       _passerVy = 0;
     } else {

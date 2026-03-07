@@ -45,7 +45,7 @@ class NewsScreen extends StatefulWidget {
 class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
-  static const Duration _autoRefreshInterval = Duration(minutes: 15);
+  static const Duration _autoRefreshInterval = Duration(hours: 6);
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
   static final List<NewsArticle> _cachedArticles = <NewsArticle>[];

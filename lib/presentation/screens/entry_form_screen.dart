@@ -852,42 +852,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               : 'Write what needs improvement.',
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildSelectRow(
-                        label: isKo ? '훈련 목표' : 'Training goal',
-                        value: _nextGoalController.text.trim().isEmpty
-                            ? l10n.notSet
-                            : _nextGoalController.text.trim(),
-                        options: [l10n.notSet, ..._nextGoalOptions],
-                        onChanged: (value) {
-                          setState(() {
-                            _nextGoalController.text =
-                                value == l10n.notSet ? '' : value;
-                          });
-                          _scheduleAutoSave();
-                        },
-                        onAdd: () => _addOption(
-                          key: 'next_goals',
-                          title: isKo ? '훈련 목표' : 'Training goal',
-                          options: _nextGoalOptions,
-                          onUpdated: (list) =>
-                              setState(() => _nextGoalOptions = list),
-                          onSelected: (value) =>
-                              setState(() => _nextGoalController.text = value),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildEmphasizedField(
-                        controller: _nextGoalController,
-                        minLines: 4,
-                        maxLines: null,
-                        decoration: InputDecoration(
-                          labelText: isKo ? '다음 목표' : 'Next goal',
-                          hintText: isKo
-                              ? '다음 훈련 목표를 적어보세요.'
-                              : 'Write your next training goal.',
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -1374,6 +1338,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         builder: (_) => TrainingMethodBoardScreen(
           initialLayoutJson: _drillsController.text,
           presets: presets,
+          onSaved: (savedLayout) {
+            if (!mounted) return;
+            setState(() {
+              _drillsController.text = savedLayout;
+            });
+            _scheduleAutoSave();
+          },
         ),
       ),
     );
@@ -1404,14 +1375,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final encoded = layout.encode();
       if (!dedupe.add(encoded)) continue;
 
-      final stamp = DateFormat('yyyy.MM.dd HH:mm:ss').format(entry.createdAt);
+      final stamp = DateFormat('yyyy.MM.dd').format(entry.createdAt);
       final detail = entry.program.trim().isNotEmpty
           ? entry.program.trim()
           : (entry.location.trim().isNotEmpty
               ? entry.location.trim()
               : (isKo ? '훈련 기록' : 'Training entry'));
+      final memo = layout.pages
+          .map((page) => page.methodText.trim())
+          .where((text) => text.isNotEmpty)
+          .join(' / ');
       presets.add(
-        TrainingBoardPreset(label: '$stamp · $detail', layoutJson: encoded),
+        TrainingBoardPreset(
+          title: '$stamp · $detail',
+          subtitle: memo,
+          layoutJson: encoded,
+        ),
       );
       if (presets.length >= 30) break;
     }
@@ -1459,7 +1438,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final selectedGoals = _selectedDailyGoals.toList()..sort();
       final goodPoints = _goodPointsController.text.trim();
       final improvements = _improvementsController.text.trim();
-      final nextGoal = _nextGoalController.text.trim();
+      const nextGoal = '';
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
       final jumpRopeCount =
           _parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0;
