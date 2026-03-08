@@ -55,7 +55,27 @@ ensure_issue_closed_if_merged() {
   log "Verifying merge status for ${HEAD_BRANCH} -> ${DEFAULT_BRANCH}"
   git fetch origin "$DEFAULT_BRANCH" "$HEAD_BRANCH" >/dev/null 2>&1 || true
 
-  if git merge-base --is-ancestor "origin/$HEAD_BRANCH" "origin/$DEFAULT_BRANCH"; then
+  local merged="0"
+  if git show-ref --verify --quiet "refs/remotes/origin/${HEAD_BRANCH}" && \
+     git merge-base --is-ancestor "origin/$HEAD_BRANCH" "origin/$DEFAULT_BRANCH"; then
+    merged="1"
+  else
+    # Remote branch may be auto-deleted after PR merge.
+    local pr_merged_at
+    pr_merged_at="$(
+      curl -sS \
+        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+        -H "Accept: application/vnd.github+json" \
+        "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=closed&head=${GITHUB_REPOSITORY%%/*}:${HEAD_BRANCH}&base=${DEFAULT_BRANCH}&per_page=1" \
+      | python3 -c 'import json,sys; d=json.load(sys.stdin); print((d[0].get("merged_at","") if isinstance(d,list) and d else ""))'
+    )"
+    if [[ -n "${pr_merged_at}" ]]; then
+      log "Detected merged PR for ${HEAD_BRANCH} (merged_at=${pr_merged_at})."
+      merged="1"
+    fi
+  fi
+
+  if [[ "$merged" == "1" ]]; then
     local state
     state="$(issue_state)"
     if [[ "$state" == "open" ]]; then

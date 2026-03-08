@@ -37,6 +37,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   int? _playingPlayerId;
   Offset? _playingPlayerStart;
   String _lastSavedLayout = '';
+  bool _shouldPromptInitialBoardName = false;
 
   _BoardPageState get _currentPage => _pages[_pageIndex];
 
@@ -51,6 +52,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       ..addStatusListener(_onPlayStatusChanged);
     _methodController.text = _currentPage.methodText;
     _lastSavedLayout = _serialize();
+    if (_shouldPromptInitialBoardName) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _promptForInitialBoardName();
+      });
+    }
   }
 
   void _restore() {
@@ -91,6 +98,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
     }).toList(growable: true);
     if (_pages.isEmpty) {
+      _shouldPromptInitialBoardName = true;
       _pages = <_BoardPageState>[
         _BoardPageState(
           name: 'Board 1',
@@ -101,6 +109,63 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ),
       ];
     }
+  }
+
+  Future<String?> _showBoardNameDialog({
+    required bool isKo,
+    required String titleKo,
+    required String titleEn,
+    required String confirmKo,
+    required String confirmEn,
+    String initialValue = '',
+  }) async {
+    final controller = TextEditingController(text: initialValue);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? titleKo : titleEn),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          decoration: InputDecoration(
+            labelText: isKo ? '보드명' : 'Board name',
+            hintText: isKo ? '예) 패스 워밍업' : 'e.g. Pass warm-up',
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: Text(isKo ? confirmKo : confirmEn),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    final trimmed = (name ?? '').trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed;
+  }
+
+  Future<void> _promptForInitialBoardName() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final name = await _showBoardNameDialog(
+      isKo: isKo,
+      titleKo: '보드 추가',
+      titleEn: 'Add board',
+      confirmKo: '추가',
+      confirmEn: 'Add',
+    );
+    if (!mounted || name == null) return;
+    setState(() {
+      _currentPage.name = name;
+    });
   }
 
   String _serialize() {
@@ -183,37 +248,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _addPage(bool isKo) async {
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isKo ? '보드 추가' : 'Add board'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            labelText: isKo ? '보드명' : 'Board name',
-            hintText: isKo ? '예) 패스 워밍업' : 'e.g. Pass warm-up',
-            border: const OutlineInputBorder(),
-          ),
-          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isKo ? '취소' : 'Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: Text(isKo ? '추가' : 'Add'),
-          ),
-        ],
-      ),
+    final stepName = await _showBoardNameDialog(
+      isKo: isKo,
+      titleKo: '보드 추가',
+      titleEn: 'Add board',
+      confirmKo: '추가',
+      confirmEn: 'Add',
     );
-    controller.dispose();
-    final stepName = (name ?? '').trim();
-    if (stepName.isEmpty) return;
+    if (stepName == null) return;
     _stopPlayerPlayback(restoreStart: false);
     setState(() {
       _pages.add(
@@ -229,6 +271,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedItemId = null;
       _activePlayerPath = null;
       _methodController.text = _currentPage.methodText;
+    });
+  }
+
+  Future<void> _renameCurrentPage(bool isKo) async {
+    final renamed = await _showBoardNameDialog(
+      isKo: isKo,
+      titleKo: '보드명 수정',
+      titleEn: 'Rename board',
+      confirmKo: '저장',
+      confirmEn: 'Save',
+      initialValue: _currentPage.name,
+    );
+    if (renamed == null) return;
+    setState(() {
+      _currentPage.name = renamed;
     });
   }
 
@@ -878,6 +935,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           onPressed: () => _addPage(isKo),
           icon: const Icon(Icons.add_box_outlined),
           tooltip: isKo ? '보드 추가' : 'Add board',
+        ),
+        IconButton(
+          onPressed: () => _renameCurrentPage(isKo),
+          icon: const Icon(Icons.edit_outlined),
+          tooltip: isKo ? '보드명 수정' : 'Rename board',
         ),
         IconButton(
           onPressed: _pages.length <= 1 ? null : _deleteCurrentPage,

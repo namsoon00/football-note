@@ -45,6 +45,16 @@ def post_issue_comment(repo: str, issue_number: int, token: str, body: str) -> N
     )
 
 
+def close_issue_completed(repo: str, issue_number: int, token: str, reason: str) -> None:
+    request(
+        "PATCH",
+        f"{API}/repos/{repo}/issues/{issue_number}",
+        token,
+        {"state": "closed", "state_reason": "completed"},
+    )
+    post_issue_comment(repo, issue_number, token, reason)
+
+
 def main() -> int:
     token = env("GITHUB_TOKEN")
     repo = env("GITHUB_REPOSITORY")
@@ -130,6 +140,12 @@ def main() -> int:
                     issue_number,
                     token,
                     f"자동 머지 완료: PR #{pr_number} ({merge_method})",
+                )
+                close_issue_completed(
+                    repo,
+                    issue_number,
+                    token,
+                    f"PR #{pr_number} 자동 머지 완료를 확인하여 이슈를 completed로 닫았습니다.",
                 )
             else:
                 post_issue_comment(
