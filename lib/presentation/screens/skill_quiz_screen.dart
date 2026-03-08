@@ -13,7 +13,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _dailyQuestionCount = 20;
 
   late final Map<_QuizType, List<_QuizQuestion>> _poolByType;
-  _QuizType _selectedType = _QuizType.pass;
+  _QuizType _selectedType = _QuizType.mixed;
   late List<_QuizQuestion> _dailyQuestions;
   late List<_QuizQuestion> _questions;
   int _dailySeed = 0;
@@ -32,8 +32,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   void initState() {
     super.initState();
+    final typed = <_QuizType, List<_QuizQuestion>>{
+      _QuizType.pass: _buildTypedQuizPool(_QuizType.pass),
+      _QuizType.dribble: _buildTypedQuizPool(_QuizType.dribble),
+      _QuizType.control: _buildTypedQuizPool(_QuizType.control),
+      _QuizType.scan: _buildTypedQuizPool(_QuizType.scan),
+    };
     _poolByType = {
-      for (final type in _QuizType.values) type: _buildTypedQuizPool(type),
+      ...typed,
+      _QuizType.mixed:
+          typed.values.expand((list) => list).toList(growable: false),
     };
     _startDailyForType(_selectedType);
   }
@@ -316,7 +324,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 }
 
-enum _QuizType { pass, dribble, control, scan }
+enum _QuizType { mixed, pass, dribble, control, scan }
 
 extension _QuizTypeLabel on _QuizType {
   String label(bool isKo) {
@@ -325,6 +333,7 @@ extension _QuizTypeLabel on _QuizType {
       _QuizType.dribble => isKo ? '드리블' : 'Dribble',
       _QuizType.control => isKo ? '컨트롤' : 'Control',
       _QuizType.scan => isKo ? '스캔' : 'Scan',
+      _QuizType.mixed => isKo ? '혼합' : 'Mixed',
     };
   }
 }
@@ -388,6 +397,9 @@ class _QuizConcept {
 }
 
 List<_QuizQuestion> _buildTypedQuizPool(_QuizType type) {
+  if (type == _QuizType.mixed) {
+    return const <_QuizQuestion>[];
+  }
   final concepts = _conceptsByType[type] ?? const <_QuizConcept>[];
   final pool = <_QuizQuestion>[];
   for (final s in _situations) {

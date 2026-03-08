@@ -181,6 +181,42 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
     });
   }
 
+  Future<void> _renameCurrentPage(bool isKo) async {
+    final controller = TextEditingController(text: _currentPage.name);
+    final renamed = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '스텝명 변경' : 'Rename step'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          decoration: InputDecoration(
+            labelText: isKo ? '스텝명' : 'Step name',
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: Text(isKo ? '적용' : 'Apply'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    final next = (renamed ?? '').trim();
+    if (next.isEmpty) return;
+    setState(() {
+      _currentPage.name = next;
+    });
+  }
+
   void _deleteCurrentPage() {
     if (_pages.length <= 1) return;
     setState(() {
@@ -271,52 +307,69 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
       isScrollControlled: true,
       builder: (context) {
         return SafeArea(
-          child: ListView.builder(
-            itemCount: widget.presets.length,
-            itemBuilder: (context, index) {
-              final preset = widget.presets[index];
-              final layout = TrainingMethodLayout.decode(preset.layoutJson);
-              if (layout.pages.isEmpty) {
-                return const SizedBox.shrink();
-              }
-              return ExpansionTile(
-                leading: const Icon(Icons.copy_all_outlined),
-                title: Text(preset.title),
-                subtitle: preset.subtitle.trim().isEmpty
-                    ? null
-                    : Text(
-                        preset.subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                children: layout.pages.asMap().entries.map((entry) {
-                  final pageIndex = entry.key;
-                  final page = entry.value;
-                  final stepName = page.name.trim().isEmpty
-                      ? 'Step ${pageIndex + 1}'
-                      : page.name.trim();
-                  final memo = page.methodText.trim();
-                  return ListTile(
-                    dense: true,
-                    leading: const Icon(Icons.content_paste_outlined),
-                    title: Text(stepName),
-                    subtitle: memo.isEmpty
-                        ? null
-                        : Text(
-                            memo,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).pop(
-                        _PresetStepSelection(preset: preset, page: page),
-                      );
-                    },
-                  );
-                }).toList(growable: false),
-              );
-            },
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: widget.presets.length,
+                  itemBuilder: (context, index) {
+                    final preset = widget.presets[index];
+                    final layout =
+                        TrainingMethodLayout.decode(preset.layoutJson);
+                    if (layout.pages.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return ExpansionTile(
+                      leading: const Icon(Icons.copy_all_outlined),
+                      title: Text(preset.title),
+                      subtitle: preset.subtitle.trim().isEmpty
+                          ? null
+                          : Text(
+                              preset.subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                      children: layout.pages.asMap().entries.map((entry) {
+                        final pageIndex = entry.key;
+                        final page = entry.value;
+                        final stepName = page.name.trim().isEmpty
+                            ? 'Step ${pageIndex + 1}'
+                            : page.name.trim();
+                        final memo = page.methodText.trim();
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.content_paste_outlined),
+                          title: Text(stepName),
+                          subtitle: memo.isEmpty
+                              ? null
+                              : Text(
+                                  memo,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.of(context).pop(
+                              _PresetStepSelection(preset: preset, page: page),
+                            );
+                          },
+                        );
+                      }).toList(growable: false),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(isKo ? '취소' : 'Cancel'),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -590,6 +643,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
           tooltip: isKo ? '스텝 추가' : 'Add step',
         ),
         IconButton(
+          onPressed: () => _renameCurrentPage(isKo),
+          icon: const Icon(Icons.drive_file_rename_outline),
+          tooltip: isKo ? '스텝명 변경' : 'Rename step',
+        ),
+        IconButton(
           onPressed: _pages.length <= 1 ? null : _deleteCurrentPage,
           icon: const Icon(Icons.indeterminate_check_box_outlined),
           tooltip: isKo ? '스텝 삭제' : 'Remove step',
@@ -851,7 +909,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen> {
 }
 
 class _BoardPageState {
-  final String name;
+  String name;
   String methodText;
   final List<_BoardItem> items;
   final List<_BoardStroke> strokes;
