@@ -585,24 +585,44 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: _openTrainingMethodBoard,
-                      icon: Icon(
-                        Icons.developer_board_outlined,
-                        color: _drillsController.text.trim().isNotEmpty
-                            ? theme.colorScheme.primary
-                            : null,
-                      ),
-                      label: Text(isKo ? '훈련보드' : 'Training board'),
-                      style: OutlinedButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        minimumSize: const Size(1, 40),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: _showTodayFortuneInNote,
+                          icon: const Icon(Icons.auto_awesome_outlined),
+                          label: Text(isKo ? '오늘의 운세' : 'Today fortune'),
+                          style: OutlinedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            minimumSize: const Size(1, 40),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                          ),
                         ),
-                      ),
+                        OutlinedButton.icon(
+                          onPressed: _openTrainingMethodBoard,
+                          icon: Icon(
+                            Icons.developer_board_outlined,
+                            color: _drillsController.text.trim().isNotEmpty
+                                ? theme.colorScheme.primary
+                                : null,
+                          ),
+                          label: Text(isKo ? '훈련보드' : 'Training board'),
+                          style: OutlinedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            minimumSize: const Size(1, 40),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -1281,6 +1301,53 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       setState(() => _date = picked);
       _scheduleAutoSave();
     }
+  }
+
+  Future<void> _showTodayFortuneInNote() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final profile = PlayerProfileService(widget.optionRepository).load();
+    final allEntries = await widget.trainingService.allEntries();
+    final goodPoints = _goodPointsController.text.trim();
+    final improvements = _improvementsController.text.trim();
+    final draft = TrainingEntry(
+      date: DateTime(_date.year, _date.month, _date.day),
+      durationMinutes: _durationMinutes,
+      intensity: _intensity,
+      type: _type,
+      mood: _mood,
+      injury: _injury,
+      notes: improvements,
+      location: _location,
+      program: _type,
+      drills: _drillsController.text.trim(),
+      club: '',
+      injuryPart: _injury ? _injuryPartController.text.trim() : '',
+      painLevel: _injury ? _parseInt(_painController.text) : null,
+      rehab: _injury ? _rehab : false,
+      goal: '',
+      feedback: goodPoints,
+      heightCm: profile.heightCm,
+      weightKg: profile.weightKg,
+      imagePath: _imagePaths.isNotEmpty ? _imagePaths.first : '',
+      imagePaths: _imagePaths,
+      status: _status,
+      liftingByPart: const <String, int>{},
+      goalFocuses: _selectedDailyGoals.toList()..sort(),
+      goodPoints: goodPoints,
+      improvements: improvements,
+      nextGoal: '',
+      createdAt: DateTime.now(),
+      jumpRopeCount: _parseInt(_jumpRopeController.text.trim()) ?? 0,
+      jumpRopeMinutes: _parseInt(_jumpRopeMinutesController.text.trim()) ?? 0,
+    );
+    final fortune = _fortuneService.generateResult(
+      entry: draft,
+      profile: profile,
+      history: allEntries,
+      isKo: isKo,
+    );
+    if (!mounted) return;
+    await _showFortuneRevealDialog(fortune.fortuneText);
   }
 
   Future<void> _openTrainingMethodBoard() async {
