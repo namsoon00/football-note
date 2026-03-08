@@ -887,54 +887,64 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Widget _buildPageHeader(bool isKo) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: DropdownButtonFormField<int>(
-            initialValue: _pageIndex,
-            decoration: InputDecoration(
-              isDense: true,
-              labelText: isKo ? '스텝' : 'Step',
-              border: const OutlineInputBorder(),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                _currentPage.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
-            items: _pages
-                .asMap()
-                .entries
-                .map(
-                  (e) => DropdownMenuItem<int>(
-                    value: e.key,
-                    child: Text(e.value.name),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value == null) return;
-              _stopPlayerPlayback(restoreStart: false);
-              setState(() {
-                _pageIndex = value;
-                _selectedItemId = null;
-                _activeStroke = null;
-                _activePlayerPath = null;
-                _methodController.text = _currentPage.methodText;
-              });
-            },
+            IconButton(
+              onPressed: () => _renameCurrentPage(isKo),
+              icon: const Icon(Icons.drive_file_rename_outline),
+              tooltip: isKo ? '스텝명 변경' : 'Rename step',
+            ),
+            IconButton(
+              onPressed: _addPage,
+              icon: const Icon(Icons.add_box_outlined),
+              tooltip: isKo ? '스텝 추가' : 'Add step',
+            ),
+            IconButton(
+              onPressed: _pages.length <= 1 ? null : _deleteCurrentPage,
+              icon: const Icon(Icons.indeterminate_check_box_outlined),
+              tooltip: isKo ? '스텝 삭제' : 'Remove step',
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<int>(
+          initialValue: _pageIndex,
+          decoration: InputDecoration(
+            isDense: true,
+            labelText: isKo ? '스텝 선택' : 'Select step',
+            border: const OutlineInputBorder(),
           ),
-        ),
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: () => _renameCurrentPage(isKo),
-          icon: const Icon(Icons.drive_file_rename_outline),
-          tooltip: isKo ? '스텝명 변경' : 'Rename step',
-        ),
-        IconButton(
-          onPressed: _addPage,
-          icon: const Icon(Icons.add_box_outlined),
-          tooltip: isKo ? '스텝 추가' : 'Add step',
-        ),
-        IconButton(
-          onPressed: _pages.length <= 1 ? null : _deleteCurrentPage,
-          icon: const Icon(Icons.indeterminate_check_box_outlined),
-          tooltip: isKo ? '스텝 삭제' : 'Remove step',
+          items: _pages
+              .asMap()
+              .entries
+              .map(
+                (e) => DropdownMenuItem<int>(
+                  value: e.key,
+                  child: Text(e.value.name),
+                ),
+              )
+              .toList(growable: false),
+          onChanged: (value) {
+            if (value == null) return;
+            _stopPlayerPlayback(restoreStart: false);
+            setState(() {
+              _pageIndex = value;
+              _selectedItemId = null;
+              _activeStroke = null;
+              _activePlayerPath = null;
+              _methodController.text = _currentPage.methodText;
+            });
+          },
         ),
       ],
     );
@@ -974,9 +984,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ),
         _toolButton(
           isKo: isKo,
-          ko: '뜀틀',
-          en: 'Hurdle',
-          icon: Icons.remove_rounded,
+          ko: '낮은 뜀틀',
+          en: 'Low hurdle',
+          icon: Icons.horizontal_rule,
           onTap: () => _addItem(_BoardItemType.hurdle),
         ),
         _toolButton(
@@ -1039,6 +1049,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 : Icons.play_circle_outline,
           ),
           label: Text(isKo ? '플레이' : 'Play'),
+          style: OutlinedButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            minimumSize: const Size(1, 40),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          ),
+        ),
+        OutlinedButton.icon(
+          onPressed: () => _showTodayFortune(isKo),
+          icon: const Icon(Icons.auto_awesome_outlined),
+          label: Text(isKo ? '오늘의 운세' : 'Today fortune'),
           style: OutlinedButton.styleFrom(
             visualDensity: VisualDensity.compact,
             minimumSize: const Size(1, 40),
@@ -1379,7 +1400,7 @@ class _BoardToken extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = switch (item.type) {
       _BoardItemType.cone => Icons.change_history,
-      _BoardItemType.hurdle => Icons.remove_rounded,
+      _BoardItemType.hurdle => Icons.horizontal_rule,
       _BoardItemType.player => Icons.person,
       _BoardItemType.ball => Icons.sports_soccer,
       _BoardItemType.ladder => Icons.view_week,
