@@ -18,8 +18,8 @@ import 'application/settings_service.dart';
 import 'application/backup_service.dart';
 import 'application/drive_backup_service.dart';
 import 'application/training_plan_reminder_service.dart';
-import 'presentation/screens/landing_screen.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -161,13 +161,6 @@ class _EntryGateState extends State<_EntryGate> {
         driveBackupService: widget.driveBackupService,
       );
     }
-    return LandingScreen(
-      trainingService: widget.trainingService,
-      optionRepository: widget.optionRepository,
-      localeService: widget.localeService,
-      settingsService: widget.settingsService,
-      driveBackupService: widget.driveBackupService,
-      onStart: () => setState(() => _entered = true),
-    );
+    return WelcomeScreen(onStart: () => setState(() => _entered = true));
   }
 }
