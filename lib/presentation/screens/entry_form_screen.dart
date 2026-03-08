@@ -584,6 +584,23 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         ],
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
+                        textAlign: TextAlign.left,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        softWrap: true,
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Wrap(
                       spacing: 6,
@@ -623,23 +640,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           ),
                         ),
                       ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
-                        textAlign: TextAlign.left,
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                        softWrap: true,
-                      ),
                     ),
                   ],
                 ),
