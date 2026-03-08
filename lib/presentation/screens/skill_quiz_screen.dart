@@ -12,7 +12,8 @@ class SkillQuizScreen extends StatefulWidget {
 class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _dailyQuestionCount = 20;
 
-  late final List<_QuizQuestion> _pool;
+  late final Map<_QuizType, List<_QuizQuestion>> _poolByType;
+  _QuizType _selectedType = _QuizType.pass;
   late List<_QuizQuestion> _dailyQuestions;
   late List<_QuizQuestion> _questions;
   int _dailySeed = 0;
@@ -25,29 +26,37 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   final Set<String> _wrongIds = <String>{};
 
   bool get _isFinished => _index >= _questions.length;
+  List<_QuizQuestion> get _selectedPool =>
+      _poolByType[_selectedType] ?? const <_QuizQuestion>[];
 
   @override
   void initState() {
     super.initState();
-    _pool = _buildQuizPool();
-    _initDailySession(DateTime.now());
+    _poolByType = {
+      for (final type in _QuizType.values) type: _buildTypedQuizPool(type),
+    };
+    _startDailyForType(_selectedType);
   }
 
-  void _initDailySession(DateTime now) {
+  void _startDailyForType(_QuizType type) {
+    final now = DateTime.now();
     final date = DateTime(now.year, now.month, now.day);
-    _dailySeed = (date.year * 10000) + (date.month * 100) + date.day;
-    final picked = _buildDailyQuestions(_pool, _dailySeed, _dailyQuestionCount);
-    _dailyQuestions = picked;
-    _startSession(picked, reviewMode: false);
-  }
+    final seed = (date.year * 10000) +
+        (date.month * 100) +
+        date.day +
+        (_stableHash(type.name) * 17);
+    final picked = _buildDailyQuestions(
+      _poolByType[type] ?? const <_QuizQuestion>[],
+      seed,
+      _dailyQuestionCount,
+    );
 
-  void _startSession(
-    List<_QuizQuestion> questions, {
-    required bool reviewMode,
-  }) {
     setState(() {
-      _reviewMode = reviewMode;
-      _questions = questions;
+      _selectedType = type;
+      _dailySeed = seed;
+      _dailyQuestions = picked;
+      _questions = picked;
+      _reviewMode = false;
       _index = 0;
       _score = 0;
       _selectedIndex = null;
@@ -80,7 +89,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 
   void _restartDaily() {
-    _startSession(_dailyQuestions, reviewMode: false);
+    setState(() {
+      _questions = _dailyQuestions;
+      _reviewMode = false;
+      _index = 0;
+      _score = 0;
+      _selectedIndex = null;
+      _answered = false;
+      _wrongIds.clear();
+    });
   }
 
   void _startWrongOnlySession() {
@@ -90,7 +107,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     if (wrongQuestions.isEmpty) return;
     final shuffled = [...wrongQuestions]
       ..shuffle(math.Random(DateTime.now().millisecondsSinceEpoch));
-    _startSession(shuffled, reviewMode: true);
+    setState(() {
+      _questions = shuffled;
+      _reviewMode = true;
+      _index = 0;
+      _score = 0;
+      _selectedIndex = null;
+      _answered = false;
+      _wrongIds.clear();
+    });
   }
 
   @override
@@ -115,6 +140,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: _QuizType.values.map((type) {
+            final selected = _selectedType == type;
+            return ChoiceChip(
+              label: Text(type.label(isKo)),
+              selected: selected,
+              onSelected: (_) => _startDailyForType(type),
+            );
+          }).toList(growable: false),
+        ),
+        const SizedBox(height: 8),
         Text(
           _reviewMode
               ? (isKo ? '오답 복습 · 진행 $progress' : 'Wrong review · $progress')
@@ -126,8 +164,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         const SizedBox(height: 4),
         Text(
           isKo
-              ? '문제 풀: ${_pool.length}개 · 오늘 세트: ${_dailyQuestions.length}개'
-              : 'Pool: ${_pool.length} · Today set: ${_dailyQuestions.length}',
+              ? '${_selectedType.label(true)} 유형 문제풀 ${_selectedPool.length}개(유형당 100개) · 오늘 세트 ${_dailyQuestions.length}개'
+              : '${_selectedType.label(false)} pool ${_selectedPool.length} (100 per type) · today set ${_dailyQuestions.length}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 10),
@@ -165,10 +203,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               onPressed: () => _selectAnswer(optionIndex),
               style: OutlinedButton.styleFrom(
                 alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 side: BorderSide(
                   color: borderColor ??
                       Theme.of(context).colorScheme.outlineVariant,
@@ -178,9 +214,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               ),
               child: Row(
                 children: [
-                  Expanded(
-                    child: Text(isKo ? option.koText : option.enText),
-                  ),
+                  Expanded(child: Text(isKo ? option.koText : option.enText)),
                   if (_answered && isCorrect)
                     const Icon(Icons.check_circle, color: Color(0xFF0FA968)),
                   if (_answered && selected && !isCorrect)
@@ -252,6 +286,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
+                const SizedBox(height: 6),
+                Text(
+                  isKo
+                      ? '${_selectedType.label(true)} 유형(시드: $_dailySeed)'
+                      : '${_selectedType.label(false)} type (seed: $_dailySeed)',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const SizedBox(height: 16),
                 if (wrongCount > 0)
                   FilledButton.icon(
@@ -271,6 +313,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         ),
       ),
     );
+  }
+}
+
+enum _QuizType { pass, dribble, control, scan }
+
+extension _QuizTypeLabel on _QuizType {
+  String label(bool isKo) {
+    return switch (this) {
+      _QuizType.pass => isKo ? '패스' : 'Pass',
+      _QuizType.dribble => isKo ? '드리블' : 'Dribble',
+      _QuizType.control => isKo ? '컨트롤' : 'Control',
+      _QuizType.scan => isKo ? '스캔' : 'Scan',
+    };
   }
 }
 
@@ -301,32 +356,29 @@ class _QuizOption {
   const _QuizOption({required this.koText, required this.enText});
 }
 
-class _SituationTemplate {
+class _QuizSituation {
   final String id;
   final String koPrefix;
   final String enPrefix;
 
-  const _SituationTemplate({
-    required this.id,
-    required this.koPrefix,
-    required this.enPrefix,
-  });
+  const _QuizSituation(
+      {required this.id, required this.koPrefix, required this.enPrefix});
 }
 
-class _DecisionTemplate {
+class _QuizConcept {
   final String id;
-  final String koFocus;
-  final String enFocus;
+  final String koPrompt;
+  final String enPrompt;
   final _QuizOption correct;
   final _QuizOption wrongA;
   final _QuizOption wrongB;
   final String koExplain;
   final String enExplain;
 
-  const _DecisionTemplate({
+  const _QuizConcept({
     required this.id,
-    required this.koFocus,
-    required this.enFocus,
+    required this.koPrompt,
+    required this.enPrompt,
     required this.correct,
     required this.wrongA,
     required this.wrongB,
@@ -335,70 +387,53 @@ class _DecisionTemplate {
   });
 }
 
-class _OptionPack {
-  final List<_QuizOption> options;
-  final int correctIndex;
-
-  const _OptionPack({required this.options, required this.correctIndex});
-}
-
-List<_QuizQuestion> _buildQuizPool() {
-  final generated = <_QuizQuestion>[];
-
-  for (final situation in _situations) {
-    for (final decision in _decisions) {
-      final id = 'gen_${situation.id}_${decision.id}';
-      final packed = _buildOptionPack(
-        seed: id,
-        correct: decision.correct,
-        wrongA: decision.wrongA,
-        wrongB: decision.wrongB,
-      );
-      generated.add(
+List<_QuizQuestion> _buildTypedQuizPool(_QuizType type) {
+  final concepts = _conceptsByType[type] ?? const <_QuizConcept>[];
+  final pool = <_QuizQuestion>[];
+  for (final s in _situations) {
+    for (final c in concepts) {
+      final id = '${type.name}_${s.id}_${c.id}';
+      final pack = _buildOptionPack(id, c.correct, c.wrongA, c.wrongB);
+      pool.add(
         _QuizQuestion(
           id: id,
-          koQuestion: '${situation.koPrefix} ${decision.koFocus} 가장 적절한 선택은?',
-          enQuestion:
-              '${situation.enPrefix} what is the best choice for ${decision.enFocus}?',
-          options: packed.options,
-          correctIndex: packed.correctIndex,
-          koExplain: decision.koExplain,
-          enExplain: decision.enExplain,
+          koQuestion: '${s.koPrefix} ${c.koPrompt}',
+          enQuestion: '${s.enPrefix} ${c.enPrompt}',
+          options: pack.options,
+          correctIndex: pack.correctIndex,
+          koExplain: c.koExplain,
+          enExplain: c.enExplain,
         ),
       );
     }
   }
-
-  return <_QuizQuestion>[
-    ..._fundamentalQuestions,
-    ...generated,
-  ];
+  return pool;
 }
 
-_OptionPack _buildOptionPack({
-  required String seed,
-  required _QuizOption correct,
-  required _QuizOption wrongA,
-  required _QuizOption wrongB,
-}) {
-  final order = <_QuizOption>[correct, wrongA, wrongB];
-  final shift = _stableHash(seed) % order.length;
-  final rotated = [...order.skip(shift), ...order.take(shift)];
-  return _OptionPack(
-    options: rotated,
-    correctIndex: rotated.indexOf(correct),
-  );
+_OptionPack _buildOptionPack(
+  String seed,
+  _QuizOption correct,
+  _QuizOption wrongA,
+  _QuizOption wrongB,
+) {
+  final options = <_QuizOption>[correct, wrongA, wrongB];
+  final shift = _stableHash(seed) % 3;
+  final rotated = [...options.skip(shift), ...options.take(shift)];
+  return _OptionPack(rotated, rotated.indexOf(correct));
+}
+
+class _OptionPack {
+  final List<_QuizOption> options;
+  final int correctIndex;
+
+  const _OptionPack(this.options, this.correctIndex);
 }
 
 List<_QuizQuestion> _buildDailyQuestions(
-  List<_QuizQuestion> pool,
-  int seed,
-  int count,
-) {
+    List<_QuizQuestion> pool, int seed, int count) {
   if (pool.isEmpty) return const <_QuizQuestion>[];
   final list = [...pool]..shuffle(math.Random(seed));
-  final takeCount = math.min(count, list.length);
-  return list.take(takeCount).toList(growable: false);
+  return list.take(math.min(count, list.length)).toList(growable: false);
 }
 
 int _stableHash(String text) {
@@ -409,470 +444,497 @@ int _stableHash(String text) {
   return hash;
 }
 
-const List<_SituationTemplate> _situations = <_SituationTemplate>[
-  _SituationTemplate(
-    id: 's1',
-    koPrefix: '하프라인 근처에서 등지고 패스를 받을 때,',
-    enPrefix: 'When receiving with your back near midfield,',
-  ),
-  _SituationTemplate(
-    id: 's2',
-    koPrefix: '상대 압박이 빠르게 다가오는 측면에서,',
-    enPrefix: 'On the wing with fast pressure coming,',
-  ),
-  _SituationTemplate(
-    id: 's3',
-    koPrefix: '페널티 박스 앞 좁은 공간에서,',
-    enPrefix: 'In tight space in front of the box,',
-  ),
-  _SituationTemplate(
-    id: 's4',
-    koPrefix: '역습 전환 순간 첫 터치를 해야 할 때,',
-    enPrefix: 'At transition when making the first touch,',
-  ),
-  _SituationTemplate(
-    id: 's5',
-    koPrefix: '수비수 1:1 상황에서 돌파를 시도할 때,',
-    enPrefix: 'In a 1v1 trying to beat a defender,',
-  ),
-  _SituationTemplate(
-    id: 's6',
-    koPrefix: '3인 패스 훈련에서 템포를 유지하려면,',
-    enPrefix: 'To keep tempo in a 3-player passing drill,',
-  ),
-  _SituationTemplate(
-    id: 's7',
-    koPrefix: '중앙에서 압박을 벗겨야 하는 순간,',
-    enPrefix: 'At a central moment where you must escape pressure,',
-  ),
-  _SituationTemplate(
-    id: 's8',
-    koPrefix: '패스 후 다시 공간으로 움직여야 할 때,',
-    enPrefix: 'After passing and moving into space again,',
-  ),
+const List<_QuizSituation> _situations = <_QuizSituation>[
+  _QuizSituation(
+      id: 's01',
+      koPrefix: '하프라인 부근에서 받는 순간,',
+      enPrefix: 'Near midfield when receiving,'),
+  _QuizSituation(
+      id: 's02',
+      koPrefix: '측면 압박이 빠르게 올 때,',
+      enPrefix: 'When wing pressure comes fast,'),
+  _QuizSituation(
+      id: 's03', koPrefix: '중앙 좁은 공간에서,', enPrefix: 'In tight central space,'),
+  _QuizSituation(
+      id: 's04',
+      koPrefix: '역습 전환 1~2초 안에,',
+      enPrefix: 'Within 1-2 seconds of transition,'),
+  _QuizSituation(
+      id: 's05',
+      koPrefix: '수비수와 1:1 대치 시,',
+      enPrefix: 'In a 1v1 against a defender,'),
+  _QuizSituation(
+      id: 's06',
+      koPrefix: '3인 연계 훈련 템포 유지에서,',
+      enPrefix: 'To keep tempo in a 3-player combo,'),
+  _QuizSituation(
+      id: 's07',
+      koPrefix: '패스 후 다시 지원할 때,',
+      enPrefix: 'After passing and supporting again,'),
+  _QuizSituation(
+      id: 's08',
+      koPrefix: '박스 앞 의사결정에서,',
+      enPrefix: 'In decision making near the box,'),
+  _QuizSituation(
+      id: 's09',
+      koPrefix: '압박 탈출 첫 선택에서,',
+      enPrefix: 'In your first pressure-escape choice,'),
+  _QuizSituation(
+      id: 's10',
+      koPrefix: '템포를 끊지 않아야 할 때,',
+      enPrefix: 'When you must not break tempo,'),
 ];
 
-const List<_DecisionTemplate> _decisions = <_DecisionTemplate>[
-  _DecisionTemplate(
-    id: 'scan',
-    koFocus: '스캔 타이밍에서',
-    enFocus: 'scanning timing',
-    correct: _QuizOption(
-        koText: '받기 전-받는 순간-받은 직후 3번 확인',
-        enText: 'Scan before, during, and right after receive'),
-    wrongA: _QuizOption(
-        koText: '볼이 오면 고개를 숙인다', enText: 'Drop your head as ball arrives'),
-    wrongB: _QuizOption(
-        koText: '트래핑 후에만 주변을 본다', enText: 'Only scan after trapping'),
-    koExplain: '3회 스캔은 압박과 다음 패스 각도를 더 빠르게 파악하게 합니다.',
-    enExplain: 'Three scans help read pressure and passing lanes faster.',
-  ),
-  _DecisionTemplate(
-    id: 'body_open',
-    koFocus: '몸 방향 설정에서',
-    enFocus: 'body orientation',
-    correct: _QuizOption(
-        koText: '열린 몸으로 반턴 자세를 만든다',
-        enText: 'Stay half-open and ready to turn'),
-    wrongA:
-        _QuizOption(koText: '완전히 등지고 선다', enText: 'Stand fully back to play'),
-    wrongB: _QuizOption(
-        koText: '두 발을 일자로 고정한다', enText: 'Lock both feet in a straight line'),
-    koExplain: '열린 자세는 전진과 후진 선택을 동시에 확보합니다.',
-    enExplain: 'An open body shape keeps both forward and safe options alive.',
-  ),
-  _DecisionTemplate(
-    id: 'first_touch',
-    koFocus: '퍼스트 터치 목적에서',
-    enFocus: 'first-touch purpose',
-    correct: _QuizOption(
-        koText: '다음 동작이 가능한 위치로 터치',
-        enText: 'Touch into space for the next action'),
-    wrongA: _QuizOption(
-        koText: '항상 발밑으로만 멈춤', enText: 'Always stop dead under your feet'),
-    wrongB:
-        _QuizOption(koText: '강하게 멀리 튕겨냄', enText: 'Push it too far with force'),
-    koExplain: '좋은 퍼스트 터치는 다음 패스/드리블/슛을 미리 준비합니다.',
-    enExplain: 'A good first touch prepares your next pass, dribble, or shot.',
-  ),
-  _DecisionTemplate(
-    id: 'short_pass',
-    koFocus: '짧은 패스 정확도에서',
-    enFocus: 'short-pass accuracy',
-    correct: _QuizOption(
-        koText: '발 안쪽 중심으로 밀어준다', enText: 'Use inside foot with guided push'),
-    wrongA: _QuizOption(koText: '발끝으로 찍어 찬다', enText: 'Poke with toe'),
-    wrongB:
-        _QuizOption(koText: '상체를 뒤로 젖힌다', enText: 'Lean back while passing'),
-    koExplain: '발 안쪽은 접지면이 넓어 방향 제어가 쉽습니다.',
-    enExplain: 'Inside foot gives wider contact and better direction control.',
-  ),
-  _DecisionTemplate(
-    id: 'weight_control',
-    koFocus: '패스 세기 조절에서',
-    enFocus: 'pass weight control',
-    correct: _QuizOption(
-        koText: '상대 발 앞 공간에 맞춰 강도 조절',
-        enText: 'Adjust pace into receiver path'),
-    wrongA: _QuizOption(
-        koText: '항상 최대 힘으로 찬다', enText: 'Hit every pass at max power'),
-    wrongB: _QuizOption(
-        koText: '힘 없이 굴리기만 한다', enText: 'Roll every pass too softly'),
-    koExplain: '패스 강도는 수비 거리와 동료 움직임에 따라 달라져야 합니다.',
-    enExplain:
-        'Pass weight should match defender distance and teammate movement.',
-  ),
-  _DecisionTemplate(
-    id: 'dribble_tempo',
-    koFocus: '드리블 돌파 타이밍에서',
-    enFocus: 'dribble tempo',
-    correct:
-        _QuizOption(koText: '느리게 유도 후 순간 가속', enText: 'Decelerate then burst'),
-    wrongA: _QuizOption(
-        koText: '처음부터 끝까지 같은 속도', enText: 'Stay same speed throughout'),
-    wrongB: _QuizOption(
-        koText: '볼을 멀리 두고 질주', enText: 'Sprint with distant touches'),
-    koExplain: '템포 변화는 수비의 중심을 무너뜨리는 핵심입니다.',
-    enExplain: 'Tempo changes are key to unbalancing defenders.',
-  ),
-  _DecisionTemplate(
-    id: 'support_move',
-    koFocus: '패스 후 움직임에서',
-    enFocus: 'movement after pass',
-    correct: _QuizOption(
-        koText: '삼각형을 만들 수 있는 지원 위치 이동',
-        enText: 'Move to create a support triangle'),
-    wrongA:
-        _QuizOption(koText: '패스 후 제자리에 멈춤', enText: 'Stay still after pass'),
-    wrongB: _QuizOption(
-        koText: '볼 쪽으로만 일직선 이동', enText: 'Run straight only toward ball'),
-    koExplain: '지원 각도를 만들면 다음 연결이 쉬워집니다.',
-    enExplain: 'Creating support angles makes the next link easier.',
-  ),
-  _DecisionTemplate(
-    id: 'pressure_escape',
-    koFocus: '압박 탈출 선택에서',
-    enFocus: 'escaping pressure',
-    correct: _QuizOption(
-        koText: '원터치 리턴 혹은 제3자 패스 활용',
-        enText: 'Use one-touch return or third-man pass'),
-    wrongA: _QuizOption(
-        koText: '2명 사이로 무리한 턴', enText: 'Force turn between two defenders'),
-    wrongB:
-        _QuizOption(koText: '볼을 오래 끌며 기다림', enText: 'Hold the ball too long'),
-    koExplain: '간결한 연결이 압박 강도를 빠르게 낮춥니다.',
-    enExplain: 'Simple combinations quickly reduce pressure intensity.',
-  ),
-  _DecisionTemplate(
-    id: 'receive_far_foot',
-    koFocus: '받는 발 선택에서',
-    enFocus: 'receiving foot choice',
-    correct: _QuizOption(
-        koText: '상대와 먼 발로 받아 몸 보호', enText: 'Receive with far foot to shield'),
-    wrongA: _QuizOption(
-        koText: '상대 쪽 가까운 발만 사용', enText: 'Use only near foot toward defender'),
-    wrongB: _QuizOption(
-        koText: '두 발을 붙인 채 트래핑', enText: 'Trap with feet stuck together'),
-    koExplain: '먼 발 컨트롤은 몸 사이에 공을 두어 안전합니다.',
-    enExplain: 'Far-foot control keeps your body between defender and ball.',
-  ),
-  _DecisionTemplate(
-    id: 'scan_after_pass',
-    koFocus: '패스 직후 스캔에서',
-    enFocus: 'scan after pass',
-    correct: _QuizOption(
-        koText: '다음 수비/공간 위치를 즉시 재확인',
-        enText: 'Immediately rescan defenders and space'),
-    wrongA: _QuizOption(
-        koText: '방금 패스한 볼만 계속 본다',
-        enText: 'Keep watching only the passed ball'),
-    wrongB: _QuizOption(
-        koText: '멈춰서 지시만 한다', enText: 'Stop and only call instructions'),
-    koExplain: '패스 직후 재스캔은 다음 지원 위치 선택을 빠르게 합니다.',
-    enExplain: 'Post-pass rescan speeds up your next support decision.',
-  ),
-];
-
-const List<_QuizQuestion> _fundamentalQuestions = <_QuizQuestion>[
-  _QuizQuestion(
-    id: 'f_01',
-    koQuestion: '패스 받기 전 어깨 너비 스탠스의 주된 목적은?',
-    enQuestion: 'Main purpose of shoulder-width stance before receiving?',
-    options: [
-      _QuizOption(koText: '균형과 방향 전환 준비', enText: 'Balance and turn readiness'),
-      _QuizOption(koText: '속도를 완전히 멈추기', enText: 'Completely stop speed'),
-      _QuizOption(koText: '점프 준비', enText: 'Prepare to jump'),
-    ],
-    correctIndex: 0,
-    koExplain: '균형이 안정되면 압박 상황에서 첫 터치가 좋아집니다.',
-    enExplain: 'Stable balance improves first touch under pressure.',
-  ),
-  _QuizQuestion(
-    id: 'f_02',
-    koQuestion: '컨트롤 후 즉시 볼을 숨기는 기본 방법은?',
-    enQuestion: 'Basic way to protect the ball right after control?',
-    options: [
-      _QuizOption(
-          koText: '몸과 팔로 수비를 차단', enText: 'Use body/arm to block defender'),
-      _QuizOption(koText: '볼을 멀리 떼기', enText: 'Knock ball far away'),
-      _QuizOption(koText: '시선 고정', enText: 'Freeze your gaze'),
-    ],
-    correctIndex: 0,
-    koExplain: '몸으로 수비 라인을 끊으면 공 소유 유지 확률이 높습니다.',
-    enExplain: 'Body shielding increases ball retention probability.',
-  ),
-  _QuizQuestion(
-    id: 'f_03',
-    koQuestion: '압박이 오기 전 가장 먼저 확인할 정보는?',
-    enQuestion: 'What to check first before pressure arrives?',
-    options: [
-      _QuizOption(koText: '수비수 접근 방향', enText: 'Defender approach direction'),
-      _QuizOption(koText: '잔디 상태만 확인', enText: 'Only check grass condition'),
-      _QuizOption(koText: '관중석 보기', enText: 'Look at stands'),
-    ],
-    correctIndex: 0,
-    koExplain: '접근 방향을 알아야 탈압박 터치 방향을 정할 수 있습니다.',
-    enExplain: 'Approach direction defines your escape touch direction.',
-  ),
-  _QuizQuestion(
-    id: 'f_04',
-    koQuestion: '원터치 패스의 가장 큰 장점은?',
-    enQuestion: 'Biggest advantage of one-touch passing?',
-    options: [
-      _QuizOption(
-          koText: '템포 유지와 압박 회피', enText: 'Maintain tempo and avoid pressure'),
-      _QuizOption(
-          koText: '항상 강한 패스 가능', enText: 'Always produce powerful pass'),
-      _QuizOption(koText: '개인기 과시', enText: 'Show off dribbling tricks'),
-    ],
-    correctIndex: 0,
-    koExplain: '볼 소유 시간을 줄여 압박 타이밍을 무력화합니다.',
-    enExplain: 'Shorter ball time neutralizes pressing timing.',
-  ),
-  _QuizQuestion(
-    id: 'f_05',
-    koQuestion: '드리블 시 볼 터치 간격의 기본 원칙은?',
-    enQuestion: 'Basic rule for touch spacing while dribbling?',
-    options: [
-      _QuizOption(
-          koText: '상황에 맞게 짧고 길게 조절', enText: 'Adjust short/long by situation'),
-      _QuizOption(koText: '항상 동일 간격', enText: 'Always keep equal spacing'),
-      _QuizOption(koText: '항상 크게만', enText: 'Always take big touches'),
-    ],
-    correctIndex: 0,
-    koExplain: '수비 거리와 공간에 따라 터치 길이를 바꿔야 합니다.',
-    enExplain: 'Touch length must change with space and defender distance.',
-  ),
-  _QuizQuestion(
-    id: 'f_06',
-    koQuestion: '패스 라인이 막혔을 때 우선 선택은?',
-    enQuestion: 'First option when passing lane is blocked?',
-    options: [
-      _QuizOption(
-          koText: '각도 재조정 후 안전한 연결', enText: 'Re-angle and connect safely'),
-      _QuizOption(koText: '무리한 직선 패스', enText: 'Force straight pass'),
-      _QuizOption(koText: '멈춰서 드리블만', enText: 'Stop and dribble only'),
-    ],
-    correctIndex: 0,
-    koExplain: '작은 각도 수정만으로 새로운 라인이 열립니다.',
-    enExplain: 'Small angle changes can open new passing lanes.',
-  ),
-  _QuizQuestion(
-    id: 'f_07',
-    koQuestion: '컨트롤 훈련에서 약발을 포함해야 하는 이유는?',
-    enQuestion: 'Why include weak foot in control training?',
-    options: [
-      _QuizOption(
-          koText: '압박 상황 선택지를 늘리기 위해',
-          enText: 'Increase options under pressure'),
-      _QuizOption(koText: '훈련 시간을 줄이기 위해', enText: 'Shorten training time'),
-      _QuizOption(koText: '폼만 보기 위해', enText: 'Only for form appearance'),
-    ],
-    correctIndex: 0,
-    koExplain: '양발 사용은 전개 속도와 탈압박 성공률을 높입니다.',
-    enExplain: 'Two-foot usage improves buildup speed and escape success.',
-  ),
-  _QuizQuestion(
-    id: 'f_08',
-    koQuestion: '첫 터치가 길어졌을 때 즉시 해야 할 행동은?',
-    enQuestion: 'What to do immediately after a heavy first touch?',
-    options: [
-      _QuizOption(
-          koText: '몸을 먼저 넣어 공을 보호',
-          enText: 'Get body in first to protect ball'),
-      _QuizOption(koText: '서서 기다린다', enText: 'Stand and wait'),
-      _QuizOption(koText: '시선을 돌린다', enText: 'Look away'),
-    ],
-    correctIndex: 0,
-    koExplain: '몸을 먼저 쓰면 공을 되찾을 시간을 벌 수 있습니다.',
-    enExplain: 'Body-first reaction buys time to recover possession.',
-  ),
-  _QuizQuestion(
-    id: 'f_09',
-    koQuestion: '스캔 품질을 높이는 가장 쉬운 루틴은?',
-    enQuestion: 'Easiest routine to improve scan quality?',
-    options: [
-      _QuizOption(
-          koText: '볼 도착 전 양쪽 확인 습관', enText: 'Check both sides before arrival'),
-      _QuizOption(koText: '한쪽만 반복 확인', enText: 'Repeat checking one side only'),
-      _QuizOption(koText: '트래핑 후만 확인', enText: 'Check only after trap'),
-    ],
-    correctIndex: 0,
-    koExplain: '좌우 확인 습관은 블라인드 압박을 줄여줍니다.',
-    enExplain: 'Two-side scanning reduces blind-side pressure.',
-  ),
-  _QuizQuestion(
-    id: 'f_10',
-    koQuestion: '드리블로 수비를 끌어낸 뒤 좋은 선택은?',
-    enQuestion: 'After drawing a defender by dribbling, best next action?',
-    options: [
-      _QuizOption(
-          koText: '빈 동료에게 빠른 패스', enText: 'Quick pass to free teammate'),
-      _QuizOption(koText: '계속 혼자 돌파', enText: 'Keep forcing solo dribble'),
-      _QuizOption(koText: '뒤로만 이동', enText: 'Move backward only'),
-    ],
-    correctIndex: 0,
-    koExplain: '수비를 끌었다면 빈 공간 활용이 효율적입니다.',
-    enExplain:
-        'Once defender is attracted, exploiting free space is efficient.',
-  ),
-  _QuizQuestion(
-    id: 'f_11',
-    koQuestion: '컨트롤 시 시선 처리의 기본은?',
-    enQuestion: 'Basic eye behavior during control?',
-    options: [
-      _QuizOption(
-          koText: '볼-상황을 짧게 번갈아 보기',
-          enText: 'Alternate brief looks ball-context'),
-      _QuizOption(koText: '계속 볼만 보기', enText: 'Keep eyes only on ball'),
-      _QuizOption(koText: '눈 감고 트래핑', enText: 'Trap with eyes closed'),
-    ],
-    correctIndex: 0,
-    koExplain: '시선 전환이 다음 판단 속도를 높입니다.',
-    enExplain: 'Eye switching speeds up next decision making.',
-  ),
-  _QuizQuestion(
-    id: 'f_12',
-    koQuestion: '패스 전에 딛는 발의 역할은?',
-    enQuestion: 'Role of the plant foot before passing?',
-    options: [
-      _QuizOption(koText: '방향과 균형을 고정', enText: 'Fix direction and balance'),
-      _QuizOption(koText: '무작정 점프', enText: 'Jump randomly'),
-      _QuizOption(koText: '공을 건드림', enText: 'Touch the ball with it'),
-    ],
-    correctIndex: 0,
-    koExplain: '딛는 발이 안정되면 패스 정확도가 올라갑니다.',
-    enExplain: 'Stable plant foot raises passing precision.',
-  ),
-  _QuizQuestion(
-    id: 'f_13',
-    koQuestion: '원터치가 어려운 상황에서 차선책은?',
-    enQuestion: 'Best fallback when one-touch is not possible?',
-    options: [
-      _QuizOption(
-          koText: '짧은 컨트롤 후 2터치 연결', enText: 'Short control then 2-touch link'),
-      _QuizOption(koText: '볼을 멈추고 정지', enText: 'Stop ball and freeze'),
-      _QuizOption(koText: '공을 멀리 차냄', enText: 'Kick ball far away'),
-    ],
-    correctIndex: 0,
-    koExplain: '2터치는 리듬을 크게 잃지 않으면서 안정성을 확보합니다.',
-    enExplain: 'Two-touch keeps rhythm while adding control.',
-  ),
-  _QuizQuestion(
-    id: 'f_14',
-    koQuestion: '패스 받을 때 발 소음이 큰 경우 주로 의미하는 것은?',
-    enQuestion: 'Loud touch sound while receiving usually means?',
-    options: [
-      _QuizOption(koText: '충격 흡수가 부족함', enText: 'Insufficient cushioning'),
-      _QuizOption(koText: '기술이 완벽함', enText: 'Perfect technique'),
-      _QuizOption(koText: '볼이 가벼움', enText: 'Ball is too light'),
-    ],
-    correctIndex: 0,
-    koExplain: '완충이 되면 볼의 반동이 줄어 다음 동작이 쉬워집니다.',
-    enExplain: 'Good cushioning reduces rebound and eases next action.',
-  ),
-  _QuizQuestion(
-    id: 'f_15',
-    koQuestion: '압박 상황 패스에서 가장 흔한 실수는?',
-    enQuestion: 'Most common passing mistake under pressure?',
-    options: [
-      _QuizOption(koText: '준비 없이 급하게 발만 뻗기', enText: 'Rushing without setup'),
-      _QuizOption(koText: '스캔 후 패스하기', enText: 'Passing after scanning'),
-      _QuizOption(koText: '열린 몸 유지', enText: 'Keeping open body shape'),
-    ],
-    correctIndex: 0,
-    koExplain: '준비 없는 패스는 방향/강도 실수로 이어지기 쉽습니다.',
-    enExplain: 'Unprepared passes often fail in direction and weight.',
-  ),
-  _QuizQuestion(
-    id: 'f_16',
-    koQuestion: '드리블 중 시야 확보를 위해 필요한 습관은?',
-    enQuestion: 'Habit needed to keep vision while dribbling?',
-    options: [
-      _QuizOption(
-          koText: '짧은 터치와 고개 들기 반복',
-          enText: 'Repeat short touches and head-up checks'),
-      _QuizOption(koText: '볼만 계속 응시', enText: 'Stare only at the ball'),
-      _QuizOption(koText: '긴 터치만 사용', enText: 'Use only long touches'),
-    ],
-    correctIndex: 0,
-    koExplain: '짧은 터치가 시선 전환 시간을 확보해 줍니다.',
-    enExplain: 'Short touches buy time for visual scanning.',
-  ),
-  _QuizQuestion(
-    id: 'f_17',
-    koQuestion: '트래핑 이후 이상적인 첫 시선은?',
-    enQuestion: 'Ideal first look after trapping?',
-    options: [
-      _QuizOption(
-          koText: '가장 가까운 압박과 탈출 방향',
-          enText: 'Nearest pressure and escape lane'),
-      _QuizOption(koText: '벤치 쪽', enText: 'Toward the bench'),
-      _QuizOption(koText: '골대 위 전광판', enText: 'Stadium scoreboard'),
-    ],
-    correctIndex: 0,
-    koExplain: '압박-탈출 축을 먼저 보면 의사결정이 빨라집니다.',
-    enExplain: 'Checking pressure-escape axis first speeds decisions.',
-  ),
-  _QuizQuestion(
-    id: 'f_18',
-    koQuestion: '패스 받을 때 한 발이 고정되어 있으면 생기는 문제는?',
-    enQuestion: 'Problem when one foot stays fixed while receiving?',
-    options: [
-      _QuizOption(koText: '회전 반응이 느려짐', enText: 'Slower turning reaction'),
-      _QuizOption(koText: '패스 속도 증가', enText: 'Faster passing speed'),
-      _QuizOption(koText: '시야 확대', enText: 'Wider vision'),
-    ],
-    correctIndex: 0,
-    koExplain: '유연한 스텝이 있어야 방향 전환이 즉각 가능합니다.',
-    enExplain: 'Flexible footwork enables instant directional turns.',
-  ),
-  _QuizQuestion(
-    id: 'f_19',
-    koQuestion: '공간이 좁을수록 패스 전 필요한 것은?',
-    enQuestion: 'What is more necessary before passing in tight space?',
-    options: [
-      _QuizOption(
-          koText: '터치 수 최소화와 미리 보기', enText: 'Minimize touches and pre-scan'),
-      _QuizOption(koText: '큰 백스윙', enText: 'Large backswing'),
-      _QuizOption(koText: '긴 드리블', enText: 'Long carry dribble'),
-    ],
-    correctIndex: 0,
-    koExplain: '좁은 공간일수록 준비 시간이 짧아 선행 스캔이 중요합니다.',
-    enExplain: 'Tight spaces need pre-scan because prep time is short.',
-  ),
-  _QuizQuestion(
-    id: 'f_20',
-    koQuestion: '훈련에서 오답/실수를 다시 푸는 목적은?',
-    enQuestion: 'Purpose of retrying wrong answers/mistakes in training?',
-    options: [
-      _QuizOption(
-          koText: '약점을 반복 교정해 자동화', enText: 'Correct weaknesses into habits'),
-      _QuizOption(koText: '정답 개수만 늘리기', enText: 'Only increase score count'),
-      _QuizOption(koText: '훈련 시간을 채우기', enText: 'Just fill training time'),
-    ],
-    correctIndex: 0,
-    koExplain: '오답 반복은 실제 경기 판단의 정확도를 높입니다.',
-    enExplain: 'Retrying mistakes improves real-match decision accuracy.',
-  ),
-];
+const Map<_QuizType, List<_QuizConcept>> _conceptsByType =
+    <_QuizType, List<_QuizConcept>>{
+  _QuizType.pass: <_QuizConcept>[
+    _QuizConcept(
+        id: 'p01',
+        koPrompt: '패스 각도 선택으로 가장 좋은 것은?',
+        enPrompt: 'what is the best passing-angle choice?',
+        correct: _QuizOption(
+            koText: '열린 발 앞 공간으로 보낸다',
+            enText: 'Play into the open front foot space'),
+        wrongA: _QuizOption(
+            koText: '수비 정면으로 찌른다', enText: 'Force straight at defender'),
+        wrongB:
+            _QuizOption(koText: '무조건 뒤로만 준다', enText: 'Always pass backward'),
+        koExplain: '열린 발 앞 공간 패스가 다음 동작 연결에 유리합니다.',
+        enExplain:
+            'Passing into open front-foot space improves next-action flow.'),
+    _QuizConcept(
+        id: 'p02',
+        koPrompt: '짧은 패스 접촉 면으로 맞는 것은?',
+        enPrompt: 'which contact surface is correct for short pass?',
+        correct: _QuizOption(koText: '발 안쪽', enText: 'Inside of foot'),
+        wrongA: _QuizOption(koText: '발끝', enText: 'Toe'),
+        wrongB: _QuizOption(koText: '뒤꿈치', enText: 'Heel'),
+        koExplain: '발 안쪽은 방향과 힘 제어가 안정적입니다.',
+        enExplain: 'Inside foot gives stable direction and power control.'),
+    _QuizConcept(
+        id: 'p03',
+        koPrompt: '패스 강도 조절의 기준은?',
+        enPrompt: 'what should determine pass weight?',
+        correct: _QuizOption(
+            koText: '동료 속도와 수비 거리',
+            enText: 'Teammate speed and defender distance'),
+        wrongA: _QuizOption(koText: '항상 최대 힘', enText: 'Always max power'),
+        wrongB: _QuizOption(koText: '항상 약하게', enText: 'Always too soft'),
+        koExplain: '패스 세기는 상황 기반으로 바뀌어야 정확도가 올라갑니다.',
+        enExplain: 'Context-based weight increases pass accuracy.'),
+    _QuizConcept(
+        id: 'p04',
+        koPrompt: '원터치 패스를 쓰는 주된 이유는?',
+        enPrompt: 'why use one-touch passing primarily?',
+        correct: _QuizOption(
+            koText: '압박 시간을 줄이기 위해', enText: 'To reduce pressure time'),
+        wrongA: _QuizOption(koText: '폼을 보여주기 위해', enText: 'To show style only'),
+        wrongB: _QuizOption(
+            koText: '항상 더 강하게 차기 위해', enText: 'To kick harder always'),
+        koExplain: '볼 점유 시간을 줄여 압박을 무력화합니다.',
+        enExplain: 'It neutralizes pressure by shortening ball-holding time.'),
+    _QuizConcept(
+        id: 'p05',
+        koPrompt: '패스 전 딛는 발의 역할은?',
+        enPrompt: 'what is the role of your plant foot?',
+        correct: _QuizOption(
+            koText: '몸 균형과 방향 고정', enText: 'Stabilize body and direction'),
+        wrongA:
+            _QuizOption(koText: '공을 건드리는 용도', enText: 'Touch the ball itself'),
+        wrongB: _QuizOption(koText: '점프 준비 용도', enText: 'Prepare a jump'),
+        koExplain: '딛는 발이 안정되면 패스 오차가 줄어듭니다.',
+        enExplain: 'A stable plant foot reduces passing error.'),
+    _QuizConcept(
+        id: 'p06',
+        koPrompt: '패스 라인이 막히면 우선 무엇을 할까?',
+        enPrompt: 'what should you do first if lane is blocked?',
+        correct:
+            _QuizOption(koText: '각도 재조정 후 연결', enText: 'Re-angle then connect'),
+        wrongA: _QuizOption(koText: '무리한 직선 패스', enText: 'Force straight pass'),
+        wrongB: _QuizOption(koText: '볼을 멈추고 기다림', enText: 'Stop and wait'),
+        koExplain: '작은 위치 조정으로 새 라인을 만들 수 있습니다.',
+        enExplain: 'Small repositioning opens new lanes.'),
+    _QuizConcept(
+        id: 'p07',
+        koPrompt: '전진 패스가 좋은 타이밍은?',
+        enPrompt: 'when is forward pass timing best?',
+        correct: _QuizOption(
+            koText: '동료가 몸을 열고 받을 때',
+            enText: 'When teammate is open to receive'),
+        wrongA: _QuizOption(
+            koText: '동료가 등진 상태일 때',
+            enText: 'When teammate is fully back-turned'),
+        wrongB: _QuizOption(
+            koText: '수비 둘 사이 닫혔을 때', enText: 'When two defenders close lane'),
+        koExplain: '받는 자세가 열려야 다음 전개가 이어집니다.',
+        enExplain: 'Open receiving posture supports next progression.'),
+    _QuizConcept(
+        id: 'p08',
+        koPrompt: '패스 후 가장 좋은 움직임은?',
+        enPrompt: 'what is best movement after pass?',
+        correct: _QuizOption(
+            koText: '삼각형 지원 각도 만들기', enText: 'Create support triangle angle'),
+        wrongA: _QuizOption(koText: '제자리 정지', enText: 'Stand still'),
+        wrongB: _QuizOption(
+            koText: '공 쪽 직선 돌진만', enText: 'Run straight only to ball'),
+        koExplain: '지원 각도가 생기면 연계 성공률이 높아집니다.',
+        enExplain: 'Support angles increase combination success rate.'),
+    _QuizConcept(
+        id: 'p09',
+        koPrompt: '리턴 패스를 사용할 상황은?',
+        enPrompt: 'when should return pass be used?',
+        correct: _QuizOption(
+            koText: '강한 압박에서 안전 연결이 필요할 때',
+            enText: 'When heavy pressure needs safe link'),
+        wrongA: _QuizOption(
+            koText: '항상 리턴만 고집', enText: 'Always force return pass'),
+        wrongB: _QuizOption(
+            koText: '압박이 없을 때만 사용', enText: 'Use only without pressure'),
+        koExplain: '리턴 패스는 압박 탈출의 기본 옵션입니다.',
+        enExplain: 'Return pass is a core pressure-escape option.'),
+    _QuizConcept(
+        id: 'p10',
+        koPrompt: '패스 성공률을 높이는 시선은?',
+        enPrompt: 'what vision habit boosts pass success?',
+        correct: _QuizOption(
+            koText: '수비와 동료를 번갈아 짧게 확인',
+            enText: 'Alternate quick checks of defenders and teammates'),
+        wrongA: _QuizOption(koText: '공만 끝까지 응시', enText: 'Stare only at ball'),
+        wrongB: _QuizOption(
+            koText: '고개를 완전히 돌리고 멈춤', enText: 'Turn head away and stop'),
+        koExplain: '짧은 스캔 반복이 패스 의사결정을 빠르게 합니다.',
+        enExplain: 'Repeated micro-scans accelerate pass decisions.'),
+  ],
+  _QuizType.dribble: <_QuizConcept>[
+    _QuizConcept(
+        id: 'd01',
+        koPrompt: '돌파 시작 전 핵심은?',
+        enPrompt: 'what is key before starting a beat?',
+        correct:
+            _QuizOption(koText: '템포 변화 준비', enText: 'Prepare tempo change'),
+        wrongA: _QuizOption(koText: '처음부터 최고속', enText: 'Max speed from start'),
+        wrongB: _QuizOption(koText: '고개 숙이고 전진', enText: 'Head down run'),
+        koExplain: '템포 변화가 수비 중심을 흔듭니다.',
+        enExplain: 'Tempo change destabilizes defender balance.'),
+    _QuizConcept(
+        id: 'd02',
+        koPrompt: '좁은 공간 드리블 기본은?',
+        enPrompt: 'what is basic dribbling in tight space?',
+        correct: _QuizOption(
+            koText: '짧은 터치와 몸 보호', enText: 'Short touches with body shielding'),
+        wrongA: _QuizOption(koText: '큰 터치 반복', enText: 'Repeated long touches'),
+        wrongB: _QuizOption(
+            koText: '정지 후 출발 반복', enText: 'Stop-start without control'),
+        koExplain: '짧은 터치가 볼 소유 안정성을 높입니다.',
+        enExplain: 'Short touches improve possession stability.'),
+    _QuizConcept(
+        id: 'd03',
+        koPrompt: '수비를 흔드는 가장 쉬운 방법은?',
+        enPrompt: 'what is easiest way to unbalance defender?',
+        correct: _QuizOption(
+            koText: '시선 페이크 + 방향 전환', enText: 'Eye fake plus direction change'),
+        wrongA: _QuizOption(koText: '속도만 올린다', enText: 'Only increase speed'),
+        wrongB: _QuizOption(
+            koText: '항상 같은 터치 리듬', enText: 'Always same touch rhythm'),
+        koExplain: '시선과 템포 조합이 수비 반응을 늦춥니다.',
+        enExplain: 'Eye-tempo combo delays defensive reaction.'),
+    _QuizConcept(
+        id: 'd04',
+        koPrompt: '드리블 중 시야 확보 습관은?',
+        enPrompt: 'what keeps vision while dribbling?',
+        correct: _QuizOption(
+            koText: '짧은 터치 후 고개 들기',
+            enText: 'Head-up checks after short touches'),
+        wrongA: _QuizOption(koText: '볼만 지속 응시', enText: 'Keep staring at ball'),
+        wrongB: _QuizOption(
+            koText: '시선 고정하고 가속', enText: 'Fixed gaze with acceleration'),
+        koExplain: '시야가 열려야 다음 선택이 빨라집니다.',
+        enExplain: 'Open vision speeds up next action choice.'),
+    _QuizConcept(
+        id: 'd05',
+        koPrompt: '1:1에서 먼저 해야 할 것은?',
+        enPrompt: 'what should come first in 1v1?',
+        correct: _QuizOption(
+            koText: '수비 발/무게중심 관찰', enText: 'Read defender foot and weight'),
+        wrongA: _QuizOption(koText: '바로 큰 터치', enText: 'Immediate big touch'),
+        wrongB:
+            _QuizOption(koText: '멈춰서 공만 보호', enText: 'Only stop and shield'),
+        koExplain: '상대 중심을 읽어야 효율적인 돌파가 가능합니다.',
+        enExplain: 'Reading balance enables efficient beating.'),
+    _QuizConcept(
+        id: 'd06',
+        koPrompt: '가속 타이밍은 언제가 좋은가?',
+        enPrompt: 'when is acceleration timing best?',
+        correct: _QuizOption(
+            koText: '수비 발이 멈춘 순간', enText: 'When defender feet get planted'),
+        wrongA: _QuizOption(
+            koText: '항상 첫 터치 직후', enText: 'Always right after first touch'),
+        wrongB: _QuizOption(
+            koText: '라인 밖으로 밀린 뒤', enText: 'After being pushed wide'),
+        koExplain: '수비가 멈추는 찰나가 가속 창입니다.',
+        enExplain: 'Defender planted moment is acceleration window.'),
+    _QuizConcept(
+        id: 'd07',
+        koPrompt: '측면 돌파 후 우선 판단은?',
+        enPrompt: 'after wing beat, what is first read?',
+        correct:
+            _QuizOption(koText: '컷백/크로스 각도', enText: 'Cutback or cross angle'),
+        wrongA:
+            _QuizOption(koText: '무조건 슛', enText: 'Always shoot immediately'),
+        wrongB:
+            _QuizOption(koText: '다시 후퇴 드리블', enText: 'Retreat dribble again'),
+        koExplain: '돌파 이후는 선택지 판단이 더 중요합니다.',
+        enExplain: 'Post-beat choice quality matters most.'),
+    _QuizConcept(
+        id: 'd08',
+        koPrompt: '드리블 접촉 부위 활용으로 맞는 것은?',
+        enPrompt: 'which touch-surface usage is right?',
+        correct: _QuizOption(
+            koText: '안/밖/발등을 상황별 혼합',
+            enText: 'Mix inside/outside/laces by context'),
+        wrongA: _QuizOption(koText: '한 부위만 고정', enText: 'Use only one surface'),
+        wrongB: _QuizOption(koText: '발끝만 사용', enText: 'Use only toe'),
+        koExplain: '접촉 부위 다양성이 궤적 선택폭을 넓힙니다.',
+        enExplain: 'Surface variety expands trajectory options.'),
+    _QuizConcept(
+        id: 'd09',
+        koPrompt: '압박 2명일 때 현실적인 선택은?',
+        enPrompt: 'what is realistic choice vs two pressers?',
+        correct: _QuizOption(
+            koText: '짧게 벗기고 패스 연결', enText: 'Escape briefly and link pass'),
+        wrongA: _QuizOption(
+            koText: '두 명 모두 개인기로 돌파', enText: 'Beat both with solo move'),
+        wrongB:
+            _QuizOption(koText: '멈춰서 반칙 유도만', enText: 'Stop only to draw foul'),
+        koExplain: '2인 압박에서는 빠른 연결이 효율적입니다.',
+        enExplain: 'Quick link play is efficient against double pressure.'),
+    _QuizConcept(
+        id: 'd10',
+        koPrompt: '드리블 성공률을 높이는 훈련법은?',
+        enPrompt: 'what training improves dribble success?',
+        correct: _QuizOption(
+            koText: '속도 변화 포함 반복', enText: 'Repetition with speed variation'),
+        wrongA:
+            _QuizOption(koText: '저속만 반복', enText: 'Only low-speed repetition'),
+        wrongB: _QuizOption(koText: '폼만 확인', enText: 'Check form only'),
+        koExplain: '실전은 속도 변화가 핵심이므로 훈련에도 포함해야 합니다.',
+        enExplain: 'Game dribbling needs speed variation in training.'),
+  ],
+  _QuizType.control: <_QuizConcept>[
+    _QuizConcept(
+        id: 'c01',
+        koPrompt: '퍼스트 터치의 목표는?',
+        enPrompt: 'what is goal of first touch?',
+        correct: _QuizOption(
+            koText: '다음 동작 가능한 위치 만들기', enText: 'Set up the next action'),
+        wrongA: _QuizOption(koText: '무조건 정지', enText: 'Always dead stop'),
+        wrongB: _QuizOption(koText: '강하게 튕기기', enText: 'Bounce it hard away'),
+        koExplain: '퍼스트 터치는 다음 플레이를 위한 준비 동작입니다.',
+        enExplain: 'First touch is preparation for next play.'),
+    _QuizConcept(
+        id: 'c02',
+        koPrompt: '압박 속 볼 보호 기본은?',
+        enPrompt: 'what is basic ball protection under pressure?',
+        correct: _QuizOption(
+            koText: '몸-볼-수비 순서 유지', enText: 'Keep body-ball-defender order'),
+        wrongA: _QuizOption(koText: '볼을 먼저 멀리 둠', enText: 'Put ball far first'),
+        wrongB: _QuizOption(koText: '정면 대치만', enText: 'Face up directly only'),
+        koExplain: '몸을 먼저 두면 공 소유를 지키기 쉽습니다.',
+        enExplain: 'Body-first positioning protects possession.'),
+    _QuizConcept(
+        id: 'c03',
+        koPrompt: '먼 발 컨트롤 장점은?',
+        enPrompt: 'what is advantage of far-foot control?',
+        correct: _QuizOption(
+            koText: '수비와 공 사이에 몸 배치', enText: 'Body between defender and ball'),
+        wrongA: _QuizOption(koText: '더 강한 트래핑', enText: 'Stronger trap only'),
+        wrongB: _QuizOption(koText: '무조건 빠른 턴', enText: 'Always faster turn'),
+        koExplain: '먼 발 컨트롤은 차단 가능성을 줄입니다.',
+        enExplain: 'Far-foot control reduces interception risk.'),
+    _QuizConcept(
+        id: 'c04',
+        koPrompt: '트래핑 소음을 줄여야 하는 이유는?',
+        enPrompt: 'why reduce heavy trap sound?',
+        correct: _QuizOption(
+            koText: '반동 감소로 다음 동작이 쉬움',
+            enText: 'Less rebound, easier next move'),
+        wrongA: _QuizOption(koText: '속도만 빠르게', enText: 'Only to be faster'),
+        wrongB:
+            _QuizOption(koText: '폼이 좋아 보여서', enText: 'Only for cleaner form'),
+        koExplain: '완충 컨트롤이 곧 다음 플레이 품질입니다.',
+        enExplain: 'Cushion control improves next-play quality.'),
+    _QuizConcept(
+        id: 'c05',
+        koPrompt: '열린 자세로 받을 때 좋은 점은?',
+        enPrompt: 'benefit of receiving with open body?',
+        correct: _QuizOption(
+            koText: '전/후/측면 선택지 확보', enText: 'Keep forward/back/side options'),
+        wrongA: _QuizOption(
+            koText: '턴 없이 보호만 가능', enText: 'Only shielding without turn'),
+        wrongB: _QuizOption(koText: '속도 감소', enText: 'Reduce speed only'),
+        koExplain: '열린 자세가 의사결정 속도를 높입니다.',
+        enExplain: 'Open shape speeds decision making.'),
+    _QuizConcept(
+        id: 'c06',
+        koPrompt: '컨트롤 후 시선 우선순위는?',
+        enPrompt: 'what is first visual priority after control?',
+        correct: _QuizOption(
+            koText: '가장 가까운 압박 위치', enText: 'Nearest pressure location'),
+        wrongA: _QuizOption(koText: '볼 궤적만 보기', enText: 'Watch ball path only'),
+        wrongB: _QuizOption(koText: '벤치 보기', enText: 'Look at bench'),
+        koExplain: '압박 확인이 다음 터치 방향을 결정합니다.',
+        enExplain: 'Pressure read defines next touch direction.'),
+    _QuizConcept(
+        id: 'c07',
+        koPrompt: '약발 컨트롤 훈련의 목적은?',
+        enPrompt: 'purpose of weak-foot control drills?',
+        correct: _QuizOption(
+            koText: '압박 상황 선택지 확대', enText: 'Expand options under pressure'),
+        wrongA: _QuizOption(koText: '시간 단축', enText: 'Save training time'),
+        wrongB: _QuizOption(koText: '강발 휴식', enText: 'Rest strong foot'),
+        koExplain: '양발 컨트롤이 전개 속도를 높입니다.',
+        enExplain: 'Two-foot control improves buildup speed.'),
+    _QuizConcept(
+        id: 'c08',
+        koPrompt: '컨트롤 실패(긴 터치) 시 대처는?',
+        enPrompt: 'response to heavy touch failure?',
+        correct: _QuizOption(
+            koText: '몸 먼저 넣어 재확보', enText: 'Insert body first and recover'),
+        wrongA: _QuizOption(koText: '멈추고 기다림', enText: 'Stop and wait'),
+        wrongB: _QuizOption(koText: '시선 회피', enText: 'Look away'),
+        koExplain: '즉시 신체 개입이 실점/턴오버를 줄입니다.',
+        enExplain: 'Immediate body intervention reduces turnovers.'),
+    _QuizConcept(
+        id: 'c09',
+        koPrompt: '받을 때 발 간격의 기준은?',
+        enPrompt: 'what foot spacing is preferred on receive?',
+        correct: _QuizOption(
+            koText: '어깨 너비 기반 균형 유지', enText: 'Shoulder-width for balance'),
+        wrongA: _QuizOption(koText: '두 발 붙임', enText: 'Feet glued together'),
+        wrongB: _QuizOption(koText: '과하게 넓힘', enText: 'Overly wide stance'),
+        koExplain: '적절한 간격이 회전과 안정성을 동시에 확보합니다.',
+        enExplain: 'Proper spacing secures both turnability and balance.'),
+    _QuizConcept(
+        id: 'c10',
+        koPrompt: '컨트롤 후 2터치 연결의 장점은?',
+        enPrompt: 'benefit of controlled two-touch link?',
+        correct: _QuizOption(
+            koText: '안정성과 템포 균형', enText: 'Balance of control and tempo'),
+        wrongA: _QuizOption(
+            koText: '항상 원터치보다 빠름', enText: 'Always faster than one-touch'),
+        wrongB: _QuizOption(koText: '판단 불필요', enText: 'No decision needed'),
+        koExplain: '2터치는 안정성을 주면서 템포를 크게 해치지 않습니다.',
+        enExplain: 'Two-touch adds control without major tempo loss.'),
+  ],
+  _QuizType.scan: <_QuizConcept>[
+    _QuizConcept(
+        id: 's01',
+        koPrompt: '기본 스캔 타이밍으로 맞는 것은?',
+        enPrompt: 'which is correct basic scan timing?',
+        correct: _QuizOption(
+            koText: '받기 전-순간-직후 3회', enText: 'Before-during-after receive'),
+        wrongA:
+            _QuizOption(koText: '받은 후 1회만', enText: 'Only once after receive'),
+        wrongB: _QuizOption(koText: '상대 없을 때만', enText: 'Only when unpressed'),
+        koExplain: '3단계 스캔이 정보 누락을 줄입니다.',
+        enExplain: 'Three-phase scan reduces missed information.'),
+    _QuizConcept(
+        id: 's02',
+        koPrompt: '스캔의 첫 대상은?',
+        enPrompt: 'what is first scan target?',
+        correct: _QuizOption(koText: '가장 가까운 압박자', enText: 'Nearest presser'),
+        wrongA: _QuizOption(koText: '관중석', enText: 'Spectator stand'),
+        wrongB: _QuizOption(koText: '볼 표면', enText: 'Ball surface only'),
+        koExplain: '압박자 확인이 우선입니다.',
+        enExplain: 'Pressing threat check comes first.'),
+    _QuizConcept(
+        id: 's03',
+        koPrompt: '패스 전 스캔 목적은?',
+        enPrompt: 'purpose of scan before pass?',
+        correct: _QuizOption(
+            koText: '패스 각/차단 위험 확인',
+            enText: 'Check lane and interception risk'),
+        wrongA: _QuizOption(koText: '자세만 확인', enText: 'Only check posture'),
+        wrongB: _QuizOption(koText: '속도만 확인', enText: 'Only check speed'),
+        koExplain: '각도와 위험 판단이 패스 성공률을 높입니다.',
+        enExplain: 'Lane-risk read boosts pass success.'),
+    _QuizConcept(
+        id: 's04',
+        koPrompt: '스캔 시 고개 움직임 원칙은?',
+        enPrompt: 'head-movement principle while scanning?',
+        correct: _QuizOption(
+            koText: '짧고 빠르게 반복', enText: 'Short and frequent checks'),
+        wrongA: _QuizOption(koText: '한 번 길게 보기', enText: 'One long look'),
+        wrongB: _QuizOption(koText: '고개 고정', enText: 'Keep head fixed'),
+        koExplain: '짧은 스캔이 볼 컨트롤과 정보 수집을 동시에 가능하게 합니다.',
+        enExplain: 'Short scans balance control and information intake.'),
+    _QuizConcept(
+        id: 's05',
+        koPrompt: '스캔과 첫 터치의 관계는?',
+        enPrompt: 'relationship of scan and first touch?',
+        correct: _QuizOption(
+            koText: '스캔이 첫 터치 방향을 결정',
+            enText: 'Scan determines first-touch direction'),
+        wrongA: _QuizOption(koText: '무관하다', enText: 'They are unrelated'),
+        wrongB: _QuizOption(
+            koText: '첫 터치 후 스캔만 중요', enText: 'Only post-touch scan matters'),
+        koExplain: '선행 스캔 없이는 좋은 첫 터치가 어렵습니다.',
+        enExplain: 'Without pre-scan, quality first touch is difficult.'),
+    _QuizConcept(
+        id: 's06',
+        koPrompt: '패스 후 재스캔 이유는?',
+        enPrompt: 'why rescan after passing?',
+        correct: _QuizOption(
+            koText: '다음 지원 위치 즉시 선택',
+            enText: 'Choose next support position quickly'),
+        wrongA:
+            _QuizOption(koText: '방금 패스만 감상', enText: 'Watch your pass only'),
+        wrongB:
+            _QuizOption(koText: '멈춰서 지시만', enText: 'Stop and only instruct'),
+        koExplain: '패스 후 재스캔이 연계 속도를 높입니다.',
+        enExplain: 'Post-pass rescan speeds up combinations.'),
+    _QuizConcept(
+        id: 's07',
+        koPrompt: '역습 상황 스캔 우선순위는?',
+        enPrompt: 'scan priority in transition attack?',
+        correct: _QuizOption(
+            koText: '수비 라인과 전진 런', enText: 'Defensive line and forward runs'),
+        wrongA:
+            _QuizOption(koText: '가장 먼 동료만', enText: 'Only farthest teammate'),
+        wrongB: _QuizOption(koText: '공만 보기', enText: 'Ball only'),
+        koExplain: '라인과 런 정보를 동시에 보면 선택이 빨라집니다.',
+        enExplain: 'Line+run reading accelerates transition choices.'),
+    _QuizConcept(
+        id: 's08',
+        koPrompt: '좁은 공간에서 스캔 빈도는?',
+        enPrompt: 'scan frequency in tight space?',
+        correct: _QuizOption(
+            koText: '더 짧고 더 자주', enText: 'Shorter and more frequent'),
+        wrongA: _QuizOption(koText: '덜 자주', enText: 'Less frequent'),
+        wrongB: _QuizOption(koText: '없어도 됨', enText: 'Can skip scanning'),
+        koExplain: '공간이 좁을수록 정보 갱신 주기가 짧아야 합니다.',
+        enExplain: 'Tighter space needs faster information refresh.'),
+    _QuizConcept(
+        id: 's09',
+        koPrompt: '스캔에서 놓치면 위험한 정보는?',
+        enPrompt: 'critical info that must not be missed while scanning?',
+        correct:
+            _QuizOption(koText: '블라인드 사이드 압박', enText: 'Blind-side pressure'),
+        wrongA: _QuizOption(koText: '유니폼 색상', enText: 'Jersey color'),
+        wrongB: _QuizOption(koText: '관중 반응', enText: 'Crowd reaction'),
+        koExplain: '블라인드 압박을 놓치면 즉시 턴오버 위험이 큽니다.',
+        enExplain: 'Missing blind pressure causes immediate turnover risk.'),
+    _QuizConcept(
+        id: 's10',
+        koPrompt: '훈련에서 스캔을 습관화하는 방법은?',
+        enPrompt: 'how to build scanning habit in training?',
+        correct: _QuizOption(
+            koText: '받기 전 양쪽 호출 루틴',
+            enText: 'Pre-receive left-right call routine'),
+        wrongA: _QuizOption(koText: '정답만 외우기', enText: 'Memorize answers only'),
+        wrongB:
+            _QuizOption(koText: '컨디션 좋을 때만', enText: 'Only when feeling good'),
+        koExplain: '루틴화가 경기 중 자동 스캔을 만듭니다.',
+        enExplain: 'Routines create automatic in-game scanning.'),
+  ],
+};
