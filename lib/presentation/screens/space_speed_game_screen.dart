@@ -102,6 +102,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double _fieldScrollX = 0;
   bool _flightNearMissAwarded = false;
   _ShotOutcome _lastShotOutcome = _ShotOutcome.none;
+  Timer? _shotOutcomeTimer;
+  bool _awaitingShotOutcome = false;
 
   bool _charging = false;
   DateTime? _chargeStartedAt;
@@ -177,7 +179,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double get _passAimStrength => _passAimInput.distance.clamp(0.0, 1.0);
   double get _passLengthScale =>
       (0.70 + (_passAimStrength * 1.10)).clamp(0.70, 1.90);
-  bool get _freezeShotScene => _goalChanceActive && _ballFlying;
+  bool get _freezeShotScene =>
+      (_goalChanceActive && _ballFlying) || _awaitingShotOutcome;
 
   _ShotWindowHint _shotWindowHint(bool isKo) {
     if (!_goalChanceActive) {
@@ -253,6 +256,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void dispose() {
     _timer?.cancel();
     _gameTimer?.cancel();
+    _shotOutcomeTimer?.cancel();
     super.dispose();
   }
 
@@ -765,20 +769,35 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                         vertical: 7,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: _lastShotOutcome ==
-                                                _ShotOutcome.goal
-                                            ? const Color(0xCC0FA968)
-                                            : const Color(0xCCEB5757),
+                                        color: switch (_lastShotOutcome) {
+                                          _ShotOutcome.goal => const Color(
+                                              0xCC0FA968,
+                                            ),
+                                          _ShotOutcome.saved => const Color(
+                                              0xCC2F80ED,
+                                            ),
+                                          _ShotOutcome.miss => const Color(
+                                              0xCCEB5757,
+                                            ),
+                                          _ShotOutcome.none => const Color(
+                                              0xCC607D8B,
+                                            ),
+                                        },
                                         borderRadius: BorderRadius.circular(
                                           999,
                                         ),
                                       ),
                                       child: Text(
                                         _lastShotOutcome == _ShotOutcome.goal
-                                            ? (isKo ? '골 성공 액션' : 'Goal action')
-                                            : (isKo
-                                                ? '슈팅 실패 액션'
-                                                : 'Missed shot action'),
+                                            ? (isKo ? '골 성공!' : 'Goal!')
+                                            : _lastShotOutcome ==
+                                                    _ShotOutcome.saved
+                                                ? (isKo
+                                                    ? '골키퍼 선방'
+                                                    : 'Keeper save')
+                                                : (isKo
+                                                    ? '슛 빗나감'
+                                                    : 'Shot missed'),
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w800,
@@ -1009,6 +1028,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       if (!mounted) return;
       setState(() {
         if (!_gameStarted) return;
+        if (_awaitingShotOutcome) return;
         _fieldScrollX = (_fieldScrollX + (_dt * 0.42)) % 1.0;
         _updatePlayers();
         if (!_gameStarted || _timeUp) return;
@@ -1039,6 +1059,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _reactionColor = const Color(0xFF8FA3BF);
       _reactionIcon = Icons.adjust;
       _lastShotOutcome = _ShotOutcome.none;
+      _awaitingShotOutcome = false;
+      _shotOutcomeTimer?.cancel();
     });
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
@@ -1050,6 +1072,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         return;
       }
       setState(() {
+        if (_awaitingShotOutcome) return;
         _remainingSeconds = (_remainingSeconds - 1).clamp(0, 999);
         if (_remainingSeconds <= 0) {
           _remainingSeconds = 0;
@@ -1739,10 +1762,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _goals += 1;
     _score += 3;
     _lastShotOutcome = _ShotOutcome.goal;
+    _awaitingShotOutcome = true;
     _goalChanceActive = false;
     _finalShotMode = false;
+    _ballFlying = false;
     _setReaction(_PassResult.goal);
-    _finishMatch();
+    _scheduleShotOutcomeFinish(failed: false);
   }
 
   void _activateGoalChance() {
@@ -1776,6 +1801,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _finishMatch({bool failed = false}) {
+    _shotOutcomeTimer?.cancel();
     _phase = _PlayPhase.roundEnd;
     _ballFlying = false;
     _clearFlightGuide();
@@ -1792,6 +1818,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _gameStarted = false;
     _timeUp = true;
     _endedByFail = failed;
+    _awaitingShotOutcome = false;
     _goalChanceActive = false;
     _finalShotMode = false;
     _finalRanking = _rankingLabel(_rankScore, true);
@@ -1803,16 +1830,32 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _onFail([_PassResult result = _PassResult.miss]) {
     _clearFlightGuide();
     _combo = 0;
-    if (_goalChanceActive &&
+    final wasShotRound = _goalChanceActive || _finalShotMode;
+    if (wasShotRound &&
         (result == _PassResult.saved || result == _PassResult.miss)) {
-      _lastShotOutcome = _ShotOutcome.miss;
+      _lastShotOutcome =
+          result == _PassResult.saved ? _ShotOutcome.saved : _ShotOutcome.miss;
     }
     _setReaction(result);
     if (_finalShotMode) {
-      _finishMatch(failed: true);
+      _goalChanceActive = false;
+      _ballFlying = false;
+      _awaitingShotOutcome = true;
+      _scheduleShotOutcomeFinish(failed: true);
     } else {
       _endGameOnFail();
     }
+  }
+
+  void _scheduleShotOutcomeFinish({required bool failed}) {
+    _shotOutcomeTimer?.cancel();
+    _shotOutcomeTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (!mounted) return;
+      setState(() {
+        _awaitingShotOutcome = false;
+        _finishMatch(failed: failed);
+      });
+    });
   }
 
   void _continueAfterSuccess() {
@@ -1960,6 +2003,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimActive = false;
     _passPointerId = null;
     _passChargeArmed = false;
+    _awaitingShotOutcome = false;
+    _shotOutcomeTimer?.cancel();
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
     _forwardWindow = false;
@@ -2014,6 +2059,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _canStartPassGesture() {
     return _gameStarted &&
         !_timeUp &&
+        !_awaitingShotOutcome &&
         _phase == _PlayPhase.ready &&
         !_ballFlying;
   }
@@ -3446,7 +3492,7 @@ enum _PlayPhase { ready, flying, roundEnd }
 
 enum _EntityKind { attacker, defender, ball }
 
-enum _ShotOutcome { none, goal, miss }
+enum _ShotOutcome { none, goal, saved, miss }
 
 enum _PassResult {
   perfect,
