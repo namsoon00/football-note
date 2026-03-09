@@ -194,6 +194,10 @@ class _LogsScreenState extends State<LogsScreen> {
                           Localizations.localeOf(context).languageCode == 'ko'
                               ? '훈련보드 리스트'
                               : 'Training board list',
+                      boardListTitle:
+                          Localizations.localeOf(context).languageCode == 'ko'
+                              ? '훈련보드'
+                              : 'Boards',
                       onSearch: _toggleSearch,
                       onFilter: () => _openFilterSheet(context),
                       actionLabel: l10n.addEntry,
