@@ -29,7 +29,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     with SingleTickerProviderStateMixin {
   late List<_BoardPageState> _pages;
   final TextEditingController _methodController = TextEditingController();
-  int _pageIndex = 0;
   int _nextId = 1;
   int? _selectedItemId;
   bool _penMode = false;
@@ -50,7 +49,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _memoCommitted = false;
   int _memoSession = 0;
 
-  _BoardPageState get _currentPage => _pages[_pageIndex];
+  _BoardPageState get _currentPage => _pages.first;
 
   bool get _hasUnsavedChanges => _serialize() != _lastSavedLayout;
 
@@ -73,13 +72,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _restore() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
-    _pages = layout.pages.asMap().entries.map((entry) {
-      final i = entry.key;
-      final page = entry.value;
-      return _BoardPageState(
-        name: page.name.trim().isEmpty ? 'Board ${i + 1}' : page.name,
-        methodText: page.methodText,
-        items: page.items
+    final page = layout.pages.isEmpty ? null : layout.pages.first;
+    _pages = <_BoardPageState>[
+      _BoardPageState(
+        name: page == null
+            ? 'Board 1'
+            : (page.name.trim().isEmpty ? 'Board 1' : page.name),
+        methodText: page?.methodText ?? '',
+        items: (page?.items ?? const <TrainingMethodItem>[])
             .map(
               (e) => _BoardItem(
                 id: _nextId++,
@@ -92,7 +92,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ),
             )
             .toList(growable: true),
-        strokes: page.strokes
+        strokes: (page?.strokes ?? const <TrainingMethodStroke>[])
             .map(
               (stroke) => _BoardStroke(
                 points: stroke.points
@@ -103,22 +103,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ),
             )
             .toList(growable: true),
-        playerPath: page.playerPath
+        playerPath: (page?.playerPath ?? const <TrainingMethodPoint>[])
             .map((point) => Offset(point.x, point.y))
             .toList(growable: true),
-      );
-    }).toList(growable: true);
-    if (_pages.isEmpty) {
+      ),
+    ];
+    if (page == null) {
       _shouldPromptInitialBoardName = true;
-      _pages = <_BoardPageState>[
-        _BoardPageState(
-          name: 'Board 1',
-          methodText: '',
-          items: <_BoardItem>[],
-          strokes: <_BoardStroke>[],
-          playerPath: <Offset>[],
-        ),
-      ];
     }
   }
 
@@ -180,44 +171,43 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   String _serialize() {
+    final p = _currentPage;
     final layout = TrainingMethodLayout(
-      pages: _pages
-          .map(
-            (p) => TrainingMethodPage(
-              name: p.name,
-              methodText: p.methodText,
-              items: p.items
-                  .map(
-                    (e) => TrainingMethodItem(
-                      type: e.type.name,
-                      x: e.x,
-                      y: e.y,
-                      size: e.size,
-                      rotationDeg: e.rotationDeg,
-                      colorValue: e.color.toARGB32(),
-                    ),
-                  )
-                  .toList(growable: false),
-              strokes: p.strokes
-                  .map(
-                    (stroke) => TrainingMethodStroke(
-                      points: stroke.points
-                          .map(
-                            (point) =>
-                                TrainingMethodPoint(x: point.dx, y: point.dy),
-                          )
-                          .toList(growable: false),
-                      colorValue: stroke.color.toARGB32(),
-                      width: stroke.width,
-                    ),
-                  )
-                  .toList(growable: false),
-              playerPath: p.playerPath
-                  .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
-                  .toList(growable: false),
-            ),
-          )
-          .toList(growable: false),
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: p.name,
+          methodText: p.methodText,
+          items: p.items
+              .map(
+                (e) => TrainingMethodItem(
+                  type: e.type.name,
+                  x: e.x,
+                  y: e.y,
+                  size: e.size,
+                  rotationDeg: e.rotationDeg,
+                  colorValue: e.color.toARGB32(),
+                ),
+              )
+              .toList(growable: false),
+          strokes: p.strokes
+              .map(
+                (stroke) => TrainingMethodStroke(
+                  points: stroke.points
+                      .map(
+                        (point) =>
+                            TrainingMethodPoint(x: point.dx, y: point.dy),
+                      )
+                      .toList(growable: false),
+                  colorValue: stroke.color.toARGB32(),
+                  width: stroke.width,
+                ),
+              )
+              .toList(growable: false),
+          playerPath: p.playerPath
+              .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
+              .toList(growable: false),
+        ),
+      ],
     );
     return layout.encode();
   }
@@ -258,33 +248,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
   }
 
-  Future<void> _addPage(bool isKo) async {
-    final boardName = await _showBoardNameDialog(
-      isKo: isKo,
-      titleKo: '보드 추가',
-      titleEn: 'Add board',
-      confirmKo: '추가',
-      confirmEn: 'Add',
-    );
-    if (boardName == null) return;
-    _stopPlayerPlayback(restoreStart: false);
-    setState(() {
-      _pages.add(
-        _BoardPageState(
-          name: boardName,
-          methodText: '',
-          items: <_BoardItem>[],
-          strokes: <_BoardStroke>[],
-          playerPath: <Offset>[],
-        ),
-      );
-      _pageIndex = _pages.length - 1;
-      _selectedItemId = null;
-      _activePlayerPath = null;
-      _methodController.text = _currentPage.methodText;
-    });
-  }
-
   Future<void> _renameCurrentPage(bool isKo) async {
     final renamed = await _showBoardNameDialog(
       isKo: isKo,
@@ -297,18 +260,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (renamed == null) return;
     setState(() {
       _currentPage.name = renamed;
-    });
-  }
-
-  void _deleteCurrentPage() {
-    if (_pages.length <= 1) return;
-    _stopPlayerPlayback(restoreStart: false);
-    setState(() {
-      _pages.removeAt(_pageIndex);
-      _pageIndex = _pageIndex.clamp(0, _pages.length - 1);
-      _selectedItemId = null;
-      _activePlayerPath = null;
-      _methodController.text = _currentPage.methodText;
     });
   }
 
@@ -360,7 +311,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     required bool isKo,
   }) {
     final copiedPage = _BoardPageState(
-      name: page.name.trim().isEmpty ? 'Board ${_pages.length + 1}' : page.name,
+      name: page.name.trim().isEmpty ? _currentPage.name : page.name,
       methodText: page.methodText,
       items: page.items
           .map(
@@ -392,8 +343,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
 
     setState(() {
-      _pages.add(copiedPage);
-      _pageIndex = _pages.length - 1;
+      _pages[0] = copiedPage;
       _selectedItemId = null;
       _penMode = false;
       _pathMode = false;
@@ -1062,34 +1012,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return Row(
       children: [
         Expanded(
-          child: DropdownButtonFormField<int>(
-            initialValue: _pageIndex,
+          child: InputDecorator(
             decoration: InputDecoration(
               isDense: true,
-              labelText: isKo ? '훈련 보드 선택' : 'Select board',
+              labelText: isKo ? '훈련 보드명' : 'Training board',
               border: const OutlineInputBorder(),
             ),
-            items: _pages
-                .asMap()
-                .entries
-                .map(
-                  (e) => DropdownMenuItem<int>(
-                    value: e.key,
-                    child: Text(e.value.name),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value == null) return;
-              _stopPlayerPlayback(restoreStart: false);
-              setState(() {
-                _pageIndex = value;
-                _selectedItemId = null;
-                _activeStroke = null;
-                _activePlayerPath = null;
-                _methodController.text = _currentPage.methodText;
-              });
-            },
+            child: Text(
+              _currentPage.name.trim().isEmpty ? 'Board 1' : _currentPage.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -1103,19 +1036,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           tooltip: isKo ? '플레이' : 'Play',
         ),
         IconButton(
-          onPressed: () => _addPage(isKo),
-          icon: const Icon(Icons.add_box_outlined),
-          tooltip: isKo ? '보드 추가' : 'Add board',
-        ),
-        IconButton(
           onPressed: () => _renameCurrentPage(isKo),
           icon: const Icon(Icons.edit_outlined),
           tooltip: isKo ? '보드명 수정' : 'Rename board',
-        ),
-        IconButton(
-          onPressed: _pages.length <= 1 ? null : _deleteCurrentPage,
-          icon: const Icon(Icons.indeterminate_check_box_outlined),
-          tooltip: isKo ? '보드 삭제' : 'Remove board',
         ),
       ],
     );
