@@ -259,19 +259,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _addPage(bool isKo) async {
-    final stepName = await _showBoardNameDialog(
+    final boardName = await _showBoardNameDialog(
       isKo: isKo,
       titleKo: '보드 추가',
       titleEn: 'Add board',
       confirmKo: '추가',
       confirmEn: 'Add',
     );
-    if (stepName == null) return;
+    if (boardName == null) return;
     _stopPlayerPlayback(restoreStart: false);
     setState(() {
       _pages.add(
         _BoardPageState(
-          name: stepName,
+          name: boardName,
           methodText: '',
           items: <_BoardItem>[],
           strokes: <_BoardStroke>[],
@@ -354,7 +354,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  void _copyPresetStep({
+  void _copyPresetBoard({
     required TrainingBoardPreset preset,
     required TrainingMethodPage page,
     required bool isKo,
@@ -412,7 +412,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _showPresetPicker(bool isKo) async {
-    final selected = await showModalBottomSheet<_PresetStepSelection>(
+    final selected = await showModalBottomSheet<_PresetBoardSelection>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
@@ -444,14 +444,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                       children: layout.pages.asMap().entries.map((entry) {
                         final pageIndex = entry.key;
                         final page = entry.value;
-                        final stepName = page.name.trim().isEmpty
+                        final boardName = page.name.trim().isEmpty
                             ? 'Board ${pageIndex + 1}'
                             : page.name.trim();
                         final memo = page.methodText.trim();
                         return ListTile(
                           dense: true,
                           leading: const Icon(Icons.content_paste_outlined),
-                          title: Text(stepName),
+                          title: Text(boardName),
                           subtitle: memo.isEmpty
                               ? null
                               : Text(
@@ -462,7 +462,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
                             Navigator.of(context).pop(
-                              _PresetStepSelection(
+                              _PresetBoardSelection(
                                 preset: preset,
                                 page: page,
                               ),
@@ -490,7 +490,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       },
     );
     if (!mounted || selected == null) return;
-    _copyPresetStep(preset: selected.preset, page: selected.page, isKo: isKo);
+    _copyPresetBoard(preset: selected.preset, page: selected.page, isKo: isKo);
   }
 
   Future<bool> _handleWillPop(bool isKo) async {
@@ -1491,11 +1491,11 @@ class _BoardStroke {
   });
 }
 
-class _PresetStepSelection {
+class _PresetBoardSelection {
   final TrainingBoardPreset preset;
   final TrainingMethodPage page;
 
-  const _PresetStepSelection({required this.preset, required this.page});
+  const _PresetBoardSelection({required this.preset, required this.page});
 }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder }
