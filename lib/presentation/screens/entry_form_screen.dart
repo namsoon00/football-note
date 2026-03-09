@@ -1500,46 +1500,87 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         break;
       }
     }
-    final targetBoard = linkedBoard ??
+    TrainingBoard? targetBoard = linkedBoard ??
         (allBoards.isEmpty
             ? null
             : (allBoards.toList()
                   ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)))
                 .first);
 
-    var savedBoardId = targetBoard?.id;
-    final boardTitle = targetBoard?.title ??
-        (isKo
-            ? '훈련보드 ${DateFormat('MM.dd').format(_date)}'
-            : 'Training board ${DateFormat('MM.dd').format(_date)}');
+    if (targetBoard == null) {
+      final defaultTitle = isKo
+          ? '훈련보드 ${DateFormat('MM.dd').format(_date)}'
+          : 'Training board ${DateFormat('MM.dd').format(_date)}';
+      final inputTitle = await _promptTrainingBoardTitle(
+        initialValue: defaultTitle,
+      );
+      if (!mounted || inputTitle == null) return;
+      targetBoard = await _trainingBoardService.createBoard(
+        title: inputTitle,
+        layoutJson: '',
+      );
+      if (!mounted) return;
+    }
+
+    final boardToEdit = targetBoard;
+    var savedBoardId = boardToEdit.id;
 
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => TrainingMethodBoardScreen(
-          boardTitle: boardTitle,
-          initialLayoutJson: targetBoard?.layoutJson ?? '',
+          boardTitle: boardToEdit.title,
+          initialLayoutJson: boardToEdit.layoutJson,
           onSaved: (savedLayout) async {
-            if (targetBoard == null) {
-              final created = await _trainingBoardService.createBoard(
-                title: boardTitle,
-                layoutJson: savedLayout,
-              );
-              savedBoardId = created.id;
-              return;
-            }
             await _trainingBoardService.saveBoard(
-              targetBoard.copyWith(layoutJson: savedLayout),
+              boardToEdit.copyWith(layoutJson: savedLayout),
             );
           },
         ),
       ),
     );
-    if (!mounted || savedBoardId == null) return;
+    if (!mounted) return;
     setState(() {
-      _linkedBoardIds.add(savedBoardId!);
+      _linkedBoardIds.add(savedBoardId);
       _syncDrillsPayloadFromBoardLinks();
     });
     _scheduleAutoSave();
+  }
+
+  Future<String?> _promptTrainingBoardTitle({
+    required String initialValue,
+  }) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final controller = TextEditingController(text: initialValue);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '훈련보드 제목' : 'Training board title'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          decoration: InputDecoration(
+            hintText: isKo ? '예) 패스 워밍업' : 'e.g. Pass warm-up',
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: Text(isKo ? '확인' : 'OK'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    final trimmed = (result ?? '').trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed;
   }
 
   void _scheduleAutoSave() {
