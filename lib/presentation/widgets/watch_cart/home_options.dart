@@ -8,6 +8,7 @@ class WatchCartHomeOptions extends StatelessWidget {
   final VoidCallback? onSearch;
   final String actionLabel;
   final String? boardListLabel;
+  final String? boardListTitle;
   final int badgeCount;
 
   const WatchCartHomeOptions({
@@ -17,6 +18,7 @@ class WatchCartHomeOptions extends StatelessWidget {
     required this.badgeCount,
     this.onBoardList,
     this.boardListLabel,
+    this.boardListTitle,
     this.onFilter,
     this.onSearch,
   });
@@ -40,6 +42,7 @@ class WatchCartHomeOptions extends StatelessWidget {
             icon: Icons.developer_board_outlined,
             onTap: onBoardList,
             semanticLabel: boardListLabel,
+            title: boardListTitle,
           ),
           const SizedBox(width: 12),
         ],
@@ -103,8 +106,14 @@ class _OptionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
   final String? semanticLabel;
+  final String? title;
 
-  const _OptionButton({required this.icon, this.onTap, this.semanticLabel});
+  const _OptionButton({
+    required this.icon,
+    this.onTap,
+    this.semanticLabel,
+    this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,13 +129,33 @@ class _OptionButton extends StatelessWidget {
           splashColor: WatchCartConstants.primaryColor.withAlpha(30),
           highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
           child: Container(
-            width: 60.0,
+            width: title == null ? 60.0 : 84.0,
             height: 60.0,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
             ),
-            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
+            child: title == null
+                ? Icon(icon, color: Theme.of(context).colorScheme.onSurface)
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 19,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        title!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
