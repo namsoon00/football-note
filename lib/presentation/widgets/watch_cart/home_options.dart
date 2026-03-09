@@ -31,6 +31,10 @@ class WatchCartHomeOptions extends StatelessWidget {
         : const Color.fromRGBO(230, 230, 230, 1);
     return Row(
       children: [
+        _OptionButton(icon: Icons.search, onTap: onSearch),
+        const SizedBox(width: 12),
+        _OptionButton(icon: Icons.tune, onTap: onFilter),
+        const SizedBox(width: 12),
         if (onBoardList != null) ...[
           _OptionButton(
             icon: Icons.developer_board_outlined,
@@ -39,10 +43,6 @@ class WatchCartHomeOptions extends StatelessWidget {
           ),
           const SizedBox(width: 12),
         ],
-        _OptionButton(icon: Icons.search, onTap: onSearch),
-        const SizedBox(width: 12),
-        _OptionButton(icon: Icons.tune, onTap: onFilter),
-        const SizedBox(width: 12),
         Expanded(
           child: Material(
             color: actionColor,

@@ -73,46 +73,41 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _restore() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
-    _pages = layout.pages
-        .asMap()
-        .entries
-        .map((entry) {
-          final i = entry.key;
-          final page = entry.value;
-          return _BoardPageState(
-            name: page.name.trim().isEmpty ? 'Board ${i + 1}' : page.name,
-            methodText: page.methodText,
-            items: page.items
-                .map(
-                  (e) => _BoardItem(
-                    id: _nextId++,
-                    type:
-                        _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
-                    x: e.x,
-                    y: e.y,
-                    size: 32,
-                    rotationDeg: e.rotationDeg,
-                    color: Color(e.colorValue),
-                  ),
-                )
-                .toList(growable: true),
-            strokes: page.strokes
-                .map(
-                  (stroke) => _BoardStroke(
-                    points: stroke.points
-                        .map((point) => Offset(point.x, point.y))
-                        .toList(growable: false),
-                    color: Color(stroke.colorValue),
-                    width: stroke.width,
-                  ),
-                )
-                .toList(growable: true),
-            playerPath: page.playerPath
-                .map((point) => Offset(point.x, point.y))
-                .toList(growable: true),
-          );
-        })
-        .toList(growable: true);
+    _pages = layout.pages.asMap().entries.map((entry) {
+      final i = entry.key;
+      final page = entry.value;
+      return _BoardPageState(
+        name: page.name.trim().isEmpty ? 'Board ${i + 1}' : page.name,
+        methodText: page.methodText,
+        items: page.items
+            .map(
+              (e) => _BoardItem(
+                id: _nextId++,
+                type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
+                x: e.x,
+                y: e.y,
+                size: 32,
+                rotationDeg: e.rotationDeg,
+                color: Color(e.colorValue),
+              ),
+            )
+            .toList(growable: true),
+        strokes: page.strokes
+            .map(
+              (stroke) => _BoardStroke(
+                points: stroke.points
+                    .map((point) => Offset(point.x, point.y))
+                    .toList(growable: false),
+                color: Color(stroke.colorValue),
+                width: stroke.width,
+              ),
+            )
+            .toList(growable: true),
+        playerPath: page.playerPath
+            .map((point) => Offset(point.x, point.y))
+            .toList(growable: true),
+      );
+    }).toList(growable: true);
     if (_pages.isEmpty) {
       _shouldPromptInitialBoardName = true;
       _pages = <_BoardPageState>[
@@ -446,39 +441,35 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                      children: layout.pages
-                          .asMap()
-                          .entries
-                          .map((entry) {
-                            final pageIndex = entry.key;
-                            final page = entry.value;
-                            final stepName = page.name.trim().isEmpty
-                                ? 'Board ${pageIndex + 1}'
-                                : page.name.trim();
-                            final memo = page.methodText.trim();
-                            return ListTile(
-                              dense: true,
-                              leading: const Icon(Icons.content_paste_outlined),
-                              title: Text(stepName),
-                              subtitle: memo.isEmpty
-                                  ? null
-                                  : Text(
-                                      memo,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                Navigator.of(context).pop(
-                                  _PresetStepSelection(
-                                    preset: preset,
-                                    page: page,
-                                  ),
-                                );
-                              },
+                      children: layout.pages.asMap().entries.map((entry) {
+                        final pageIndex = entry.key;
+                        final page = entry.value;
+                        final stepName = page.name.trim().isEmpty
+                            ? 'Board ${pageIndex + 1}'
+                            : page.name.trim();
+                        final memo = page.methodText.trim();
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.content_paste_outlined),
+                          title: Text(stepName),
+                          subtitle: memo.isEmpty
+                              ? null
+                              : Text(
+                                  memo,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.of(context).pop(
+                              _PresetStepSelection(
+                                preset: preset,
+                                page: page,
+                              ),
                             );
-                          })
-                          .toList(growable: false),
+                          },
+                        );
+                      }).toList(growable: false),
                     );
                   },
                 ),
@@ -685,12 +676,22 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   void _onPlayStatusChanged(AnimationStatus status) {
-    if (status == AnimationStatus.completed ||
-        status == AnimationStatus.dismissed) {
-      setState(() {
-        _playingPlayerId = null;
-        _playingPlayerStart = null;
-      });
+    if (status != AnimationStatus.completed &&
+        status != AnimationStatus.dismissed) {
+      return;
+    }
+    final player = _playingPlayer;
+    final start = _playingPlayerStart;
+    setState(() {
+      if (player != null && start != null) {
+        player.x = start.dx;
+        player.y = start.dy;
+      }
+      _playingPlayerId = null;
+      _playingPlayerStart = null;
+    });
+    if (status == AnimationStatus.completed) {
+      _playController.reset();
     }
   }
 
@@ -712,6 +713,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _toggleMemoListening(bool isKo) async {
+    final localeId = Localizations.localeOf(
+              context,
+            ).languageCode ==
+            'ko'
+        ? 'ko_KR'
+        : null;
     if (_isListeningMemo) {
       _memoSession++;
       final recognized = _memoRecognizedWords;
@@ -751,9 +758,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _memoRecognizedWords = '';
       _memoCommitted = false;
     });
-    final localeId = Localizations.localeOf(context).languageCode == 'ko'
-        ? 'ko_KR'
-        : null;
     await _speech.listen(
       localeId: localeId,
       onResult: (result) {
@@ -813,8 +817,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _memoCommitted = true;
       return;
     }
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -930,35 +933,35 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                           behavior: HitTestBehavior.opaque,
                           onPanStart: _penMode
                               ? (details) => _startStroke(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
+                                    details.localPosition,
+                                    width,
+                                    height,
+                                  )
                               : _pathMode
-                              ? (details) => _startPlayerPath(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
-                              : null,
+                                  ? (details) => _startPlayerPath(
+                                        details.localPosition,
+                                        width,
+                                        height,
+                                      )
+                                  : null,
                           onPanUpdate: _penMode
                               ? (details) => _appendStrokePoint(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
+                                    details.localPosition,
+                                    width,
+                                    height,
+                                  )
                               : _pathMode
-                              ? (details) => _appendPlayerPath(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
-                              : null,
+                                  ? (details) => _appendPlayerPath(
+                                        details.localPosition,
+                                        width,
+                                        height,
+                                      )
+                                  : null,
                           onPanEnd: _penMode
                               ? (_) => _endStroke()
                               : _pathMode
-                              ? (_) => _endPlayerPath()
-                              : null,
+                                  ? (_) => _endPlayerPath()
+                                  : null,
                           child: Stack(
                             children: [
                               CustomPaint(
@@ -981,8 +984,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 ),
                               ),
                               IgnorePointer(
-                                ignoring:
-                                    _penMode ||
+                                ignoring: _penMode ||
                                     _pathMode ||
                                     _playController.isAnimating,
                                 child: Stack(
@@ -1219,9 +1221,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           onPressed: _currentPage.strokes.isEmpty
               ? null
               : () => setState(() {
-                  _currentPage.strokes.clear();
-                  _activeStroke = null;
-                }),
+                    _currentPage.strokes.clear();
+                    _activeStroke = null;
+                  }),
           icon: const Icon(Icons.layers_clear_outlined),
           label: Text(isKo ? '펜 지우기' : 'Clear ink'),
           style: OutlinedButton.styleFrom(
@@ -1235,9 +1237,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           onPressed: _currentPage.playerPath.isEmpty
               ? null
               : () => setState(() {
-                  _currentPage.playerPath.clear();
-                  _activePlayerPath = null;
-                }),
+                    _currentPage.playerPath.clear();
+                    _activePlayerPath = null;
+                  }),
           icon: const Icon(Icons.route_outlined),
           label: Text(isKo ? '이동선 지우기' : 'Clear path'),
           style: OutlinedButton.styleFrom(
@@ -1322,38 +1324,34 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _penColors
-                  .map((c) {
-                    final selectedColor = c.toARGB32() == _penColor.toARGB32();
-                    return InkWell(
-                      onTap: () => setState(() => _penColor = c),
-                      borderRadius: BorderRadius.circular(999),
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: c,
-                          border: Border.all(
-                            color: selectedColor
-                                ? Colors.white
-                                : Colors.black26,
-                            width: selectedColor ? 2.4 : 1.0,
-                          ),
-                        ),
-                        child: selectedColor
-                            ? Icon(
-                                Icons.check,
-                                size: 14,
-                                color: c.computeLuminance() < 0.45
-                                    ? Colors.white
-                                    : Colors.black87,
-                              )
-                            : null,
+              children: _penColors.map((c) {
+                final selectedColor = c.toARGB32() == _penColor.toARGB32();
+                return InkWell(
+                  onTap: () => setState(() => _penColor = c),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: c,
+                      border: Border.all(
+                        color: selectedColor ? Colors.white : Colors.black26,
+                        width: selectedColor ? 2.4 : 1.0,
                       ),
-                    );
-                  })
-                  .toList(growable: false),
+                    ),
+                    child: selectedColor
+                        ? Icon(
+                            Icons.check,
+                            size: 14,
+                            color: c.computeLuminance() < 0.45
+                                ? Colors.white
+                                : Colors.black87,
+                          )
+                        : null,
+                  ),
+                );
+              }).toList(growable: false),
             ),
           ],
         ),
@@ -1419,28 +1417,25 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _presetColors
-                .map((c) {
-                  final selectedColor =
-                      c.toARGB32() == selected.color.toARGB32();
-                  return InkWell(
-                    onTap: () => setState(() => selected.color = c),
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: c,
-                        border: Border.all(
-                          color: selectedColor ? Colors.white : Colors.black26,
-                          width: selectedColor ? 2.4 : 1.0,
-                        ),
-                      ),
+            children: _presetColors.map((c) {
+              final selectedColor = c.toARGB32() == selected.color.toARGB32();
+              return InkWell(
+                onTap: () => setState(() => selected.color = c),
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: c,
+                    border: Border.all(
+                      color: selectedColor ? Colors.white : Colors.black26,
+                      width: selectedColor ? 2.4 : 1.0,
                     ),
-                  );
-                })
-                .toList(growable: false),
+                  ),
+                ),
+              );
+            }).toList(growable: false),
           ),
         ],
       ),
@@ -1564,9 +1559,8 @@ class _BoardToken extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.18),
           shape: BoxShape.circle,
           border: Border.all(
-            color: selected
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.55),
+            color:
+                selected ? Colors.white : Colors.white.withValues(alpha: 0.55),
             width: selected ? 2.2 : 1.2,
           ),
           boxShadow: selected

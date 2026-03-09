@@ -125,13 +125,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -174,9 +174,9 @@ class _LogsScreenState extends State<LogsScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -192,8 +192,8 @@ class _LogsScreenState extends State<LogsScreen> {
                       onBoardList: _openBoardList,
                       boardListLabel:
                           Localizations.localeOf(context).languageCode == 'ko'
-                          ? '훈련보드 리스트'
-                          : 'Training board list',
+                              ? '훈련보드 리스트'
+                              : 'Training board list',
                       onSearch: _toggleSearch,
                       onFilter: () => _openFilterSheet(context),
                       actionLabel: l10n.addEntry,
@@ -622,9 +622,8 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -680,6 +679,7 @@ class _LogsScreenState extends State<LogsScreen> {
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(AppLocalizations.of(context)!.delete),
           ),
@@ -779,9 +779,8 @@ class _EntryCard extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final titleLocation = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final titleLocation =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
@@ -790,11 +789,9 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout = linkedBoards.isEmpty
-        ? TrainingMethodLayout.decode(entry.drills)
-        : null;
-    final hasTrainingBoard =
-        linkedBoards.isNotEmpty ||
+    final legacyLayout =
+        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
+    final hasTrainingBoard = linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -867,9 +864,8 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final locationText = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final locationText =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
 
