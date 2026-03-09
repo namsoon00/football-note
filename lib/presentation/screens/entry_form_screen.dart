@@ -1491,7 +1491,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Future<void> _openTrainingBoardEditor() async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final allBoards = _trainingBoardService.allBoards();
+    final allBoards = _trainingBoardService.allBoards()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     TrainingBoard? linkedBoard;
     for (final boardId in _linkedBoardIds) {
       final found = _trainingBoardService.findById(boardId);
@@ -1500,17 +1501,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         break;
       }
     }
-    TrainingBoard? targetBoard = linkedBoard ??
-        (allBoards.isEmpty
-            ? null
-            : (allBoards.toList()
-                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)))
-                .first);
+    TrainingBoard? targetBoard;
+
+    if (allBoards.isNotEmpty) {
+      targetBoard = await _selectTrainingBoard(
+        boards: allBoards,
+        initialId: linkedBoard?.id,
+      );
+      if (!mounted || targetBoard == null) return;
+    }
 
     if (targetBoard == null) {
-      final defaultTitle = isKo
-          ? '훈련보드 ${DateFormat('MM.dd').format(_date)}'
-          : 'Training board ${DateFormat('MM.dd').format(_date)}';
+      final defaultTitle = isKo ? '훈련보드 선택' : 'Training board';
       final inputTitle = await _promptTrainingBoardTitle(
         initialValue: defaultTitle,
       );
@@ -1544,6 +1546,65 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _syncDrillsPayloadFromBoardLinks();
     });
     _scheduleAutoSave();
+  }
+
+  Future<TrainingBoard?> _selectTrainingBoard({
+    required List<TrainingBoard> boards,
+    String? initialId,
+  }) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    var selectedId = initialId ?? boards.first.id;
+    final pickedId = await showDialog<String>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          title: Text(isKo ? '훈련보드 선택' : 'Select training board'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: DropdownButtonFormField<String>(
+              initialValue: selectedId,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: isKo ? '훈련보드 선택' : 'Select board',
+                border: const OutlineInputBorder(),
+              ),
+              items: boards
+                  .map(
+                    (board) => DropdownMenuItem<String>(
+                      value: board.id,
+                      child: Text(
+                        board.title,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged: (value) {
+                if (value == null) return;
+                setStateDialog(() {
+                  selectedId = value;
+                });
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(isKo ? '취소' : 'Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(selectedId),
+              child: Text(isKo ? '선택' : 'Select'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (pickedId == null) return null;
+    for (final board in boards) {
+      if (board.id == pickedId) return board;
+    }
+    return null;
   }
 
   Future<String?> _promptTrainingBoardTitle({
