@@ -6,7 +6,9 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../application/local_fortune_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/training_service.dart';
+import '../../application/training_board_service.dart';
 import '../../application/player_profile_service.dart';
+import '../../domain/entities/training_board.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -16,7 +18,8 @@ import '../../application/backup_service.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import '../models/training_method_layout.dart';
-import 'training_method_board_screen.dart';
+import '../models/training_board_link_codec.dart';
+import 'training_board_list_screen.dart';
 
 class EntryFormScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -59,6 +62,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _jumpRopeMinutesController = TextEditingController();
   final _speech = stt.SpeechToText();
   final _fortuneService = LocalFortuneService();
+  late final TrainingBoardService _trainingBoardService;
   TextEditingController? _listeningController;
   String _sessionRecognizedWords = '';
   bool _sessionCommitted = false;
@@ -80,6 +84,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _saveInProgress = false;
   bool _deleteInProgress = false;
   int? _editingKey;
+  final Set<String> _linkedBoardIds = <String>{};
+  String _initialSnapshot = '';
 
   DateTime _date = DateTime.now();
   int _durationMinutes = 60;
@@ -96,6 +102,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   @override
   void initState() {
     super.initState();
+    _trainingBoardService = TrainingBoardService(widget.optionRepository);
   }
 
   @override
@@ -162,7 +169,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
       _improvementsController.text =
           entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
-      _drillsController.text = entry.drills;
+      _linkedBoardIds
+        ..clear()
+        ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
+      _syncDrillsPayloadFromBoardLinks();
       _intensity = entry.intensity;
       _mood = entry.mood;
       _type = _initSelection('programs', _programOptions, entry.program);
@@ -212,6 +222,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
       _jumpRopeMinutesController.text =
           entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
+      if (_linkedBoardIds.isEmpty && entry.drills.trim().isNotEmpty) {
+        unawaited(_migrateLegacyTrainingBoard(entry));
+      }
     } else {
       if (widget.initialDate != null) {
         final d = widget.initialDate!;
@@ -230,8 +243,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _type = _defaultString('default_program', _programOptions, 'programs');
       _status = 'normal';
+      _linkedBoardIds.clear();
+      _syncDrillsPayloadFromBoardLinks();
       unawaited(_applyLatestEntryDefaults());
     }
+    _initialSnapshot = _formSnapshot();
   }
 
   List<String> _defaultDailyGoals() {
@@ -247,6 +263,110 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       'Defensive Positioning',
       'First Touch',
     ];
+  }
+
+  void _syncDrillsPayloadFromBoardLinks() {
+    if (_linkedBoardIds.isEmpty) {
+      _drillsController.text = '';
+      return;
+    }
+    _drillsController.text = TrainingBoardLinkCodec.encodeBoardIds(
+      _linkedBoardIds.toList(growable: false),
+    );
+  }
+
+  Future<void> _migrateLegacyTrainingBoard(TrainingEntry entry) async {
+    final raw = entry.drills.trim();
+    if (raw.isEmpty || TrainingBoardLinkCodec.isBoardLinkPayload(raw)) return;
+    final layout = TrainingMethodLayout.decode(raw);
+    final hasContent = layout.pages.any(
+      (page) => page.items.isNotEmpty || page.methodText.trim().isNotEmpty,
+    );
+    if (!hasContent) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final created = await _trainingBoardService.createBoard(
+      title: entry.program.trim().isNotEmpty
+          ? entry.program.trim()
+          : (isKo ? '기존 훈련보드' : 'Legacy training board'),
+      layoutJson: layout.encode(),
+    );
+    if (!mounted) return;
+    setState(() {
+      _linkedBoardIds
+        ..clear()
+        ..add(created.id);
+      _syncDrillsPayloadFromBoardLinks();
+    });
+    _scheduleAutoSave();
+  }
+
+  String _formSnapshot() {
+    final linkedIds = _linkedBoardIds.toList()..sort();
+    final selectedGoals = _selectedDailyGoals.toList()..sort();
+    return [
+      _date.toIso8601String(),
+      _durationMinutes.toString(),
+      _intensity.toString(),
+      _mood.toString(),
+      _type.trim(),
+      _status.trim(),
+      _injury.toString(),
+      _rehab.toString(),
+      _liftingEnabled.toString(),
+      _location.trim(),
+      _injuryPartController.text.trim(),
+      _painController.text.trim(),
+      _goodPointsController.text.trim(),
+      _improvementsController.text.trim(),
+      _jumpRopeController.text.trim(),
+      _jumpRopeMinutesController.text.trim(),
+      linkedIds.join(','),
+      selectedGoals.join(','),
+      _liftChestController.text.trim(),
+      _liftBackController.text.trim(),
+      _liftLegsController.text.trim(),
+      _liftShouldersController.text.trim(),
+      _liftArmsController.text.trim(),
+      _liftCoreController.text.trim(),
+    ].join('|');
+  }
+
+  bool get _hasUnsavedChanges => _formSnapshot() != _initialSnapshot;
+
+  Future<bool> _confirmExitWithoutSave() async {
+    if (!_hasUnsavedChanges || _saveInProgress || _deleteInProgress) {
+      return true;
+    }
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '저장되지 않은 변경사항' : 'Unsaved changes'),
+        content: Text(
+          isKo
+              ? '저장하지 않은 수정 내용이 있습니다. 정말 나가시겠어요?'
+              : 'You have unsaved edits. Leave without saving?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '계속 편집' : 'Keep editing'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '나가기' : 'Leave'),
+          ),
+        ],
+      ),
+    );
+    return shouldLeave == true;
+  }
+
+  Future<void> _attemptExit() async {
+    final shouldExit = await _confirmExitWithoutSave();
+    if (!mounted || !shouldExit) return;
+    Navigator.of(context).pop();
   }
 
   Future<void> _applyLatestEntryDefaults() async {
@@ -545,10 +665,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await _attemptExit();
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
@@ -565,7 +691,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           IconButton(
-                            onPressed: () => Navigator.of(context).maybePop(),
+                            onPressed: _attemptExit,
                             icon: const Icon(Icons.arrow_back),
                             tooltip: l10n.cancel,
                           ),
@@ -578,8 +704,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   ? Icons.delete_outline
                                   : Icons.save_outlined,
                               size: 18,
+                              color: isEdit ? Colors.red : null,
                             ),
-                            label: Text(isEdit ? l10n.deleteEntry : l10n.save),
+                            label: Text(
+                              isEdit ? l10n.deleteEntry : l10n.save,
+                              style: TextStyle(
+                                color: isEdit ? Colors.red : null,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -621,10 +753,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           ),
                         ),
                         OutlinedButton.icon(
-                          onPressed: _openTrainingMethodBoard,
+                          onPressed: _openTrainingBoardList,
                           icon: Icon(
                             Icons.developer_board_outlined,
-                            color: _drillsController.text.trim().isNotEmpty
+                            color: _linkedBoardIds.isNotEmpty
                                 ? theme.colorScheme.primary
                                 : null,
                           ),
@@ -1350,74 +1482,24 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     await _showFortuneRevealDialog(fortune.fortuneText);
   }
 
-  Future<void> _openTrainingMethodBoard() async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final entries = await widget.trainingService.allEntries();
-    if (!mounted) return;
-    entries.sort(TrainingEntry.compareByRecentCreated);
-    final presets = _buildTrainingBoardPresets(entries, isKo);
-    final result = await Navigator.of(context).push<String>(
+  Future<void> _openTrainingBoardList() async {
+    final result = await Navigator.of(context).push<List<String>>(
       MaterialPageRoute(
-        builder: (_) => TrainingMethodBoardScreen(
-          initialLayoutJson: _drillsController.text,
-          presets: presets,
-          onSaved: (savedLayout) {
-            if (!mounted) return;
-            setState(() {
-              _drillsController.text = savedLayout;
-            });
-            _scheduleAutoSave();
-          },
+        builder: (_) => TrainingBoardListScreen(
+          optionRepository: widget.optionRepository,
+          selectionMode: true,
+          initialSelectedIds: _linkedBoardIds.toList(growable: false),
         ),
       ),
     );
     if (result == null || !mounted) return;
-    if (_drillsController.text == result) return;
     setState(() {
-      _drillsController.text = result;
+      _linkedBoardIds
+        ..clear()
+        ..addAll(result);
+      _syncDrillsPayloadFromBoardLinks();
     });
     _scheduleAutoSave();
-  }
-
-  List<TrainingBoardPreset> _buildTrainingBoardPresets(
-    List<TrainingEntry> entries,
-    bool isKo,
-  ) {
-    final presets = <TrainingBoardPreset>[];
-    final dedupe = <String>{};
-
-    for (final entry in entries) {
-      final raw = entry.drills.trim();
-      if (raw.isEmpty) continue;
-      final layout = TrainingMethodLayout.decode(raw);
-      final hasContent = layout.pages.any(
-        (page) => page.items.isNotEmpty || page.methodText.trim().isNotEmpty,
-      );
-      if (!hasContent) continue;
-
-      final encoded = layout.encode();
-      if (!dedupe.add(encoded)) continue;
-
-      final stamp = DateFormat('yyyy.MM.dd').format(entry.createdAt);
-      final detail = entry.program.trim().isNotEmpty
-          ? entry.program.trim()
-          : (entry.location.trim().isNotEmpty
-              ? entry.location.trim()
-              : (isKo ? '훈련 기록' : 'Training entry'));
-      final memo = layout.pages
-          .map((page) => page.methodText.trim())
-          .where((text) => text.isNotEmpty)
-          .join(' / ');
-      presets.add(
-        TrainingBoardPreset(
-          title: '$stamp · $detail',
-          subtitle: memo,
-          layoutJson: encoded,
-        ),
-      );
-      if (presets.length >= 30) break;
-    }
-    return presets;
   }
 
   void _scheduleAutoSave() {
@@ -1443,6 +1525,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
     try {
       final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      _syncDrillsPayloadFromBoardLinks();
       final injuryPart = _injury ? _injuryPartController.text.trim() : '';
       final painLevel = _injury ? _parseInt(_painController.text) : null;
       final durationMinutes = _durationMinutes;
@@ -1565,6 +1648,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         }
         await widget.trainingService.update(editingKey, entry);
       }
+      _initialSnapshot = _formSnapshot();
       if (!mounted) return;
       if (widget.entry == null && popAfterSave) {
         await _showFortuneRevealDialog(fortuneComment);
@@ -1584,35 +1668,103 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Future<void> _showFortuneRevealDialog(String fortuneComment) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final lines = fortuneComment
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
     await showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'fortune',
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 260),
+      barrierColor: Colors.black45,
+      transitionDuration: const Duration(milliseconds: 280),
       pageBuilder: (_, __, ___) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, _, __) {
-        final eased = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutBack,
-        );
+        final eased = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
         return FadeTransition(
           opacity: animation,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.82, end: 1).animate(eased),
-            child: AlertDialog(
-              icon: Icon(
-                Icons.auto_awesome,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(isKo ? '오늘의 운세' : 'Today fortune'),
-              content: Text(fortuneComment),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(isKo ? '확인' : 'OK'),
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.08),
+              end: Offset.zero,
+            ).animate(eased),
+            child: Dialog(
+              insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFF7E8), Color(0xFFE9F8FF), Color(0xFFF4EDFF)],
+                  ),
                 ),
-              ],
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFFFFD77A),
+                            ),
+                            child: const Icon(Icons.auto_awesome, color: Color(0xFF6A4E00)),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            isKo ? '오늘의 운세' : 'Today fortune',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.78),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final line in lines)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Text(line),
+                              ),
+                            Text(
+                              isKo ? '오늘도 멋진 플레이를 응원할게요.' : 'Cheering for your best play today.',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FilledButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(isKo ? '좋아요' : 'Nice'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         );
@@ -1634,6 +1786,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             child: Text(l10n.cancel),
           ),
           TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(l10n.delete),
           ),

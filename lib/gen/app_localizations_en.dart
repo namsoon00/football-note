@@ -473,7 +473,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liftingPartOutside => 'Outside';
 
   @override
-  String get liftingPartMuple => 'Muple';
+  String get liftingPartMuple => 'Knee';
 
   @override
   String get liftingPartHead => 'Head';
