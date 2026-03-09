@@ -14,11 +14,12 @@ import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
+import '../../domain/entities/training_board.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
-import 'training_board_list_screen.dart';
+import 'training_method_board_screen.dart';
 
 class EntryFormScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -752,7 +753,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             ),
                           ),
                           OutlinedButton.icon(
-                            onPressed: _openTrainingBoardList,
+                            onPressed: _openTrainingBoardEditor,
                             icon: Icon(
                               Icons.developer_board_outlined,
                               color: _linkedBoardIds.isNotEmpty
@@ -1488,21 +1489,56 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     await _showFortuneRevealDialog(fortune.fortuneText);
   }
 
-  Future<void> _openTrainingBoardList() async {
-    final result = await Navigator.of(context).push<List<String>>(
+  Future<void> _openTrainingBoardEditor() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final allBoards = _trainingBoardService.allBoards();
+    TrainingBoard? linkedBoard;
+    for (final boardId in _linkedBoardIds) {
+      final found = _trainingBoardService.findById(boardId);
+      if (found != null) {
+        linkedBoard = found;
+        break;
+      }
+    }
+    final targetBoard = linkedBoard ??
+        (allBoards.isEmpty
+            ? null
+            : (allBoards.toList()
+                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)))
+                .first);
+
+    var savedBoardId = targetBoard?.id;
+    final boardTitle = targetBoard?.title ??
+        (isKo
+            ? '훈련보드 ${DateFormat('MM.dd').format(_date)}'
+            : 'Training board ${DateFormat('MM.dd').format(_date)}');
+
+    await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => TrainingBoardListScreen(
-          optionRepository: widget.optionRepository,
-          selectionMode: true,
-          initialSelectedIds: _linkedBoardIds.toList(growable: false),
+        builder: (_) => TrainingMethodBoardScreen(
+          boardTitle: boardTitle,
+          initialLayoutJson: targetBoard?.layoutJson ?? '',
+          onSaved: (savedLayout) async {
+            if (targetBoard == null) {
+              final created = await _trainingBoardService.createBoard(
+                title: boardTitle,
+                layoutJson: savedLayout,
+              );
+              savedBoardId = created.id;
+              return;
+            }
+            await _trainingBoardService.saveBoard(
+              targetBoard.copyWith(layoutJson: savedLayout),
+            );
+          },
         ),
       ),
     );
-    if (result == null || !mounted) return;
+    if (!mounted || savedBoardId == null) return;
     setState(() {
       _linkedBoardIds
         ..clear()
-        ..addAll(result);
+        ..add(savedBoardId!);
       _syncDrillsPayloadFromBoardLinks();
     });
     _scheduleAutoSave();
