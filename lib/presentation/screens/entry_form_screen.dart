@@ -1536,9 +1536,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
     if (!mounted || savedBoardId == null) return;
     setState(() {
-      _linkedBoardIds
-        ..clear()
-        ..add(savedBoardId!);
+      _linkedBoardIds.add(savedBoardId!);
       _syncDrillsPayloadFromBoardLinks();
     });
     _scheduleAutoSave();
