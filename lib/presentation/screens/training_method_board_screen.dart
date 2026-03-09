@@ -839,7 +839,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.boardTitle),
+          title: Text(
+            _currentPage.name.trim().isEmpty
+                ? widget.boardTitle
+                : _currentPage.name,
+          ),
           actions: [
             if (widget.presets.isNotEmpty)
               IconButton(
@@ -1010,22 +1014,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   Widget _buildPageHeader(bool isKo) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Expanded(
-          child: InputDecorator(
-            decoration: InputDecoration(
-              isDense: true,
-              labelText: isKo ? '훈련 보드명' : 'Training board',
-              border: const OutlineInputBorder(),
-            ),
-            child: Text(
-              _currentPage.name.trim().isEmpty ? 'Board 1' : _currentPage.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
         IconButton(
           onPressed: () => _playPlayerPath(isKo),
           icon: Icon(
