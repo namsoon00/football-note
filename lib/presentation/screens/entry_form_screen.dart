@@ -1490,7 +1490,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _openTrainingBoardEditor() async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final allBoards = _trainingBoardService.allBoards()
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     TrainingBoard? linkedBoard;
@@ -1512,9 +1511,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
 
     if (targetBoard == null) {
-      final defaultTitle = isKo ? '훈련보드 선택' : 'Training board';
       final inputTitle = await _promptTrainingBoardTitle(
-        initialValue: defaultTitle,
+        initialValue: '',
       );
       if (!mounted || inputTitle == null) return;
       targetBoard = await _trainingBoardService.createBoard(
