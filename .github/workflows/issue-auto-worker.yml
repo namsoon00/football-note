@@ -1,8 +1,6 @@
 name: Issue Auto Worker (Local Codex)
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
