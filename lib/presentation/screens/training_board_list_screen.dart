@@ -99,8 +99,12 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
     );
     if (!mounted || savedLayout == null) return;
+    final resolvedTitle = _resolveBoardTitle(
+      layoutJson: savedLayout!,
+      fallbackTitle: title,
+    );
     final board = await _boardService.createBoard(
-      title: title,
+      title: resolvedTitle,
       layoutJson: savedLayout!,
     );
     if (!mounted) return;
@@ -119,8 +123,12 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           boardTitle: board.title,
           initialLayoutJson: board.layoutJson,
           onSaved: (savedLayout) async {
+            final resolvedTitle = _resolveBoardTitle(
+              layoutJson: savedLayout,
+              fallbackTitle: board.title,
+            );
             await _boardService.saveBoard(
-              board.copyWith(layoutJson: savedLayout),
+              board.copyWith(title: resolvedTitle, layoutJson: savedLayout),
             );
           },
         ),
@@ -167,6 +175,20 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       _boards = _boardService.allBoards();
       _selectedIds.remove(board.id);
     });
+  }
+
+  String _resolveBoardTitle({
+    required String layoutJson,
+    required String fallbackTitle,
+  }) {
+    final pages = TrainingMethodLayout.decode(layoutJson).pages;
+    final firstName = pages.isEmpty ? null : pages.first.name.trim();
+    if (firstName != null && firstName.isNotEmpty) {
+      return firstName;
+    }
+    final fallback = fallbackTitle.trim();
+    if (fallback.isNotEmpty) return fallback;
+    return 'Training Board';
   }
 
   void _submitSelection() {
