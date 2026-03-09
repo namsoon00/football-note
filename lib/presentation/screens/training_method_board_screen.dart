@@ -73,11 +73,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _restore() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
     final page = layout.pages.isEmpty ? null : layout.pages.first;
+    final defaultBoardName = widget.boardTitle.trim().isEmpty
+        ? 'Board 1'
+        : widget.boardTitle.trim();
     _pages = <_BoardPageState>[
       _BoardPageState(
         name: page == null
-            ? 'Board 1'
-            : (page.name.trim().isEmpty ? 'Board 1' : page.name),
+            ? defaultBoardName
+            : (page.name.trim().isEmpty ? defaultBoardName : page.name),
         methodText: page?.methodText ?? '',
         items: (page?.items ?? const <TrainingMethodItem>[])
             .map(
@@ -109,7 +112,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       ),
     ];
     if (page == null) {
-      _shouldPromptInitialBoardName = true;
+      _shouldPromptInitialBoardName = widget.boardTitle.trim().isEmpty;
     }
   }
 
