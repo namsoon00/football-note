@@ -16,12 +16,16 @@ import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/localized_option_defaults.dart';
+import '../../application/training_board_service.dart';
 import '../../domain/entities/training_entry.dart';
+import '../../domain/entities/training_board.dart';
 import '../models/training_method_layout.dart';
+import '../models/training_board_link_codec.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
+import 'training_board_list_screen.dart';
 
 class LogsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -152,6 +156,10 @@ class _LogsScreenState extends State<LogsScreen> {
                 ..sort(TrainingEntry.compareByRecentCreated);
               final entries = _applyFilters(allEntries);
               final l10n = AppLocalizations.of(context)!;
+              final boardService = TrainingBoardService(
+                widget.optionRepository,
+              );
+              final boardsById = boardService.boardMap();
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -181,6 +189,11 @@ class _LogsScreenState extends State<LogsScreen> {
                     const SizedBox(height: 12),
                     WatchCartHomeOptions(
                       onAdd: widget.onCreate,
+                      onBoardList: _openBoardList,
+                      boardListLabel:
+                          Localizations.localeOf(context).languageCode == 'ko'
+                              ? '훈련보드 리스트'
+                              : 'Training board list',
                       onSearch: _toggleSearch,
                       onFilter: () => _openFilterSheet(context),
                       actionLabel: l10n.addEntry,
@@ -239,6 +252,7 @@ class _LogsScreenState extends State<LogsScreen> {
                               ),
                               child: _EntryCard(
                                 entry: entry,
+                                boardsById: boardsById,
                                 onEdit: () => _onEntryTap(entry),
                               ),
                             ),
@@ -665,6 +679,7 @@ class _LogsScreenState extends State<LogsScreen> {
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(AppLocalizations.of(context)!.delete),
           ),
@@ -718,6 +733,16 @@ class _LogsScreenState extends State<LogsScreen> {
     );
     if (mounted) setState(() {});
   }
+
+  Future<void> _openBoardList() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            TrainingBoardListScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
 }
 
 class _LogFilters {
@@ -736,9 +761,14 @@ class _LogFilters {
 
 class _EntryCard extends StatelessWidget {
   final TrainingEntry entry;
+  final Map<String, TrainingBoard> boardsById;
   final VoidCallback onEdit;
 
-  const _EntryCard({required this.entry, required this.onEdit});
+  const _EntryCard({
+    required this.entry,
+    required this.boardsById,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -754,10 +784,16 @@ class _EntryCard extends StatelessWidget {
     final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
-    final trainingBoardLayout = TrainingMethodLayout.decode(entry.drills);
-    final hasTrainingBoard = trainingBoardLayout.pages.any(
-      (page) => page.items.isNotEmpty,
-    );
+    final boardIds = TrainingBoardLinkCodec.decodeBoardIds(entry.drills);
+    final linkedBoards = boardIds
+        .map((id) => boardsById[id])
+        .whereType<TrainingBoard>()
+        .toList(growable: false);
+    final legacyLayout =
+        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
+    final hasTrainingBoard = linkedBoards.isNotEmpty ||
+        (legacyLayout != null &&
+            legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
     return Material(
       color: Colors.transparent,
@@ -795,7 +831,7 @@ class _EntryCard extends StatelessWidget {
               ),
               if (hasTrainingBoard) ...[
                 const SizedBox(height: 6),
-                _TrainingBoardThumb(layout: trainingBoardLayout),
+                _TrainingBoardThumb(layout: legacyLayout, boards: linkedBoards),
               ],
               if (focusText.isNotEmpty) ...[
                 const SizedBox(height: 4),
@@ -867,19 +903,66 @@ class _EntryListItem extends StatelessWidget {
 }
 
 class _TrainingBoardThumb extends StatelessWidget {
-  final TrainingMethodLayout layout;
+  final TrainingMethodLayout? layout;
+  final List<TrainingBoard> boards;
 
   const _TrainingBoardThumb({
-    required this.layout,
+    this.layout,
+    this.boards = const <TrainingBoard>[],
   });
 
   @override
   Widget build(BuildContext context) {
-    final previewItems = layout.pages.isNotEmpty
-        ? layout.pages.first.items
+    final linkedBoards = boards;
+    if (linkedBoards.isNotEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        ),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: linkedBoards
+              .take(3)
+              .map(
+                (board) => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.14),
+                  ),
+                  child: Text(
+                    board.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              )
+              .toList(growable: false),
+        ),
+      );
+    }
+    final legacy = layout ?? TrainingMethodLayout.empty();
+    final previewItems = legacy.pages.isNotEmpty
+        ? legacy.pages.first.items
         : const <TrainingMethodItem>[];
-    final itemCount =
-        layout.pages.fold<int>(0, (sum, p) => sum + p.items.length);
+    final itemCount = legacy.pages.fold<int>(
+      0,
+      (sum, p) => sum + p.items.length,
+    );
     return Container(
       height: 42,
       width: double.infinity,
@@ -921,8 +1004,10 @@ class _TrainingBoardThumb extends StatelessWidget {
                 right: 6,
                 top: 4,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(999),
@@ -954,10 +1039,7 @@ class _ThumbPitchPainter extends CustomPainter {
       ..strokeWidth = 1.2;
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-    canvas.drawRect(
-      Rect.fromLTWH(2, 2, size.width - 4, size.height - 4),
-      line,
-    );
+    canvas.drawRect(Rect.fromLTWH(2, 2, size.width - 4, size.height - 4), line);
     canvas.drawLine(Offset(centerX, 2), Offset(centerX, size.height - 2), line);
     canvas.drawCircle(Offset(centerX, centerY), 7, line);
   }

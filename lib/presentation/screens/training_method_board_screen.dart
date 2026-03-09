@@ -1,16 +1,20 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../models/training_method_layout.dart';
 
 class TrainingMethodBoardScreen extends StatefulWidget {
+  final String boardTitle;
   final String initialLayoutJson;
   final List<TrainingBoardPreset> presets;
   final ValueChanged<String>? onSaved;
 
   const TrainingMethodBoardScreen({
     super.key,
+    required this.boardTitle,
     required this.initialLayoutJson,
     this.presets = const <TrainingBoardPreset>[],
     this.onSaved,
@@ -38,6 +42,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Offset? _playingPlayerStart;
   String _lastSavedLayout = '';
   bool _shouldPromptInitialBoardName = false;
+  final _speech = stt.SpeechToText();
+  bool _speechInitialized = false;
+  bool _speechAvailable = false;
+  bool _isListeningMemo = false;
+  String _memoRecognizedWords = '';
+  bool _memoCommitted = false;
+  int _memoSession = 0;
 
   _BoardPageState get _currentPage => _pages[_pageIndex];
 
@@ -303,6 +314,32 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _dismissKeyboard() {
     FocusScope.of(context).unfocus();
+  }
+
+  Future<bool> _confirmReset(bool isKo) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '훈련보드 초기화' : 'Reset training board'),
+        content: Text(
+          isKo
+              ? '현재 보드를 정말 초기화할까요?'
+              : 'Do you really want to clear this board?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '초기화' : 'Reset'),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
   }
 
   Future<void> _saveBoard(bool isKo) async {
@@ -619,6 +656,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _playController.duration = Duration(
       milliseconds: (_currentPage.playerPath.length * 40).clamp(1200, 7000),
     );
+    _playController
+      ..stop()
+      ..reset();
     _playController.forward(from: 0.0);
   }
 
@@ -636,12 +676,22 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   void _onPlayStatusChanged(AnimationStatus status) {
-    if (status == AnimationStatus.completed ||
-        status == AnimationStatus.dismissed) {
-      setState(() {
-        _playingPlayerId = null;
-        _playingPlayerStart = null;
-      });
+    if (status != AnimationStatus.completed &&
+        status != AnimationStatus.dismissed) {
+      return;
+    }
+    final player = _playingPlayer;
+    final start = _playingPlayerStart;
+    setState(() {
+      if (player != null && start != null) {
+        player.x = start.dx;
+        player.y = start.dy;
+      }
+      _playingPlayerId = null;
+      _playingPlayerStart = null;
+    });
+    if (status == AnimationStatus.completed) {
+      _playController.reset();
     }
   }
 
@@ -660,6 +710,125 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     _playingPlayerId = null;
     _playingPlayerStart = null;
+  }
+
+  Future<void> _toggleMemoListening(bool isKo) async {
+    final localeId = Localizations.localeOf(
+              context,
+            ).languageCode ==
+            'ko'
+        ? 'ko_KR'
+        : null;
+    if (_isListeningMemo) {
+      _memoSession++;
+      final recognized = _memoRecognizedWords;
+      final shouldCommit = !_memoCommitted;
+      if (mounted) {
+        setState(() {
+          _isListeningMemo = false;
+          _memoRecognizedWords = '';
+          _memoCommitted = false;
+        });
+      }
+      await _speech.cancel();
+      if (!mounted) return;
+      if (shouldCommit && recognized.trim().isNotEmpty) {
+        _commitMemoRecognizedText(
+          recognized: recognized,
+          isKoreanLocale: Localizations.localeOf(context).languageCode == 'ko',
+        );
+      }
+      return;
+    }
+    final available = await _ensureSpeechInitialized();
+    if (!available) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo ? '마이크를 사용할 수 없습니다.' : 'Voice input is unavailable.',
+          ),
+        ),
+      );
+      return;
+    }
+    final session = ++_memoSession;
+    setState(() {
+      _isListeningMemo = true;
+      _memoRecognizedWords = '';
+      _memoCommitted = false;
+    });
+    await _speech.listen(
+      localeId: localeId,
+      onResult: (result) {
+        if (session != _memoSession) return;
+        final text = result.recognizedWords.trim();
+        if (text.isEmpty) return;
+        _memoRecognizedWords = text;
+      },
+    );
+  }
+
+  Future<bool> _ensureSpeechInitialized() async {
+    if (_speechInitialized) return _speechAvailable;
+    _speechInitialized = true;
+    _speechAvailable = await _speech.initialize(
+      onStatus: (status) {
+        if (!_isListeningMemo) return;
+        if (status == 'done' || status == 'notListening') {
+          final recognized = _memoRecognizedWords;
+          if (!_memoCommitted && recognized.trim().isNotEmpty) {
+            _commitMemoRecognizedText(
+              recognized: recognized,
+              isKoreanLocale:
+                  Localizations.localeOf(context).languageCode == 'ko',
+            );
+          }
+          if (!mounted) return;
+          setState(() {
+            _isListeningMemo = false;
+            _memoRecognizedWords = '';
+            _memoCommitted = false;
+          });
+        }
+      },
+      onError: (_) {
+        if (!mounted) return;
+        setState(() {
+          _isListeningMemo = false;
+          _memoRecognizedWords = '';
+          _memoCommitted = false;
+        });
+      },
+    );
+    return _speechAvailable;
+  }
+
+  void _commitMemoRecognizedText({
+    required String recognized,
+    required bool isKoreanLocale,
+  }) {
+    final normalized = recognized.trim();
+    if (normalized.isEmpty || _memoCommitted) return;
+    final currentText = _methodController.text;
+    final normalizedCurrent = currentText.trimRight();
+    if (normalizedCurrent.isNotEmpty &&
+        normalizedCurrent.endsWith(normalized)) {
+      _memoCommitted = true;
+      return;
+    }
+    final needsSpacing = !isKoreanLocale &&
+        currentText.isNotEmpty &&
+        !RegExp(r'\s$').hasMatch(currentText);
+    final separator = needsSpacing ? ' ' : '';
+    final nextText = '$currentText$separator$normalized';
+    _methodController.value = _methodController.value.copyWith(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: nextText.length),
+      composing: TextRange.empty,
+    );
+    _currentPage.methodText = nextText;
+    _memoCommitted = true;
   }
 
   _BoardItem? get _playingPlayer {
@@ -697,6 +866,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   @override
   void dispose() {
+    _memoSession++;
+    unawaited(_speech.cancel());
     _playController
       ..removeListener(_onPlayTick)
       ..removeStatusListener(_onPlayStatusChanged)
@@ -718,7 +889,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isKo ? '훈련보드' : 'Training Board'),
+          title: Text(widget.boardTitle),
           actions: [
             if (widget.presets.isNotEmpty)
               IconButton(
@@ -962,6 +1133,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             ? '예) 콘 사이 2터치 드리블 후 패스'
             : 'e.g. Two-touch dribble between cones then pass',
         border: const OutlineInputBorder(),
+        suffixIcon: IconButton(
+          onPressed: () => _toggleMemoListening(isKo),
+          icon: Icon(_isListeningMemo ? Icons.mic : Icons.mic_none),
+          tooltip: isKo ? '음성 입력' : 'Voice input',
+        ),
       ),
       onSubmitted: (_) => _dismissKeyboard(),
       onChanged: (value) {
@@ -1074,7 +1250,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ),
         ),
         OutlinedButton.icon(
-          onPressed: () {
+          onPressed: () async {
+            final shouldReset = await _confirmReset(isKo);
+            if (!shouldReset || !mounted) return;
             _stopPlayerPlayback(restoreStart: false);
             setState(() {
               _currentPage.items.clear();
@@ -1226,7 +1404,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ),
               IconButton(
                 onPressed: _removeSelected,
-                icon: const Icon(Icons.delete_outline),
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
                 tooltip: isKo ? '삭제' : 'Delete',
               ),
             ],

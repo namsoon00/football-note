@@ -3,9 +3,11 @@ import 'constants.dart';
 
 class WatchCartHomeOptions extends StatelessWidget {
   final VoidCallback onAdd;
+  final VoidCallback? onBoardList;
   final VoidCallback? onFilter;
   final VoidCallback? onSearch;
   final String actionLabel;
+  final String? boardListLabel;
   final int badgeCount;
 
   const WatchCartHomeOptions({
@@ -13,6 +15,8 @@ class WatchCartHomeOptions extends StatelessWidget {
     required this.onAdd,
     required this.actionLabel,
     required this.badgeCount,
+    this.onBoardList,
+    this.boardListLabel,
     this.onFilter,
     this.onSearch,
   });
@@ -31,6 +35,14 @@ class WatchCartHomeOptions extends StatelessWidget {
         const SizedBox(width: 12),
         _OptionButton(icon: Icons.tune, onTap: onFilter),
         const SizedBox(width: 12),
+        if (onBoardList != null) ...[
+          _OptionButton(
+            icon: Icons.developer_board_outlined,
+            onTap: onBoardList,
+            semanticLabel: boardListLabel,
+          ),
+          const SizedBox(width: 12),
+        ],
         Expanded(
           child: Material(
             color: actionColor,
@@ -90,27 +102,32 @@ class WatchCartHomeOptions extends StatelessWidget {
 class _OptionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
+  final String? semanticLabel;
 
-  const _OptionButton({required this.icon, this.onTap});
+  const _OptionButton({required this.icon, this.onTap, this.semanticLabel});
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(8.0),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      label: semanticLabel,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(8.0),
-        splashColor: WatchCartConstants.primaryColor.withAlpha(30),
-        highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
-        child: Container(
-          width: 60.0,
-          height: 60.0,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8.0),
+          splashColor: WatchCartConstants.primaryColor.withAlpha(30),
+          highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
+          child: Container(
+            width: 60.0,
+            height: 60.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
+            ),
+            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
           ),
-          child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
         ),
       ),
     );

@@ -995,7 +995,7 @@ abstract class AppLocalizations {
   /// No description provided for @liftingPartMuple.
   ///
   /// In en, this message translates to:
-  /// **'Muple'**
+  /// **'Knee'**
   String get liftingPartMuple;
 
   /// No description provided for @liftingPartHead.

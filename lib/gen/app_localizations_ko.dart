@@ -468,7 +468,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get liftingPartOutside => '아웃사이드';
 
   @override
-  String get liftingPartMuple => '무플';
+  String get liftingPartMuple => '무릎';
 
   @override
   String get liftingPartHead => '머리';
