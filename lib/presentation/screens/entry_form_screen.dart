@@ -1679,16 +1679,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         jumpRopeEnabled: _jumpRopeEnabled,
         jumpRopeNote: jumpRopeNote,
       );
-      final fortuneComment = _fortuneEnabled
-          ? _fortuneService
-              .generateResult(
-                entry: draftEntry,
-                profile: profile,
-                history: allEntries,
-                isKo: isKo,
-              )
-              .fortuneText
-          : '';
+      final generatedFortuneComment = _fortuneService
+          .generateResult(
+            entry: draftEntry,
+            profile: profile,
+            history: allEntries,
+            isKo: isKo,
+          )
+          .fortuneText;
+      final fortuneComment = _fortuneEnabled ? generatedFortuneComment : '';
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -1750,8 +1749,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
-      if (popAfterSave && fortuneComment.trim().isNotEmpty) {
-        await _showFortuneRevealDialog(fortuneComment);
+      final shouldShowFortuneOnSave = popAfterSave && widget.entry == null;
+      final fortuneToShow = shouldShowFortuneOnSave
+          ? generatedFortuneComment
+          : fortuneComment;
+      if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
+        await _showFortuneRevealDialog(fortuneToShow);
         if (!mounted) return;
       }
       if (popAfterSave) {
