@@ -755,24 +755,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 : Icons.auto_awesome_outlined,
                             label: isKo ? '오늘의 운세' : 'Today fortune',
                             active: _fortuneEnabled,
-                            onPressed: () {
-                              setState(
-                                () => _fortuneEnabled = !_fortuneEnabled,
-                              );
-                              _scheduleAutoSave();
-                            },
-                          ),
-                          if (_fortuneEnabled)
-                            IconButton.filledTonal(
-                              onPressed: _showTodayFortuneInNote,
-                              icon: const Icon(Icons.visibility_outlined),
-                              tooltip: isKo ? '운세 미리보기' : 'Preview fortune',
-                              visualDensity: VisualDensity.compact,
-                              style: IconButton.styleFrom(
-                                minimumSize: const Size(40, 40),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
+                            onPressed: () => unawaited(
+                              _handleFortuneButtonPressed(),
                             ),
+                          ),
                           _buildFeatureActionButton(
                             icon: _linkedBoardIds.isNotEmpty
                                 ? Icons.developer_board
@@ -1512,6 +1498,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       setState(() => _date = picked);
       _scheduleAutoSave();
     }
+  }
+
+  Future<void> _handleFortuneButtonPressed() async {
+    if (!_fortuneEnabled) {
+      if (!mounted) return;
+      setState(() => _fortuneEnabled = true);
+      _scheduleAutoSave();
+    }
+    await _showTodayFortuneInNote();
   }
 
   Future<void> _showTodayFortuneInNote() async {
