@@ -9,6 +9,7 @@ class WatchCartHomeOptions extends StatelessWidget {
   final String actionLabel;
   final String? boardListLabel;
   final String? boardListTitle;
+  final int? boardBadgeCount;
   final int badgeCount;
 
   const WatchCartHomeOptions({
@@ -19,6 +20,7 @@ class WatchCartHomeOptions extends StatelessWidget {
     this.onBoardList,
     this.boardListLabel,
     this.boardListTitle,
+    this.boardBadgeCount,
     this.onFilter,
     this.onSearch,
   });
@@ -38,11 +40,11 @@ class WatchCartHomeOptions extends StatelessWidget {
         _OptionButton(icon: Icons.tune, onTap: onFilter),
         const SizedBox(width: 12),
         if (onBoardList != null) ...[
-          _OptionButton(
-            icon: Icons.developer_board_outlined,
-            onTap: onBoardList,
+          _LabeledCountButton(
+            onTap: onBoardList!,
             semanticLabel: boardListLabel,
-            title: boardListTitle,
+            label: boardListTitle ?? 'Boards',
+            count: boardBadgeCount ?? 0,
           ),
           const SizedBox(width: 12),
         ],
@@ -105,18 +107,49 @@ class WatchCartHomeOptions extends StatelessWidget {
 class _OptionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
-  final String? semanticLabel;
-  final String? title;
 
-  const _OptionButton({
-    required this.icon,
-    this.onTap,
+  const _OptionButton({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(8.0),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.0),
+        splashColor: WatchCartConstants.primaryColor.withAlpha(30),
+        highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
+        child: Container(
+          width: 60.0,
+          height: 60.0,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
+          ),
+          child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
+        ),
+      ),
+    );
+  }
+}
+
+class _LabeledCountButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final String? semanticLabel;
+  final String label;
+  final int count;
+
+  const _LabeledCountButton({
+    required this.onTap,
+    required this.label,
+    required this.count,
     this.semanticLabel,
-    this.title,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Semantics(
       label: semanticLabel,
       button: true,
@@ -129,33 +162,44 @@ class _OptionButton extends StatelessWidget {
           splashColor: WatchCartConstants.primaryColor.withAlpha(30),
           highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
           child: Container(
-            width: title == null ? 60.0 : 84.0,
+            width: 132.0,
             height: 60.0,
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
             ),
-            child: title == null
-                ? Icon(icon, color: Theme.of(context).colorScheme.onSurface)
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        icon,
-                        size: 19,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        title!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
+                ),
+                Container(
+                  width: 26.0,
+                  height: 26.0,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      count.toString(),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
