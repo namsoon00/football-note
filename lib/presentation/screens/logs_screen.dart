@@ -125,13 +125,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -174,9 +174,9 @@ class _LogsScreenState extends State<LogsScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -192,12 +192,12 @@ class _LogsScreenState extends State<LogsScreen> {
                       onBoardList: _openBoardList,
                       boardListLabel:
                           Localizations.localeOf(context).languageCode == 'ko'
-                          ? '훈련보드 리스트'
-                          : 'Training board list',
+                              ? '훈련보드 리스트'
+                              : 'Training board list',
                       boardListTitle:
                           Localizations.localeOf(context).languageCode == 'ko'
-                          ? '훈련보드'
-                          : 'Boards',
+                              ? '훈련보드'
+                              : 'Boards',
                       onSearch: _toggleSearch,
                       onFilter: () => _openFilterSheet(context),
                       actionLabel: l10n.addEntry,
@@ -627,9 +627,8 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -743,8 +742,10 @@ class _LogsScreenState extends State<LogsScreen> {
   Future<void> _openBoardList() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            TrainingBoardListScreen(optionRepository: widget.optionRepository),
+        builder: (_) => TrainingBoardListScreen(
+          optionRepository: widget.optionRepository,
+          trainingService: widget.trainingService,
+        ),
       ),
     );
     if (mounted) setState(() {});
@@ -785,9 +786,8 @@ class _EntryCard extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final titleLocation = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final titleLocation =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
@@ -796,11 +796,9 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout = linkedBoards.isEmpty
-        ? TrainingMethodLayout.decode(entry.drills)
-        : null;
-    final hasTrainingBoard =
-        linkedBoards.isNotEmpty ||
+    final legacyLayout =
+        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
+    final hasTrainingBoard = linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -873,9 +871,8 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final locationText = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final locationText =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
 
@@ -924,52 +921,13 @@ class _TrainingBoardThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final linkedBoards = boards;
-    if (linkedBoards.isNotEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        ),
-        child: Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: linkedBoards
-              .take(3)
-              .map(
-                (board) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.14),
-                  ),
-                  child: Text(
-                    board.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ),
-              )
-              .toList(growable: false),
-        ),
-      );
-    }
-    final legacy = layout ?? TrainingMethodLayout.empty();
-    final previewItems = legacy.pages.isNotEmpty
-        ? legacy.pages.first.items
+    final previewLayout = linkedBoards.isNotEmpty
+        ? TrainingMethodLayout.decode(linkedBoards.first.layoutJson)
+        : (layout ?? TrainingMethodLayout.empty());
+    final previewItems = previewLayout.pages.isNotEmpty
+        ? previewLayout.pages.first.items
         : const <TrainingMethodItem>[];
-    final itemCount = legacy.pages.fold<int>(
+    final itemCount = previewLayout.pages.fold<int>(
       0,
       (sum, p) => sum + p.items.length,
     );
@@ -1032,6 +990,31 @@ class _TrainingBoardThumb extends StatelessWidget {
                   ),
                 ),
               ),
+              if (linkedBoards.isNotEmpty)
+                Positioned(
+                  left: 6,
+                  top: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      linkedBoards.first.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           );
         },
