@@ -3,20 +3,24 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../application/training_service.dart';
 import '../../application/training_board_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
+import '../models/training_board_link_codec.dart';
 import 'training_method_board_screen.dart';
 
 class TrainingBoardListScreen extends StatefulWidget {
   final OptionRepository optionRepository;
+  final TrainingService trainingService;
   final bool selectionMode;
   final List<String> initialSelectedIds;
 
   const TrainingBoardListScreen({
     super.key,
     required this.optionRepository,
+    required this.trainingService,
     this.selectionMode = false,
     this.initialSelectedIds = const <String>[],
   });
@@ -29,6 +33,8 @@ class TrainingBoardListScreen extends StatefulWidget {
 class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   late final TrainingBoardService _boardService;
   List<TrainingBoard> _boards = const <TrainingBoard>[];
+  Map<String, DateTime> _linkedTrainingDateByBoardId =
+      const <String, DateTime>{};
   late Set<String> _selectedIds;
 
   @override
@@ -36,12 +42,26 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     super.initState();
     _boardService = TrainingBoardService(widget.optionRepository);
     _selectedIds = widget.initialSelectedIds.toSet();
-    _reload();
+    unawaited(_reload());
   }
 
-  void _reload() {
+  Future<void> _reload() async {
+    final boards = _boardService.allBoards();
+    final entries = await widget.trainingService.allEntries();
+    final linkedTrainingDateByBoardId = <String, DateTime>{};
+    for (final entry in entries) {
+      final boardIds = TrainingBoardLinkCodec.decodeBoardIds(entry.drills);
+      for (final boardId in boardIds) {
+        final existing = linkedTrainingDateByBoardId[boardId];
+        if (existing == null || entry.date.isAfter(existing)) {
+          linkedTrainingDateByBoardId[boardId] = entry.date;
+        }
+      }
+    }
+    if (!mounted) return;
     setState(() {
-      _boards = _boardService.allBoards();
+      _boards = boards;
+      _linkedTrainingDateByBoardId = linkedTrainingDateByBoardId;
       _selectedIds = _selectedIds
           .where((id) => _boards.any((board) => board.id == id))
           .toSet();
@@ -102,7 +122,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
     );
     if (!mounted) return;
-    _reload();
+    await _reload();
   }
 
   Future<void> _renameBoard(TrainingBoard board) async {
@@ -110,7 +130,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted || title == null || title == board.title) return;
     await _boardService.saveBoard(board.copyWith(title: title));
     if (!mounted) return;
-    _reload();
+    await _reload();
   }
 
   Future<void> _deleteBoard(TrainingBoard board) async {
@@ -137,11 +157,9 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     );
     if (shouldDelete != true) return;
     await _boardService.deleteBoard(board.id);
+    _selectedIds.remove(board.id);
     if (!mounted) return;
-    setState(() {
-      _boards = _boardService.allBoards();
-      _selectedIds.remove(board.id);
-    });
+    await _reload();
   }
 
   String _resolveBoardTitle({
@@ -198,9 +216,11 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                   0,
                   (sum, page) => sum + page.items.length,
                 );
+                final linkedTrainingDate =
+                    _linkedTrainingDateByBoardId[board.id];
                 final dateText = DateFormat(
-                  'yyyy.MM.dd HH:mm',
-                ).format(board.updatedAt);
+                  'yyyy.MM.dd',
+                ).format(linkedTrainingDate ?? board.updatedAt);
                 final selected = _selectedIds.contains(board.id);
                 return ListTile(
                   leading: widget.selectionMode
@@ -220,8 +240,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                   title: Text(board.title),
                   subtitle: Text(
                     isKo
-                        ? '요소 $itemCount개 · 수정 $dateText'
-                        : '$itemCount items · Updated $dateText',
+                        ? '요소 $itemCount개 · 훈련일 $dateText'
+                        : '$itemCount items · Training date $dateText',
                   ),
                   trailing: PopupMenuButton<String>(
                     onSelected: (value) {
