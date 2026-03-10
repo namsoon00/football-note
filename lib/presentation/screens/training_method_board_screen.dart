@@ -95,7 +95,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _promptForInitialBoardName();
       });
     }
-    if (_isManagedMode && _managedBoards.isEmpty) {
+    if (_isManagedMode && _currentBoardId == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _promptForManagedBoardCreation(isInitialFlow: true);
@@ -153,7 +153,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _selectedBoardIds = _selectedBoardIds
         .where((id) => _managedBoards.any((board) => board.id == id))
         .toSet();
-    if (_managedBoards.isEmpty) {
+    final linkedBoards = _managedBoards
+        .where((board) => _selectedBoardIds.contains(board.id))
+        .toList(growable: false);
+    if (linkedBoards.isEmpty) {
       _pages = <_BoardPageState>[_emptyBoardPage(widget.boardTitle)];
       _currentBoardId = null;
       _shouldPromptInitialBoardName = false;
@@ -161,12 +164,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     final requestedId = widget.initialBoardId?.trim();
     final initialBoard =
-        _firstWhereOrNull(_managedBoards, (board) => board.id == requestedId) ??
-            _firstWhereOrNull(
-              _managedBoards,
-              (board) => _selectedBoardIds.contains(board.id),
-            ) ??
-            _managedBoards.first;
+        _firstWhereOrNull(linkedBoards, (board) => board.id == requestedId) ??
+            linkedBoards.first;
     _loadBoard(initialBoard);
   }
 
@@ -500,15 +499,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _showManagedBoardPicker(bool isKo) async {
+    final linkedBoards = _managedBoards
+        .where((board) => _selectedBoardIds.contains(board.id))
+        .toList(growable: false);
+    if (linkedBoards.isEmpty) return;
     final selectedBoard = await showModalBottomSheet<TrainingBoard>(
       context: context,
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          children: _managedBoards.map((board) {
+          children: linkedBoards.map((board) {
             final isCurrent = board.id == _currentBoardId;
-            final isLinked = _selectedBoardIds.contains(board.id);
             return ListTile(
               leading: Icon(
                 isCurrent
@@ -516,9 +518,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     : Icons.radio_button_off_outlined,
               ),
               title: Text(board.title),
-              subtitle: isLinked
-                  ? Text(isKo ? '현재 노트에 연결됨' : 'Linked to this note')
-                  : null,
               trailing: isCurrent ? const Icon(Icons.check) : null,
               onTap: () => Navigator.of(context).pop(board),
             );
@@ -1304,7 +1303,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         if (_isManagedMode)
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: _managedBoards.isEmpty
+              onPressed: _currentBoardId == null
                   ? null
                   : () => _showManagedBoardPicker(isKo),
               icon: const Icon(Icons.view_list_outlined),
