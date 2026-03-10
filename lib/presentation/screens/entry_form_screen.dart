@@ -1750,9 +1750,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
-      if (widget.entry == null &&
-          popAfterSave &&
-          fortuneComment.trim().isNotEmpty) {
+      if (popAfterSave && fortuneComment.trim().isNotEmpty) {
         await _showFortuneRevealDialog(fortuneComment);
         if (!mounted) return;
       }
@@ -1771,6 +1769,29 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Future<void> _showFortuneRevealDialog(String fortuneComment) async {
     if (fortuneComment.trim().isEmpty) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final gradientColors = isDark
+        ? const <Color>[
+            Color(0xFF1E2A3A),
+            Color(0xFF25324A),
+            Color(0xFF2F2B45),
+          ]
+        : const <Color>[
+            Color(0xFFFFF7E8),
+            Color(0xFFE9F8FF),
+            Color(0xFFF4EDFF),
+          ];
+    final accentBg =
+        isDark ? const Color(0xFF4A3A12) : const Color(0xFFFFD77A);
+    final accentFg =
+        isDark ? const Color(0xFFFFE8A3) : const Color(0xFF6A4E00);
+    final contentBg = isDark
+        ? theme.colorScheme.surface.withValues(alpha: 0.84)
+        : Colors.white.withValues(alpha: 0.78);
+    final titleColor = isDark
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.onSurface;
     final lines = fortuneComment
         .split('\n')
         .map((line) => line.trim())
@@ -1803,17 +1824,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: Container(
+                child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFFFFF7E8),
-                      Color(0xFFE9F8FF),
-                      Color(0xFFF4EDFF),
-                    ],
+                    colors: gradientColors,
                   ),
                 ),
                 child: Padding(
@@ -1827,13 +1844,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           Container(
                             width: 38,
                             height: 38,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Color(0xFFFFD77A),
+                              color: accentBg,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.auto_awesome,
-                              color: Color(0xFF6A4E00),
+                              color: accentFg,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -1842,7 +1859,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge
-                                ?.copyWith(fontWeight: FontWeight.w800),
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: titleColor,
+                                ),
                           ),
                         ],
                       ),
@@ -1851,7 +1871,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.78),
+                          color: contentBg,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
