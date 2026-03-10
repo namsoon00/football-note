@@ -4,6 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import '../../application/training_board_service.dart';
+import '../../domain/entities/training_board.dart';
+import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 
 class TrainingMethodBoardScreen extends StatefulWidget {
@@ -11,6 +14,9 @@ class TrainingMethodBoardScreen extends StatefulWidget {
   final String initialLayoutJson;
   final List<TrainingBoardPreset> presets;
   final ValueChanged<String>? onSaved;
+  final OptionRepository? optionRepository;
+  final List<String> initialSelectedBoardIds;
+  final String? initialBoardId;
 
   const TrainingMethodBoardScreen({
     super.key,
@@ -18,6 +24,9 @@ class TrainingMethodBoardScreen extends StatefulWidget {
     required this.initialLayoutJson,
     this.presets = const <TrainingBoardPreset>[],
     this.onSaved,
+    this.optionRepository,
+    this.initialSelectedBoardIds = const <String>[],
+    this.initialBoardId,
   });
 
   @override
@@ -29,6 +38,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     with SingleTickerProviderStateMixin {
   late List<_BoardPageState> _pages;
   final TextEditingController _methodController = TextEditingController();
+  TrainingBoardService? _managedBoardService;
+  List<TrainingBoard> _managedBoards = const <TrainingBoard>[];
+  Set<String> _selectedBoardIds = <String>{};
+  String? _currentBoardId;
   int _nextId = 1;
   int? _selectedItemId;
   bool _penMode = false;
@@ -49,14 +62,28 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _memoCommitted = false;
   int _memoSession = 0;
 
+  bool get _isManagedMode => widget.optionRepository != null;
   _BoardPageState get _currentPage => _pages.first;
 
   bool get _hasUnsavedChanges => _serialize() != _lastSavedLayout;
 
+  T? _firstWhereOrNull<T>(Iterable<T> items, bool Function(T) test) {
+    for (final item in items) {
+      if (test(item)) return item;
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
-    _restore();
+    if (_isManagedMode) {
+      _managedBoardService = TrainingBoardService(widget.optionRepository!);
+      _selectedBoardIds = widget.initialSelectedBoardIds.toSet();
+      _restoreManagedBoardState();
+    } else {
+      _restoreStandaloneBoard();
+    }
     _playController = AnimationController(vsync: this)
       ..addListener(_onPlayTick)
       ..addStatusListener(_onPlayStatusChanged);
@@ -68,14 +95,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         _promptForInitialBoardName();
       });
     }
+    if (_isManagedMode && _managedBoards.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _promptForManagedBoardCreation(isInitialFlow: true);
+      });
+    }
   }
 
-  void _restore() {
+  void _restoreStandaloneBoard() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
     final page = layout.pages.isEmpty ? null : layout.pages.first;
-    final defaultBoardName = widget.boardTitle.trim().isEmpty
-        ? 'Board 1'
-        : widget.boardTitle.trim();
+    final defaultBoardName =
+        widget.boardTitle.trim().isEmpty ? 'Board 1' : widget.boardTitle.trim();
     _pages = <_BoardPageState>[
       _BoardPageState(
         name: page == null
@@ -114,6 +146,90 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (page == null) {
       _shouldPromptInitialBoardName = widget.boardTitle.trim().isEmpty;
     }
+  }
+
+  void _restoreManagedBoardState() {
+    _managedBoards = _managedBoardService!.allBoards();
+    _selectedBoardIds = _selectedBoardIds
+        .where((id) => _managedBoards.any((board) => board.id == id))
+        .toSet();
+    if (_managedBoards.isEmpty) {
+      _pages = <_BoardPageState>[_emptyBoardPage(widget.boardTitle)];
+      _currentBoardId = null;
+      _shouldPromptInitialBoardName = false;
+      return;
+    }
+    final requestedId = widget.initialBoardId?.trim();
+    final initialBoard =
+        _firstWhereOrNull(_managedBoards, (board) => board.id == requestedId) ??
+            _firstWhereOrNull(
+              _managedBoards,
+              (board) => _selectedBoardIds.contains(board.id),
+            ) ??
+            _managedBoards.first;
+    _loadBoard(initialBoard);
+  }
+
+  _BoardPageState _emptyBoardPage(String fallbackTitle) {
+    final title =
+        fallbackTitle.trim().isEmpty ? 'Board 1' : fallbackTitle.trim();
+    return _BoardPageState(
+      name: title,
+      methodText: '',
+      items: <_BoardItem>[],
+      strokes: <_BoardStroke>[],
+      playerPath: <Offset>[],
+    );
+  }
+
+  void _loadBoard(TrainingBoard board) {
+    final layout = TrainingMethodLayout.decode(board.layoutJson);
+    final page = layout.pages.isEmpty ? null : layout.pages.first;
+    _pages = <_BoardPageState>[
+      _BoardPageState(
+        name: page == null
+            ? board.title
+            : (page.name.trim().isEmpty ? board.title : page.name),
+        methodText: page?.methodText ?? '',
+        items: (page?.items ?? const <TrainingMethodItem>[])
+            .map(
+              (e) => _BoardItem(
+                id: _nextId++,
+                type: _boardItemTypeFromString(e.type) ?? _BoardItemType.cone,
+                x: e.x,
+                y: e.y,
+                size: 32,
+                rotationDeg: e.rotationDeg,
+                color: Color(e.colorValue),
+              ),
+            )
+            .toList(growable: true),
+        strokes: (page?.strokes ?? const <TrainingMethodStroke>[])
+            .map(
+              (stroke) => _BoardStroke(
+                points: stroke.points
+                    .map((point) => Offset(point.x, point.y))
+                    .toList(growable: false),
+                color: Color(stroke.colorValue),
+                width: stroke.width,
+              ),
+            )
+            .toList(growable: true),
+        playerPath: (page?.playerPath ?? const <TrainingMethodPoint>[])
+            .map((point) => Offset(point.x, point.y))
+            .toList(growable: true),
+      ),
+    ];
+    _currentBoardId = board.id;
+    _selectedItemId = null;
+    _penMode = false;
+    _pathMode = false;
+    _activeStroke = null;
+    _activePlayerPath = null;
+    _playingPlayerId = null;
+    _playingPlayerStart = null;
+    _methodController.text = _currentPage.methodText;
+    _lastSavedLayout = _serialize();
   }
 
   Future<String?> _showBoardNameDialog({
@@ -170,6 +286,50 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (!mounted || name == null) return;
     setState(() {
       _currentPage.name = name;
+    });
+  }
+
+  Future<void> _promptForManagedBoardCreation({
+    bool isInitialFlow = false,
+  }) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    if (!isInitialFlow && _hasUnsavedChanges) {
+      final action = await _showPendingBoardActionDialog(isKo);
+      if (!mounted || action == null || action == _PendingBoardAction.cancel) {
+        return;
+      }
+      if (action == _PendingBoardAction.save) {
+        final saved = await _saveBoard(isKo, showFeedback: false);
+        if (!mounted || !saved) return;
+      }
+    }
+    final title = await _showBoardNameDialog(
+      isKo: isKo,
+      titleKo: '훈련보드 제목',
+      titleEn: 'Training board title',
+      confirmKo: '생성',
+      confirmEn: 'Create',
+      initialValue: '',
+    );
+    if (!mounted) return;
+    if (title == null) {
+      if (isInitialFlow) {
+        Navigator.of(context).pop(widget.initialSelectedBoardIds);
+      }
+      return;
+    }
+    final created = await _managedBoardService!.createBoard(
+      title: title,
+      layoutJson: TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(name: title, items: const <TrainingMethodItem>[]),
+        ],
+      ).encode(),
+    );
+    if (!mounted) return;
+    setState(() {
+      _managedBoards = _managedBoardService!.allBoards();
+      _loadBoard(created);
     });
   }
 
@@ -296,16 +456,138 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return confirmed == true;
   }
 
-  Future<void> _saveBoard(bool isKo) async {
+  Future<bool> _saveBoard(bool isKo, {bool showFeedback = true}) async {
     final serialized = _serialize();
-    widget.onSaved?.call(serialized);
+    if (_isManagedMode) {
+      final boardId = _currentBoardId;
+      if (boardId == null) return false;
+      final currentBoard = _firstWhereOrNull(
+        _managedBoards,
+        (board) => board.id == boardId,
+      );
+      if (currentBoard == null) return false;
+      final title = _resolvedCurrentBoardTitle(isKo);
+      final updated =
+          currentBoard.copyWith(title: title, layoutJson: serialized);
+      await _managedBoardService!.saveBoard(updated);
+      _managedBoards = _managedBoardService!.allBoards();
+    } else {
+      widget.onSaved?.call(serialized);
+    }
     setState(() {
       _lastSavedLayout = serialized;
     });
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(isKo ? '훈련보드를 저장했습니다.' : 'Training board saved.')),
+    if (!mounted) return true;
+    if (showFeedback) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo ? '훈련보드를 저장했습니다.' : 'Training board saved.',
+          ),
+        ),
+      );
+    }
+    return true;
+  }
+
+  String _resolvedCurrentBoardTitle(bool isKo) {
+    final currentName = _currentPage.name.trim();
+    if (currentName.isNotEmpty) return currentName;
+    final widgetTitle = widget.boardTitle.trim();
+    if (widgetTitle.isNotEmpty) return widgetTitle;
+    return isKo ? '훈련보드' : 'Training Board';
+  }
+
+  Future<void> _showManagedBoardPicker(bool isKo) async {
+    final selectedBoard = await showModalBottomSheet<TrainingBoard>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: _managedBoards.map((board) {
+            final isCurrent = board.id == _currentBoardId;
+            final isLinked = _selectedBoardIds.contains(board.id);
+            return ListTile(
+              leading: Icon(
+                isCurrent
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off_outlined,
+              ),
+              title: Text(board.title),
+              subtitle: isLinked
+                  ? Text(isKo ? '현재 노트에 연결됨' : 'Linked to this note')
+                  : null,
+              trailing: isCurrent ? const Icon(Icons.check) : null,
+              onTap: () => Navigator.of(context).pop(board),
+            );
+          }).toList(growable: false),
+        ),
+      ),
     );
+    if (!mounted || selectedBoard == null) return;
+    await _switchManagedBoard(selectedBoard, isKo);
+  }
+
+  Future<void> _switchManagedBoard(TrainingBoard nextBoard, bool isKo) async {
+    if (nextBoard.id == _currentBoardId) return;
+    if (_hasUnsavedChanges) {
+      final action = await _showPendingBoardActionDialog(isKo);
+      if (!mounted || action == null || action == _PendingBoardAction.cancel) {
+        return;
+      }
+      if (action == _PendingBoardAction.save) {
+        final saved = await _saveBoard(isKo, showFeedback: false);
+        if (!mounted || !saved) return;
+      }
+    }
+    _stopPlayerPlayback(restoreStart: false);
+    setState(() {
+      _loadBoard(nextBoard);
+    });
+  }
+
+  Future<_PendingBoardAction?> _showPendingBoardActionDialog(bool isKo) {
+    return showDialog<_PendingBoardAction>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '저장되지 않은 변경사항' : 'Unsaved changes'),
+        content: Text(
+          isKo
+              ? '현재 편집 내용을 어떻게 할까요?'
+              : 'What should happen to your current edits?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_PendingBoardAction.cancel),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_PendingBoardAction.discard),
+            child: Text(isKo ? '버리기' : 'Discard'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_PendingBoardAction.save),
+            child: Text(isKo ? '저장' : 'Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleLinkedCurrentBoard() {
+    final boardId = _currentBoardId;
+    if (boardId == null) return;
+    setState(() {
+      if (_selectedBoardIds.contains(boardId)) {
+        _selectedBoardIds.remove(boardId);
+      } else {
+        _selectedBoardIds.add(boardId);
+      }
+    });
   }
 
   void _copyPresetBoard({
@@ -446,9 +728,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _copyPresetBoard(preset: selected.preset, page: selected.page, isKo: isKo);
   }
 
-  Future<bool> _handleWillPop(bool isKo) async {
+  Future<void> _handleBackPressed(bool isKo) async {
     if (!_hasUnsavedChanges) {
-      return true;
+      Navigator.of(context).pop(
+        _isManagedMode ? _selectedBoardIds.toList(growable: false) : null,
+      );
+      return;
     }
     final discard = await showDialog<bool>(
       context: context,
@@ -471,7 +756,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       ),
     );
-    return discard == true;
+    if (discard == true && mounted) {
+      Navigator.of(context).pop(
+        _isManagedMode ? _selectedBoardIds.toList(growable: false) : null,
+      );
+    }
   }
 
   void _startStroke(Offset localPosition, double width, double height) {
@@ -833,21 +1122,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return PopScope(
-      canPop: !_hasUnsavedChanges,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        final shouldPop = await _handleWillPop(isKo);
-        if (!shouldPop || !mounted) return;
-        Navigator.of(this.context).pop();
+        await _handleBackPressed(isKo);
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: BackButton(onPressed: () => _handleBackPressed(isKo)),
           title: Text(
             _currentPage.name.trim().isEmpty
                 ? widget.boardTitle
                 : _currentPage.name,
           ),
           actions: [
+            if (_isManagedMode)
+              IconButton(
+                tooltip: isKo ? '보드 생성' : 'Create board',
+                icon: const Icon(Icons.add_box_outlined),
+                onPressed: () => _promptForManagedBoardCreation(),
+              ),
+            if (_isManagedMode)
+              IconButton(
+                tooltip: _selectedBoardIds.contains(_currentBoardId)
+                    ? (isKo ? '노트 연결 해제' : 'Remove from note')
+                    : (isKo ? '노트에 추가' : 'Add to note'),
+                icon: Icon(
+                  _selectedBoardIds.contains(_currentBoardId)
+                      ? Icons.check_circle
+                      : Icons.add_circle_outline,
+                ),
+                onPressed: _toggleLinkedCurrentBoard,
+              ),
             if (widget.presets.isNotEmpty)
               IconButton(
                 tooltip: isKo ? '훈련보드 복사' : 'Copy board',
@@ -1017,8 +1323,23 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   Widget _buildPageHeader(bool isKo) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        if (_isManagedMode)
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: _managedBoards.isEmpty
+                  ? null
+                  : () => _showManagedBoardPicker(isKo),
+              icon: const Icon(Icons.view_list_outlined),
+              label: Text(
+                _resolvedCurrentBoardTitle(isKo),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          )
+        else
+          const Spacer(),
+        if (_isManagedMode) const SizedBox(width: 8),
         IconButton(
           onPressed: () => _playPlayerPath(isKo),
           icon: Icon(
@@ -1413,6 +1734,8 @@ class _PresetBoardSelection {
 
   const _PresetBoardSelection({required this.preset, required this.page});
 }
+
+enum _PendingBoardAction { save, discard, cancel }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder }
 
