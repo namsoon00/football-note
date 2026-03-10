@@ -29,6 +29,7 @@ class WatchCartHomeOptions extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final hasBoardButton = onBoardList != null;
     final actionColor = theme.colorScheme.primary;
     final actionBorder = isDark
         ? theme.colorScheme.primary.withValues(alpha: 0.58)
@@ -39,12 +40,14 @@ class WatchCartHomeOptions extends StatelessWidget {
         const SizedBox(width: 12),
         _OptionButton(icon: Icons.tune, onTap: onFilter),
         const SizedBox(width: 12),
-        if (onBoardList != null) ...[
-          _LabeledCountButton(
-            onTap: onBoardList!,
-            semanticLabel: boardListLabel,
-            label: boardListTitle ?? 'Boards',
-            count: boardBadgeCount ?? 0,
+        if (hasBoardButton) ...[
+          Expanded(
+            child: _LabeledCountButton(
+              onTap: onBoardList!,
+              semanticLabel: boardListLabel,
+              label: boardListTitle ?? 'Boards',
+              count: boardBadgeCount ?? 0,
+            ),
           ),
           const SizedBox(width: 12),
         ],
@@ -162,7 +165,7 @@ class _LabeledCountButton extends StatelessWidget {
           splashColor: WatchCartConstants.primaryColor.withAlpha(30),
           highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
           child: Container(
-            width: 132.0,
+            width: double.infinity,
             height: 60.0,
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             decoration: BoxDecoration(
