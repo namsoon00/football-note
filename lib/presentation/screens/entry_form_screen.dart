@@ -1290,7 +1290,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
     final showMic = controller == _goodPointsController ||
-        controller == _improvementsController;
+        controller == _improvementsController ||
+        controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
     final field = TextFormField(
       controller: controller,
