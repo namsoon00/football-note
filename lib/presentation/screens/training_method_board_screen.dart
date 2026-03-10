@@ -529,6 +529,80 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     await _switchManagedBoard(selectedBoard, isKo);
   }
 
+  Future<void> _deleteCurrentManagedBoard(bool isKo) async {
+    if (!_isManagedMode) return;
+    final boardId = _currentBoardId;
+    if (boardId == null) return;
+
+    if (_hasUnsavedChanges) {
+      final action = await _showPendingBoardActionDialog(isKo);
+      if (!mounted || action == null || action == _PendingBoardAction.cancel) {
+        return;
+      }
+      if (action == _PendingBoardAction.save) {
+        final saved = await _saveBoard(isKo, showFeedback: false);
+        if (!mounted || !saved) return;
+      }
+    }
+
+    final currentBoard = _firstWhereOrNull(
+      _managedBoards,
+      (board) => board.id == boardId,
+    );
+    if (currentBoard == null) return;
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '훈련보드 삭제' : 'Delete training board'),
+        content: Text(
+          isKo
+              ? '"${currentBoard.title}" 보드를 삭제할까요?'
+              : 'Delete board "${currentBoard.title}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '삭제' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (shouldDelete != true) return;
+
+    await _managedBoardService!.deleteBoard(boardId);
+    if (!mounted) return;
+
+    setState(() {
+      _managedBoards = _managedBoardService!.allBoards();
+      _selectedBoardIds.remove(boardId);
+      final linkedBoards = _managedBoards
+          .where((board) => _selectedBoardIds.contains(board.id))
+          .toList(growable: false);
+      if (linkedBoards.isNotEmpty) {
+        _loadBoard(linkedBoards.first);
+      } else {
+        _currentBoardId = null;
+        _pages = <_BoardPageState>[_emptyBoardPage(widget.boardTitle)];
+        _selectedItemId = null;
+        _methodController.text = _currentPage.methodText;
+        _lastSavedLayout = _serialize();
+      }
+    });
+
+    if (_currentBoardId == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _promptForManagedBoardCreation(isInitialFlow: true);
+      });
+    }
+  }
+
   Future<void> _switchManagedBoard(TrainingBoard nextBoard, bool isKo) async {
     if (nextBoard.id == _currentBoardId) return;
     if (_hasUnsavedChanges) {
@@ -1129,6 +1203,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 tooltip: isKo ? '보드 생성' : 'Create board',
                 icon: const Icon(Icons.add_box_outlined),
                 onPressed: () => _promptForManagedBoardCreation(),
+              ),
+            if (_isManagedMode)
+              IconButton(
+                tooltip: isKo ? '보드 삭제' : 'Delete board',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: _currentBoardId == null
+                    ? null
+                    : () => _deleteCurrentManagedBoard(isKo),
               ),
             if (widget.presets.isNotEmpty)
               IconButton(
