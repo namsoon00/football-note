@@ -329,6 +329,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (!mounted) return;
     setState(() {
       _managedBoards = _managedBoardService!.allBoards();
+      _selectedBoardIds.add(created.id);
       _loadBoard(created);
     });
   }
@@ -576,18 +577,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         ],
       ),
     );
-  }
-
-  void _toggleLinkedCurrentBoard() {
-    final boardId = _currentBoardId;
-    if (boardId == null) return;
-    setState(() {
-      if (_selectedBoardIds.contains(boardId)) {
-        _selectedBoardIds.remove(boardId);
-      } else {
-        _selectedBoardIds.add(boardId);
-      }
-    });
   }
 
   void _copyPresetBoard({
@@ -1141,18 +1130,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 tooltip: isKo ? '보드 생성' : 'Create board',
                 icon: const Icon(Icons.add_box_outlined),
                 onPressed: () => _promptForManagedBoardCreation(),
-              ),
-            if (_isManagedMode)
-              IconButton(
-                tooltip: _selectedBoardIds.contains(_currentBoardId)
-                    ? (isKo ? '노트 연결 해제' : 'Remove from note')
-                    : (isKo ? '노트에 추가' : 'Add to note'),
-                icon: Icon(
-                  _selectedBoardIds.contains(_currentBoardId)
-                      ? Icons.check_circle
-                      : Icons.add_circle_outline,
-                ),
-                onPressed: _toggleLinkedCurrentBoard,
               ),
             if (widget.presets.isNotEmpty)
               IconButton(
