@@ -59,6 +59,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _liftCoreController = TextEditingController();
   final _jumpRopeController = TextEditingController();
   final _jumpRopeMinutesController = TextEditingController();
+  final _jumpRopeNoteController = TextEditingController();
   final _speech = stt.SpeechToText();
   final _fortuneService = LocalFortuneService();
   late final TrainingBoardService _trainingBoardService;
@@ -95,6 +96,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _injury = false;
   bool _rehab = false;
   bool _liftingEnabled = false;
+  bool _jumpRopeEnabled = false;
+  bool _fortuneEnabled = false;
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -164,10 +167,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text =
-          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
-      _improvementsController.text =
-          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
+      _goodPointsController.text = entry.goodPoints.isNotEmpty
+          ? entry.goodPoints
+          : entry.feedback;
+      _improvementsController.text = entry.improvements.isNotEmpty
+          ? entry.improvements
+          : entry.notes;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -217,10 +222,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _jumpRopeController.text =
-          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
-      _jumpRopeMinutesController.text =
-          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
+      _jumpRopeController.text = entry.jumpRopeCount > 0
+          ? entry.jumpRopeCount.toString()
+          : '';
+      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
+          ? entry.jumpRopeMinutes.toString()
+          : '';
+      _jumpRopeEnabled = entry.jumpRopeEnabled;
+      _jumpRopeNoteController.text = entry.jumpRopeNote;
+      _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
       if (_linkedBoardIds.isEmpty && entry.drills.trim().isNotEmpty) {
         unawaited(_migrateLegacyTrainingBoard(entry));
       }
@@ -244,6 +254,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _status = 'normal';
       _linkedBoardIds.clear();
       _syncDrillsPayloadFromBoardLinks();
+      _jumpRopeEnabled = false;
+      _fortuneEnabled = false;
       unawaited(_applyLatestEntryDefaults());
     }
     _initialSnapshot = _formSnapshot();
@@ -317,8 +329,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _painController.text.trim(),
       _goodPointsController.text.trim(),
       _improvementsController.text.trim(),
+      _fortuneEnabled.toString(),
       _jumpRopeController.text.trim(),
       _jumpRopeMinutesController.text.trim(),
+      _jumpRopeEnabled.toString(),
+      _jumpRopeNoteController.text.trim(),
       linkedIds.join(','),
       selectedGoals.join(','),
       _liftChestController.text.trim(),
@@ -446,8 +461,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor =
-                      selected ? statusColor : statusColor.withAlpha(170);
+                  final iconColor = selected
+                      ? statusColor
+                      : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -458,8 +474,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -654,6 +671,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _liftCoreController.dispose();
     _jumpRopeController.dispose();
     _jumpRopeMinutesController.dispose();
+    _jumpRopeNoteController.dispose();
     super.dispose();
   }
 
@@ -737,38 +755,43 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          OutlinedButton.icon(
-                            onPressed: _showTodayFortuneInNote,
-                            icon: const Icon(Icons.auto_awesome_outlined),
-                            label: Text(isKo ? '오늘의 운세' : 'Today fortune'),
-                            style: OutlinedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              minimumSize: const Size(1, 40),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
-                            ),
+                          _buildFeatureActionButton(
+                            icon: _fortuneEnabled
+                                ? Icons.auto_awesome
+                                : Icons.auto_awesome_outlined,
+                            label: isKo ? '오늘의 운세' : 'Today fortune',
+                            detail: _fortuneEnabled
+                                ? (isKo ? '표시됨' : 'On')
+                                : (isKo ? '숨김' : 'Off'),
+                            active: _fortuneEnabled,
+                            onPressed: () {
+                              setState(
+                                () => _fortuneEnabled = !_fortuneEnabled,
+                              );
+                              _scheduleAutoSave();
+                            },
                           ),
-                          OutlinedButton.icon(
-                            onPressed: _openTrainingBoardEditor,
-                            icon: Icon(
-                              Icons.developer_board_outlined,
-                              color: _linkedBoardIds.isNotEmpty
-                                  ? theme.colorScheme.primary
-                                  : null,
-                            ),
-                            label: Text(isKo ? '훈련보드' : 'Training board'),
-                            style: OutlinedButton.styleFrom(
+                          if (_fortuneEnabled)
+                            IconButton.filledTonal(
+                              onPressed: _showTodayFortuneInNote,
+                              icon: const Icon(Icons.visibility_outlined),
+                              tooltip: isKo ? '운세 미리보기' : 'Preview fortune',
                               visualDensity: VisualDensity.compact,
-                              minimumSize: const Size(1, 40),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
+                              style: IconButton.styleFrom(
+                                minimumSize: const Size(40, 40),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                             ),
+                          _buildFeatureActionButton(
+                            icon: Icons.developer_board_outlined,
+                            label: isKo ? '훈련보드' : 'Training board',
+                            detail: _linkedBoardIds.isNotEmpty
+                                ? (isKo
+                                      ? '${_linkedBoardIds.length}개 연결'
+                                      : '${_linkedBoardIds.length} linked')
+                                : (isKo ? '없음' : 'None'),
+                            active: _linkedBoardIds.isNotEmpty,
+                            onPressed: _openTrainingBoardEditor,
                           ),
                         ],
                       ),
@@ -1137,46 +1160,64 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   const SizedBox(height: 16),
                   WatchCartCard(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildEmphasizedField(
-                                controller: _jumpRopeController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText:
-                                      isKo ? '줄넘기 횟수' : 'Jump rope count',
-                                  hintText: '0',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildEmphasizedField(
-                                controller: _jumpRopeMinutesController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: isKo
-                                      ? '줄넘기 시간(분)'
-                                      : 'Jump rope time (min)',
-                                  hintText: '0',
-                                ),
-                              ),
-                            ),
-                          ],
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(isKo ? '줄넘기 기록' : 'Jump rope record'),
+                          value: _jumpRopeEnabled,
+                          onChanged: (value) {
+                            setState(() => _jumpRopeEnabled = value);
+                            _scheduleAutoSave();
+                          },
                         ),
+                        if (_jumpRopeEnabled) ...[
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildEmphasizedField(
+                                  controller: _jumpRopeController,
+                                  enabled: _jumpRopeEnabled,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: isKo
+                                        ? '줄넘기 횟수'
+                                        : 'Jump rope count',
+                                    hintText: '0',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildEmphasizedField(
+                                  controller: _jumpRopeMinutesController,
+                                  enabled: _jumpRopeEnabled,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: isKo
+                                        ? '줄넘기 시간(분)'
+                                        : 'Jump rope time (min)',
+                                    hintText: '0',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          _buildEmphasizedField(
+                            controller: _jumpRopeNoteController,
+                            enabled: _jumpRopeEnabled,
+                            minLines: 3,
+                            maxLines: 5,
+                            decoration: InputDecoration(
+                              labelText: isKo ? '줄넘기 소감' : 'Jump rope notes',
+                              hintText: isKo
+                                  ? '줄넘기를 하면서 느낀 점을 적어보세요.'
+                                  : 'Write what you felt during jump rope.',
+                            ),
+                          ),
+                        ],
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Text(
-                      isKo
-                          ? '줄넘기 시간은 분 단위로 입력해 주세요.'
-                          : 'Enter jump rope time in minutes.',
-                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -1188,16 +1229,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           padding: const EdgeInsets.only(top: 4, bottom: 4),
                           child: Text(
                             _autoSaving
-                                ? (Localizations.localeOf(context)
-                                            .languageCode ==
-                                        'ko'
-                                    ? '자동 저장 중...'
-                                    : 'Autosaving...')
-                                : (Localizations.localeOf(context)
-                                            .languageCode ==
-                                        'ko'
-                                    ? '수정 내용이 자동 저장됩니다.'
-                                    : 'Changes are saved automatically.'),
+                                ? (Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '자동 저장 중...'
+                                      : 'Autosaving...')
+                                : (Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '수정 내용이 자동 저장됩니다.'
+                                      : 'Changes are saved automatically.'),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -1210,6 +1253,51 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureActionButton({
+    required IconData icon,
+    required String label,
+    required String detail,
+    required bool active,
+    required VoidCallback onPressed,
+  }) {
+    final theme = Theme.of(context);
+    final fg = active
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurfaceVariant;
+    final bg = active
+        ? theme.colorScheme.primary.withValues(alpha: 0.12)
+        : theme.colorScheme.surfaceContainerHighest;
+    final border = active
+        ? theme.colorScheme.primary.withValues(alpha: 0.36)
+        : theme.colorScheme.outline.withValues(alpha: 0.28);
+
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        minimumSize: const Size(1, 40),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        backgroundColor: bg,
+        side: BorderSide(color: border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: fg),
+          const SizedBox(width: 6),
+          Text(
+            '$label · $detail',
+            style: TextStyle(
+              color: fg,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1230,7 +1318,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic = controller == _goodPointsController ||
+    final showMic =
+        controller == _goodPointsController ||
         controller == _improvementsController;
     final isListeningFor = _isListening && _listeningController == controller;
     final field = TextFormField(
@@ -1413,7 +1502,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing = !isKoreanLocale &&
+    final needsSpacing =
+        !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1442,6 +1532,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _showTodayFortuneInNote() async {
+    if (!_fortuneEnabled) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final profile = PlayerProfileService(widget.optionRepository).load();
     final allEntries = await widget.trainingService.allEntries();
@@ -1475,8 +1566,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       improvements: improvements,
       nextGoal: '',
       createdAt: DateTime.now(),
-      jumpRopeCount: _parseInt(_jumpRopeController.text.trim()) ?? 0,
-      jumpRopeMinutes: _parseInt(_jumpRopeMinutesController.text.trim()) ?? 0,
+      jumpRopeCount: _jumpRopeEnabled
+          ? (_parseInt(_jumpRopeController.text.trim()) ?? 0)
+          : 0,
+      jumpRopeMinutes: _jumpRopeEnabled
+          ? (_parseInt(_jumpRopeMinutesController.text.trim()) ?? 0)
+          : 0,
+      jumpRopeEnabled: _jumpRopeEnabled,
+      jumpRopeNote: _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '',
     );
     final fortune = _fortuneService.generateResult(
       entry: draft,
@@ -1606,12 +1703,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final improvements = _improvementsController.text.trim();
       const nextGoal = '';
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
-      final jumpRopeCount =
-          _parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0;
-      final jumpRopeMinutes = _parseInt(
-            _jumpRopeMinutesController.text.trim(),
-          )?.clamp(0, 1000000) ??
-          0;
+      final jumpRopeCount = _jumpRopeEnabled
+          ? (_parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0)
+          : 0;
+      final jumpRopeMinutes = _jumpRopeEnabled
+          ? (_parseInt(
+                  _jumpRopeMinutesController.text.trim(),
+                )?.clamp(0, 1000000) ??
+                0)
+          : 0;
+      final jumpRopeNote = _jumpRopeEnabled
+          ? _jumpRopeNoteController.text.trim()
+          : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -1643,14 +1746,19 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         createdAt: createdAt,
         jumpRopeCount: jumpRopeCount,
         jumpRopeMinutes: jumpRopeMinutes,
+        jumpRopeEnabled: _jumpRopeEnabled,
+        jumpRopeNote: jumpRopeNote,
       );
-      final fortune = _fortuneService.generateResult(
-        entry: draftEntry,
-        profile: profile,
-        history: allEntries,
-        isKo: isKo,
-      );
-      final fortuneComment = fortune.fortuneText;
+      final fortuneComment = _fortuneEnabled
+          ? _fortuneService
+                .generateResult(
+                  entry: draftEntry,
+                  profile: profile,
+                  history: allEntries,
+                  isKo: isKo,
+                )
+                .fortuneText
+          : '';
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -1686,6 +1794,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         createdAt: draftEntry.createdAt,
         jumpRopeCount: draftEntry.jumpRopeCount,
         jumpRopeMinutes: draftEntry.jumpRopeMinutes,
+        jumpRopeEnabled: draftEntry.jumpRopeEnabled,
+        jumpRopeNote: draftEntry.jumpRopeNote,
       );
 
       if (widget.entry == null) {
@@ -1710,7 +1820,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
-      if (widget.entry == null && popAfterSave) {
+      if (widget.entry == null &&
+          popAfterSave &&
+          fortuneComment.trim().isNotEmpty) {
         await _showFortuneRevealDialog(fortuneComment);
         if (!mounted) return;
       }
@@ -1727,6 +1839,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _showFortuneRevealDialog(String fortuneComment) async {
+    if (fortuneComment.trim().isEmpty) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final lines = fortuneComment
         .split('\n')
@@ -1741,8 +1854,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       transitionDuration: const Duration(milliseconds: 280),
       pageBuilder: (_, __, ___) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, _, __) {
-        final eased =
-            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+        final eased = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
         return FadeTransition(
           opacity: animation,
           child: SlideTransition(
@@ -1751,10 +1866,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               end: Offset.zero,
             ).animate(eased),
             child: Dialog(
-              insetPadding:
-                  const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: 20,
+              ),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24)),
+                borderRadius: BorderRadius.circular(24),
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
@@ -1764,7 +1882,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                     colors: [
                       Color(0xFFFFF7E8),
                       Color(0xFFE9F8FF),
-                      Color(0xFFF4EDFF)
+                      Color(0xFFF4EDFF),
                     ],
                   ),
                 ),
@@ -1783,18 +1901,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               shape: BoxShape.circle,
                               color: Color(0xFFFFD77A),
                             ),
-                            child: const Icon(Icons.auto_awesome,
-                                color: Color(0xFF6A4E00)),
+                            child: const Icon(
+                              Icons.auto_awesome,
+                              color: Color(0xFF6A4E00),
+                            ),
                           ),
                           const SizedBox(width: 10),
                           Text(
                             isKo ? '오늘의 운세' : 'Today fortune',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ],
                       ),
@@ -1819,12 +1935,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               isKo
                                   ? '오늘도 멋진 플레이를 응원할게요.'
                                   : 'Cheering for your best play today.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],
                         ),

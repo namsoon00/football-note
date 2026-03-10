@@ -302,7 +302,10 @@ class _StatsScreenState extends State<StatsScreen> {
                   ).colorScheme.outline.withValues(alpha: 0.25),
                 ),
                 const SizedBox(height: 18),
-                _JumpRopeSummaryCard(entries: filteredEntries),
+                _JumpRopeSummaryCard(
+                  entries: filteredEntries,
+                  range: _selectedRange,
+                ),
               ],
             ),
           ],
@@ -1036,23 +1039,47 @@ class _LiftingSummaryCard extends StatelessWidget {
 
 class _JumpRopeSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
+  final DateTimeRange range;
 
-  const _JumpRopeSummaryCard({required this.entries});
+  const _JumpRopeSummaryCard({required this.entries, required this.range});
 
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final valid = entries
-        .where((e) => e.jumpRopeCount > 0 || e.jumpRopeMinutes > 0)
-        .toList(growable: false);
-    final totalCount = valid.fold<int>(0, (sum, e) => sum + e.jumpRopeCount);
-    final totalMinutes = valid.fold<int>(
-      0,
-      (sum, e) => sum + e.jumpRopeMinutes,
+    final start = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
     );
+    final end = DateTime(range.end.year, range.end.month, range.end.day);
+    final days = <DateTime>[];
+    for (var current = start;
+        !current.isAfter(end);
+        current = current.add(const Duration(days: 1))) {
+      days.add(current);
+    }
+    final countByDay = <DateTime, int>{for (final day in days) day: 0};
+    for (final entry in entries) {
+      final key = DateTime(entry.date.year, entry.date.month, entry.date.day);
+      countByDay.update(
+        key,
+        (value) => value + entry.jumpRopeCount,
+        ifAbsent: () => entry.jumpRopeCount,
+      );
+    }
+    final points = days
+        .map((day) => MapEntry(day, countByDay[day] ?? 0))
+        .toList(growable: false);
+    final totalCount = points.fold<int>(0, (sum, item) => sum + item.value);
     final bestCount =
-        valid.isEmpty ? 0 : valid.map((e) => e.jumpRopeCount).reduce(math.max);
-    final avgCount = valid.isEmpty ? 0 : (totalCount / valid.length).round();
+        points.isEmpty ? 0 : points.map((item) => item.value).reduce(math.max);
+    final bestDay = points.firstWhere(
+      (item) => item.value == bestCount,
+      orElse: () => MapEntry(start, 0),
+    );
+    final maxY =
+        bestCount <= 0 ? 5.0 : (bestCount * 1.25).clamp(5, 1000000).toDouble();
+    final labelStride = math.max(1, (days.length / 6).ceil());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1062,45 +1089,133 @@ class _JumpRopeSummaryCard extends StatelessWidget {
           title: isKo ? '줄넘기 통계' : 'Jump Rope Stats',
         ),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _KpiTile(
-                label: isKo ? '총 횟수' : 'Total',
-                value: '$totalCount',
-                icon: Icons.tag_outlined,
+        if (totalCount == 0)
+          _InlineNotice(
+            text: isKo
+                ? '선택한 기간에 기록된 줄넘기 횟수가 없습니다.'
+                : 'No jump rope counts recorded in the selected period.',
+          )
+        else ...[
+          SizedBox(
+            height: 220,
+            child: BarChart(
+              BarChartData(
+                minY: 0,
+                maxY: maxY,
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: maxY <= 10 ? 2 : null,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.18),
+                    strokeWidth: 1,
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                barTouchData: BarTouchData(
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (_) => Colors.black87,
+                    getTooltipItem: (group, _, rod, __) {
+                      final day = days[group.x.toInt()];
+                      final dateLabel = isKo
+                          ? '${day.month}/${day.day}'
+                          : '${day.month}/${day.day}';
+                      final count = rod.toY.round();
+                      return BarTooltipItem(
+                        '$dateLabel\n${isKo ? '줄넘기' : 'Count'} $count',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 38,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toInt().toString(),
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index < 0 || index >= days.length) {
+                          return const SizedBox.shrink();
+                        }
+                        if (index % labelStride != 0 &&
+                            index != days.length - 1) {
+                          return const SizedBox.shrink();
+                        }
+                        final day = days[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            '${day.month}/${day.day}',
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                barGroups: [
+                  for (var i = 0; i < points.length; i++)
+                    BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: points[i].value.toDouble(),
+                          width: days.length <= 10 ? 18 : 10,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(6),
+                          ),
+                          color: const Color(0xFF3DDC84),
+                        ),
+                      ],
+                    ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _KpiTile(
-                label: isKo ? '총 시간(분)' : 'Total min',
-                value: '$totalMinutes',
-                icon: Icons.timer_outlined,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              _LegendDot(
+                color: const Color(0xFF3DDC84),
+                label: isKo ? '일자별 줄넘기 횟수' : 'Daily jump rope count',
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: _KpiTile(
-                label: isKo ? '최고 횟수' : 'Best count',
-                value: '$bestCount',
-                icon: Icons.emoji_events_outlined,
+              Text(
+                isKo ? '총합 $totalCount회' : 'Total $totalCount',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _KpiTile(
-                label: isKo ? '평균 횟수' : 'Avg count',
-                value: '$avgCount',
-                icon: Icons.analytics_outlined,
+              Text(
+                isKo
+                    ? '최고 ${bestDay.key.month}/${bestDay.key.day} · $bestCount회'
+                    : 'Best ${bestDay.key.month}/${bestDay.key.day} · $bestCount',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -1209,49 +1324,6 @@ class _SectionTitle extends StatelessWidget {
         ),
         if (trailing != null) ...[const SizedBox(width: 8), trailing!],
       ],
-    );
-  }
-}
-
-class _KpiTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _KpiTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 17),
-          const SizedBox(height: 7),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
     );
   }
 }
