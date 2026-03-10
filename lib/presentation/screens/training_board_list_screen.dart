@@ -83,39 +83,6 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     return trimmed;
   }
 
-  Future<void> _createBoard() async {
-    final title = await _promptTitle();
-    if (!mounted || title == null) return;
-    String? savedLayout;
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => TrainingMethodBoardScreen(
-          boardTitle: title,
-          initialLayoutJson: '',
-          onSaved: (layoutJson) {
-            savedLayout = layoutJson;
-          },
-        ),
-      ),
-    );
-    if (!mounted || savedLayout == null) return;
-    final resolvedTitle = _resolveBoardTitle(
-      layoutJson: savedLayout!,
-      fallbackTitle: title,
-    );
-    final board = await _boardService.createBoard(
-      title: resolvedTitle,
-      layoutJson: savedLayout!,
-    );
-    if (!mounted) return;
-    setState(() {
-      _boards = _boardService.allBoards();
-      if (widget.selectionMode) {
-        _selectedIds.add(board.id);
-      }
-    });
-  }
-
   Future<void> _editBoard(TrainingBoard board) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
@@ -206,11 +173,6 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       appBar: AppBar(
         title: Text(isKo ? '훈련보드 리스트' : 'Training board list'),
         actions: [
-          IconButton(
-            tooltip: isKo ? '훈련보드 생성' : 'Create board',
-            onPressed: _createBoard,
-            icon: const Icon(Icons.add_box_outlined),
-          ),
           if (widget.selectionMode)
             TextButton(
               onPressed: _submitSelection,
@@ -220,7 +182,11 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
       body: _boards.isEmpty
           ? Center(
-              child: Text(isKo ? '훈련보드가 없습니다.' : 'No training boards yet.'),
+              child: Text(
+                isKo
+                    ? '훈련노트 화면에서 먼저 훈련보드를 생성해주세요.'
+                    : 'Create a training board from a training note first.',
+              ),
             )
           : ListView.separated(
               itemCount: _boards.length,
@@ -299,13 +265,6 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                 );
               },
             ),
-      floatingActionButton: _boards.isEmpty
-          ? FloatingActionButton.extended(
-              onPressed: _createBoard,
-              icon: const Icon(Icons.add),
-              label: Text(isKo ? '훈련보드 생성' : 'Create board'),
-            )
-          : null,
     );
   }
 }

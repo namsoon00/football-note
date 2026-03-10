@@ -18,7 +18,7 @@ import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
-import 'training_board_list_screen.dart';
+import 'training_method_board_screen.dart';
 
 class EntryFormScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -167,12 +167,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
-      _improvementsController.text = entry.improvements.isNotEmpty
-          ? entry.improvements
-          : entry.notes;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
+      _improvementsController.text =
+          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -222,12 +220,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _jumpRopeController.text = entry.jumpRopeCount > 0
-          ? entry.jumpRopeCount.toString()
-          : '';
-      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
-          ? entry.jumpRopeMinutes.toString()
-          : '';
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
+      _jumpRopeMinutesController.text =
+          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
@@ -461,9 +457,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -474,9 +469,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -787,8 +781,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             label: isKo ? '훈련보드' : 'Training board',
                             detail: _linkedBoardIds.isNotEmpty
                                 ? (isKo
-                                      ? '${_linkedBoardIds.length}개 연결'
-                                      : '${_linkedBoardIds.length} linked')
+                                    ? '${_linkedBoardIds.length}개 연결'
+                                    : '${_linkedBoardIds.length} linked')
                                 : (isKo ? '없음' : 'None'),
                             active: _linkedBoardIds.isNotEmpty,
                             onPressed: _openTrainingBoardEditor,
@@ -1180,9 +1174,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   enabled: _jumpRopeEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
-                                    labelText: isKo
-                                        ? '줄넘기 횟수'
-                                        : 'Jump rope count',
+                                    labelText:
+                                        isKo ? '줄넘기 횟수' : 'Jump rope count',
                                     hintText: '0',
                                   ),
                                 ),
@@ -1230,17 +1223,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           child: Text(
                             _autoSaving
                                 ? (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '자동 저장 중...'
-                                      : 'Autosaving...')
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '자동 저장 중...'
+                                    : 'Autosaving...')
                                 : (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '수정 내용이 자동 저장됩니다.'
-                                      : 'Changes are saved automatically.'),
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '수정 내용이 자동 저장됩니다.'
+                                    : 'Changes are saved automatically.'),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -1265,9 +1258,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required VoidCallback onPressed,
   }) {
     final theme = Theme.of(context);
-    final fg = active
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurfaceVariant;
+    final fg =
+        active ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? theme.colorScheme.primary.withValues(alpha: 0.12)
         : theme.colorScheme.surfaceContainerHighest;
@@ -1318,8 +1310,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController;
     final isListeningFor = _isListening && _listeningController == controller;
     final field = TextFormField(
@@ -1502,8 +1493,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1587,76 +1577,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Future<void> _openTrainingBoardEditor() async {
     final allBoards = _trainingBoardService.allBoards();
-    if (allBoards.isNotEmpty) {
-      final selectedIds = await Navigator.of(context).push<List<String>>(
-        MaterialPageRoute(
-          builder: (_) => TrainingBoardListScreen(
-            optionRepository: widget.optionRepository,
-            selectionMode: true,
-            initialSelectedIds: _linkedBoardIds.toList(growable: false),
-          ),
+    final selectedIds = await Navigator.of(context).push<List<String>>(
+      MaterialPageRoute(
+        builder: (_) => TrainingMethodBoardScreen(
+          boardTitle: '',
+          initialLayoutJson: '',
+          optionRepository: widget.optionRepository,
+          initialSelectedBoardIds: _linkedBoardIds.toList(growable: false),
+          initialBoardId: _linkedBoardIds.isNotEmpty
+              ? _linkedBoardIds.first
+              : (allBoards.isNotEmpty ? allBoards.first.id : null),
         ),
-      );
-      if (!mounted || selectedIds == null) return;
-      setState(() {
-        _linkedBoardIds
-          ..clear()
-          ..addAll(selectedIds);
-        _syncDrillsPayloadFromBoardLinks();
-      });
-      _scheduleAutoSave();
-      return;
-    }
-
-    final inputTitle = await _promptTrainingBoardTitle(initialValue: '');
-    if (!mounted || inputTitle == null) return;
-    final created = await _trainingBoardService.createBoard(
-      title: inputTitle,
-      layoutJson: '',
+      ),
     );
+    if (!mounted || selectedIds == null) return;
     if (!mounted) return;
     setState(() {
-      _linkedBoardIds.add(created.id);
+      _linkedBoardIds
+        ..clear()
+        ..addAll(selectedIds);
       _syncDrillsPayloadFromBoardLinks();
     });
     _scheduleAutoSave();
-  }
-
-  Future<String?> _promptTrainingBoardTitle({
-    required String initialValue,
-  }) async {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final controller = TextEditingController(text: initialValue);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련보드 제목' : 'Training board title'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(
-            hintText: isKo ? '예) 패스 워밍업' : 'e.g. Pass warm-up',
-            border: const OutlineInputBorder(),
-          ),
-          onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(isKo ? '취소' : 'Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: Text(isKo ? '확인' : 'OK'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    final trimmed = (result ?? '').trim();
-    if (trimmed.isEmpty) return null;
-    return trimmed;
   }
 
   void _scheduleAutoSave() {
@@ -1708,13 +1650,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0;
       final jumpRopeMinutes = _jumpRopeEnabled
           ? (_parseInt(
-                  _jumpRopeMinutesController.text.trim(),
-                )?.clamp(0, 1000000) ??
-                0)
+                _jumpRopeMinutesController.text.trim(),
+              )?.clamp(0, 1000000) ??
+              0)
           : 0;
-      final jumpRopeNote = _jumpRopeEnabled
-          ? _jumpRopeNoteController.text.trim()
-          : '';
+      final jumpRopeNote =
+          _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -1751,13 +1692,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       final fortuneComment = _fortuneEnabled
           ? _fortuneService
-                .generateResult(
-                  entry: draftEntry,
-                  profile: profile,
-                  history: allEntries,
-                  isKo: isKo,
-                )
-                .fortuneText
+              .generateResult(
+                entry: draftEntry,
+                profile: profile,
+                history: allEntries,
+                isKo: isKo,
+              )
+              .fortuneText
           : '';
 
       final entry = TrainingEntry(
@@ -1909,7 +1850,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           const SizedBox(width: 10),
                           Text(
                             isKo ? '오늘의 운세' : 'Today fortune',
-                            style: Theme.of(context).textTheme.titleLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ],
@@ -1935,7 +1878,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               isKo
                                   ? '오늘도 멋진 플레이를 응원할게요.'
                                   : 'Cheering for your best play today.',
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],
