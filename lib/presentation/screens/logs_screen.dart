@@ -789,7 +789,7 @@ class _EntryCard extends StatelessWidget {
         ? '-'
         : entry.location.trim();
     final titleText = '$titleProgram · $durationText · $titleLocation';
-    final focusText = _buildListFocusText(entry);
+    final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final boardIds = TrainingBoardLinkCodec.decodeBoardIds(entry.drills);
     final linkedBoards = boardIds
