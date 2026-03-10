@@ -754,9 +754,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 ? Icons.auto_awesome
                                 : Icons.auto_awesome_outlined,
                             label: isKo ? '오늘의 운세' : 'Today fortune',
-                            detail: _fortuneEnabled
-                                ? (isKo ? '표시됨' : 'On')
-                                : (isKo ? '숨김' : 'Off'),
                             active: _fortuneEnabled,
                             onPressed: () {
                               setState(
@@ -777,13 +774,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               ),
                             ),
                           _buildFeatureActionButton(
-                            icon: Icons.developer_board_outlined,
+                            icon: _linkedBoardIds.isNotEmpty
+                                ? Icons.developer_board
+                                : Icons.developer_board_outlined,
                             label: isKo ? '훈련보드' : 'Training board',
-                            detail: _linkedBoardIds.isNotEmpty
-                                ? (isKo
-                                    ? '${_linkedBoardIds.length}개 연결'
-                                    : '${_linkedBoardIds.length} linked')
-                                : (isKo ? '없음' : 'None'),
                             active: _linkedBoardIds.isNotEmpty,
                             onPressed: _openTrainingBoardEditor,
                           ),
@@ -1253,7 +1247,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Widget _buildFeatureActionButton({
     required IconData icon,
     required String label,
-    required String detail,
     required bool active,
     required VoidCallback onPressed,
   }) {
@@ -1283,7 +1276,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           Icon(icon, size: 16, color: fg),
           const SizedBox(width: 6),
           Text(
-            '$label · $detail',
+            label,
             style: TextStyle(
               color: fg,
               fontWeight: active ? FontWeight.w700 : FontWeight.w600,
