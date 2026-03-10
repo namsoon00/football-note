@@ -125,13 +125,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -174,9 +174,9 @@ class _LogsScreenState extends State<LogsScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -192,12 +192,12 @@ class _LogsScreenState extends State<LogsScreen> {
                       onBoardList: _openBoardList,
                       boardListLabel:
                           Localizations.localeOf(context).languageCode == 'ko'
-                              ? '훈련보드 리스트'
-                              : 'Training board list',
+                          ? '훈련보드 리스트'
+                          : 'Training board list',
                       boardListTitle:
                           Localizations.localeOf(context).languageCode == 'ko'
-                              ? '훈련보드'
-                              : 'Boards',
+                          ? '훈련보드'
+                          : 'Boards',
                       onSearch: _toggleSearch,
                       onFilter: () => _openFilterSheet(context),
                       actionLabel: l10n.addEntry,
@@ -457,6 +457,7 @@ class _LogsScreenState extends State<LogsScreen> {
         entry.goodPoints,
         entry.improvements,
         entry.nextGoal,
+        entry.jumpRopeNote,
         entry.notes,
         entry.goal,
         entry.feedback,
@@ -626,8 +627,9 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -783,8 +785,9 @@ class _EntryCard extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final titleLocation =
-        entry.location.trim().isEmpty ? '-' : entry.location.trim();
+    final titleLocation = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
     final titleText = '$titleProgram · $durationText · $titleLocation';
     final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
@@ -793,9 +796,11 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout =
-        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
-    final hasTrainingBoard = linkedBoards.isNotEmpty ||
+    final legacyLayout = linkedBoards.isEmpty
+        ? TrainingMethodLayout.decode(entry.drills)
+        : null;
+    final hasTrainingBoard =
+        linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -868,9 +873,10 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final locationText =
-        entry.location.trim().isEmpty ? '-' : entry.location.trim();
-    final focusText = _buildListFocusText(entry);
+    final locationText = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
+    final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
 
     return WatchCartCard(
@@ -1059,16 +1065,17 @@ String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
   return parts.join('  •  ');
 }
 
-String _buildListFocusText(TrainingEntry entry) {
+String _buildListFocusText(TrainingEntry entry, {bool includeFortune = true}) {
   if (entry.goalFocuses.isNotEmpty) {
     return entry.goalFocuses.join(', ');
   }
   if (entry.nextGoal.trim().isNotEmpty) return entry.nextGoal.trim();
   if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
   if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
+  if (entry.jumpRopeNote.trim().isNotEmpty) return entry.jumpRopeNote.trim();
   if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
   if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
-  if (entry.fortuneComment.trim().isNotEmpty) {
+  if (includeFortune && entry.fortuneComment.trim().isNotEmpty) {
     return entry.fortuneComment.trim();
   }
   if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
