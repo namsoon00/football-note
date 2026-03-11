@@ -46,6 +46,9 @@ void main() {
         injury: false,
         notes: 'focus touch',
         location: 'main field',
+        opponentTeam: 'Blue FC',
+        scoredGoals: 2,
+        concededGoals: 1,
       ),
     );
 
@@ -64,6 +67,7 @@ void main() {
       'type_options': ['technique', 'tactics'],
       'drive_auto_daily': false,
       'drive_auto_on_save': true,
+      'drive_last_backup': '2026-01-07T10:00:00.000',
       'local_pre_restore_backup': '{"should":"be excluded"}',
       'local_pre_restore_backup_at': '2026-01-01T00:00:00.000',
     });
@@ -76,6 +80,7 @@ void main() {
     expect(backupOptions['reminder_enabled'], false);
     expect(backupOptions['default_duration'], 90);
     expect(backupOptions['type_options'], ['technique', 'tactics']);
+    expect(backupOptions.containsKey('drive_last_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup_at'), isFalse);
 
@@ -86,6 +91,9 @@ void main() {
 
     expect(trainingBox.length, 1);
     expect(trainingBox.values.first.durationMinutes, 75);
+    expect(trainingBox.values.first.opponentTeam, 'Blue FC');
+    expect(trainingBox.values.first.scoredGoals, 2);
+    expect(trainingBox.values.first.concededGoals, 1);
 
     expect(optionBox.get('profile_name'), 'Lee');
     expect(optionBox.get('profile_height_cm'), '160.5');
@@ -94,6 +102,34 @@ void main() {
     expect(optionBox.get('reminder_time'), '07:30');
     expect(optionBox.get('default_duration'), 90);
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
+  });
+
+  test('restore keeps local backup metadata unchanged', () async {
+    await optionBox.put('drive_last_backup', '2026-02-01T08:00:00.000');
+    final backup = <String, dynamic>{
+      'version': 3,
+      'createdAt': '2026-02-02T08:00:00.000',
+      'entries': const [],
+      'options': <String, dynamic>{
+        'drive_last_backup': '2026-01-01T08:00:00.000',
+        'theme_mode': 'dark',
+      },
+      'optionRecords': const [
+        {
+          'key': 'drive_last_backup',
+          'value': '2026-01-01T08:00:00.000',
+        },
+        {
+          'key': 'theme_mode',
+          'value': 'dark',
+        },
+      ],
+    };
+
+    await service.restoreFromMapForTesting(backup);
+
+    expect(optionBox.get('drive_last_backup'), '2026-02-01T08:00:00.000');
+    expect(optionBox.get('theme_mode'), 'dark');
   });
 
   test('backs up and restores typed option values in v2 schema', () async {

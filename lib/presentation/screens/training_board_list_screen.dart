@@ -74,7 +74,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     final title = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련보드 제목' : 'Training board title'),
+        title: Text(isKo ? '훈련스케치 제목' : 'Training sketch title'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -138,7 +138,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련보드 삭제' : 'Delete training board'),
+        title: Text(isKo ? '훈련스케치 삭제' : 'Delete training sketch'),
         content: Text(
           isKo ? '"${board.title}"를 정말 삭제할까요?' : 'Delete "${board.title}"?',
         ),
@@ -189,7 +189,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '훈련보드 리스트' : 'Training board list'),
+        title: Text(isKo ? '훈련스케치 리스트' : 'Training sketch list'),
         actions: [
           if (widget.selectionMode)
             TextButton(
@@ -202,8 +202,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           ? Center(
               child: Text(
                 isKo
-                    ? '훈련노트 화면에서 먼저 훈련보드를 생성해주세요.'
-                    : 'Create a training board from a training note first.',
+                    ? '훈련노트 화면에서 먼저 훈련스케치를 생성해주세요.'
+                    : 'Create a training sketch from a training note first.',
               ),
             )
           : ListView.separated(
