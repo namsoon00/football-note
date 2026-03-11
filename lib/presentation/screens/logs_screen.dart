@@ -155,12 +155,6 @@ class _LogsScreenState extends State<LogsScreen> {
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
               final sourceEntries = snapshot.data ?? const <TrainingEntry>[];
-              final matchEntries =
-                  sourceEntries.where((entry) => entry.isMatch).toList()
-                    ..sort(TrainingEntry.compareByRecentCreated);
-              final recentMatches = matchEntries
-                  .take(4)
-                  .toList(growable: false);
               final allEntries =
                   sourceEntries.where((entry) => !entry.isMatch).toList()
                     ..sort(TrainingEntry.compareByRecentCreated);
@@ -231,28 +225,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         const SizedBox(height: 10),
                         _buildSearchBar(l10n),
                       ],
-                      if (recentMatches.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        _MatchSection(
-                          matches: recentMatches,
-                          onEdit: _onEntryTap,
-                        ),
-                      ],
                       const SizedBox(height: 12),
                       if (allEntries.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Center(
-                            child: Text(
-                              recentMatches.isNotEmpty
-                                  ? (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '훈련 기록이 없습니다.'
-                                        : 'No training logs yet.')
-                                  : l10n.noEntries,
-                            ),
+                            child: Text(l10n.noEntries),
                           ),
                         )
                       else if (visibleEntries.isEmpty)
@@ -1138,10 +1116,6 @@ class _ThumbPitchPainter extends CustomPainter {
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
   final parts = <String>[];
-  final matchResult = _matchResultText(entry, isKo: false);
-  if (matchResult.isNotEmpty) {
-    parts.add(matchResult);
-  }
   parts.add('${l10n.intensity} ${entry.intensity}');
   parts.add('${l10n.condition} ${entry.mood}');
   return parts.join('  •  ');
@@ -1155,27 +1129,11 @@ String _entryTitleLabel(TrainingEntry entry, AppLocalizations l10n) {
 
 String _entrySecondaryText(TrainingEntry entry, {required bool isKo}) {
   final parts = <String>[];
-  if (entry.opponentTeam.trim().isNotEmpty) {
-    parts.add(
-      isKo
-          ? 'vs ${entry.opponentTeam.trim()}'
-          : 'vs ${entry.opponentTeam.trim()}',
-    );
-  }
-  final result = _matchResultText(entry, isKo: isKo);
-  if (result.isNotEmpty) {
-    parts.add(result);
+  final location = entry.location.trim();
+  if (location.isNotEmpty) {
+    parts.add(location);
   }
   return parts.join(' · ');
-}
-
-String _matchResultText(TrainingEntry entry, {required bool isKo}) {
-  if (entry.scoredGoals == null && entry.concededGoals == null) {
-    return '';
-  }
-  final our = entry.scoredGoals?.toString() ?? '-';
-  final their = entry.concededGoals?.toString() ?? '-';
-  return isKo ? '결과 $our:$their' : 'Result $our:$their';
 }
 
 String _buildListFocusText(TrainingEntry entry, {bool includeFortune = true}) {
@@ -1349,114 +1307,6 @@ class _StatusMeta {
     required this.gradientEnd,
     required this.sparkleIcon,
   });
-}
-
-class _MatchSection extends StatelessWidget {
-  final List<TrainingEntry> matches;
-  final ValueChanged<TrainingEntry> onEdit;
-
-  const _MatchSection({required this.matches, required this.onEdit});
-
-  @override
-  Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.alarm_on_outlined,
-              size: 18,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                isKo ? '독립 시합 기록' : 'Independent Match Records',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-              ),
-            ),
-            Text(
-              isKo ? '${matches.length}건' : '${matches.length}',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ...matches.map(
-          (entry) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _MatchListItem(entry: entry, onTap: () => onEdit(entry)),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _MatchListItem extends StatelessWidget {
-  final TrainingEntry entry;
-  final VoidCallback onTap;
-
-  const _MatchListItem({required this.entry, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context).toString();
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
-    final opponent = entry.opponentTeam.trim().isEmpty
-        ? (isKo ? '상대 미입력' : 'Opponent unset')
-        : entry.opponentTeam.trim();
-    final result = _matchResultText(entry, isKo: isKo);
-    final playerRecord = [
-      if (entry.playerGoals != null)
-        isKo ? '득점 ${entry.playerGoals}' : 'Goals ${entry.playerGoals}',
-      if (entry.playerAssists != null)
-        isKo ? '도움 ${entry.playerAssists}' : 'Assists ${entry.playerAssists}',
-      if (entry.minutesPlayed != null)
-        isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
-    ].join(' · ');
-
-    return WatchCartCard(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.primary.withValues(alpha: 0.12),
-          child: const Icon(Icons.sports_soccer),
-        ),
-        title: Text(
-          '${entry.type.trim().isEmpty ? (isKo ? '시합' : 'Match') : entry.type.trim()} · $opponent',
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              [dateText, result].where((part) => part.isNotEmpty).join(' · '),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (playerRecord.isNotEmpty)
-              Text(
-                playerRecord,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Theme.of(context).colorScheme.primary),
-              ),
-          ],
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
-    );
-  }
 }
 
 enum _LogsLayout { card, list }

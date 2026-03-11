@@ -96,7 +96,7 @@ void main() {
     expect(find.text('검색 결과가 없습니다.'), findsOneWidget);
   });
 
-  testWidgets('Logs screen excludes match entries', (
+  testWidgets('Logs screen hides match entries from training log list', (
     WidgetTester tester,
   ) async {
     await box.clear();
@@ -145,8 +145,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('독립 시합 기록'), findsOneWidget);
-    expect(find.textContaining('라이벌 FC'), findsOneWidget);
-    expect(find.text('훈련 기록이 없습니다.'), findsOneWidget);
+    expect(find.text('독립 시합 기록'), findsNothing);
+    expect(find.textContaining('라이벌 FC'), findsNothing);
+    expect(find.text('아직 기록이 없습니다.'), findsOneWidget);
   });
 }
