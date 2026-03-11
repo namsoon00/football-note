@@ -69,6 +69,8 @@ class _LogsScreenState extends State<LogsScreen> {
   bool _optionsLoaded = false;
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
+  static const int _pageSize = 20;
+  int _visibleCount = _pageSize;
 
   @override
   void dispose() {
@@ -155,86 +157,140 @@ class _LogsScreenState extends State<LogsScreen> {
               final allEntries = (snapshot.data ?? [])
                 ..sort(TrainingEntry.compareByRecentCreated);
               final entries = _applyFilters(allEntries);
+              final visibleEntries = entries
+                  .take(_visibleCount.clamp(0, entries.length))
+                  .toList(growable: false);
               final l10n = AppLocalizations.of(context)!;
               final boardService = TrainingBoardService(
                 widget.optionRepository,
               );
               final boardsById = boardService.boardMap();
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Builder(
-                      builder: (context) => WatchCartAppBar(
-                        onMenuTap: () => Scaffold.of(context).openDrawer(),
-                        profilePhotoSource:
-                            widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
-                        onProfileTap: () => _openProfile(context),
-                        onSettingsTap: () => _openSettings(context),
+              return NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification.metrics.pixels >=
+                      notification.metrics.maxScrollExtent - 240) {
+                    _loadMore(entries.length);
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Builder(
+                        builder: (context) => WatchCartAppBar(
+                          onMenuTap: () => Scaffold.of(context).openDrawer(),
+                          profilePhotoSource:
+                              widget.optionRepository.getValue<String>(
+                                    'profile_photo_url',
+                                  ) ??
+                                  '',
+                          onProfileTap: () => _openProfile(context),
+                          onSettingsTap: () => _openSettings(context),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TabScreenTitle(
-                      title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
-                      trailing: _buildLayoutToggle(),
-                    ),
-                    const SizedBox(height: 12),
-                    WatchCartHomeOptions(
-                      onBoardList: _openBoardList,
-                      boardListLabel:
-                          Localizations.localeOf(context).languageCode == 'ko'
-                              ? '훈련보드 리스트'
-                              : 'Training board list',
-                      boardListTitle:
-                          Localizations.localeOf(context).languageCode == 'ko'
-                              ? '훈련보드'
-                              : 'Boards',
-                      boardBadgeCount: boardsById.length,
-                      onSearch: _toggleSearch,
-                      onFilter: () => _openFilterSheet(context),
-                      actionLabel:
-                          Localizations.localeOf(context).languageCode == 'ko'
-                              ? '기록 개수'
-                              : 'Entries',
-                      badgeCount: allEntries.length,
-                    ),
-                    if (_showSearch) ...[
-                      const SizedBox(height: 10),
-                      _buildSearchBar(l10n),
-                    ],
-                    const SizedBox(height: 12),
-                    if (allEntries.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Center(child: Text(l10n.noEntries)),
-                      )
-                    else if (entries.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Center(child: Text(l10n.noResults)),
-                      )
-                    else if (_layout == _LogsLayout.card)
-                      MasonryGridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        itemCount: entries.length,
-                        itemBuilder: (context, index) {
-                          final entry = entries[index];
-                          return ZoomIn(
-                            child: Dismissible(
+                      const SizedBox(height: 12),
+                      TabScreenTitle(
+                        title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
+                        trailing: _buildLayoutToggle(),
+                      ),
+                      const SizedBox(height: 12),
+                      WatchCartHomeOptions(
+                        onBoardList: _openBoardList,
+                        boardListLabel:
+                            Localizations.localeOf(context).languageCode == 'ko'
+                                ? '훈련보드 리스트'
+                                : 'Training board list',
+                        boardListTitle:
+                            Localizations.localeOf(context).languageCode == 'ko'
+                                ? '훈련보드'
+                                : 'Boards',
+                        boardBadgeCount: boardsById.length,
+                        onSearch: _toggleSearch,
+                        onFilter: () => _openFilterSheet(context),
+                        actionLabel:
+                            Localizations.localeOf(context).languageCode == 'ko'
+                                ? '기록 개수'
+                                : 'Entries',
+                        badgeCount: allEntries.length,
+                      ),
+                      if (_showSearch) ...[
+                        const SizedBox(height: 10),
+                        _buildSearchBar(l10n),
+                      ],
+                      const SizedBox(height: 12),
+                      if (allEntries.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: Text(l10n.noEntries)),
+                        )
+                      else if (visibleEntries.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: Text(l10n.noResults)),
+                        )
+                      else if (_layout == _LogsLayout.card)
+                        MasonryGridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          itemCount: visibleEntries.length,
+                          itemBuilder: (context, index) {
+                            final entry = visibleEntries[index];
+                            return ZoomIn(
+                              child: Dismissible(
+                                key: ValueKey(
+                                  'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                ),
+                                direction: DismissDirection.endToStart,
+                                confirmDismiss: (_) =>
+                                    _confirmDelete(context, entry),
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.errorContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Icon(
+                                    Icons.delete_outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
+                                  ),
+                                ),
+                                child: _EntryCard(
+                                  entry: entry,
+                                  boardsById: boardsById,
+                                  onEdit: () => _onEntryTap(entry),
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      else
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: visibleEntries.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final entry = visibleEntries[index];
+                            return Dismissible(
                               key: ValueKey(
-                                'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
                               ),
                               direction: DismissDirection.endToStart,
                               confirmDismiss: (_) =>
@@ -257,56 +313,28 @@ class _LogsScreenState extends State<LogsScreen> {
                                   ).colorScheme.onErrorContainer,
                                 ),
                               ),
-                              child: _EntryCard(
+                              child: _EntryListItem(
                                 entry: entry,
-                                boardsById: boardsById,
                                 onEdit: () => _onEntryTap(entry),
                               ),
+                            );
+                          },
+                        ),
+                      if (visibleEntries.length < entries.length)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12, bottom: 4),
+                          child: Center(
+                            child: Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? '${visibleEntries.length}/${entries.length}개 표시 중'
+                                  : 'Showing ${visibleEntries.length}/${entries.length}',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                          );
-                        },
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: entries.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final entry = entries[index];
-                          return Dismissible(
-                            key: ValueKey(
-                              'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
-                            ),
-                            direction: DismissDirection.endToStart,
-                            confirmDismiss: (_) =>
-                                _confirmDelete(context, entry),
-                            background: Container(
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.errorContainer,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Icon(
-                                Icons.delete_outline,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onErrorContainer,
-                              ),
-                            ),
-                            child: _EntryListItem(
-                              entry: entry,
-                              onEdit: () => _onEntryTap(entry),
-                            ),
-                          );
-                        },
-                      ),
-                  ],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -337,7 +365,10 @@ class _LogsScreenState extends State<LogsScreen> {
       return InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () async {
-          setState(() => _layout = type);
+          setState(() {
+            _layout = type;
+            _resetPagination();
+          });
           await widget.optionRepository.setValue(
             _layoutKey,
             type == _LogsLayout.list ? 'list' : 'card',
@@ -397,7 +428,10 @@ class _LogsScreenState extends State<LogsScreen> {
   Widget _buildSearchBar(AppLocalizations l10n) {
     return TextField(
       controller: _searchController,
-      onChanged: (value) => setState(() => _searchQuery = value.trim()),
+      onChanged: (value) => setState(() {
+        _searchQuery = value.trim();
+        _resetPagination();
+      }),
       decoration: InputDecoration(
         hintText: l10n.searchHint,
         prefixIcon: const Icon(Icons.search),
@@ -430,6 +464,7 @@ class _LogsScreenState extends State<LogsScreen> {
         _searchController.clear();
         _searchQuery = '';
       }
+      _resetPagination();
     });
   }
 
@@ -595,6 +630,7 @@ class _LogsScreenState extends State<LogsScreen> {
       _locationFilter = result.location;
       _programFilter = result.program;
       _injuryOnly = result.injuryOnly;
+      _resetPagination();
     });
     await _persistFilters(result);
   }
@@ -752,6 +788,18 @@ class _LogsScreenState extends State<LogsScreen> {
       ),
     );
     if (mounted) setState(() {});
+  }
+
+  void _resetPagination() {
+    _visibleCount = _pageSize;
+  }
+
+  void _loadMore(int totalCount) {
+    if (!mounted) return;
+    if (_visibleCount >= totalCount) return;
+    setState(() {
+      _visibleCount = (_visibleCount + _pageSize).clamp(0, totalCount);
+    });
   }
 }
 
