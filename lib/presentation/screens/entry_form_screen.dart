@@ -49,12 +49,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _goodPointsController = TextEditingController();
   final _improvementsController = TextEditingController();
   final _drillsController = TextEditingController();
-  final _opponentController = TextEditingController();
-  final _ourScoreController = TextEditingController();
-  final _opponentScoreController = TextEditingController();
-  final _playerGoalsController = TextEditingController();
-  final _playerAssistsController = TextEditingController();
-  final _minutesPlayedController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
   final _liftChestController = TextEditingController();
@@ -104,7 +98,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _liftingEnabled = false;
   bool _jumpRopeEnabled = false;
   bool _fortuneEnabled = false;
-  bool _isMatchEntry = false;
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -167,7 +160,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
     final entry = widget.entry;
     if (entry != null) {
-      final matchLabel = l10n.typeMatch;
       _editingKey = entry.key is int ? entry.key as int : null;
       _date = entry.date;
       _durationMinutes = _initIntSelection(
@@ -189,17 +181,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _status = entry.status.isEmpty ? 'normal' : entry.status;
       _injury = entry.injury;
       _location = _initSelection('locations', _locationOptions, entry.location);
-      _isMatchEntry = entry.opponentTeam.trim().isNotEmpty ||
-          entry.club.trim().isNotEmpty ||
-          entry.type.trim() == matchLabel ||
-          entry.program.trim() == matchLabel;
-      _opponentController.text =
-          entry.opponentTeam.isNotEmpty ? entry.opponentTeam : entry.club;
-      _ourScoreController.text = entry.scoredGoals?.toString() ?? '';
-      _opponentScoreController.text = entry.concededGoals?.toString() ?? '';
-      _playerGoalsController.text = entry.playerGoals?.toString() ?? '';
-      _playerAssistsController.text = entry.playerAssists?.toString() ?? '';
-      _minutesPlayedController.text = entry.minutesPlayed?.toString() ?? '';
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
       _rehab = entry.rehab;
@@ -267,7 +248,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _type = _defaultString('default_program', _programOptions, 'programs');
       _status = 'normal';
-      _isMatchEntry = false;
       _linkedBoardIds.clear();
       _syncDrillsPayloadFromBoardLinks();
       _jumpRopeEnabled = false;
@@ -338,17 +318,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _mood.toString(),
       _type.trim(),
       _status.trim(),
-      _isMatchEntry.toString(),
       _injury.toString(),
       _rehab.toString(),
       _liftingEnabled.toString(),
       _location.trim(),
-      _opponentController.text.trim(),
-      _ourScoreController.text.trim(),
-      _opponentScoreController.text.trim(),
-      _playerGoalsController.text.trim(),
-      _playerAssistsController.text.trim(),
-      _minutesPlayedController.text.trim(),
       _injuryPartController.text.trim(),
       _painController.text.trim(),
       _goodPointsController.text.trim(),
@@ -439,143 +412,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       widget.optionRepository.saveOptions(optionsKey, options);
     }
     return value;
-  }
-
-  Widget _buildEntryKindSelector(AppLocalizations l10n) {
-    final allowMatchSelection = widget.entry != null && _isMatchEntry;
-    if (!allowMatchSelection) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.trainingType,
-              style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ChoiceChip(
-              label: Text(
-                Localizations.localeOf(context).languageCode == 'ko'
-                    ? '훈련'
-                    : 'Training',
-              ),
-              selected: true,
-              onSelected: (_) {},
-            ),
-          ),
-        ],
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.trainingType, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ChoiceChip(
-              label: Text(
-                Localizations.localeOf(context).languageCode == 'ko'
-                    ? '훈련'
-                    : 'Training',
-              ),
-              selected: !_isMatchEntry,
-              onSelected: (selected) {
-                if (!selected) return;
-                setState(() => _isMatchEntry = false);
-                _scheduleAutoSave();
-              },
-            ),
-            ChoiceChip(
-              label: Text(l10n.typeMatch),
-              selected: _isMatchEntry,
-              onSelected: (selected) {
-                if (!selected) return;
-                setState(() => _isMatchEntry = true);
-                _scheduleAutoSave();
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMatchDetailsCard(bool isKo) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: _opponentController,
-          decoration: InputDecoration(
-            labelText: isKo ? '상대 팀' : 'Opponent team',
-            hintText: isKo ? '예) FC 서울 U15' : 'e.g. FC Seoul U15',
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _ourScoreController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: isKo ? '우리 팀 점수' : 'Our score',
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                controller: _opponentScoreController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: isKo ? '상대 팀 점수' : 'Opponent score',
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _playerGoalsController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: isKo ? '내 골' : 'My goals',
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                controller: _playerAssistsController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: isKo ? '내 어시스트' : 'My assists',
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: _minutesPlayedController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: isKo ? '출전 시간(분)' : 'Minutes played',
-            border: const OutlineInputBorder(),
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildStatusRow(AppLocalizations l10n) {
@@ -821,12 +657,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _goodPointsController.dispose();
     _improvementsController.dispose();
     _drillsController.dispose();
-    _opponentController.dispose();
-    _ourScoreController.dispose();
-    _opponentScoreController.dispose();
-    _playerGoalsController.dispose();
-    _playerAssistsController.dispose();
-    _minutesPlayedController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
     _liftChestController.dispose();
@@ -848,6 +678,50 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final isMatchEntry = widget.entry?.isMatch ?? false;
+    if (isMatchEntry) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    onPressed: _attemptExit,
+                    icon: const Icon(Icons.arrow_back),
+                    tooltip: l10n.cancel,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                WatchCartCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isKo ? '시합 기록은 캘린더에서 관리합니다.' : 'Match records are managed in Calendar.',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        isKo
+                            ? '훈련노트에서는 시합 정보를 보여주지 않습니다. 시합 확인과 수정은 캘린더에서 진행해주세요.'
+                            : 'Training notes no longer show match details. View and edit matches from Calendar.',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -946,8 +820,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   WatchCartCard(
                     child: Column(
                       children: [
-                        _buildEntryKindSelector(l10n),
-                        const SizedBox(height: 12),
                         _buildStatusRow(l10n),
                         const SizedBox(height: 12),
                         InkWell(
@@ -1049,27 +921,24 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        if (!_isMatchEntry)
-                          _buildSelectRow(
-                            label: l10n.program,
-                            value: _type,
+                        _buildSelectRow(
+                          label: l10n.program,
+                          value: _type,
+                          options: _programOptions,
+                          onChanged: (value) {
+                            setState(() => _type = value);
+                            _scheduleAutoSave();
+                          },
+                          onAdd: () => _addOption(
+                            key: 'programs',
+                            title: l10n.program,
                             options: _programOptions,
-                            onChanged: (value) {
-                              setState(() => _type = value);
-                              _scheduleAutoSave();
-                            },
-                            onAdd: () => _addOption(
-                              key: 'programs',
-                              title: l10n.program,
-                              options: _programOptions,
-                              onUpdated: (list) =>
-                                  setState(() => _programOptions = list),
-                              onSelected: (value) =>
-                                  setState(() => _type = value),
-                            ),
-                          )
-                        else
-                          _buildMatchDetailsCard(isKo),
+                            onUpdated: (list) =>
+                                setState(() => _programOptions = list),
+                            onSelected: (value) =>
+                                setState(() => _type = value),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
@@ -1689,7 +1558,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Future<void> _showTodayFortuneInNote() async {
     if (!_fortuneEnabled) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final l10n = AppLocalizations.of(context)!;
     final profile = PlayerProfileService(widget.optionRepository).load();
     final allEntries = await widget.trainingService.allEntries();
     final goodPoints = _goodPointsController.text.trim();
@@ -1698,14 +1566,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       date: DateTime(_date.year, _date.month, _date.day),
       durationMinutes: _durationMinutes,
       intensity: _intensity,
-      type: _isMatchEntry ? l10n.typeMatch : _type,
+      type: _type,
       mood: _mood,
       injury: _injury,
       notes: improvements,
       location: _location,
-      program: _isMatchEntry ? l10n.typeMatch : _type,
+      program: _type,
       drills: _drillsController.text.trim(),
-      club: _opponentController.text.trim(),
+      club: '',
       injuryPart: _injury ? _injuryPartController.text.trim() : '',
       painLevel: _injury ? _parseInt(_painController.text) : null,
       rehab: _injury ? _rehab : false,
@@ -1730,15 +1598,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0,
       jumpRopeEnabled: _jumpRopeEnabled,
       jumpRopeNote: _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '',
-      opponentTeam: _opponentController.text.trim(),
-      scoredGoals: _parseScore(_ourScoreController.text),
-      concededGoals: _parseScore(_opponentScoreController.text),
-      playerGoals:
-          _isMatchEntry ? _parseScore(_playerGoalsController.text) : null,
-      playerAssists:
-          _isMatchEntry ? _parseScore(_playerAssistsController.text) : null,
-      minutesPlayed:
-          _isMatchEntry ? _parseScore(_minutesPlayedController.text) : null,
     );
     final fortune = _fortuneService.generateResult(
       entry: draft,
@@ -1799,7 +1658,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
     try {
       final isKo = Localizations.localeOf(context).languageCode == 'ko';
-      final l10n = AppLocalizations.of(context)!;
       _syncDrillsPayloadFromBoardLinks();
       final injuryPart = _injury ? _injuryPartController.text.trim() : '';
       final painLevel = _injury ? _parseInt(_painController.text) : null;
@@ -1820,17 +1678,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final goodPoints = _goodPointsController.text.trim();
       final improvements = _improvementsController.text.trim();
       const nextGoal = '';
-      final opponentTeam = _isMatchEntry ? _opponentController.text.trim() : '';
-      final scoredGoals =
-          _isMatchEntry ? _parseScore(_ourScoreController.text) : null;
-      final concededGoals =
-          _isMatchEntry ? _parseScore(_opponentScoreController.text) : null;
-      final playerGoals =
-          _isMatchEntry ? _parseScore(_playerGoalsController.text) : null;
-      final playerAssists =
-          _isMatchEntry ? _parseScore(_playerAssistsController.text) : null;
-      final minutesPlayed =
-          _isMatchEntry ? _parseScore(_minutesPlayedController.text) : null;
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
       final jumpRopeCount = _jumpRopeEnabled
           ? (_parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0)
@@ -1848,14 +1695,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         date: DateTime(_date.year, _date.month, _date.day),
         durationMinutes: durationMinutes,
         intensity: _intensity,
-        type: _isMatchEntry ? l10n.typeMatch : _type,
+        type: _type,
         mood: _mood,
         injury: _injury,
         notes: improvements,
         location: _location,
-        program: _isMatchEntry ? l10n.typeMatch : _type,
+        program: _type,
         drills: _drillsController.text.trim(),
-        club: opponentTeam,
+        club: '',
         injuryPart: injuryPart,
         painLevel: painLevel,
         rehab: _injury ? _rehab : false,
@@ -1876,12 +1723,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         jumpRopeMinutes: jumpRopeMinutes,
         jumpRopeEnabled: _jumpRopeEnabled,
         jumpRopeNote: jumpRopeNote,
-        opponentTeam: opponentTeam,
-        scoredGoals: scoredGoals,
-        concededGoals: concededGoals,
-        playerGoals: playerGoals,
-        playerAssists: playerAssists,
-        minutesPlayed: minutesPlayed,
       );
       final generatedFortuneComment = _fortuneService
           .generateResult(
@@ -2506,12 +2347,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final cleaned = text.trim();
     if (cleaned.isEmpty) return null;
     return int.tryParse(cleaned);
-  }
-
-  int? _parseScore(String text) {
-    final parsed = _parseInt(text);
-    if (parsed == null || parsed < 0) return null;
-    return parsed;
   }
 
   int _parseLiftCount(String text) {
