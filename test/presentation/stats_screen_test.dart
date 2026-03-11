@@ -43,8 +43,9 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
-  testWidgets('Stats screen shows summary after save',
-      (WidgetTester tester) async {
+  testWidgets('Stats screen shows summary after save', (
+    WidgetTester tester,
+  ) async {
     final entry = TrainingEntry(
       date: DateTime.now(),
       durationMinutes: 60,
@@ -70,10 +71,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('ko', 'KR'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: StatsScreen(
             trainingService: service,
             localeService: localeService,
@@ -87,8 +85,65 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('최근 7일'), findsOneWidget);
+    expect(find.text('훈련'), findsOneWidget);
+    expect(find.text('시합'), findsOneWidget);
     expect(find.text('훈련 횟수'), findsOneWidget);
-    expect(find.textContaining('1회'), findsWidgets);
-    expect(find.text('성장 히스토리'), findsOneWidget);
+    expect(find.textContaining('1회'), findsOneWidget);
+    expect(find.text('전체 요약'), findsOneWidget);
+  });
+
+  testWidgets('Stats screen separates match records in match tab', (
+    WidgetTester tester,
+  ) async {
+    await box.clear();
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 80,
+        intensity: 3,
+        type: '경기',
+        mood: 3,
+        injury: false,
+        notes: '전반 압박 좋았음',
+        location: '메인 구장',
+        opponentTeam: '라이벌 FC',
+        scoredGoals: 3,
+        concededGoals: 1,
+        playerGoals: 1,
+        playerAssists: 1,
+        minutesPlayed: 70,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    await tester.tap(find.text('시합'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('시합 요약'), findsOneWidget);
+    expect(find.text('전체 시합 기록'), findsOneWidget);
+    expect(find.textContaining('라이벌 FC'), findsOneWidget);
   });
 }

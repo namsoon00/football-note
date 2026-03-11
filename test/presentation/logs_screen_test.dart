@@ -67,10 +67,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('ko', 'KR'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: LogsScreen(
             trainingService: service,
             localeService: localeService,
@@ -99,8 +96,9 @@ void main() {
     expect(find.text('검색 결과가 없습니다.'), findsOneWidget);
   });
 
-  testWidgets('Logs screen excludes match entries',
-      (WidgetTester tester) async {
+  testWidgets('Logs screen excludes match entries', (
+    WidgetTester tester,
+  ) async {
     await box.clear();
     await service.add(
       TrainingEntry(
@@ -133,10 +131,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('ko', 'KR'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: LogsScreen(
             trainingService: service,
             localeService: localeService,
@@ -150,8 +145,8 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('기록이 없습니다.'), findsOneWidget);
-    expect(find.textContaining('라이벌 FC'), findsNothing);
-    expect(find.textContaining('시합 메모'), findsNothing);
+    expect(find.text('독립 시합 기록'), findsOneWidget);
+    expect(find.textContaining('라이벌 FC'), findsOneWidget);
+    expect(find.text('훈련 기록이 없습니다.'), findsOneWidget);
   });
 }
