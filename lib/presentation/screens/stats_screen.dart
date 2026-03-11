@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../../application/benchmark_service.dart';
 import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
@@ -45,6 +46,7 @@ class StatsScreen extends StatefulWidget {
 class _StatsScreenState extends State<StatsScreen> {
   late final BenchmarkService _benchmarkService;
   late DateTimeRange _selectedRange;
+  int _statsTabIndex = 0;
 
   @override
   void initState() {
@@ -157,6 +159,11 @@ class _StatsScreenState extends State<StatsScreen> {
               entry.date.isBefore(rangeEndExclusive),
         )
         .toList(growable: false);
+    final trainingEntries = filteredEntries
+        .where((entry) => !entry.isMatch)
+        .toList(growable: false);
+    final matchEntries =
+        filteredEntries.where((entry) => entry.isMatch).toList(growable: false);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -216,101 +223,180 @@ class _StatsScreenState extends State<StatsScreen> {
             _InlineNotice(text: topMessage),
             const SizedBox(height: 12),
           ],
-          if (entries.isEmpty) ...[
-            _InlineNotice(
-              text: isKo
-                  ? '아직 통계가 없어요. 훈련일지를 1개 이상 기록하면 자동으로 표시됩니다.'
-                  : 'No stats yet. Add at least one training entry to see analytics.',
+          _buildStatsTabBar(context, isKo),
+          const SizedBox(height: 16),
+          if (_statsTabIndex == 0)
+            _buildTrainingStatsTab(
+              context,
+              isKo: isKo,
+              profile: profile,
+              ageYears: ageYears,
+              soccerYears: soccerYears,
+              canShowAverage: canShowAverage,
+              trainingEntries: trainingEntries,
+            )
+          else
+            _buildMatchStatsTab(
+              context,
+              isKo: isKo,
+              entries: entries,
+              filteredEntries: filteredEntries,
+              matchEntries: matchEntries,
             ),
-            const SizedBox(height: 12),
-          ] else if (filteredEntries.isEmpty) ...[
-            _InlineNotice(
-              text: isKo
-                  ? '선택한 기간에 훈련 기록이 없습니다.'
-                  : 'No training entries in the selected period.',
-            ),
-            const SizedBox(height: 12),
-          ] else ...[
-            if (!canShowAverage) ...[
-              _InlineNotice(
-                text: isKo
-                    ? '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.'
-                    : 'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.',
-                title: isKo
-                    ? '나이/구력 정보를 입력해 주세요'
-                    : 'Enter age and soccer experience',
-                trailing: Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _openProfile(context),
-                    icon: const Icon(Icons.person_outline),
-                    label: Text(isKo ? '프로필 입력하기' : 'Open Profile'),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _TargetGrowthChart(
-                  entries: filteredEntries,
-                  ageYears: ageYears,
-                  soccerYears: soccerYears,
-                  isKo: isKo,
-                  showAverage: canShowAverage,
-                  range: _selectedRange,
-                ),
-                const SizedBox(height: 18),
-                Divider(
-                  height: 1,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.25),
-                ),
-                const SizedBox(height: 18),
-                _BodyAndLiftingBenchmarkCard(
-                  entries: filteredEntries,
-                  profile: profile,
-                  ageYears: ageYears,
-                  isKo: isKo,
-                  benchmarkService: _benchmarkService,
-                  showAverage: canShowAverage,
-                  onReferenceTap: canShowAverage
-                      ? () => _openAverageBenchmark(
-                            context,
-                            filteredEntries,
-                            ageYears,
-                            soccerYears,
-                          )
-                      : null,
-                ),
-                const SizedBox(height: 18),
-                Divider(
-                  height: 1,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.25),
-                ),
-                const SizedBox(height: 18),
-                _LiftingSummaryCard(entries: filteredEntries),
-                const SizedBox(height: 18),
-                Divider(
-                  height: 1,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.25),
-                ),
-                const SizedBox(height: 18),
-                _JumpRopeSummaryCard(
-                  entries: filteredEntries,
-                  range: _selectedRange,
-                ),
-              ],
-            ),
-          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildStatsTabBar(BuildContext context, bool isKo) {
+    return SegmentedButton<int>(
+      segments: [
+        ButtonSegment<int>(
+          value: 0,
+          icon: const Icon(Icons.fitness_center_outlined),
+          label: Text(isKo ? '훈련' : 'Training'),
+        ),
+        ButtonSegment<int>(
+          value: 1,
+          icon: const Icon(Icons.sports_soccer_outlined),
+          label: Text(isKo ? '시합' : 'Matches'),
+        ),
+      ],
+      selected: {_statsTabIndex},
+      onSelectionChanged: (selection) {
+        setState(() {
+          _statsTabIndex = selection.first;
+        });
+      },
+      showSelectedIcon: false,
+    );
+  }
+
+  Widget _buildTrainingStatsTab(
+    BuildContext context, {
+    required bool isKo,
+    required PlayerProfile profile,
+    required int? ageYears,
+    required int? soccerYears,
+    required bool canShowAverage,
+    required List<TrainingEntry> trainingEntries,
+  }) {
+    if (trainingEntries.isEmpty) {
+      return _InlineNotice(
+        text: isKo
+            ? '선택한 기간에 훈련 기록이 없습니다.'
+            : 'No training entries in the selected period.',
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _TrainingSummaryCard(entries: trainingEntries),
+        const SizedBox(height: 18),
+        Divider(
+          height: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        ),
+        const SizedBox(height: 18),
+        if (!canShowAverage) ...[
+          _InlineNotice(
+            text: isKo
+                ? '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.'
+                : 'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.',
+            title:
+                isKo ? '나이/구력 정보를 입력해 주세요' : 'Enter age and soccer experience',
+            trailing: Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: () => _openProfile(context),
+                icon: const Icon(Icons.person_outline),
+                label: Text(isKo ? '프로필 입력하기' : 'Open Profile'),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        _TargetGrowthChart(
+          entries: trainingEntries,
+          ageYears: ageYears,
+          soccerYears: soccerYears,
+          isKo: isKo,
+          showAverage: canShowAverage,
+          range: _selectedRange,
+        ),
+        const SizedBox(height: 18),
+        Divider(
+          height: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        ),
+        const SizedBox(height: 18),
+        _BodyAndLiftingBenchmarkCard(
+          entries: trainingEntries,
+          profile: profile,
+          ageYears: ageYears,
+          isKo: isKo,
+          benchmarkService: _benchmarkService,
+          showAverage: canShowAverage,
+          onReferenceTap: canShowAverage
+              ? () => _openAverageBenchmark(
+                    context,
+                    trainingEntries,
+                    ageYears,
+                    soccerYears,
+                  )
+              : null,
+        ),
+        const SizedBox(height: 18),
+        Divider(
+          height: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        ),
+        const SizedBox(height: 18),
+        _LiftingSummaryCard(entries: trainingEntries),
+        const SizedBox(height: 18),
+        Divider(
+          height: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        ),
+        const SizedBox(height: 18),
+        _JumpRopeSummaryCard(entries: trainingEntries, range: _selectedRange),
+      ],
+    );
+  }
+
+  Widget _buildMatchStatsTab(
+    BuildContext context, {
+    required bool isKo,
+    required List<TrainingEntry> entries,
+    required List<TrainingEntry> filteredEntries,
+    required List<TrainingEntry> matchEntries,
+  }) {
+    if (entries.isEmpty) {
+      return _InlineNotice(
+        text: isKo ? '아직 시합 기록이 없습니다.' : 'No match records yet.',
+      );
+    }
+    if (filteredEntries.isEmpty || matchEntries.isEmpty) {
+      return _InlineNotice(
+        text: isKo
+            ? '선택한 기간에 시합 기록이 없습니다.'
+            : 'No matches in the selected period.',
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _MatchSummaryCard(entries: matchEntries),
+        const SizedBox(height: 18),
+        Divider(
+          height: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        ),
+        const SizedBox(height: 18),
+        _MatchHistorySection(entries: matchEntries),
+      ],
     );
   }
 
@@ -1219,6 +1305,280 @@ class _JumpRopeSummaryCard extends StatelessWidget {
       ],
     );
   }
+}
+
+class _TrainingSummaryCard extends StatelessWidget {
+  final List<TrainingEntry> entries;
+
+  const _TrainingSummaryCard({required this.entries});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final trainingCount = entries.length;
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    final avgIntensity = entries.isEmpty
+        ? 0
+        : (entries.fold<int>(0, (sum, entry) => sum + entry.intensity) /
+                entries.length)
+            .toStringAsFixed(1);
+    final avgCondition = entries.isEmpty
+        ? 0
+        : (entries.fold<int>(0, (sum, entry) => sum + entry.mood) /
+                entries.length)
+            .toStringAsFixed(1);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(icon: Icons.analytics_outlined, title: l10n.statsSummary),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _MetricCard(
+              label: l10n.statsTotalSessions,
+              value: Localizations.localeOf(context).languageCode == 'ko'
+                  ? '$trainingCount회'
+                  : '$trainingCount',
+            ),
+            _MetricCard(
+              label: l10n.statsTotalMinutes,
+              value: _formatMinutesAsTime(
+                totalMinutes,
+                isKo: Localizations.localeOf(context).languageCode == 'ko',
+              ),
+            ),
+            _MetricCard(label: l10n.statsAvgIntensity, value: '$avgIntensity'),
+            _MetricCard(label: l10n.statsAvgCondition, value: '$avgCondition'),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchSummaryCard extends StatelessWidget {
+  final List<TrainingEntry> entries;
+
+  const _MatchSummaryCard({required this.entries});
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final wins = entries.where((entry) => _matchOutcome(entry) == 1).length;
+    final draws = entries.where((entry) => _matchOutcome(entry) == 0).length;
+    final losses = entries.where((entry) => _matchOutcome(entry) == -1).length;
+    final scored = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.scoredGoals ?? 0),
+    );
+    final conceded = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.concededGoals ?? 0),
+    );
+    final playerGoals = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.playerGoals ?? 0),
+    );
+    final playerAssists = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.playerAssists ?? 0),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+          icon: Icons.scoreboard_outlined,
+          title: isKo ? '시합 요약' : 'Match Summary',
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _MetricCard(
+              label: isKo ? '총 시합' : 'Matches',
+              value: isKo ? '${entries.length}경기' : '${entries.length}',
+            ),
+            _MetricCard(
+              label: isKo ? '전적' : 'Record',
+              value: isKo ? '$wins승 $draws무 $losses패' : '$wins-$draws-$losses',
+            ),
+            _MetricCard(
+              label: isKo ? '득실점' : 'Goals',
+              value: '$scored:$conceded',
+            ),
+            _MetricCard(
+              label: isKo ? '개인 기록' : 'Personal',
+              value: isKo
+                  ? '$playerGoals골 $playerAssists도움'
+                  : '$playerGoals G / $playerAssists A',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchHistorySection extends StatelessWidget {
+  final List<TrainingEntry> entries;
+
+  const _MatchHistorySection({required this.entries});
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final sorted = [...entries]..sort(TrainingEntry.compareByRecentCreated);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+          icon: Icons.format_list_bulleted_outlined,
+          title: isKo ? '전체 시합 기록' : 'All Match Records',
+        ),
+        const SizedBox(height: 12),
+        ...sorted.map(
+          (entry) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _MatchHistoryTile(entry: entry),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchHistoryTile extends StatelessWidget {
+  final TrainingEntry entry;
+
+  const _MatchHistoryTile({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toString();
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final opponent = entry.opponentTeam.trim().isEmpty
+        ? (isKo ? '상대 미입력' : 'Opponent unset')
+        : entry.opponentTeam.trim();
+    final detailLine = [
+      if (entry.playerGoals != null)
+        isKo ? '득점 ${entry.playerGoals}' : 'Goals ${entry.playerGoals}',
+      if (entry.playerAssists != null)
+        isKo ? '도움 ${entry.playerAssists}' : 'Assists ${entry.playerAssists}',
+      if (entry.minutesPlayed != null)
+        isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
+    ].join(' · ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            DateFormat.yMMMd(locale).add_E().format(entry.date),
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${entry.type.trim().isEmpty ? (isKo ? '시합' : 'Match') : entry.type.trim()} · $opponent',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _matchResultLabel(entry, isKo: isKo),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (detailLine.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(detailLine),
+          ],
+          if (entry.notes.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              entry.notes.trim(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricCard extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MetricCard({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = (MediaQuery.of(context).size.width - 42) / 2;
+    return Container(
+      width: width < 150 ? double.infinity : width,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+int _matchOutcome(TrainingEntry entry) {
+  final scored = entry.scoredGoals;
+  final conceded = entry.concededGoals;
+  if (scored == null || conceded == null) return 0;
+  if (scored > conceded) return 1;
+  if (scored < conceded) return -1;
+  return 0;
+}
+
+String _matchResultLabel(TrainingEntry entry, {required bool isKo}) {
+  final scored = entry.scoredGoals;
+  final conceded = entry.concededGoals;
+  if (scored == null && conceded == null) {
+    return isKo ? '결과 미입력' : 'Result unset';
+  }
+  final resultLabel = switch (_matchOutcome(entry)) {
+    1 => isKo ? '승' : 'Win',
+    -1 => isKo ? '패' : 'Loss',
+    _ => isKo ? '무' : 'Draw',
+  };
+  return '$resultLabel ${scored ?? '-'}:${conceded ?? '-'}';
 }
 
 class _InlineNotice extends StatelessWidget {

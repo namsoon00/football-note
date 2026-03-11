@@ -127,13 +127,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -154,10 +154,16 @@ class _LogsScreenState extends State<LogsScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries = (snapshot.data ?? [])
-                  .where((entry) => !entry.isMatch)
-                  .toList()
-                ..sort(TrainingEntry.compareByRecentCreated);
+              final sourceEntries = snapshot.data ?? const <TrainingEntry>[];
+              final matchEntries =
+                  sourceEntries.where((entry) => entry.isMatch).toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
+              final recentMatches = matchEntries
+                  .take(4)
+                  .toList(growable: false);
+              final allEntries =
+                  sourceEntries.where((entry) => !entry.isMatch).toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
               final entries = _applyFilters(allEntries);
               final visibleEntries = entries
                   .take(_visibleCount.clamp(0, entries.length))
@@ -189,9 +195,9 @@ class _LogsScreenState extends State<LogsScreen> {
                           onMenuTap: () => Scaffold.of(context).openDrawer(),
                           profilePhotoSource:
                               widget.optionRepository.getValue<String>(
-                                    'profile_photo_url',
-                                  ) ??
-                                  '',
+                                'profile_photo_url',
+                              ) ??
+                              '',
                           onProfileTap: () => _openProfile(context),
                           onSettingsTap: () => _openSettings(context),
                         ),
@@ -206,30 +212,48 @@ class _LogsScreenState extends State<LogsScreen> {
                         onBoardList: _openBoardList,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련스케치 리스트'
-                                : 'Training sketch list',
+                            ? '훈련스케치 리스트'
+                            : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련스케치'
-                                : 'Sketches',
+                            ? '훈련스케치'
+                            : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
                         actionLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '기록 개수'
-                                : 'Entries',
+                            ? '기록 개수'
+                            : 'Entries',
                         badgeCount: allEntries.length,
                       ),
                       if (_showSearch) ...[
                         const SizedBox(height: 10),
                         _buildSearchBar(l10n),
                       ],
+                      if (recentMatches.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _MatchSection(
+                          matches: recentMatches,
+                          onEdit: _onEntryTap,
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       if (allEntries.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: Text(l10n.noEntries)),
+                          child: Center(
+                            child: Text(
+                              recentMatches.isNotEmpty
+                                  ? (Localizations.localeOf(
+                                              context,
+                                            ).languageCode ==
+                                            'ko'
+                                        ? '훈련 기록이 없습니다.'
+                                        : 'No training logs yet.')
+                                  : l10n.noEntries,
+                            ),
+                          ),
                         )
                       else if (visibleEntries.isEmpty)
                         Padding(
@@ -669,8 +693,9 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -841,12 +866,16 @@ class _EntryCard extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final titleLocation =
-        entry.location.trim().isEmpty ? '-' : entry.location.trim();
+    final titleLocation = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
     final secondaryText = _entrySecondaryText(entry, isKo: isKo);
-    final titleText = [titleProgram, durationText, titleLocation, secondaryText]
-        .where((part) => part.trim().isNotEmpty)
-        .join(' · ');
+    final titleText = [
+      titleProgram,
+      durationText,
+      titleLocation,
+      secondaryText,
+    ].where((part) => part.trim().isNotEmpty).join(' · ');
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final boardIds = TrainingBoardLinkCodec.decodeBoardIds(entry.drills);
@@ -854,9 +883,11 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout =
-        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
-    final hasTrainingBoard = linkedBoards.isNotEmpty ||
+    final legacyLayout = linkedBoards.isEmpty
+        ? TrainingMethodLayout.decode(entry.drills)
+        : null;
+    final hasTrainingBoard =
+        linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -929,8 +960,9 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final locationText =
-        entry.location.trim().isEmpty ? '-' : entry.location.trim();
+    final locationText = entry.location.trim().isEmpty
+        ? '-'
+        : entry.location.trim();
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -1317,6 +1349,114 @@ class _StatusMeta {
     required this.gradientEnd,
     required this.sparkleIcon,
   });
+}
+
+class _MatchSection extends StatelessWidget {
+  final List<TrainingEntry> matches;
+  final ValueChanged<TrainingEntry> onEdit;
+
+  const _MatchSection({required this.matches, required this.onEdit});
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.alarm_on_outlined,
+              size: 18,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isKo ? '독립 시합 기록' : 'Independent Match Records',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            Text(
+              isKo ? '${matches.length}건' : '${matches.length}',
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ...matches.map(
+          (entry) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _MatchListItem(entry: entry, onTap: () => onEdit(entry)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchListItem extends StatelessWidget {
+  final TrainingEntry entry;
+  final VoidCallback onTap;
+
+  const _MatchListItem({required this.entry, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toString();
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
+    final opponent = entry.opponentTeam.trim().isEmpty
+        ? (isKo ? '상대 미입력' : 'Opponent unset')
+        : entry.opponentTeam.trim();
+    final result = _matchResultText(entry, isKo: isKo);
+    final playerRecord = [
+      if (entry.playerGoals != null)
+        isKo ? '득점 ${entry.playerGoals}' : 'Goals ${entry.playerGoals}',
+      if (entry.playerAssists != null)
+        isKo ? '도움 ${entry.playerAssists}' : 'Assists ${entry.playerAssists}',
+      if (entry.minutesPlayed != null)
+        isKo ? '${entry.minutesPlayed}분 출전' : '${entry.minutesPlayed} min',
+    ].join(' · ');
+
+    return WatchCartCard(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.12),
+          child: const Icon(Icons.sports_soccer),
+        ),
+        title: Text(
+          '${entry.type.trim().isEmpty ? (isKo ? '시합' : 'Match') : entry.type.trim()} · $opponent',
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              [dateText, result].where((part) => part.isNotEmpty).join(' · '),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (playerRecord.isNotEmpty)
+              Text(
+                playerRecord,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+          ],
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
 }
 
 enum _LogsLayout { card, list }
