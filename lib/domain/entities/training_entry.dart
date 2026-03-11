@@ -116,6 +116,15 @@ class TrainingEntry extends HiveObject {
   @HiveField(43)
   final int? concededGoals;
 
+  @HiveField(44)
+  final int? playerGoals;
+
+  @HiveField(45)
+  final int? playerAssists;
+
+  @HiveField(46)
+  final int? minutesPlayed;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -155,7 +164,19 @@ class TrainingEntry extends HiveObject {
     this.opponentTeam = '',
     this.scoredGoals,
     this.concededGoals,
+    this.playerGoals,
+    this.playerAssists,
+    this.minutesPlayed,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  bool get isMatch =>
+      opponentTeam.trim().isNotEmpty ||
+      club.trim().isNotEmpty ||
+      scoredGoals != null ||
+      concededGoals != null ||
+      playerGoals != null ||
+      playerAssists != null ||
+      minutesPlayed != null;
 
   static int compareByRecentCreated(TrainingEntry a, TrainingEntry b) {
     final createdCompare = b.createdAt.compareTo(a.createdAt);
@@ -232,13 +253,16 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       opponentTeam: (fields[41] as String?) ?? ((fields[12] as String?) ?? ''),
       scoredGoals: (fields[42] as num?)?.toInt(),
       concededGoals: (fields[43] as num?)?.toInt(),
+      playerGoals: (fields[44] as num?)?.toInt(),
+      playerAssists: (fields[45] as num?)?.toInt(),
+      minutesPlayed: (fields[46] as num?)?.toInt(),
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(38)
+      ..writeByte(41)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -314,6 +338,12 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(42)
       ..write(obj.scoredGoals)
       ..writeByte(43)
-      ..write(obj.concededGoals);
+      ..write(obj.concededGoals)
+      ..writeByte(44)
+      ..write(obj.playerGoals)
+      ..writeByte(45)
+      ..write(obj.playerAssists)
+      ..writeByte(46)
+      ..write(obj.minutesPlayed);
   }
 }

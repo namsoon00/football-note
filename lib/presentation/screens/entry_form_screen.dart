@@ -52,6 +52,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _opponentController = TextEditingController();
   final _ourScoreController = TextEditingController();
   final _opponentScoreController = TextEditingController();
+  final _playerGoalsController = TextEditingController();
+  final _playerAssistsController = TextEditingController();
+  final _minutesPlayedController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
   final _liftChestController = TextEditingController();
@@ -194,6 +197,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           entry.opponentTeam.isNotEmpty ? entry.opponentTeam : entry.club;
       _ourScoreController.text = entry.scoredGoals?.toString() ?? '';
       _opponentScoreController.text = entry.concededGoals?.toString() ?? '';
+      _playerGoalsController.text = entry.playerGoals?.toString() ?? '';
+      _playerAssistsController.text = entry.playerAssists?.toString() ?? '';
+      _minutesPlayedController.text = entry.minutesPlayed?.toString() ?? '';
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
       _rehab = entry.rehab;
@@ -340,6 +346,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _opponentController.text.trim(),
       _ourScoreController.text.trim(),
       _opponentScoreController.text.trim(),
+      _playerGoalsController.text.trim(),
+      _playerAssistsController.text.trim(),
+      _minutesPlayedController.text.trim(),
       _injuryPartController.text.trim(),
       _painController.text.trim(),
       _goodPointsController.text.trim(),
@@ -433,6 +442,29 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Widget _buildEntryKindSelector(AppLocalizations l10n) {
+    final allowMatchSelection = widget.entry != null && _isMatchEntry;
+    if (!allowMatchSelection) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.trainingType,
+              style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ChoiceChip(
+              label: Text(
+                Localizations.localeOf(context).languageCode == 'ko'
+                    ? '훈련'
+                    : 'Training',
+              ),
+              selected: true,
+              onSelected: (_) {},
+            ),
+          ),
+        ],
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -506,6 +538,41 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _playerGoalsController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: isKo ? '내 골' : 'My goals',
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextFormField(
+                controller: _playerAssistsController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: isKo ? '내 어시스트' : 'My assists',
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        TextFormField(
+          controller: _minutesPlayedController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: isKo ? '출전 시간(분)' : 'Minutes played',
+            border: const OutlineInputBorder(),
+          ),
         ),
       ],
     );
@@ -757,6 +824,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _opponentController.dispose();
     _ourScoreController.dispose();
     _opponentScoreController.dispose();
+    _playerGoalsController.dispose();
+    _playerAssistsController.dispose();
+    _minutesPlayedController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
     _liftChestController.dispose();
@@ -1663,6 +1733,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       opponentTeam: _opponentController.text.trim(),
       scoredGoals: _parseScore(_ourScoreController.text),
       concededGoals: _parseScore(_opponentScoreController.text),
+      playerGoals:
+          _isMatchEntry ? _parseScore(_playerGoalsController.text) : null,
+      playerAssists:
+          _isMatchEntry ? _parseScore(_playerAssistsController.text) : null,
+      minutesPlayed:
+          _isMatchEntry ? _parseScore(_minutesPlayedController.text) : null,
     );
     final fortune = _fortuneService.generateResult(
       entry: draft,
@@ -1749,6 +1825,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           _isMatchEntry ? _parseScore(_ourScoreController.text) : null;
       final concededGoals =
           _isMatchEntry ? _parseScore(_opponentScoreController.text) : null;
+      final playerGoals =
+          _isMatchEntry ? _parseScore(_playerGoalsController.text) : null;
+      final playerAssists =
+          _isMatchEntry ? _parseScore(_playerAssistsController.text) : null;
+      final minutesPlayed =
+          _isMatchEntry ? _parseScore(_minutesPlayedController.text) : null;
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
       final jumpRopeCount = _jumpRopeEnabled
           ? (_parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0)
@@ -1797,6 +1879,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         opponentTeam: opponentTeam,
         scoredGoals: scoredGoals,
         concededGoals: concededGoals,
+        playerGoals: playerGoals,
+        playerAssists: playerAssists,
+        minutesPlayed: minutesPlayed,
       );
       final generatedFortuneComment = _fortuneService
           .generateResult(
@@ -1847,6 +1932,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         opponentTeam: draftEntry.opponentTeam,
         scoredGoals: draftEntry.scoredGoals,
         concededGoals: draftEntry.concededGoals,
+        playerGoals: draftEntry.playerGoals,
+        playerAssists: draftEntry.playerAssists,
+        minutesPlayed: draftEntry.minutesPlayed,
       );
 
       if (widget.entry == null) {

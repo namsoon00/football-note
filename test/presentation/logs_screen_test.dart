@@ -98,4 +98,60 @@ void main() {
     await tester.pump();
     expect(find.text('검색 결과가 없습니다.'), findsOneWidget);
   });
+
+  testWidgets('Logs screen excludes match entries',
+      (WidgetTester tester) async {
+    await box.clear();
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 2),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '시합 메모',
+        location: '보조 경기장',
+        program: '경기',
+        opponentTeam: '라이벌 FC',
+        scoredGoals: 2,
+        concededGoals: 1,
+        playerGoals: 1,
+        playerAssists: 1,
+        minutesPlayed: 80,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko', 'KR'),
+          ],
+          home: LogsScreen(
+            trainingService: service,
+            localeService: localeService,
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+            onEdit: (_) {},
+            onCreate: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('기록이 없습니다.'), findsOneWidget);
+    expect(find.textContaining('라이벌 FC'), findsNothing);
+    expect(find.textContaining('시합 메모'), findsNothing);
+  });
 }

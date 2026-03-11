@@ -453,7 +453,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       holidayName: selectedHolidayName,
                       dayPlans: dayPlans,
                       dayEntries: dayEntries,
-                      onEditEntry: widget.onEdit,
+                      onEditEntry: (entry) {
+                        if (entry.isMatch) {
+                          unawaited(
+                            _openMatchSheet(
+                              day: entry.date,
+                              editingEntry: entry,
+                            ),
+                          );
+                          return;
+                        }
+                        widget.onEdit(entry);
+                      },
                       onEditPlan: (plan) => _openPlanSheet(
                         day: plan.scheduledAt,
                         editingPlan: plan,
@@ -724,15 +735,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
     await _syncPlanReminders();
   }
 
-  Future<void> _openMatchSheet({required DateTime day}) async {
+  Future<void> _openMatchSheet({
+    required DateTime day,
+    TrainingEntry? editingEntry,
+  }) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
-    var matchDay = DateTime(day.year, day.month, day.day);
-    final opponentController = TextEditingController();
-    final locationController = TextEditingController();
-    final ourScoreController = TextEditingController();
-    final opponentScoreController = TextEditingController();
-    final memoController = TextEditingController();
+    final initialDay = editingEntry?.date ?? day;
+    var matchDay = DateTime(
+      initialDay.year,
+      initialDay.month,
+      initialDay.day,
+    );
+    final opponentController = TextEditingController(
+      text: editingEntry?.opponentTeam ?? editingEntry?.club ?? '',
+    );
+    final locationController = TextEditingController(
+      text: editingEntry?.location ?? '',
+    );
+    final ourScoreController = TextEditingController(
+      text: editingEntry?.scoredGoals?.toString() ?? '',
+    );
+    final opponentScoreController = TextEditingController(
+      text: editingEntry?.concededGoals?.toString() ?? '',
+    );
+    final playerGoalsController = TextEditingController(
+      text: editingEntry?.playerGoals?.toString() ?? '',
+    );
+    final playerAssistsController = TextEditingController(
+      text: editingEntry?.playerAssists?.toString() ?? '',
+    );
+    final minutesPlayedController = TextEditingController(
+      text: editingEntry?.minutesPlayed?.toString() ?? '',
+    );
+    final memoController =
+        TextEditingController(text: editingEntry?.notes ?? '');
     final saved = await showModalBottomSheet<TrainingEntry>(
       context: context,
       isScrollControlled: true,
@@ -753,7 +790,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      isKo ? '시합 등록' : 'Add Match',
+                      editingEntry == null
+                          ? (isKo ? '시합 등록' : 'Add Match')
+                          : (isKo ? '시합 수정' : 'Edit Match'),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 10),
@@ -828,6 +867,48 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: playerGoalsController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              labelText: isKo ? '내 골' : 'My goals',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: playerAssistsController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              labelText: isKo ? '내 어시스트' : 'My assists',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: minutesPlayedController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: InputDecoration(
+                        labelText: isKo ? '출전 시간(분)' : 'Minutes played',
+                        hintText: isKo ? '예) 70' : 'e.g. 70',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     TextField(
                       controller: memoController,
                       maxLength: 60,
@@ -843,21 +924,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         Navigator.of(context).pop(
                           TrainingEntry(
                             date: matchDay,
-                            durationMinutes: 90,
-                            intensity: 3,
+                            durationMinutes:
+                                editingEntry?.durationMinutes ?? 90,
+                            intensity: editingEntry?.intensity ?? 3,
                             type: l10n.typeMatch,
-                            mood: 3,
-                            injury: false,
+                            mood: editingEntry?.mood ?? 3,
+                            injury: editingEntry?.injury ?? false,
                             notes: memoController.text.trim(),
                             location: locationController.text.trim(),
                             program: l10n.typeMatch,
                             club: opponent,
                             opponentTeam: opponent,
+                            status: editingEntry?.status ?? 'normal',
+                            goodPoints: editingEntry?.goodPoints ?? '',
+                            improvements: editingEntry?.improvements ?? '',
+                            nextGoal: editingEntry?.nextGoal ?? '',
+                            goalFocuses: editingEntry?.goalFocuses ?? const [],
+                            createdAt: editingEntry?.createdAt,
                             scoredGoals:
                                 _parseSheetInt(ourScoreController.text),
                             concededGoals: _parseSheetInt(
                               opponentScoreController.text,
                             ),
+                            playerGoals:
+                                _parseSheetInt(playerGoalsController.text),
+                            playerAssists:
+                                _parseSheetInt(playerAssistsController.text),
+                            minutesPlayed:
+                                _parseSheetInt(minutesPlayedController.text),
                           ),
                         );
                       },
@@ -876,8 +970,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     locationController.dispose();
     ourScoreController.dispose();
     opponentScoreController.dispose();
+    playerGoalsController.dispose();
+    playerAssistsController.dispose();
+    minutesPlayedController.dispose();
     memoController.dispose();
     if (saved == null) return;
+    if (editingEntry?.key is int) {
+      await widget.trainingService.update(editingEntry!.key as int, saved);
+      return;
+    }
     await widget.trainingService.add(saved);
   }
 
@@ -1192,7 +1293,13 @@ class _DayTimeline extends StatelessWidget {
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     final sortedEntries = [...dayEntries]
       ..sort(TrainingEntry.compareByRecentCreated);
-    if (sortedPlans.isEmpty && sortedEntries.isEmpty) {
+    final sortedMatchEntries =
+        sortedEntries.where((entry) => entry.isMatch).toList(growable: false);
+    final sortedTrainingEntries =
+        sortedEntries.where((entry) => !entry.isMatch).toList(growable: false);
+    if (sortedPlans.isEmpty &&
+        sortedMatchEntries.isEmpty &&
+        sortedTrainingEntries.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1288,13 +1395,49 @@ class _DayTimeline extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          if (sortedEntries.isNotEmpty) ...[
+          if (sortedMatchEntries.isNotEmpty) ...[
+            _SectionLabel(
+              title: isKo ? '시합' : 'Matches',
+              icon: Icons.sports_soccer,
+            ),
+            const SizedBox(height: 8),
+            ...sortedMatchEntries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Dismissible(
+                  key: ValueKey(
+                    'match-entry-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                  ),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (_) => onDeleteEntry(entry),
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                  child: _EntryTile(
+                    entry: entry,
+                    onTap: () => onEditEntry(entry),
+                  ),
+                ),
+              ),
+            ),
+            if (sortedTrainingEntries.isNotEmpty) const SizedBox(height: 12),
+          ],
+          if (sortedTrainingEntries.isNotEmpty) ...[
             _SectionLabel(
               title: isKo ? '훈련 일지' : 'Training Logs',
               icon: Icons.event_note,
             ),
             const SizedBox(height: 8),
-            ...sortedEntries.map(
+            ...sortedTrainingEntries.map(
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Dismissible(
@@ -1417,11 +1560,19 @@ class _EntryTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            if (entry.isMatch) ...[
+              if (_matchPersonalRecord(entry, isKo: isKo).isNotEmpty)
+                Text(
+                  _matchPersonalRecord(entry, isKo: isKo),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ] else
+              Text(
+                '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             if (focusText.isNotEmpty)
               Text(
                 focusText,
@@ -1438,7 +1589,7 @@ class _EntryTile extends StatelessWidget {
   }
 
   String _entryFocusText(TrainingEntry entry) {
-    if (entry.opponentTeam.trim().isNotEmpty) {
+    if (!entry.isMatch && entry.opponentTeam.trim().isNotEmpty) {
       return entry.opponentTeam.trim();
     }
     if (entry.goalFocuses.isNotEmpty) return entry.goalFocuses.join(', ');
@@ -1464,6 +1615,29 @@ class _EntryTile extends StatelessWidget {
         isKo
             ? '결과 ${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}'
             : 'Result ${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}',
+      );
+    }
+    return parts.join(' · ');
+  }
+
+  String _matchPersonalRecord(TrainingEntry entry, {required bool isKo}) {
+    final parts = <String>[];
+    if (entry.playerGoals != null) {
+      parts.add(
+          isKo ? '내 골 ${entry.playerGoals}' : 'My goals ${entry.playerGoals}');
+    }
+    if (entry.playerAssists != null) {
+      parts.add(
+        isKo
+            ? '내 어시스트 ${entry.playerAssists}'
+            : 'My assists ${entry.playerAssists}',
+      );
+    }
+    if (entry.minutesPlayed != null) {
+      parts.add(
+        isKo
+            ? '출전 ${entry.minutesPlayed}분'
+            : '${entry.minutesPlayed} min played',
       );
     }
     return parts.join(' · ');

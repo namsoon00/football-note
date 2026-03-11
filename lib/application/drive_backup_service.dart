@@ -738,6 +738,9 @@ class DriveBackupService implements BackupRepository {
         'opponentTeam': entry.opponentTeam,
         'scoredGoals': entry.scoredGoals,
         'concededGoals': entry.concededGoals,
+        'playerGoals': entry.playerGoals,
+        'playerAssists': entry.playerAssists,
+        'minutesPlayed': entry.minutesPlayed,
       };
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
@@ -809,6 +812,9 @@ class DriveBackupService implements BackupRepository {
           map['opponentTeam'] as String? ?? (map['club'] as String? ?? ''),
       scoredGoals: (map['scoredGoals'] as num?)?.toInt(),
       concededGoals: (map['concededGoals'] as num?)?.toInt(),
+      playerGoals: (map['playerGoals'] as num?)?.toInt(),
+      playerAssists: (map['playerAssists'] as num?)?.toInt(),
+      minutesPlayed: (map['minutesPlayed'] as num?)?.toInt(),
     );
   }
 }
