@@ -122,9 +122,6 @@ class _LogsScreenState extends State<LogsScreen> {
       _programOptions = normalizedPrograms;
       widget.optionRepository.saveOptions('programs', normalizedPrograms);
     }
-    if (!_programOptions.contains(l10n.typeMatch)) {
-      _programOptions = [..._programOptions, l10n.typeMatch];
-    }
     final savedLayout =
         widget.optionRepository.getValue<String>(_layoutKey) ?? 'card';
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
@@ -158,6 +155,8 @@ class _LogsScreenState extends State<LogsScreen> {
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
               final allEntries = (snapshot.data ?? [])
+                  .where((entry) => !entry.isMatch)
+                  .toList()
                 ..sort(TrainingEntry.compareByRecentCreated);
               final entries = _applyFilters(allEntries);
               final visibleEntries = entries
