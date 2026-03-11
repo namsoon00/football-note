@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -198,6 +199,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               visualDensity: VisualDensity.compact,
                               minimumSize: const Size(1, 40),
                               maximumSize: const Size(210, 40),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          OutlinedButton.icon(
+                            onPressed: () => _openMatchSheet(
+                              day: _selectedDay ?? _focusedDay,
+                            ),
+                            icon: const Icon(
+                              Icons.sports_soccer_outlined,
+                              size: 20,
+                            ),
+                            label: Text(
+                              Localizations.localeOf(context).languageCode ==
+                                      'ko'
+                                  ? '시합 등록'
+                                  : 'Add Match',
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              minimumSize: const Size(1, 40),
+                              maximumSize: const Size(180, 40),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -697,6 +724,163 @@ class _CalendarScreenState extends State<CalendarScreen> {
     await _syncPlanReminders();
   }
 
+  Future<void> _openMatchSheet({required DateTime day}) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
+    var matchDay = DateTime(day.year, day.month, day.day);
+    final opponentController = TextEditingController();
+    final locationController = TextEditingController();
+    final ourScoreController = TextEditingController();
+    final opponentScoreController = TextEditingController();
+    final memoController = TextEditingController();
+    final saved = await showModalBottomSheet<TrainingEntry>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  8,
+                  16,
+                  16 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      isKo ? '시합 등록' : 'Add Match',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: matchDay,
+                          firstDate: DateTime(2022),
+                          lastDate: DateTime(2032),
+                        );
+                        if (picked == null) return;
+                        setSheetState(() {
+                          matchDay = DateTime(
+                            picked.year,
+                            picked.month,
+                            picked.day,
+                          );
+                        });
+                      },
+                      icon: const Icon(Icons.calendar_today_outlined),
+                      label: Text(
+                        DateFormat('yyyy-MM-dd').format(matchDay),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: opponentController,
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: isKo ? '상대 팀' : 'Opponent team',
+                        hintText: isKo ? '예) 수원 U15' : 'e.g. Suwon U15',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: locationController,
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: l10n.location,
+                        hintText: isKo ? '예) 메인 구장' : 'e.g. Main stadium',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: ourScoreController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              labelText: isKo ? '우리 점수' : 'Our score',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: opponentScoreController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              labelText: isKo ? '상대 점수' : 'Opponent score',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: memoController,
+                      maxLength: 60,
+                      decoration: InputDecoration(
+                        labelText: isKo ? '메모(선택)' : 'Note (optional)',
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    FilledButton.icon(
+                      onPressed: () {
+                        final opponent = opponentController.text.trim();
+                        if (opponent.isEmpty) return;
+                        Navigator.of(context).pop(
+                          TrainingEntry(
+                            date: matchDay,
+                            durationMinutes: 90,
+                            intensity: 3,
+                            type: l10n.typeMatch,
+                            mood: 3,
+                            injury: false,
+                            notes: memoController.text.trim(),
+                            location: locationController.text.trim(),
+                            program: l10n.typeMatch,
+                            club: opponent,
+                            opponentTeam: opponent,
+                            scoredGoals:
+                                _parseSheetInt(ourScoreController.text),
+                            concededGoals: _parseSheetInt(
+                              opponentScoreController.text,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.check),
+                      label: Text(isKo ? '저장' : 'Save'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    opponentController.dispose();
+    locationController.dispose();
+    ourScoreController.dispose();
+    opponentScoreController.dispose();
+    memoController.dispose();
+    if (saved == null) return;
+    await widget.trainingService.add(saved);
+  }
+
   Future<void> _deletePlan(String id) async {
     setState(() {
       _plans = _plans.where((plan) => plan.id != id).toList(growable: false);
@@ -739,6 +923,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       if (a[i] != b[i]) return false;
     }
     return true;
+  }
+
+  int? _parseSheetInt(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return null;
+    return int.tryParse(trimmed);
   }
 
   Future<bool> _confirmDeleteEntry(TrainingEntry entry) async {
@@ -1208,12 +1398,21 @@ class _EntryTile extends StatelessWidget {
     );
     final focusText = _entryFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
+    final matchMeta = _matchMeta(entry, isKo: isKo);
+    final titleParts = <String>[
+      entry.type.trim().isNotEmpty ? entry.type.trim() : l10n.program,
+      durationText,
+      locationText,
+    ];
+    if (matchMeta.isNotEmpty) {
+      titleParts.add(matchMeta);
+    }
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         leading: _StatusIcon(status: entry.status),
-        title: Text('${entry.type} · $durationText · $locationText'),
+        title: Text(titleParts.join(' · ')),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -1239,6 +1438,9 @@ class _EntryTile extends StatelessWidget {
   }
 
   String _entryFocusText(TrainingEntry entry) {
+    if (entry.opponentTeam.trim().isNotEmpty) {
+      return entry.opponentTeam.trim();
+    }
     if (entry.goalFocuses.isNotEmpty) return entry.goalFocuses.join(', ');
     if (entry.nextGoal.trim().isNotEmpty) return entry.nextGoal.trim();
     if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
@@ -1250,6 +1452,21 @@ class _EntryTile extends StatelessWidget {
     }
     if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
     return '';
+  }
+
+  String _matchMeta(TrainingEntry entry, {required bool isKo}) {
+    final parts = <String>[];
+    if (entry.opponentTeam.trim().isNotEmpty) {
+      parts.add('vs ${entry.opponentTeam.trim()}');
+    }
+    if (entry.scoredGoals != null || entry.concededGoals != null) {
+      parts.add(
+        isKo
+            ? '결과 ${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}'
+            : 'Result ${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}',
+      );
+    }
+    return parts.join(' · ');
   }
 }
 

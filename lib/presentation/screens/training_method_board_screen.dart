@@ -106,9 +106,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _restoreStandaloneBoard() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
     final page = layout.pages.isEmpty ? null : layout.pages.first;
-    final defaultBoardName = widget.boardTitle.trim().isEmpty
-        ? 'Board 1'
-        : widget.boardTitle.trim();
+    final defaultBoardName =
+        widget.boardTitle.trim().isEmpty ? 'Board 1' : widget.boardTitle.trim();
     _pages = <_BoardPageState>[
       _BoardPageState(
         name: page == null
@@ -166,14 +165,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final requestedId = widget.initialBoardId?.trim();
     final initialBoard =
         _firstWhereOrNull(linkedBoards, (board) => board.id == requestedId) ??
-        linkedBoards.first;
+            linkedBoards.first;
     _loadBoard(initialBoard);
   }
 
   _BoardPageState _emptyBoardPage(String fallbackTitle) {
-    final title = fallbackTitle.trim().isEmpty
-        ? 'Board 1'
-        : fallbackTitle.trim();
+    final title =
+        fallbackTitle.trim().isEmpty ? 'Board 1' : fallbackTitle.trim();
     return _BoardPageState(
       name: title,
       methodText: '',
@@ -279,8 +277,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final name = await _showBoardNameDialog(
       isKo: isKo,
-      titleKo: '보드 추가',
-      titleEn: 'Add board',
+      titleKo: '스케치 추가',
+      titleEn: 'Add sketch',
       confirmKo: '추가',
       confirmEn: 'Add',
     );
@@ -306,8 +304,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     final title = await _showBoardNameDialog(
       isKo: isKo,
-      titleKo: '훈련보드 제목',
-      titleEn: 'Training board title',
+      titleKo: '훈련스케치 제목',
+      titleEn: 'Training sketch title',
       confirmKo: '생성',
       confirmEn: 'Create',
       initialValue: '',
@@ -416,8 +414,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Future<void> _renameCurrentPage(bool isKo) async {
     final renamed = await _showBoardNameDialog(
       isKo: isKo,
-      titleKo: '보드명 수정',
-      titleEn: 'Rename board',
+      titleKo: '스케치명 수정',
+      titleEn: 'Rename sketch',
       confirmKo: '저장',
       confirmEn: 'Save',
       initialValue: _currentPage.name,
@@ -436,7 +434,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련보드 초기화' : 'Reset training board'),
+        title: Text(isKo ? '훈련스케치 초기화' : 'Reset training sketch'),
         content: Text(
           isKo
               ? '현재 보드를 정말 초기화할까요?'
@@ -485,7 +483,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (showFeedback) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isKo ? '훈련보드를 저장했습니다.' : 'Training board saved.'),
+          content: Text(isKo ? '훈련스케치를 저장했습니다.' : 'Training sketch saved.'),
         ),
       );
     }
@@ -497,7 +495,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (currentName.isNotEmpty) return currentName;
     final widgetTitle = widget.boardTitle.trim();
     if (widgetTitle.isNotEmpty) return widgetTitle;
-    return isKo ? '훈련보드' : 'Training Board';
+    return isKo ? '훈련스케치' : 'Training Sketch';
   }
 
   Future<void> _showManagedBoardPicker(bool isKo) async {
@@ -511,21 +509,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          children: linkedBoards
-              .map((board) {
-                final isCurrent = board.id == _currentBoardId;
-                return ListTile(
-                  leading: Icon(
-                    isCurrent
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off_outlined,
-                  ),
-                  title: Text(board.title),
-                  trailing: isCurrent ? const Icon(Icons.check) : null,
-                  onTap: () => Navigator.of(context).pop(board),
-                );
-              })
-              .toList(growable: false),
+          children: linkedBoards.map((board) {
+            final isCurrent = board.id == _currentBoardId;
+            return ListTile(
+              leading: Icon(
+                isCurrent
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off_outlined,
+              ),
+              title: Text(board.title),
+              trailing: isCurrent ? const Icon(Icons.check) : null,
+              onTap: () => Navigator.of(context).pop(board),
+            );
+          }).toList(growable: false),
         ),
       ),
     );
@@ -558,7 +554,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련보드 삭제' : 'Delete training board'),
+        title: Text(isKo ? '훈련스케치 삭제' : 'Delete training sketch'),
         content: Text(
           isKo
               ? '"${currentBoard.title}" 보드를 삭제할까요?'
@@ -705,8 +701,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       SnackBar(
         content: Text(
           isKo
-              ? '${preset.title} 보드를 복사했습니다.'
-              : 'Board copied from ${preset.title}.',
+              ? '${preset.title} 스케치를 복사했습니다.'
+              : 'Sketch copied from ${preset.title}.',
         ),
       ),
     );
@@ -742,39 +738,35 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                      children: layout.pages
-                          .asMap()
-                          .entries
-                          .map((entry) {
-                            final pageIndex = entry.key;
-                            final page = entry.value;
-                            final boardName = page.name.trim().isEmpty
-                                ? 'Board ${pageIndex + 1}'
-                                : page.name.trim();
-                            final memo = page.methodText.trim();
-                            return ListTile(
-                              dense: true,
-                              leading: const Icon(Icons.content_paste_outlined),
-                              title: Text(boardName),
-                              subtitle: memo.isEmpty
-                                  ? null
-                                  : Text(
-                                      memo,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                Navigator.of(context).pop(
-                                  _PresetBoardSelection(
-                                    preset: preset,
-                                    page: page,
-                                  ),
-                                );
-                              },
+                      children: layout.pages.asMap().entries.map((entry) {
+                        final pageIndex = entry.key;
+                        final page = entry.value;
+                        final boardName = page.name.trim().isEmpty
+                            ? 'Board ${pageIndex + 1}'
+                            : page.name.trim();
+                        final memo = page.methodText.trim();
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.content_paste_outlined),
+                          title: Text(boardName),
+                          subtitle: memo.isEmpty
+                              ? null
+                              : Text(
+                                  memo,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.of(context).pop(
+                              _PresetBoardSelection(
+                                preset: preset,
+                                page: page,
+                              ),
                             );
-                          })
-                          .toList(growable: false),
+                          },
+                        );
+                      }).toList(growable: false),
                     );
                   },
                 ),
@@ -1025,9 +1017,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _toggleMemoListening(bool isKo) async {
-    final localeId = Localizations.localeOf(context).languageCode == 'ko'
-        ? 'ko_KR'
-        : null;
+    final localeId =
+        Localizations.localeOf(context).languageCode == 'ko' ? 'ko_KR' : null;
     if (_isListeningMemo) {
       _memoSession++;
       final recognized = _memoRecognizedWords;
@@ -1126,8 +1117,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _memoCommitted = true;
       return;
     }
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1189,6 +1179,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final currentBoardTitle = _resolvedCurrentBoardTitle(isKo);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -1198,6 +1189,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       child: Scaffold(
         appBar: AppBar(
           leadingWidth: 152,
+          title: Text(
+            currentBoardTitle,
+            overflow: TextOverflow.ellipsis,
+          ),
           leading: Row(
             children: [
               IconButton(
@@ -1215,7 +1210,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           actions: [
             if (widget.presets.isNotEmpty)
               IconButton(
-                tooltip: isKo ? '훈련보드 복사' : 'Copy board',
+                tooltip: isKo ? '훈련스케치 복사' : 'Copy sketch',
                 icon: const Icon(Icons.copy_all_outlined),
                 onPressed: () => _showPresetPicker(isKo),
               ),
@@ -1250,35 +1245,35 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                           behavior: HitTestBehavior.opaque,
                           onPanStart: _penMode
                               ? (details) => _startStroke(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
+                                    details.localPosition,
+                                    width,
+                                    height,
+                                  )
                               : _pathMode
-                              ? (details) => _startPlayerPath(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
-                              : null,
+                                  ? (details) => _startPlayerPath(
+                                        details.localPosition,
+                                        width,
+                                        height,
+                                      )
+                                  : null,
                           onPanUpdate: _penMode
                               ? (details) => _appendStrokePoint(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
+                                    details.localPosition,
+                                    width,
+                                    height,
+                                  )
                               : _pathMode
-                              ? (details) => _appendPlayerPath(
-                                  details.localPosition,
-                                  width,
-                                  height,
-                                )
-                              : null,
+                                  ? (details) => _appendPlayerPath(
+                                        details.localPosition,
+                                        width,
+                                        height,
+                                      )
+                                  : null,
                           onPanEnd: _penMode
                               ? (_) => _endStroke()
                               : _pathMode
-                              ? (_) => _endPlayerPath()
-                              : null,
+                                  ? (_) => _endPlayerPath()
+                                  : null,
                           child: Stack(
                             children: [
                               CustomPaint(
@@ -1301,8 +1296,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 ),
                               ),
                               IgnorePointer(
-                                ignoring:
-                                    _penMode ||
+                                ignoring: _penMode ||
                                     _pathMode ||
                                     _playController.isAnimating,
                                 child: Stack(
@@ -1399,7 +1393,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           IconButton(
             onPressed: () => _promptForManagedBoardCreation(),
             icon: const Icon(Icons.add_box_outlined),
-            tooltip: isKo ? '보드 추가' : 'Add board',
+            tooltip: isKo ? '스케치 추가' : 'Add sketch',
           ),
         if (_isManagedMode)
           IconButton(
@@ -1407,7 +1401,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 ? null
                 : () => _deleteCurrentManagedBoard(isKo),
             icon: const Icon(Icons.delete_outline),
-            tooltip: isKo ? '보드 삭제' : 'Delete board',
+            tooltip: isKo ? '스케치 삭제' : 'Delete sketch',
           ),
         IconButton(
           onPressed: () => _playPlayerPath(isKo),
@@ -1421,7 +1415,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         IconButton(
           onPressed: () => _renameCurrentPage(isKo),
           icon: const Icon(Icons.edit_outlined),
-          tooltip: isKo ? '보드명 수정' : 'Rename board',
+          tooltip: isKo ? '스케치명 수정' : 'Rename sketch',
         ),
       ],
     );
@@ -1434,7 +1428,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       maxLines: 3,
       textInputAction: TextInputAction.done,
       decoration: InputDecoration(
-        labelText: isKo ? '훈련 보드 메모' : 'Training board note',
+        labelText: isKo ? '훈련 스케치 메모' : 'Training sketch note',
         hintText: isKo
             ? '예) 콘 사이 2터치 드리블 후 패스'
             : 'e.g. Two-touch dribble between cones then pass',
@@ -1527,9 +1521,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           onPressed: _currentPage.strokes.isEmpty
               ? null
               : () => setState(() {
-                  _currentPage.strokes.clear();
-                  _activeStroke = null;
-                }),
+                    _currentPage.strokes.clear();
+                    _activeStroke = null;
+                  }),
           icon: const Icon(Icons.layers_clear_outlined),
           label: Text(isKo ? '펜 지우기' : 'Clear ink'),
           style: OutlinedButton.styleFrom(
@@ -1543,9 +1537,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           onPressed: _currentPage.playerPath.isEmpty
               ? null
               : () => setState(() {
-                  _currentPage.playerPath.clear();
-                  _activePlayerPath = null;
-                }),
+                    _currentPage.playerPath.clear();
+                    _activePlayerPath = null;
+                  }),
           icon: const Icon(Icons.route_outlined),
           label: Text(isKo ? '이동선 지우기' : 'Clear path'),
           style: OutlinedButton.styleFrom(
@@ -1630,38 +1624,34 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _penColors
-                  .map((c) {
-                    final selectedColor = c.toARGB32() == _penColor.toARGB32();
-                    return InkWell(
-                      onTap: () => setState(() => _penColor = c),
-                      borderRadius: BorderRadius.circular(999),
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: c,
-                          border: Border.all(
-                            color: selectedColor
-                                ? Colors.white
-                                : Colors.black26,
-                            width: selectedColor ? 2.4 : 1.0,
-                          ),
-                        ),
-                        child: selectedColor
-                            ? Icon(
-                                Icons.check,
-                                size: 14,
-                                color: c.computeLuminance() < 0.45
-                                    ? Colors.white
-                                    : Colors.black87,
-                              )
-                            : null,
+              children: _penColors.map((c) {
+                final selectedColor = c.toARGB32() == _penColor.toARGB32();
+                return InkWell(
+                  onTap: () => setState(() => _penColor = c),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: c,
+                      border: Border.all(
+                        color: selectedColor ? Colors.white : Colors.black26,
+                        width: selectedColor ? 2.4 : 1.0,
                       ),
-                    );
-                  })
-                  .toList(growable: false),
+                    ),
+                    child: selectedColor
+                        ? Icon(
+                            Icons.check,
+                            size: 14,
+                            color: c.computeLuminance() < 0.45
+                                ? Colors.white
+                                : Colors.black87,
+                          )
+                        : null,
+                  ),
+                );
+              }).toList(growable: false),
             ),
           ],
         ),
@@ -1719,28 +1709,25 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _presetColors
-                .map((c) {
-                  final selectedColor =
-                      c.toARGB32() == selected.color.toARGB32();
-                  return InkWell(
-                    onTap: () => setState(() => selected.color = c),
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: c,
-                        border: Border.all(
-                          color: selectedColor ? Colors.white : Colors.black26,
-                          width: selectedColor ? 2.4 : 1.0,
-                        ),
-                      ),
+            children: _presetColors.map((c) {
+              final selectedColor = c.toARGB32() == selected.color.toARGB32();
+              return InkWell(
+                onTap: () => setState(() => selected.color = c),
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: c,
+                    border: Border.all(
+                      color: selectedColor ? Colors.white : Colors.black26,
+                      width: selectedColor ? 2.4 : 1.0,
                     ),
-                  );
-                })
-                .toList(growable: false),
+                  ),
+                ),
+              );
+            }).toList(growable: false),
           ),
         ],
       ),
@@ -1866,9 +1853,8 @@ class _BoardToken extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.18),
           shape: BoxShape.circle,
           border: Border.all(
-            color: selected
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.55),
+            color:
+                selected ? Colors.white : Colors.white.withValues(alpha: 0.55),
             width: selected ? 2.2 : 1.2,
           ),
           boxShadow: selected

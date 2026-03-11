@@ -126,4 +126,30 @@ void main() {
     expect(find.text('캘린더 접기'), findsOneWidget);
     expect(find.text('캘린더 펼치기'), findsNothing);
   });
+
+  testWidgets('경기 기록은 상대 팀과 결과를 캘린더 목록에 보여준다', (tester) async {
+    final today = DateTime.now();
+    await trainingService.add(
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 9),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '메인 구장',
+        program: '경기',
+        club: '라이벌 FC',
+        opponentTeam: '라이벌 FC',
+        scoredGoals: 3,
+        concededGoals: 2,
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    expect(find.textContaining('vs 라이벌 FC'), findsOneWidget);
+    expect(find.textContaining('결과 3:2'), findsOneWidget);
+  });
 }

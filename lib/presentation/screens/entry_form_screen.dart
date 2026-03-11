@@ -49,6 +49,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _goodPointsController = TextEditingController();
   final _improvementsController = TextEditingController();
   final _drillsController = TextEditingController();
+  final _opponentController = TextEditingController();
+  final _ourScoreController = TextEditingController();
+  final _opponentScoreController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
   final _liftChestController = TextEditingController();
@@ -98,6 +101,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _liftingEnabled = false;
   bool _jumpRopeEnabled = false;
   bool _fortuneEnabled = false;
+  bool _isMatchEntry = false;
   String _location = '';
   final List<String> _imagePaths = [];
 
@@ -160,6 +164,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
     final entry = widget.entry;
     if (entry != null) {
+      final matchLabel = l10n.typeMatch;
       _editingKey = entry.key is int ? entry.key as int : null;
       _date = entry.date;
       _durationMinutes = _initIntSelection(
@@ -167,12 +172,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
-      _improvementsController.text = entry.improvements.isNotEmpty
-          ? entry.improvements
-          : entry.notes;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
+      _improvementsController.text =
+          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -183,6 +186,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _status = entry.status.isEmpty ? 'normal' : entry.status;
       _injury = entry.injury;
       _location = _initSelection('locations', _locationOptions, entry.location);
+      _isMatchEntry = entry.opponentTeam.trim().isNotEmpty ||
+          entry.club.trim().isNotEmpty ||
+          entry.type.trim() == matchLabel ||
+          entry.program.trim() == matchLabel;
+      _opponentController.text =
+          entry.opponentTeam.isNotEmpty ? entry.opponentTeam : entry.club;
+      _ourScoreController.text = entry.scoredGoals?.toString() ?? '';
+      _opponentScoreController.text = entry.concededGoals?.toString() ?? '';
       _injuryPartController.text = entry.injuryPart;
       _painController.text = entry.painLevel?.toString() ?? '';
       _rehab = entry.rehab;
@@ -222,12 +233,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _jumpRopeController.text = entry.jumpRopeCount > 0
-          ? entry.jumpRopeCount.toString()
-          : '';
-      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
-          ? entry.jumpRopeMinutes.toString()
-          : '';
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
+      _jumpRopeMinutesController.text =
+          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
@@ -252,6 +261,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _type = _defaultString('default_program', _programOptions, 'programs');
       _status = 'normal';
+      _isMatchEntry = false;
       _linkedBoardIds.clear();
       _syncDrillsPayloadFromBoardLinks();
       _jumpRopeEnabled = false;
@@ -298,7 +308,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final created = await _trainingBoardService.createBoard(
       title: entry.program.trim().isNotEmpty
           ? entry.program.trim()
-          : (isKo ? '기존 훈련보드' : 'Legacy training board'),
+          : (isKo ? '기존 훈련스케치' : 'Legacy training sketch'),
       layoutJson: layout.encode(),
     );
     if (!mounted) return;
@@ -322,10 +332,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _mood.toString(),
       _type.trim(),
       _status.trim(),
+      _isMatchEntry.toString(),
       _injury.toString(),
       _rehab.toString(),
       _liftingEnabled.toString(),
       _location.trim(),
+      _opponentController.text.trim(),
+      _ourScoreController.text.trim(),
+      _opponentScoreController.text.trim(),
       _injuryPartController.text.trim(),
       _painController.text.trim(),
       _goodPointsController.text.trim(),
@@ -418,6 +432,85 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return value;
   }
 
+  Widget _buildEntryKindSelector(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.trainingType, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ChoiceChip(
+              label: Text(
+                Localizations.localeOf(context).languageCode == 'ko'
+                    ? '훈련'
+                    : 'Training',
+              ),
+              selected: !_isMatchEntry,
+              onSelected: (selected) {
+                if (!selected) return;
+                setState(() => _isMatchEntry = false);
+                _scheduleAutoSave();
+              },
+            ),
+            ChoiceChip(
+              label: Text(l10n.typeMatch),
+              selected: _isMatchEntry,
+              onSelected: (selected) {
+                if (!selected) return;
+                setState(() => _isMatchEntry = true);
+                _scheduleAutoSave();
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMatchDetailsCard(bool isKo) {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _opponentController,
+          decoration: InputDecoration(
+            labelText: isKo ? '상대 팀' : 'Opponent team',
+            hintText: isKo ? '예) FC 서울 U15' : 'e.g. FC Seoul U15',
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _ourScoreController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: isKo ? '우리 팀 점수' : 'Our score',
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextFormField(
+                controller: _opponentScoreController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: isKo ? '상대 팀 점수' : 'Opponent score',
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildStatusRow(AppLocalizations l10n) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -463,9 +556,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -476,9 +568,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -663,6 +754,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _goodPointsController.dispose();
     _improvementsController.dispose();
     _drillsController.dispose();
+    _opponentController.dispose();
+    _ourScoreController.dispose();
+    _opponentScoreController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
     _liftChestController.dispose();
@@ -770,7 +864,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             icon: _linkedBoardIds.isNotEmpty
                                 ? Icons.developer_board
                                 : Icons.developer_board_outlined,
-                            label: isKo ? '훈련보드' : 'Training board',
+                            label: isKo ? '훈련스케치' : 'Training sketch',
                             active: _linkedBoardIds.isNotEmpty,
                             onPressed: _openTrainingBoardEditor,
                           ),
@@ -782,6 +876,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   WatchCartCard(
                     child: Column(
                       children: [
+                        _buildEntryKindSelector(l10n),
+                        const SizedBox(height: 12),
                         _buildStatusRow(l10n),
                         const SizedBox(height: 12),
                         InkWell(
@@ -883,24 +979,27 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildSelectRow(
-                          label: l10n.program,
-                          value: _type,
-                          options: _programOptions,
-                          onChanged: (value) {
-                            setState(() => _type = value);
-                            _scheduleAutoSave();
-                          },
-                          onAdd: () => _addOption(
-                            key: 'programs',
-                            title: l10n.program,
+                        if (!_isMatchEntry)
+                          _buildSelectRow(
+                            label: l10n.program,
+                            value: _type,
                             options: _programOptions,
-                            onUpdated: (list) =>
-                                setState(() => _programOptions = list),
-                            onSelected: (value) =>
-                                setState(() => _type = value),
-                          ),
-                        ),
+                            onChanged: (value) {
+                              setState(() => _type = value);
+                              _scheduleAutoSave();
+                            },
+                            onAdd: () => _addOption(
+                              key: 'programs',
+                              title: l10n.program,
+                              options: _programOptions,
+                              onUpdated: (list) =>
+                                  setState(() => _programOptions = list),
+                              onSelected: (value) =>
+                                  setState(() => _type = value),
+                            ),
+                          )
+                        else
+                          _buildMatchDetailsCard(isKo),
                         const SizedBox(height: 16),
                         Row(
                           children: [
@@ -1161,9 +1260,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   enabled: _jumpRopeEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
-                                    labelText: isKo
-                                        ? '줄넘기 횟수'
-                                        : 'Jump rope count',
+                                    labelText:
+                                        isKo ? '줄넘기 횟수' : 'Jump rope count',
                                     hintText: '0',
                                   ),
                                 ),
@@ -1211,17 +1309,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           child: Text(
                             _autoSaving
                                 ? (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '자동 저장 중...'
-                                      : 'Autosaving...')
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '자동 저장 중...'
+                                    : 'Autosaving...')
                                 : (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '수정 내용이 자동 저장됩니다.'
-                                      : 'Changes are saved automatically.'),
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '수정 내용이 자동 저장됩니다.'
+                                    : 'Changes are saved automatically.'),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -1245,9 +1343,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required VoidCallback onPressed,
   }) {
     final theme = Theme.of(context);
-    final fg = active
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurfaceVariant;
+    final fg =
+        active ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? theme.colorScheme.primary.withValues(alpha: 0.12)
         : theme.colorScheme.surfaceContainerHighest;
@@ -1298,8 +1395,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
@@ -1483,8 +1579,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1524,6 +1619,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Future<void> _showTodayFortuneInNote() async {
     if (!_fortuneEnabled) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final profile = PlayerProfileService(widget.optionRepository).load();
     final allEntries = await widget.trainingService.allEntries();
     final goodPoints = _goodPointsController.text.trim();
@@ -1532,14 +1628,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       date: DateTime(_date.year, _date.month, _date.day),
       durationMinutes: _durationMinutes,
       intensity: _intensity,
-      type: _type,
+      type: _isMatchEntry ? l10n.typeMatch : _type,
       mood: _mood,
       injury: _injury,
       notes: improvements,
       location: _location,
-      program: _type,
+      program: _isMatchEntry ? l10n.typeMatch : _type,
       drills: _drillsController.text.trim(),
-      club: '',
+      club: _opponentController.text.trim(),
       injuryPart: _injury ? _injuryPartController.text.trim() : '',
       painLevel: _injury ? _parseInt(_painController.text) : null,
       rehab: _injury ? _rehab : false,
@@ -1564,6 +1660,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0,
       jumpRopeEnabled: _jumpRopeEnabled,
       jumpRopeNote: _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '',
+      opponentTeam: _opponentController.text.trim(),
+      scoredGoals: _parseScore(_ourScoreController.text),
+      concededGoals: _parseScore(_opponentScoreController.text),
     );
     final fortune = _fortuneService.generateResult(
       entry: draft,
@@ -1624,6 +1723,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
     try {
       final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      final l10n = AppLocalizations.of(context)!;
       _syncDrillsPayloadFromBoardLinks();
       final injuryPart = _injury ? _injuryPartController.text.trim() : '';
       final painLevel = _injury ? _parseInt(_painController.text) : null;
@@ -1644,32 +1744,36 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final goodPoints = _goodPointsController.text.trim();
       final improvements = _improvementsController.text.trim();
       const nextGoal = '';
+      final opponentTeam = _isMatchEntry ? _opponentController.text.trim() : '';
+      final scoredGoals =
+          _isMatchEntry ? _parseScore(_ourScoreController.text) : null;
+      final concededGoals =
+          _isMatchEntry ? _parseScore(_opponentScoreController.text) : null;
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
       final jumpRopeCount = _jumpRopeEnabled
           ? (_parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0)
           : 0;
       final jumpRopeMinutes = _jumpRopeEnabled
           ? (_parseInt(
-                  _jumpRopeMinutesController.text.trim(),
-                )?.clamp(0, 1000000) ??
-                0)
+                _jumpRopeMinutesController.text.trim(),
+              )?.clamp(0, 1000000) ??
+              0)
           : 0;
-      final jumpRopeNote = _jumpRopeEnabled
-          ? _jumpRopeNoteController.text.trim()
-          : '';
+      final jumpRopeNote =
+          _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
         durationMinutes: durationMinutes,
         intensity: _intensity,
-        type: _type,
+        type: _isMatchEntry ? l10n.typeMatch : _type,
         mood: _mood,
         injury: _injury,
         notes: improvements,
         location: _location,
-        program: _type,
+        program: _isMatchEntry ? l10n.typeMatch : _type,
         drills: _drillsController.text.trim(),
-        club: '',
+        club: opponentTeam,
         injuryPart: injuryPart,
         painLevel: painLevel,
         rehab: _injury ? _rehab : false,
@@ -1690,6 +1794,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         jumpRopeMinutes: jumpRopeMinutes,
         jumpRopeEnabled: _jumpRopeEnabled,
         jumpRopeNote: jumpRopeNote,
+        opponentTeam: opponentTeam,
+        scoredGoals: scoredGoals,
+        concededGoals: concededGoals,
       );
       final generatedFortuneComment = _fortuneService
           .generateResult(
@@ -1737,6 +1844,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         jumpRopeMinutes: draftEntry.jumpRopeMinutes,
         jumpRopeEnabled: draftEntry.jumpRopeEnabled,
         jumpRopeNote: draftEntry.jumpRopeNote,
+        opponentTeam: draftEntry.opponentTeam,
+        scoredGoals: draftEntry.scoredGoals,
+        concededGoals: draftEntry.concededGoals,
       );
 
       if (widget.entry == null) {
@@ -1762,9 +1872,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
       final shouldShowFortuneOnSave = popAfterSave && widget.entry == null;
-      final fortuneToShow = shouldShowFortuneOnSave
-          ? generatedFortuneComment
-          : fortuneComment;
+      final fortuneToShow =
+          shouldShowFortuneOnSave ? generatedFortuneComment : fortuneComment;
       if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
         await _showFortuneRevealDialog(fortuneToShow);
         if (!mounted) return;
@@ -1798,9 +1907,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final contentBg = isDark
         ? theme.colorScheme.surface.withValues(alpha: 0.84)
         : Colors.white.withValues(alpha: 0.78);
-    final titleColor = isDark
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurface;
+    final titleColor =
+        isDark ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
     final lines = fortuneComment
         .split('\n')
         .map((line) => line.trim())
@@ -1862,7 +1970,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           const SizedBox(width: 10),
                           Text(
                             isKo ? '오늘의 운세' : 'Today fortune',
-                            style: Theme.of(context).textTheme.titleLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: titleColor,
@@ -1891,7 +2001,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               isKo
                                   ? '오늘도 멋진 플레이를 응원할게요.'
                                   : 'Cheering for your best play today.',
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],
@@ -2306,6 +2418,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final cleaned = text.trim();
     if (cleaned.isEmpty) return null;
     return int.tryParse(cleaned);
+  }
+
+  int? _parseScore(String text) {
+    final parsed = _parseInt(text);
+    if (parsed == null || parsed < 0) return null;
+    return parsed;
   }
 
   int _parseLiftCount(String text) {

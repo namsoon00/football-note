@@ -122,6 +122,9 @@ class _LogsScreenState extends State<LogsScreen> {
       _programOptions = normalizedPrograms;
       widget.optionRepository.saveOptions('programs', normalizedPrograms);
     }
+    if (!_programOptions.contains(l10n.typeMatch)) {
+      _programOptions = [..._programOptions, l10n.typeMatch];
+    }
     final savedLayout =
         widget.optionRepository.getValue<String>(_layoutKey) ?? 'card';
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
@@ -204,12 +207,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         onBoardList: _openBoardList,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련보드 리스트'
-                                : 'Training board list',
+                                ? '훈련스케치 리스트'
+                                : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련보드'
-                                : 'Boards',
+                                ? '훈련스케치'
+                                : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -490,6 +493,7 @@ class _LogsScreenState extends State<LogsScreen> {
       final haystack = [
         entry.program,
         entry.type,
+        entry.opponentTeam,
         entry.location,
         entry.goalFocuses.join(' '),
         entry.goodPoints,
@@ -831,15 +835,19 @@ class _EntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final dateText = DateFormat.yMMMd(locale).add_E().format(entry.date);
     final l10n = AppLocalizations.of(context)!;
-    final titleProgram = entry.type.isEmpty ? l10n.program : entry.type;
+    final titleProgram = _entryTitleLabel(entry, l10n);
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
     final titleLocation =
         entry.location.trim().isEmpty ? '-' : entry.location.trim();
-    final titleText = '$titleProgram · $durationText · $titleLocation';
+    final secondaryText = _entrySecondaryText(entry, isKo: isKo);
+    final titleText = [titleProgram, durationText, titleLocation, secondaryText]
+        .where((part) => part.trim().isNotEmpty)
+        .join(' · ');
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final boardIds = TrainingBoardLinkCodec.decodeBoardIds(entry.drills);
@@ -926,15 +934,20 @@ class _EntryListItem extends StatelessWidget {
         entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final titleText = [
+      _entryTitleLabel(entry, l10n),
+      durationText,
+      locationText,
+      _entrySecondaryText(entry, isKo: isKo),
+    ].where((part) => part.trim().isNotEmpty).join(' · ');
 
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         leading: _StatusIcon(status: entry.status),
-        title: Text(
-          '${entry.type.isEmpty ? l10n.program : entry.type} · $durationText · $locationText',
-        ),
+        title: Text(titleText),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -1094,12 +1107,50 @@ class _ThumbPitchPainter extends CustomPainter {
 
 String _buildSummaryLine(AppLocalizations l10n, TrainingEntry entry) {
   final parts = <String>[];
+  final matchResult = _matchResultText(entry, isKo: false);
+  if (matchResult.isNotEmpty) {
+    parts.add(matchResult);
+  }
   parts.add('${l10n.intensity} ${entry.intensity}');
   parts.add('${l10n.condition} ${entry.mood}');
   return parts.join('  •  ');
 }
 
+String _entryTitleLabel(TrainingEntry entry, AppLocalizations l10n) {
+  final label = entry.type.trim();
+  if (label.isNotEmpty) return label;
+  return entry.program.trim().isNotEmpty ? entry.program.trim() : l10n.program;
+}
+
+String _entrySecondaryText(TrainingEntry entry, {required bool isKo}) {
+  final parts = <String>[];
+  if (entry.opponentTeam.trim().isNotEmpty) {
+    parts.add(
+      isKo
+          ? 'vs ${entry.opponentTeam.trim()}'
+          : 'vs ${entry.opponentTeam.trim()}',
+    );
+  }
+  final result = _matchResultText(entry, isKo: isKo);
+  if (result.isNotEmpty) {
+    parts.add(result);
+  }
+  return parts.join(' · ');
+}
+
+String _matchResultText(TrainingEntry entry, {required bool isKo}) {
+  if (entry.scoredGoals == null && entry.concededGoals == null) {
+    return '';
+  }
+  final our = entry.scoredGoals?.toString() ?? '-';
+  final their = entry.concededGoals?.toString() ?? '-';
+  return isKo ? '결과 $our:$their' : 'Result $our:$their';
+}
+
 String _buildListFocusText(TrainingEntry entry, {bool includeFortune = true}) {
+  if (entry.opponentTeam.trim().isNotEmpty) {
+    return entry.opponentTeam.trim();
+  }
   if (entry.goalFocuses.isNotEmpty) {
     return entry.goalFocuses.join(', ');
   }
