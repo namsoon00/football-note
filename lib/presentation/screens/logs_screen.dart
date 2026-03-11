@@ -188,7 +188,6 @@ class _LogsScreenState extends State<LogsScreen> {
                     ),
                     const SizedBox(height: 12),
                     WatchCartHomeOptions(
-                      onAdd: widget.onCreate,
                       onBoardList: _openBoardList,
                       boardListLabel:
                           Localizations.localeOf(context).languageCode == 'ko'
@@ -201,7 +200,10 @@ class _LogsScreenState extends State<LogsScreen> {
                       boardBadgeCount: boardsById.length,
                       onSearch: _toggleSearch,
                       onFilter: () => _openFilterSheet(context),
-                      actionLabel: l10n.addEntry,
+                      actionLabel:
+                          Localizations.localeOf(context).languageCode == 'ko'
+                              ? '기록 개수'
+                              : 'Entries',
                       badgeCount: allEntries.length,
                     ),
                     if (_showSearch) ...[

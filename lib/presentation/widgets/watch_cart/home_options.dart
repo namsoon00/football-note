@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'constants.dart';
 
 class WatchCartHomeOptions extends StatelessWidget {
-  final VoidCallback onAdd;
   final VoidCallback? onBoardList;
   final VoidCallback? onFilter;
   final VoidCallback? onSearch;
@@ -14,7 +13,6 @@ class WatchCartHomeOptions extends StatelessWidget {
 
   const WatchCartHomeOptions({
     super.key,
-    required this.onAdd,
     required this.actionLabel,
     required this.badgeCount,
     this.onBoardList,
@@ -34,13 +32,16 @@ class WatchCartHomeOptions extends StatelessWidget {
         const SizedBox(width: 12),
         _OptionButton(icon: Icons.tune, onTap: onFilter),
         const SizedBox(width: 12),
-        _OptionButton(
-          icon: Icons.add,
-          onTap: onAdd,
-          semanticLabel: actionLabel,
+        Expanded(
+          child: _LabeledCountButton(
+            onTap: null,
+            semanticLabel: actionLabel,
+            label: actionLabel,
+            count: badgeCount,
+          ),
         ),
-        const SizedBox(width: 12),
         if (hasBoardButton) ...[
+          const SizedBox(width: 12),
           Expanded(
             child: _LabeledCountButton(
               onTap: onBoardList!,
@@ -49,17 +50,7 @@ class WatchCartHomeOptions extends StatelessWidget {
               count: boardBadgeCount ?? 0,
             ),
           ),
-          const SizedBox(width: 12),
         ],
-        if (!hasBoardButton)
-          Expanded(
-            child: _LabeledCountButton(
-              onTap: onAdd,
-              semanticLabel: actionLabel,
-              label: actionLabel,
-              count: badgeCount,
-            ),
-          ),
       ],
     );
   }
@@ -68,32 +59,27 @@ class WatchCartHomeOptions extends StatelessWidget {
 class _OptionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
-  final String? semanticLabel;
 
-  const _OptionButton({required this.icon, this.onTap, this.semanticLabel});
+  const _OptionButton({required this.icon, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: semanticLabel,
-      button: true,
-      child: Material(
-        color: Colors.transparent,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(8.0),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8.0),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8.0),
-          splashColor: WatchCartConstants.primaryColor.withAlpha(30),
-          highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
-          child: Container(
-            width: 60.0,
-            height: 60.0,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
-            ),
-            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
+        splashColor: WatchCartConstants.primaryColor.withAlpha(30),
+        highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
+        child: Container(
+          width: 60.0,
+          height: 60.0,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
           ),
+          child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
         ),
       ),
     );
@@ -101,7 +87,7 @@ class _OptionButton extends StatelessWidget {
 }
 
 class _LabeledCountButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final String? semanticLabel;
   final String label;
   final int count;
@@ -118,7 +104,7 @@ class _LabeledCountButton extends StatelessWidget {
     final theme = Theme.of(context);
     return Semantics(
       label: semanticLabel,
-      button: true,
+      button: onTap != null,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(8.0),
