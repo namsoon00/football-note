@@ -215,11 +215,6 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
-                        actionLabel:
-                            Localizations.localeOf(context).languageCode == 'ko'
-                            ? '기록 개수'
-                            : 'Entries',
-                        badgeCount: allEntries.length,
                       ),
                       if (_showSearch) ...[
                         const SizedBox(height: 10),
@@ -229,9 +224,7 @@ class _LogsScreenState extends State<LogsScreen> {
                       if (allEntries.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Center(
-                            child: Text(l10n.noEntries),
-                          ),
+                          child: Center(child: Text(l10n.noEntries)),
                         )
                       else if (visibleEntries.isEmpty)
                         Padding(

@@ -5,16 +5,16 @@ class WatchCartHomeOptions extends StatelessWidget {
   final VoidCallback? onBoardList;
   final VoidCallback? onFilter;
   final VoidCallback? onSearch;
-  final String actionLabel;
+  final String? actionLabel;
   final String? boardListLabel;
   final String? boardListTitle;
   final int? boardBadgeCount;
-  final int badgeCount;
+  final int? badgeCount;
 
   const WatchCartHomeOptions({
     super.key,
-    required this.actionLabel,
-    required this.badgeCount,
+    this.actionLabel,
+    this.badgeCount,
     this.onBoardList,
     this.boardListLabel,
     this.boardListTitle,
@@ -26,20 +26,24 @@ class WatchCartHomeOptions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasBoardButton = onBoardList != null;
+    final hasSummaryButton =
+        (actionLabel ?? '').trim().isNotEmpty && badgeCount != null;
     return Row(
       children: [
         _OptionButton(icon: Icons.search, onTap: onSearch),
         const SizedBox(width: 12),
         _OptionButton(icon: Icons.tune, onTap: onFilter),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _LabeledCountButton(
-            onTap: null,
-            semanticLabel: actionLabel,
-            label: actionLabel,
-            count: badgeCount,
+        if (hasSummaryButton) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: _LabeledCountButton(
+              onTap: null,
+              semanticLabel: actionLabel,
+              label: actionLabel!,
+              count: badgeCount!,
+            ),
           ),
-        ),
+        ],
         if (hasBoardButton) ...[
           const SizedBox(width: 12),
           Expanded(

@@ -236,13 +236,22 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                             });
                           },
                         )
-                      : const Icon(Icons.developer_board_outlined),
+                      : null,
                   title: Text(board.title),
-                  subtitle: Text(
-                    isKo
-                        ? '요소 $itemCount개 · 훈련일 $dateText'
-                        : '$itemCount items · Training date $dateText',
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isKo
+                            ? '요소 $itemCount개 · 훈련일 $dateText'
+                            : '$itemCount items · Training date $dateText',
+                      ),
+                      const SizedBox(height: 8),
+                      _BoardPreview(layout: layout),
+                    ],
                   ),
+                  isThreeLine: true,
                   trailing: PopupMenuButton<String>(
                     onSelected: (value) {
                       switch (value) {
@@ -286,5 +295,160 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
               },
             ),
     );
+  }
+}
+
+class _BoardPreview extends StatelessWidget {
+  final TrainingMethodLayout layout;
+
+  const _BoardPreview({required this.layout});
+
+  @override
+  Widget build(BuildContext context) {
+    final previewPage = layout.pages.isNotEmpty
+        ? layout.pages.first
+        : TrainingMethodLayout.empty().pages.first;
+    final itemCount = layout.pages.fold<int>(
+      0,
+      (sum, page) => sum + page.items.length,
+    );
+    return Container(
+      height: 84,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          return Stack(
+            children: [
+              CustomPaint(
+                size: Size(width, height),
+                painter: _BoardPreviewPainter(page: previewPage),
+              ),
+              ...previewPage.items.take(12).map((item) {
+                final icon = switch (item.type) {
+                  'cone' => Icons.change_history,
+                  'player' => Icons.person,
+                  'ball' => Icons.sports_soccer,
+                  'ladder' => Icons.view_week,
+                  _ => Icons.circle,
+                };
+                return Positioned(
+                  left: (item.x * width).clamp(6.0, width - 18.0),
+                  top: (item.y * height).clamp(4.0, height - 18.0),
+                  child: Transform.rotate(
+                    angle: item.rotationDeg * 3.1415926535897932 / 180,
+                    child: Icon(
+                      icon,
+                      size: (item.size * 0.38).clamp(10.0, 18.0),
+                      color: Color(item.colorValue).withValues(alpha: 0.96),
+                    ),
+                  ),
+                );
+              }),
+              Positioned(
+                right: 8,
+                top: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$itemCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BoardPreviewPainter extends CustomPainter {
+  final TrainingMethodPage page;
+
+  const _BoardPreviewPainter({required this.page});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    final pathPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(2, 2, size.width - 4, size.height - 4),
+        const Radius.circular(10),
+      ),
+      line,
+    );
+    canvas.drawLine(Offset(centerX, 2), Offset(centerX, size.height - 2), line);
+    canvas.drawCircle(Offset(centerX, centerY), 10, line);
+
+    for (final stroke in page.strokes) {
+      if (stroke.points.length < 2) continue;
+      final strokePaint = Paint()
+        ..color = Color(stroke.colorValue).withValues(alpha: 0.92)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke.width.clamp(1.0, 4.0)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final path = Path()
+        ..moveTo(
+          stroke.points.first.x * size.width,
+          stroke.points.first.y * size.height,
+        );
+      for (final point in stroke.points.skip(1)) {
+        path.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(path, strokePaint);
+    }
+
+    if (page.playerPath.length >= 2) {
+      final path = Path()
+        ..moveTo(
+          page.playerPath.first.x * size.width,
+          page.playerPath.first.y * size.height,
+        );
+      for (final point in page.playerPath.skip(1)) {
+        path.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(path, pathPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BoardPreviewPainter oldDelegate) {
+    return oldDelegate.page != page;
   }
 }

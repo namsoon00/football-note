@@ -39,10 +39,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('ko', 'KR'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: CalendarScreen(
             trainingService: trainingService,
             localeService: localeService,
@@ -127,7 +124,7 @@ void main() {
     expect(find.text('캘린더 펼치기'), findsNothing);
   });
 
-  testWidgets('경기 기록은 상대 팀과 결과를 캘린더 목록에 보여준다', (tester) async {
+  testWidgets('경기 기록은 승패와 상대 팀 결과를 캘린더 목록에 보여준다', (tester) async {
     final today = DateTime.now();
     await trainingService.add(
       TrainingEntry(
@@ -153,10 +150,12 @@ void main() {
     await pumpCalendar(tester);
 
     expect(find.text('시합'), findsOneWidget);
+    expect(find.text('승'), findsOneWidget);
     expect(find.textContaining('vs 라이벌 FC'), findsOneWidget);
     expect(find.textContaining('결과 3:2'), findsOneWidget);
     expect(find.textContaining('내 골 1'), findsOneWidget);
     expect(find.textContaining('내 어시스트 2'), findsOneWidget);
     expect(find.textContaining('출전 70분'), findsOneWidget);
+    expect(find.byIcon(Icons.fitness_center), findsNothing);
   });
 }
