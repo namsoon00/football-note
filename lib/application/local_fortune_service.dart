@@ -46,37 +46,43 @@ class LocalFortuneService {
     final luckyNumber = (baseSeed.abs() % 9) + 1;
     final weeklyTrend = _weeklyTrendComment(history: history, isKo: isKo);
     final readiness = _readinessComment(entry: entry, isKo: isKo);
+    final recommendedProgram = _recommendedProgram(entry: entry, isKo: isKo);
+    final recommendationText = _recommendationText(
+      entry: entry,
+      recommendedProgram: recommendedProgram,
+      isKo: isKo,
+    );
 
     final fortuneText = isKo
         ? '전체 흐름: $message\n'
-            '컨디션 키워드: $moodKeyword\n'
-            '현재 준비도: $readiness\n'
-            '최근 흐름: $weeklyTrend\n'
-            '\n'
-            '[행운 정보]\n'
-            '행운 숫자: $luckyNumber\n'
-            '행운 색상: $luckyColor\n'
-            '행운 시간대: $luckyTime\n'
-            '행운 물건: $luckyObject\n'
-            '행운 간식: $luckySnack\n'
-            '$boost'
+              '컨디션 키워드: $moodKeyword\n'
+              '현재 준비도: $readiness\n'
+              '최근 흐름: $weeklyTrend\n'
+              '\n'
+              '[행운 정보]\n'
+              '행운 숫자: $luckyNumber\n'
+              '행운 색상: $luckyColor\n'
+              '행운 시간대: $luckyTime\n'
+              '행운 물건: $luckyObject\n'
+              '행운 간식: $luckySnack\n'
+              '$boost'
         : 'Overall flow: $message\n'
-            'Mood keyword: $moodKeyword\n'
-            'Current readiness: $readiness\n'
-            'Recent trend: $weeklyTrend\n'
-            '\n'
-            '[Lucky info]\n'
-            'Lucky number: $luckyNumber\n'
-            'Lucky color: $luckyColor\n'
-            'Lucky time: $luckyTime\n'
-            'Lucky item: $luckyObject\n'
-            'Lucky snack: $luckySnack\n'
-            '$boost';
+              'Mood keyword: $moodKeyword\n'
+              'Current readiness: $readiness\n'
+              'Recent trend: $weeklyTrend\n'
+              '\n'
+              '[Lucky info]\n'
+              'Lucky number: $luckyNumber\n'
+              'Lucky color: $luckyColor\n'
+              'Lucky time: $luckyTime\n'
+              'Lucky item: $luckyObject\n'
+              'Lucky snack: $luckySnack\n'
+              '$boost';
 
     return LocalFortuneResult(
       fortuneText: fortuneText,
-      recommendationText: '',
-      recommendedProgram: '',
+      recommendationText: recommendationText,
+      recommendedProgram: recommendedProgram,
     );
   }
 
@@ -156,6 +162,46 @@ class LocalFortuneService {
       return isKo ? '기본 루틴 강화 적합' : 'Great for strengthening core routines';
     }
     return isKo ? '기술 정리와 회복 우선' : 'Prioritize technique cleanup and recovery';
+  }
+
+  String _recommendedProgram({
+    required TrainingEntry entry,
+    required bool isKo,
+  }) {
+    final liftingTotal = entry.liftingByPart.values.fold<int>(
+      0,
+      (sum, count) => sum + count,
+    );
+    if (entry.injury || (entry.painLevel ?? 0) >= 4) {
+      return isKo ? '회복 볼터치' : 'Recovery ball touch';
+    }
+    if (liftingTotal >= 80) {
+      return isKo ? '가벼운 퍼스트 터치' : 'Light first touch';
+    }
+    if (entry.mood >= 4 && entry.intensity >= 4) {
+      return isKo ? '전진 패스 연계' : 'Forward pass combination';
+    }
+    return isKo ? '기본기 루틴' : 'Core technique routine';
+  }
+
+  String _recommendationText({
+    required TrainingEntry entry,
+    required String recommendedProgram,
+    required bool isKo,
+  }) {
+    if (entry.injury || (entry.painLevel ?? 0) >= 4) {
+      return isKo
+          ? '통증 체크를 우선하고, 다음 훈련은 $recommendedProgram 중심으로 강도를 낮춰보세요.'
+          : 'Check pain first and lower the next session intensity around $recommendedProgram.';
+    }
+    if (entry.mood >= 4 && entry.intensity >= 4) {
+      return isKo
+          ? '흐름이 좋습니다. 다음 훈련은 $recommendedProgram로 속도와 선택 연결을 이어가세요.'
+          : 'Your rhythm is good. Keep the next session focused on $recommendedProgram.';
+    }
+    return isKo
+        ? '다음 훈련은 $recommendedProgram로 리듬을 정리하며 정확도를 끌어올려보세요.'
+        : 'Use $recommendedProgram next to settle your rhythm and raise accuracy.';
   }
 }
 

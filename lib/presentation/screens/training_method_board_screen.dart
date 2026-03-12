@@ -49,9 +49,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   Color _penColor = const Color(0xFF000000);
   List<Offset>? _activeStroke;
   List<Offset>? _activePlayerPath;
+  List<Offset>? _activeBallPath;
   late final AnimationController _playController;
   int? _playingPlayerId;
   Offset? _playingPlayerStart;
+  int? _playingBallId;
+  Offset? _playingBallStart;
+  _PathDrawMode _pathDrawMode = _PathDrawMode.player;
   String _lastSavedLayout = '';
   bool _shouldPromptInitialBoardName = false;
   final _speech = stt.SpeechToText();
@@ -106,8 +110,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _restoreStandaloneBoard() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
     final page = layout.pages.isEmpty ? null : layout.pages.first;
-    final defaultBoardName =
-        widget.boardTitle.trim().isEmpty ? 'Board 1' : widget.boardTitle.trim();
+    final defaultBoardName = widget.boardTitle.trim().isEmpty
+        ? 'Board 1'
+        : widget.boardTitle.trim();
     _pages = <_BoardPageState>[
       _BoardPageState(
         name: page == null
@@ -141,6 +146,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         playerPath: (page?.playerPath ?? const <TrainingMethodPoint>[])
             .map((point) => Offset(point.x, point.y))
             .toList(growable: true),
+        ballPath: (page?.ballPath ?? const <TrainingMethodPoint>[])
+            .map((point) => Offset(point.x, point.y))
+            .toList(growable: true),
       ),
     ];
     if (page == null) {
@@ -165,19 +173,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final requestedId = widget.initialBoardId?.trim();
     final initialBoard =
         _firstWhereOrNull(linkedBoards, (board) => board.id == requestedId) ??
-            linkedBoards.first;
+        linkedBoards.first;
     _loadBoard(initialBoard);
   }
 
   _BoardPageState _emptyBoardPage(String fallbackTitle) {
-    final title =
-        fallbackTitle.trim().isEmpty ? 'Board 1' : fallbackTitle.trim();
+    final title = fallbackTitle.trim().isEmpty
+        ? 'Board 1'
+        : fallbackTitle.trim();
     return _BoardPageState(
       name: title,
       methodText: '',
       items: <_BoardItem>[],
       strokes: <_BoardStroke>[],
       playerPath: <Offset>[],
+      ballPath: <Offset>[],
     );
   }
 
@@ -217,6 +227,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         playerPath: (page?.playerPath ?? const <TrainingMethodPoint>[])
             .map((point) => Offset(point.x, point.y))
             .toList(growable: true),
+        ballPath: (page?.ballPath ?? const <TrainingMethodPoint>[])
+            .map((point) => Offset(point.x, point.y))
+            .toList(growable: true),
       ),
     ];
     _currentBoardId = board.id;
@@ -225,8 +238,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _pathMode = false;
     _activeStroke = null;
     _activePlayerPath = null;
+    _activeBallPath = null;
     _playingPlayerId = null;
     _playingPlayerStart = null;
+    _playingBallId = null;
+    _playingBallStart = null;
     _methodController.text = _currentPage.methodText;
     _lastSavedLayout = _serialize();
   }
@@ -369,6 +385,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           playerPath: p.playerPath
               .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
               .toList(growable: false),
+          ballPath: p.ballPath
+              .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
+              .toList(growable: false),
         ),
       ],
     );
@@ -382,6 +401,26 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       if (item.id == id) return item;
     }
     return null;
+  }
+
+  _BoardItem? get _playingPlayer {
+    final id = _playingPlayerId;
+    if (id == null) return null;
+    return _firstWhereOrNull(_currentPage.items, (item) => item.id == id);
+  }
+
+  _BoardItem? get _playingBall {
+    final id = _playingBallId;
+    if (id == null) return null;
+    return _firstWhereOrNull(_currentPage.items, (item) => item.id == id);
+  }
+
+  _BoardItem? _resolvePlaybackItem(_BoardItemType type) {
+    final selected = _selectedItem;
+    if (selected != null && selected.type == type) {
+      return selected;
+    }
+    return _firstWhereOrNull(_currentPage.items, (item) => item.type == type);
   }
 
   void _addItem(_BoardItemType type) {
@@ -509,19 +548,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          children: linkedBoards.map((board) {
-            final isCurrent = board.id == _currentBoardId;
-            return ListTile(
-              leading: Icon(
-                isCurrent
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_off_outlined,
-              ),
-              title: Text(board.title),
-              trailing: isCurrent ? const Icon(Icons.check) : null,
-              onTap: () => Navigator.of(context).pop(board),
-            );
-          }).toList(growable: false),
+          children: linkedBoards
+              .map((board) {
+                final isCurrent = board.id == _currentBoardId;
+                return ListTile(
+                  leading: Icon(
+                    isCurrent
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off_outlined,
+                  ),
+                  title: Text(board.title),
+                  trailing: isCurrent ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.of(context).pop(board),
+                );
+              })
+              .toList(growable: false),
         ),
       ),
     );
@@ -687,6 +728,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       playerPath: page.playerPath
           .map((point) => Offset(point.x, point.y))
           .toList(growable: true),
+      ballPath: page.ballPath
+          .map((point) => Offset(point.x, point.y))
+          .toList(growable: true),
     );
 
     setState(() {
@@ -695,6 +739,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _penMode = false;
       _pathMode = false;
       _methodController.text = _currentPage.methodText;
+      _activeBallPath = null;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -738,35 +783,39 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                      children: layout.pages.asMap().entries.map((entry) {
-                        final pageIndex = entry.key;
-                        final page = entry.value;
-                        final boardName = page.name.trim().isEmpty
-                            ? 'Board ${pageIndex + 1}'
-                            : page.name.trim();
-                        final memo = page.methodText.trim();
-                        return ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.content_paste_outlined),
-                          title: Text(boardName),
-                          subtitle: memo.isEmpty
-                              ? null
-                              : Text(
-                                  memo,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.of(context).pop(
-                              _PresetBoardSelection(
-                                preset: preset,
-                                page: page,
-                              ),
+                      children: layout.pages
+                          .asMap()
+                          .entries
+                          .map((entry) {
+                            final pageIndex = entry.key;
+                            final page = entry.value;
+                            final boardName = page.name.trim().isEmpty
+                                ? 'Board ${pageIndex + 1}'
+                                : page.name.trim();
+                            final memo = page.methodText.trim();
+                            return ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.content_paste_outlined),
+                              title: Text(boardName),
+                              subtitle: memo.isEmpty
+                                  ? null
+                                  : Text(
+                                      memo,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.of(context).pop(
+                                  _PresetBoardSelection(
+                                    preset: preset,
+                                    page: page,
+                                  ),
+                                );
+                              },
                             );
-                          },
-                        );
-                      }).toList(growable: false),
+                          })
+                          .toList(growable: false),
                     );
                   },
                 ),
@@ -868,13 +917,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final x = (localPosition.dx / width).clamp(0.0, 1.0);
     final y = (localPosition.dy / height).clamp(0.0, 1.0);
     setState(() {
-      _activePlayerPath = <Offset>[Offset(x, y)];
+      if (_pathDrawMode == _PathDrawMode.player) {
+        _activePlayerPath = <Offset>[Offset(x, y)];
+        _activeBallPath = null;
+      } else {
+        _activeBallPath = <Offset>[Offset(x, y)];
+        _activePlayerPath = null;
+      }
       _selectedItemId = null;
     });
   }
 
   void _appendPlayerPath(Offset localPosition, double width, double height) {
-    final points = _activePlayerPath;
+    final points = _pathDrawMode == _PathDrawMode.player
+        ? _activePlayerPath
+        : _activeBallPath;
     if (points == null) return;
     final x = (localPosition.dx / width).clamp(0.0, 1.0);
     final y = (localPosition.dy / height).clamp(0.0, 1.0);
@@ -884,18 +941,25 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   void _endPlayerPath() {
-    final points = _activePlayerPath;
+    final points = _pathDrawMode == _PathDrawMode.player
+        ? _activePlayerPath
+        : _activeBallPath;
     if (points == null || points.length < 2) {
       setState(() {
         _activePlayerPath = null;
+        _activeBallPath = null;
       });
       return;
     }
     setState(() {
-      _currentPage.playerPath
+      final target = _pathDrawMode == _PathDrawMode.player
+          ? _currentPage.playerPath
+          : _currentPage.ballPath;
+      target
         ..clear()
         ..addAll(points);
       _activePlayerPath = null;
+      _activeBallPath = null;
     });
   }
 
@@ -909,6 +973,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       }
       _activeStroke = null;
       _activePlayerPath = null;
+      _activeBallPath = null;
     });
   }
 
@@ -917,29 +982,25 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _stopPlayerPlayback();
       return;
     }
-    if (_currentPage.playerPath.length < 2) {
+    final hasPlayerPath = _currentPage.playerPath.length >= 2;
+    final hasBallPath = _currentPage.ballPath.length >= 2;
+    if (!hasPlayerPath && !hasBallPath) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isKo ? '먼저 사람 이동선을 그려주세요.' : 'Draw a player path first.',
+            isKo
+                ? '먼저 사람 또는 공 이동선을 그려주세요.'
+                : 'Draw a player or ball path first.',
           ),
         ),
       );
       return;
     }
-    _BoardItem? player;
-    final selected = _selectedItem;
-    if (selected != null && selected.type == _BoardItemType.player) {
-      player = selected;
-    } else {
-      for (final item in _currentPage.items) {
-        if (item.type == _BoardItemType.player) {
-          player = item;
-          break;
-        }
-      }
-    }
-    if (player == null) {
+    final player = hasPlayerPath
+        ? _resolvePlaybackItem(_BoardItemType.player)
+        : null;
+    final ball = hasBallPath ? _resolvePlaybackItem(_BoardItemType.ball) : null;
+    if (hasPlayerPath && player == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -949,16 +1010,39 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
       return;
     }
+    if (hasBallPath && ball == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isKo ? '공 아이콘을 먼저 추가해주세요.' : 'Add a ball icon first.'),
+        ),
+      );
+      return;
+    }
     _stopPlayerPlayback(restoreStart: false);
-    final firstPoint = _currentPage.playerPath.first;
     setState(() {
-      _playingPlayerId = player!.id;
-      _playingPlayerStart = Offset(player.x, player.y);
-      player.x = firstPoint.dx.clamp(0.03, 0.97);
-      player.y = firstPoint.dy.clamp(0.03, 0.97);
+      if (player != null) {
+        final firstPoint = _currentPage.playerPath.first;
+        _playingPlayerId = player.id;
+        _playingPlayerStart = Offset(player.x, player.y);
+        player.x = firstPoint.dx.clamp(0.03, 0.97);
+        player.y = firstPoint.dy.clamp(0.03, 0.97);
+      }
+      if (ball != null) {
+        final firstPoint = _currentPage.ballPath.first;
+        _playingBallId = ball.id;
+        _playingBallStart = Offset(ball.x, ball.y);
+        ball.x = firstPoint.dx.clamp(0.03, 0.97);
+        ball.y = firstPoint.dy.clamp(0.03, 0.97);
+      }
     });
     _playController.duration = Duration(
-      milliseconds: (_currentPage.playerPath.length * 40).clamp(1200, 7000),
+      milliseconds:
+          (math.max(
+                    _currentPage.playerPath.length,
+                    _currentPage.ballPath.length,
+                  ) *
+                  40)
+              .clamp(1200, 7000),
     );
     _playController
       ..stop()
@@ -968,14 +1052,24 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _onPlayTick() {
     final player = _playingPlayer;
-    if (player == null || _currentPage.playerPath.length < 2) return;
-    final position = _samplePathPoint(
-      _currentPage.playerPath,
-      _playController.value,
-    );
     setState(() {
-      player.x = position.dx.clamp(0.03, 0.97);
-      player.y = position.dy.clamp(0.03, 0.97);
+      if (player != null && _currentPage.playerPath.length >= 2) {
+        final position = _samplePathPoint(
+          _currentPage.playerPath,
+          _playController.value,
+        );
+        player.x = position.dx.clamp(0.03, 0.97);
+        player.y = position.dy.clamp(0.03, 0.97);
+      }
+      final ball = _playingBall;
+      if (ball != null && _currentPage.ballPath.length >= 2) {
+        final position = _samplePathPoint(
+          _currentPage.ballPath,
+          _playController.value,
+        );
+        ball.x = position.dx.clamp(0.03, 0.97);
+        ball.y = position.dy.clamp(0.03, 0.97);
+      }
     });
   }
 
@@ -986,13 +1080,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     final player = _playingPlayer;
     final start = _playingPlayerStart;
+    final ball = _playingBall;
+    final ballStart = _playingBallStart;
     setState(() {
       if (player != null && start != null) {
         player.x = start.dx;
         player.y = start.dy;
       }
+      if (ball != null && ballStart != null) {
+        ball.x = ballStart.dx;
+        ball.y = ballStart.dy;
+      }
       _playingPlayerId = null;
       _playingPlayerStart = null;
+      _playingBallId = null;
+      _playingBallStart = null;
     });
     if (status == AnimationStatus.completed) {
       _playController.reset();
@@ -1002,23 +1104,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _stopPlayerPlayback({bool restoreStart = true}) {
     final player = _playingPlayer;
     final start = _playingPlayerStart;
+    final ball = _playingBall;
+    final ballStart = _playingBallStart;
     _playController.stop();
-    if (restoreStart && player != null && start != null) {
+    if (restoreStart &&
+        ((player != null && start != null) ||
+            (ball != null && ballStart != null))) {
       setState(() {
-        player.x = start.dx;
-        player.y = start.dy;
+        if (player != null && start != null) {
+          player.x = start.dx;
+          player.y = start.dy;
+        }
+        if (ball != null && ballStart != null) {
+          ball.x = ballStart.dx;
+          ball.y = ballStart.dy;
+        }
         _playingPlayerId = null;
         _playingPlayerStart = null;
+        _playingBallId = null;
+        _playingBallStart = null;
       });
       return;
     }
     _playingPlayerId = null;
     _playingPlayerStart = null;
+    _playingBallId = null;
+    _playingBallStart = null;
   }
 
   Future<void> _toggleMemoListening(bool isKo) async {
-    final localeId =
-        Localizations.localeOf(context).languageCode == 'ko' ? 'ko_KR' : null;
+    final localeId = Localizations.localeOf(context).languageCode == 'ko'
+        ? 'ko_KR'
+        : null;
     if (_isListeningMemo) {
       _memoSession++;
       final recognized = _memoRecognizedWords;
@@ -1117,7 +1234,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _memoCommitted = true;
       return;
     }
-    final needsSpacing = !isKoreanLocale &&
+    final needsSpacing =
+        !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1129,15 +1247,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
     _currentPage.methodText = nextText;
     _memoCommitted = true;
-  }
-
-  _BoardItem? get _playingPlayer {
-    final id = _playingPlayerId;
-    if (id == null) return null;
-    for (final item in _currentPage.items) {
-      if (item.id == id) return item;
-    }
-    return null;
   }
 
   Offset _samplePathPoint(List<Offset> points, double t) {
@@ -1189,10 +1298,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       child: Scaffold(
         appBar: AppBar(
           leadingWidth: 152,
-          title: Text(
-            currentBoardTitle,
-            overflow: TextOverflow.ellipsis,
-          ),
+          title: Text(currentBoardTitle, overflow: TextOverflow.ellipsis),
           leading: Row(
             children: [
               IconButton(
@@ -1245,35 +1351,35 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                           behavior: HitTestBehavior.opaque,
                           onPanStart: _penMode
                               ? (details) => _startStroke(
-                                    details.localPosition,
-                                    width,
-                                    height,
-                                  )
+                                  details.localPosition,
+                                  width,
+                                  height,
+                                )
                               : _pathMode
-                                  ? (details) => _startPlayerPath(
-                                        details.localPosition,
-                                        width,
-                                        height,
-                                      )
-                                  : null,
+                              ? (details) => _startPlayerPath(
+                                  details.localPosition,
+                                  width,
+                                  height,
+                                )
+                              : null,
                           onPanUpdate: _penMode
                               ? (details) => _appendStrokePoint(
-                                    details.localPosition,
-                                    width,
-                                    height,
-                                  )
+                                  details.localPosition,
+                                  width,
+                                  height,
+                                )
                               : _pathMode
-                                  ? (details) => _appendPlayerPath(
-                                        details.localPosition,
-                                        width,
-                                        height,
-                                      )
-                                  : null,
+                              ? (details) => _appendPlayerPath(
+                                  details.localPosition,
+                                  width,
+                                  height,
+                                )
+                              : null,
                           onPanEnd: _penMode
                               ? (_) => _endStroke()
                               : _pathMode
-                                  ? (_) => _endPlayerPath()
-                                  : null,
+                              ? (_) => _endPlayerPath()
+                              : null,
                           child: Stack(
                             children: [
                               CustomPaint(
@@ -1283,8 +1389,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                               CustomPaint(
                                 size: Size(width, height),
                                 painter: _PlayerPathPainter(
-                                  points: _currentPage.playerPath,
-                                  activePoints: _activePlayerPath,
+                                  playerPoints: _currentPage.playerPath,
+                                  activePlayerPoints: _activePlayerPath,
+                                  ballPoints: _currentPage.ballPath,
+                                  activeBallPoints: _activeBallPath,
                                 ),
                               ),
                               CustomPaint(
@@ -1296,7 +1404,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 ),
                               ),
                               IgnorePointer(
-                                ignoring: _penMode ||
+                                ignoring:
+                                    _penMode ||
                                     _pathMode ||
                                     _playController.isAnimating,
                                 child: Stack(
@@ -1508,7 +1617,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         OutlinedButton.icon(
           onPressed: _togglePlayerPathMode,
           icon: Icon(_pathMode ? Icons.route : Icons.route_outlined),
-          label: Text(isKo ? '이동선' : 'Path'),
+          label: Text(
+            _pathDrawMode == _PathDrawMode.player
+                ? (isKo ? '사람 이동선' : 'Player path')
+                : (isKo ? '공 이동선' : 'Ball path'),
+          ),
           style: OutlinedButton.styleFrom(
             visualDensity: VisualDensity.compact,
             minimumSize: const Size(1, 40),
@@ -1521,9 +1634,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           onPressed: _currentPage.strokes.isEmpty
               ? null
               : () => setState(() {
-                    _currentPage.strokes.clear();
-                    _activeStroke = null;
-                  }),
+                  _currentPage.strokes.clear();
+                  _activeStroke = null;
+                }),
           icon: const Icon(Icons.layers_clear_outlined),
           label: Text(isKo ? '펜 지우기' : 'Clear ink'),
           style: OutlinedButton.styleFrom(
@@ -1534,14 +1647,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ),
         ),
         OutlinedButton.icon(
-          onPressed: _currentPage.playerPath.isEmpty
+          onPressed:
+              (_currentPage.playerPath.isEmpty && _currentPage.ballPath.isEmpty)
               ? null
               : () => setState(() {
-                    _currentPage.playerPath.clear();
-                    _activePlayerPath = null;
-                  }),
+                  _currentPage.playerPath.clear();
+                  _currentPage.ballPath.clear();
+                  _activePlayerPath = null;
+                  _activeBallPath = null;
+                }),
           icon: const Icon(Icons.route_outlined),
-          label: Text(isKo ? '이동선 지우기' : 'Clear path'),
+          label: Text(isKo ? '이동선 지우기' : 'Clear paths'),
           style: OutlinedButton.styleFrom(
             visualDensity: VisualDensity.compact,
             minimumSize: const Size(1, 40),
@@ -1558,8 +1674,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               _currentPage.items.clear();
               _currentPage.strokes.clear();
               _currentPage.playerPath.clear();
+              _currentPage.ballPath.clear();
               _activeStroke = null;
               _activePlayerPath = null;
+              _activeBallPath = null;
               _selectedItemId = null;
             });
           },
@@ -1624,34 +1742,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _penColors.map((c) {
-                final selectedColor = c.toARGB32() == _penColor.toARGB32();
-                return InkWell(
-                  onTap: () => setState(() => _penColor = c),
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: c,
-                      border: Border.all(
-                        color: selectedColor ? Colors.white : Colors.black26,
-                        width: selectedColor ? 2.4 : 1.0,
-                      ),
-                    ),
-                    child: selectedColor
-                        ? Icon(
-                            Icons.check,
-                            size: 14,
-                            color: c.computeLuminance() < 0.45
+              children: _penColors
+                  .map((c) {
+                    final selectedColor = c.toARGB32() == _penColor.toARGB32();
+                    return InkWell(
+                      onTap: () => setState(() => _penColor = c),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: c,
+                          border: Border.all(
+                            color: selectedColor
                                 ? Colors.white
-                                : Colors.black87,
-                          )
-                        : null,
-                  ),
-                );
-              }).toList(growable: false),
+                                : Colors.black26,
+                            width: selectedColor ? 2.4 : 1.0,
+                          ),
+                        ),
+                        child: selectedColor
+                            ? Icon(
+                                Icons.check,
+                                size: 14,
+                                color: c.computeLuminance() < 0.45
+                                    ? Colors.white
+                                    : Colors.black87,
+                              )
+                            : null,
+                      ),
+                    );
+                  })
+                  .toList(growable: false),
             ),
           ],
         ),
@@ -1665,11 +1787,44 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           borderRadius: BorderRadius.circular(12),
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
-        child: Text(
-          isKo
-              ? '이동선 모드: 보드를 드래그해 사람 이동선을 그리세요. 상단 플레이 버튼으로 재생합니다.'
-              : 'Path mode: drag on the board to draw a player path. Use the top Play button to animate.',
-          style: Theme.of(context).textTheme.bodySmall,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SegmentedButton<_PathDrawMode>(
+              segments: [
+                ButtonSegment<_PathDrawMode>(
+                  value: _PathDrawMode.player,
+                  icon: const Icon(Icons.person),
+                  label: Text(isKo ? '사람' : 'Player'),
+                ),
+                ButtonSegment<_PathDrawMode>(
+                  value: _PathDrawMode.ball,
+                  icon: const Icon(Icons.sports_soccer),
+                  label: Text(isKo ? '공' : 'Ball'),
+                ),
+              ],
+              selected: {_pathDrawMode},
+              onSelectionChanged: (selection) {
+                setState(() {
+                  _pathDrawMode = selection.first;
+                  _activePlayerPath = null;
+                  _activeBallPath = null;
+                });
+              },
+              showSelectedIcon: false,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _pathDrawMode == _PathDrawMode.player
+                  ? (isKo
+                        ? '보드를 드래그해 사람 이동선을 그리세요. 상단 플레이 버튼으로 재생합니다.'
+                        : 'Drag on the board to draw a player path. Use Play to animate.')
+                  : (isKo
+                        ? '보드를 드래그해 공 이동선을 그리세요. 플레이하면 공도 함께 움직입니다.'
+                        : 'Drag on the board to draw a ball path. Play animates the ball too.'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
         ),
       );
     }
@@ -1709,25 +1864,28 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _presetColors.map((c) {
-              final selectedColor = c.toARGB32() == selected.color.toARGB32();
-              return InkWell(
-                onTap: () => setState(() => selected.color = c),
-                borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: c,
-                    border: Border.all(
-                      color: selectedColor ? Colors.white : Colors.black26,
-                      width: selectedColor ? 2.4 : 1.0,
+            children: _presetColors
+                .map((c) {
+                  final selectedColor =
+                      c.toARGB32() == selected.color.toARGB32();
+                  return InkWell(
+                    onTap: () => setState(() => selected.color = c),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: c,
+                        border: Border.all(
+                          color: selectedColor ? Colors.white : Colors.black26,
+                          width: selectedColor ? 2.4 : 1.0,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }).toList(growable: false),
+                  );
+                })
+                .toList(growable: false),
           ),
         ],
       ),
@@ -1741,6 +1899,7 @@ class _BoardPageState {
   final List<_BoardItem> items;
   final List<_BoardStroke> strokes;
   final List<Offset> playerPath;
+  final List<Offset> ballPath;
 
   _BoardPageState({
     required this.name,
@@ -1748,6 +1907,7 @@ class _BoardPageState {
     required this.items,
     required this.strokes,
     required this.playerPath,
+    required this.ballPath,
   });
 }
 
@@ -1791,6 +1951,8 @@ class _PresetBoardSelection {
 }
 
 enum _PendingBoardAction { save, discard, cancel }
+
+enum _PathDrawMode { player, ball }
 
 enum _BoardItemType { cone, hurdle, player, ball, ladder }
 
@@ -1853,8 +2015,9 @@ class _BoardToken extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.18),
           shape: BoxShape.circle,
           border: Border.all(
-            color:
-                selected ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            color: selected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.55),
             width: selected ? 2.2 : 1.2,
           ),
           boxShadow: selected
@@ -1874,28 +2037,54 @@ class _BoardToken extends StatelessWidget {
 }
 
 class _PlayerPathPainter extends CustomPainter {
-  final List<Offset> points;
-  final List<Offset>? activePoints;
+  final List<Offset> playerPoints;
+  final List<Offset>? activePlayerPoints;
+  final List<Offset> ballPoints;
+  final List<Offset>? activeBallPoints;
 
-  const _PlayerPathPainter({required this.points, required this.activePoints});
+  const _PlayerPathPainter({
+    required this.playerPoints,
+    required this.activePlayerPoints,
+    required this.ballPoints,
+    required this.activeBallPoints,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (points.length > 1) {
+    if (playerPoints.length > 1) {
       _draw(
         canvas: canvas,
         size: size,
-        points: points,
+        points: playerPoints,
         color: const Color(0xFF80D8FF),
         width: 4.0,
       );
     }
-    final active = activePoints;
+    if (ballPoints.length > 1) {
+      _draw(
+        canvas: canvas,
+        size: size,
+        points: ballPoints,
+        color: const Color(0xFFFFCA28),
+        width: 3.0,
+      );
+    }
+    final active = activePlayerPoints;
     if (active != null && active.length > 1) {
       _draw(
         canvas: canvas,
         size: size,
         points: active,
+        color: const Color(0xFFFFF176),
+        width: 3.0,
+      );
+    }
+    final activeBall = activeBallPoints;
+    if (activeBall != null && activeBall.length > 1) {
+      _draw(
+        canvas: canvas,
+        size: size,
+        points: activeBall,
         color: const Color(0xFFFFF176),
         width: 3.0,
       );
@@ -1926,8 +2115,10 @@ class _PlayerPathPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PlayerPathPainter oldDelegate) {
-    return oldDelegate.points != points ||
-        oldDelegate.activePoints != activePoints;
+    return oldDelegate.playerPoints != playerPoints ||
+        oldDelegate.activePlayerPoints != activePlayerPoints ||
+        oldDelegate.ballPoints != ballPoints ||
+        oldDelegate.activeBallPoints != activeBallPoints;
   }
 }
 

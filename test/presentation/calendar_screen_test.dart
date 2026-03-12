@@ -156,6 +156,6 @@ void main() {
     expect(find.textContaining('내 골 1'), findsOneWidget);
     expect(find.textContaining('내 어시스트 2'), findsOneWidget);
     expect(find.textContaining('출전 70분'), findsOneWidget);
-    expect(find.byIcon(Icons.fitness_center), findsNothing);
+    expect(find.byIcon(Icons.emoji_events), findsOneWidget);
   });
 }

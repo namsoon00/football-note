@@ -52,6 +52,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static final List<NewsArticle> _cachedArticles = <NewsArticle>[];
   late final NewsService _newsService;
   late final List<NewsChannel> _channels;
+  final TextEditingController _searchController = TextEditingController();
   late Set<String> _selectedChannelIds;
   final List<NewsArticle> _articles = <NewsArticle>[];
   final Set<String> _seenLinks = <String>{};
@@ -90,6 +91,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -135,9 +137,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     onMenuTap: () => Scaffold.of(context).openDrawer(),
                     profilePhotoSource:
                         widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                          'profile_photo_url',
+                        ) ??
+                        '',
                     onProfileTap: () => _openProfile(context),
                     onSettingsTap: () => _openSettings(context),
                   ),
@@ -167,17 +169,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       ),
                       if (isKo)
                         IconButton(
-                          tooltip:
-                              _titleTranslateEnabled ? '제목 번역 켜짐' : '제목 번역 꺼짐',
+                          tooltip: _titleTranslateEnabled
+                              ? '제목 번역 켜짐'
+                              : '제목 번역 꺼짐',
                           onPressed: _toggleTitleTranslate,
                           icon: Icon(
                             Icons.translate_rounded,
                             color: _titleTranslateEnabled
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.55),
+                                : Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.55),
                           ),
                         ),
                       TextButton(
@@ -185,6 +186,29 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                         child: Text(isKo ? '채널 선택' : 'Channels'),
                       ),
                     ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.trim().isEmpty
+                        ? null
+                        : IconButton(
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                            },
+                            icon: const Icon(Icons.close),
+                          ),
+                    hintText: isKo ? '기사 검색' : 'Search news',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                 ),
               ),
@@ -202,6 +226,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildNewsBody(bool isKo) {
+    final visibleArticles = _filteredArticles();
     if (_isLoading && _articles.isEmpty) {
       return ListView(
         children: const [
@@ -237,14 +262,22 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         ],
       );
     }
+    if (visibleArticles.isEmpty) {
+      return ListView(
+        children: [
+          const SizedBox(height: 120),
+          Center(child: Text(isKo ? '검색 결과가 없습니다.' : 'No results found.')),
+        ],
+      );
+    }
     return Stack(
       children: [
         ListView.separated(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-          itemCount: _articles.length,
+          itemCount: visibleArticles.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
-            final article = _articles[index];
+            final article = visibleArticles[index];
             final pub = article.publishedAt;
             final dateText = pub == null
                 ? article.source
@@ -319,6 +352,22 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     return isKo ? '$first 외 $rest개' : '$first +$rest';
   }
 
+  List<NewsArticle> _filteredArticles() {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return List<NewsArticle>.unmodifiable(_articles);
+    return _articles
+        .where((article) {
+          final title = article.title.toLowerCase();
+          final source = article.source.toLowerCase();
+          final translated =
+              _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
+          return title.contains(query) ||
+              source.contains(query) ||
+              translated.contains(query);
+        })
+        .toList(growable: false);
+  }
+
   Future<void> _openChannelPicker() async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final initial = Set<String>.from(_selectedChannelIds);
@@ -365,23 +414,26 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     SizedBox(
                       height: 320,
                       child: ListView(
-                        children: _channels.map((channel) {
-                          return CheckboxListTile(
-                            dense: true,
-                            value: temp.contains(channel.id),
-                            title: Text(channel.name),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (checked) {
-                              setSheetState(() {
-                                if (checked == true) {
-                                  temp.add(channel.id);
-                                } else {
-                                  temp.remove(channel.id);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(growable: false),
+                        children: _channels
+                            .map((channel) {
+                              return CheckboxListTile(
+                                dense: true,
+                                value: temp.contains(channel.id),
+                                title: Text(channel.name),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                onChanged: (checked) {
+                                  setSheetState(() {
+                                    if (checked == true) {
+                                      temp.add(channel.id);
+                                    } else {
+                                      temp.remove(channel.id);
+                                    }
+                                  });
+                                },
+                              );
+                            })
+                            .toList(growable: false),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -427,21 +479,23 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
 
-    final tasks = channelIds.map((id) async {
-      try {
-        final chunk = await _newsService.latest(id);
-        if (!mounted || token != _loadToken) return;
-        if (chunk.isEmpty) return;
-        setState(() {
-          _mergeChunk(chunk);
-        });
-      } catch (_) {
-        if (!mounted || token != _loadToken) return;
-        setState(() {
-          _hadError = true;
-        });
-      }
-    }).toList(growable: false);
+    final tasks = channelIds
+        .map((id) async {
+          try {
+            final chunk = await _newsService.latest(id);
+            if (!mounted || token != _loadToken) return;
+            if (chunk.isEmpty) return;
+            setState(() {
+              _mergeChunk(chunk);
+            });
+          } catch (_) {
+            if (!mounted || token != _loadToken) return;
+            setState(() {
+              _hadError = true;
+            });
+          }
+        })
+        .toList(growable: false);
 
     await Future.wait(tasks);
     if (!mounted || token != _loadToken) return;
@@ -611,17 +665,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle).then((translated) {
-      if (!mounted) return;
-      final value = translated.trim();
-      if (value.isNotEmpty && value != originalTitle) {
-        setState(() {
-          _translatedTitlesByLink[key] = value;
+    _translateToKorean(originalTitle)
+        .then((translated) {
+          if (!mounted) return;
+          final value = translated.trim();
+          if (value.isNotEmpty && value != originalTitle) {
+            setState(() {
+              _translatedTitlesByLink[key] = value;
+            });
+          }
+        })
+        .whenComplete(() {
+          _translatingLinks.remove(key);
         });
-      }
-    }).whenComplete(() {
-      _translatingLinks.remove(key);
-    });
   }
 
   Future<void> _toggleTitleTranslate() async {
