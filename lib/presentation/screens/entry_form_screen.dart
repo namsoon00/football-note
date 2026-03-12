@@ -99,9 +99,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _jumpRopeEnabled = false;
   bool _fortuneEnabled = false;
   String _location = '';
-  String _fortuneComment = '';
-  String _fortuneRecommendation = '';
-  String _fortuneRecommendedProgram = '';
   final List<String> _imagePaths = [];
 
   @override
@@ -170,12 +167,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
-      _improvementsController.text = entry.improvements.isNotEmpty
-          ? entry.improvements
-          : entry.notes;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
+      _improvementsController.text =
+          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -225,18 +220,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _jumpRopeController.text = entry.jumpRopeCount > 0
-          ? entry.jumpRopeCount.toString()
-          : '';
-      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
-          ? entry.jumpRopeMinutes.toString()
-          : '';
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
+      _jumpRopeMinutesController.text =
+          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
-      _fortuneComment = entry.fortuneComment;
-      _fortuneRecommendation = entry.fortuneRecommendation;
-      _fortuneRecommendedProgram = entry.fortuneRecommendedProgram;
       if (_linkedBoardIds.isEmpty && entry.drills.trim().isNotEmpty) {
         unawaited(_migrateLegacyTrainingBoard(entry));
       }
@@ -262,9 +252,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _syncDrillsPayloadFromBoardLinks();
       _jumpRopeEnabled = false;
       _fortuneEnabled = false;
-      _fortuneComment = '';
-      _fortuneRecommendation = '';
-      _fortuneRecommendedProgram = '';
       unawaited(_applyLatestEntryDefaults());
     }
     _initialSnapshot = _formSnapshot();
@@ -472,9 +459,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -485,9 +471,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -834,10 +819,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       ),
                     ],
                   ),
-                  if (_fortuneComment.trim().isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _buildFortuneLinkCard(isKo),
-                  ],
                   const SizedBox(height: 12),
                   WatchCartCard(
                     child: Column(
@@ -1221,9 +1202,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   enabled: _jumpRopeEnabled,
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
-                                    labelText: isKo
-                                        ? '줄넘기 횟수'
-                                        : 'Jump rope count',
+                                    labelText:
+                                        isKo ? '줄넘기 횟수' : 'Jump rope count',
                                     hintText: '0',
                                   ),
                                 ),
@@ -1271,17 +1251,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           child: Text(
                             _autoSaving
                                 ? (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '자동 저장 중...'
-                                      : 'Autosaving...')
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '자동 저장 중...'
+                                    : 'Autosaving...')
                                 : (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '수정 내용이 자동 저장됩니다.'
-                                      : 'Changes are saved automatically.'),
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '수정 내용이 자동 저장됩니다.'
+                                    : 'Changes are saved automatically.'),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -1312,13 +1292,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fg = active ? activeFg : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withValues(alpha: 0.12))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primary.withValues(alpha: 0.12))
         : theme.colorScheme.surfaceContainerHighest;
     final border = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withValues(alpha: 0.36))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primary.withValues(alpha: 0.36))
         : theme.colorScheme.outline.withValues(alpha: 0.28);
 
     return OutlinedButton(
@@ -1364,8 +1344,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
@@ -1549,8 +1528,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1716,13 +1694,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0;
       final jumpRopeMinutes = _jumpRopeEnabled
           ? (_parseInt(
-                  _jumpRopeMinutesController.text.trim(),
-                )?.clamp(0, 1000000) ??
-                0)
+                _jumpRopeMinutesController.text.trim(),
+              )?.clamp(0, 1000000) ??
+              0)
           : 0;
-      final jumpRopeNote = _jumpRopeEnabled
-          ? _jumpRopeNoteController.text.trim()
-          : '';
+      final jumpRopeNote =
+          _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -1763,15 +1740,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         history: allEntries,
         isKo: isKo,
       );
-      final fortuneComment = _fortuneEnabled
-          ? generatedFortune.fortuneText
-          : '';
-      final fortuneRecommendation = _fortuneEnabled
-          ? generatedFortune.recommendationText
-          : '';
-      final fortuneRecommendedProgram = _fortuneEnabled
-          ? generatedFortune.recommendedProgram
-          : '';
+      final fortuneComment =
+          _fortuneEnabled ? generatedFortune.fortuneText : '';
+      final fortuneRecommendation =
+          _fortuneEnabled ? generatedFortune.recommendationText : '';
+      final fortuneRecommendedProgram =
+          _fortuneEnabled ? generatedFortune.recommendedProgram : '';
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -1838,9 +1812,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         await widget.trainingService.update(editingKey, entry);
       }
       _initialSnapshot = _formSnapshot();
-      _fortuneComment = fortuneComment;
-      _fortuneRecommendation = fortuneRecommendation;
-      _fortuneRecommendedProgram = fortuneRecommendedProgram;
       if (!mounted) return;
       final shouldShowFortuneOnSave = popAfterSave && widget.entry == null;
       final fortuneToShow = shouldShowFortuneOnSave
@@ -1879,9 +1850,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final contentBg = isDark
         ? theme.colorScheme.surface.withValues(alpha: 0.84)
         : Colors.white.withValues(alpha: 0.78);
-    final titleColor = isDark
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurface;
+    final titleColor =
+        isDark ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
     final lines = fortuneComment
         .split('\n')
         .map((line) => line.trim())
@@ -1943,7 +1913,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           const SizedBox(width: 10),
                           Text(
                             isKo ? '오늘의 운세' : 'Today fortune',
-                            style: Theme.of(context).textTheme.titleLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: titleColor,
@@ -1972,7 +1944,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               isKo
                                   ? '오늘도 멋진 플레이를 응원할게요.'
                                   : 'Cheering for your best play today.',
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],
@@ -1994,62 +1968,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildFortuneLinkCard(bool isKo) {
-    final recommendation = _fortuneRecommendation.trim();
-    final recommendedProgram = _fortuneRecommendedProgram.trim();
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.auto_awesome,
-                size: 18,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                isKo ? '연결된 운세 정보' : 'Linked fortune info',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const Spacer(),
-              TextButton(
-                onPressed: () => _showFortuneRevealDialog(_fortuneComment),
-                child: Text(isKo ? '다시 보기' : 'Open'),
-              ),
-            ],
-          ),
-          if (recommendation.isNotEmpty)
-            Text(recommendation, style: Theme.of(context).textTheme.bodyMedium),
-          if (recommendedProgram.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                isKo
-                    ? '추천 프로그램: $recommendedProgram'
-                    : 'Recommended program: $recommendedProgram',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 
