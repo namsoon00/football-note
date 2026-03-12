@@ -9,6 +9,8 @@ class PlayerProfileService {
   static const _heightCmKey = 'profile_height_cm';
   static const _weightKgKey = 'profile_weight_kg';
   static const _genderKey = 'profile_gender';
+  static const _mbtiResultKey = 'profile_mbti_result';
+  static const _positionTestResultKey = 'profile_position_test_result';
 
   final OptionRepository _options;
 
@@ -25,6 +27,9 @@ class PlayerProfileService {
       heightCm: _tryParseDouble(_options.getValue(_heightCmKey)),
       weightKg: _tryParseDouble(_options.getValue(_weightKgKey)),
       gender: _options.getValue<String>(_genderKey) ?? '',
+      mbtiResult: _options.getValue<String>(_mbtiResultKey) ?? '',
+      positionTestResult:
+          _options.getValue<String>(_positionTestResultKey) ?? '',
     );
   }
 
@@ -42,6 +47,11 @@ class PlayerProfileService {
     await _options.setValue(_heightCmKey, profile.heightCm?.toString() ?? '');
     await _options.setValue(_weightKgKey, profile.weightKg?.toString() ?? '');
     await _options.setValue(_genderKey, profile.gender.trim());
+    await _options.setValue(_mbtiResultKey, profile.mbtiResult.trim());
+    await _options.setValue(
+      _positionTestResultKey,
+      profile.positionTestResult.trim(),
+    );
   }
 
   int? ageInYears(PlayerProfile profile, DateTime now) {

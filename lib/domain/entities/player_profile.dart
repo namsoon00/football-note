@@ -6,6 +6,8 @@ class PlayerProfile {
   final double? heightCm;
   final double? weightKg;
   final String gender;
+  final String mbtiResult;
+  final String positionTestResult;
 
   const PlayerProfile({
     this.name = '',
@@ -15,6 +17,8 @@ class PlayerProfile {
     this.heightCm,
     this.weightKg,
     this.gender = '',
+    this.mbtiResult = '',
+    this.positionTestResult = '',
   });
 
   bool get isEmpty =>
@@ -24,7 +28,9 @@ class PlayerProfile {
       soccerStartDate == null &&
       heightCm == null &&
       weightKg == null &&
-      gender.trim().isEmpty;
+      gender.trim().isEmpty &&
+      mbtiResult.trim().isEmpty &&
+      positionTestResult.trim().isEmpty;
 
   PlayerProfile copyWith({
     String? name,
@@ -34,6 +40,8 @@ class PlayerProfile {
     double? heightCm,
     double? weightKg,
     String? gender,
+    String? mbtiResult,
+    String? positionTestResult,
     bool clearBirthDate = false,
     bool clearSoccerStartDate = false,
     bool clearHeightCm = false,
@@ -49,6 +57,8 @@ class PlayerProfile {
       heightCm: clearHeightCm ? null : (heightCm ?? this.heightCm),
       weightKg: clearWeightKg ? null : (weightKg ?? this.weightKg),
       gender: gender ?? this.gender,
+      mbtiResult: mbtiResult ?? this.mbtiResult,
+      positionTestResult: positionTestResult ?? this.positionTestResult,
     );
   }
 }

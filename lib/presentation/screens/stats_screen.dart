@@ -1052,6 +1052,13 @@ class _LiftingSummaryCard extends StatelessWidget {
       ..sort((a, b) => b.value.count.compareTo(a.value.count));
     final trendEntries = totalsByDay.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
+    final maxTotal = trendEntries.isEmpty
+        ? 0
+        : trendEntries.map((entry) => entry.value).reduce(math.max);
+    final yInterval = _niceLiftingAxisInterval(maxTotal);
+    final yMax = trendEntries.isEmpty
+        ? yInterval.toDouble()
+        : ((maxTotal / yInterval).ceil() * yInterval).toDouble();
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     return Column(
@@ -1070,17 +1077,10 @@ class _LiftingSummaryCard extends StatelessWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: trendEntries.isEmpty
-                    ? 8
-                    : (trendEntries
-                                  .map((entry) => entry.value)
-                                  .reduce(math.max) *
-                              1.2)
-                          .clamp(8, 99999)
-                          .toDouble(),
+                maxY: yMax,
                 gridData: FlGridData(
                   drawVerticalLine: false,
-                  horizontalInterval: 20,
+                  horizontalInterval: yInterval.toDouble(),
                   getDrawingHorizontalLine: (_) => FlLine(
                     color: Theme.of(
                       context,
@@ -1100,7 +1100,7 @@ class _LiftingSummaryCard extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
-                      interval: 20,
+                      interval: yInterval.toDouble(),
                       getTitlesWidget: (value, _) => Text(
                         value.toInt().toString(),
                         style: Theme.of(context).textTheme.bodySmall,
@@ -1244,6 +1244,20 @@ class _LiftingSummaryCard extends StatelessWidget {
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');
     return '$y.$m.$d';
+  }
+
+  int _niceLiftingAxisInterval(int maxValue) {
+    if (maxValue <= 20) return 10;
+    if (maxValue <= 40) return 20;
+    if (maxValue <= 80) return 25;
+    if (maxValue <= 160) return 50;
+    if (maxValue <= 320) return 100;
+    final scaled = maxValue / 4;
+    var magnitude = 1;
+    while (magnitude * 10 <= scaled) {
+      magnitude *= 10;
+    }
+    return ((scaled / magnitude).ceil() * magnitude).toInt();
   }
 }
 

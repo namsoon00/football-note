@@ -147,7 +147,33 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-                child: TabScreenTitle(title: l10n.tabNews),
+                child: TabScreenTitle(
+                  title: l10n.tabNews,
+                  trailing: SizedBox(
+                    width: 190,
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.trim().isEmpty
+                            ? null
+                            : IconButton(
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {});
+                                },
+                                icon: const Icon(Icons.close),
+                              ),
+                        hintText: isKo ? '기사 검색' : 'Search news',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -186,29 +212,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                         child: Text(isKo ? '채널 선택' : 'Channels'),
                       ),
                     ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.trim().isEmpty
-                        ? null
-                        : IconButton(
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {});
-                            },
-                            icon: const Icon(Icons.close),
-                          ),
-                    hintText: isKo ? '기사 검색' : 'Search news',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
                   ),
                 ),
               ),
