@@ -28,17 +28,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               Text(
                 isKo ? '환영합니다! 앱 화면 안내' : 'Welcome! App Walkthrough',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 isKo
                     ? '아래 탭 버튼을 누르면 설명 화면이 전환됩니다. 각 탭이 무엇을 하는지 먼저 확인해보세요.'
                     : 'Tap a tab button below to switch the guide panel and preview each screen.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      height: 1.45,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(height: 1.45),
               ),
               const SizedBox(height: 14),
               SingleChildScrollView(
@@ -48,7 +48,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     final section = sections[i];
                     return Padding(
                       padding: EdgeInsets.only(
-                          right: i == sections.length - 1 ? 0 : 8),
+                        right: i == sections.length - 1 ? 0 : 8,
+                      ),
                       child: ChoiceChip(
                         selected: i == _selectedIndex,
                         avatar: Icon(section.icon, size: 16),
@@ -124,8 +125,8 @@ class _WelcomeSectionCard extends StatelessWidget {
                 child: Text(
                   section.title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
@@ -133,15 +134,16 @@ class _WelcomeSectionCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             section.overview,
-            style:
-                Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.45),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(height: 1.45),
           ),
           const SizedBox(height: 12),
           Text(
             isKo ? '화면에서 할 수 있는 것' : 'What you can do on this screen',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
           ...section.details.map(
@@ -172,9 +174,9 @@ class _WelcomeSectionCard extends StatelessWidget {
               isKo
                   ? '탭 버튼을 누르면 안내 카드가 즉시 바뀝니다.'
                   : 'Tap another tab button to switch this guide card instantly.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -208,7 +210,7 @@ List<_WelcomeSection> _buildSections(bool isKo) {
         title: '훈련기록',
         overview: '훈련 노트를 빠르게 기록하고, 카드/리스트 뷰로 과거 기록을 확인하는 화면입니다.',
         details: [
-          '훈련 강도, 컨디션, 메모, 훈련스케치 정보까지 한 번에 입력/수정할 수 있습니다.',
+          '훈련 강도, 컨디션, 메모, 훈련 텍스트 정보까지 한 번에 입력/수정할 수 있습니다.',
           '카드형/리스트형 전환으로 원하는 방식으로 기록을 탐색할 수 있습니다.',
           '정렬은 최신 작성/등록 우선으로 관리되어 최근 기록을 먼저 확인할 수 있습니다.',
         ],

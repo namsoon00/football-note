@@ -8,6 +8,8 @@ class PlayerProfile {
   final String gender;
   final String mbtiResult;
   final String positionTestResult;
+  final List<int> mbtiAnswers;
+  final List<int> positionTestAnswers;
 
   const PlayerProfile({
     this.name = '',
@@ -19,6 +21,8 @@ class PlayerProfile {
     this.gender = '',
     this.mbtiResult = '',
     this.positionTestResult = '',
+    this.mbtiAnswers = const <int>[],
+    this.positionTestAnswers = const <int>[],
   });
 
   bool get isEmpty =>
@@ -30,7 +34,9 @@ class PlayerProfile {
       weightKg == null &&
       gender.trim().isEmpty &&
       mbtiResult.trim().isEmpty &&
-      positionTestResult.trim().isEmpty;
+      positionTestResult.trim().isEmpty &&
+      mbtiAnswers.isEmpty &&
+      positionTestAnswers.isEmpty;
 
   PlayerProfile copyWith({
     String? name,
@@ -42,6 +48,8 @@ class PlayerProfile {
     String? gender,
     String? mbtiResult,
     String? positionTestResult,
+    List<int>? mbtiAnswers,
+    List<int>? positionTestAnswers,
     bool clearBirthDate = false,
     bool clearSoccerStartDate = false,
     bool clearHeightCm = false,
@@ -59,6 +67,8 @@ class PlayerProfile {
       gender: gender ?? this.gender,
       mbtiResult: mbtiResult ?? this.mbtiResult,
       positionTestResult: positionTestResult ?? this.positionTestResult,
+      mbtiAnswers: mbtiAnswers ?? this.mbtiAnswers,
+      positionTestAnswers: positionTestAnswers ?? this.positionTestAnswers,
     );
   }
 }

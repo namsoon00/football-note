@@ -31,6 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _gender = '';
   String _mbtiResult = '';
   String _positionTestResult = '';
+  List<int> _mbtiAnswers = const <int>[];
+  List<int> _positionTestAnswers = const <int>[];
   DateTime? _birthDate;
   DateTime? _soccerStartDate;
   Timer? _saveDebounce;
@@ -53,6 +55,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _gender = profile.gender;
     _mbtiResult = profile.mbtiResult;
     _positionTestResult = profile.positionTestResult;
+    _mbtiAnswers = List<int>.from(profile.mbtiAnswers);
+    _positionTestAnswers = List<int>.from(profile.positionTestAnswers);
     _birthDate = profile.birthDate;
     _soccerStartDate = profile.soccerStartDate;
   }
@@ -268,12 +272,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       gender: _gender,
       mbtiResult: _mbtiResult,
       positionTestResult: _positionTestResult,
+      mbtiAnswers: _mbtiAnswers,
+      positionTestAnswers: _positionTestAnswers,
     );
   }
 
   Widget _buildProfileTestSection(bool isKo) {
     final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
     final positionSummary = _positionResultSummary(_positionTestResult, isKo);
+    final mbtiSavedAnswers = _savedMbtiAnswerEntries(isKo);
+    final positionSavedAnswers = _savedPositionAnswerEntries(isKo);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -295,6 +303,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           buttonLabel: _mbtiResult.isEmpty
               ? (isKo ? '테스트 시작' : 'Start test')
               : (isKo ? '다시 테스트' : 'Retake'),
+          savedAnswers: _buildSavedAnswersSection(
+            isKo: isKo,
+            entries: mbtiSavedAnswers,
+          ),
           onPressed: () => _runMbtiTest(isKo),
         ),
         const SizedBox(height: 10),
@@ -309,6 +321,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           buttonLabel: _positionTestResult.isEmpty
               ? (isKo ? '테스트 시작' : 'Start test')
               : (isKo ? '다시 테스트' : 'Retake'),
+          savedAnswers: _buildSavedAnswersSection(
+            isKo: isKo,
+            entries: positionSavedAnswers,
+          ),
           onPressed: () => _runPositionTest(isKo),
         ),
       ],
@@ -322,6 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String? resultDetail,
     required String emptyLabel,
     required String buttonLabel,
+    required Widget? savedAnswers,
     required VoidCallback onPressed,
   }) {
     return Card(
@@ -381,6 +398,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
+            if (savedAnswers != null) ...[
+              const SizedBox(height: 10),
+              savedAnswers,
+            ],
             const SizedBox(height: 10),
             Align(
               alignment: Alignment.centerRight,
@@ -433,10 +454,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _runMbtiTest(bool isKo) async {
-    final result = await showDialog<String>(
+    final result = await showDialog<_CompletedTest>(
       context: context,
       builder: (context) {
-        final answers = List<int?>.filled(_mbtiQuestions.length, null);
+        final answers = _restoreAnswers(
+          savedAnswers: _mbtiAnswers,
+          questionCount: _mbtiQuestions.length,
+          optionCountForIndex: (index) => _mbtiQuestions[index].options.length,
+        );
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final isComplete = answers.every((answer) => answer != null);
@@ -494,9 +519,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: !isComplete
                       ? null
                       : () {
-                          Navigator.of(
-                            context,
-                          ).pop(_buildMbtiResult(answers.cast<int>()));
+                          Navigator.of(context).pop(
+                            _CompletedTest(
+                              result: _buildMbtiResult(answers.cast<int>()),
+                              answers: answers.cast<int>(),
+                            ),
+                          );
                         },
                   child: Text(isKo ? '결과 저장' : 'Save result'),
                 ),
@@ -507,15 +535,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
     if (result == null || !mounted) return;
-    setState(() => _mbtiResult = result);
+    setState(() {
+      _mbtiResult = result.result;
+      _mbtiAnswers = result.answers;
+    });
     await _saveLatestNow();
   }
 
   Future<void> _runPositionTest(bool isKo) async {
-    final result = await showDialog<String>(
+    final result = await showDialog<_CompletedTest>(
       context: context,
       builder: (context) {
-        final answers = List<int?>.filled(_positionQuestions.length, null);
+        final answers = _restoreAnswers(
+          savedAnswers: _positionTestAnswers,
+          questionCount: _positionQuestions.length,
+          optionCountForIndex: (index) =>
+              _positionQuestions[index].options.length,
+        );
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final isComplete = answers.every((answer) => answer != null);
@@ -577,7 +613,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ? null
                       : () {
                           Navigator.of(context).pop(
-                            _buildPositionResult(answers.cast<int>(), isKo),
+                            _CompletedTest(
+                              result: _buildPositionResult(
+                                answers.cast<int>(),
+                                isKo,
+                              ),
+                              answers: answers.cast<int>(),
+                            ),
                           );
                         },
                   child: Text(isKo ? '결과 저장' : 'Save result'),
@@ -589,8 +631,114 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
     if (result == null || !mounted) return;
-    setState(() => _positionTestResult = result);
+    setState(() {
+      _positionTestResult = result.result;
+      _positionTestAnswers = result.answers;
+    });
     await _saveLatestNow();
+  }
+
+  List<int?> _restoreAnswers({
+    required List<int> savedAnswers,
+    required int questionCount,
+    required int Function(int index) optionCountForIndex,
+  }) {
+    return List<int?>.generate(questionCount, (index) {
+      if (index >= savedAnswers.length) return null;
+      final answer = savedAnswers[index];
+      return answer >= 0 && answer < optionCountForIndex(index) ? answer : null;
+    });
+  }
+
+  List<_SavedAnswerEntry> _savedMbtiAnswerEntries(bool isKo) {
+    final entries = <_SavedAnswerEntry>[];
+    for (var i = 0; i < _mbtiQuestions.length && i < _mbtiAnswers.length; i++) {
+      final answerIndex = _mbtiAnswers[i];
+      if (answerIndex < 0 || answerIndex >= _mbtiQuestions[i].options.length) {
+        continue;
+      }
+      final question = _mbtiQuestions[i];
+      final option = question.options[answerIndex];
+      entries.add(
+        _SavedAnswerEntry(
+          question: '${i + 1}. ${isKo ? question.koPrompt : question.enPrompt}',
+          answer: isKo ? option.koLabel : option.enLabel,
+        ),
+      );
+    }
+    return entries;
+  }
+
+  List<_SavedAnswerEntry> _savedPositionAnswerEntries(bool isKo) {
+    final entries = <_SavedAnswerEntry>[];
+    for (
+      var i = 0;
+      i < _positionQuestions.length && i < _positionTestAnswers.length;
+      i++
+    ) {
+      final answerIndex = _positionTestAnswers[i];
+      if (answerIndex < 0 ||
+          answerIndex >= _positionQuestions[i].options.length) {
+        continue;
+      }
+      final question = _positionQuestions[i];
+      final option = question.options[answerIndex];
+      entries.add(
+        _SavedAnswerEntry(
+          question: '${i + 1}. ${isKo ? question.koPrompt : question.enPrompt}',
+          answer: isKo ? option.koLabel : option.enLabel,
+        ),
+      );
+    }
+    return entries;
+  }
+
+  Widget? _buildSavedAnswersSection({
+    required bool isKo,
+    required List<_SavedAnswerEntry> entries,
+  }) {
+    if (entries.isEmpty) return null;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: const Icon(Icons.fact_check_outlined, size: 18),
+        title: Text(
+          isKo
+              ? '저장한 응답 ${entries.length}개'
+              : 'Saved answers (${entries.length})',
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          isKo ? '선택한 항목을 다시 확인할 수 있습니다.' : 'Review the selections you saved.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        children: [
+          for (final entry in entries) ...[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                entry.question,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Align(alignment: Alignment.centerLeft, child: Text(entry.answer)),
+            if (entry != entries.last) const Divider(height: 20),
+          ],
+        ],
+      ),
+    );
   }
 
   String _buildMbtiResult(List<int> answers) {
@@ -870,6 +1018,20 @@ class _TestResultSummary {
   final String? subtitle;
 
   const _TestResultSummary({required this.title, required this.subtitle});
+}
+
+class _CompletedTest {
+  final String result;
+  final List<int> answers;
+
+  const _CompletedTest({required this.result, required this.answers});
+}
+
+class _SavedAnswerEntry {
+  final String question;
+  final String answer;
+
+  const _SavedAnswerEntry({required this.question, required this.answer});
 }
 
 class _MbtiOption {
