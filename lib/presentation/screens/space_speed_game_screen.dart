@@ -1551,6 +1551,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         _ballY < -0.05 ||
         _ballY > 1.05 ||
         _flightElapsed > 3.0;
+    if (reachedTarget || (_flightElapsed > 3.0 && !_isLooseBallOutOfBounds())) {
+      if (_recoverLooseBall()) {
+        return;
+      }
+    }
     if (reachedTarget || out) {
       _onFail(_PassResult.miss);
     }
@@ -1570,6 +1575,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     return _ballX >= _goalLineX &&
         _ballY >= _goalTopY &&
         _ballY <= _goalBottomY;
+  }
+
+  bool _isLooseBallOutOfBounds() {
+    return _ballX > 1.02 || _ballY < -0.05 || _ballY > 1.05;
   }
 
   void _beginCharge() {
@@ -1775,6 +1784,69 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _ballFlying = false;
     _setReaction(_PassResult.goal);
     _scheduleShotOutcomeFinish(failed: false);
+  }
+
+  bool _recoverLooseBall() {
+    if (_goalChanceActive || _finalShotMode || _isLooseBallOutOfBounds()) {
+      return false;
+    }
+    final controlledIsA = !_attackerAIsPasser;
+    final controlledDistance = controlledIsA
+        ? _distance(_ballX, _ballY, _passerXPos, _passerYPos)
+        : _distance(_ballX, _ballY, _receiverX, _receiverY);
+    final supportDistance = controlledIsA
+        ? _distance(_ballX, _ballY, _receiverX, _receiverY)
+        : _distance(_ballX, _ballY, _passerXPos, _passerYPos);
+
+    bool ownerIsA;
+    if (controlledDistance <= 0.16) {
+      ownerIsA = controlledIsA;
+    } else if (supportDistance <= 0.12) {
+      ownerIsA = !controlledIsA;
+    } else {
+      return false;
+    }
+
+    if (ownerIsA) {
+      _passerXPos = _ballX.clamp(0.22, 0.80);
+      _passerYPos = _ballY.clamp(0.14, 0.86);
+      _passerVx = 0.08;
+      _passerVy = 0;
+    } else {
+      _receiverX = _ballX.clamp(0.22, 0.80);
+      _receiverY = _ballY.clamp(0.14, 0.86);
+      _receiverVx = 0.08;
+      _receiverVy = 0;
+    }
+
+    _attackerAIsPasser = ownerIsA;
+    _ballFlying = false;
+    _phase = _PlayPhase.ready;
+    _charging = false;
+    _chargeStartedAt = null;
+    _chargedBallSpeed = _ballMinSpeed;
+    _effectiveBallSpeed = _ballMinSpeed;
+    _flightElapsed = 0;
+    _closestReceiverDistance = 999;
+    _timingDiffAtClosest = 999;
+    _ballVx = 0;
+    _ballVy = 0;
+    _clearFlightGuide();
+    final holdPoint = _activePasserBallHoldPoint();
+    _ballX = holdPoint.dx;
+    _ballY = holdPoint.dy;
+    _targetX = (_activeReceiverX + _leadDistance).clamp(_fieldMinX, _fieldMaxX);
+    _targetY = _activeReceiverY;
+    _aimX = _targetX;
+    _aimY = _targetY;
+    _reactionIcon = Icons.sports_soccer;
+    _reactionColor = const Color(0xFF2F80ED);
+    _reactionLabel = _koText('공 소유 유지', 'Keep possession');
+    _reactionDetail = _koText(
+      '직접 연결은 아니었지만 가장 가까운 공격수가 공을 잡아 공격을 이어갑니다.',
+      'The pass did not connect cleanly, but the nearest attacker kept the ball.',
+    );
+    return true;
   }
 
   void _activateGoalChance() {

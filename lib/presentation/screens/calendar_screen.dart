@@ -374,29 +374,42 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 6, bottom: 2),
-                    child: GestureDetector(
-                      onTap: hasDaySchedule
-                          ? () => _setCalendarExpanded(!isCalendarExpanded)
-                          : null,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            isCalendarExpanded
-                                ? Icons.keyboard_arrow_up
-                                : Icons.keyboard_arrow_down,
-                            size: 18,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: hasDaySchedule
+                            ? () => _setCalendarExpanded(!isCalendarExpanded)
+                            : null,
+                        borderRadius: BorderRadius.circular(999),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            Localizations.localeOf(context).languageCode == 'ko'
-                                ? (isCalendarExpanded ? '캘린더 접기' : '캘린더 펼치기')
-                                : (isCalendarExpanded
-                                      ? 'Collapse calendar'
-                                      : 'Expand calendar'),
-                            style: Theme.of(context).textTheme.bodySmall,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isCalendarExpanded
+                                    ? Icons.keyboard_arrow_up
+                                    : Icons.keyboard_arrow_down,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                Localizations.localeOf(context).languageCode ==
+                                        'ko'
+                                    ? (isCalendarExpanded
+                                          ? '캘린더 접기'
+                                          : '캘린더 펼치기')
+                                    : (isCalendarExpanded
+                                          ? 'Collapse calendar'
+                                          : 'Expand calendar'),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -1548,8 +1561,9 @@ class _EntryTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        leading: entry.isMatch ? null : _StatusIcon(status: entry.status),
-        minLeadingWidth: entry.isMatch ? 0 : null,
+        leading: entry.isMatch
+            ? _MatchResultIcon(entry: entry)
+            : _StatusIcon(status: entry.status),
         title: Text(titleParts.join(' · ')),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1658,6 +1672,41 @@ class _EntryTile extends StatelessWidget {
       );
     }
     return parts.join(' · ');
+  }
+}
+
+class _MatchResultIcon extends StatelessWidget {
+  final TrainingEntry entry;
+
+  const _MatchResultIcon({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final scored = entry.scoredGoals;
+    final conceded = entry.concededGoals;
+    IconData icon;
+    Color bg;
+    Color fg;
+
+    if (scored != null && conceded != null && scored > conceded) {
+      icon = Icons.emoji_events;
+      bg = const Color(0x1A0FA968);
+      fg = const Color(0xFF0FA968);
+    } else if (scored != null && conceded != null && scored < conceded) {
+      icon = Icons.sentiment_dissatisfied_outlined;
+      bg = const Color(0x1AEB5757);
+      fg = const Color(0xFFEB5757);
+    } else {
+      icon = Icons.handshake_outlined;
+      bg = const Color(0x1A2F80ED);
+      fg = const Color(0xFF2F80ED);
+    }
+
+    return CircleAvatar(
+      radius: 16,
+      backgroundColor: bg,
+      child: Icon(icon, size: 17, color: fg),
+    );
   }
 }
 
