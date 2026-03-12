@@ -204,13 +204,14 @@ class _LogsScreenState extends State<LogsScreen> {
                       const SizedBox(height: 12),
                       WatchCartHomeOptions(
                         onBoardList: _openBoardList,
+                        boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련스케치 리스트'
+                            ? '훈련 텍스트 리스트'
                             : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련스케치'
+                            ? '훈련 텍스트'
                             : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,

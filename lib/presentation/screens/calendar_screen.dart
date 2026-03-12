@@ -476,7 +476,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.note_add_outlined),
-              title: Text(isKo ? '훈련노트' : 'Training note'),
+              title: Text(isKo ? '훈련 노트' : 'Training note'),
               onTap: () =>
                   Navigator.of(context).pop(_CalendarCreateAction.entry),
             ),

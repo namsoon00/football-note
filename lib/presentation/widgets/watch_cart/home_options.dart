@@ -10,6 +10,7 @@ class WatchCartHomeOptions extends StatelessWidget {
   final String? boardListTitle;
   final int? boardBadgeCount;
   final int? badgeCount;
+  final IconData? boardListIcon;
 
   const WatchCartHomeOptions({
     super.key,
@@ -19,6 +20,7 @@ class WatchCartHomeOptions extends StatelessWidget {
     this.boardListLabel,
     this.boardListTitle,
     this.boardBadgeCount,
+    this.boardListIcon,
     this.onFilter,
     this.onSearch,
   });
@@ -52,6 +54,7 @@ class WatchCartHomeOptions extends StatelessWidget {
               semanticLabel: boardListLabel,
               label: boardListTitle ?? 'Boards',
               count: boardBadgeCount ?? 0,
+              icon: boardListIcon,
             ),
           ),
         ],
@@ -95,12 +98,14 @@ class _LabeledCountButton extends StatelessWidget {
   final String? semanticLabel;
   final String label;
   final int count;
+  final IconData? icon;
 
   const _LabeledCountButton({
     required this.onTap,
     required this.label,
     required this.count,
     this.semanticLabel,
+    this.icon,
   });
 
   @override
@@ -128,14 +133,24 @@ class _LabeledCountButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      if (icon != null) ...[
+                        Icon(icon, size: 18, color: theme.colorScheme.primary),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(

@@ -84,6 +84,16 @@ class RssNewsRepository implements NewsRepository {
       name: 'ESPN FC',
       url: 'https://www.espn.com/espn/rss/soccer/news',
     ),
+    _FeedConfig(
+      id: 'guardian_football_en',
+      name: 'The Guardian · Football',
+      url: 'https://www.theguardian.com/football/rss',
+    ),
+    _FeedConfig(
+      id: 'cbs_soccer_en',
+      name: 'CBS Sports · Soccer',
+      url: 'https://www.cbssports.com/rss/headlines/soccer/',
+    ),
   ];
 
   @override
@@ -158,7 +168,7 @@ class RssNewsRepository implements NewsRepository {
     final merged = <String>{..._defaultBlockedDomains};
     final custom =
         _optionRepository?.getOptions('news_blocked_domains', const []) ??
-            const <String>[];
+        const <String>[];
     for (final domain in custom) {
       final normalized = _normalizeDomain(domain);
       if (normalized.isNotEmpty) {
@@ -211,9 +221,7 @@ class RssNewsRepository implements NewsRepository {
 
   List<_FeedRequest> _feedRequestsForPlatform(String url) {
     if (!kIsWeb) {
-      return [
-        _FeedRequest(url: url, responseType: _FeedResponseType.xml),
-      ];
+      return [_FeedRequest(url: url, responseType: _FeedResponseType.xml)];
     }
     final encoded = Uri.encodeComponent(url);
     return [
@@ -380,25 +388,14 @@ class _FeedConfig {
   final String name;
   final String url;
 
-  const _FeedConfig({
-    required this.id,
-    required this.name,
-    required this.url,
-  });
+  const _FeedConfig({required this.id, required this.name, required this.url});
 }
 
-enum _FeedResponseType {
-  xml,
-  allOriginsGet,
-  rss2Json,
-}
+enum _FeedResponseType { xml, allOriginsGet, rss2Json }
 
 class _FeedRequest {
   final String url;
   final _FeedResponseType responseType;
 
-  const _FeedRequest({
-    required this.url,
-    required this.responseType,
-  });
+  const _FeedRequest({required this.url, required this.responseType});
 }

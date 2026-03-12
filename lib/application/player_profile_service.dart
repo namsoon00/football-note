@@ -11,6 +11,8 @@ class PlayerProfileService {
   static const _genderKey = 'profile_gender';
   static const _mbtiResultKey = 'profile_mbti_result';
   static const _positionTestResultKey = 'profile_position_test_result';
+  static const _mbtiAnswersKey = 'profile_mbti_answers';
+  static const _positionTestAnswersKey = 'profile_position_test_answers';
 
   final OptionRepository _options;
 
@@ -30,6 +32,11 @@ class PlayerProfileService {
       mbtiResult: _options.getValue<String>(_mbtiResultKey) ?? '',
       positionTestResult:
           _options.getValue<String>(_positionTestResultKey) ?? '',
+      mbtiAnswers: _options.getIntOptions(_mbtiAnswersKey, const <int>[]),
+      positionTestAnswers: _options.getIntOptions(
+        _positionTestAnswersKey,
+        const <int>[],
+      ),
     );
   }
 
@@ -51,6 +58,11 @@ class PlayerProfileService {
     await _options.setValue(
       _positionTestResultKey,
       profile.positionTestResult.trim(),
+    );
+    await _options.saveOptions(_mbtiAnswersKey, profile.mbtiAnswers);
+    await _options.saveOptions(
+      _positionTestAnswersKey,
+      profile.positionTestAnswers,
     );
   }
 
