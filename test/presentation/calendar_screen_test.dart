@@ -158,4 +158,18 @@ void main() {
     expect(find.textContaining('출전 70분'), findsOneWidget);
     expect(find.byIcon(Icons.emoji_events), findsOneWidget);
   });
+
+  testWidgets('캘린더 기록 추가 버튼은 아이콘만 표시하고 훈련노트 메뉴를 연다', (tester) async {
+    await pumpCalendar(tester);
+
+    expect(find.text('기록 추가'), findsNothing);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('훈련노트'), findsOneWidget);
+    expect(find.text('훈련 계획'), findsOneWidget);
+    expect(find.text('시합'), findsOneWidget);
+  });
 }

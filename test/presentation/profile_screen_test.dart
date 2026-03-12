@@ -24,10 +24,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('20개 문항으로 훈련 성향을 더 세밀하게 정리합니다.'), findsOneWidget);
-    expect(
-      find.text('20개 문항으로 플레이 선호를 분석해 어울리는 포지션을 찾습니다.'),
-      findsOneWidget,
-    );
+    expect(find.text('20개 문항으로 플레이 선호를 분석해 어울리는 포지션을 찾습니다.'), findsOneWidget);
 
     final mbtiStartButton = _findTestStartButton('MBTI 테스트');
     await tester.ensureVisible(mbtiStartButton);
@@ -54,6 +51,26 @@ void main() {
     );
     expect(find.text('20. 팀 전술판을 볼 때 가장 먼저 확인하는 기호는 무엇인가요?'), findsOneWidget);
   });
+
+  testWidgets('Saved MBTI result shows type and description', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed('profile_mbti_result', 'ENTJ');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ProfileScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('ENTJ · 전술 지휘형'), findsOneWidget);
+    expect(find.text('전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'), findsOneWidget);
+  });
 }
 
 Finder _findTestStartButton(String title) {
@@ -66,6 +83,10 @@ Finder _findTestStartButton(String title) {
 
 class _MemoryOptionRepository implements OptionRepository {
   final Map<String, dynamic> _values = <String, dynamic>{};
+
+  void seed(String key, dynamic value) {
+    _values[key] = value;
+  }
 
   @override
   List<String> getOptions(String key, List<String> defaults) {

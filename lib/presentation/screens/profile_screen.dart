@@ -272,6 +272,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileTestSection(bool isKo) {
+    final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
+    final positionSummary = _positionResultSummary(_positionTestResult, isKo);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -287,7 +289,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           description: isKo
               ? '20개 문항으로 훈련 성향을 더 세밀하게 정리합니다.'
               : 'Twenty questions to map your training style in more detail.',
-          result: _mbtiResult,
+          result: mbtiSummary.title,
+          resultDetail: mbtiSummary.subtitle,
           emptyLabel: isKo ? '아직 결과가 없습니다.' : 'No result yet.',
           buttonLabel: _mbtiResult.isEmpty
               ? (isKo ? '테스트 시작' : 'Start test')
@@ -300,7 +303,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           description: isKo
               ? '20개 문항으로 플레이 선호를 분석해 어울리는 포지션을 찾습니다.'
               : 'Twenty questions analyze your play preferences to suggest a fitting role.',
-          result: _positionTestResult,
+          result: positionSummary.title,
+          resultDetail: positionSummary.subtitle,
           emptyLabel: isKo ? '아직 결과가 없습니다.' : 'No result yet.',
           buttonLabel: _positionTestResult.isEmpty
               ? (isKo ? '테스트 시작' : 'Start test')
@@ -315,6 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required String description,
     required String result,
+    required String? resultDetail,
     required String emptyLabel,
     required String buttonLabel,
     required VoidCallback onPressed,
@@ -338,9 +343,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (result.trim().isEmpty)
               Text(emptyLabel, style: Theme.of(context).textTheme.bodySmall)
             else
-              Chip(
-                avatar: const Icon(Icons.psychology_alt_outlined, size: 18),
-                label: Text(result),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Icon(Icons.psychology_alt_outlined, size: 18),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            result,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          if (resultDetail != null &&
+                              resultDetail.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              resultDetail,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             const SizedBox(height: 10),
             Align(
@@ -418,18 +457,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          for (var optionIndex = 0;
-                              optionIndex < _mbtiQuestions[i].options.length;
-                              optionIndex++)
+                          for (
+                            var optionIndex = 0;
+                            optionIndex < _mbtiQuestions[i].options.length;
+                            optionIndex++
+                          )
                             ChoiceChip(
                               label: Text(
                                 isKo
                                     ? _mbtiQuestions[i]
-                                        .options[optionIndex]
-                                        .koLabel
+                                          .options[optionIndex]
+                                          .koLabel
                                     : _mbtiQuestions[i]
-                                        .options[optionIndex]
-                                        .enLabel,
+                                          .options[optionIndex]
+                                          .enLabel,
                               ),
                               selected: answers[i] == optionIndex,
                               onSelected: (_) {
@@ -495,19 +536,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          for (var optionIndex = 0;
-                              optionIndex <
-                                  _positionQuestions[i].options.length;
-                              optionIndex++)
+                          for (
+                            var optionIndex = 0;
+                            optionIndex < _positionQuestions[i].options.length;
+                            optionIndex++
+                          )
                             ChoiceChip(
                               label: Text(
                                 isKo
                                     ? _positionQuestions[i]
-                                        .options[optionIndex]
-                                        .koLabel
+                                          .options[optionIndex]
+                                          .koLabel
                                     : _positionQuestions[i]
-                                        .options[optionIndex]
-                                        .enLabel,
+                                          .options[optionIndex]
+                                          .enLabel,
                               ),
                               selected: answers[i] == optionIndex,
                               onSelected: (_) {
@@ -566,6 +608,138 @@ class _ProfileScreenState extends State<ProfileScreen> {
       result.write(firstCount >= secondCount ? first : second);
     }
     return result.toString();
+  }
+
+  _TestResultSummary _mbtiResultSummary(String raw, bool isKo) {
+    final normalized = raw.trim().toUpperCase();
+    if (normalized.isEmpty) {
+      return const _TestResultSummary(title: '', subtitle: null);
+    }
+    final codeMatch = RegExp(r'[EINSFTJP]{4}').firstMatch(normalized);
+    if (codeMatch == null) {
+      return _TestResultSummary(title: raw.trim(), subtitle: null);
+    }
+    final code = codeMatch.group(0)!;
+    final label = _mbtiTypeLabel(code, isKo);
+    final description = _mbtiTypeDescription(code, isKo);
+    return _TestResultSummary(
+      title: label == null ? code : '$code · $label',
+      subtitle: description,
+    );
+  }
+
+  _TestResultSummary _positionResultSummary(String raw, bool isKo) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) {
+      return const _TestResultSummary(title: '', subtitle: null);
+    }
+    final parts = trimmed.split('·').map((part) => part.trim()).toList();
+    if (parts.length >= 2) {
+      return _TestResultSummary(title: trimmed, subtitle: null);
+    }
+    final label = switch (trimmed) {
+      'GK' => isKo ? '골키퍼형' : 'Goalkeeper',
+      'DF' => isKo ? '수비수형' : 'Defender',
+      'MF' => isKo ? '미드필더형' : 'Midfielder',
+      'FW' => isKo ? '공격수형' : 'Forward',
+      _ => null,
+    };
+    return _TestResultSummary(
+      title: label == null ? trimmed : '$trimmed · $label',
+      subtitle: null,
+    );
+  }
+
+  String? _mbtiTypeLabel(String code, bool isKo) {
+    return switch (code) {
+      'ISTJ' => isKo ? '원칙 정비형' : 'Organizer',
+      'ISFJ' => isKo ? '헌신 지원형' : 'Supporter',
+      'INFJ' => isKo ? '통찰 코치형' : 'Insight Coach',
+      'INTJ' => isKo ? '전략 설계형' : 'Strategist',
+      'ISTP' => isKo ? '실전 해결형' : 'Problem Solver',
+      'ISFP' => isKo ? '감각 밸런서형' : 'Balancer',
+      'INFP' => isKo ? '가치 몰입형' : 'Idealist',
+      'INTP' => isKo ? '분석 탐구형' : 'Analyst',
+      'ESTP' => isKo ? '승부 직감형' : 'Playmaker',
+      'ESFP' => isKo ? '분위기 점화형' : 'Energizer',
+      'ENFP' => isKo ? '영감 확장형' : 'Motivator',
+      'ENTP' => isKo ? '변화 실험형' : 'Experimenter',
+      'ESTJ' => isKo ? '실행 리더형' : 'Leader',
+      'ESFJ' => isKo ? '팀 케어형' : 'Caretaker',
+      'ENFJ' => isKo ? '동기 코칭형' : 'Coach',
+      'ENTJ' => isKo ? '전술 지휘형' : 'Commander',
+      _ => null,
+    };
+  }
+
+  String? _mbtiTypeDescription(String code, bool isKo) {
+    return switch (code) {
+      'ISTJ' =>
+        isKo
+            ? '루틴과 기준을 지키며 안정적으로 훈련을 쌓는 성향입니다.'
+            : 'Builds training consistency through routines and clear standards.',
+      'ISFJ' =>
+        isKo
+            ? '팀을 세심하게 챙기며 맡은 역할을 꾸준히 수행하는 성향입니다.'
+            : 'Supports the team carefully and executes responsibilities consistently.',
+      'INFJ' =>
+        isKo
+            ? '흐름을 읽고 팀에 필요한 방향을 조용히 제시하는 성향입니다.'
+            : 'Reads the flow and quietly suggests the direction the team needs.',
+      'INTJ' =>
+        isKo
+            ? '장기 그림과 전술 구조를 먼저 설계하는 성향입니다.'
+            : 'Prefers designing long-term plans and tactical structure first.',
+      'ISTP' =>
+        isKo
+            ? '실전 상황에서 빠르게 판단하고 해결책을 찾는 성향입니다.'
+            : 'Adapts quickly in real situations and finds practical solutions.',
+      'ISFP' =>
+        isKo
+            ? '몸 상태와 리듬을 살피며 균형 있게 플레이하는 성향입니다.'
+            : 'Plays with balance by tracking body condition and rhythm.',
+      'INFP' =>
+        isKo
+            ? '자신의 기준과 의미를 느낄 때 몰입도가 커지는 성향입니다.'
+            : 'Engages deeply when training aligns with personal values and meaning.',
+      'INTP' =>
+        isKo
+            ? '패턴을 분석하고 새로운 해법을 탐색하는 성향입니다.'
+            : 'Enjoys analyzing patterns and exploring new solutions.',
+      'ESTP' =>
+        isKo
+            ? '순간 판단과 과감한 실행으로 흐름을 바꾸는 성향입니다.'
+            : 'Changes momentum through decisive instincts and bold execution.',
+      'ESFP' =>
+        isKo
+            ? '현장 에너지를 끌어올리고 팀 분위기를 밝히는 성향입니다.'
+            : 'Lifts team energy and brightens the environment in the moment.',
+      'ENFP' =>
+        isKo
+            ? '새로운 자극과 가능성에서 동기를 얻는 성향입니다.'
+            : 'Finds motivation in new stimuli and emerging possibilities.',
+      'ENTP' =>
+        isKo
+            ? '변화를 두려워하지 않고 다양한 시도를 즐기는 성향입니다.'
+            : 'Experiments freely and is comfortable with change.',
+      'ESTJ' =>
+        isKo
+            ? '목표를 분명히 세우고 실행을 끝까지 끌고 가는 성향입니다.'
+            : 'Sets clear goals and drives execution through to the end.',
+      'ESFJ' =>
+        isKo
+            ? '팀 컨디션과 호흡을 챙기며 조직력을 높이는 성향입니다.'
+            : 'Improves cohesion by caring about team condition and chemistry.',
+      'ENFJ' =>
+        isKo
+            ? '동료를 북돋우며 팀의 집중력을 함께 끌어올리는 성향입니다.'
+            : 'Raises team focus by encouraging and aligning teammates.',
+      'ENTJ' =>
+        isKo
+            ? '전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'
+            : 'Clarifies tactical direction and leads the push toward goals.',
+      _ => null,
+    };
   }
 
   String _buildPositionResult(List<int> answers, bool isKo) {
@@ -632,14 +806,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   static final TextInputFormatter _decimalInputFormatter =
       TextInputFormatter.withFunction((oldValue, newValue) {
-    final text = newValue.text;
-    if (text.isEmpty) return newValue;
-    final normalized = text.replaceAll(',', '.');
-    if (!RegExp(r'^\d*(?:\.\d{0,2})?$').hasMatch(normalized)) {
-      return oldValue;
-    }
-    return newValue;
-  });
+        final text = newValue.text;
+        if (text.isEmpty) return newValue;
+        final normalized = text.replaceAll(',', '.');
+        if (!RegExp(r'^\d*(?:\.\d{0,2})?$').hasMatch(normalized)) {
+          return oldValue;
+        }
+        return newValue;
+      });
 
   Future<void> _pickProfilePhoto() async {
     try {
@@ -689,6 +863,13 @@ class _MbtiQuestion {
     required this.enPrompt,
     required this.options,
   });
+}
+
+class _TestResultSummary {
+  final String title;
+  final String? subtitle;
+
+  const _TestResultSummary({required this.title, required this.subtitle});
 }
 
 class _MbtiOption {
@@ -906,7 +1087,8 @@ const List<_MbtiQuestion> _mbtiQuestions = [
   ),
   _MbtiQuestion(
     koPrompt: '예상과 다른 변수가 생기면 어떤 편인가요?',
-    enPrompt: 'When an unexpected variable appears, which sounds more like you?',
+    enPrompt:
+        'When an unexpected variable appears, which sounds more like you?',
     options: [
       _MbtiOption(
         letter: 'J',
@@ -1018,7 +1200,8 @@ const List<_MbtiQuestion> _mbtiQuestions = [
   ),
   _MbtiQuestion(
     koPrompt: '팀 운영에 불만이 생기면 더 먼저 따지는 것은 무엇인가요?',
-    enPrompt: 'If you’re unhappy with team management, what do you examine first?',
+    enPrompt:
+        'If you’re unhappy with team management, what do you examine first?',
     options: [
       _MbtiOption(
         letter: 'T',
@@ -1131,7 +1314,8 @@ const List<_PositionQuestion> _positionQuestions = [
   ),
   _PositionQuestion(
     koPrompt: '상대 에이스를 상대해야 할 때 가장 끌리는 임무는 무엇인가요?',
-    enPrompt: 'Against the opponent’s star player, which duty attracts you most?',
+    enPrompt:
+        'Against the opponent’s star player, which duty attracts you most?',
     options: [
       _PositionOption(
         koLabel: '앞에서 득점으로 더 큰 위협을 준다',
@@ -1261,7 +1445,8 @@ const List<_PositionQuestion> _positionQuestions = [
   ),
   _PositionQuestion(
     koPrompt: '하프라인 근처에서 공을 잡았을 때 가장 먼저 떠오르는 선택은 무엇인가요?',
-    enPrompt: 'When you receive the ball near halfway, what comes to mind first?',
+    enPrompt:
+        'When you receive the ball near halfway, what comes to mind first?',
     options: [
       _PositionOption(
         koLabel: '곧바로 공간 뒤를 공략한다',
@@ -1365,7 +1550,8 @@ const List<_PositionQuestion> _positionQuestions = [
   ),
   _PositionQuestion(
     koPrompt: '팀이 리드를 지키는 후반 막판, 가장 맡고 싶은 역할은 무엇인가요?',
-    enPrompt: 'Late in the second half protecting a lead, what role do you want most?',
+    enPrompt:
+        'Late in the second half protecting a lead, what role do you want most?',
     options: [
       _PositionOption(
         koLabel: '역습 한 방으로 경기를 끝낸다',
