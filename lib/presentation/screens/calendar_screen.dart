@@ -128,9 +128,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded = hasDaySchedule
-                  ? _calendarExpanded
-                  : true;
+              final isCalendarExpanded =
+                  hasDaySchedule ? _calendarExpanded : true;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -142,9 +141,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -270,23 +269,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          return _CalendarStatusDayCell(
-                                            dayNumber: day.day,
-                                            status: _bestStatusForDay(
-                                              entryMap[key] ??
-                                                  const <TrainingEntry>[],
-                                            ),
-                                            isSelected: true,
-                                            isToday: isSameDay(
-                                              day,
-                                              DateTime.now(),
-                                            ),
-                                            isHoliday:
-                                                isKo &&
-                                                holidayMap.containsKey(key),
-                                          );
-                                        },
+                                      final key = _normalizeDay(day);
+                                      return _CalendarStatusDayCell(
+                                        dayNumber: day.day,
+                                        status: _bestStatusForDay(
+                                          entryMap[key] ??
+                                              const <TrainingEntry>[],
+                                        ),
+                                        isSelected: true,
+                                        isToday: isSameDay(
+                                          day,
+                                          DateTime.now(),
+                                        ),
+                                        isHoliday:
+                                            isKo && holidayMap.containsKey(key),
+                                      );
+                                    },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
@@ -311,9 +309,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.92)
                                           : Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(alpha: 0.88),
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.88),
                                       shape: BoxShape.circle,
                                     ),
                                     defaultTextStyle: TextStyle(
@@ -400,11 +398,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 Localizations.localeOf(context).languageCode ==
                                         'ko'
                                     ? (isCalendarExpanded
-                                          ? '캘린더 접기'
-                                          : '캘린더 펼치기')
+                                        ? '캘린더 접기'
+                                        : '캘린더 펼치기')
                                     : (isCalendarExpanded
-                                          ? 'Collapse calendar'
-                                          : 'Expand calendar'),
+                                        ? 'Collapse calendar'
+                                        : 'Expand calendar'),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -425,6 +423,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             _openMatchSheet(
                               day: entry.date,
                               editingEntry: entry,
+                              entries: entries,
                             ),
                           );
                           return;
@@ -458,13 +457,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
       floatingActionButton: widget.onCreate == null
           ? null
           : FloatingActionButton(
-              onPressed: _showCreateActionSheet,
+              onPressed: () async {
+                final entries = await widget.trainingService.allEntries();
+                if (!mounted) return;
+                await _showCreateActionSheet(entries);
+              },
               child: const Icon(Icons.add),
             ),
     );
   }
 
-  Future<void> _showCreateActionSheet() async {
+  Future<void> _showCreateActionSheet(List<TrainingEntry> entries) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final selectedDay = _selectedDay ?? _focusedDay;
     final action = await showModalBottomSheet<_CalendarCreateAction>(
@@ -505,7 +508,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await _openPlanSheet(day: selectedDay);
         break;
       case _CalendarCreateAction.match:
-        await _openMatchSheet(day: selectedDay);
+        await _openMatchSheet(day: selectedDay, entries: entries);
         break;
     }
   }
@@ -706,9 +709,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         );
                         Navigator.of(context).pop(
                           _TrainingPlan(
-                            id:
-                                editingPlan?.id ??
-                                DateTime.now().microsecondsSinceEpoch
+                            id: editingPlan?.id ??
+                                DateTime.now()
+                                    .microsecondsSinceEpoch
                                     .toString(),
                             scheduledAt: scheduledAt,
                             category: category,
@@ -749,17 +752,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _openMatchSheet({
     required DateTime day,
     TrainingEntry? editingEntry,
+    required List<TrainingEntry> entries,
   }) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final initialDay = editingEntry?.date ?? day;
     var matchDay = DateTime(initialDay.year, initialDay.month, initialDay.day);
-    final opponentController = TextEditingController(
-      text: editingEntry?.opponentTeam ?? editingEntry?.club ?? '',
-    );
-    final locationController = TextEditingController(
-      text: editingEntry?.location ?? '',
-    );
+    var opponent = editingEntry?.opponentTeam ?? editingEntry?.club ?? '';
+    var location = editingEntry?.location ?? '';
+    final opponentOptions = _matchOpponentOptions(entries);
+    final locationOptions = _matchLocationOptions(entries);
     final ourScoreController = TextEditingController(
       text: editingEntry?.scoredGoals?.toString() ?? '',
     );
@@ -825,22 +827,68 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       label: Text(DateFormat('yyyy-MM-dd').format(matchDay)),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: opponentController,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        labelText: isKo ? '상대 팀' : 'Opponent team',
-                        hintText: isKo ? '예) 수원 U15' : 'e.g. Suwon U15',
-                      ),
+                    FilledButton.icon(
+                      onPressed: () {
+                        final trimmedOpponent = opponent.trim();
+                        if (trimmedOpponent.isEmpty) return;
+                        Navigator.of(context).pop(
+                          TrainingEntry(
+                            date: matchDay,
+                            durationMinutes:
+                                editingEntry?.durationMinutes ?? 90,
+                            intensity: editingEntry?.intensity ?? 3,
+                            type: l10n.typeMatch,
+                            mood: editingEntry?.mood ?? 3,
+                            injury: editingEntry?.injury ?? false,
+                            notes: memoController.text.trim(),
+                            location: location.trim(),
+                            program: l10n.typeMatch,
+                            club: trimmedOpponent,
+                            opponentTeam: trimmedOpponent,
+                            status: editingEntry?.status ?? 'normal',
+                            goodPoints: editingEntry?.goodPoints ?? '',
+                            improvements: editingEntry?.improvements ?? '',
+                            nextGoal: editingEntry?.nextGoal ?? '',
+                            goalFocuses: editingEntry?.goalFocuses ?? const [],
+                            createdAt: editingEntry?.createdAt,
+                            scoredGoals: _parseSheetInt(
+                              ourScoreController.text,
+                            ),
+                            concededGoals: _parseSheetInt(
+                              opponentScoreController.text,
+                            ),
+                            playerGoals: _parseSheetInt(
+                              playerGoalsController.text,
+                            ),
+                            playerAssists: _parseSheetInt(
+                              playerAssistsController.text,
+                            ),
+                            minutesPlayed: _parseSheetInt(
+                              minutesPlayedController.text,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.check),
+                      label: Text(isKo ? '저장' : 'Save'),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: locationController,
+                    _MatchAutocompleteField(
+                      initialValue: opponent,
+                      options: opponentOptions,
+                      onChanged: (value) => opponent = value,
                       textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        labelText: l10n.location,
-                        hintText: isKo ? '예) 메인 구장' : 'e.g. Main stadium',
-                      ),
+                      labelText: isKo ? '상대 팀' : 'Opponent team',
+                      hintText: isKo ? '예) 수원 U15' : 'e.g. Suwon U15',
+                    ),
+                    const SizedBox(height: 8),
+                    _MatchAutocompleteField(
+                      initialValue: location,
+                      options: locationOptions,
+                      onChanged: (value) => location = value,
+                      textInputAction: TextInputAction.next,
+                      labelText: l10n.location,
+                      hintText: isKo ? '예) 메인 구장' : 'e.g. Main stadium',
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -883,7 +931,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               FilteringTextInputFormatter.digitsOnly,
                             ],
                             decoration: InputDecoration(
-                              labelText: isKo ? '내 골' : 'My goals',
+                              labelText: isKo ? '골' : 'Goals',
                             ),
                           ),
                         ),
@@ -896,7 +944,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               FilteringTextInputFormatter.digitsOnly,
                             ],
                             decoration: InputDecoration(
-                              labelText: isKo ? '내 어시스트' : 'My assists',
+                              labelText: isKo ? '어시스트' : 'Assists',
                             ),
                           ),
                         ),
@@ -920,52 +968,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         labelText: isKo ? '메모(선택)' : 'Note (optional)',
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    FilledButton.icon(
-                      onPressed: () {
-                        final opponent = opponentController.text.trim();
-                        if (opponent.isEmpty) return;
-                        Navigator.of(context).pop(
-                          TrainingEntry(
-                            date: matchDay,
-                            durationMinutes:
-                                editingEntry?.durationMinutes ?? 90,
-                            intensity: editingEntry?.intensity ?? 3,
-                            type: l10n.typeMatch,
-                            mood: editingEntry?.mood ?? 3,
-                            injury: editingEntry?.injury ?? false,
-                            notes: memoController.text.trim(),
-                            location: locationController.text.trim(),
-                            program: l10n.typeMatch,
-                            club: opponent,
-                            opponentTeam: opponent,
-                            status: editingEntry?.status ?? 'normal',
-                            goodPoints: editingEntry?.goodPoints ?? '',
-                            improvements: editingEntry?.improvements ?? '',
-                            nextGoal: editingEntry?.nextGoal ?? '',
-                            goalFocuses: editingEntry?.goalFocuses ?? const [],
-                            createdAt: editingEntry?.createdAt,
-                            scoredGoals: _parseSheetInt(
-                              ourScoreController.text,
-                            ),
-                            concededGoals: _parseSheetInt(
-                              opponentScoreController.text,
-                            ),
-                            playerGoals: _parseSheetInt(
-                              playerGoalsController.text,
-                            ),
-                            playerAssists: _parseSheetInt(
-                              playerAssistsController.text,
-                            ),
-                            minutesPlayed: _parseSheetInt(
-                              minutesPlayedController.text,
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.check),
-                      label: Text(isKo ? '저장' : 'Save'),
-                    ),
                   ],
                 ),
               ),
@@ -974,8 +976,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         );
       },
     );
-    opponentController.dispose();
-    locationController.dispose();
     ourScoreController.dispose();
     opponentScoreController.dispose();
     playerGoalsController.dispose();
@@ -988,6 +988,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return;
     }
     await widget.trainingService.add(saved);
+  }
+
+  List<String> _matchOpponentOptions(List<TrainingEntry> entries) {
+    return _dedupeAutocompleteValues(
+      entries.where((entry) => entry.isMatch).map(
+            (entry) => entry.opponentTeam.trim().isNotEmpty
+                ? entry.opponentTeam
+                : entry.club,
+          ),
+    );
+  }
+
+  List<String> _matchLocationOptions(List<TrainingEntry> entries) {
+    final storedLocations = widget.optionRepository.getOptions('locations', []);
+    return _dedupeAutocompleteValues([
+      ...storedLocations,
+      ...entries.map((entry) => entry.location),
+    ]);
+  }
+
+  List<String> _dedupeAutocompleteValues(Iterable<String> values) {
+    final unique = <String>{};
+    for (final value in values) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty) continue;
+      unique.add(trimmed);
+    }
+    return unique.toList(growable: false);
   }
 
   Future<void> _deletePlan(String id) async {
@@ -1208,10 +1236,10 @@ class _CalendarStatusDayCell extends StatelessWidget {
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-              ? Colors.red.shade400.withAlpha(170)
-              : (isToday
-                    ? colorScheme.primary.withAlpha(150)
-                    : Colors.transparent));
+            ? Colors.red.shade400.withAlpha(170)
+            : (isToday
+                ? colorScheme.primary.withAlpha(150)
+                : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -1301,12 +1329,10 @@ class _DayTimeline extends StatelessWidget {
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     final sortedEntries = [...dayEntries]
       ..sort(TrainingEntry.compareByRecentCreated);
-    final sortedMatchEntries = sortedEntries
-        .where((entry) => entry.isMatch)
-        .toList(growable: false);
-    final sortedTrainingEntries = sortedEntries
-        .where((entry) => !entry.isMatch)
-        .toList(growable: false);
+    final sortedMatchEntries =
+        sortedEntries.where((entry) => entry.isMatch).toList(growable: false);
+    final sortedTrainingEntries =
+        sortedEntries.where((entry) => !entry.isMatch).toList(growable: false);
     if (sortedPlans.isEmpty &&
         sortedMatchEntries.isEmpty &&
         sortedTrainingEntries.isEmpty) {
@@ -1545,7 +1571,7 @@ class _EntryTile extends StatelessWidget {
     final focusText = _entryFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final titleParts = entry.isMatch
-        ? _matchTitleParts(entry, isKo: isKo, fallbackLabel: l10n.typeMatch)
+        ? _matchTitleParts(entry, isKo: isKo)
         : <String>[
             entry.type.trim().isNotEmpty ? entry.type.trim() : l10n.program,
             _formatDurationText(
@@ -1612,13 +1638,8 @@ class _EntryTile extends StatelessWidget {
     return '';
   }
 
-  List<String> _matchTitleParts(
-    TrainingEntry entry, {
-    required bool isKo,
-    required String fallbackLabel,
-  }) {
+  List<String> _matchTitleParts(TrainingEntry entry, {required bool isKo}) {
     final parts = <String>[];
-    parts.add(entry.type.trim().isNotEmpty ? entry.type.trim() : fallbackLabel);
     parts.add(_matchOutcomeLabel(entry, isKo: isKo));
     if (entry.opponentTeam.trim().isNotEmpty) {
       parts.add('vs ${entry.opponentTeam.trim()}');
@@ -1651,15 +1672,11 @@ class _EntryTile extends StatelessWidget {
   String _matchPersonalRecord(TrainingEntry entry, {required bool isKo}) {
     final parts = <String>[];
     if (entry.playerGoals != null) {
-      parts.add(
-        isKo ? '내 골 ${entry.playerGoals}' : 'My goals ${entry.playerGoals}',
-      );
+      parts.add(isKo ? '골 ${entry.playerGoals}' : 'Goals ${entry.playerGoals}');
     }
     if (entry.playerAssists != null) {
       parts.add(
-        isKo
-            ? '내 어시스트 ${entry.playerAssists}'
-            : 'My assists ${entry.playerAssists}',
+        isKo ? '어시스트 ${entry.playerAssists}' : 'Assists ${entry.playerAssists}',
       );
     }
     if (entry.minutesPlayed != null) {
@@ -1777,6 +1794,93 @@ class _StatusIcon extends StatelessWidget {
   }
 }
 
+class _MatchAutocompleteField extends StatelessWidget {
+  final String initialValue;
+  final List<String> options;
+  final ValueChanged<String> onChanged;
+  final String labelText;
+  final String hintText;
+  final TextInputAction textInputAction;
+
+  const _MatchAutocompleteField({
+    required this.initialValue,
+    required this.options,
+    required this.onChanged,
+    required this.labelText,
+    required this.hintText,
+    required this.textInputAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Autocomplete<String>(
+      initialValue: TextEditingValue(text: initialValue),
+      optionsBuilder: (value) {
+        final query = value.text.trim().toLowerCase();
+        if (query.isEmpty) {
+          return options.take(6);
+        }
+        return options
+            .where((option) => option.toLowerCase().contains(query))
+            .take(6);
+      },
+      onSelected: onChanged,
+      fieldViewBuilder:
+          (context, textEditingController, focusNode, onFieldSubmitted) {
+        if (textEditingController.text != initialValue &&
+            textEditingController.text.isEmpty) {
+          textEditingController.value = TextEditingValue(
+            text: initialValue,
+            selection: TextSelection.collapsed(offset: initialValue.length),
+          );
+        }
+        return TextField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          textInputAction: textInputAction,
+          onChanged: onChanged,
+          onSubmitted: (_) => onFieldSubmitted(),
+          decoration: InputDecoration(
+            labelText: labelText,
+            hintText: hintText,
+          ),
+        );
+      },
+      optionsViewBuilder: (context, onSelected, displayedOptions) {
+        final items = displayedOptions.toList(growable: false);
+        if (items.isEmpty) return const SizedBox.shrink();
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 6,
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320, maxHeight: 220),
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shrinkWrap: true,
+                itemCount: items.length,
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, color: theme.colorScheme.outlineVariant),
+                itemBuilder: (context, index) {
+                  final option = items[index];
+                  return ListTile(
+                    dense: true,
+                    title: Text(option),
+                    onTap: () => onSelected(option),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 String _formatDurationText(
   int minutes, {
   required bool isKo,
@@ -1825,8 +1929,7 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',

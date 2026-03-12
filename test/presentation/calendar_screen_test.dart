@@ -149,12 +149,11 @@ void main() {
 
     await pumpCalendar(tester);
 
-    expect(find.text('시합'), findsOneWidget);
     expect(find.text('승'), findsOneWidget);
     expect(find.textContaining('vs 라이벌 FC'), findsOneWidget);
     expect(find.textContaining('결과 3:2'), findsOneWidget);
-    expect(find.textContaining('내 골 1'), findsOneWidget);
-    expect(find.textContaining('내 어시스트 2'), findsOneWidget);
+    expect(find.textContaining('골 1'), findsOneWidget);
+    expect(find.textContaining('어시스트 2'), findsOneWidget);
     expect(find.textContaining('출전 70분'), findsOneWidget);
     expect(find.byIcon(Icons.emoji_events), findsOneWidget);
   });

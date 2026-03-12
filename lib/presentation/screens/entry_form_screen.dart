@@ -818,7 +818,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 : Icons.developer_board_outlined,
                             label: isKo ? '훈련 스케치' : 'Training sketch',
                             active: _linkedBoardIds.isNotEmpty,
-                            emphasizePrimary: true,
                             onPressed: _openTrainingBoardEditor,
                           ),
                         ],
