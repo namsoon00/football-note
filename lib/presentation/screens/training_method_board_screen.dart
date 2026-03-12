@@ -320,7 +320,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     final title = await _showBoardNameDialog(
       isKo: isKo,
-      titleKo: '훈련 텍스트 제목',
+      titleKo: '훈련 스케치 제목',
       titleEn: 'Training sketch title',
       confirmKo: '생성',
       confirmEn: 'Create',
@@ -473,7 +473,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련 텍스트 초기화' : 'Reset training sketch'),
+        title: Text(isKo ? '훈련 스케치 초기화' : 'Reset training sketch'),
         content: Text(
           isKo
               ? '현재 보드를 정말 초기화할까요?'
@@ -522,7 +522,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (showFeedback) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isKo ? '훈련 텍스트를 저장했습니다.' : 'Training sketch saved.'),
+          content: Text(isKo ? '훈련 스케치를 저장했습니다.' : 'Training sketch saved.'),
         ),
       );
     }
@@ -534,7 +534,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (currentName.isNotEmpty) return currentName;
     final widgetTitle = widget.boardTitle.trim();
     if (widgetTitle.isNotEmpty) return widgetTitle;
-    return isKo ? '훈련 텍스트' : 'Training Sketch';
+    return isKo ? '훈련 스케치' : 'Training Sketch';
   }
 
   Future<void> _showManagedBoardPicker(bool isKo) async {
@@ -595,7 +595,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '훈련 텍스트 삭제' : 'Delete training sketch'),
+        title: Text(isKo ? '훈련 스케치 삭제' : 'Delete training sketch'),
         content: Text(
           isKo
               ? '"${currentBoard.title}" 보드를 삭제할까요?'
@@ -1316,7 +1316,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           actions: [
             if (widget.presets.isNotEmpty)
               IconButton(
-                tooltip: isKo ? '훈련 텍스트 복사' : 'Copy sketch',
+                tooltip: isKo ? '훈련 스케치 복사' : 'Copy sketch',
                 icon: const Icon(Icons.copy_all_outlined),
                 onPressed: () => _showPresetPicker(isKo),
               ),
@@ -1537,7 +1537,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       maxLines: 3,
       textInputAction: TextInputAction.done,
       decoration: InputDecoration(
-        labelText: isKo ? '훈련 텍스트 메모' : 'Training sketch note',
+        labelText: isKo ? '훈련 스케치 메모' : 'Training sketch note',
         hintText: isKo
             ? '예) 콘 사이 2터치 드리블 후 패스'
             : 'e.g. Two-touch dribble between cones then pass',

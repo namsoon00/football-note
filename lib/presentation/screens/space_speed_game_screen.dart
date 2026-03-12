@@ -65,6 +65,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   final _random = math.Random();
   Timer? _timer;
   Timer? _gameTimer;
+  Timer? _failEndTimer;
 
   int _score = 0;
   int _goals = 0;
@@ -104,6 +105,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   _ShotOutcome _lastShotOutcome = _ShotOutcome.none;
   Timer? _shotOutcomeTimer;
   bool _awaitingShotOutcome = false;
+  bool _awaitingFailFinish = false;
 
   bool _charging = false;
   DateTime? _chargeStartedAt;
@@ -256,6 +258,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void dispose() {
     _timer?.cancel();
     _gameTimer?.cancel();
+    _failEndTimer?.cancel();
     _shotOutcomeTimer?.cancel();
     super.dispose();
   }
@@ -1026,7 +1029,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       if (!mounted) return;
       setState(() {
         if (!_gameStarted) return;
-        if (_awaitingShotOutcome) return;
+        if (_awaitingShotOutcome || _awaitingFailFinish) return;
         _fieldScrollX = (_fieldScrollX + (_dt * 0.42)) % 1.0;
         _updatePlayers();
         if (!_gameStarted || _timeUp) return;
@@ -1058,6 +1061,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _reactionIcon = Icons.adjust;
       _lastShotOutcome = _ShotOutcome.none;
       _awaitingShotOutcome = false;
+      _awaitingFailFinish = false;
+      _failEndTimer?.cancel();
       _shotOutcomeTimer?.cancel();
     });
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -1900,6 +1905,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _awaitingShotOutcome = false;
     _goalChanceActive = false;
     _finalShotMode = false;
+    _awaitingFailFinish = false;
+    _failEndTimer?.cancel();
     _finalRanking = _rankingLabel(_rankScore, true);
     _appendRankingRecord();
     _updateWeeklyBest();
@@ -1923,8 +1930,33 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _awaitingShotOutcome = true;
       _scheduleShotOutcomeFinish(failed: true);
     } else {
-      _endGameOnFail();
+      _scheduleFailFinish();
     }
+  }
+
+  void _scheduleFailFinish() {
+    _failEndTimer?.cancel();
+    _phase = _PlayPhase.roundEnd;
+    _ballFlying = false;
+    _clearFlightGuide();
+    _charging = false;
+    _chargeStartedAt = null;
+    _joystickInput = Offset.zero;
+    _joystickActive = false;
+    _joystickPointerId = null;
+    _passPressed = false;
+    _passAimInput = Offset.zero;
+    _passAimActive = false;
+    _passPointerId = null;
+    _passChargeArmed = false;
+    _awaitingFailFinish = true;
+    _failEndTimer = Timer(const Duration(milliseconds: 1100), () {
+      if (!mounted) return;
+      setState(() {
+        _awaitingFailFinish = false;
+        _endGameOnFail();
+      });
+    });
   }
 
   void _scheduleShotOutcomeFinish({required bool failed}) {
@@ -2084,6 +2116,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passPointerId = null;
     _passChargeArmed = false;
     _awaitingShotOutcome = false;
+    _awaitingFailFinish = false;
+    _failEndTimer?.cancel();
     _shotOutcomeTimer?.cancel();
     _predReceiverTime = 0;
     _idealBallSpeed = _ballMinSpeed;
@@ -2420,7 +2454,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       case _PassResult.passerHit:
         _reactionIcon = Icons.warning_amber_rounded;
         _reactionColor = const Color(0xFFEB5757);
-        _reactionLabel = _koText('패서 충돌  게임 종료', 'Passer hit  Game over');
+        _reactionLabel = _koText('패서 충돌', 'Passer hit');
         _reactionDetail = _koText(
           '패스하는 팩맨이 고스트와 충돌해 경기가 종료됐어요.',
           'The passing Pac-Man collided with a ghost and the round ended.',
@@ -2511,7 +2545,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       case _PassResult.idleTimeout:
         _reactionIcon = Icons.timer_off;
         _reactionColor = const Color(0xFFEB5757);
-        _reactionLabel = _koText('3초 무패스 종료', 'No pass for 3s');
+        _reactionLabel = _koText('3초 무패스', 'No pass for 3s');
         _reactionDetail = _koText(
           '3초 안에 패스를 시도하지 않아 라운드가 종료됐어요.',
           'Round ended because no pass was attempted within 3 seconds.',
