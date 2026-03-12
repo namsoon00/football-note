@@ -25,6 +25,8 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
+enum _CalendarCreateAction { entry, plan, match }
+
 class CalendarScreen extends StatefulWidget {
   final TrainingService trainingService;
   final LocaleService localeService;
@@ -126,8 +128,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded =
-                  hasDaySchedule ? _calendarExpanded : true;
+              final isCalendarExpanded = hasDaySchedule
+                  ? _calendarExpanded
+                  : true;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -139,9 +142,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -179,57 +182,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       'ko'
                                   ? '오늘'
                                   : 'Today',
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          OutlinedButton.icon(
-                            onPressed: () => _openPlanSheet(
-                                day: _selectedDay ?? _focusedDay),
-                            icon: const Icon(
-                              Icons.add_alarm_outlined,
-                              size: 20,
-                            ),
-                            label: Text(
-                              Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '훈련 계획 추가'
-                                  : 'Add Training Plan',
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              minimumSize: const Size(1, 40),
-                              maximumSize: const Size(210, 40),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          OutlinedButton.icon(
-                            onPressed: () => _openMatchSheet(
-                              day: _selectedDay ?? _focusedDay,
-                            ),
-                            icon: const Icon(
-                              Icons.sports_soccer_outlined,
-                              size: 20,
-                            ),
-                            label: Text(
-                              Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '시합 등록'
-                                  : 'Add Match',
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              minimumSize: const Size(1, 40),
-                              maximumSize: const Size(180, 40),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
                             ),
                           ),
                         ],
@@ -318,22 +270,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                      final key = _normalizeDay(day);
-                                      return _CalendarStatusDayCell(
-                                        dayNumber: day.day,
-                                        status: _bestStatusForDay(
-                                          entryMap[key] ??
-                                              const <TrainingEntry>[],
-                                        ),
-                                        isSelected: true,
-                                        isToday: isSameDay(
-                                          day,
-                                          DateTime.now(),
-                                        ),
-                                        isHoliday:
-                                            isKo && holidayMap.containsKey(key),
-                                      );
-                                    },
+                                          final key = _normalizeDay(day);
+                                          return _CalendarStatusDayCell(
+                                            dayNumber: day.day,
+                                            status: _bestStatusForDay(
+                                              entryMap[key] ??
+                                                  const <TrainingEntry>[],
+                                            ),
+                                            isSelected: true,
+                                            isToday: isSameDay(
+                                              day,
+                                              DateTime.now(),
+                                            ),
+                                            isHoliday:
+                                                isKo &&
+                                                holidayMap.containsKey(key),
+                                          );
+                                        },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
@@ -358,9 +311,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.92)
                                           : Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withValues(alpha: 0.88),
+                                                .colorScheme
+                                                .primary
+                                                .withValues(alpha: 0.88),
                                       shape: BoxShape.circle,
                                     ),
                                     defaultTextStyle: TextStyle(
@@ -439,8 +392,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             Localizations.localeOf(context).languageCode == 'ko'
                                 ? (isCalendarExpanded ? '캘린더 접기' : '캘린더 펼치기')
                                 : (isCalendarExpanded
-                                    ? 'Collapse calendar'
-                                    : 'Expand calendar'),
+                                      ? 'Collapse calendar'
+                                      : 'Expand calendar'),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -492,11 +445,58 @@ class _CalendarScreenState extends State<CalendarScreen> {
       floatingActionButton: widget.onCreate == null
           ? null
           : FloatingActionButton.extended(
-              onPressed: widget.onCreate,
+              onPressed: _showCreateActionSheet,
               icon: const Icon(Icons.add),
               label: Text(AppLocalizations.of(context)!.addEntry),
             ),
     );
+  }
+
+  Future<void> _showCreateActionSheet() async {
+    final l10n = AppLocalizations.of(context)!;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final selectedDay = _selectedDay ?? _focusedDay;
+    final action = await showModalBottomSheet<_CalendarCreateAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.note_add_outlined),
+              title: Text(l10n.addEntry),
+              onTap: () =>
+                  Navigator.of(context).pop(_CalendarCreateAction.entry),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_alarm_outlined),
+              title: Text(isKo ? '훈련 계획' : 'Training Plan'),
+              onTap: () =>
+                  Navigator.of(context).pop(_CalendarCreateAction.plan),
+            ),
+            ListTile(
+              leading: const Icon(Icons.sports_soccer_outlined),
+              title: Text(isKo ? '시합' : 'Match'),
+              onTap: () =>
+                  Navigator.of(context).pop(_CalendarCreateAction.match),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case _CalendarCreateAction.entry:
+        widget.onCreate?.call();
+        break;
+      case _CalendarCreateAction.plan:
+        await _openPlanSheet(day: selectedDay);
+        break;
+      case _CalendarCreateAction.match:
+        await _openMatchSheet(day: selectedDay);
+        break;
+    }
   }
 
   Future<void> _syncPlanReminders() async {
@@ -695,9 +695,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         );
                         Navigator.of(context).pop(
                           _TrainingPlan(
-                            id: editingPlan?.id ??
-                                DateTime.now()
-                                    .microsecondsSinceEpoch
+                            id:
+                                editingPlan?.id ??
+                                DateTime.now().microsecondsSinceEpoch
                                     .toString(),
                             scheduledAt: scheduledAt,
                             category: category,
@@ -742,11 +742,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final initialDay = editingEntry?.date ?? day;
-    var matchDay = DateTime(
-      initialDay.year,
-      initialDay.month,
-      initialDay.day,
-    );
+    var matchDay = DateTime(initialDay.year, initialDay.month, initialDay.day);
     final opponentController = TextEditingController(
       text: editingEntry?.opponentTeam ?? editingEntry?.club ?? '',
     );
@@ -768,8 +764,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final minutesPlayedController = TextEditingController(
       text: editingEntry?.minutesPlayed?.toString() ?? '',
     );
-    final memoController =
-        TextEditingController(text: editingEntry?.notes ?? '');
+    final memoController = TextEditingController(
+      text: editingEntry?.notes ?? '',
+    );
     final saved = await showModalBottomSheet<TrainingEntry>(
       context: context,
       isScrollControlled: true,
@@ -814,9 +811,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         });
                       },
                       icon: const Icon(Icons.calendar_today_outlined),
-                      label: Text(
-                        DateFormat('yyyy-MM-dd').format(matchDay),
-                      ),
+                      label: Text(DateFormat('yyyy-MM-dd').format(matchDay)),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -900,9 +895,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     TextField(
                       controller: minutesPlayedController,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                         labelText: isKo ? '출전 시간(분)' : 'Minutes played',
                         hintText: isKo ? '예) 70' : 'e.g. 70',
@@ -941,17 +934,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             nextGoal: editingEntry?.nextGoal ?? '',
                             goalFocuses: editingEntry?.goalFocuses ?? const [],
                             createdAt: editingEntry?.createdAt,
-                            scoredGoals:
-                                _parseSheetInt(ourScoreController.text),
+                            scoredGoals: _parseSheetInt(
+                              ourScoreController.text,
+                            ),
                             concededGoals: _parseSheetInt(
                               opponentScoreController.text,
                             ),
-                            playerGoals:
-                                _parseSheetInt(playerGoalsController.text),
-                            playerAssists:
-                                _parseSheetInt(playerAssistsController.text),
-                            minutesPlayed:
-                                _parseSheetInt(minutesPlayedController.text),
+                            playerGoals: _parseSheetInt(
+                              playerGoalsController.text,
+                            ),
+                            playerAssists: _parseSheetInt(
+                              playerAssistsController.text,
+                            ),
+                            minutesPlayed: _parseSheetInt(
+                              minutesPlayedController.text,
+                            ),
                           ),
                         );
                       },
@@ -1200,10 +1197,10 @@ class _CalendarStatusDayCell extends StatelessWidget {
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-            ? Colors.red.shade400.withAlpha(170)
-            : (isToday
-                ? colorScheme.primary.withAlpha(150)
-                : Colors.transparent));
+              ? Colors.red.shade400.withAlpha(170)
+              : (isToday
+                    ? colorScheme.primary.withAlpha(150)
+                    : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -1293,10 +1290,12 @@ class _DayTimeline extends StatelessWidget {
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     final sortedEntries = [...dayEntries]
       ..sort(TrainingEntry.compareByRecentCreated);
-    final sortedMatchEntries =
-        sortedEntries.where((entry) => entry.isMatch).toList(growable: false);
-    final sortedTrainingEntries =
-        sortedEntries.where((entry) => !entry.isMatch).toList(growable: false);
+    final sortedMatchEntries = sortedEntries
+        .where((entry) => entry.isMatch)
+        .toList(growable: false);
+    final sortedTrainingEntries = sortedEntries
+        .where((entry) => !entry.isMatch)
+        .toList(growable: false);
     if (sortedPlans.isEmpty &&
         sortedMatchEntries.isEmpty &&
         sortedTrainingEntries.isEmpty) {
@@ -1532,29 +1531,25 @@ class _EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final locationText =
-        entry.location.trim().isNotEmpty ? entry.location.trim() : '-';
-    final durationText = _formatDurationText(
-      entry.durationMinutes,
-      isKo: isKo,
-      fallback: l10n.durationNotSet,
-    );
     final focusText = _entryFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
-    final matchMeta = _matchMeta(entry, isKo: isKo);
-    final titleParts = <String>[
-      entry.type.trim().isNotEmpty ? entry.type.trim() : l10n.program,
-      durationText,
-      locationText,
-    ];
-    if (matchMeta.isNotEmpty) {
-      titleParts.add(matchMeta);
-    }
+    final titleParts = entry.isMatch
+        ? _matchTitleParts(entry, isKo: isKo, fallbackLabel: l10n.typeMatch)
+        : <String>[
+            entry.type.trim().isNotEmpty ? entry.type.trim() : l10n.program,
+            _formatDurationText(
+              entry.durationMinutes,
+              isKo: isKo,
+              fallback: l10n.durationNotSet,
+            ),
+            entry.location.trim().isNotEmpty ? entry.location.trim() : '-',
+          ];
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        leading: _StatusIcon(status: entry.status),
+        leading: entry.isMatch ? null : _StatusIcon(status: entry.status),
+        minLeadingWidth: entry.isMatch ? 0 : null,
         title: Text(titleParts.join(' · ')),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1605,8 +1600,14 @@ class _EntryTile extends StatelessWidget {
     return '';
   }
 
-  String _matchMeta(TrainingEntry entry, {required bool isKo}) {
+  List<String> _matchTitleParts(
+    TrainingEntry entry, {
+    required bool isKo,
+    required String fallbackLabel,
+  }) {
     final parts = <String>[];
+    parts.add(entry.type.trim().isNotEmpty ? entry.type.trim() : fallbackLabel);
+    parts.add(_matchOutcomeLabel(entry, isKo: isKo));
     if (entry.opponentTeam.trim().isNotEmpty) {
       parts.add('vs ${entry.opponentTeam.trim()}');
     }
@@ -1617,14 +1618,30 @@ class _EntryTile extends StatelessWidget {
             : 'Result ${entry.scoredGoals ?? '-'}:${entry.concededGoals ?? '-'}',
       );
     }
-    return parts.join(' · ');
+    return parts;
+  }
+
+  String _matchOutcomeLabel(TrainingEntry entry, {required bool isKo}) {
+    final scored = entry.scoredGoals;
+    final conceded = entry.concededGoals;
+    if (scored == null || conceded == null) {
+      return isKo ? '결과 미입력' : 'Result unset';
+    }
+    if (scored > conceded) {
+      return isKo ? '승' : 'Win';
+    }
+    if (scored < conceded) {
+      return isKo ? '패' : 'Loss';
+    }
+    return isKo ? '무' : 'Draw';
   }
 
   String _matchPersonalRecord(TrainingEntry entry, {required bool isKo}) {
     final parts = <String>[];
     if (entry.playerGoals != null) {
       parts.add(
-          isKo ? '내 골 ${entry.playerGoals}' : 'My goals ${entry.playerGoals}');
+        isKo ? '내 골 ${entry.playerGoals}' : 'My goals ${entry.playerGoals}',
+      );
     }
     if (entry.playerAssists != null) {
       parts.add(
@@ -1761,7 +1778,8 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',
