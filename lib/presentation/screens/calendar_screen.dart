@@ -457,16 +457,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       floatingActionButton: widget.onCreate == null
           ? null
-          : FloatingActionButton.extended(
+          : FloatingActionButton(
               onPressed: _showCreateActionSheet,
-              icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context)!.addEntry),
+              child: const Icon(Icons.add),
             ),
     );
   }
 
   Future<void> _showCreateActionSheet() async {
-    final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final selectedDay = _selectedDay ?? _focusedDay;
     final action = await showModalBottomSheet<_CalendarCreateAction>(
@@ -478,7 +476,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.note_add_outlined),
-              title: Text(l10n.addEntry),
+              title: Text(isKo ? '훈련노트' : 'Training note'),
               onTap: () =>
                   Navigator.of(context).pop(_CalendarCreateAction.entry),
             ),

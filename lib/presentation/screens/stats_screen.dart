@@ -476,13 +476,14 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  void _openProfile(BuildContext context) {
-    Navigator.of(context).push(
+  Future<void> _openProfile(BuildContext context) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
       ),
     );
+    if (mounted) setState(() {});
   }
 
   void _openAverageBenchmark(
