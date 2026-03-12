@@ -207,11 +207,11 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 텍스트 리스트'
+                            ? '훈련 스케치 리스트'
                             : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 텍스트'
+                            ? '훈련 스케치'
                             : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,

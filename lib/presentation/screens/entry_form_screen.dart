@@ -298,7 +298,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final created = await _trainingBoardService.createBoard(
       title: entry.program.trim().isNotEmpty
           ? entry.program.trim()
-          : (isKo ? '기존 훈련 텍스트' : 'Legacy training sketch'),
+          : (isKo ? '기존 훈련 스케치' : 'Legacy training sketch'),
       layoutJson: layout.encode(),
     );
     if (!mounted) return;
@@ -816,7 +816,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             icon: _linkedBoardIds.isNotEmpty
                                 ? Icons.developer_board
                                 : Icons.developer_board_outlined,
-                            label: isKo ? '훈련 텍스트' : 'Training sketch',
+                            label: isKo ? '훈련 스케치' : 'Training sketch',
                             active: _linkedBoardIds.isNotEmpty,
                             emphasizePrimary: true,
                             onPressed: _openTrainingBoardEditor,
@@ -1321,11 +1321,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: fg),
+          Icon(icon, size: 18, color: fg),
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(
+            style: theme.textTheme.labelLarge?.copyWith(
               color: fg,
               fontWeight: active ? FontWeight.w700 : FontWeight.w600,
             ),
