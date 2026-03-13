@@ -55,4 +55,45 @@ void main() {
 
     await sub.cancel();
   });
+
+  test('latestTrainingEntry ignores newer match records', () async {
+    await box.clear();
+
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 1),
+        durationMinutes: 60,
+        intensity: 3,
+        type: '기술',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        createdAt: DateTime(2024, 1, 1, 9),
+      ),
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 2),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '',
+        opponentTeam: '라이벌 FC',
+        scoredGoals: 2,
+        concededGoals: 1,
+        matchLocation: '메인 구장',
+        createdAt: DateTime(2024, 1, 2, 9),
+      ),
+    );
+
+    final latest = await service.latestTrainingEntry();
+
+    expect(latest, isNotNull);
+    expect(latest!.isMatch, isFalse);
+    expect(latest.location, '학교 운동장');
+  });
 }

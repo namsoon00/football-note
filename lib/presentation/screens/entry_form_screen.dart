@@ -385,7 +385,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _applyLatestEntryDefaults() async {
-    final latest = await widget.trainingService.latestEntry();
+    final latest = await widget.trainingService.latestTrainingEntry();
     if (!mounted || latest == null || widget.entry != null) return;
     setState(() {
       _durationMinutes = _initIntSelection(

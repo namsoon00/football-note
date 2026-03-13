@@ -37,13 +37,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late int _index;
   DateTime? _calendarSelectedDay;
-  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     _index = widget.initialIndex;
-    _pages = [
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final navBackground = Theme.of(context).colorScheme.surface;
+    final pages = <Widget>[
       LogsScreen(
         trainingService: widget.trainingService,
         localeService: widget.localeService,
@@ -79,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
         optionRepository: widget.optionRepository,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
+        isActive: _index == 3,
       ),
       SpaceSpeedGameScreen(
         trainingService: widget.trainingService,
@@ -88,13 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
       ),
     ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final navBackground = Theme.of(context).colorScheme.surface;
     return Scaffold(
-      body: IndexedStack(index: _index, children: _pages),
+      body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: NavigationBar(
         backgroundColor: navBackground,
         indicatorColor: Theme.of(context).colorScheme.primary.withAlpha(38),

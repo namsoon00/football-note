@@ -9,7 +9,7 @@ class TrainingService {
   final BackupService? _backupService;
 
   TrainingService(this._repository, {BackupService? backupService})
-      : _backupService = backupService;
+    : _backupService = backupService;
 
   Stream<List<TrainingEntry>> watchEntries() => _repository.watchAll();
 
@@ -20,6 +20,18 @@ class TrainingService {
     if (entries.isEmpty) return null;
     entries.sort(TrainingEntry.compareByRecentCreated);
     return entries.first;
+  }
+
+  Future<TrainingEntry?> latestTrainingEntry() async {
+    final entries = await _repository.getAll();
+    if (entries.isEmpty) return null;
+    entries.sort(TrainingEntry.compareByRecentCreated);
+    for (final entry in entries) {
+      if (!entry.isMatch) {
+        return entry;
+      }
+    }
+    return null;
   }
 
   Future<TrainingEntry?> latestWithGrowth() async {
