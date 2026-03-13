@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../application/player_profile_service.dart';
 import '../../domain/entities/player_profile.dart';
@@ -59,6 +60,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _positionTestAnswers = List<int>.from(profile.positionTestAnswers);
     _birthDate = profile.birthDate;
     _soccerStartDate = profile.soccerStartDate;
+    if (!kIsWeb) {
+      unawaited(_migrateProfilePhotoToPersistentStorage());
+    }
   }
 
   @override
@@ -116,7 +120,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (_photoPath.isNotEmpty)
                   IconButton(
                     tooltip: isKo ? '사진 삭제' : 'Remove photo',
-                    onPressed: () {
+                    onPressed: () async {
+                      await _deleteManagedProfilePhotoIfNeeded();
+                      if (!mounted) return;
                       setState(() => _photoPath = '');
                       _scheduleAutoSave();
                     },
@@ -983,7 +989,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _scheduleAutoSave();
         return;
       }
-      setState(() => _photoPath = picked.path);
+      final storedPath = await _storeProfilePhoto(File(picked.path));
+      if (!mounted) return;
+      setState(() => _photoPath = storedPath);
       _scheduleAutoSave();
     } catch (_) {
       if (!mounted) return;
@@ -997,6 +1005,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       );
+    }
+  }
+
+  Future<void> _migrateProfilePhotoToPersistentStorage() async {
+    final source = _photoPath.trim();
+    if (source.isEmpty || source.startsWith('data:image/')) return;
+    final file = File(source);
+    if (!file.existsSync()) return;
+    if (await _isManagedProfilePhotoPath(source)) return;
+    try {
+      final storedPath = await _storeProfilePhoto(file);
+      if (!mounted) return;
+      setState(() => _photoPath = storedPath);
+      await _saveLatestNow();
+    } catch (_) {
+      // Keep the existing path if migration fails.
+    }
+  }
+
+  Future<String> _storeProfilePhoto(File sourceFile) async {
+    final directory = await _profilePhotoDirectory();
+    final extension = _normalizedImageExtension(sourceFile.path);
+    final destination = File('${directory.path}/profile_photo$extension');
+    if (destination.path != sourceFile.path) {
+      if (destination.existsSync()) {
+        await destination.delete();
+      }
+      await sourceFile.copy(destination.path);
+    }
+    await _deleteManagedProfilePhotoIfNeeded(exceptPath: destination.path);
+    return destination.path;
+  }
+
+  Future<Directory> _profilePhotoDirectory() async {
+    final base = await getApplicationSupportDirectory();
+    final directory = Directory('${base.path}/profile');
+    if (!directory.existsSync()) {
+      await directory.create(recursive: true);
+    }
+    return directory;
+  }
+
+  String _normalizedImageExtension(String path) {
+    final normalized = path.toLowerCase();
+    for (final extension in const ['.png', '.webp', '.gif', '.heic', '.heif']) {
+      if (normalized.endsWith(extension)) return extension;
+    }
+    return '.jpg';
+  }
+
+  Future<bool> _isManagedProfilePhotoPath(String path) async {
+    final directory = await _profilePhotoDirectory();
+    return path.startsWith('${directory.path}/');
+  }
+
+  Future<void> _deleteManagedProfilePhotoIfNeeded({
+    String? exceptPath,
+    String? source,
+  }) async {
+    if (kIsWeb) return;
+    final target = (source ?? _photoPath).trim();
+    if (target.isEmpty || target == exceptPath) return;
+    if (!await _isManagedProfilePhotoPath(target)) return;
+    final file = File(target);
+    if (file.existsSync()) {
+      await file.delete();
     }
   }
 }
