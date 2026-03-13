@@ -55,8 +55,7 @@ class GameRankingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final sorted = [...entries]
-      ..sort((a, b) {
+    final sorted = [...entries]..sort((a, b) {
         final score = b.rankScore.compareTo(a.rankScore);
         if (score != 0) return score;
         return b.playedAt.compareTo(a.playedAt);
@@ -88,8 +87,8 @@ class GameRankingScreen extends StatelessWidget {
                     leading: _rankLeading(rankNo),
                     title: Text(
                       isKo
-                          ? '${entry.rankLabel}등급 · 점수 ${entry.score}'
-                          : 'Rank ${entry.rankLabel} · Score ${entry.score}',
+                          ? '${entry.rankLabel}등급 (${entry.rankScore}점) · 게임 점수 ${entry.score}'
+                          : 'Rank ${entry.rankLabel} (${entry.rankScore}) · Score ${entry.score}',
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     subtitle: Text(
@@ -98,7 +97,7 @@ class GameRankingScreen extends StatelessWidget {
                           : 'Level Lv.${entry.level} · Goals ${entry.goals} · Difficulty $diffText · $dateText',
                     ),
                     trailing: Text(
-                      '${entry.rankScore}',
+                      isKo ? '$rankNo위' : '#$rankNo',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         color: Theme.of(context).colorScheme.primary,

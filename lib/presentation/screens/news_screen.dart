@@ -29,6 +29,7 @@ class NewsScreen extends StatefulWidget {
   final OptionRepository optionRepository;
   final SettingsService settingsService;
   final BackupService? driveBackupService;
+  final bool isActive;
 
   const NewsScreen({
     super.key,
@@ -37,6 +38,7 @@ class NewsScreen extends StatefulWidget {
     required this.optionRepository,
     required this.settingsService,
     this.driveBackupService,
+    this.isActive = false,
   });
 
   @override
@@ -46,7 +48,7 @@ class NewsScreen extends StatefulWidget {
 class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
-  static const Duration _autoRefreshInterval = Duration(hours: 6);
+  static const Duration _autoRefreshInterval = Duration(hours: 1);
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
   static final List<NewsArticle> _cachedArticles = <NewsArticle>[];
@@ -93,6 +95,14 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant NewsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isActive && widget.isActive && _shouldRefreshByPolicy()) {
+      _loadProgressive(force: true);
+    }
   }
 
   @override

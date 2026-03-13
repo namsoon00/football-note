@@ -128,8 +128,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded =
-                  hasDaySchedule ? _calendarExpanded : true;
+              final isCalendarExpanded = hasDaySchedule
+                  ? _calendarExpanded
+                  : true;
               final selectedHolidayName = holidayMap[selected];
 
               return Column(
@@ -141,9 +142,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -269,22 +270,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                      final key = _normalizeDay(day);
-                                      return _CalendarStatusDayCell(
-                                        dayNumber: day.day,
-                                        status: _bestStatusForDay(
-                                          entryMap[key] ??
-                                              const <TrainingEntry>[],
-                                        ),
-                                        isSelected: true,
-                                        isToday: isSameDay(
-                                          day,
-                                          DateTime.now(),
-                                        ),
-                                        isHoliday:
-                                            isKo && holidayMap.containsKey(key),
-                                      );
-                                    },
+                                          final key = _normalizeDay(day);
+                                          return _CalendarStatusDayCell(
+                                            dayNumber: day.day,
+                                            status: _bestStatusForDay(
+                                              entryMap[key] ??
+                                                  const <TrainingEntry>[],
+                                            ),
+                                            isSelected: true,
+                                            isToday: isSameDay(
+                                              day,
+                                              DateTime.now(),
+                                            ),
+                                            isHoliday:
+                                                isKo &&
+                                                holidayMap.containsKey(key),
+                                          );
+                                        },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
@@ -309,9 +311,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.92)
                                           : Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withValues(alpha: 0.88),
+                                                .colorScheme
+                                                .primary
+                                                .withValues(alpha: 0.88),
                                       shape: BoxShape.circle,
                                     ),
                                     defaultTextStyle: TextStyle(
@@ -398,11 +400,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 Localizations.localeOf(context).languageCode ==
                                         'ko'
                                     ? (isCalendarExpanded
-                                        ? '캘린더 접기'
-                                        : '캘린더 펼치기')
+                                          ? '캘린더 접기'
+                                          : '캘린더 펼치기')
                                     : (isCalendarExpanded
-                                        ? 'Collapse calendar'
-                                        : 'Expand calendar'),
+                                          ? 'Collapse calendar'
+                                          : 'Expand calendar'),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -709,9 +711,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         );
                         Navigator.of(context).pop(
                           _TrainingPlan(
-                            id: editingPlan?.id ??
-                                DateTime.now()
-                                    .microsecondsSinceEpoch
+                            id:
+                                editingPlan?.id ??
+                                DateTime.now().microsecondsSinceEpoch
                                     .toString(),
                             scheduledAt: scheduledAt,
                             category: category,
@@ -759,7 +761,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final initialDay = editingEntry?.date ?? day;
     var matchDay = DateTime(initialDay.year, initialDay.month, initialDay.day);
     var opponent = editingEntry?.opponentTeam ?? editingEntry?.club ?? '';
-    var location = editingEntry?.location ?? '';
+    var location = editingEntry?.effectiveMatchLocation ?? '';
     final opponentOptions = _matchOpponentOptions(entries);
     final locationOptions = _matchLocationOptions(entries);
     final ourScoreController = TextEditingController(
@@ -866,6 +868,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             minutesPlayed: _parseSheetInt(
                               minutesPlayedController.text,
                             ),
+                            matchLocation: location.trim(),
                           ),
                         );
                       },
@@ -983,6 +986,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     minutesPlayedController.dispose();
     memoController.dispose();
     if (saved == null) return;
+    final trimmedMatchLocation = saved.effectiveMatchLocation.trim();
+    if (trimmedMatchLocation.isNotEmpty) {
+      await _storeMatchLocation(trimmedMatchLocation);
+    }
     if (editingEntry?.key is int) {
       await widget.trainingService.update(editingEntry!.key as int, saved);
       return;
@@ -992,7 +999,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   List<String> _matchOpponentOptions(List<TrainingEntry> entries) {
     return _dedupeAutocompleteValues(
-      entries.where((entry) => entry.isMatch).map(
+      entries
+          .where((entry) => entry.isMatch)
+          .map(
             (entry) => entry.opponentTeam.trim().isNotEmpty
                 ? entry.opponentTeam
                 : entry.club,
@@ -1001,11 +1010,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   List<String> _matchLocationOptions(List<TrainingEntry> entries) {
-    final storedLocations = widget.optionRepository.getOptions('locations', []);
+    final storedLocations = widget.optionRepository.getOptions(
+      'match_locations',
+      [],
+    );
     return _dedupeAutocompleteValues([
       ...storedLocations,
-      ...entries.map((entry) => entry.location),
+      ...entries
+          .where((entry) => entry.isMatch)
+          .map((entry) => entry.effectiveMatchLocation),
     ]);
+  }
+
+  Future<void> _storeMatchLocation(String location) async {
+    final existing = widget.optionRepository.getOptions('match_locations', []);
+    final updated = _dedupeAutocompleteValues([...existing, location]);
+    await widget.optionRepository.saveOptions('match_locations', updated);
   }
 
   List<String> _dedupeAutocompleteValues(Iterable<String> values) {
@@ -1236,10 +1256,10 @@ class _CalendarStatusDayCell extends StatelessWidget {
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-            ? Colors.red.shade400.withAlpha(170)
-            : (isToday
-                ? colorScheme.primary.withAlpha(150)
-                : Colors.transparent));
+              ? Colors.red.shade400.withAlpha(170)
+              : (isToday
+                    ? colorScheme.primary.withAlpha(150)
+                    : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -1329,10 +1349,12 @@ class _DayTimeline extends StatelessWidget {
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     final sortedEntries = [...dayEntries]
       ..sort(TrainingEntry.compareByRecentCreated);
-    final sortedMatchEntries =
-        sortedEntries.where((entry) => entry.isMatch).toList(growable: false);
-    final sortedTrainingEntries =
-        sortedEntries.where((entry) => !entry.isMatch).toList(growable: false);
+    final sortedMatchEntries = sortedEntries
+        .where((entry) => entry.isMatch)
+        .toList(growable: false);
+    final sortedTrainingEntries = sortedEntries
+        .where((entry) => !entry.isMatch)
+        .toList(growable: false);
     if (sortedPlans.isEmpty &&
         sortedMatchEntries.isEmpty &&
         sortedTrainingEntries.isEmpty) {
@@ -1644,6 +1666,10 @@ class _EntryTile extends StatelessWidget {
     if (entry.opponentTeam.trim().isNotEmpty) {
       parts.add('vs ${entry.opponentTeam.trim()}');
     }
+    final matchLocation = entry.effectiveMatchLocation.trim();
+    if (matchLocation.isNotEmpty) {
+      parts.add(matchLocation);
+    }
     if (entry.scoredGoals != null || entry.concededGoals != null) {
       parts.add(
         isKo
@@ -1828,25 +1854,25 @@ class _MatchAutocompleteField extends StatelessWidget {
       onSelected: onChanged,
       fieldViewBuilder:
           (context, textEditingController, focusNode, onFieldSubmitted) {
-        if (textEditingController.text != initialValue &&
-            textEditingController.text.isEmpty) {
-          textEditingController.value = TextEditingValue(
-            text: initialValue,
-            selection: TextSelection.collapsed(offset: initialValue.length),
-          );
-        }
-        return TextField(
-          controller: textEditingController,
-          focusNode: focusNode,
-          textInputAction: textInputAction,
-          onChanged: onChanged,
-          onSubmitted: (_) => onFieldSubmitted(),
-          decoration: InputDecoration(
-            labelText: labelText,
-            hintText: hintText,
-          ),
-        );
-      },
+            if (textEditingController.text != initialValue &&
+                textEditingController.text.isEmpty) {
+              textEditingController.value = TextEditingValue(
+                text: initialValue,
+                selection: TextSelection.collapsed(offset: initialValue.length),
+              );
+            }
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              textInputAction: textInputAction,
+              onChanged: onChanged,
+              onSubmitted: (_) => onFieldSubmitted(),
+              decoration: InputDecoration(
+                labelText: labelText,
+                hintText: hintText,
+              ),
+            );
+          },
       optionsViewBuilder: (context, onSelected, displayedOptions) {
         final items = displayedOptions.toList(growable: false);
         if (items.isEmpty) return const SizedBox.shrink();
@@ -1929,7 +1955,8 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',

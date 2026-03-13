@@ -144,6 +144,7 @@ void main() {
         playerGoals: 1,
         playerAssists: 2,
         minutesPlayed: 70,
+        matchLocation: '메인 구장',
       ),
     );
 
@@ -151,6 +152,7 @@ void main() {
 
     expect(find.text('승'), findsOneWidget);
     expect(find.textContaining('vs 라이벌 FC'), findsOneWidget);
+    expect(find.textContaining('메인 구장'), findsOneWidget);
     expect(find.textContaining('결과 3:2'), findsOneWidget);
     expect(find.textContaining('골 1'), findsOneWidget);
     expect(find.textContaining('어시스트 2'), findsOneWidget);
