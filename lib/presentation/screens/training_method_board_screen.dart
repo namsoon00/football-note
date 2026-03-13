@@ -1107,10 +1107,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final ball = _playingBall;
     final ballStart = _playingBallStart;
     _playController.stop();
-    if (restoreStart &&
-        ((player != null && start != null) ||
-            (ball != null && ballStart != null))) {
-      setState(() {
+    _playController.reset();
+    setState(() {
+      if (restoreStart) {
         if (player != null && start != null) {
           player.x = start.dx;
           player.y = start.dy;
@@ -1119,17 +1118,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ball.x = ballStart.dx;
           ball.y = ballStart.dy;
         }
-        _playingPlayerId = null;
-        _playingPlayerStart = null;
-        _playingBallId = null;
-        _playingBallStart = null;
-      });
-      return;
-    }
-    _playingPlayerId = null;
-    _playingPlayerStart = null;
-    _playingBallId = null;
-    _playingBallStart = null;
+      }
+      _playingPlayerId = null;
+      _playingPlayerStart = null;
+      _playingBallId = null;
+      _playingBallStart = null;
+    });
   }
 
   Future<void> _toggleMemoListening(bool isKo) async {

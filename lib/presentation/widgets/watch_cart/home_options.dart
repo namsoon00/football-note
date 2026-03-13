@@ -137,7 +137,7 @@ class _LabeledCountButton extends StatelessWidget {
                   child: Row(
                     children: [
                       if (icon != null) ...[
-                        Icon(icon, size: 18, color: theme.colorScheme.primary),
+                        Icon(icon, size: 24, color: theme.colorScheme.primary),
                         const SizedBox(width: 8),
                       ],
                       Expanded(
@@ -145,7 +145,7 @@ class _LabeledCountButton extends StatelessWidget {
                           label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelLarge?.copyWith(
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
