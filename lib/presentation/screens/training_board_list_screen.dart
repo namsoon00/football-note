@@ -152,6 +152,28 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     await _reload();
   }
 
+  Future<void> _createBoard() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final title = await _promptTitle();
+    if (!mounted || title == null) return;
+    final created = await _boardService.createBoard(
+      title: title,
+      layoutJson: TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(name: title, items: const <TrainingMethodItem>[]),
+        ],
+      ).encode(),
+    );
+    if (!mounted) return;
+    await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
+    if (!mounted) return;
+    AppFeedback.showSuccess(
+      context,
+      text: isKo ? '훈련 스케치를 만들었어요.' : 'Training sketch created.',
+    );
+    await _reload();
+  }
+
   Future<void> _deleteBoard(TrainingBoard board) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final shouldDelete = await showDialog<bool>(
@@ -232,6 +254,12 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       appBar: AppBar(
         title: Text(isKo ? '훈련 스케치 리스트' : 'Training sketch list'),
         actions: [
+          if (!widget.selectionMode)
+            IconButton(
+              tooltip: isKo ? '훈련 스케치 추가' : 'Add training sketch',
+              onPressed: _createBoard,
+              icon: const Icon(Icons.add),
+            ),
           if (widget.selectionMode)
             TextButton(
               onPressed: _submitSelection,
