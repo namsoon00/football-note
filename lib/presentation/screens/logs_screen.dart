@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
@@ -22,6 +23,7 @@ import '../../domain/entities/training_board.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
@@ -58,6 +60,7 @@ class _LogsScreenState extends State<LogsScreen> {
   static const String _locationFilterKey = 'logs_filter_location';
   static const String _programFilterKey = 'logs_filter_program';
   static const String _injuryOnlyFilterKey = 'logs_filter_injury_only';
+  static const String _quickGuideSeenKey = 'logs_quick_guide_seen_v1';
   final TextEditingController _searchController = TextEditingController();
   bool _showSearch = false;
   String _searchQuery = '';
@@ -67,6 +70,7 @@ class _LogsScreenState extends State<LogsScreen> {
   bool _injuryOnly = false;
   _LogsLayout _layout = _LogsLayout.card;
   bool _optionsLoaded = false;
+  bool _quickGuideOpened = false;
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
   static const int _pageSize = 20;
@@ -127,15 +131,19 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_maybeShowQuickGuide());
+    });
   }
 
   @override
@@ -155,9 +163,10 @@ class _LogsScreenState extends State<LogsScreen> {
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
               final sourceEntries = snapshot.data ?? const <TrainingEntry>[];
-              final allEntries =
-                  sourceEntries.where((entry) => !entry.isMatch).toList()
-                    ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries = sourceEntries
+                  .where((entry) => !entry.isMatch)
+                  .toList()
+                ..sort(TrainingEntry.compareByRecentCreated);
               final entries = _applyFilters(allEntries);
               final visibleEntries = entries
                   .take(_visibleCount.clamp(0, entries.length))
@@ -189,9 +198,9 @@ class _LogsScreenState extends State<LogsScreen> {
                           onMenuTap: () => Scaffold.of(context).openDrawer(),
                           profilePhotoSource:
                               widget.optionRepository.getValue<String>(
-                                'profile_photo_url',
-                              ) ??
-                              '',
+                                    'profile_photo_url',
+                                  ) ??
+                                  '',
                           onProfileTap: () => _openProfile(context),
                           onSettingsTap: () => _openSettings(context),
                         ),
@@ -207,12 +216,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 스케치 리스트'
-                            : 'Training sketch list',
+                                ? '훈련 스케치 리스트'
+                                : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 스케치'
-                            : 'Sketches',
+                                ? '훈련 스케치'
+                                : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -225,12 +234,49 @@ class _LogsScreenState extends State<LogsScreen> {
                       if (allEntries.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: Text(l10n.noEntries)),
+                          child: _buildEmptyState(
+                            title: l10n.noEntries,
+                            subtitle: Localizations.localeOf(context)
+                                        .languageCode ==
+                                    'ko'
+                                ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
+                                : 'Create your first training note to start the flow.',
+                            actionLabel:
+                                Localizations.localeOf(context).languageCode ==
+                                        'ko'
+                                    ? '기록 추가'
+                                    : 'Add entry',
+                            onPressed: widget.onCreate,
+                          ),
                         )
                       else if (visibleEntries.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: Text(l10n.noResults)),
+                          child: _buildEmptyState(
+                            title: l10n.noResults,
+                            subtitle:
+                                Localizations.localeOf(context).languageCode ==
+                                        'ko'
+                                    ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
+                                    : 'Reset filters to see more entries.',
+                            actionLabel: l10n.filterReset,
+                            onPressed: () async {
+                              const reset = _LogFilters(
+                                status: _allFilterValue,
+                                location: _allFilterValue,
+                                program: _allFilterValue,
+                                injuryOnly: false,
+                              );
+                              setState(() {
+                                _statusFilter = reset.status;
+                                _locationFilter = reset.location;
+                                _programFilter = reset.program;
+                                _injuryOnly = reset.injuryOnly;
+                                _resetPagination();
+                              });
+                              await _persistFilters(reset);
+                            },
+                          ),
                         )
                       else if (_layout == _LogsLayout.card)
                         MasonryGridView.count(
@@ -665,9 +711,8 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -733,6 +778,20 @@ class _LogsScreenState extends State<LogsScreen> {
 
     if (result == true) {
       await widget.trainingService.delete(entry);
+      if (!context.mounted) return true;
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      AppFeedback.showUndo(
+        context,
+        text: isKo ? '기록을 삭제했어요.' : 'Entry deleted.',
+        undoLabel: isKo ? '되돌리기' : 'Undo',
+        onUndo: () {
+          unawaited(widget.trainingService.add(entry));
+          AppFeedback.showSuccess(
+            context,
+            text: isKo ? '삭제를 되돌렸어요.' : 'Delete undone.',
+          );
+        },
+      );
       return true;
     }
     return false;
@@ -801,6 +860,92 @@ class _LogsScreenState extends State<LogsScreen> {
       _visibleCount = (_visibleCount + _pageSize).clamp(0, totalCount);
     });
   }
+
+  Future<void> _maybeShowQuickGuide() async {
+    if (_quickGuideOpened) return;
+    _quickGuideOpened = true;
+    final seen = widget.optionRepository.getValue<bool>(_quickGuideSeenKey);
+    if (seen == true) return;
+    await _showQuickGuideDialog();
+    await widget.optionRepository.setValue(_quickGuideSeenKey, true);
+  }
+
+  Future<void> _showQuickGuideDialog() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final steps = isKo
+        ? const <String>[
+            '1) 기록 추가에서 훈련노트를 작성해요.',
+            '2) 노트에서 훈련보드를 열고 연결해요.',
+            '3) 훈련기록에서 전체 흐름을 확인해요.',
+          ]
+        : const <String>[
+            '1) Create a training note from Add entry.',
+            '2) Open and link a training board from the note.',
+            '3) Review the whole flow in Training logs.',
+          ];
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '빠른 시작 가이드' : 'Quick start guide'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: steps
+              .map(
+                (step) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(step),
+                ),
+              )
+              .toList(growable: false),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(isKo ? '닫기' : 'Close'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.onCreate();
+            },
+            child: Text(isKo ? '기록 추가' : 'Add entry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({
+    required String title,
+    required String subtitle,
+    required String actionLabel,
+    required VoidCallback onPressed,
+  }) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: onPressed,
+              icon: const Icon(Icons.arrow_forward),
+              label: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _LogFilters {
@@ -838,9 +983,8 @@ class _EntryCard extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final titleLocation = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final titleLocation =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final secondaryText = _entrySecondaryText(entry, isKo: isKo);
     final titleText = [
       titleProgram,
@@ -855,11 +999,9 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout = linkedBoards.isEmpty
-        ? TrainingMethodLayout.decode(entry.drills)
-        : null;
-    final hasTrainingBoard =
-        linkedBoards.isNotEmpty ||
+    final legacyLayout =
+        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
+    final hasTrainingBoard = linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -932,9 +1074,8 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final locationText = entry.location.trim().isEmpty
-        ? '-'
-        : entry.location.trim();
+    final locationText =
+        entry.location.trim().isEmpty ? '-' : entry.location.trim();
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
