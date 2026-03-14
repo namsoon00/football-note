@@ -19,6 +19,9 @@ import '../widgets/status_style.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_page_route.dart';
+import '../widgets/app_pressable_scale.dart';
+import '../theme/app_motion.dart';
 import 'training_method_board_screen.dart';
 
 class EntryFormScreen extends StatefulWidget {
@@ -1024,52 +1027,57 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             _scheduleAutoSave();
                           },
                         ),
-                        if (_injury) ...[
-                          _buildSelectRow(
-                            label: l10n.injuryPart,
-                            value: _injuryPartController.text.isEmpty
-                                ? l10n.notSet
-                                : _injuryPartController.text,
-                            options: [l10n.notSet, ..._injuryPartOptions],
-                            onChanged: (value) {
-                              setState(() {
-                                _injuryPartController.text =
-                                    value == l10n.notSet ? '' : value;
-                              });
-                              _scheduleAutoSave();
-                            },
-                            onAdd: () => _addOption(
-                              key: 'injury_parts',
-                              title: l10n.injuryPart,
-                              options: _injuryPartOptions,
-                              onUpdated: (list) =>
-                                  setState(() => _injuryPartOptions = list),
-                              onSelected: (value) => setState(
-                                () => _injuryPartController.text = value,
+                        _buildAnimatedSection(
+                          visible: _injury,
+                          child: Column(
+                            children: [
+                              _buildSelectRow(
+                                label: l10n.injuryPart,
+                                value: _injuryPartController.text.isEmpty
+                                    ? l10n.notSet
+                                    : _injuryPartController.text,
+                                options: [l10n.notSet, ..._injuryPartOptions],
+                                onChanged: (value) {
+                                  setState(() {
+                                    _injuryPartController.text =
+                                        value == l10n.notSet ? '' : value;
+                                  });
+                                  _scheduleAutoSave();
+                                },
+                                onAdd: () => _addOption(
+                                  key: 'injury_parts',
+                                  title: l10n.injuryPart,
+                                  options: _injuryPartOptions,
+                                  onUpdated: (list) =>
+                                      setState(() => _injuryPartOptions = list),
+                                  onSelected: (value) => setState(
+                                    () => _injuryPartController.text = value,
+                                  ),
+                                ),
+                                enabled: _injury,
                               ),
-                            ),
-                            enabled: _injury,
+                              const SizedBox(height: 12),
+                              _buildEmphasizedField(
+                                controller: _painController,
+                                enabled: _injury,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: l10n.painLevel,
+                                  hintText: '4',
+                                ),
+                              ),
+                              SwitchListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(l10n.rehab),
+                                value: _rehab,
+                                onChanged: (value) {
+                                  setState(() => _rehab = value);
+                                  _scheduleAutoSave();
+                                },
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          _buildEmphasizedField(
-                            controller: _painController,
-                            enabled: _injury,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: l10n.painLevel,
-                              hintText: '4',
-                            ),
-                          ),
-                          SwitchListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(l10n.rehab),
-                            value: _rehab,
-                            onChanged: (value) {
-                              setState(() => _rehab = value);
-                              _scheduleAutoSave();
-                            },
-                          ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
@@ -1087,96 +1095,102 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             _scheduleAutoSave();
                           },
                         ),
-                        if (_liftingEnabled) ...[
-                          Text(
-                            l10n.liftingByPart,
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
+                        _buildAnimatedSection(
+                          visible: _liftingEnabled,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftChestController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartInfront,
-                                    hintText: '0',
-                                  ),
-                                ),
+                              Text(
+                                l10n.liftingByPart,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftBackController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartInside,
-                                    hintText: '0',
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _liftChestController,
+                                      enabled: _liftingEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.liftingPartInfront,
+                                        hintText: '0',
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _liftBackController,
+                                      enabled: _liftingEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.liftingPartInside,
+                                        hintText: '0',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _liftLegsController,
+                                      enabled: _liftingEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.liftingPartOutside,
+                                        hintText: '0',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _liftShouldersController,
+                                      enabled: _liftingEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.liftingPartMuple,
+                                        hintText: '0',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _liftArmsController,
+                                      enabled: _liftingEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.liftingPartHead,
+                                        hintText: '0',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _liftCoreController,
+                                      enabled: _liftingEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: l10n.liftingPartChest,
+                                        hintText: '0',
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftLegsController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartOutside,
-                                    hintText: '0',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftShouldersController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartMuple,
-                                    hintText: '0',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftArmsController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartHead,
-                                    hintText: '0',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _liftCoreController,
-                                  enabled: _liftingEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: l10n.liftingPartChest,
-                                    hintText: '0',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
@@ -1194,51 +1208,56 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             _scheduleAutoSave();
                           },
                         ),
-                        if (_jumpRopeEnabled) ...[
-                          Row(
+                        _buildAnimatedSection(
+                          visible: _jumpRopeEnabled,
+                          child: Column(
                             children: [
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _jumpRopeController,
-                                  enabled: _jumpRopeEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText:
-                                        isKo ? '줄넘기 횟수' : 'Jump rope count',
-                                    hintText: '0',
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _jumpRopeController,
+                                      enabled: _jumpRopeEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            isKo ? '줄넘기 횟수' : 'Jump rope count',
+                                        hintText: '0',
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildEmphasizedField(
+                                      controller: _jumpRopeMinutesController,
+                                      enabled: _jumpRopeEnabled,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: isKo
+                                            ? '줄넘기 시간(분)'
+                                            : 'Jump rope time (min)',
+                                        hintText: '0',
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildEmphasizedField(
-                                  controller: _jumpRopeMinutesController,
-                                  enabled: _jumpRopeEnabled,
-                                  keyboardType: TextInputType.number,
-                                  decoration: InputDecoration(
-                                    labelText: isKo
-                                        ? '줄넘기 시간(분)'
-                                        : 'Jump rope time (min)',
-                                    hintText: '0',
-                                  ),
+                              const SizedBox(height: 12),
+                              _buildEmphasizedField(
+                                controller: _jumpRopeNoteController,
+                                enabled: _jumpRopeEnabled,
+                                minLines: 3,
+                                maxLines: 5,
+                                decoration: InputDecoration(
+                                  labelText: isKo ? '메모' : 'Memo',
+                                  hintText: isKo
+                                      ? '줄넘기를 하면서 느낀 점을 적어보세요.'
+                                      : 'Write what you felt during jump rope.',
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          _buildEmphasizedField(
-                            controller: _jumpRopeNoteController,
-                            enabled: _jumpRopeEnabled,
-                            minLines: 3,
-                            maxLines: 5,
-                            decoration: InputDecoration(
-                              labelText: isKo ? '메모' : 'Memo',
-                              hintText: isKo
-                                  ? '줄넘기를 하면서 느낀 점을 적어보세요.'
-                                  : 'Write what you felt during jump rope.',
-                            ),
-                          ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
@@ -1279,6 +1298,29 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
+  Widget _buildAnimatedSection({
+    required bool visible,
+    required Widget child,
+  }) {
+    return AnimatedSize(
+      duration: AppMotion.base(context),
+      curve: AppMotion.curveEnter,
+      alignment: Alignment.topCenter,
+      child: AnimatedSwitcher(
+        duration: AppMotion.base(context),
+        switchInCurve: AppMotion.curveEnter,
+        switchOutCurve: AppMotion.curveExit,
+        child: visible
+            ? Padding(
+                key: const ValueKey('section-open'),
+                padding: const EdgeInsets.only(top: 4),
+                child: child,
+              )
+            : const SizedBox.shrink(key: ValueKey('section-closed')),
+      ),
+    );
+  }
+
   Widget _buildFeatureActionButton({
     required IconData icon,
     required String label,
@@ -1302,29 +1344,31 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             : theme.colorScheme.primary.withValues(alpha: 0.36))
         : theme.colorScheme.outline.withValues(alpha: 0.28);
 
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        visualDensity: VisualDensity.compact,
-        minimumSize: const Size(1, 40),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        backgroundColor: bg,
-        side: BorderSide(color: border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: fg),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: fg,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+    return AppPressableScale(
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          minimumSize: const Size(1, 40),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          backgroundColor: bg,
+          side: BorderSide(color: border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: fg),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: fg,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1626,7 +1670,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         widget.optionRepository.getValue<String>(_recentBoardIdKey) ?? '';
     final hasRecentBoard = allBoards.any((board) => board.id == recentBoardId);
     final selectedIds = await Navigator.of(context).push<List<String>>(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => TrainingMethodBoardScreen(
           boardTitle: '',
           initialLayoutJson: '',
@@ -1871,18 +1915,33 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
         .toList(growable: false);
+    final reduced = AppMotion.reduceMotion(context);
     await showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'fortune',
       barrierColor: Colors.black45,
-      transitionDuration: const Duration(milliseconds: 280),
+      transitionDuration: AppMotion.base(context),
       pageBuilder: (_, __, ___) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, _, __) {
         final eased = CurvedAnimation(
           parent: animation,
-          curve: Curves.easeOutCubic,
+          curve: AppMotion.curveEnter,
+          reverseCurve: AppMotion.curveExit,
         );
+        if (reduced) {
+          return FadeTransition(
+              opacity: animation,
+              child: _fortuneDialogBody(
+                isKo: isKo,
+                titleColor: titleColor,
+                accentBg: accentBg,
+                accentFg: accentFg,
+                contentBg: contentBg,
+                gradientColors: gradientColors,
+                lines: lines,
+              ));
+        }
         return FadeTransition(
           opacity: animation,
           child: SlideTransition(
@@ -1890,98 +1949,112 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               begin: const Offset(0, 0.08),
               end: Offset.zero,
             ).animate(eased),
-            child: Dialog(
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 22,
-                vertical: 20,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: gradientColors,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: accentBg,
-                            ),
-                            child: Icon(Icons.auto_awesome, color: accentFg),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            isKo ? '오늘의 운세' : 'Today fortune',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: titleColor,
-                                ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                        decoration: BoxDecoration(
-                          color: contentBg,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            for (final line in lines)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: Text(line),
-                              ),
-                            Text(
-                              isKo
-                                  ? '오늘도 멋진 플레이를 응원할게요.'
-                                  : 'Cheering for your best play today.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(isKo ? '좋아요' : 'Nice'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            child: _fortuneDialogBody(
+              isKo: isKo,
+              titleColor: titleColor,
+              accentBg: accentBg,
+              accentFg: accentFg,
+              contentBg: contentBg,
+              gradientColors: gradientColors,
+              lines: lines,
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _fortuneDialogBody({
+    required bool isKo,
+    required Color titleColor,
+    required Color accentBg,
+    required Color accentFg,
+    required Color contentBg,
+    required List<Color> gradientColors,
+    required List<String> lines,
+  }) {
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: accentBg,
+                    ),
+                    child: Icon(Icons.auto_awesome, color: accentFg),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    isKo ? '오늘의 운세' : 'Today fortune',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: titleColor,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                decoration: BoxDecoration(
+                  color: contentBg,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final line in lines)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(line),
+                      ),
+                    Text(
+                      isKo
+                          ? '오늘도 멋진 플레이를 응원할게요.'
+                          : 'Cheering for your best play today.',
+                      style: Theme.of(
+                        context,
+                      )
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(isKo ? '좋아요' : 'Nice'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

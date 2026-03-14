@@ -25,6 +25,8 @@ import '../models/training_board_link_codec.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/app_page_route.dart';
+import '../theme/app_motion.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
 import 'training_board_list_screen.dart';
@@ -231,139 +233,180 @@ class _LogsScreenState extends State<LogsScreen> {
                         _buildSearchBar(l10n),
                       ],
                       const SizedBox(height: 12),
-                      if (allEntries.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: _buildEmptyState(
-                            title: l10n.noEntries,
-                            subtitle: Localizations.localeOf(context)
-                                        .languageCode ==
-                                    'ko'
-                                ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
-                                : 'Create your first training note to start the flow.',
-                            actionLabel:
-                                Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '기록 추가'
-                                    : 'Add entry',
-                            onPressed: widget.onCreate,
-                          ),
-                        )
-                      else if (visibleEntries.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: _buildEmptyState(
-                            title: l10n.noResults,
-                            subtitle:
-                                Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
-                                    : 'Reset filters to see more entries.',
-                            actionLabel: l10n.filterReset,
-                            onPressed: () async {
-                              const reset = _LogFilters(
-                                status: _allFilterValue,
-                                location: _allFilterValue,
-                                program: _allFilterValue,
-                                injuryOnly: false,
-                              );
-                              setState(() {
-                                _statusFilter = reset.status;
-                                _locationFilter = reset.location;
-                                _programFilter = reset.program;
-                                _injuryOnly = reset.injuryOnly;
-                                _resetPagination();
-                              });
-                              await _persistFilters(reset);
-                            },
-                          ),
-                        )
-                      else if (_layout == _LogsLayout.card)
-                        MasonryGridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          itemCount: visibleEntries.length,
-                          itemBuilder: (context, index) {
-                            final entry = visibleEntries[index];
-                            return ZoomIn(
-                              child: Dismissible(
-                                key: ValueKey(
-                                  'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                      AnimatedSwitcher(
+                        duration: AppMotion.base(context),
+                        switchInCurve: AppMotion.curveEnter,
+                        switchOutCurve: AppMotion.curveExit,
+                        child: allEntries.isEmpty
+                            ? Padding(
+                                key: const ValueKey('logs-empty-all'),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
+                                child: _buildEmptyState(
+                                  title: l10n.noEntries,
+                                  subtitle: Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
+                                      : 'Create your first training note to start the flow.',
+                                  actionLabel: Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '기록 추가'
+                                      : 'Add entry',
+                                  onPressed: widget.onCreate,
                                 ),
-                                direction: DismissDirection.endToStart,
-                                confirmDismiss: (_) =>
-                                    _confirmDelete(context, entry),
-                                background: Container(
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.errorContainer,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Icon(
-                                    Icons.delete_outline,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onErrorContainer,
-                                  ),
-                                ),
-                                child: _EntryCard(
-                                  entry: entry,
-                                  boardsById: boardsById,
-                                  onEdit: () => _onEntryTap(entry),
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      else
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: visibleEntries.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final entry = visibleEntries[index];
-                            return Dismissible(
-                              key: ValueKey(
-                                'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
-                              ),
-                              direction: DismissDirection.endToStart,
-                              confirmDismiss: (_) =>
-                                  _confirmDelete(context, entry),
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.errorContainer,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Icon(
-                                  Icons.delete_outline,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onErrorContainer,
-                                ),
-                              ),
-                              child: _EntryListItem(
-                                entry: entry,
-                                onEdit: () => _onEntryTap(entry),
-                              ),
-                            );
-                          },
-                        ),
+                              )
+                            : visibleEntries.isEmpty
+                                ? Padding(
+                                    key: const ValueKey('logs-empty-filtered'),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 24),
+                                    child: _buildEmptyState(
+                                      title: l10n.noResults,
+                                      subtitle: Localizations.localeOf(
+                                                context,
+                                              ).languageCode ==
+                                              'ko'
+                                          ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
+                                          : 'Reset filters to see more entries.',
+                                      actionLabel: l10n.filterReset,
+                                      onPressed: () async {
+                                        const reset = _LogFilters(
+                                          status: _allFilterValue,
+                                          location: _allFilterValue,
+                                          program: _allFilterValue,
+                                          injuryOnly: false,
+                                        );
+                                        setState(() {
+                                          _statusFilter = reset.status;
+                                          _locationFilter = reset.location;
+                                          _programFilter = reset.program;
+                                          _injuryOnly = reset.injuryOnly;
+                                          _resetPagination();
+                                        });
+                                        await _persistFilters(reset);
+                                      },
+                                    ),
+                                  )
+                                : _layout == _LogsLayout.card
+                                    ? MasonryGridView.count(
+                                        key: const ValueKey('logs-card-view'),
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        crossAxisCount: 2,
+                                        mainAxisSpacing: 8,
+                                        crossAxisSpacing: 8,
+                                        itemCount: visibleEntries.length,
+                                        itemBuilder: (context, index) {
+                                          final entry = visibleEntries[index];
+                                          final row = Dismissible(
+                                            key: ValueKey(
+                                              'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                            ),
+                                            direction:
+                                                DismissDirection.endToStart,
+                                            confirmDismiss: (_) =>
+                                                _confirmDelete(context, entry),
+                                            background: Container(
+                                              alignment: Alignment.centerRight,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.errorContainer,
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Icon(
+                                                Icons.delete_outline,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onErrorContainer,
+                                              ),
+                                            ),
+                                            child: _EntryCard(
+                                              entry: entry,
+                                              boardsById: boardsById,
+                                              onEdit: () => _onEntryTap(entry),
+                                            ),
+                                          );
+                                          if (AppMotion.reduceMotion(context)) {
+                                            return row;
+                                          }
+                                          return FadeInUp(
+                                            delay: Duration(
+                                              milliseconds:
+                                                  (index * 24).clamp(0, 240),
+                                            ),
+                                            duration: AppMotion.base(context),
+                                            child: row,
+                                          );
+                                        },
+                                      )
+                                    : ListView.separated(
+                                        key: const ValueKey('logs-list-view'),
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: visibleEntries.length,
+                                        separatorBuilder: (_, __) =>
+                                            const SizedBox(height: 8),
+                                        itemBuilder: (context, index) {
+                                          final entry = visibleEntries[index];
+                                          final row = Dismissible(
+                                            key: ValueKey(
+                                              'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                            ),
+                                            direction:
+                                                DismissDirection.endToStart,
+                                            confirmDismiss: (_) =>
+                                                _confirmDelete(context, entry),
+                                            background: Container(
+                                              alignment: Alignment.centerRight,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.errorContainer,
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Icon(
+                                                Icons.delete_outline,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onErrorContainer,
+                                              ),
+                                            ),
+                                            child: _EntryListItem(
+                                              entry: entry,
+                                              onEdit: () => _onEntryTap(entry),
+                                            ),
+                                          );
+                                          if (AppMotion.reduceMotion(context)) {
+                                            return row;
+                                          }
+                                          return FadeInUp(
+                                            delay: Duration(
+                                              milliseconds:
+                                                  (index * 20).clamp(0, 220),
+                                            ),
+                                            duration: AppMotion.base(context),
+                                            child: row,
+                                          );
+                                        },
+                                      ),
+                      ),
                       if (visibleEntries.length < entries.length)
                         Padding(
                           padding: const EdgeInsets.only(top: 12, bottom: 4),
@@ -816,7 +859,7 @@ class _LogsScreenState extends State<LogsScreen> {
 
   void _openSettings(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => SettingsScreen(
           localeService: widget.localeService,
           settingsService: widget.settingsService,
@@ -829,7 +872,7 @@ class _LogsScreenState extends State<LogsScreen> {
 
   Future<void> _openProfile(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
       ),
@@ -839,7 +882,7 @@ class _LogsScreenState extends State<LogsScreen> {
 
   Future<void> _openBoardList() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => TrainingBoardListScreen(
           optionRepository: widget.optionRepository,
           trainingService: widget.trainingService,
