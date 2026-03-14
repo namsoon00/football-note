@@ -9,6 +9,7 @@ import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
+import '../widgets/app_feedback.dart';
 import 'training_method_board_screen.dart';
 
 class TrainingBoardListScreen extends StatefulWidget {
@@ -31,6 +32,7 @@ class TrainingBoardListScreen extends StatefulWidget {
 }
 
 class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
+  static const String _recentBoardIdKey = 'recent_board_id';
   late final TrainingBoardService _boardService;
   List<TrainingBoard> _boards = const <TrainingBoard>[];
   Map<String, DateTime> _linkedTrainingDateByBoardId =
@@ -130,6 +132,21 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted || title == null || title == board.title) return;
     await _boardService.saveBoard(board.copyWith(title: title));
     if (!mounted) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    AppFeedback.showUndo(
+      context,
+      text: isKo ? '보드 이름을 변경했어요.' : 'Board renamed.',
+      undoLabel: isKo ? '되돌리기' : 'Undo',
+      onUndo: () {
+        unawaited(_boardService.saveBoard(board));
+        AppFeedback.showSuccess(
+          context,
+          text: isKo ? '이름 변경을 되돌렸어요.' : 'Rename undone.',
+        );
+        unawaited(_reload());
+      },
+    );
+    if (!mounted) return;
     await _reload();
   }
 
@@ -158,6 +175,24 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (shouldDelete != true) return;
     await _boardService.deleteBoard(board.id);
     _selectedIds.remove(board.id);
+    if (widget.optionRepository.getValue<String>(_recentBoardIdKey) ==
+        board.id) {
+      await widget.optionRepository.setValue(_recentBoardIdKey, '');
+    }
+    if (!mounted) return;
+    AppFeedback.showUndo(
+      context,
+      text: isKo ? '보드를 삭제했어요.' : 'Board deleted.',
+      undoLabel: isKo ? '되돌리기' : 'Undo',
+      onUndo: () {
+        unawaited(_boardService.saveBoard(board));
+        AppFeedback.showSuccess(
+          context,
+          text: isKo ? '삭제를 되돌렸어요.' : 'Delete undone.',
+        );
+        unawaited(_reload());
+      },
+    );
     if (!mounted) return;
     await _reload();
   }
@@ -181,6 +216,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
         .where((board) => _selectedIds.contains(board.id))
         .map((board) => board.id)
         .toList(growable: false);
+    if (selected.isNotEmpty) {
+      unawaited(
+          widget.optionRepository.setValue(_recentBoardIdKey, selected.first));
+    }
     Navigator.of(context).pop(selected);
   }
 
@@ -200,10 +239,34 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
       body: _boards.isEmpty
           ? Center(
-              child: Text(
-                isKo
-                    ? '훈련 노트 화면에서 먼저 훈련 스케치를 생성해주세요.'
-                    : 'Create a training sketch from a training note first.',
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 340),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isKo ? '훈련보드가 아직 없습니다.' : 'No boards yet.',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isKo
+                            ? '훈련노트에서 보드 버튼을 눌러 바로 생성해보세요.'
+                            : 'Create one directly from a training note.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 12),
+                      FilledButton.icon(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.arrow_back),
+                        label: Text(isKo ? '훈련노트로 돌아가기' : 'Back to notes'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             )
           : ListView.separated(
@@ -286,8 +349,20 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                           _selectedIds.add(board.id);
                         }
                       });
+                      unawaited(
+                        widget.optionRepository.setValue(
+                          _recentBoardIdKey,
+                          board.id,
+                        ),
+                      );
                       return;
                     }
+                    unawaited(
+                      widget.optionRepository.setValue(
+                        _recentBoardIdKey,
+                        board.id,
+                      ),
+                    );
                     unawaited(_editBoard(board));
                   },
                   onLongPress: () => unawaited(_editBoard(board)),
