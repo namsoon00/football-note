@@ -124,7 +124,7 @@ class AppDrawer extends StatelessWidget {
               leading: const Icon(Icons.developer_board_outlined),
               title: Text(
                 Localizations.localeOf(context).languageCode == 'ko'
-                    ? '훈련 스케치 추가'
+                    ? '훈련 스케치'
                     : 'Add training sketch',
               ),
               onTap: () {

@@ -111,6 +111,9 @@ class _LabeledCountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final highlightColor = icon != null
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface;
     return Semantics(
       label: semanticLabel,
       button: onTap != null,
@@ -146,6 +149,7 @@ class _LabeledCountButton extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall?.copyWith(
+                            color: highlightColor,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -157,13 +161,14 @@ class _LabeledCountButton extends StatelessWidget {
                   width: 26.0,
                   height: 26.0,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
+                    color: highlightColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       count.toString(),
                       style: theme.textTheme.labelSmall?.copyWith(
+                        color: highlightColor,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
