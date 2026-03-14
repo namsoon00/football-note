@@ -7,6 +7,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../screens/entry_form_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/training_method_board_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -87,6 +88,44 @@ class AppDrawer extends StatelessWidget {
                       localeService: localeService,
                       settingsService: settingsService,
                       driveBackupService: driveBackupService,
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.event_note_outlined),
+              title: Text(
+                Localizations.localeOf(context).languageCode == 'ko'
+                    ? '훈련 계획'
+                    : 'Training plan',
+              ),
+              onTap: () => _navigateTo(context, 1),
+            ),
+            ListTile(
+              leading: const Icon(Icons.sports_soccer_outlined),
+              title: Text(
+                Localizations.localeOf(context).languageCode == 'ko'
+                    ? '시합'
+                    : 'Match',
+              ),
+              onTap: () => _navigateTo(context, 1),
+            ),
+            ListTile(
+              leading: const Icon(Icons.developer_board_outlined),
+              title: Text(
+                Localizations.localeOf(context).languageCode == 'ko'
+                    ? '훈련 스케치 추가'
+                    : 'Add training sketch',
+              ),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => TrainingMethodBoardScreen(
+                      boardTitle: '',
+                      initialLayoutJson: '',
+                      optionRepository: optionRepository,
                     ),
                   ),
                 );
