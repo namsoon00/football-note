@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
   final SettingsService settingsService;
   final BackupService? driveBackupService;
   final int initialIndex;
+  final CalendarQuickCreateAction? calendarQuickCreateAction;
 
   const HomeScreen({
     super.key,
@@ -29,6 +30,7 @@ class HomeScreen extends StatefulWidget {
     required this.settingsService,
     this.driveBackupService,
     this.initialIndex = 0,
+    this.calendarQuickCreateAction,
   });
 
   @override
@@ -66,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
+        quickCreateAction: widget.calendarQuickCreateAction,
         onSelectedDayChanged: (day) {
           _calendarSelectedDay = DateTime(day.year, day.month, day.day);
         },

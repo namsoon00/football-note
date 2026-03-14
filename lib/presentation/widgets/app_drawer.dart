@@ -7,6 +7,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../screens/entry_form_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/calendar_screen.dart';
 import '../screens/training_method_board_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
@@ -100,7 +101,11 @@ class AppDrawer extends StatelessWidget {
                     ? '훈련 계획'
                     : 'Training plan',
               ),
-              onTap: () => _navigateTo(context, 1),
+              onTap: () => _navigateTo(
+                context,
+                1,
+                calendarQuickCreateAction: CalendarQuickCreateAction.plan,
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.sports_soccer_outlined),
@@ -109,7 +114,11 @@ class AppDrawer extends StatelessWidget {
                     ? '시합'
                     : 'Match',
               ),
-              onTap: () => _navigateTo(context, 1),
+              onTap: () => _navigateTo(
+                context,
+                1,
+                calendarQuickCreateAction: CalendarQuickCreateAction.match,
+              ),
             ),
             ListTile(
               leading: const Icon(Icons.developer_board_outlined),
@@ -154,9 +163,13 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  void _navigateTo(BuildContext context, int index) {
+  void _navigateTo(
+    BuildContext context,
+    int index, {
+    CalendarQuickCreateAction? calendarQuickCreateAction,
+  }) {
     Navigator.of(context).pop();
-    if (index == currentIndex) {
+    if (index == currentIndex && calendarQuickCreateAction == null) {
       return;
     }
     Navigator.of(context).pushReplacement(
@@ -168,6 +181,7 @@ class AppDrawer extends StatelessWidget {
           settingsService: settingsService,
           driveBackupService: driveBackupService,
           initialIndex: index,
+          calendarQuickCreateAction: calendarQuickCreateAction,
         ),
       ),
     );
