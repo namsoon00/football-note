@@ -174,6 +174,59 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     await _reload();
   }
 
+  Future<void> _copyFromPreviousBoard() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    if (_boards.isEmpty) {
+      AppFeedback.showSuccess(
+        context,
+        text: isKo ? '복사할 훈련 스케치가 없어요.' : 'No training sketch to copy.',
+      );
+      return;
+    }
+    final source = await showModalBottomSheet<TrainingBoard>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: _boards.length,
+          itemBuilder: (context, index) {
+            final board = _boards[index];
+            return ListTile(
+              leading: const Icon(Icons.copy_all_outlined),
+              title: Text(
+                board.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                DateFormat('yyyy.MM.dd HH:mm').format(board.updatedAt),
+              ),
+              onTap: () => Navigator.of(context).pop(board),
+            );
+          },
+        ),
+      ),
+    );
+    if (!mounted || source == null) return;
+    final defaultCopyTitle =
+        isKo ? '${source.title} 복사본' : '${source.title} Copy';
+    final copiedTitle = await _promptTitle(initialValue: defaultCopyTitle);
+    if (!mounted || copiedTitle == null) return;
+    final created = await _boardService.createBoard(
+      title: copiedTitle,
+      layoutJson: source.layoutJson,
+    );
+    if (!mounted) return;
+    await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
+    if (!mounted) return;
+    AppFeedback.showSuccess(
+      context,
+      text: isKo ? '이전 스케치를 복사했어요.' : 'Previous sketch copied.',
+    );
+    await _reload();
+  }
+
   Future<void> _deleteBoard(TrainingBoard board) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final shouldDelete = await showDialog<bool>(
@@ -250,15 +303,45 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final listTitle = isKo ? '훈련 스케치 리스트' : 'Training sketch list';
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '훈련 스케치 리스트' : 'Training sketch list'),
+        title: widget.selectionMode ? Text(listTitle) : null,
         actions: [
           if (!widget.selectionMode)
-            IconButton(
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Center(
+                child: Text(
+                  listTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ),
+          if (!widget.selectionMode)
+            PopupMenuButton<String>(
               tooltip: isKo ? '훈련 스케치 추가' : 'Add training sketch',
-              onPressed: _createBoard,
               icon: const Icon(Icons.add),
+              onSelected: (value) {
+                switch (value) {
+                  case 'new':
+                    unawaited(_createBoard());
+                    break;
+                  case 'copy':
+                    unawaited(_copyFromPreviousBoard());
+                    break;
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem<String>(
+                  value: 'new',
+                  child: Text(isKo ? '새 스케치 만들기' : 'Create new sketch'),
+                ),
+                PopupMenuItem<String>(
+                  value: 'copy',
+                  child: Text(isKo ? '이전 스케치 복사' : 'Copy previous sketch'),
+                ),
+              ],
             ),
           if (widget.selectionMode)
             TextButton(
