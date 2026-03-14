@@ -65,6 +65,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   String _memoRecognizedWords = '';
   bool _memoCommitted = false;
   int _memoSession = 0;
+  double _playSpeed = 1.0;
 
   bool get _isManagedMode => widget.optionRepository != null;
   _BoardPageState get _currentPage => _pages.first;
@@ -1028,11 +1029,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
     _playController.duration = Duration(
       milliseconds: (math.max(
-                _currentPage.playerPath.length,
-                _currentPage.ballPath.length,
-              ) *
-              40)
-          .clamp(1200, 7000),
+                    _currentPage.playerPath.length,
+                    _currentPage.ballPath.length,
+                  ) *
+                  40)
+              .clamp(1200, 7000) ~/
+          _playSpeed.clamp(0.5, 2.0),
     );
     _playController
       ..stop()
@@ -1500,6 +1502,18 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ),
           tooltip: isKo ? '플레이' : 'Play',
         ),
+        PopupMenuButton<double>(
+          tooltip: isKo ? '재생 속도' : 'Playback speed',
+          icon: const Icon(Icons.speed_outlined),
+          initialValue: _playSpeed,
+          onSelected: (value) => setState(() => _playSpeed = value),
+          itemBuilder: (_) => [
+            const PopupMenuItem<double>(value: 0.75, child: Text('0.75x')),
+            const PopupMenuItem<double>(value: 1.0, child: Text('1.0x')),
+            const PopupMenuItem<double>(value: 1.25, child: Text('1.25x')),
+            const PopupMenuItem<double>(value: 1.5, child: Text('1.5x')),
+          ],
+        ),
         IconButton(
           onPressed: () => _renameCurrentPage(isKo),
           icon: const Icon(Icons.edit_outlined),
@@ -1804,7 +1818,20 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       );
     }
     if (selected == null) {
-      return const SizedBox.shrink();
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        ),
+        child: Text(
+          isKo
+              ? '빠른 시작: 사람/공 추가 -> 이동선 그리기 -> 플레이(속도 조절) -> 저장'
+              : 'Quick start: Add player/ball -> draw paths -> play (speed) -> save',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      );
     }
     return Container(
       width: double.infinity,
