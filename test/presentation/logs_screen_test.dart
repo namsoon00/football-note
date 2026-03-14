@@ -149,4 +149,84 @@ void main() {
     expect(find.textContaining('라이벌 FC'), findsNothing);
     expect(find.text('아직 기록이 없습니다.'), findsOneWidget);
   });
+
+  testWidgets('Logs screen shows quick guide only when there are no entries', (
+    WidgetTester tester,
+  ) async {
+    await box.clear();
+    await optionBox.clear();
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: LogsScreen(
+            trainingService: service,
+            localeService: localeService,
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+            onEdit: (_) {},
+            onCreate: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('빠른 시작 가이드'), findsOneWidget);
+
+    await tester.tap(find.text('닫기'));
+    await tester.pumpAndSettle();
+
+    await box.clear();
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 3),
+        durationMinutes: 50,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '안내 숨김 확인',
+        location: '실내 구장',
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: LogsScreen(
+            trainingService: service,
+            localeService: localeService,
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+            onEdit: (_) {},
+            onCreate: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('빠른 시작 가이드'), findsNothing);
+  });
 }

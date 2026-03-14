@@ -8,7 +8,7 @@ class AppFeedback {
   }) {
     final messenger = ScaffoldMessenger.of(context);
     messenger
-      ..hideCurrentSnackBar()
+      ..removeCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -24,7 +24,7 @@ class AppFeedback {
     final scheme = Theme.of(context).colorScheme;
     final messenger = ScaffoldMessenger.of(context);
     messenger
-      ..hideCurrentSnackBar()
+      ..removeCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -47,7 +47,7 @@ class AppFeedback {
   }) {
     final messenger = ScaffoldMessenger.of(context);
     messenger
-      ..hideCurrentSnackBar()
+      ..removeCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
