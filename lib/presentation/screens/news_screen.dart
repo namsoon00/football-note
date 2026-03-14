@@ -48,6 +48,7 @@ class NewsScreen extends StatefulWidget {
 class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
+  static const String _scrappedLinksKey = 'news_scrapped_links';
   static const Duration _autoRefreshInterval = Duration(hours: 1);
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
@@ -56,6 +57,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   late final List<NewsChannel> _channels;
   final TextEditingController _searchController = TextEditingController();
   late Set<String> _selectedChannelIds;
+  late Set<String> _scrappedLinks;
   final List<NewsArticle> _articles = <NewsArticle>[];
   final Set<String> _seenLinks = <String>{};
   final Set<String> _seenTitles = <String>{};
@@ -75,6 +77,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   bool _hadError = false;
   bool _titleTranslateEnabled = false;
   bool _titleTranslateInitialized = false;
+  bool _showSearch = false;
+  bool _showScrappedOnly = false;
   bool _guideShownOnce = false;
   int _loadToken = 0;
   DateTime? _lastLoadedAt;
@@ -86,6 +90,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     _newsService = NewsService(RssNewsRepository(widget.optionRepository));
     _channels = _newsService.channels();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
+    _scrappedLinks = widget.optionRepository
+        .getOptions(_scrappedLinksKey, const [])
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet();
     _applyCacheIfValid();
     _loadProgressive();
   }
@@ -159,32 +168,49 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
                 child: TabScreenTitle(
                   title: l10n.tabNews,
-                  trailing: SizedBox(
-                    width: 190,
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.trim().isEmpty
-                            ? null
-                            : IconButton(
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {});
-                                },
-                                icon: const Icon(Icons.close),
-                              ),
-                        hintText: isKo ? '기사 검색' : 'Search news',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: isKo ? '기사 검색' : 'Search news',
+                        onPressed: _toggleSearch,
+                        icon: Icon(_showSearch ? Icons.close : Icons.search),
+                      ),
+                      TextButton.icon(
+                        onPressed: _openChannelPicker,
+                        icon: const Icon(Icons.rss_feed, size: 18),
+                        label: Text(isKo ? '채널 선택' : 'Channels'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_showSearch)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.trim().isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.close),
+                            ),
+                      hintText: isKo ? '기사 검색' : 'Search news',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                   ),
                 ),
-              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: WatchCartCard(
@@ -198,9 +224,27 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          _channelSummary(isKo),
+                          _statusSummary(isKo),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: _showScrappedOnly
+                            ? (isKo ? '전체 소식 보기' : 'Show all news')
+                            : (isKo ? '스크랩한 소식만 보기' : 'Show scrapped only'),
+                        onPressed: () {
+                          setState(() {
+                            _showScrappedOnly = !_showScrappedOnly;
+                          });
+                        },
+                        icon: Icon(
+                          _showScrappedOnly
+                              ? Icons.bookmark
+                              : Icons.bookmark_border,
+                          color: _showScrappedOnly
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
                         ),
                       ),
                       if (isKo)
@@ -217,10 +261,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                                       .withValues(alpha: 0.55),
                           ),
                         ),
-                      TextButton(
-                        onPressed: _openChannelPicker,
-                        child: Text(isKo ? '채널 선택' : 'Channels'),
-                      ),
                     ],
                   ),
                 ),
@@ -279,7 +319,13 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return ListView(
         children: [
           const SizedBox(height: 120),
-          Center(child: Text(isKo ? '검색 결과가 없습니다.' : 'No results found.')),
+          Center(
+            child: Text(
+              _showScrappedOnly
+                  ? (isKo ? '스크랩한 소식이 없습니다.' : 'No scrapped news yet.')
+                  : (isKo ? '검색 결과가 없습니다.' : 'No results found.'),
+            ),
+          ),
         ],
       );
     }
@@ -328,7 +374,20 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      IconButton(
+                        tooltip: _isScrapped(article)
+                            ? (isKo ? '스크랩 해제' : 'Remove scrap')
+                            : (isKo ? '스크랩' : 'Scrap'),
+                        onPressed: () => _toggleScrap(article),
+                        icon: Icon(
+                          _isScrapped(article)
+                              ? Icons.bookmark
+                              : Icons.bookmark_border,
+                          color: _isScrapped(article)
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                        ),
+                      ),
                       const Icon(Icons.chevron_right),
                     ],
                   ),
@@ -365,10 +424,29 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     return isKo ? '$first 외 $rest개' : '$first +$rest';
   }
 
+  String _statusSummary(bool isKo) {
+    final channelText = _channelSummary(isKo);
+    final scrapCount = _scrappedLinks.length;
+    if (_showScrappedOnly) {
+      return isKo
+          ? '스크랩 $scrapCount개 보는 중 · $channelText'
+          : 'Showing $scrapCount scrapped items · $channelText';
+    }
+    if (scrapCount == 0) {
+      return channelText;
+    }
+    return isKo
+        ? '$channelText · 스크랩 $scrapCount개'
+        : '$channelText · $scrapCount scrapped';
+  }
+
   List<NewsArticle> _filteredArticles() {
     final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) return List<NewsArticle>.unmodifiable(_articles);
-    return _articles
+    final base = _showScrappedOnly
+        ? _articles.where(_isScrapped).toList(growable: false)
+        : List<NewsArticle>.unmodifiable(_articles);
+    if (query.isEmpty) return base;
+    return base
         .where((article) {
           final title = article.title.toLowerCase();
           final source = article.source.toLowerCase();
@@ -379,6 +457,47 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
               translated.contains(query);
         })
         .toList(growable: false);
+  }
+
+  bool _isScrapped(NewsArticle article) =>
+      _scrappedLinks.contains(article.link.trim());
+
+  Future<void> _toggleScrap(NewsArticle article) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final link = article.link.trim();
+    if (link.isEmpty) return;
+    final next = Set<String>.from(_scrappedLinks);
+    final added = !next.remove(link);
+    if (added) {
+      next.add(link);
+    }
+    setState(() {
+      _scrappedLinks = next;
+    });
+    await widget.optionRepository.saveOptions(
+      _scrappedLinksKey,
+      _scrappedLinks.toList(growable: false),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          added
+              ? (isKo ? '소식을 스크랩했어요.' : 'News scrapped.')
+              : (isKo ? '스크랩을 해제했어요.' : 'Scrap removed.'),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _showSearch = !_showSearch;
+      if (!_showSearch) {
+        _searchController.clear();
+      }
+    });
   }
 
   Future<void> _openChannelPicker() async {
