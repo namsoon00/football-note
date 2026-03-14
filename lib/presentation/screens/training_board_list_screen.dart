@@ -10,6 +10,8 @@ import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_page_route.dart';
+import '../theme/app_motion.dart';
 import 'training_method_board_screen.dart';
 
 class TrainingBoardListScreen extends StatefulWidget {
@@ -107,7 +109,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
 
   Future<void> _editBoard(TrainingBoard board) async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => TrainingMethodBoardScreen(
           boardTitle: board.title,
           initialLayoutJson: board.layoutJson,
@@ -237,138 +239,145 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
             ),
         ],
       ),
-      body: _boards.isEmpty
-          ? Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 340),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        isKo ? '훈련보드가 아직 없습니다.' : 'No boards yet.',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        isKo
-                            ? '훈련노트에서 보드 버튼을 눌러 바로 생성해보세요.'
-                            : 'Create one directly from a training note.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 12),
-                      FilledButton.icon(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back),
-                        label: Text(isKo ? '훈련노트로 돌아가기' : 'Back to notes'),
-                      ),
-                    ],
+      body: AnimatedSwitcher(
+        duration: AppMotion.base(context),
+        switchInCurve: AppMotion.curveEnter,
+        switchOutCurve: AppMotion.curveExit,
+        child: _boards.isEmpty
+            ? Center(
+                key: const ValueKey('board-list-empty'),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 340),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isKo ? '훈련보드가 아직 없습니다.' : 'No boards yet.',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          isKo
+                              ? '훈련노트에서 보드 버튼을 눌러 바로 생성해보세요.'
+                              : 'Create one directly from a training note.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton.icon(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.arrow_back),
+                          label: Text(isKo ? '훈련노트로 돌아가기' : 'Back to notes'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            )
-          : ListView.separated(
-              itemCount: _boards.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final board = _boards[index];
-                final layout = TrainingMethodLayout.decode(board.layoutJson);
-                final itemCount = layout.pages.fold<int>(
-                  0,
-                  (sum, page) => sum + page.items.length,
-                );
-                final linkedTrainingDate =
-                    _linkedTrainingDateByBoardId[board.id];
-                final dateText = DateFormat(
-                  'yyyy.MM.dd',
-                ).format(linkedTrainingDate ?? board.updatedAt);
-                final selected = _selectedIds.contains(board.id);
-                return ListTile(
-                  leading: widget.selectionMode
-                      ? Checkbox(
-                          value: selected,
-                          onChanged: (checked) {
-                            setState(() {
-                              if (checked ?? false) {
-                                _selectedIds.add(board.id);
-                              } else {
-                                _selectedIds.remove(board.id);
-                              }
-                            });
-                          },
-                        )
-                      : null,
-                  title: Text(board.title),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        isKo
-                            ? '요소 $itemCount개 · 훈련일 $dateText'
-                            : '$itemCount items · Training date $dateText',
-                      ),
-                      const SizedBox(height: 8),
-                      _BoardPreview(layout: layout),
-                    ],
-                  ),
-                  isThreeLine: true,
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      switch (value) {
-                        case 'rename':
-                          unawaited(_renameBoard(board));
-                          break;
-                        case 'delete':
-                          unawaited(_deleteBoard(board));
-                          break;
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem<String>(
-                        value: 'rename',
-                        child: Text(isKo ? '이름 변경' : 'Rename'),
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text(
-                          isKo ? '삭제' : 'Delete',
-                          style: const TextStyle(color: Colors.red),
+              )
+            : ListView.separated(
+                key: const ValueKey('board-list-items'),
+                itemCount: _boards.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final board = _boards[index];
+                  final layout = TrainingMethodLayout.decode(board.layoutJson);
+                  final itemCount = layout.pages.fold<int>(
+                    0,
+                    (sum, page) => sum + page.items.length,
+                  );
+                  final linkedTrainingDate =
+                      _linkedTrainingDateByBoardId[board.id];
+                  final dateText = DateFormat(
+                    'yyyy.MM.dd',
+                  ).format(linkedTrainingDate ?? board.updatedAt);
+                  final selected = _selectedIds.contains(board.id);
+                  return ListTile(
+                    leading: widget.selectionMode
+                        ? Checkbox(
+                            value: selected,
+                            onChanged: (checked) {
+                              setState(() {
+                                if (checked ?? false) {
+                                  _selectedIds.add(board.id);
+                                } else {
+                                  _selectedIds.remove(board.id);
+                                }
+                              });
+                            },
+                          )
+                        : null,
+                    title: Text(board.title),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isKo
+                              ? '요소 $itemCount개 · 훈련일 $dateText'
+                              : '$itemCount items · Training date $dateText',
                         ),
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    if (widget.selectionMode) {
-                      setState(() {
-                        if (selected) {
-                          _selectedIds.remove(board.id);
-                        } else {
-                          _selectedIds.add(board.id);
+                        const SizedBox(height: 8),
+                        _BoardPreview(layout: layout),
+                      ],
+                    ),
+                    isThreeLine: true,
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'rename':
+                            unawaited(_renameBoard(board));
+                            break;
+                          case 'delete':
+                            unawaited(_deleteBoard(board));
+                            break;
                         }
-                      });
+                      },
+                      itemBuilder: (_) => [
+                        PopupMenuItem<String>(
+                          value: 'rename',
+                          child: Text(isKo ? '이름 변경' : 'Rename'),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Text(
+                            isKo ? '삭제' : 'Delete',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      if (widget.selectionMode) {
+                        setState(() {
+                          if (selected) {
+                            _selectedIds.remove(board.id);
+                          } else {
+                            _selectedIds.add(board.id);
+                          }
+                        });
+                        unawaited(
+                          widget.optionRepository.setValue(
+                            _recentBoardIdKey,
+                            board.id,
+                          ),
+                        );
+                        return;
+                      }
                       unawaited(
                         widget.optionRepository.setValue(
                           _recentBoardIdKey,
                           board.id,
                         ),
                       );
-                      return;
-                    }
-                    unawaited(
-                      widget.optionRepository.setValue(
-                        _recentBoardIdKey,
-                        board.id,
-                      ),
-                    );
-                    unawaited(_editBoard(board));
-                  },
-                  onLongPress: () => unawaited(_editBoard(board)),
-                );
-              },
-            ),
+                      unawaited(_editBoard(board));
+                    },
+                    onLongPress: () => unawaited(_editBoard(board)),
+                  );
+                },
+              ),
+      ),
     );
   }
 }

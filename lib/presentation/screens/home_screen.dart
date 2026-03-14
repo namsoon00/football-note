@@ -11,6 +11,7 @@ import 'stats_screen.dart';
 import 'news_screen.dart';
 import 'space_speed_game_screen.dart';
 import 'entry_form_screen.dart';
+import '../widgets/app_page_route.dart';
 
 class HomeScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -135,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openCreate({DateTime? initialDate}) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => EntryFormScreen(
           trainingService: widget.trainingService,
           optionRepository: widget.optionRepository,
@@ -150,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openEdit(entry) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => EntryFormScreen(
           trainingService: widget.trainingService,
           optionRepository: widget.optionRepository,
