@@ -13,7 +13,6 @@ import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
-import '../widgets/tab_screen_title.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'coach_lesson_screen.dart';
@@ -105,13 +104,24 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TabScreenTitle(
-                      title: isKo ? '오늘의 홈' : 'Today Home',
-                      trailing: _WeeklyBadge(
-                        label: isKo
-                            ? '이번 주 ${data.weeklyTrainingCount}회'
-                            : '${data.weeklyTrainingCount} this week',
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isKo ? '오늘의 홈' : 'Today Home',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _WeeklyBadge(
+                          label: isKo
+                              ? '이번 주 ${data.weeklyTrainingCount}회'
+                              : '${data.weeklyTrainingCount} this week',
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     _TodayOverviewCard(data: data, isKo: isKo),
@@ -403,8 +413,8 @@ class _TodayOverviewCard extends StatelessWidget {
         children: [
           Text(
             isKo ? '오늘 해야 할 흐름을 바로 시작하세요.' : 'Start today with the right flow.',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
                 ),
           ),
           const SizedBox(height: 10),
@@ -490,8 +500,8 @@ class _QuickActionGrid extends StatelessWidget {
       children: [
         Text(
           isKo ? '빠른 실행' : 'Quick actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w900,
               ),
         ),
         const SizedBox(height: 10),
@@ -502,7 +512,7 @@ class _QuickActionGrid extends StatelessWidget {
             crossAxisCount: 3,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 1.05,
+            childAspectRatio: 1.38,
           ),
           itemCount: items.length,
           itemBuilder: (context, index) =>
@@ -527,8 +537,8 @@ class _WeeklySummaryCard extends StatelessWidget {
         children: [
           Text(
             isKo ? '이번 주 성장 요약' : 'Weekly growth summary',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
                 ),
           ),
           const SizedBox(height: 10),
@@ -544,7 +554,7 @@ class _WeeklySummaryCard extends StatelessWidget {
               Expanded(
                 child: _SummaryMetric(
                   label: isKo ? '총 시간' : 'Minutes',
-                  value: '${data.weeklyMinutes}',
+                  value: _formatWeeklyMinutes(data.weeklyMinutes, isKo),
                 ),
               ),
             ],
@@ -554,16 +564,19 @@ class _WeeklySummaryCard extends StatelessWidget {
             isKo
                 ? '강점: ${_strongestLabel(data.strongestSignal, true)}'
                 : 'Strongest signal: ${_strongestLabel(data.strongestSignal, false)}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
             isKo
                 ? '다음 포커스: ${_focusLabel(data.focusSignal, true)}'
                 : 'Next focus: ${_focusLabel(data.focusSignal, false)}',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -603,6 +616,16 @@ class _WeeklySummaryCard extends StatelessWidget {
       default:
         return isKo ? '오늘 첫 기록 남기기' : 'log today';
     }
+  }
+
+  String _formatWeeklyMinutes(int minutes, bool isKo) {
+    if (minutes < 60) return isKo ? '$minutes분' : '${minutes}m';
+    final hours = minutes ~/ 60;
+    final remainMinutes = minutes % 60;
+    if (remainMinutes == 0) {
+      return isKo ? '$hours시간' : '${hours}h';
+    }
+    return isKo ? '$hours시간 $remainMinutes분' : '${hours}h ${remainMinutes}m';
   }
 }
 
@@ -700,15 +723,19 @@ class _QuickActionButton extends StatelessWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(item.icon, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  item.icon,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const Spacer(),
                 Text(
                   item.title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                 ),
@@ -742,7 +769,7 @@ class _StatPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
           ),
@@ -769,11 +796,16 @@ class _SummaryMetric extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
           ),
