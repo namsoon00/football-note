@@ -185,7 +185,6 @@ class _LogsScreenState extends State<LogsScreen> {
                   .take(_visibleCount.clamp(0, entries.length))
                   .toList(growable: false);
               final l10n = AppLocalizations.of(context)!;
-              final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardService = TrainingBoardService(
                 widget.optionRepository,
               );
@@ -247,11 +246,6 @@ class _LogsScreenState extends State<LogsScreen> {
                         const SizedBox(height: 10),
                         _buildSearchBar(l10n),
                       ],
-                      const SizedBox(height: 12),
-                      TabScreenTitle(
-                        title: isKo ? '최근 훈련 기록' : 'Recent Training Logs',
-                        trailing: _buildLayoutToggle(),
-                      ),
                       const SizedBox(height: 12),
                       AnimatedSwitcher(
                         duration: AppMotion.base(context),
