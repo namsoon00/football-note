@@ -55,8 +55,6 @@ class HomeHubScreen extends StatefulWidget {
 }
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
-  _HomeHubTopSection _section = _HomeHubTopSection.overview;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,6 +97,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         profilePhotoSource: widget.optionRepository
                                 .getValue<String>('profile_photo_url') ??
                             '',
+                        onNewsTap: _openNews,
+                        onGameTap: _openGame,
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                         onCoachTap: () => _openCoach(context),
@@ -114,56 +114,25 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _SectionSwitch(
+                    _TodayOverviewCard(data: data, isKo: isKo),
+                    const SizedBox(height: 12),
+                    _QuickActionGrid(
                       isKo: isKo,
-                      value: _section,
-                      onChanged: (value) => setState(() => _section = value),
+                      onCreate: widget.onCreate,
+                      onQuickMatch: widget.onQuickMatch,
+                      onQuickPlan: widget.onQuickPlan,
+                      onQuickQuiz: widget.onQuickQuiz,
+                      onOpenLogs: widget.onOpenLogs,
                     ),
                     const SizedBox(height: 12),
-                    if (_section == _HomeHubTopSection.overview) ...[
-                      _TodayOverviewCard(data: data, isKo: isKo),
-                      const SizedBox(height: 12),
-                      _QuickActionGrid(
-                        isKo: isKo,
-                        onCreate: widget.onCreate,
-                        onQuickMatch: widget.onQuickMatch,
-                        onQuickPlan: widget.onQuickPlan,
-                        onQuickQuiz: widget.onQuickQuiz,
-                        onOpenLogs: widget.onOpenLogs,
-                      ),
-                      const SizedBox(height: 12),
-                      _WeeklySummaryCard(data: data, isKo: isKo),
-                      const SizedBox(height: 12),
-                      _RecentLogPreview(
-                        entries: allEntries.take(3).toList(growable: false),
-                        isKo: isKo,
-                        onOpenLogs: widget.onOpenLogs,
-                        onEdit: widget.onEdit,
-                      ),
-                    ] else if (_section == _HomeHubTopSection.news) ...[
-                      _ShortcutPanel(
-                        title: isKo ? '오늘의 소식' : 'Today News',
-                        description: isKo
-                            ? '하단 탭에서는 빼고, 홈 안에서 필요할 때만 들어가도록 정리했습니다.'
-                            : 'News now lives inside Home so the bottom navigation stays focused.',
-                        primaryLabel: isKo ? '소식 열기' : 'Open news',
-                        secondaryLabel: isKo ? '홈으로 돌아가기' : 'Back to home',
-                        onPrimary: _openNews,
-                        onSecondary: () => setState(
-                            () => _section = _HomeHubTopSection.overview),
-                      ),
-                    ] else ...[
-                      _ShortcutPanel(
-                        title: isKo ? '미니게임' : 'Mini Game',
-                        description: isKo
-                            ? '게임과 퀴즈는 메인 루프를 방해하지 않도록 홈 내부 탭으로 옮겼습니다.'
-                            : 'Game and quiz now sit inside Home so the main navigation stays lean.',
-                        primaryLabel: isKo ? '게임 열기' : 'Open game',
-                        secondaryLabel: isKo ? '퀴즈 시작' : 'Start quiz',
-                        onPrimary: _openGame,
-                        onSecondary: widget.onQuickQuiz,
-                      ),
-                    ],
+                    _WeeklySummaryCard(data: data, isKo: isKo),
+                    const SizedBox(height: 12),
+                    _RecentLogPreview(
+                      entries: allEntries.take(3).toList(growable: false),
+                      isKo: isKo,
+                      onOpenLogs: widget.onOpenLogs,
+                      onEdit: widget.onEdit,
+                    ),
                   ],
                 ),
               );
@@ -255,8 +224,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
   }
 }
-
-enum _HomeHubTopSection { overview, news, game }
 
 class _HomeHubData {
   final int weeklyTrainingCount;
@@ -407,99 +374,6 @@ class _WeeklyBadge extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w800,
             ),
-      ),
-    );
-  }
-}
-
-class _SectionSwitch extends StatelessWidget {
-  final bool isKo;
-  final _HomeHubTopSection value;
-  final ValueChanged<_HomeHubTopSection> onChanged;
-
-  const _SectionSwitch({
-    required this.isKo,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SegmentedButton<_HomeHubTopSection>(
-      segments: [
-        ButtonSegment<_HomeHubTopSection>(
-          value: _HomeHubTopSection.overview,
-          icon: const Icon(Icons.home_outlined),
-          label: Text(isKo ? '홈' : 'Home'),
-        ),
-        ButtonSegment<_HomeHubTopSection>(
-          value: _HomeHubTopSection.news,
-          icon: const Icon(Icons.newspaper_outlined),
-          label: Text(isKo ? '소식' : 'News'),
-        ),
-        ButtonSegment<_HomeHubTopSection>(
-          value: _HomeHubTopSection.game,
-          icon: const Icon(Icons.sports_esports_outlined),
-          label: Text(isKo ? '게임' : 'Game'),
-        ),
-      ],
-      selected: <_HomeHubTopSection>{value},
-      onSelectionChanged: (selection) => onChanged(selection.first),
-      showSelectedIcon: false,
-    );
-  }
-}
-
-class _ShortcutPanel extends StatelessWidget {
-  final String title;
-  final String description;
-  final String primaryLabel;
-  final String secondaryLabel;
-  final VoidCallback? onPrimary;
-  final VoidCallback? onSecondary;
-
-  const _ShortcutPanel({
-    required this.title,
-    required this.description,
-    required this.primaryLabel,
-    required this.secondaryLabel,
-    required this.onPrimary,
-    required this.onSecondary,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(description, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton(
-                  onPressed: onPrimary,
-                  child: Text(primaryLabel),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onSecondary,
-                  child: Text(secondaryLabel),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

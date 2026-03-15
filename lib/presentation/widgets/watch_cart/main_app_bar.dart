@@ -7,6 +7,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onMenuTap;
+  final VoidCallback? onNewsTap;
+  final VoidCallback? onGameTap;
   final VoidCallback? onCoachTap;
   final VoidCallback onProfileTap;
   final VoidCallback onSettingsTap;
@@ -15,6 +17,8 @@ class WatchCartAppBar extends StatelessWidget {
   const WatchCartAppBar({
     super.key,
     this.onMenuTap,
+    this.onNewsTap,
+    this.onGameTap,
     this.onCoachTap,
     required this.onProfileTap,
     required this.onSettingsTap,
@@ -50,6 +54,34 @@ class WatchCartAppBar extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (onNewsTap != null)
+              IconButton(
+                icon: const Icon(Icons.newspaper_outlined),
+                tooltip: Localizations.localeOf(context).languageCode == 'ko'
+                    ? '오늘의 소식'
+                    : 'Today news',
+                iconSize: 28,
+                padding: const EdgeInsets.all(10),
+                constraints: const BoxConstraints(
+                  minWidth: 52,
+                  minHeight: 52,
+                ),
+                onPressed: onNewsTap,
+              ),
+            if (onGameTap != null)
+              IconButton(
+                icon: const Icon(Icons.sports_esports_outlined),
+                tooltip: Localizations.localeOf(context).languageCode == 'ko'
+                    ? '미니게임'
+                    : 'Mini game',
+                iconSize: 28,
+                padding: const EdgeInsets.all(10),
+                constraints: const BoxConstraints(
+                  minWidth: 52,
+                  minHeight: 52,
+                ),
+                onPressed: onGameTap,
+              ),
             if (onCoachTap != null)
               IconButton(
                 icon: const Icon(Icons.sports),
