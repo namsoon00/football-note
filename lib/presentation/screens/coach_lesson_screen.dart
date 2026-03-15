@@ -40,6 +40,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _progressCurrentKey = 'manual_progress_current_global_v1';
   static const String _progressPreviousKey =
       'manual_progress_previous_global_v1';
+  static const String _gameStatsKey = 'manual_game_stats_v1';
 
   final Map<String, int> _diagnosisScores = <String, int>{
     'dribble': 3,
@@ -59,6 +60,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   int _editStreak = 6;
   double _editWeakFootRate = 40;
   DateTime? _lastSavedAt;
+  int _xp = 0;
+  int _coins = 0;
+  int _combo = 0;
+  int _bestCombo = 0;
   int _currentFlowStep = 0;
   static const List<_FlowStepMeta> _flowSteps = <_FlowStepMeta>[
     _FlowStepMeta(
@@ -80,6 +85,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   List<_HabitIssue> get _allHabits => [..._habitCatalog, ..._customHabits];
+  int get _level => (_xp ~/ 100) + 1;
+  int get _xpInLevel => _xp % 100;
+  int get _dailyQuestDone => _completedMissionsToday().length;
+  int get _dailyQuestGoal => 3;
 
   @override
   void initState() {
@@ -163,6 +172,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return [
       _buildSelfCheckCard(),
       const SizedBox(height: 12),
+      _buildGameRewardCard(),
+      const SizedBox(height: 12),
       _buildMaintainCard(),
       const SizedBox(height: 12),
       _buildWeeklyHabitSummaryCard(),
@@ -175,6 +186,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .length;
     final stars = weekDone.clamp(0, 5);
     final progress = (stars / 5).toDouble();
+    final questProgress =
+        (_dailyQuestDone / _dailyQuestGoal).clamp(0, 1).toDouble();
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -214,6 +227,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Text(_isKo ? '별 $stars/5' : 'Stars $stars/5'),
             const SizedBox(height: 6),
             LinearProgressIndicator(value: progress),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(label: Text(_isKo ? 'Lv.$_level' : 'Lv.$_level')),
+                Chip(
+                    label: Text(
+                        _isKo ? 'XP $_xpInLevel/100' : 'XP $_xpInLevel/100')),
+                Chip(label: Text(_isKo ? '코인 $_coins' : 'Coins $_coins')),
+                Chip(label: Text(_isKo ? '콤보 $_combo' : 'Combo $_combo')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isKo
+                  ? '일일 퀘스트: $_dailyQuestDone/$_dailyQuestGoal'
+                  : 'Daily quest: $_dailyQuestDone/$_dailyQuestGoal',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 4),
+            LinearProgressIndicator(value: questProgress),
           ],
         ),
       ),
@@ -662,6 +697,41 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  Widget _buildGameRewardCard() {
+    final badges = _earnedBadges();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '게임 리워드' : 'Game rewards',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: badges
+                  .map((badge) => Chip(label: Text(badge)))
+                  .toList(growable: false),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isKo
+                  ? '최고 콤보 $_bestCombo · 현재 콤보 $_combo'
+                  : 'Best combo $_bestCombo · Current combo $_combo',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _loadStoredData() {
     final customHabitRaw =
         widget.optionRepository.getValue<String>(_customHabitsKey);
@@ -739,6 +809,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       _editStreak = _currentProgress!.streak;
       _editWeakFootRate = _currentProgress!.weakFootRate;
     }
+
+    final gameRaw = widget.optionRepository.getValue<String>(_gameStatsKey);
+    if (gameRaw != null && gameRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(gameRaw);
+        if (decoded is Map<String, dynamic>) {
+          _xp = (decoded['xp'] as num?)?.toInt() ?? _xp;
+          _coins = (decoded['coins'] as num?)?.toInt() ?? _coins;
+          _combo = (decoded['combo'] as num?)?.toInt() ?? _combo;
+          _bestCombo = (decoded['bestCombo'] as num?)?.toInt() ?? _bestCombo;
+        }
+      } catch (_) {}
+    }
   }
 
   _HabitProgress? _loadProgress(String key) {
@@ -758,6 +841,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Future<void> _saveHabitFlags() async {
     await widget.optionRepository
         .setValue(_habitFlagsKey, jsonEncode(_habitFlags));
+    _markSaved();
+  }
+
+  Future<void> _saveGameStats() async {
+    await widget.optionRepository.setValue(
+      _gameStatsKey,
+      jsonEncode(<String, dynamic>{
+        'xp': _xp,
+        'coins': _coins,
+        'combo': _combo,
+        'bestCombo': _bestCombo,
+      }),
+    );
     _markSaved();
   }
 
@@ -781,7 +877,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       await widget.optionRepository
           .setValue(_progressPreviousKey, jsonEncode(previous.toMap()));
     }
-    _markSaved();
+    if (_editSuccessRate >= 80) {
+      _xp += 8;
+      await _saveGameStats();
+    } else {
+      _markSaved();
+    }
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -792,11 +893,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Future<void> _toggleMissionDone(String habitId) async {
     final key = _todayMissionKey(habitId);
     final next = Map<String, bool>.from(_habitMissionDone);
-    next[key] = !(next[key] ?? false);
+    final nextValue = !(next[key] ?? false);
+    next[key] = nextValue;
     setState(() => _habitMissionDone = next);
     await widget.optionRepository
         .setValue(_habitMissionDoneKey, jsonEncode(next));
-    _markSaved();
+    if (nextValue) {
+      _xp += 20;
+      _coins += 1;
+      _combo += 1;
+      if (_combo > _bestCombo) _bestCombo = _combo;
+      await _saveGameStats();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isKo ? '+20 XP · +1 코인' : '+20 XP · +1 coin'),
+            duration: const Duration(milliseconds: 900),
+          ),
+        );
+      }
+    } else {
+      _markSaved();
+    }
   }
 
   Future<void> _logFailure(String habitId) async {
@@ -809,7 +927,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       _failureLogsKey,
       jsonEncode(next.map((e) => e.toMap()).toList(growable: false)),
     );
-    _markSaved();
+    _combo = 0;
+    await _saveGameStats();
   }
 
   List<String> _recommendedHabitIdsByDiagnosis() {
@@ -989,6 +1108,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return '$habitId::${now.year}-${now.month}-${now.day}';
   }
 
+  List<String> _completedMissionsToday() {
+    final now = DateTime.now();
+    final today = '${now.year}-${now.month}-${now.day}';
+    return _habitMissionDone.entries
+        .where((entry) => entry.value && entry.key.endsWith('::$today'))
+        .map((entry) => entry.key)
+        .toList(growable: false);
+  }
+
   bool _withinLastDays(DateTime at, int days) {
     return DateTime.now().difference(at).inDays < days;
   }
@@ -999,6 +1127,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final date = DateTime.tryParse(parts[1]);
     if (date == null) return false;
     return _withinLastDays(date, days);
+  }
+
+  List<String> _earnedBadges() {
+    final badges = <String>[];
+    if (_xp >= 100) badges.add(_isKo ? '레벨업 배지' : 'Level-up');
+    if (_bestCombo >= 3) badges.add(_isKo ? '콤보 배지' : 'Combo');
+    if (_coins >= 10) badges.add(_isKo ? '코인 배지' : 'Coin');
+    if (_dailyQuestDone >= _dailyQuestGoal) {
+      badges.add(_isKo ? '일일퀘스트 완료' : 'Daily quest');
+    }
+    if (badges.isEmpty) {
+      badges.add(_isKo ? '첫 배지 도전 중' : 'First badge');
+    }
+    return badges;
   }
 
   String _levelText(double avg) {
