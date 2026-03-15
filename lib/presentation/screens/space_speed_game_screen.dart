@@ -12,16 +12,10 @@ import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
-import '../widgets/app_drawer.dart';
 import '../widgets/tab_screen_title.dart';
-import '../widgets/watch_cart/main_app_bar.dart';
 import 'game_guide_screen.dart';
 import 'game_ranking_screen.dart';
-import 'profile_screen.dart';
 import 'skill_quiz_screen.dart';
-import 'settings_screen.dart';
-import 'coach_lesson_screen.dart';
-import 'news_screen.dart';
 
 class SpaceSpeedGameScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -295,14 +289,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final guideToY = _aimY;
 
     return Scaffold(
-      drawer: AppDrawer(
-        trainingService: widget.trainingService,
-        optionRepository: widget.optionRepository,
-        localeService: widget.localeService,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-        currentIndex: -1,
-      ),
+      appBar: AppBar(title: Text(isKo ? '게임' : 'Game')),
       body: AppBackground(
         child: SafeArea(
           child: Padding(
@@ -310,22 +297,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Builder(
-                  builder: (context) => WatchCartAppBar(
-                    onMenuTap: () => Scaffold.of(context).openDrawer(),
-                    onNewsTap: () => _openNews(context),
-                    onGameTap: null,
-                    profilePhotoSource:
-                        widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
-                    onProfileTap: () => _openProfile(context),
-                    onSettingsTap: () => _openSettings(context),
-                    onCoachTap: () => _openCoach(context),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 TabScreenTitle(
                   title: isKo ? '게임' : 'Game',
                   trailing: Row(
@@ -3112,60 +3083,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         ],
       ),
     );
-  }
-
-  void _openSettings(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SettingsScreen(
-          localeService: widget.localeService,
-          settingsService: widget.settingsService,
-          optionRepository: widget.optionRepository,
-          driveBackupService: widget.driveBackupService,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openProfile(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) =>
-            ProfileScreen(optionRepository: widget.optionRepository),
-      ),
-    );
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _openCoach(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CoachLessonScreen(
-          optionRepository: widget.optionRepository,
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
-      ),
-    );
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _openNews(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => NewsScreen(
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          optionRepository: widget.optionRepository,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-          isActive: true,
-        ),
-      ),
-    );
-    if (mounted) setState(() {});
   }
 
   void _openGameGuide(BuildContext context) {

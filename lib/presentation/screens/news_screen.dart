@@ -16,14 +16,8 @@ import '../../domain/entities/news_channel.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../infrastructure/rss_news_repository.dart';
 import '../widgets/app_background.dart';
-import '../widgets/app_drawer.dart';
-import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/tab_screen_title.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
-import 'profile_screen.dart';
-import 'settings_screen.dart';
-import 'coach_lesson_screen.dart';
-import 'space_speed_game_screen.dart';
 
 class NewsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -148,36 +142,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      drawer: AppDrawer(
-        trainingService: widget.trainingService,
-        optionRepository: widget.optionRepository,
-        localeService: widget.localeService,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-        currentIndex: -1,
-      ),
+      appBar: AppBar(title: Text(l10n.tabNews)),
       body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Builder(
-                  builder: (context) => WatchCartAppBar(
-                    onMenuTap: () => Scaffold.of(context).openDrawer(),
-                    onNewsTap: null,
-                    onGameTap: () => _openGame(context),
-                    profilePhotoSource:
-                        widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
-                    onProfileTap: () => _openProfile(context),
-                    onSettingsTap: () => _openSettings(context),
-                    onCoachTap: () => _openCoach(context),
-                  ),
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
                 child: TabScreenTitle(
@@ -885,59 +854,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     } catch (_) {
       return text;
     }
-  }
-
-  void _openSettings(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SettingsScreen(
-          localeService: widget.localeService,
-          settingsService: widget.settingsService,
-          optionRepository: widget.optionRepository,
-          driveBackupService: widget.driveBackupService,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openProfile(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) =>
-            ProfileScreen(optionRepository: widget.optionRepository),
-      ),
-    );
-    if (mounted) _loadProgressive();
-  }
-
-  Future<void> _openCoach(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CoachLessonScreen(
-          optionRepository: widget.optionRepository,
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
-      ),
-    );
-    if (mounted) _loadProgressive();
-  }
-
-  Future<void> _openGame(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SpaceSpeedGameScreen(
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          optionRepository: widget.optionRepository,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
-      ),
-    );
-    if (mounted) _loadProgressive();
   }
 
   Future<void> _persistScrappedState() async {

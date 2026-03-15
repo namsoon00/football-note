@@ -9,11 +9,6 @@ import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/tab_screen_title.dart';
-import '../widgets/watch_cart/main_app_bar.dart';
-import 'news_screen.dart';
-import 'profile_screen.dart';
-import 'settings_screen.dart';
-import 'space_speed_game_screen.dart';
 
 class CoachLessonScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -117,6 +112,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget build(BuildContext context) {
     final activeStep = _flowSteps[_currentFlowStep];
     return Scaffold(
+      appBar: AppBar(
+        title: Text(_isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach'),
+      ),
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -125,23 +123,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Column(
                   children: [
-                    WatchCartAppBar(
-                      onNewsTap:
-                          _canOpenShortcuts ? () => _openNews(context) : null,
-                      onGameTap:
-                          _canOpenShortcuts ? () => _openGame(context) : null,
-                      onProfileTap: _openProfile == null
-                          ? () {}
-                          : () => _openProfile!(context),
-                      onSettingsTap: _openSettings == null
-                          ? () {}
-                          : () => _openSettings!(context),
-                      onCoachTap: null,
-                      profilePhotoSource: widget.optionRepository
-                              .getValue<String>('profile_photo_url') ??
-                          '',
-                    ),
-                    const SizedBox(height: 12),
                     TabScreenTitle(
                       title:
                           _isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach',
@@ -250,62 +231,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  bool get _canOpenShortcuts =>
-      widget.trainingService != null &&
-      widget.localeService != null &&
-      widget.settingsService != null;
-
-  void Function(BuildContext)? get _openProfile => _canOpenShortcuts
-      ? (context) => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) =>
-                  ProfileScreen(optionRepository: widget.optionRepository),
-            ),
-          )
-      : null;
-
-  void Function(BuildContext)? get _openSettings => _canOpenShortcuts
-      ? (context) => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => SettingsScreen(
-                localeService: widget.localeService!,
-                settingsService: widget.settingsService!,
-                optionRepository: widget.optionRepository,
-                driveBackupService: widget.driveBackupService,
-              ),
-            ),
-          )
-      : null;
-
-  Future<void> _openNews(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => NewsScreen(
-          trainingService: widget.trainingService!,
-          localeService: widget.localeService!,
-          optionRepository: widget.optionRepository,
-          settingsService: widget.settingsService!,
-          driveBackupService: widget.driveBackupService,
-          isActive: true,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openGame(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SpaceSpeedGameScreen(
-          trainingService: widget.trainingService!,
-          localeService: widget.localeService!,
-          optionRepository: widget.optionRepository,
-          settingsService: widget.settingsService!,
-          driveBackupService: widget.driveBackupService,
-        ),
-      ),
     );
   }
 
