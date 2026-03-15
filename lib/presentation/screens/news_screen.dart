@@ -22,6 +22,7 @@ import '../widgets/tab_screen_title.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
+import 'coach_lesson_screen.dart';
 
 class NewsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -49,6 +50,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   static const String _titleTranslateEnabledKey =
       'news_title_translate_enabled';
   static const String _scrappedLinksKey = 'news_scrapped_links';
+  static const String _scrappedItemsKey = 'news_scrapped_items_v1';
   static const Duration _autoRefreshInterval = Duration(hours: 1);
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
@@ -58,6 +60,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   late Set<String> _selectedChannelIds;
   late Set<String> _scrappedLinks;
+  late Map<String, _ScrappedNewsItem> _scrappedItemsByLink;
   final List<NewsArticle> _articles = <NewsArticle>[];
   final Set<String> _seenLinks = <String>{};
   final Set<String> _seenTitles = <String>{};
@@ -95,6 +98,13 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         .map((value) => value.trim())
         .where((value) => value.isNotEmpty)
         .toSet();
+    _scrappedItemsByLink = _loadScrappedItems();
+    if (_scrappedItemsByLink.isNotEmpty) {
+      _scrappedLinks = {
+        ..._scrappedLinks,
+        ..._scrappedItemsByLink.keys,
+      };
+    }
     _applyCacheIfValid();
     _loadProgressive();
   }
@@ -156,11 +166,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     onMenuTap: () => Scaffold.of(context).openDrawer(),
                     profilePhotoSource:
                         widget.optionRepository.getValue<String>(
-                          'profile_photo_url',
-                        ) ??
-                        '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                     onProfileTap: () => _openProfile(context),
                     onSettingsTap: () => _openSettings(context),
+                    onCoachTap: () => _openCoach(context),
                   ),
                 ),
               ),
@@ -249,16 +260,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       ),
                       if (isKo)
                         IconButton(
-                          tooltip: _titleTranslateEnabled
-                              ? '제목 번역 켜짐'
-                              : '제목 번역 꺼짐',
+                          tooltip:
+                              _titleTranslateEnabled ? '제목 번역 켜짐' : '제목 번역 꺼짐',
                           onPressed: _toggleTitleTranslate,
                           icon: Icon(
                             Icons.translate_rounded,
                             color: _titleTranslateEnabled
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSurface
-                                      .withValues(alpha: 0.55),
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.55),
                           ),
                         ),
                     ],
@@ -426,7 +438,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   String _statusSummary(bool isKo) {
     final channelText = _channelSummary(isKo);
-    final scrapCount = _scrappedLinks.length;
+    final scrapCount = _scrappedItemsByLink.length;
     if (_showScrappedOnly) {
       return isKo
           ? '스크랩 $scrapCount개 보는 중 · $channelText'
@@ -442,42 +454,61 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
 
   List<NewsArticle> _filteredArticles() {
     final query = _searchController.text.trim().toLowerCase();
+    final scrappedBase = _showScrappedOnly
+        ? _scrappedItemsByLink.values.toList(growable: false)
+        : <_ScrappedNewsItem>[];
+    if (_showScrappedOnly) {
+      scrappedBase.sort((a, b) => b.scrappedAt.compareTo(a.scrappedAt));
+    }
     final base = _showScrappedOnly
-        ? _articles.where(_isScrapped).toList(growable: false)
+        ? scrappedBase.map((item) => item.article).toList(growable: false)
         : List<NewsArticle>.unmodifiable(_articles);
     if (query.isEmpty) return base;
-    return base
-        .where((article) {
-          final title = article.title.toLowerCase();
-          final source = article.source.toLowerCase();
-          final translated =
-              _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
-          return title.contains(query) ||
-              source.contains(query) ||
-              translated.contains(query);
-        })
-        .toList(growable: false);
+    return base.where((article) {
+      final title = article.title.toLowerCase();
+      final sourceText = article.source.toLowerCase();
+      final translated =
+          _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
+      return title.contains(query) ||
+          sourceText.contains(query) ||
+          translated.contains(query);
+    }).toList(growable: false);
+  }
+
+  String _scrapKeyForArticle(NewsArticle article) {
+    final link = article.link.trim();
+    if (link.isNotEmpty) return link;
+    final title = article.title.trim().toLowerCase();
+    final source = article.source.trim().toLowerCase();
+    final publishedAt =
+        article.publishedAt?.toIso8601String() ?? article.imageUrl.trim();
+    return 'fallback::$source::$title::$publishedAt';
   }
 
   bool _isScrapped(NewsArticle article) =>
-      _scrappedLinks.contains(article.link.trim());
+      _scrappedLinks.contains(_scrapKeyForArticle(article));
 
   Future<void> _toggleScrap(NewsArticle article) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final link = article.link.trim();
-    if (link.isEmpty) return;
+    final link = _scrapKeyForArticle(article);
     final next = Set<String>.from(_scrappedLinks);
+    final nextItems = Map<String, _ScrappedNewsItem>.from(_scrappedItemsByLink);
     final added = !next.remove(link);
     if (added) {
       next.add(link);
+      nextItems[link] = _ScrappedNewsItem(
+        link: link,
+        article: article,
+        scrappedAt: DateTime.now(),
+      );
+    } else {
+      nextItems.remove(link);
     }
     setState(() {
       _scrappedLinks = next;
+      _scrappedItemsByLink = nextItems;
     });
-    await widget.optionRepository.saveOptions(
-      _scrappedLinksKey,
-      _scrappedLinks.toList(growable: false),
-    );
+    await _persistScrappedState();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -546,26 +577,23 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     SizedBox(
                       height: 320,
                       child: ListView(
-                        children: _channels
-                            .map((channel) {
-                              return CheckboxListTile(
-                                dense: true,
-                                value: temp.contains(channel.id),
-                                title: Text(channel.name),
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                onChanged: (checked) {
-                                  setSheetState(() {
-                                    if (checked == true) {
-                                      temp.add(channel.id);
-                                    } else {
-                                      temp.remove(channel.id);
-                                    }
-                                  });
-                                },
-                              );
-                            })
-                            .toList(growable: false),
+                        children: _channels.map((channel) {
+                          return CheckboxListTile(
+                            dense: true,
+                            value: temp.contains(channel.id),
+                            title: Text(channel.name),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (checked) {
+                              setSheetState(() {
+                                if (checked == true) {
+                                  temp.add(channel.id);
+                                } else {
+                                  temp.remove(channel.id);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(growable: false),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -611,23 +639,21 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
 
-    final tasks = channelIds
-        .map((id) async {
-          try {
-            final chunk = await _newsService.latest(id);
-            if (!mounted || token != _loadToken) return;
-            if (chunk.isEmpty) return;
-            setState(() {
-              _mergeChunk(chunk);
-            });
-          } catch (_) {
-            if (!mounted || token != _loadToken) return;
-            setState(() {
-              _hadError = true;
-            });
-          }
-        })
-        .toList(growable: false);
+    final tasks = channelIds.map((id) async {
+      try {
+        final chunk = await _newsService.latest(id);
+        if (!mounted || token != _loadToken) return;
+        if (chunk.isEmpty) return;
+        setState(() {
+          _mergeChunk(chunk);
+        });
+      } catch (_) {
+        if (!mounted || token != _loadToken) return;
+        setState(() {
+          _hadError = true;
+        });
+      }
+    }).toList(growable: false);
 
     await Future.wait(tasks);
     if (!mounted || token != _loadToken) return;
@@ -694,6 +720,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         _seenTitles.add(normTitle);
       }
       _articles.add(article);
+      final link = _scrapKeyForArticle(article);
+      final scrapped = _scrappedItemsByLink[link];
+      if (scrapped != null) {
+        _scrappedItemsByLink[link] = scrapped.copyWith(article: article);
+      }
     }
 
     _articles.sort((a, b) {
@@ -797,19 +828,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle)
-        .then((translated) {
-          if (!mounted) return;
-          final value = translated.trim();
-          if (value.isNotEmpty && value != originalTitle) {
-            setState(() {
-              _translatedTitlesByLink[key] = value;
-            });
-          }
-        })
-        .whenComplete(() {
-          _translatingLinks.remove(key);
+    _translateToKorean(originalTitle).then((translated) {
+      if (!mounted) return;
+      final value = translated.trim();
+      if (value.isNotEmpty && value != originalTitle) {
+        setState(() {
+          _translatedTitlesByLink[key] = value;
         });
+      }
+    }).whenComplete(() {
+      _translatingLinks.remove(key);
+    });
   }
 
   Future<void> _toggleTitleTranslate() async {
@@ -876,6 +905,111 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       ),
     );
     if (mounted) _loadProgressive();
+  }
+
+  Future<void> _openCoach(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            CoachLessonScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+    if (mounted) _loadProgressive();
+  }
+
+  Future<void> _persistScrappedState() async {
+    await widget.optionRepository.saveOptions(
+      _scrappedLinksKey,
+      _scrappedLinks.toList(growable: false),
+    );
+    final payload = _scrappedItemsByLink.values
+        .map((item) => item.toMap())
+        .toList(growable: false);
+    await widget.optionRepository.setValue(
+      _scrappedItemsKey,
+      jsonEncode(payload),
+    );
+  }
+
+  Map<String, _ScrappedNewsItem> _loadScrappedItems() {
+    final raw = widget.optionRepository.getValue<String>(_scrappedItemsKey);
+    if (raw == null || raw.isEmpty) return <String, _ScrappedNewsItem>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return <String, _ScrappedNewsItem>{};
+      final items = <String, _ScrappedNewsItem>{};
+      for (final entry in decoded) {
+        if (entry is! Map) continue;
+        final item = _ScrappedNewsItem.fromMap(entry.cast<String, dynamic>());
+        final link = item.link.trim();
+        if (link.isEmpty) continue;
+        items[link] = item;
+      }
+      return items;
+    } catch (_) {
+      return <String, _ScrappedNewsItem>{};
+    }
+  }
+}
+
+class _ScrappedNewsItem {
+  final String link;
+  final NewsArticle article;
+  final DateTime scrappedAt;
+
+  const _ScrappedNewsItem({
+    required this.link,
+    required this.article,
+    required this.scrappedAt,
+  });
+
+  _ScrappedNewsItem copyWith({
+    NewsArticle? article,
+    DateTime? scrappedAt,
+  }) {
+    return _ScrappedNewsItem(
+      link: link,
+      article: article ?? this.article,
+      scrappedAt: scrappedAt ?? this.scrappedAt,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'link': link,
+      'scrappedAt': scrappedAt.toIso8601String(),
+      'article': <String, dynamic>{
+        'title': article.title,
+        'link': article.link,
+        'source': article.source,
+        'publishedAt': article.publishedAt?.toIso8601String(),
+        'imageUrl': article.imageUrl,
+      },
+    };
+  }
+
+  factory _ScrappedNewsItem.fromMap(Map<String, dynamic> map) {
+    final rawArticle = map['article'];
+    final articleMap = rawArticle is Map
+        ? rawArticle.cast<String, dynamic>()
+        : <String, dynamic>{};
+    final rawScrappedAt = map['scrappedAt']?.toString() ?? '';
+    final link =
+        (map['link']?.toString() ?? articleMap['link']?.toString() ?? '')
+            .trim();
+    final publishedAtText = articleMap['publishedAt']?.toString() ?? '';
+    final article = NewsArticle(
+      title: articleMap['title']?.toString() ?? '',
+      link: articleMap['link']?.toString() ?? link,
+      source: articleMap['source']?.toString() ?? '',
+      publishedAt: DateTime.tryParse(publishedAtText),
+      imageUrl: articleMap['imageUrl']?.toString() ?? '',
+    );
+    return _ScrappedNewsItem(
+      link: link,
+      article: article,
+      scrappedAt: DateTime.tryParse(rawScrappedAt) ?? DateTime.now(),
+    );
   }
 }
 

@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
@@ -18,6 +20,7 @@ import 'game_ranking_screen.dart';
 import 'profile_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'settings_screen.dart';
+import 'coach_lesson_screen.dart';
 
 class SpaceSpeedGameScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -43,6 +46,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   static const _weeklyBestPrefix = 'space_speed_weekly_best_';
   static const _difficultyKey = 'space_speed_difficulty';
   static const _rankingHistoryKey = 'space_speed_ranking_history_v1';
+  static const _quizCompletedAtKey = SkillQuizScreen.completionKey;
+  static const _gamePlayedCountKey = 'space_speed_played_count_v1';
+  static const _playsPerTrainingNote = 5;
 
   static const _dt = 0.05;
   static const _passerX = 0.10;
@@ -75,7 +81,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _gameStarted = false;
   int _remainingSeconds = 20;
   bool _timeUp = false;
+  int _trainingNoteCount = 0;
+  int _playedGameCount = 0;
+  bool _quizCompleted = false;
   bool _endedByFail = false;
+  int _maxComboInRun = 0;
+  _PassResult? _lastFailedReason;
+  DateTime _lastInteractionAt = DateTime.now();
   bool _finalShotMode = false;
   String _finalRanking = '';
   late String _weekKey;
@@ -183,6 +195,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       (0.70 + (_passAimStrength * 1.10)).clamp(0.70, 1.90);
   bool get _freezeShotScene =>
       (_goalChanceActive && _ballFlying) || _awaitingShotOutcome;
+  bool get _showIdleHint =>
+      _gameStarted &&
+      !_timeUp &&
+      !_awaitingShotOutcome &&
+      !_awaitingFailFinish &&
+      !_ballFlying &&
+      DateTime.now().difference(_lastInteractionAt).inMilliseconds >= 3000;
 
   _ShotWindowHint _shotWindowHint(bool isKo) {
     if (!_goalChanceActive) {
@@ -252,6 +271,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _loadSavedState();
     _resetRound(keepScore: true);
     _startLoop();
+    unawaited(_refreshPlayGateState());
   }
 
   @override
@@ -299,6 +319,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                             '',
                     onProfileTap: () => _openProfile(context),
                     onSettingsTap: () => _openSettings(context),
+                    onCoachTap: () => _openCoach(context),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -809,6 +830,35 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                     ),
                                   ),
                                 ),
+                              if (_showIdleHint)
+                                Positioned(
+                                  left: 12,
+                                  right: 12,
+                                  bottom: 88,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xCC102A43),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: const Color(0xFF5DADE2)
+                                            .withValues(alpha: 0.55),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      _idleHintText(isKo),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               for (var i = 0; i < _defenders.length; i++)
                                 _entity(
                                   context,
@@ -946,11 +996,66 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                             FontWeight.w700,
                                                       ),
                                                     ),
+                                                    const SizedBox(height: 8),
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                        10,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainerHighest
+                                                            .withValues(
+                                                              alpha: 0.75,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                      ),
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            isKo
+                                                                ? '잘한 점: ${_bestPointText(isKo)}'
+                                                                : 'Strong point: ${_bestPointText(isKo)}',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4,
+                                                          ),
+                                                          Text(
+                                                            isKo
+                                                                ? '개선 포인트: ${_improvePointText(isKo)}'
+                                                                : 'Improve next: ${_improvePointText(isKo)}',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
                                                     const SizedBox(height: 14),
                                                   ],
                                                 ),
                                               FilledButton.icon(
-                                                onPressed: _startGame,
+                                                onPressed: _canStartByGate
+                                                    ? _tryStartGame
+                                                    : _tryStartGame,
                                                 icon: const Icon(
                                                   Icons.play_arrow_rounded,
                                                   size: 24,
@@ -973,6 +1078,23 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                   ),
                                                 ),
                                               ),
+                                              if (_isAndroidGateEnabled) ...[
+                                                const SizedBox(height: 10),
+                                                Text(
+                                                  isKo
+                                                      ? '훈련노트 $_trainingNoteCount개 · 사용 $_playedGameCount판 · 남은 $_remainingGameCount판'
+                                                      : 'Notes $_trainingNoteCount · Used $_playedGameCount · Left $_remainingGameCount',
+                                                  textAlign: TextAlign.center,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurfaceVariant,
+                                                      ),
+                                                ),
+                                              ],
                                             ],
                                           ),
                                         ),
@@ -1052,6 +1174,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _score = 0;
       _goals = 0;
       _combo = 0;
+      _maxComboInRun = 0;
+      _lastFailedReason = null;
+      _lastInteractionAt = DateTime.now();
       _finalShotMode = false;
       _goalChanceActive = false;
       _attackerAIsPasser = true;
@@ -1762,17 +1887,23 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _onSuccess() {
+    _lastInteractionAt = DateTime.now();
     _clearFlightGuide();
     _setReaction(_PassResult.perfect);
     _attackerAIsPasser = !_attackerAIsPasser;
     _score += 1;
     _combo += 1;
+    if (_combo > _maxComboInRun) {
+      _maxComboInRun = _combo;
+    }
     _maybeLevelUp();
     _updateWeeklyBest();
     _continueAfterSuccess();
   }
 
   void _onGoalScored() {
+    _lastInteractionAt = DateTime.now();
+    final wasFinalShot = _finalShotMode || _remainingSeconds <= 0;
     _goals += 1;
     _score += 3;
     _lastShotOutcome = _ShotOutcome.goal;
@@ -1781,7 +1912,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _finalShotMode = false;
     _ballFlying = false;
     _setReaction(_PassResult.goal);
-    _scheduleShotOutcomeFinish(failed: false);
+    _scheduleShotOutcomeFinish(
+      failed: false,
+      finishAfterOutcome: wasFinalShot,
+    );
   }
 
   bool _recoverLooseBall() {
@@ -1907,6 +2041,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _onFail([_PassResult result = _PassResult.miss]) {
+    _lastInteractionAt = DateTime.now();
+    _lastFailedReason = result;
     _clearFlightGuide();
     _combo = 0;
     final wasShotRound = _goalChanceActive || _finalShotMode;
@@ -1920,7 +2056,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _goalChanceActive = false;
       _ballFlying = false;
       _awaitingShotOutcome = true;
-      _scheduleShotOutcomeFinish(failed: true);
+      _scheduleShotOutcomeFinish(failed: true, finishAfterOutcome: true);
     } else {
       _scheduleFailFinish();
     }
@@ -1951,15 +2087,28 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     });
   }
 
-  void _scheduleShotOutcomeFinish({required bool failed}) {
+  void _scheduleShotOutcomeFinish({
+    required bool failed,
+    required bool finishAfterOutcome,
+  }) {
     _shotOutcomeTimer?.cancel();
     _shotOutcomeTimer = Timer(const Duration(milliseconds: 1400), () {
       if (!mounted) return;
       setState(() {
         _awaitingShotOutcome = false;
-        _finishMatch(failed: failed);
+        if (failed || finishAfterOutcome) {
+          _finishMatch(failed: failed);
+        } else {
+          _continueAfterGoalScored();
+        }
       });
     });
+  }
+
+  void _continueAfterGoalScored() {
+    _resetRound(keepScore: true);
+    _lastShotOutcome = _ShotOutcome.none;
+    _awaitingShotOutcome = false;
   }
 
   void _continueAfterSuccess() {
@@ -2134,11 +2283,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _onJoystickStart(int pointer, Offset local) {
     if (_joystickPointerId != null) return;
     _joystickPointerId = pointer;
+    _lastInteractionAt = DateTime.now();
     _updateJoystickFromLocal(local);
   }
 
   void _onJoystickMove(int pointer, Offset local) {
     if (_joystickPointerId != pointer) return;
+    _lastInteractionAt = DateTime.now();
     _updateJoystickFromLocal(local);
   }
 
@@ -2176,6 +2327,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       return;
     }
     _passPointerId = pointer;
+    _lastInteractionAt = DateTime.now();
     _updatePassAimFromGlobal(globalPosition);
     _updateAutoAim();
     _passPressed = true;
@@ -2186,6 +2338,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _onPassMove(int pointer, Offset globalPosition) {
     if (_passPointerId != pointer) return;
     if (!_passPressed || !_canStartPassGesture()) return;
+    _lastInteractionAt = DateTime.now();
     _updatePassAimFromGlobal(globalPosition);
   }
 
@@ -2193,6 +2346,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (_passPointerId != pointer) return;
     _passPointerId = null;
     if (globalPosition != null) {
+      _lastInteractionAt = DateTime.now();
       _updatePassAimFromGlobal(globalPosition);
     }
     final wasPressed = _passPressed;
@@ -2699,6 +2853,71 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     return isKo ? ko : en;
   }
 
+  String _idleHintText(bool isKo) {
+    if (_goalChanceActive) {
+      return isKo
+          ? '힌트: 슈팅 버튼을 길게 눌러 파워를 모은 뒤 골대 빈 공간으로 보내세요.'
+          : 'Hint: Hold to charge, then shoot into open goal space.';
+    }
+    return isKo
+        ? '힌트: 3초 안에 패스를 시도하면 흐름을 유지할 수 있어요.'
+        : 'Hint: Attempt a pass within 3s to keep the flow.';
+  }
+
+  String _bestPointText(bool isKo) {
+    if (_goals > 0) {
+      return isKo ? '골 결정력이 좋았어요.' : 'Great finishing in front of goal.';
+    }
+    if (_maxComboInRun >= 5) {
+      return isKo ? '연속 패스 리듬이 좋았어요.' : 'Your pass-combo rhythm was strong.';
+    }
+    if (_level >= 4) {
+      return isKo
+          ? '압박 상황에서도 레벨을 잘 올렸어요.'
+          : 'You handled pressure and leveled up well.';
+    }
+    return isKo
+        ? '기본 연결을 안정적으로 유지했어요.'
+        : 'You maintained stable basic link play.';
+  }
+
+  String _improvePointText(bool isKo) {
+    switch (_lastFailedReason) {
+      case _PassResult.intercepted:
+        return isKo
+            ? '패스 각도를 조금 더 바깥으로 열어보세요.'
+            : 'Open your passing lane a bit wider.';
+      case _PassResult.saved:
+        return isKo
+            ? '슈팅은 골키퍼 반대 공간으로 노려보세요.'
+            : 'Aim shots to the keeper’s opposite side.';
+      case _PassResult.miss:
+        return isKo
+            ? '패스/슈팅 파워를 한 단계 낮춰보세요.'
+            : 'Use slightly less power on pass/shot.';
+      case _PassResult.tooFast:
+        return isKo
+            ? '패스 버튼 누르는 시간을 조금 줄여보세요.'
+            : 'Hold the pass button a bit shorter.';
+      case _PassResult.tooSlow:
+        return isKo
+            ? '패스 버튼을 조금 더 길게 눌러보세요.'
+            : 'Hold the pass button a bit longer.';
+      case _PassResult.idleTimeout:
+        return isKo
+            ? '템포 유지를 위해 3초 내 패스를 습관화해보세요.'
+            : 'Build a habit of passing within 3 seconds.';
+      case _PassResult.passerHit:
+        return isKo
+            ? '패서와 수비 거리부터 먼저 확보해보세요.'
+            : 'Create more space from defenders before passing.';
+      default:
+        return isKo
+            ? '받기 전 짧은 스캔으로 다음 선택을 미리 준비해보세요.'
+            : 'Use quick pre-scans before receiving.';
+    }
+  }
+
   int _difficultyMaxDefenders(_GameDifficulty difficulty) {
     switch (difficulty) {
       case _GameDifficulty.easy:
@@ -2915,6 +3134,16 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _openCoach(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            CoachLessonScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
   void _openGameGuide(BuildContext context) {
     Navigator.of(
       context,
@@ -2932,7 +3161,88 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _openSkillQuiz(BuildContext context) {
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const SkillQuizScreen()));
+    )
+        .push(
+          MaterialPageRoute(
+            builder: (_) =>
+                SkillQuizScreen(optionRepository: widget.optionRepository),
+          ),
+        )
+        .then((_) => _refreshPlayGateState());
+  }
+
+  bool get _isAndroidGateEnabled => !kIsWeb && Platform.isAndroid;
+  int get _allowedGameCount => _trainingNoteCount * _playsPerTrainingNote;
+  int get _remainingGameCount =>
+      (_allowedGameCount - _playedGameCount).clamp(0, 1 << 30);
+  bool get _canStartByGate =>
+      !_isAndroidGateEnabled ||
+      (_trainingNoteCount > 0 && _quizCompleted && _remainingGameCount > 0);
+
+  Future<void> _refreshPlayGateState() async {
+    final entries = await widget.trainingService.allEntries();
+    if (!mounted) return;
+    final noteCount = entries.where((entry) => !entry.isMatch).length;
+    final played =
+        widget.optionRepository.getValue<int>(_gamePlayedCountKey) ?? 0;
+    final completedAt =
+        widget.optionRepository.getValue<String>(_quizCompletedAtKey) ?? '';
+    setState(() {
+      _trainingNoteCount = noteCount;
+      _playedGameCount = played;
+      _quizCompleted = completedAt.trim().isNotEmpty;
+    });
+  }
+
+  Future<void> _tryStartGame() async {
+    if (!_isAndroidGateEnabled) {
+      _startGame();
+      return;
+    }
+    await _refreshPlayGateState();
+    if (!mounted) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    if (_trainingNoteCount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo
+                ? '먼저 훈련 노트를 1개 이상 작성해 주세요.'
+                : 'Create at least one training note first.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (!_quizCompleted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo
+                ? '먼저 퀴즈를 완료해야 게임을 시작할 수 있어요.'
+                : 'Complete the quiz first to start the game.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (_remainingGameCount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo
+                ? '남은 게임 횟수가 없습니다. 훈련 노트를 추가하면 5판이 더 열려요.'
+                : 'No game attempts left. Add a training note to unlock 5 more games.',
+          ),
+        ),
+      );
+      return;
+    }
+    final nextPlayed = _playedGameCount + 1;
+    await widget.optionRepository.setValue(_gamePlayedCountKey, nextPlayed);
+    if (!mounted) return;
+    setState(() => _playedGameCount = nextPlayed);
+    _startGame();
   }
 
   Widget _buildJoystickControl(BuildContext context) {
