@@ -189,8 +189,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Future<void> _openCoach(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            CoachLessonScreen(optionRepository: widget.optionRepository),
+        builder: (_) => CoachLessonScreen(
+          optionRepository: widget.optionRepository,
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+        ),
       ),
     );
   }

@@ -23,6 +23,7 @@ import '../widgets/watch_cart/watch_cart_card.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'coach_lesson_screen.dart';
+import 'space_speed_game_screen.dart';
 
 class NewsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -164,6 +165,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                 child: Builder(
                   builder: (context) => WatchCartAppBar(
                     onMenuTap: () => Scaffold.of(context).openDrawer(),
+                    onNewsTap: null,
+                    onGameTap: () => _openGame(context),
                     profilePhotoSource:
                         widget.optionRepository.getValue<String>(
                               'profile_photo_url',
@@ -910,8 +913,28 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Future<void> _openCoach(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            CoachLessonScreen(optionRepository: widget.optionRepository),
+        builder: (_) => CoachLessonScreen(
+          optionRepository: widget.optionRepository,
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+        ),
+      ),
+    );
+    if (mounted) _loadProgressive();
+  }
+
+  Future<void> _openGame(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SpaceSpeedGameScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+        ),
       ),
     );
     if (mounted) _loadProgressive();

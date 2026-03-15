@@ -31,6 +31,8 @@ import 'settings_screen.dart';
 import 'profile_screen.dart';
 import 'coach_lesson_screen.dart';
 import 'training_board_list_screen.dart';
+import 'news_screen.dart';
+import 'space_speed_game_screen.dart';
 
 class LogsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -208,6 +210,8 @@ class _LogsScreenState extends State<LogsScreen> {
                       Builder(
                         builder: (context) => WatchCartAppBar(
                           onMenuTap: () => Scaffold.of(context).openDrawer(),
+                          onNewsTap: () => _openNews(context),
+                          onGameTap: () => _openGame(context),
                           profilePhotoSource:
                               widget.optionRepository.getValue<String>(
                                     'profile_photo_url',
@@ -902,8 +906,44 @@ class _LogsScreenState extends State<LogsScreen> {
   Future<void> _openCoach(BuildContext context) async {
     await Navigator.of(context).push(
       AppPageRoute(
-        builder: (_) =>
-            CoachLessonScreen(optionRepository: widget.optionRepository),
+        builder: (_) => CoachLessonScreen(
+          optionRepository: widget.optionRepository,
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openNews(BuildContext context) async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => NewsScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          isActive: true,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openGame(BuildContext context) async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => SpaceSpeedGameScreen(
+          trainingService: widget.trainingService,
+          localeService: widget.localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+        ),
       ),
     );
     if (mounted) setState(() {});

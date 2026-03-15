@@ -2,14 +2,33 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../application/backup_service.dart';
+import '../../application/locale_service.dart';
+import '../../application/settings_service.dart';
+import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/app_background.dart';
+import '../widgets/tab_screen_title.dart';
+import '../widgets/watch_cart/main_app_bar.dart';
+import 'news_screen.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
+import 'space_speed_game_screen.dart';
 
 class CoachLessonScreen extends StatefulWidget {
   final OptionRepository optionRepository;
+  final TrainingService? trainingService;
+  final LocaleService? localeService;
+  final SettingsService? settingsService;
+  final BackupService? driveBackupService;
 
   const CoachLessonScreen({
     super.key,
     required this.optionRepository,
+    this.trainingService,
+    this.localeService,
+    this.settingsService,
+    this.driveBackupService,
   });
 
   @override
@@ -66,60 +85,136 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach'),
+      body: AppBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            children: [
+              WatchCartAppBar(
+                onNewsTap: _canOpenShortcuts ? () => _openNews(context) : null,
+                onGameTap: _canOpenShortcuts ? () => _openGame(context) : null,
+                onProfileTap:
+                    _openProfile == null ? () {} : () => _openProfile!(context),
+                onSettingsTap: _openSettings == null
+                    ? () {}
+                    : () => _openSettings!(context),
+                onCoachTap: null,
+                profilePhotoSource: widget.optionRepository
+                        .getValue<String>('profile_photo_url') ??
+                    '',
+              ),
+              const SizedBox(height: 12),
+              TabScreenTitle(
+                title: _isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach',
+              ),
+              const SizedBox(height: 12),
+              _buildIntroCard(),
+              const SizedBox(height: 12),
+              _buildFlowStepHeader(
+                step: 1,
+                titleKo: '발견',
+                titleEn: 'Discover',
+                subtitleKo: '지금 가장 먼저 고칠 습관을 찾습니다.',
+                subtitleEn: 'Find the one habit to fix first.',
+              ),
+              const SizedBox(height: 8),
+              _buildDiagnosisCard(),
+              const SizedBox(height: 12),
+              _buildFocusHabitCard(),
+              const SizedBox(height: 12),
+              _buildFlowStepHeader(
+                step: 2,
+                titleKo: '교정',
+                titleEn: 'Correct',
+                subtitleKo: '오늘 할 1개 미션에 집중합니다.',
+                subtitleEn: 'Focus on one mission for today.',
+              ),
+              const SizedBox(height: 8),
+              _buildHabitMissionCard(),
+              const SizedBox(height: 12),
+              _buildFlowStepHeader(
+                step: 3,
+                titleKo: '검증',
+                titleEn: 'Verify',
+                subtitleKo: '수행 전/후 지표를 기록하고 실패 패턴을 남깁니다.',
+                subtitleEn:
+                    'Record before/after metrics and log failure patterns.',
+              ),
+              const SizedBox(height: 8),
+              _buildSelfCheckCard(),
+              const SizedBox(height: 12),
+              _buildFailureLogCard(),
+              const SizedBox(height: 12),
+              _buildFlowStepHeader(
+                step: 4,
+                titleKo: '유지',
+                titleEn: 'Maintain',
+                subtitleKo: '7일 기준으로 유지/개선/악화를 판정합니다.',
+                subtitleEn: 'Judge keep/improve/regress based on 7 days.',
+              ),
+              const SizedBox(height: 8),
+              _buildMaintainCard(),
+              const SizedBox(height: 12),
+              _buildWeeklyHabitSummaryCard(),
+            ],
+          ),
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        children: [
-          _buildIntroCard(),
-          const SizedBox(height: 12),
-          _buildFlowStepHeader(
-            step: 1,
-            titleKo: '발견',
-            titleEn: 'Discover',
-            subtitleKo: '지금 가장 먼저 고칠 습관을 찾습니다.',
-            subtitleEn: 'Find the one habit to fix first.',
-          ),
-          const SizedBox(height: 8),
-          _buildDiagnosisCard(),
-          const SizedBox(height: 12),
-          _buildFocusHabitCard(),
-          const SizedBox(height: 12),
-          _buildFlowStepHeader(
-            step: 2,
-            titleKo: '교정',
-            titleEn: 'Correct',
-            subtitleKo: '오늘 할 1개 미션에 집중합니다.',
-            subtitleEn: 'Focus on one mission for today.',
-          ),
-          const SizedBox(height: 8),
-          _buildHabitMissionCard(),
-          const SizedBox(height: 12),
-          _buildFlowStepHeader(
-            step: 3,
-            titleKo: '검증',
-            titleEn: 'Verify',
-            subtitleKo: '수행 전/후 지표를 기록하고 실패 패턴을 남깁니다.',
-            subtitleEn: 'Record before/after metrics and log failure patterns.',
-          ),
-          const SizedBox(height: 8),
-          _buildSelfCheckCard(),
-          const SizedBox(height: 12),
-          _buildFailureLogCard(),
-          const SizedBox(height: 12),
-          _buildFlowStepHeader(
-            step: 4,
-            titleKo: '유지',
-            titleEn: 'Maintain',
-            subtitleKo: '7일 기준으로 유지/개선/악화를 판정합니다.',
-            subtitleEn: 'Judge keep/improve/regress based on 7 days.',
-          ),
-          const SizedBox(height: 8),
-          _buildMaintainCard(),
-          const SizedBox(height: 12),
-          _buildWeeklyHabitSummaryCard(),
-        ],
+    );
+  }
+
+  bool get _canOpenShortcuts =>
+      widget.trainingService != null &&
+      widget.localeService != null &&
+      widget.settingsService != null;
+
+  void Function(BuildContext)? get _openProfile => _canOpenShortcuts
+      ? (context) => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  ProfileScreen(optionRepository: widget.optionRepository),
+            ),
+          )
+      : null;
+
+  void Function(BuildContext)? get _openSettings => _canOpenShortcuts
+      ? (context) => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => SettingsScreen(
+                localeService: widget.localeService!,
+                settingsService: widget.settingsService!,
+                optionRepository: widget.optionRepository,
+                driveBackupService: widget.driveBackupService,
+              ),
+            ),
+          )
+      : null;
+
+  Future<void> _openNews(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NewsScreen(
+          trainingService: widget.trainingService!,
+          localeService: widget.localeService!,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService!,
+          driveBackupService: widget.driveBackupService,
+          isActive: true,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openGame(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SpaceSpeedGameScreen(
+          trainingService: widget.trainingService!,
+          localeService: widget.localeService!,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService!,
+          driveBackupService: widget.driveBackupService,
+        ),
       ),
     );
   }
