@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
@@ -40,6 +41,9 @@ class LogsScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final ValueChanged<TrainingEntry> onEdit;
   final VoidCallback onCreate;
+  final VoidCallback? onQuickPlan;
+  final VoidCallback? onQuickMatch;
+  final VoidCallback? onQuickQuiz;
 
   const LogsScreen({
     super.key,
@@ -50,6 +54,9 @@ class LogsScreen extends StatefulWidget {
     this.driveBackupService,
     required this.onEdit,
     required this.onCreate,
+    this.onQuickPlan,
+    this.onQuickMatch,
+    this.onQuickQuiz,
   });
 
   @override
@@ -177,10 +184,15 @@ class _LogsScreenState extends State<LogsScreen> {
                   .take(_visibleCount.clamp(0, entries.length))
                   .toList(growable: false);
               final l10n = AppLocalizations.of(context)!;
+              final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardService = TrainingBoardService(
                 widget.optionRepository,
               );
               final boardsById = boardService.boardMap();
+              final dashboardData = _buildDashboardData(
+                allEntries: allEntries,
+                boardsById: boardsById,
+              );
 
               return NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
@@ -213,7 +225,47 @@ class _LogsScreenState extends State<LogsScreen> {
                       ),
                       const SizedBox(height: 12),
                       TabScreenTitle(
-                        title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
+                        title: isKo ? '오늘의 훈련 허브' : 'Training Hub',
+                        trailing: _buildWeeklyBadge(
+                          count: dashboardData.weeklyTrainingCount,
+                          isKo: isKo,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _TodayOverviewCard(
+                        data: dashboardData,
+                        isKo: isKo,
+                      ),
+                      const SizedBox(height: 12),
+                      _QuickActionGrid(
+                        isKo: isKo,
+                        onCreate: widget.onCreate,
+                        onQuickMatch: widget.onQuickMatch,
+                        onQuickPlan: widget.onQuickPlan,
+                        onBoardList: _openBoardList,
+                        onQuickQuiz: widget.onQuickQuiz,
+                      ),
+                      const SizedBox(height: 12),
+                      _WeeklySummaryCard(
+                        data: dashboardData,
+                        isKo: isKo,
+                      ),
+                      const SizedBox(height: 12),
+                      _ContinueSection(
+                        data: dashboardData,
+                        isKo: isKo,
+                        onOpenRecentEntry: dashboardData.latestEntry == null
+                            ? null
+                            : () => _onEntryTap(dashboardData.latestEntry!),
+                        onOpenRecentBoard: dashboardData.recentBoard == null
+                            ? null
+                            : _openBoardList,
+                        onOpenNextPlan: widget.onQuickPlan,
+                        onOpenQuiz: widget.onQuickQuiz,
+                      ),
+                      const SizedBox(height: 18),
+                      TabScreenTitle(
+                        title: isKo ? '최근 훈련 기록' : 'Recent Training Logs',
                         trailing: _buildLayoutToggle(),
                       ),
                       const SizedBox(height: 12),
@@ -224,10 +276,7 @@ class _LogsScreenState extends State<LogsScreen> {
                             Localizations.localeOf(context).languageCode == 'ko'
                                 ? '훈련 스케치 리스트'
                                 : 'Training sketch list',
-                        boardListTitle:
-                            Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 스케치'
-                                : 'Sketches',
+                        boardListTitle: isKo ? '훈련 스케치' : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -439,6 +488,152 @@ class _LogsScreenState extends State<LogsScreen> {
         onPressed: widget.onCreate,
         icon: const Icon(Icons.add),
         label: Text(AppLocalizations.of(context)!.addEntry),
+      ),
+    );
+  }
+
+  _LogsDashboardData _buildDashboardData({
+    required List<TrainingEntry> allEntries,
+    required Map<String, TrainingBoard> boardsById,
+  }) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final weekStart = today.subtract(Duration(days: today.weekday - 1));
+    final weekEndExclusive = weekStart.add(const Duration(days: 7));
+    final weeklyEntries = allEntries
+        .where(
+          (entry) =>
+              !entry.date.isBefore(weekStart) &&
+              entry.date.isBefore(weekEndExclusive),
+        )
+        .toList(growable: false);
+    final weeklyMinutes = weeklyEntries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    final latestEntry = allEntries.isEmpty ? null : allEntries.first;
+    final latestEntryDay = latestEntry == null
+        ? null
+        : DateTime(
+            latestEntry.date.year,
+            latestEntry.date.month,
+            latestEntry.date.day,
+          );
+
+    var streakDays = 0;
+    DateTime? cursor = latestEntryDay;
+    final entryDays = allEntries
+        .map((entry) =>
+            DateTime(entry.date.year, entry.date.month, entry.date.day))
+        .toSet();
+    while (cursor != null && entryDays.contains(cursor)) {
+      streakDays++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+
+    final todayPlans = _loadPlans().where((plan) {
+      final day = DateTime(
+        plan.scheduledAt.year,
+        plan.scheduledAt.month,
+        plan.scheduledAt.day,
+      );
+      return day == today;
+    }).toList(growable: false);
+    final nextPlan = _loadPlans()
+        .where((plan) => plan.scheduledAt.isAfter(now))
+        .toList(growable: false)
+      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    final boards = boardsById.values.toList(growable: false)
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final recentBoard = boards.isEmpty ? null : boards.first;
+
+    final totalMood =
+        weeklyEntries.fold<int>(0, (sum, entry) => sum + entry.mood);
+    final averageMood =
+        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
+
+    String strongest;
+    String focus;
+    if (weeklyEntries.length >= 4) {
+      strongest = 'consistency';
+    } else if (averageMood >= 4) {
+      strongest = 'condition';
+    } else if (weeklyMinutes >= 180) {
+      strongest = 'volume';
+    } else {
+      strongest = 'restart';
+    }
+
+    if (weeklyEntries.isEmpty) {
+      focus = 'log_today';
+    } else if (weeklyEntries.length < 3) {
+      focus = 'add_session';
+    } else if (weeklyMinutes < 150) {
+      focus = 'add_minutes';
+    } else if (averageMood < 3) {
+      focus = 'recovery';
+    } else {
+      focus = 'upgrade_quality';
+    }
+
+    final quizCompletedAtRaw = widget.optionRepository.getValue<String>(
+      'skill_quiz_completed_at',
+    );
+    final quizCompletedAt = quizCompletedAtRaw == null
+        ? null
+        : DateTime.tryParse(quizCompletedAtRaw);
+    final quizCompletedToday =
+        quizCompletedAt != null && _isSameDay(quizCompletedAt, now);
+
+    return _LogsDashboardData(
+      todayPlans: todayPlans,
+      nextPlan: nextPlan.isEmpty ? null : nextPlan.first,
+      latestEntry: latestEntry,
+      recentBoard: recentBoard,
+      weeklyTrainingCount: weeklyEntries.length,
+      weeklyMinutes: weeklyMinutes,
+      streakDays: streakDays,
+      strongestSignal: strongest,
+      focusSignal: focus,
+      quizCompletedToday: quizCompletedToday,
+    );
+  }
+
+  List<_DashboardPlan> _loadPlans() {
+    final raw = widget.optionRepository.getValue<String>(
+      'training_plans_v1',
+    );
+    if (raw == null || raw.trim().isEmpty) return const <_DashboardPlan>[];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const <_DashboardPlan>[];
+      return decoded
+          .whereType<Map>()
+          .map((item) => _DashboardPlan.fromMap(item.cast<String, dynamic>()))
+          .toList(growable: false);
+    } catch (_) {
+      return const <_DashboardPlan>[];
+    }
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  Widget _buildWeeklyBadge({required int count, required bool isKo}) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        isKo ? '이번 주 $count회' : '$count this week',
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -1021,6 +1216,550 @@ class _LogFilters {
     required this.program,
     required this.injuryOnly,
   });
+}
+
+class _LogsDashboardData {
+  final List<_DashboardPlan> todayPlans;
+  final _DashboardPlan? nextPlan;
+  final TrainingEntry? latestEntry;
+  final TrainingBoard? recentBoard;
+  final int weeklyTrainingCount;
+  final int weeklyMinutes;
+  final int streakDays;
+  final String strongestSignal;
+  final String focusSignal;
+  final bool quizCompletedToday;
+
+  const _LogsDashboardData({
+    required this.todayPlans,
+    required this.nextPlan,
+    required this.latestEntry,
+    required this.recentBoard,
+    required this.weeklyTrainingCount,
+    required this.weeklyMinutes,
+    required this.streakDays,
+    required this.strongestSignal,
+    required this.focusSignal,
+    required this.quizCompletedToday,
+  });
+}
+
+class _DashboardPlan {
+  final String id;
+  final DateTime scheduledAt;
+  final String category;
+  final int durationMinutes;
+  final String note;
+
+  const _DashboardPlan({
+    required this.id,
+    required this.scheduledAt,
+    required this.category,
+    required this.durationMinutes,
+    required this.note,
+  });
+
+  factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
+    return _DashboardPlan(
+      id: map['id']?.toString() ?? '',
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+          DateTime.now(),
+      category: map['category']?.toString().trim() ?? '',
+      durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
+      note: map['note']?.toString().trim() ?? '',
+    );
+  }
+}
+
+class _TodayOverviewCard extends StatelessWidget {
+  final _LogsDashboardData data;
+  final bool isKo;
+
+  const _TodayOverviewCard({required this.data, required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final latestEntry = data.latestEntry;
+    final todayPlanLabel = data.todayPlans.isEmpty
+        ? (isKo ? '오늘 계획 없음' : 'No plan today')
+        : (isKo
+            ? '오늘 계획 ${data.todayPlans.length}개'
+            : '${data.todayPlans.length} plans today');
+    final latestLabel = latestEntry == null
+        ? (isKo ? '최근 기록 없음' : 'No recent log')
+        : (isKo
+            ? '최근 기록 ${DateFormat('M/d').format(latestEntry.date)}'
+            : 'Last log ${DateFormat('M/d').format(latestEntry.date)}');
+
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo
+                ? '오늘 무엇을 할지 한 번에 확인하세요.'
+                : 'See your next training move at a glance.',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _StatPill(
+                icon: Icons.today_outlined,
+                label: todayPlanLabel,
+              ),
+              _StatPill(
+                icon: Icons.local_fire_department_outlined,
+                label: isKo
+                    ? '${data.streakDays}일 연속'
+                    : '${data.streakDays}-day streak',
+              ),
+              _StatPill(
+                icon: Icons.history,
+                label: latestLabel,
+              ),
+              _StatPill(
+                icon: Icons.timelapse_outlined,
+                label: isKo
+                    ? '주간 ${data.weeklyMinutes}분'
+                    : '${data.weeklyMinutes} min this week',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionGrid extends StatelessWidget {
+  final bool isKo;
+  final VoidCallback onCreate;
+  final VoidCallback? onQuickMatch;
+  final VoidCallback? onQuickPlan;
+  final VoidCallback onBoardList;
+  final VoidCallback? onQuickQuiz;
+
+  const _QuickActionGrid({
+    required this.isKo,
+    required this.onCreate,
+    required this.onQuickMatch,
+    required this.onQuickPlan,
+    required this.onBoardList,
+    required this.onQuickQuiz,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = <_QuickActionItem>[
+      _QuickActionItem(
+        icon: Icons.add_circle_outline,
+        title: isKo ? '훈련 기록' : 'Add log',
+        onTap: onCreate,
+      ),
+      _QuickActionItem(
+        icon: Icons.sports_soccer_outlined,
+        title: isKo ? '시합 기록' : 'Add match',
+        onTap: onQuickMatch,
+      ),
+      _QuickActionItem(
+        icon: Icons.event_note_outlined,
+        title: isKo ? '훈련 계획' : 'Add plan',
+        onTap: onQuickPlan,
+      ),
+      _QuickActionItem(
+        icon: Icons.developer_board_outlined,
+        title: isKo ? '훈련 스케치' : 'Sketches',
+        onTap: onBoardList,
+      ),
+      _QuickActionItem(
+        icon: Icons.quiz_outlined,
+        title: isKo ? '퀴즈 시작' : 'Start quiz',
+        onTap: onQuickQuiz,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isKo ? '빠른 실행' : 'Quick actions',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        const SizedBox(height: 10),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 1.05,
+          ),
+          itemCount: actions.length,
+          itemBuilder: (context, index) => _QuickActionButton(
+            item: actions[index],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _WeeklySummaryCard extends StatelessWidget {
+  final _LogsDashboardData data;
+  final bool isKo;
+
+  const _WeeklySummaryCard({required this.data, required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '이번 주 성장 요약' : 'Weekly growth summary',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _SummaryMetric(
+                  label: isKo ? '훈련 횟수' : 'Sessions',
+                  value: '${data.weeklyTrainingCount}',
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _SummaryMetric(
+                  label: isKo ? '총 시간' : 'Minutes',
+                  value: '${data.weeklyMinutes}',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isKo
+                ? '강점: ${_strongestLabel(data.strongestSignal, true)}'
+                : 'Strongest signal: ${_strongestLabel(data.strongestSignal, false)}',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isKo
+                ? '다음 포커스: ${_focusLabel(data.focusSignal, true)}'
+                : 'Next focus: ${_focusLabel(data.focusSignal, false)}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _strongestLabel(String key, bool isKo) {
+    switch (key) {
+      case 'consistency':
+        return isKo ? '훈련 꾸준함' : 'consistency';
+      case 'condition':
+        return isKo ? '좋은 컨디션' : 'condition';
+      case 'volume':
+        return isKo ? '충분한 훈련량' : 'training volume';
+      case 'restart':
+      default:
+        return isKo ? '다시 시작할 준비' : 'restart momentum';
+    }
+  }
+
+  String _focusLabel(String key, bool isKo) {
+    switch (key) {
+      case 'add_session':
+        return isKo ? '이번 주 1회 더 기록하기' : 'add one more session';
+      case 'add_minutes':
+        return isKo ? '훈련 시간을 조금 더 늘리기' : 'increase minutes';
+      case 'recovery':
+        return isKo ? '회복 중심으로 강도 조절하기' : 'balance recovery';
+      case 'upgrade_quality':
+        return isKo ? '훈련 보드와 함께 질 높이기' : 'upgrade quality with sketches';
+      case 'log_today':
+      default:
+        return isKo ? '오늘 첫 기록 남기기' : 'log today';
+    }
+  }
+}
+
+class _ContinueSection extends StatelessWidget {
+  final _LogsDashboardData data;
+  final bool isKo;
+  final VoidCallback? onOpenRecentEntry;
+  final VoidCallback? onOpenRecentBoard;
+  final VoidCallback? onOpenNextPlan;
+  final VoidCallback? onOpenQuiz;
+
+  const _ContinueSection({
+    required this.data,
+    required this.isKo,
+    required this.onOpenRecentEntry,
+    required this.onOpenRecentBoard,
+    required this.onOpenNextPlan,
+    required this.onOpenQuiz,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <_ContinueItem>[
+      _ContinueItem(
+        title: isKo ? '최근 기록' : 'Latest log',
+        subtitle: data.latestEntry == null
+            ? (isKo ? '기록을 시작해보세요.' : 'Start your first log.')
+            : _entrySubtitle(data.latestEntry!, isKo),
+        icon: Icons.history_toggle_off,
+        onTap: onOpenRecentEntry,
+      ),
+      _ContinueItem(
+        title: isKo ? '다음 계획' : 'Next plan',
+        subtitle: data.nextPlan == null
+            ? (isKo ? '계획을 추가해보세요.' : 'Add a plan.')
+            : _planSubtitle(data.nextPlan!, isKo),
+        icon: Icons.schedule_outlined,
+        onTap: onOpenNextPlan,
+      ),
+      _ContinueItem(
+        title: isKo ? '최근 스케치' : 'Recent sketch',
+        subtitle: data.recentBoard == null
+            ? (isKo ? '첫 스케치를 만들어보세요.' : 'Create your first sketch.')
+            : data.recentBoard!.title,
+        icon: Icons.developer_board_outlined,
+        onTap: onOpenRecentBoard,
+      ),
+      _ContinueItem(
+        title: isKo ? '오늘의 퀴즈' : 'Daily quiz',
+        subtitle: data.quizCompletedToday
+            ? (isKo ? '오늘 퀴즈를 완료했어요.' : 'Quiz completed today.')
+            : (isKo ? '짧게 풀고 판단력 점검' : 'Quick decision-making check.'),
+        icon: Icons.quiz_outlined,
+        onTap: onOpenQuiz,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isKo ? '이어 하기' : 'Continue',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        const SizedBox(height: 10),
+        ...items.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _ContinueCard(item: item),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _entrySubtitle(TrainingEntry entry, bool isKo) {
+    final date = DateFormat('M/d').format(entry.date);
+    final program = entry.program.trim().isEmpty
+        ? (isKo ? '훈련 기록' : 'Training log')
+        : entry.program.trim();
+    return '$date · $program';
+  }
+
+  String _planSubtitle(_DashboardPlan plan, bool isKo) {
+    final date = DateFormat('M/d HH:mm').format(plan.scheduledAt);
+    final category = plan.category.isEmpty
+        ? (isKo ? '훈련 계획' : 'Training plan')
+        : plan.category;
+    return '$date · $category';
+  }
+}
+
+class _QuickActionItem {
+  final IconData icon;
+  final String title;
+  final VoidCallback? onTap;
+
+  const _QuickActionItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+}
+
+class _QuickActionButton extends StatelessWidget {
+  final _QuickActionItem item;
+
+  const _QuickActionButton({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: item.onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.18),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(item.icon, color: theme.colorScheme.primary),
+                const Spacer(),
+                Text(
+                  item.title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _StatPill({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: theme.colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryMetric extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _SummaryMetric({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: theme.textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContinueItem {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _ContinueItem({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+}
+
+class _ContinueCard extends StatelessWidget {
+  final _ContinueItem item;
+
+  const _ContinueCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: ListTile(
+            leading: Icon(item.icon, color: theme.colorScheme.primary),
+            title: Text(
+              item.title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            subtitle: Text(item.subtitle),
+            trailing: const Icon(Icons.chevron_right),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _EntryCard extends StatelessWidget {

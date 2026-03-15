@@ -14,6 +14,7 @@ import 'news_screen.dart';
 import 'space_speed_game_screen.dart';
 import 'entry_form_screen.dart';
 import '../widgets/app_page_route.dart';
+import 'skill_quiz_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -42,6 +43,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late int _index;
   DateTime? _calendarSelectedDay;
+  CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
   final Set<int> _guideCheckedInSession = <int>{};
 
   @override
@@ -65,6 +67,13 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
         onCreate: _openCreate,
+        onQuickPlan: () => _openCalendarQuickCreate(
+          CalendarQuickCreateAction.plan,
+        ),
+        onQuickMatch: () => _openCalendarQuickCreate(
+          CalendarQuickCreateAction.match,
+        ),
+        onQuickQuiz: _openQuiz,
       ),
       CalendarScreen(
         trainingService: widget.trainingService,
@@ -74,7 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction: widget.calendarQuickCreateAction,
+        quickCreateAction: _pendingCalendarQuickCreateAction ??
+            widget.calendarQuickCreateAction,
+        onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
           _calendarSelectedDay = DateTime(day.year, day.month, day.day);
         },
@@ -228,6 +239,28 @@ class _HomeScreenState extends State<HomeScreen> {
           driveBackupService: widget.driveBackupService,
           initialDate: initialDate,
         ),
+      ),
+    );
+  }
+
+  void _openCalendarQuickCreate(CalendarQuickCreateAction action) {
+    setState(() {
+      _pendingCalendarQuickCreateAction = action;
+      _index = 1;
+    });
+    unawaited(_showTabGuideIfNeeded(1));
+  }
+
+  void _clearCalendarQuickCreateAction() {
+    if (_pendingCalendarQuickCreateAction == null) return;
+    setState(() => _pendingCalendarQuickCreateAction = null);
+  }
+
+  Future<void> _openQuiz() async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) =>
+            SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
   }
