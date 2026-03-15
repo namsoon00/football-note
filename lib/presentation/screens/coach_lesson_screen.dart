@@ -74,13 +74,49 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         children: [
           _buildIntroCard(),
           const SizedBox(height: 12),
+          _buildFlowStepHeader(
+            step: 1,
+            titleKo: '발견',
+            titleEn: 'Discover',
+            subtitleKo: '지금 가장 먼저 고칠 습관을 찾습니다.',
+            subtitleEn: 'Find the one habit to fix first.',
+          ),
+          const SizedBox(height: 8),
           _buildDiagnosisCard(),
           const SizedBox(height: 12),
+          _buildFocusHabitCard(),
+          const SizedBox(height: 12),
+          _buildFlowStepHeader(
+            step: 2,
+            titleKo: '교정',
+            titleEn: 'Correct',
+            subtitleKo: '오늘 할 1개 미션에 집중합니다.',
+            subtitleEn: 'Focus on one mission for today.',
+          ),
+          const SizedBox(height: 8),
           _buildHabitMissionCard(),
           const SizedBox(height: 12),
+          _buildFlowStepHeader(
+            step: 3,
+            titleKo: '검증',
+            titleEn: 'Verify',
+            subtitleKo: '수행 전/후 지표를 기록하고 실패 패턴을 남깁니다.',
+            subtitleEn: 'Record before/after metrics and log failure patterns.',
+          ),
+          const SizedBox(height: 8),
           _buildSelfCheckCard(),
           const SizedBox(height: 12),
           _buildFailureLogCard(),
+          const SizedBox(height: 12),
+          _buildFlowStepHeader(
+            step: 4,
+            titleKo: '유지',
+            titleEn: 'Maintain',
+            subtitleKo: '7일 기준으로 유지/개선/악화를 판정합니다.',
+            subtitleEn: 'Judge keep/improve/regress based on 7 days.',
+          ),
+          const SizedBox(height: 8),
+          _buildMaintainCard(),
           const SizedBox(height: 12),
           _buildWeeklyHabitSummaryCard(),
         ],
@@ -106,13 +142,51 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Expanded(
               child: Text(
                 _isKo
-                    ? '레슨/교습서 기능 없이, 습관 진단과 교정 가이드에만 집중합니다.'
-                    : 'No lesson/manual mode. Focus only on habit diagnosis and correction guides.',
+                    ? '루프: 발견 → 교정 → 검증 → 유지. 지금 고칠 습관 1개에 집중하세요.'
+                    : 'Loop: Discover -> Correct -> Verify -> Maintain. Focus on one habit now.',
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFlowStepHeader({
+    required int step,
+    required String titleKo,
+    required String titleEn,
+    required String subtitleKo,
+    required String subtitleEn,
+  }) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 12,
+          child: Text(
+            '$step',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _isKo ? titleKo : titleEn,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              Text(
+                _isKo ? subtitleKo : subtitleEn,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -218,6 +292,44 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  Widget _buildFocusHabitCard() {
+    final habits = _activeHabits();
+    final top = habits.isNotEmpty ? habits.first : null;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: top == null
+            ? Text(
+                _isKo
+                    ? '진단 문항 또는 습관 체크를 입력하면 핵심 습관을 자동으로 제시합니다.'
+                    : 'Once you fill diagnosis/checks, your top habit appears here.',
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isKo ? '지금의 핵심 습관 1개' : 'Your top habit now',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _isKo ? top.labelKo : top.labelEn,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _isKo ? _habitImpactKo(top.id) : _habitImpactEn(top.id),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
   Widget _buildHabitMissionCard() {
     final habits = _activeHabits();
     if (habits.isEmpty) {
@@ -275,6 +387,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       const SizedBox(height: 4),
                       Text(
                         _isKo ? habit.cueKo : habit.cueEn,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isKo
+                            ? '실패 시 대체동작: ${_fallbackCueKo(habit.id)}'
+                            : 'Fallback when failed: ${_fallbackCueEn(habit.id)}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(height: 6),
@@ -348,7 +467,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             FilledButton.icon(
               onPressed: _saveSelfCheck,
               icon: const Icon(Icons.save_outlined),
-              label: Text(_isKo ? '진행도 저장' : 'Save progress'),
+              label: Text(_isKo ? '검증 저장' : 'Save verification'),
             ),
             const SizedBox(height: 10),
             if (_currentProgress != null)
@@ -465,6 +584,45 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   ),
                 );
               }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaintainCard() {
+    final status = _maintainStatus();
+    final missionDoneInWeek = _habitMissionDone.entries
+        .where((entry) => entry.value && _isMissionInLastDays(entry.key, 7))
+        .length;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '유지 판정' : 'Maintain status',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _isKo
+                  ? '최근 7일 미션 완료: $missionDoneInWeek회'
+                  : 'Mission done in 7 days: $missionDoneInWeek',
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _isKo ? '판정: ${status.labelKo}' : 'Status: ${status.labelEn}',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: status.color,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(_isKo ? status.guideKo : status.guideEn),
           ],
         ),
       ),
@@ -822,6 +980,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return DateTime.now().difference(at).inDays < days;
   }
 
+  bool _isMissionInLastDays(String missionKey, int days) {
+    final parts = missionKey.split('::');
+    if (parts.length != 2) return false;
+    final date = DateTime.tryParse(parts[1]);
+    if (date == null) return false;
+    return _withinLastDays(date, days);
+  }
+
   String _skillLabel(String key) {
     switch (key) {
       case 'dribble':
@@ -848,6 +1014,113 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (value > 0) return '+${value.round()}';
     if (value < 0) return value.round().toString();
     return '0';
+  }
+
+  String _habitImpactKo(String id) {
+    switch (id) {
+      case 'head_down':
+      case 'late_scan':
+        return '주변 인식이 늦어 패스 선택이 늦어집니다.';
+      case 'long_first_touch':
+        return '첫 터치 이후 볼 소유 유지율이 떨어집니다.';
+      case 'closed_body':
+      case 'slow_release':
+        return '패스 각도와 타이밍이 줄어 공격 전개가 느려집니다.';
+      case 'lean_back_shot':
+      case 'wrong_plant_foot':
+        return '슈팅 정확도가 떨어져 득점 확률이 낮아집니다.';
+      default:
+        return '반복될수록 경기 중 의사결정 품질이 떨어집니다.';
+    }
+  }
+
+  String _habitImpactEn(String id) {
+    switch (id) {
+      case 'head_down':
+      case 'late_scan':
+        return 'Late scanning delays passing decisions.';
+      case 'long_first_touch':
+        return 'Ball retention drops after first touch.';
+      case 'closed_body':
+      case 'slow_release':
+        return 'Passing angle/timing shrink and buildup slows down.';
+      case 'lean_back_shot':
+      case 'wrong_plant_foot':
+        return 'Shooting accuracy drops and scoring chance falls.';
+      default:
+        return 'Repeated habit lowers game decision quality.';
+    }
+  }
+
+  String _fallbackCueKo(String id) {
+    switch (id) {
+      case 'head_down':
+      case 'late_scan':
+        return '터치 전 멈추고 1초 스캔 후 재시도';
+      case 'long_first_touch':
+        return '터치 강도를 절반으로 줄여 5회 반복';
+      case 'weak_foot_avoid':
+        return '약발만으로 짧은 터치 10회 먼저 수행';
+      case 'closed_body':
+        return '받기 전 어깨를 먼저 열고 제자리 패스';
+      default:
+        return '동작 속도를 낮추고 정확도 우선으로 재시도';
+    }
+  }
+
+  String _fallbackCueEn(String id) {
+    switch (id) {
+      case 'head_down':
+      case 'late_scan':
+        return 'Pause, 1-sec scan, then retry';
+      case 'long_first_touch':
+        return 'Cut touch power in half for 5 reps';
+      case 'weak_foot_avoid':
+        return 'Do 10 short weak-foot reps first';
+      case 'closed_body':
+        return 'Open shoulder before receive, then retry pass';
+      default:
+        return 'Slow down and retry with accuracy first';
+    }
+  }
+
+  _MaintainStatus _maintainStatus() {
+    if (_currentProgress == null || _previousProgress == null) {
+      return _MaintainStatus(
+        labelKo: '데이터 부족',
+        labelEn: 'Not enough data',
+        guideKo: '검증을 2회 이상 저장하면 판정을 제공합니다.',
+        guideEn: 'Save verification 2+ times to get status.',
+        color: Theme.of(context).colorScheme.outline,
+      );
+    }
+    final delta =
+        _currentProgress!.successRate - _previousProgress!.successRate;
+    if (delta >= 5) {
+      return const _MaintainStatus(
+        labelKo: '개선',
+        labelEn: 'Improving',
+        guideKo: '현 난이도를 3일 유지 후 다음 난이도로 올리세요.',
+        guideEn: 'Keep this level for 3 days, then increase difficulty.',
+        color: Colors.green,
+      );
+    }
+    if (delta <= -5) {
+      return const _MaintainStatus(
+        labelKo: '악화',
+        labelEn: 'Regressing',
+        guideKo: '이전 난이도로 2일 롤백하고 핵심 미션 1개만 수행하세요.',
+        guideEn: 'Rollback for 2 days and do only one core mission.',
+        color: Colors.red,
+      );
+    }
+    return const _MaintainStatus(
+      labelKo: '유지',
+      labelEn: 'Stable',
+      guideKo: '현재 강도로 반복하면서 실패 패턴을 줄이세요.',
+      guideEn: 'Keep current intensity and reduce failure patterns.',
+      color: Colors.orange,
+    );
   }
 }
 
@@ -976,6 +1249,22 @@ class _HabitQuestion {
     required this.titleKo,
     required this.titleEn,
     required this.habitIds,
+  });
+}
+
+class _MaintainStatus {
+  final String labelKo;
+  final String labelEn;
+  final String guideKo;
+  final String guideEn;
+  final Color color;
+
+  const _MaintainStatus({
+    required this.labelKo,
+    required this.labelEn,
+    required this.guideKo,
+    required this.guideEn,
+    required this.color,
   });
 }
 
