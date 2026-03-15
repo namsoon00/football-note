@@ -10,6 +10,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../application/backup_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/locale_service.dart';
+import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
@@ -17,6 +18,7 @@ import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/app_feedback.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -800,6 +802,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
     await _savePlans();
     await _syncPlanReminders();
+    if (editingPlan == null) {
+      final award = await PlayerLevelService(
+        widget.optionRepository,
+      ).awardForPlanCreated(planId: saved.id);
+      if (!mounted || award.gainedXp <= 0) return;
+      AppFeedback.showSuccess(
+        context,
+        text: isKo
+            ? '훈련 계획 저장 +${award.gainedXp} XP'
+            : 'Plan saved +${award.gainedXp} XP',
+      );
+    }
   }
 
   Future<void> _openMatchSheet({
