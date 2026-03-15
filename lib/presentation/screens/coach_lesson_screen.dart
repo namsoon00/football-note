@@ -8,7 +8,6 @@ import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
-import '../widgets/tab_screen_title.dart';
 
 class CoachLessonScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -64,27 +63,23 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   double _editSuccessRate = 60;
   int _editStreak = 6;
   double _editWeakFootRate = 40;
+  DateTime? _lastSavedAt;
   int _currentFlowStep = 0;
   static const List<_FlowStepMeta> _flowSteps = <_FlowStepMeta>[
     _FlowStepMeta(
       index: 0,
-      titleKo: '탐정',
-      titleEn: 'Detective',
+      titleKo: '찾기',
+      titleEn: 'Find',
     ),
     _FlowStepMeta(
       index: 1,
-      titleKo: '미션',
-      titleEn: 'Mission',
+      titleKo: '실행',
+      titleEn: 'Do',
     ),
     _FlowStepMeta(
       index: 2,
-      titleKo: '점검',
-      titleEn: 'Check',
-    ),
-    _FlowStepMeta(
-      index: 3,
-      titleKo: '성장',
-      titleEn: 'Growth',
+      titleKo: '결과',
+      titleEn: 'Result',
     ),
   ];
 
@@ -104,9 +99,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget build(BuildContext context) {
     final activeStep = _flowSteps[_currentFlowStep];
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach'),
-      ),
       body: AppBackground(
         child: SafeArea(
           child: Column(
@@ -115,20 +107,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Column(
                   children: [
-                    TabScreenTitle(
-                      title:
-                          _isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach',
-                    ),
-                    const SizedBox(height: 12),
                     _buildIntroCard(),
                     const SizedBox(height: 12),
                     _buildFlowNavigator(),
-                    const SizedBox(height: 8),
-                    _buildFlowStepHeader(
-                      step: activeStep.index + 1,
-                      titleKo: activeStep.titleKo,
-                      titleEn: activeStep.titleEn,
-                    ),
                   ],
                 ),
               ),
@@ -141,10 +122,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     children: _buildActiveStepWidgets(activeStep.index),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: _buildFlowControls(),
               ),
             ],
           ),
@@ -176,52 +153,25 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   List<Widget> _buildActiveStepWidgets(int step) {
     if (step == 0) {
       return [
-        _buildDiagnosisCard(),
-        const SizedBox(height: 12),
         _buildFocusHabitCard(),
+        const SizedBox(height: 12),
+        _buildDiagnosisCard(),
       ];
     }
     if (step == 1) {
-      return [_buildHabitMissionCard()];
-    }
-    if (step == 2) {
       return [
-        _buildSelfCheckCard(),
+        _buildHabitMissionCard(),
         const SizedBox(height: 12),
         _buildFailureLogCard(),
       ];
     }
     return [
+      _buildSelfCheckCard(),
+      const SizedBox(height: 12),
       _buildMaintainCard(),
       const SizedBox(height: 12),
       _buildWeeklyHabitSummaryCard(),
     ];
-  }
-
-  Widget _buildFlowControls() {
-    final atStart = _currentFlowStep == 0;
-    final atEnd = _currentFlowStep == _flowSteps.length - 1;
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed:
-                atStart ? null : () => setState(() => _currentFlowStep -= 1),
-            icon: const Icon(Icons.arrow_back),
-            label: Text(_isKo ? '뒤로' : 'Back'),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: FilledButton.icon(
-            onPressed:
-                atEnd ? null : () => setState(() => _currentFlowStep += 1),
-            icon: const Icon(Icons.arrow_forward),
-            label: Text(_isKo ? '다음' : 'Next'),
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildIntroCard() {
@@ -258,6 +208,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ),
                   ),
                 ),
+                if (_lastSavedAt != null)
+                  Chip(
+                    visualDensity: VisualDensity.compact,
+                    label: Text(_isKo ? '저장됨' : 'Saved'),
+                  ),
               ],
             ),
             const SizedBox(height: 10),
@@ -271,7 +226,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildQuestionCard(_HabitQuestion question) {
-    final selected = _questionAnswers[question.id] == true;
+    final isYes = _questionAnswers[question.id] == true;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
@@ -288,9 +243,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             children: [
               Expanded(
                 child: FilledButton.tonal(
-                  onPressed: () {
+                  style: FilledButton.styleFrom(
+                    backgroundColor: isYes
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : null,
+                  ),
+                  onPressed: () async {
                     setState(() => _questionAnswers[question.id] = true);
-                    _saveQuestionAnswers();
+                    await _saveQuestionAnswers();
                   },
                   child: Text(_isKo ? '맞아요' : 'Yes'),
                 ),
@@ -298,16 +258,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     setState(() => _questionAnswers[question.id] = false);
-                    _saveQuestionAnswers();
+                    await _saveQuestionAnswers();
                   },
-                  style: selected
-                      ? null
-                      : OutlinedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.surface,
-                        ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: isYes
+                        ? Theme.of(context).colorScheme.surface
+                        : Theme.of(context).colorScheme.primaryContainer,
+                  ),
                   child: Text(_isKo ? '괜찮아요' : 'No'),
                 ),
               ),
@@ -336,33 +295,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           },
         );
       }).toList(growable: false),
-    );
-  }
-
-  Widget _buildFlowStepHeader({
-    required int step,
-    required String titleKo,
-    required String titleEn,
-  }) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 12,
-          child: Text(
-            '$step',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            _isKo ? titleKo : titleEn,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -577,27 +509,36 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               runSpacing: 8,
               children: [
                 FilledButton.tonal(
-                  onPressed: () => setState(() {
-                    _editSuccessRate = 30;
-                    _editStreak = 2;
-                    _editWeakFootRate = 20;
-                  }),
+                  onPressed: () async {
+                    setState(() {
+                      _editSuccessRate = 30;
+                      _editStreak = 2;
+                      _editWeakFootRate = 20;
+                    });
+                    await _saveSelfCheck();
+                  },
                   child: Text(_isKo ? '어려웠어' : 'Hard'),
                 ),
                 FilledButton.tonal(
-                  onPressed: () => setState(() {
-                    _editSuccessRate = 60;
-                    _editStreak = 6;
-                    _editWeakFootRate = 45;
-                  }),
+                  onPressed: () async {
+                    setState(() {
+                      _editSuccessRate = 60;
+                      _editStreak = 6;
+                      _editWeakFootRate = 45;
+                    });
+                    await _saveSelfCheck();
+                  },
                   child: Text(_isKo ? '보통이야' : 'Okay'),
                 ),
                 FilledButton.tonal(
-                  onPressed: () => setState(() {
-                    _editSuccessRate = 85;
-                    _editStreak = 12;
-                    _editWeakFootRate = 70;
-                  }),
+                  onPressed: () async {
+                    setState(() {
+                      _editSuccessRate = 85;
+                      _editStreak = 12;
+                      _editWeakFootRate = 70;
+                    });
+                    await _saveSelfCheck();
+                  },
                   child: Text(_isKo ? '잘했어' : 'Great'),
                 ),
               ],
@@ -923,16 +864,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Future<void> _saveDiagnosisScores() async {
     await widget.optionRepository
         .setValue(_diagnosisKey, jsonEncode(_diagnosisScores));
+    _markSaved();
   }
 
   Future<void> _saveHabitFlags() async {
     await widget.optionRepository
         .setValue(_habitFlagsKey, jsonEncode(_habitFlags));
+    _markSaved();
   }
 
   Future<void> _saveQuestionAnswers() async {
     await widget.optionRepository
         .setValue(_habitQuestionAnswersKey, jsonEncode(_questionAnswers));
+    _markSaved();
   }
 
   Future<void> _saveSelfCheck() async {
@@ -955,6 +899,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       await widget.optionRepository
           .setValue(_progressPreviousKey, jsonEncode(previous.toMap()));
     }
+    _markSaved();
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -969,6 +914,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     setState(() => _habitMissionDone = next);
     await widget.optionRepository
         .setValue(_habitMissionDoneKey, jsonEncode(next));
+    _markSaved();
   }
 
   Future<void> _logFailure(String habitId) async {
@@ -981,6 +927,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       _failureLogsKey,
       jsonEncode(next.map((e) => e.toMap()).toList(growable: false)),
     );
+    _markSaved();
   }
 
   Set<String> _detectedHabitIdsByQuestion() {
@@ -1154,6 +1101,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       jsonEncode(next.map((habit) => habit.toMap()).toList(growable: false)),
     );
     await _saveHabitFlags();
+  }
+
+  void _markSaved() {
+    if (!mounted) return;
+    setState(() => _lastSavedAt = DateTime.now());
   }
 
   String _todayMissionKey(String habitId) {
