@@ -65,6 +65,7 @@ class TrainingPlanReminderService {
       ),
     );
     await androidImpl?.requestNotificationsPermission();
+    await androidImpl?.requestExactAlarmsPermission();
 
     final iosImpl = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
@@ -116,27 +117,31 @@ class TrainingPlanReminderService {
           ? 'Training starts soon: ${plan.category}'
           : 'Training in ${plan.reminderMinutesBefore} min: ${plan.category}';
 
-      await _plugin.zonedSchedule(
-        id,
-        title,
-        body,
-        tz.TZDateTime.from(reminderAt, tz.local),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            _androidChannelId,
-            _androidChannelName,
-            channelDescription: _androidChannelDescription,
-            importance: Importance.high,
-            priority: Priority.high,
+      try {
+        await _plugin.zonedSchedule(
+          id,
+          title,
+          body,
+          tz.TZDateTime.from(reminderAt, tz.local),
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              _androidChannelId,
+              _androidChannelName,
+              channelDescription: _androidChannelDescription,
+              importance: Importance.high,
+              priority: Priority.high,
+            ),
+            iOS: DarwinNotificationDetails(),
           ),
-          iOS: DarwinNotificationDetails(),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        payload: plan.id,
-      );
-      scheduledIds.add(id);
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          payload: plan.id,
+        );
+        scheduledIds.add(id);
+      } catch (_) {
+        // Keep syncing the rest of reminders even if one schedule fails.
+      }
     }
 
     await _options.setValue(reminderIdsKey, scheduledIds);

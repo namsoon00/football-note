@@ -580,4 +580,126 @@ class AppLocalizationsEn extends AppLocalizations {
   String photoLimitReached(Object value) {
     return 'You can add up to $value photos.';
   }
+
+  @override
+  String get gameGuideTitle => 'Game Guide';
+
+  @override
+  String get gameGuideQuickTitle => '10s Quick Start';
+
+  @override
+  String get gameGuideQuickLine1 =>
+      'Goal: increase rank score with passes and goals within time.';
+
+  @override
+  String get gameGuideQuickLine2 =>
+      'Control: left joystick move / hold pass button to charge power.';
+
+  @override
+  String get gameGuideQuickLine3 =>
+      'Scoring: pass +1, goal +3 (goals heavily affect rank).';
+
+  @override
+  String get gameGuideQuickLine4 =>
+      'Failure: intercept/miss/no-pass-for-3s/collision cause penalties.';
+
+  @override
+  String get gameGuideRiskTitle => 'Risk vs Reward';
+
+  @override
+  String get gameGuideRiskLine1 =>
+      'Safe pass: higher success rate, better for combo stability.';
+
+  @override
+  String get gameGuideRiskLine2 =>
+      'Forward pass: harder return, but faster progression when successful.';
+
+  @override
+  String get gameGuideRiskLine3 =>
+      'Shot timing: success increases when keeper leaves larger gaps.';
+
+  @override
+  String get gameGuideRiskLine4 =>
+      'Key: switch between safe and risky choices by context.';
+
+  @override
+  String get gameGuideFailureTitle => 'Failure Decoder';
+
+  @override
+  String get gameGuideFailureLine1 =>
+      'Intercepted: lane too closed, re-open passing angle.';
+
+  @override
+  String get gameGuideFailureLine2 =>
+      'Too fast/slow: fine-tune power by hold duration.';
+
+  @override
+  String get gameGuideFailureLine3 =>
+      'Shot saved: separate timing and target opposite keeper side.';
+
+  @override
+  String get gameGuideFailureLine4 =>
+      'No-pass-3s: keep quick decision rhythm to maintain flow.';
+
+  @override
+  String get gameGuideRankingTitle => 'Ranking Formula';
+
+  @override
+  String get gameGuideRankingLine1 =>
+      'Rank score = (pass score x 10) + (level x 15) + (goals x 60).';
+
+  @override
+  String get gameGuideRankingLine2 => 'S: 320+ / A: 240+ / B: 170+';
+
+  @override
+  String get gameGuideRankingLine3 => 'C: 110+ / D: below 110';
+
+  @override
+  String get gameGuideRankingLine4 =>
+      'Tip: goals are heavily weighted, so shot success matters most.';
+
+  @override
+  String get gameGuideCharPacTitle => 'Pacman Attacker';
+
+  @override
+  String get gameGuideCharPacSubtitle => 'Starts and links passes';
+
+  @override
+  String get gameGuideCharPacTag => 'ATTACK';
+
+  @override
+  String get gameGuideCharBlueTitle => 'Blue Ghost - BLOCK';
+
+  @override
+  String get gameGuideCharBlueSubtitle => 'Blocks passing lanes';
+
+  @override
+  String get gameGuideCharBlueTag => 'BLOCK';
+
+  @override
+  String get gameGuideCharOrangeTitle => 'Orange Ghost - PRESS';
+
+  @override
+  String get gameGuideCharOrangeSubtitle => 'Pressure near ball';
+
+  @override
+  String get gameGuideCharOrangeTag => 'PRESS';
+
+  @override
+  String get gameGuideCharRedTitle => 'Red Ghost - MARK';
+
+  @override
+  String get gameGuideCharRedSubtitle => 'Marks the passer';
+
+  @override
+  String get gameGuideCharRedTag => 'MARK';
+
+  @override
+  String get gameGuideCharPinkTitle => 'Pink Ghost - READ';
+
+  @override
+  String get gameGuideCharPinkSubtitle => 'Anticipates receiver route';
+
+  @override
+  String get gameGuideCharPinkTag => 'READ';
 }

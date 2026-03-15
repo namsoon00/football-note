@@ -46,6 +46,7 @@ class AppFeedback {
     required VoidCallback onUndo,
   }) {
     final messenger = ScaffoldMessenger.of(context);
+    final scheme = Theme.of(context).colorScheme;
     messenger
       ..removeCurrentSnackBar()
       ..showSnackBar(
@@ -53,8 +54,20 @@ class AppFeedback {
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           duration: const Duration(seconds: 5),
-          content: Text(text),
-          action: SnackBarAction(label: undoLabel, onPressed: onUndo),
+          content: Row(
+            children: [
+              Expanded(child: Text(text)),
+              TextButton(
+                onPressed: onUndo,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  foregroundColor: scheme.inversePrimary,
+                ),
+                child: Text(undoLabel),
+              ),
+            ],
+          ),
         ),
       );
   }

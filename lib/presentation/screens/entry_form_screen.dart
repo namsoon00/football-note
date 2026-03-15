@@ -75,6 +75,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _isListening = false;
   bool _speechInitialized = false;
   bool _speechAvailable = false;
+  bool _disposing = false;
 
   List<String> _locationOptions = [];
   List<String> _programOptions = [];
@@ -657,6 +658,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   @override
   void dispose() {
+    _disposing = true;
+    _listeningSession++;
+    _isListening = false;
+    _listeningController = null;
+    _sessionRecognizedWords = '';
+    _sessionCommitted = true;
     _autoSaveTimer?.cancel();
     unawaited(_speech.cancel());
     _goodPointsController.dispose();
@@ -1458,6 +1465,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     TextEditingController controller,
     AppLocalizations l10n,
   ) async {
+    if (!mounted || _disposing) return;
     if (_isListening) {
       _listeningSession++;
       final wasListeningForSameController = _listeningController == controller;
@@ -1510,6 +1518,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     await _speech.listen(
       localeId: localeId,
       onResult: (result) {
+        if (!mounted || _disposing) return;
         if (listeningSession != _listeningSession) return;
         final recognized = result.recognizedWords.trim();
         if (recognized.isEmpty) return;
@@ -1523,6 +1532,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _speechInitialized = true;
     _speechAvailable = await _speech.initialize(
       onStatus: (status) {
+        if (!mounted || _disposing) return;
         if (!_isListening) return;
         if (status == 'done' || status == 'notListening') {
           if (_listeningController != null &&
@@ -1535,7 +1545,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               isKoreanLocale: locale.startsWith('ko'),
             );
           }
-          if (!mounted) return;
           setState(() {
             _isListening = false;
             _listeningController = null;
@@ -1545,7 +1554,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         }
       },
       onError: (_) {
-        if (!mounted) return;
+        if (!mounted || _disposing) return;
         setState(() {
           _isListening = false;
           _listeningController = null;
@@ -1562,6 +1571,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required String recognized,
     required bool isKoreanLocale,
   }) {
+    if (!mounted || _disposing) return;
     final normalized = recognized.trim();
     if (normalized.isEmpty || _sessionCommitted) return;
 
@@ -1578,11 +1588,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
     final nextText = '$currentText$separator$normalized';
-    controller.value = controller.value.copyWith(
-      text: nextText,
-      selection: TextSelection.collapsed(offset: nextText.length),
-      composing: TextRange.empty,
-    );
+    try {
+      controller.value = controller.value.copyWith(
+        text: nextText,
+        selection: TextSelection.collapsed(offset: nextText.length),
+        composing: TextRange.empty,
+      );
+    } on FlutterError {
+      // Ignore late callbacks from speech recognition after screen teardown.
+      return;
+    }
     _sessionCommitted = true;
     _scheduleAutoSave();
   }
@@ -1612,9 +1627,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Future<void> _showTodayFortuneInNote() async {
     if (!_fortuneEnabled) return;
+    if (!mounted || _disposing) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final profile = PlayerProfileService(widget.optionRepository).load();
     final allEntries = await widget.trainingService.allEntries();
+    if (!mounted || _disposing) return;
     final goodPoints = _goodPointsController.text.trim();
     final improvements = _improvementsController.text.trim();
     final draft = TrainingEntry(
@@ -1704,11 +1721,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (_saveInProgress) return;
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer(const Duration(milliseconds: 700), () {
+      if (!mounted || _disposing) return;
       _save(popAfterSave: false, silent: true);
     });
   }
 
   Future<void> _save({bool popAfterSave = true, bool silent = false}) async {
+    if (!mounted || _disposing) return;
     if (_saveInProgress) return;
     if (_autoSaving) return;
     if (!(_formKey.currentState?.validate() ?? false)) {
@@ -1728,6 +1747,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final durationMinutes = _durationMinutes;
       final profile = PlayerProfileService(widget.optionRepository).load();
       final allEntries = await widget.trainingService.allEntries();
+      if (!mounted || _disposing) return;
       final liftingByPart = _liftingEnabled
           ? (<String, int>{
               'infront': _parseLiftCount(_liftChestController.text),
@@ -2106,10 +2126,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         undoLabel: isKo ? '되돌리기' : 'Undo',
         onUndo: () {
           unawaited(widget.trainingService.add(target));
-          AppFeedback.showSuccess(
-            context,
-            text: isKo ? '삭제를 되돌렸어요.' : 'Delete undone.',
-          );
         },
       );
       Navigator.of(context).pop();

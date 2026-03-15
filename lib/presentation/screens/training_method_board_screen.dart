@@ -832,6 +832,38 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _copyPresetBoard(preset: selected.preset, page: selected.page, isKo: isKo);
   }
 
+  Future<void> _copyCurrentManagedBoard(bool isKo) async {
+    if (!_isManagedMode || _managedBoardService == null) return;
+    final currentTitle = _resolvedCurrentBoardTitle(isKo);
+    final title = await _showBoardNameDialog(
+      isKo: isKo,
+      titleKo: '스케치 복사',
+      titleEn: 'Copy sketch',
+      confirmKo: '복사',
+      confirmEn: 'Copy',
+      initialValue: isKo ? '$currentTitle 복사본' : '$currentTitle Copy',
+    );
+    if (!mounted || title == null) return;
+    final created = await _managedBoardService!.createBoard(
+      title: title,
+      layoutJson: _serialize(),
+    );
+    if (!mounted) return;
+    setState(() {
+      _managedBoards = _managedBoardService!.allBoards();
+      _selectedBoardIds.add(created.id);
+      _loadBoard(created);
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isKo ? '현재 스케치를 복사했습니다.' : 'Current sketch copied.',
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleBackPressed(bool isKo) async {
     if (!_hasUnsavedChanges) {
       Navigator.of(
@@ -1295,14 +1327,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ),
             ],
           ),
-          actions: [
-            if (widget.presets.isNotEmpty)
-              IconButton(
-                tooltip: isKo ? '훈련 스케치 복사' : 'Copy sketch',
-                icon: const Icon(Icons.copy_all_outlined),
-                onPressed: () => _showPresetPicker(isKo),
-              ),
-          ],
         ),
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -1461,63 +1485,97 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Widget _buildPageHeader(bool isKo) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_isManagedMode)
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: _currentBoardId == null
-                  ? null
-                  : () => _showManagedBoardPicker(isKo),
-              icon: const Icon(Icons.view_list_outlined),
-              label: Text(
-                _resolvedCurrentBoardTitle(isKo),
-                overflow: TextOverflow.ellipsis,
-              ),
+        InkWell(
+          onTap: _isManagedMode && _currentBoardId != null
+              ? () => _showManagedBoardPicker(isKo)
+              : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _resolvedCurrentBoardTitle(isKo),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (_isManagedMode && _currentBoardId != null)
+                  Icon(
+                    Icons.unfold_more,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+              ],
             ),
-          )
-        else
-          const Spacer(),
-        if (_isManagedMode) const SizedBox(width: 8),
-        if (_isManagedMode)
-          IconButton(
-            onPressed: () => _promptForManagedBoardCreation(),
-            icon: const Icon(Icons.add_box_outlined),
-            tooltip: isKo ? '스케치 추가' : 'Add sketch',
           ),
-        if (_isManagedMode)
-          IconButton(
-            onPressed: _currentBoardId == null
-                ? null
-                : () => _deleteCurrentManagedBoard(isKo),
-            icon: const Icon(Icons.delete_outline),
-            tooltip: isKo ? '스케치 삭제' : 'Delete sketch',
-          ),
-        IconButton(
-          onPressed: () => _playPlayerPath(isKo),
-          icon: Icon(
-            _playController.isAnimating
-                ? Icons.stop_circle_outlined
-                : Icons.play_circle_outline,
-          ),
-          tooltip: isKo ? '플레이' : 'Play',
         ),
-        PopupMenuButton<double>(
-          tooltip: isKo ? '재생 속도' : 'Playback speed',
-          icon: const Icon(Icons.speed_outlined),
-          initialValue: _playSpeed,
-          onSelected: (value) => setState(() => _playSpeed = value),
-          itemBuilder: (_) => [
-            const PopupMenuItem<double>(value: 0.75, child: Text('0.75x')),
-            const PopupMenuItem<double>(value: 1.0, child: Text('1.0x')),
-            const PopupMenuItem<double>(value: 1.25, child: Text('1.25x')),
-            const PopupMenuItem<double>(value: 1.5, child: Text('1.5x')),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 2,
+          runSpacing: 2,
+          alignment: WrapAlignment.end,
+          children: [
+            if (_isManagedMode)
+              IconButton(
+                onPressed: () => _promptForManagedBoardCreation(),
+                icon: const Icon(Icons.add_box_outlined),
+                tooltip: isKo ? '스케치 추가' : 'Add sketch',
+              ),
+            if (_isManagedMode)
+              IconButton(
+                onPressed: () => _copyCurrentManagedBoard(isKo),
+                icon: const Icon(Icons.copy_outlined),
+                tooltip: isKo ? '현재 스케치 복사' : 'Copy current sketch',
+              ),
+            if (_isManagedMode)
+              IconButton(
+                onPressed: _currentBoardId == null
+                    ? null
+                    : () => _deleteCurrentManagedBoard(isKo),
+                icon: const Icon(Icons.delete_outline),
+                tooltip: isKo ? '스케치 삭제' : 'Delete sketch',
+              ),
+            if (widget.presets.isNotEmpty)
+              IconButton(
+                onPressed: () => _showPresetPicker(isKo),
+                icon: const Icon(Icons.copy_all_outlined),
+                tooltip: isKo ? '이전 스케치 가져오기' : 'Import previous sketch',
+              ),
+            IconButton(
+              onPressed: () => _playPlayerPath(isKo),
+              icon: Icon(
+                _playController.isAnimating
+                    ? Icons.stop_circle_outlined
+                    : Icons.play_circle_outline,
+              ),
+              tooltip: isKo ? '플레이' : 'Play',
+            ),
+            PopupMenuButton<double>(
+              tooltip: isKo ? '재생 속도' : 'Playback speed',
+              icon: const Icon(Icons.speed_outlined),
+              initialValue: _playSpeed,
+              onSelected: (value) => setState(() => _playSpeed = value),
+              itemBuilder: (_) => [
+                const PopupMenuItem<double>(value: 0.75, child: Text('0.75x')),
+                const PopupMenuItem<double>(value: 1.0, child: Text('1.0x')),
+                const PopupMenuItem<double>(value: 1.25, child: Text('1.25x')),
+                const PopupMenuItem<double>(value: 1.5, child: Text('1.5x')),
+              ],
+            ),
+            IconButton(
+              onPressed: () => _renameCurrentPage(isKo),
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: isKo ? '스케치명 수정' : 'Rename sketch',
+            ),
           ],
-        ),
-        IconButton(
-          onPressed: () => _renameCurrentPage(isKo),
-          icon: const Icon(Icons.edit_outlined),
-          tooltip: isKo ? '스케치명 수정' : 'Rename sketch',
         ),
       ],
     );

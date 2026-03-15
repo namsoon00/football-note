@@ -111,27 +111,36 @@ class _LabeledCountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final highlightColor = icon != null
+    final emphasize = icon != null && onTap != null;
+    final highlightColor =
+        emphasize ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
+    final borderColor = emphasize
         ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface;
+        : const Color.fromRGBO(230, 230, 230, 1);
+    final backgroundColor =
+        emphasize ? theme.colorScheme.primary : Colors.transparent;
     return Semantics(
       label: semanticLabel,
       button: onTap != null,
       child: Material(
-        color: Colors.transparent,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(8.0),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8.0),
-          splashColor: WatchCartConstants.primaryColor.withAlpha(30),
-          highlightColor: WatchCartConstants.primaryColor.withAlpha(15),
+          splashColor: emphasize
+              ? theme.colorScheme.onPrimary.withAlpha(40)
+              : WatchCartConstants.primaryColor.withAlpha(30),
+          highlightColor: emphasize
+              ? theme.colorScheme.onPrimary.withAlpha(24)
+              : WatchCartConstants.primaryColor.withAlpha(15),
           child: Container(
             width: double.infinity,
             height: 60.0,
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
+              border: Border.all(color: borderColor),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -140,7 +149,7 @@ class _LabeledCountButton extends StatelessWidget {
                   child: Row(
                     children: [
                       if (icon != null) ...[
-                        Icon(icon, size: 24, color: theme.colorScheme.primary),
+                        Icon(icon, size: 24, color: highlightColor),
                         const SizedBox(width: 8),
                       ],
                       Expanded(
@@ -161,7 +170,9 @@ class _LabeledCountButton extends StatelessWidget {
                   width: 26.0,
                   height: 26.0,
                   decoration: BoxDecoration(
-                    color: highlightColor.withValues(alpha: 0.12),
+                    color: emphasize
+                        ? theme.colorScheme.onPrimary.withAlpha(36)
+                        : highlightColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Center(

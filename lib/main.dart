@@ -19,7 +19,6 @@ import 'application/backup_service.dart';
 import 'application/drive_backup_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
-import 'presentation/screens/welcome_screen.dart';
 import 'presentation/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -148,19 +147,14 @@ class _EntryGate extends StatefulWidget {
 }
 
 class _EntryGateState extends State<_EntryGate> {
-  bool _entered = false;
-
   @override
   Widget build(BuildContext context) {
-    if (_entered) {
-      return HomeScreen(
-        trainingService: widget.trainingService,
-        optionRepository: widget.optionRepository,
-        localeService: widget.localeService,
-        settingsService: widget.settingsService,
-        driveBackupService: widget.driveBackupService,
-      );
-    }
-    return WelcomeScreen(onStart: () => setState(() => _entered = true));
+    return HomeScreen(
+      trainingService: widget.trainingService,
+      optionRepository: widget.optionRepository,
+      localeService: widget.localeService,
+      settingsService: widget.settingsService,
+      driveBackupService: widget.driveBackupService,
+    );
   }
 }
