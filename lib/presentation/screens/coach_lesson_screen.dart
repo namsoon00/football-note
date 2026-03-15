@@ -23,8 +23,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _diagnosisKey = 'manual_diagnosis_scores_v1';
   static const String _progressCurrentKey = 'manual_progress_current_v1';
   static const String _progressPreviousKey = 'manual_progress_previous_v1';
+  static const String _habitFlagsKey = 'manual_habit_flags_v1';
+  static const String _habitMissionDoneKey = 'manual_habit_mission_done_v1';
+  static const String _failureLogsKey = 'manual_failure_logs_v1';
 
-  late final List<_CoachLesson> _lessons;
+  late final List<_ManualLesson> _lessons;
   late String _selectedLessonId;
   _ManualTab _tab = _ManualTab.diagnosis;
 
@@ -39,13 +42,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Map<String, _ManualProgress> _previousProgressByLesson =
       <String, _ManualProgress>{};
 
+  final Map<String, bool> _habitFlags = <String, bool>{
+    for (final habit in _habitCatalog) habit.id: false,
+  };
+  Map<String, bool> _habitMissionDone = <String, bool>{};
+  List<_FailureLog> _failureLogs = <_FailureLog>[];
+
   double _editSuccessRate = 60;
   int _editStreak = 6;
   double _editWeakFootRate = 40;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
-
-  _CoachLesson get _selectedLesson =>
+  _ManualLesson get _selectedLesson =>
       _lessons.firstWhere((lesson) => lesson.id == _selectedLessonId);
 
   @override
@@ -64,9 +72,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isKo ? '축구 교습서' : 'Football Manual'),
-      ),
+      appBar: AppBar(title: Text(_isKo ? '축구 교습서' : 'Football Manual')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
@@ -108,6 +114,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             _buildLessonSelector(),
             const SizedBox(height: 12),
             _buildSelfCheckCard(),
+            const SizedBox(height: 12),
+            _buildHabitMissionCard(),
+            const SizedBox(height: 12),
+            _buildFailureLogCard(),
+            const SizedBox(height: 12),
+            _buildWeeklyHabitSummaryCard(),
           ],
         ],
       ),
@@ -132,9 +144,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Expanded(
               child: Text(
                 _isKo
-                    ? 'U12 자습서: 진단 → 학습 → 따라하기 → 자가체크 순서로 스스로 성장하세요.'
-                    : 'U12 self-study: Diagnose -> Learn -> Practice -> Self-check.',
-                style: Theme.of(context).textTheme.bodyMedium,
+                    ? 'U12 자습서: 진단 → 학습 → 따라하기 → 자가체크로 성장하고, 나쁜 습관을 교정하세요.'
+                    : 'U12 self-study: Diagnose -> Learn -> Practice -> Self-check, then fix bad habits.',
               ),
             ),
           ],
@@ -213,10 +224,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '${_skillLabel(entry.key)}: ${entry.value}/5',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    Text('${_skillLabel(entry.key)}: ${entry.value}/5'),
                     Slider(
                       value: entry.value.toDouble(),
                       min: 1,
@@ -224,9 +232,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       divisions: 4,
                       label: entry.value.toString(),
                       onChanged: (v) {
-                        setState(() {
-                          _diagnosisScores[entry.key] = v.round();
-                        });
+                        setState(() => _diagnosisScores[entry.key] = v.round());
                         _saveDiagnosisScores();
                       },
                     ),
@@ -234,12 +240,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              _isKo ? '현재 레벨: $level' : 'Current level: $level',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 6),
+            Text(_isKo ? '현재 레벨: $level' : 'Current level: $level'),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -256,6 +258,27 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     ),
                   )
                   .toList(growable: false),
+            ),
+            const SizedBox(height: 12),
+            Divider(color: Theme.of(context).colorScheme.outlineVariant),
+            const SizedBox(height: 8),
+            Text(
+              _isKo ? '현재 나쁜 습관 체크' : 'Current bad habits',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 6),
+            ..._habitCatalog.map(
+              (habit) => SwitchListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(_isKo ? habit.labelKo : habit.labelEn),
+                subtitle: Text(_isKo ? habit.hintKo : habit.hintEn),
+                value: _habitFlags[habit.id] ?? false,
+                onChanged: (v) {
+                  setState(() => _habitFlags[habit.id] = v);
+                  _saveHabitFlags();
+                },
+              ),
             ),
           ],
         ),
@@ -296,7 +319,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildSessionCard(
-    _CoachSession session, {
+    _ManualSession session, {
     required bool showDemo,
     required bool showVideos,
   }) {
@@ -387,11 +410,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   ),
             ),
             const SizedBox(height: 10),
-            Text(
-              _isKo
-                  ? '성공률 ${_editSuccessRate.round()}%'
-                  : 'Success ${_editSuccessRate.round()}%',
-            ),
+            Text(_isKo
+                ? '성공률 ${_editSuccessRate.round()}%'
+                : 'Success ${_editSuccessRate.round()}%'),
             Slider(
               value: _editSuccessRate,
               min: 0,
@@ -429,17 +450,171 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             if (current != null)
               Text(
                 _isKo
-                    ? '최근 기록: 성공률 ${current.successRate.round()}% · 연속 ${current.streak} · 약발 ${current.weakFootRate.round()}%'
+                    ? '최근: 성공률 ${current.successRate.round()}% · 연속 ${current.streak} · 약발 ${current.weakFootRate.round()}%'
                     : 'Latest: success ${current.successRate.round()}% · streak ${current.streak} · weak-foot ${current.weakFootRate.round()}%',
-                style: Theme.of(context).textTheme.bodySmall,
               ),
             if (prev != null && current != null)
               Text(
                 _isKo
                     ? '이전 대비: 성공률 ${_deltaText(current.successRate - prev.successRate)} · 연속 ${_deltaText((current.streak - prev.streak).toDouble())}'
                     : 'Delta: success ${_deltaText(current.successRate - prev.successRate)} · streak ${_deltaText((current.streak - prev.streak).toDouble())}',
-                style: Theme.of(context).textTheme.bodySmall,
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHabitMissionCard() {
+    final habit = _activeHabit();
+    if (habit == null) {
+      return Card(
+        child: ListTile(
+          title: Text(_isKo ? '교정 미션' : 'Correction mission'),
+          subtitle: Text(
+            _isKo
+                ? '진단 탭에서 현재 나쁜 습관을 먼저 체크해주세요.'
+                : 'Mark current bad habits in Diagnose tab first.',
+          ),
+        ),
+      );
+    }
+    final missionKey = _todayMissionKey(habit.id);
+    final done = _habitMissionDone[missionKey] ?? false;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '교정 미션' : 'Correction mission',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(_isKo ? habit.labelKo : habit.labelEn),
+            const SizedBox(height: 4),
+            Text(_isKo ? habit.missionKo : habit.missionEn),
+            const SizedBox(height: 4),
+            Text(
+              _isKo ? habit.cueKo : habit.cueEn,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: () => _toggleMissionDone(habit.id),
+              icon: Icon(
+                  done ? Icons.check_circle : Icons.radio_button_unchecked),
+              label: Text(
+                done
+                    ? (_isKo ? '오늘 미션 완료' : 'Mission done today')
+                    : (_isKo ? '오늘 미션 완료로 표시' : 'Mark mission done'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFailureLogCard() {
+    final recent = _failureLogs
+        .where((log) => _withinLastDays(log.at, 3))
+        .toList(growable: false)
+      ..sort((a, b) => b.at.compareTo(a.at));
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '실패 패턴 로그' : 'Failure pattern log',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _habitCatalog
+                  .map(
+                    (habit) => OutlinedButton(
+                      onPressed: () => _logFailure(habit.id),
+                      child: Text(_isKo ? habit.shortKo : habit.shortEn),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+            const SizedBox(height: 8),
+            if (recent.isEmpty)
+              Text(
+                _isKo ? '최근 3일 기록이 없습니다.' : 'No logs in last 3 days.',
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            else
+              ...recent.take(5).map((log) {
+                final habit = _habitById(log.habitId);
+                final date =
+                    '${log.at.month}/${log.at.day} ${log.at.hour.toString().padLeft(2, '0')}:${log.at.minute.toString().padLeft(2, '0')}';
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    '• $date · ${_isKo ? habit?.labelKo ?? log.habitId : habit?.labelEn ?? log.habitId}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                );
+              }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeeklyHabitSummaryCard() {
+    final counts = <String, int>{
+      for (final habit in _habitCatalog) habit.id: 0
+    };
+    for (final log in _failureLogs) {
+      if (!_withinLastDays(log.at, 7)) continue;
+      counts[log.habitId] = (counts[log.habitId] ?? 0) + 1;
+    }
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top =
+        sorted.take(3).where((e) => e.value > 0).toList(growable: false);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '주간 습관 요약(7일)' : 'Weekly habit summary (7 days)',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            if (top.isEmpty)
+              Text(
+                _isKo ? '아직 기록이 없습니다.' : 'No data yet.',
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            else
+              ...top.map((entry) {
+                final habit = _habitById(entry.key);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    '• ${_isKo ? habit?.labelKo ?? entry.key : habit?.labelEn ?? entry.key}: ${entry.value}${_isKo ? '회' : ' times'}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -500,8 +675,47 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         }
       } catch (_) {}
     }
+
     _currentProgressByLesson = _loadProgressMap(_progressCurrentKey);
     _previousProgressByLesson = _loadProgressMap(_progressPreviousKey);
+
+    final habitRaw = widget.optionRepository.getValue<String>(_habitFlagsKey);
+    if (habitRaw != null && habitRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(habitRaw);
+        if (decoded is Map<String, dynamic>) {
+          for (final habit in _habitCatalog) {
+            _habitFlags[habit.id] = decoded[habit.id] == true;
+          }
+        }
+      } catch (_) {}
+    }
+
+    final missionRaw =
+        widget.optionRepository.getValue<String>(_habitMissionDoneKey);
+    if (missionRaw != null && missionRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(missionRaw);
+        if (decoded is Map<String, dynamic>) {
+          _habitMissionDone = {
+            for (final entry in decoded.entries) entry.key: entry.value == true,
+          };
+        }
+      } catch (_) {}
+    }
+
+    final logRaw = widget.optionRepository.getValue<String>(_failureLogsKey);
+    if (logRaw != null && logRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(logRaw);
+        if (decoded is List) {
+          _failureLogs = decoded
+              .whereType<Map>()
+              .map((e) => _FailureLog.fromMap(e.cast<String, dynamic>()))
+              .toList(growable: false);
+        }
+      } catch (_) {}
+    }
   }
 
   Map<String, _ManualProgress> _loadProgressMap(String key) {
@@ -525,6 +739,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Future<void> _saveDiagnosisScores() async {
     await widget.optionRepository
         .setValue(_diagnosisKey, jsonEncode(_diagnosisScores));
+  }
+
+  Future<void> _saveHabitFlags() async {
+    await widget.optionRepository
+        .setValue(_habitFlagsKey, jsonEncode(_habitFlags));
   }
 
   void _syncEditWithSelectedLesson() {
@@ -559,20 +778,42 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     await widget.optionRepository.setValue(
       _progressCurrentKey,
       jsonEncode(
-        nextCurrent.map((k, v) => MapEntry<String, dynamic>(k, v.toMap())),
-      ),
+          nextCurrent.map((k, v) => MapEntry<String, dynamic>(k, v.toMap()))),
     );
     await widget.optionRepository.setValue(
       _progressPreviousKey,
       jsonEncode(
-        nextPrevious.map((k, v) => MapEntry<String, dynamic>(k, v.toMap())),
-      ),
+          nextPrevious.map((k, v) => MapEntry<String, dynamic>(k, v.toMap()))),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_isKo ? '성과를 기록했어요.' : 'Performance saved.')),
+    );
+  }
+
+  Future<void> _toggleMissionDone(String habitId) async {
+    final key = _todayMissionKey(habitId);
+    final next = Map<String, bool>.from(_habitMissionDone);
+    next[key] = !(next[key] ?? false);
+    setState(() => _habitMissionDone = next);
+    await widget.optionRepository
+        .setValue(_habitMissionDoneKey, jsonEncode(next));
+  }
+
+  Future<void> _logFailure(String habitId) async {
+    final next = [
+      ..._failureLogs,
+      _FailureLog(habitId: habitId, at: DateTime.now())
+    ];
+    setState(() => _failureLogs = next);
+    await widget.optionRepository.setValue(
+      _failureLogsKey,
+      jsonEncode(next.map((e) => e.toMap()).toList(growable: false)),
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isKo ? '성과를 기록했어요.' : 'Performance saved.'),
-      ),
+          content: Text(_isKo ? '실패 패턴을 기록했어요.' : 'Failure pattern saved.')),
     );
   }
 
@@ -604,6 +845,35 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return recommended.toList(growable: false);
   }
 
+  _HabitIssue? _activeHabit() {
+    for (final habit in _habitCatalog) {
+      if (_habitFlags[habit.id] == true) return habit;
+    }
+    final recommended = _recommendedLessonsByDiagnosis();
+    if (recommended.contains('dribble')) return _habitById('long_first_touch');
+    if (recommended.contains('passing')) return _habitById('closed_body');
+    if (recommended.contains('shooting')) return _habitById('weak_foot_avoid');
+    return null;
+  }
+
+  _HabitIssue? _habitById(String id) {
+    for (final habit in _habitCatalog) {
+      if (habit.id == id) return habit;
+    }
+    return null;
+  }
+
+  String _todayMissionKey(String habitId) {
+    final now = DateTime.now();
+    final d = '${now.year}-${now.month}-${now.day}';
+    return '$habitId::$d';
+  }
+
+  bool _withinLastDays(DateTime at, int days) {
+    final now = DateTime.now();
+    return now.difference(at).inDays < days;
+  }
+
   String _levelText(double avg) {
     if (avg < 2.1) return _isKo ? 'L1 기초' : 'L1 Basic';
     if (avg < 3.1) return _isKo ? 'L2 기본' : 'L2 Foundation';
@@ -617,9 +887,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return '0';
   }
 
-  List<_CoachLesson> _defaultLessons() {
-    return const <_CoachLesson>[
-      _CoachLesson(
+  List<_ManualLesson> _defaultLessons() {
+    return const <_ManualLesson>[
+      _ManualLesson(
         id: 'dribble',
         icon: Icons.directions_run,
         titleKo: '드리블 기본기',
@@ -627,45 +897,43 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         summaryKo: '낮은 중심과 짧은 터치로 볼을 보호하며 방향 전환합니다.',
         summaryEn:
             'Protect the ball with low center and short controlled touches.',
-        studyCueKo: '핵심 원리: 첫 터치는 다음 행동(패스/턴/가속)을 위한 준비 터치여야 합니다.',
-        studyCueEn:
-            'Core principle: first touch should prepare the next action (pass/turn/acceleration).',
-        sessions: <_CoachSession>[
-          _CoachSession(
+        studyCueKo: '핵심 원리: 첫 터치는 다음 행동을 위한 준비 터치여야 합니다.',
+        studyCueEn: 'Core principle: first touch must prepare the next action.',
+        sessions: <_ManualSession>[
+          _ManualSession(
             titleKo: '세션 1. 볼 감각 워밍업 (5분)',
             titleEn: 'Session 1. Ball-feel warm-up (5 min)',
             goalKo: '발바닥/인사이드 터치 리듬 만들기',
             goalEn: 'Build touch rhythm with sole and inside contacts',
-            howToKo: '양발 번갈아 1m 범위 안에서 30초씩 4세트 진행',
-            howToEn: 'Alternate both feet in a 1m zone, 30s each for 4 sets',
-            mistakeKo: '발이 너무 멀어져 볼과 거리 벌어짐',
-            mistakeEn: 'Feet drift too far and lose close control',
-            successKo: '30초 동안 볼이 몸에서 1m 이상 벗어나지 않음',
+            howToKo: '양발 번갈아 1m 범위 안에서 30초씩 4세트',
+            howToEn: 'Alternate both feet in 1m zone, 30s x 4 sets',
+            mistakeKo: '발과 볼 거리 벌어짐',
+            mistakeEn: 'Distance between foot and ball gets too large',
+            successKo: '30초 동안 볼이 1m 밖으로 벗어나지 않음',
             successEn: 'Ball stays within 1m for full 30 seconds',
             demoType: _CoachDemoType.dribbleSlalom,
-            videos: <_CoachVideo>[
-              _CoachVideo(
+            videos: <_ManualVideo>[
+              _ManualVideo(
                 titleKo: '기본 볼터치 드리블',
                 titleEn: 'Basic ball-touch dribbling',
                 url: 'https://www.youtube.com/watch?v=4F3S4M9J8wM',
               ),
             ],
           ),
-          _CoachSession(
+          _ManualSession(
             titleKo: '세션 2. 방향 전환 드리블 (12분)',
             titleEn: 'Session 2. Direction-change dribble (12 min)',
             goalKo: '턴 후 첫 2스텝 가속 습관화',
-            goalEn: 'Automate first two acceleration steps after each turn',
-            howToKo: '콘 4개를 다이아로 배치해 각 코너에서 컷 인/아웃 반복',
-            howToEn:
-                'Set 4 cones in a diamond and repeat cut-ins/outs on each corner',
-            mistakeKo: '턴 직후 고개가 아래로 고정되어 시야 손실',
-            mistakeEn: 'Head stays down after turn and loses scanning',
-            successKo: '턴 후 2스텝 안에 최고 속도의 70% 이상 도달',
-            successEn: 'Reach 70%+ top speed within 2 steps after turn',
+            goalEn: 'Automate first two acceleration steps after turn',
+            howToKo: '콘 4개 다이아 배치 후 각 코너 턴 반복',
+            howToEn: '4-cone diamond, repeat turns at each corner',
+            mistakeKo: '턴 직후 시야가 아래로 고정됨',
+            mistakeEn: 'Head stays down right after turn',
+            successKo: '턴 후 2스텝 안에 가속',
+            successEn: 'Accelerate within 2 steps after turn',
             demoType: _CoachDemoType.dribbleTurn,
-            videos: <_CoachVideo>[
-              _CoachVideo(
+            videos: <_ManualVideo>[
+              _ManualVideo(
                 titleKo: '방향 전환 드리블',
                 titleEn: 'Direction-change dribbling',
                 url: 'https://www.youtube.com/watch?v=0C2J6h6w7l4',
@@ -674,53 +942,50 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ),
         ],
       ),
-      _CoachLesson(
+      _ManualLesson(
         id: 'passing',
         icon: Icons.swap_horiz,
         titleKo: '패스 정확도',
         titleEn: 'Passing Accuracy',
-        summaryKo: '지지발 방향과 볼 중심 임팩트를 고정해 패스 안정성을 높입니다.',
-        summaryEn:
-            'Fix plant-foot angle and ball strike point for stable passing.',
-        studyCueKo: '핵심 원리: 패스 전에 타깃을 먼저 보고, 임팩트 후에도 몸을 타깃으로 유지합니다.',
-        studyCueEn:
-            'Core principle: scan target first, then keep body line to target after impact.',
-        sessions: <_CoachSession>[
-          _CoachSession(
+        summaryKo: '지지발과 임팩트 정렬로 패스 오차를 줄입니다.',
+        summaryEn: 'Reduce pass error with plant-foot and impact alignment.',
+        studyCueKo: '핵심 원리: 타깃을 먼저 보고 임팩트 후에도 몸을 열어둡니다.',
+        studyCueEn: 'Core principle: scan target first and keep body open.',
+        sessions: <_ManualSession>[
+          _ManualSession(
             titleKo: '세션 1. 짧은 패스 정확도 (8분)',
             titleEn: 'Session 1. Short-pass accuracy (8 min)',
-            goalKo: '짧은 거리에서 패스 오차 최소화',
-            goalEn: 'Minimize pass error on short distance',
-            howToKo: '7m 거리 타깃 2개를 번갈아 40회 패스',
-            howToEn: 'Alternate 40 passes to two targets at 7m',
-            mistakeKo: '임팩트 순간 발목 흔들림으로 공이 뜸',
-            mistakeEn: 'Ankle wobble at impact lifts the ball',
+            goalKo: '짧은 거리 패스 오차 최소화',
+            goalEn: 'Minimize pass error at short range',
+            howToKo: '7m 타깃 2개를 번갈아 40회 패스',
+            howToEn: 'Alternate 40 passes to two 7m targets',
+            mistakeKo: '임팩트 시 발목 흔들림',
+            mistakeEn: 'Ankle wobbles at impact',
             successKo: '40회 중 32회 이상 타깃 존 통과',
-            successEn: '32+ out of 40 passes hit target zone',
+            successEn: '32+ out of 40 hit target zone',
             demoType: _CoachDemoType.passTriangle,
-            videos: <_CoachVideo>[
-              _CoachVideo(
+            videos: <_ManualVideo>[
+              _ManualVideo(
                 titleKo: '정확한 인사이드 패스',
                 titleEn: 'Accurate inside passing',
                 url: 'https://www.youtube.com/watch?v=1E0eL8g6f84',
               ),
             ],
           ),
-          _CoachSession(
-            titleKo: '세션 2. 원터치 패스 템포 (7분)',
-            titleEn: 'Session 2. One-touch passing tempo (7 min)',
-            goalKo: '받고-내주는 시간 1초 이내 유지',
-            goalEn: 'Keep receive-and-release under 1 second',
-            howToKo: '벽 패스 또는 2인 1조로 20회씩 3라운드',
-            howToEn: 'Use wall or partner drills, 20 reps for 3 rounds',
-            mistakeKo: '첫 터치 컨트롤이 길어 원터치가 투터치로 바뀜',
-            mistakeEn:
-                'First touch too long and turns one-touch into two-touch',
-            successKo: '연속 10회 이상 원터치 성공',
-            successEn: '10+ consecutive successful one-touch passes',
+          _ManualSession(
+            titleKo: '세션 2. 원터치 템포 (7분)',
+            titleEn: 'Session 2. One-touch tempo (7 min)',
+            goalKo: '받고 내주는 시간 1초 이내',
+            goalEn: 'Receive-and-release under 1 second',
+            howToKo: '벽 패스 또는 2인 1조 20회 x 3라운드',
+            howToEn: 'Wall/partner pass, 20 reps x 3 rounds',
+            mistakeKo: '첫 터치가 길어져 투터치로 변함',
+            mistakeEn: 'First touch too long becomes two-touch',
+            successKo: '연속 10회 원터치 성공',
+            successEn: '10 consecutive successful one-touch passes',
             demoType: _CoachDemoType.passOneTouch,
-            videos: <_CoachVideo>[
-              _CoachVideo(
+            videos: <_ManualVideo>[
+              _ManualVideo(
                 titleKo: '원터치 패스 훈련',
                 titleEn: 'One-touch pass drill',
                 url: 'https://www.youtube.com/watch?v=CNlQ7f1A6rU',
@@ -729,50 +994,48 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ),
         ],
       ),
-      _CoachLesson(
+      _ManualLesson(
         id: 'shooting',
         icon: Icons.sports_soccer,
         titleKo: '슈팅 기본',
         titleEn: 'Shooting Basics',
-        summaryKo: '임팩트 타이밍과 몸의 각도를 맞춰 강하고 정확하게 슈팅합니다.',
-        summaryEn: 'Match impact timing and body angle for power and accuracy.',
-        studyCueKo: '핵심 원리: 지지발 위치가 슈팅 방향을 결정하므로 지지발 정렬이 먼저입니다.',
-        studyCueEn:
-            'Core principle: plant foot alignment decides shot direction before impact.',
-        sessions: <_CoachSession>[
-          _CoachSession(
+        summaryKo: '임팩트 타이밍과 몸 각도 정렬로 정확도를 높입니다.',
+        summaryEn: 'Increase accuracy with impact timing and body angle.',
+        studyCueKo: '핵심 원리: 지지발 위치가 슈팅 방향을 결정합니다.',
+        studyCueEn: 'Core principle: plant-foot position sets shot direction.',
+        sessions: <_ManualSession>[
+          _ManualSession(
             titleKo: '세션 1. 정지볼 임팩트 (8분)',
             titleEn: 'Session 1. Static-ball impact (8 min)',
-            goalKo: '정확한 발등 임팩트 각도 만들기',
-            goalEn: 'Build consistent instep impact angle',
-            howToKo: '정지볼 15회 × 2세트, 골대 4분할 타깃으로 진행',
-            howToEn: '2 sets of 15 static shots aiming at 4 goal zones',
-            mistakeKo: '상체가 뒤로 젖혀져 슈팅이 뜸',
-            mistakeEn: 'Leaning back causes ball to sail high',
-            successKo: '30회 중 18회 이상 목표 구역 안착',
-            successEn: '18+ of 30 shots land in target zones',
-            videos: <_CoachVideo>[
-              _CoachVideo(
+            goalKo: '발등 임팩트 각도 고정',
+            goalEn: 'Fix instep impact angle',
+            howToKo: '정지볼 15회 x 2세트',
+            howToEn: 'Static shots 15 reps x 2 sets',
+            mistakeKo: '상체가 뒤로 젖어 공이 뜸',
+            mistakeEn: 'Leaning back sends ball high',
+            successKo: '30회 중 18회 목표 구역 안착',
+            successEn: '18+ of 30 land in target zones',
+            videos: <_ManualVideo>[
+              _ManualVideo(
                 titleKo: '슛 임팩트 기본',
                 titleEn: 'Shooting impact basics',
                 url: 'https://www.youtube.com/watch?v=X4lB8Lr4e9M',
               ),
             ],
           ),
-          _CoachSession(
+          _ManualSession(
             titleKo: '세션 2. 1터치 후 슈팅 (10분)',
             titleEn: 'Session 2. One-touch then shoot (10 min)',
-            goalKo: '첫 터치 후 2초 이내 슈팅 실행',
-            goalEn: 'Release shot within 2 seconds after first touch',
-            howToKo: '패스 받고 전진 첫 터치 후 좌우 코너 슈팅 반복',
-            howToEn:
-                'Receive pass, forward first touch, then alternate corner shots',
-            mistakeKo: '터치 방향이 몸 바깥으로 길어 슈팅 타이밍 지연',
-            mistakeEn: 'Touch goes too wide and delays shooting timing',
-            successKo: '12회 중 8회 이상 2초 이내 슈팅 완료',
-            successEn: '8+ of 12 reps finished within 2 seconds',
-            videos: <_CoachVideo>[
-              _CoachVideo(
+            goalKo: '첫 터치 후 2초 내 슈팅',
+            goalEn: 'Shoot within 2 seconds after first touch',
+            howToKo: '패스 후 전진 터치 뒤 좌우 코너 슈팅',
+            howToEn: 'Receive, forward touch, then corner finish',
+            mistakeKo: '터치가 길어 슈팅 타이밍 지연',
+            mistakeEn: 'Touch too long delays shot timing',
+            successKo: '12회 중 8회 이상 2초 내 슈팅',
+            successEn: '8+ out of 12 shots within 2 seconds',
+            videos: <_ManualVideo>[
+              _ManualVideo(
                 titleKo: '정확도 향상 슈팅 훈련',
                 titleEn: 'Accuracy shooting drill',
                 url: 'https://www.youtube.com/watch?v=3lM4Qm2dK8I',
@@ -787,7 +1050,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
 enum _ManualTab { diagnosis, study, practice, selfCheck }
 
-class _CoachLesson {
+class _ManualLesson {
   final String id;
   final IconData icon;
   final String titleKo;
@@ -796,9 +1059,9 @@ class _CoachLesson {
   final String summaryEn;
   final String studyCueKo;
   final String studyCueEn;
-  final List<_CoachSession> sessions;
+  final List<_ManualSession> sessions;
 
-  const _CoachLesson({
+  const _ManualLesson({
     required this.id,
     required this.icon,
     required this.titleKo,
@@ -811,7 +1074,7 @@ class _CoachLesson {
   });
 }
 
-class _CoachSession {
+class _ManualSession {
   final String titleKo;
   final String titleEn;
   final String goalKo;
@@ -823,9 +1086,9 @@ class _CoachSession {
   final String successKo;
   final String successEn;
   final _CoachDemoType? demoType;
-  final List<_CoachVideo> videos;
+  final List<_ManualVideo> videos;
 
-  const _CoachSession({
+  const _ManualSession({
     required this.titleKo,
     required this.titleEn,
     required this.goalKo,
@@ -841,12 +1104,12 @@ class _CoachSession {
   });
 }
 
-class _CoachVideo {
+class _ManualVideo {
   final String titleKo;
   final String titleEn;
   final String url;
 
-  const _CoachVideo({
+  const _ManualVideo({
     required this.titleKo,
     required this.titleEn,
     required this.url,
@@ -885,6 +1148,110 @@ class _ManualProgress {
     );
   }
 }
+
+class _FailureLog {
+  final String habitId;
+  final DateTime at;
+
+  const _FailureLog({required this.habitId, required this.at});
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'habitId': habitId,
+      'at': at.toIso8601String(),
+    };
+  }
+
+  factory _FailureLog.fromMap(Map<String, dynamic> map) {
+    return _FailureLog(
+      habitId: map['habitId']?.toString() ?? '',
+      at: DateTime.tryParse(map['at']?.toString() ?? '') ?? DateTime.now(),
+    );
+  }
+}
+
+class _HabitIssue {
+  final String id;
+  final String labelKo;
+  final String labelEn;
+  final String shortKo;
+  final String shortEn;
+  final String hintKo;
+  final String hintEn;
+  final String missionKo;
+  final String missionEn;
+  final String cueKo;
+  final String cueEn;
+
+  const _HabitIssue({
+    required this.id,
+    required this.labelKo,
+    required this.labelEn,
+    required this.shortKo,
+    required this.shortEn,
+    required this.hintKo,
+    required this.hintEn,
+    required this.missionKo,
+    required this.missionEn,
+    required this.cueKo,
+    required this.cueEn,
+  });
+}
+
+const List<_HabitIssue> _habitCatalog = <_HabitIssue>[
+  _HabitIssue(
+    id: 'head_down',
+    labelKo: '시선이 계속 아래로 고정됨',
+    labelEn: 'Eyes stay down too long',
+    shortKo: '시선 고정',
+    shortEn: 'No scanning',
+    hintKo: '드리블/패스 전에 주변 확인이 부족해요.',
+    hintEn: 'Limited scanning before dribble/pass.',
+    missionKo: '오늘 드릴마다 2초 간격으로 앞-볼-앞 시선 전환 10회',
+    missionEn: 'Do 10 scan cycles (front-ball-front) every 2 seconds.',
+    cueKo: '고개를 들고 먼저 공간을 본 뒤 터치하세요.',
+    cueEn: 'Lift your head, read space, then touch.',
+  ),
+  _HabitIssue(
+    id: 'long_first_touch',
+    labelKo: '첫 터치가 길어서 볼을 놓침',
+    labelEn: 'First touch is too long',
+    shortKo: '긴 첫 터치',
+    shortEn: 'Long first touch',
+    hintKo: '첫 터치가 다음 동작 준비가 아니라 탈출 터치가 됨',
+    hintEn: 'First touch escapes instead of preparing next action.',
+    missionKo: '첫 터치 거리 1m 이내 유지 10회 성공',
+    missionEn: 'Keep first-touch distance under 1m for 10 reps.',
+    cueKo: '다음 동작 방향으로 짧고 부드럽게 터치하세요.',
+    cueEn: 'Use soft, short touch toward next action.',
+  ),
+  _HabitIssue(
+    id: 'weak_foot_avoid',
+    labelKo: '약발 사용을 회피함',
+    labelEn: 'Avoids weak foot usage',
+    shortKo: '약발 회피',
+    shortEn: 'Weak-foot avoid',
+    hintKo: '실전에서 선택지가 줄어듭니다.',
+    hintEn: 'Reduces options in game situations.',
+    missionKo: '약발 패스/터치만으로 15회 연속 수행',
+    missionEn: 'Complete 15 consecutive weak-foot touches/passes.',
+    cueKo: '정확도보다 반복 일관성을 우선하세요.',
+    cueEn: 'Prioritize repeat consistency over power.',
+  ),
+  _HabitIssue(
+    id: 'closed_body',
+    labelKo: '몸이 닫혀서 패스 각도가 좁음',
+    labelEn: 'Body stays closed and limits angle',
+    shortKo: '닫힌 바디',
+    shortEn: 'Closed body',
+    hintKo: '받을 때 어깨 각도 때문에 시야와 선택이 제한됨',
+    hintEn: 'Shoulder angle limits vision and options on receive.',
+    missionKo: '받기 전 어깨 오픈 후 패스 12회 성공',
+    missionEn: 'Open body before receive and complete 12 passes.',
+    cueKo: '받기 전에 반 바퀴 열어두고 받으세요.',
+    cueEn: 'Half-open your body before receiving.',
+  ),
+];
 
 enum _CoachDemoType {
   dribbleSlalom,
@@ -981,12 +1348,13 @@ class _CoachDemoPainter extends CustomPainter {
       Offset(size.width * 0.5, size.height - 6),
       linePaint,
     );
-
-    final centerCircle = Rect.fromCircle(
-      center: Offset(size.width * 0.5, size.height * 0.5),
-      radius: size.height * 0.14,
+    canvas.drawOval(
+      Rect.fromCircle(
+        center: Offset(size.width * 0.5, size.height * 0.5),
+        radius: size.height * 0.14,
+      ),
+      linePaint,
     );
-    canvas.drawOval(centerCircle, linePaint);
 
     final players = _playerPositions(t);
     final ball = _ballPosition(t);
@@ -1028,7 +1396,7 @@ class _CoachDemoPainter extends CustomPainter {
         ..strokeWidth = 0.8,
     );
 
-    final text = TextPainter(
+    final label = TextPainter(
       text: TextSpan(
         text: _labelForDemo(),
         style: const TextStyle(
@@ -1039,17 +1407,15 @@ class _CoachDemoPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: size.width - 20);
-    text.paint(canvas, const Offset(10, 10));
+    label.paint(canvas, const Offset(10, 10));
   }
 
   List<Offset> _playerPositions(double t) {
     switch (demoType) {
       case _CoachDemoType.dribbleSlalom:
-        final lead = Offset(
-          0.12 + (0.78 * t),
-          0.5 + (0.16 * math.sin(t * math.pi * 6)),
-        );
-        return <Offset>[lead];
+        return <Offset>[
+          Offset(0.12 + (0.78 * t), 0.5 + (0.16 * math.sin(t * math.pi * 6))),
+        ];
       case _CoachDemoType.dribbleTurn:
         final u = t < 0.5 ? t * 2 : (1 - t) * 2;
         final y = t < 0.5 ? 0.72 - (u * 0.35) : 0.37 + (u * 0.35);
@@ -1082,10 +1448,7 @@ class _CoachDemoPainter extends CustomPainter {
       case _CoachDemoType.passTriangle:
         if (t < 0.33) {
           return _lerp(
-            const Offset(0.2, 0.72),
-            const Offset(0.5, 0.28),
-            t / 0.33,
-          );
+              const Offset(0.2, 0.72), const Offset(0.5, 0.28), t / 0.33);
         }
         if (t < 0.66) {
           return _lerp(
@@ -1122,13 +1485,10 @@ class _CoachDemoPainter extends CustomPainter {
           Offset(0.28, 0.32),
           Offset(0.42, 0.68),
           Offset(0.56, 0.32),
-          Offset(0.70, 0.68),
+          Offset(0.7, 0.68),
         ];
       case _CoachDemoType.dribbleTurn:
-        return const <Offset>[
-          Offset(0.2, 0.72),
-          Offset(0.82, 0.36),
-        ];
+        return const <Offset>[Offset(0.2, 0.72), Offset(0.82, 0.36)];
       case _CoachDemoType.passTriangle:
       case _CoachDemoType.passOneTouch:
         return const <Offset>[];
