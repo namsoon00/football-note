@@ -37,7 +37,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _habitMissionDoneKey = 'manual_habit_mission_done_v1';
   static const String _failureLogsKey = 'manual_failure_logs_v1';
   static const String _customHabitsKey = 'manual_custom_habits_v1';
-  static const String _habitQuestionAnswersKey = 'manual_habit_questions_v1';
   static const String _progressCurrentKey = 'manual_progress_current_global_v1';
   static const String _progressPreviousKey =
       'manual_progress_previous_global_v1';
@@ -50,10 +49,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   };
 
   final Map<String, bool> _habitFlags = <String, bool>{};
-  final Map<String, bool> _questionAnswers = <String, bool>{
-    for (final q in _habitQuestions) q.id: false,
-  };
-
   List<_HabitIssue> _customHabits = <_HabitIssue>[];
   Map<String, bool> _habitMissionDone = <String, bool>{};
   List<_FailureLog> _failureLogs = <_FailureLog>[];
@@ -225,58 +220,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildQuestionCard(_HabitQuestion question) {
-    final isYes = _questionAnswers[question.id] == true;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(_isKo ? question.titleKo : question.titleEn),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.tonal(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: isYes
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : null,
-                  ),
-                  onPressed: () async {
-                    setState(() => _questionAnswers[question.id] = true);
-                    await _saveQuestionAnswers();
-                  },
-                  child: Text(_isKo ? '맞아요' : 'Yes'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () async {
-                    setState(() => _questionAnswers[question.id] = false);
-                    await _saveQuestionAnswers();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: isYes
-                        ? Theme.of(context).colorScheme.surface
-                        : Theme.of(context).colorScheme.primaryContainer,
-                  ),
-                  child: Text(_isKo ? '괜찮아요' : 'No'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSkillMoodSelector() {
     return Wrap(
       spacing: 8,
@@ -301,6 +244,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget _buildDiagnosisCard() {
     final avg = _diagnosisScores.values.fold<int>(0, (a, b) => a + b) / 4.0;
     final level = _levelText(avg);
+    final markedCount = _habitFlags.values.where((v) => v).length;
 
     return Card(
       child: Padding(
@@ -309,15 +253,35 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '탐정 놀이: 어디가 어려웠을까?' : 'Detective game: what was hard?',
+              _isKo ? '내가 아는 나쁜 습관 마킹' : 'Mark known bad habits',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 8),
-            ..._habitQuestions.map(_buildQuestionCard),
-            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _allHabits
+                  .map(
+                    (habit) => FilterChip(
+                      selected: _habitFlags[habit.id] == true,
+                      label: Text(_isKo ? habit.shortKo : habit.shortEn),
+                      onSelected: (selected) async {
+                        setState(() => _habitFlags[habit.id] = selected);
+                        await _saveHabitFlags();
+                      },
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+            const SizedBox(height: 8),
             Chip(label: Text(_isKo ? '레벨 $level' : 'Level $level')),
+            const SizedBox(height: 4),
+            Text(
+              _isKo ? '선택됨: $markedCount개' : 'Selected: $markedCount',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 10),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
@@ -381,7 +345,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: top == null
             ? Text(
-                _isKo ? '먼저 질문에 답해줘!' : 'Answer questions first!',
+                _isKo ? '먼저 나쁜 습관을 선택해줘!' : 'Select bad habits first!',
                 style: Theme.of(context).textTheme.bodySmall,
               )
             : Column(
@@ -799,19 +763,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       } catch (_) {}
     }
 
-    final questionRaw =
-        widget.optionRepository.getValue<String>(_habitQuestionAnswersKey);
-    if (questionRaw != null && questionRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(questionRaw);
-        if (decoded is Map<String, dynamic>) {
-          for (final question in _habitQuestions) {
-            _questionAnswers[question.id] = decoded[question.id] == true;
-          }
-        }
-      } catch (_) {}
-    }
-
     final missionRaw =
         widget.optionRepository.getValue<String>(_habitMissionDoneKey);
     if (missionRaw != null && missionRaw.isNotEmpty) {
@@ -873,12 +824,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _markSaved();
   }
 
-  Future<void> _saveQuestionAnswers() async {
-    await widget.optionRepository
-        .setValue(_habitQuestionAnswersKey, jsonEncode(_questionAnswers));
-    _markSaved();
-  }
-
   Future<void> _saveSelfCheck() async {
     final current = _HabitProgress(
       successRate: _editSuccessRate,
@@ -930,16 +875,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _markSaved();
   }
 
-  Set<String> _detectedHabitIdsByQuestion() {
-    final detected = <String>{};
-    for (final question in _habitQuestions) {
-      if (_questionAnswers[question.id] == true) {
-        detected.addAll(question.habitIds);
-      }
-    }
-    return detected;
-  }
-
   List<String> _recommendedHabitIdsByDiagnosis() {
     final entries = _diagnosisScores.entries.toList()
       ..sort((a, b) => a.value.compareTo(b.value));
@@ -963,7 +898,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   List<_HabitIssue> _activeHabits() {
-    final detected = _detectedHabitIdsByQuestion();
+    final marked = _allHabits
+        .where((habit) => _habitFlags[habit.id] == true)
+        .take(2)
+        .toList(growable: false);
+    if (marked.isNotEmpty) return marked;
+
     final recommended = _recommendedHabitIdsByDiagnosis().toSet();
     final counts = <String, int>{for (final h in _allHabits) h.id: 0};
 
@@ -976,7 +916,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final scored = _allHabits.map((habit) {
       var score = 0;
       if (_habitFlags[habit.id] == true) score += 3;
-      if (detected.contains(habit.id)) score += 2;
       if (recommended.contains(habit.id)) score += 1;
       score += (counts[habit.id] ?? 0).clamp(0, 3);
       return (habit: habit, score: score);
@@ -1293,20 +1232,6 @@ class _HabitIssue {
   }
 }
 
-class _HabitQuestion {
-  final String id;
-  final String titleKo;
-  final String titleEn;
-  final List<String> habitIds;
-
-  const _HabitQuestion({
-    required this.id,
-    required this.titleKo,
-    required this.titleEn,
-    required this.habitIds,
-  });
-}
-
 class _MaintainStatus {
   final String labelKo;
   final String labelEn;
@@ -1448,56 +1373,5 @@ const List<_HabitIssue> _habitCatalog = <_HabitIssue>[
     missionEn: 'Decide pass within 3 touches for 15 reps.',
     cueKo: '좋은 선택은 빠른 선택입니다.',
     cueEn: 'Good choice is timely choice.',
-  ),
-];
-
-const List<_HabitQuestion> _habitQuestions = <_HabitQuestion>[
-  _HabitQuestion(
-    id: 'q_scan_before_receive',
-    titleKo: '패스 받기 전에 주변을 거의 보지 않는다.',
-    titleEn: 'I rarely scan before receiving the pass.',
-    habitIds: <String>['head_down', 'late_scan'],
-  ),
-  _HabitQuestion(
-    id: 'q_first_touch_long',
-    titleKo: '첫 터치가 길어서 공을 자주 놓친다.',
-    titleEn: 'My first touch is often too long.',
-    habitIds: <String>['long_first_touch'],
-  ),
-  _HabitQuestion(
-    id: 'q_weak_foot',
-    titleKo: '약발로는 불안해서 거의 사용하지 않는다.',
-    titleEn: 'I avoid using my weak foot.',
-    habitIds: <String>['weak_foot_avoid'],
-  ),
-  _HabitQuestion(
-    id: 'q_closed_body',
-    titleKo: '공을 받을 때 몸이 닫혀 다음 선택이 적다.',
-    titleEn: 'My body stays closed when receiving.',
-    habitIds: <String>['closed_body'],
-  ),
-  _HabitQuestion(
-    id: 'q_plant_foot',
-    titleKo: '패스/슈팅할 때 방향이 일정하지 않다.',
-    titleEn: 'My pass/shot direction is inconsistent.',
-    habitIds: <String>['wrong_plant_foot'],
-  ),
-  _HabitQuestion(
-    id: 'q_shot_lean_back',
-    titleKo: '슈팅할 때 공이 자주 뜬다.',
-    titleEn: 'My shots often go too high.',
-    habitIds: <String>['lean_back_shot'],
-  ),
-  _HabitQuestion(
-    id: 'q_flat_speed',
-    titleKo: '드리블에서 속도 변화를 잘 주지 못한다.',
-    titleEn: 'I struggle to change dribble speed.',
-    habitIds: <String>['flat_dribble'],
-  ),
-  _HabitQuestion(
-    id: 'q_release_timing',
-    titleKo: '패스 타이밍을 놓쳐서 볼을 오래 끈다.',
-    titleEn: 'I hold the ball too long and miss pass timing.',
-    habitIds: <String>['slow_release'],
   ),
 ];
