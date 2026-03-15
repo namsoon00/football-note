@@ -40,6 +40,7 @@ class CalendarScreen extends StatefulWidget {
   final VoidCallback? onCreate;
   final ValueChanged<DateTime>? onSelectedDayChanged;
   final CalendarQuickCreateAction? quickCreateAction;
+  final VoidCallback? onQuickCreateHandled;
 
   const CalendarScreen({
     super.key,
@@ -52,6 +53,7 @@ class CalendarScreen extends StatefulWidget {
     this.onCreate,
     this.onSelectedDayChanged,
     this.quickCreateAction,
+    this.onQuickCreateHandled,
   });
 
   @override
@@ -100,6 +102,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
     unawaited(_syncPlanReminders());
   }
 
+  @override
+  void didUpdateWidget(covariant CalendarScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.quickCreateAction != oldWidget.quickCreateAction) {
+      _quickCreateHandled = false;
+    }
+    if (widget.quickCreateAction == null) return;
+    if (widget.quickCreateAction == oldWidget.quickCreateAction) return;
+    unawaited(_maybeRunQuickCreateAction());
+  }
+
   Future<void> _maybeRunQuickCreateAction() async {
     if (_quickCreateHandled) return;
     final action = widget.quickCreateAction;
@@ -116,6 +129,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await _openMatchSheet(day: selectedDay, entries: entries);
         break;
     }
+    widget.onQuickCreateHandled?.call();
   }
 
   Future<void> _setCalendarExpanded(bool expanded) async {
