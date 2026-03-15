@@ -1,11 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
+import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 
@@ -30,164 +31,240 @@ class CoachLessonScreen extends StatefulWidget {
 }
 
 class _CoachLessonScreenState extends State<CoachLessonScreen> {
-  static const int _maxHabitCount = 30;
-
-  static const String _diagnosisKey = 'manual_diagnosis_scores_v1';
-  static const String _habitFlagsKey = 'manual_habit_flags_v1';
-  static const String _habitMissionDoneKey = 'manual_habit_mission_done_v1';
-  static const String _failureLogsKey = 'manual_failure_logs_v1';
-  static const String _customHabitsKey = 'manual_custom_habits_v1';
-  static const String _progressCurrentKey = 'manual_progress_current_global_v1';
-  static const String _progressPreviousKey =
-      'manual_progress_previous_global_v1';
-  static const String _gameStatsKey = 'manual_game_stats_v1';
-
-  final Map<String, int> _diagnosisScores = <String, int>{
-    'dribble': 3,
-    'passing': 3,
-    'first_touch': 3,
-    'shooting': 3,
-  };
-
-  final Map<String, bool> _habitFlags = <String, bool>{};
-  List<_HabitIssue> _customHabits = <_HabitIssue>[];
-  Map<String, bool> _habitMissionDone = <String, bool>{};
-  List<_FailureLog> _failureLogs = <_FailureLog>[];
-
-  _HabitProgress? _currentProgress;
-  _HabitProgress? _previousProgress;
-  double _editSuccessRate = 60;
-  int _editStreak = 6;
-  double _editWeakFootRate = 40;
-  DateTime? _lastSavedAt;
-  int _xp = 0;
-  int _coins = 0;
-  int _combo = 0;
-  int _bestCombo = 0;
-  int _currentFlowStep = 0;
-  static const List<_FlowStepMeta> _flowSteps = <_FlowStepMeta>[
-    _FlowStepMeta(
-      index: 0,
-      titleKo: '찾기',
-      titleEn: 'Find',
-    ),
-    _FlowStepMeta(
-      index: 1,
-      titleKo: '실행',
-      titleEn: 'Do',
-    ),
-    _FlowStepMeta(
-      index: 2,
-      titleKo: '결과',
-      titleEn: 'Result',
-    ),
-  ];
+  _DiaryRange _selectedRange = _DiaryRange.week;
+  int _variantSeed = 0;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
-  List<_HabitIssue> get _allHabits => [..._habitCatalog, ..._customHabits];
-  int get _level => (_xp ~/ 100) + 1;
-  int get _xpInLevel => _xp % 100;
-  int get _dailyQuestDone => _completedMissionsToday().length;
-  int get _dailyQuestGoal => 3;
-
-  @override
-  void initState() {
-    super.initState();
-    for (final habit in _habitCatalog) {
-      _habitFlags[habit.id] = false;
-    }
-    _loadStoredData();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final activeStep = _flowSteps[_currentFlowStep];
+    final stream = widget.trainingService?.watchEntries() ??
+        Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Column(
-                  children: [
-                    _buildIntroCard(),
+          child: StreamBuilder<List<TrainingEntry>>(
+            stream: stream,
+            builder: (context, snapshot) {
+              final entries = (snapshot.data ?? const <TrainingEntry>[])
+                  .where((entry) => !entry.isMatch)
+                  .toList(growable: false)
+                ..sort(TrainingEntry.compareByRecentCreated);
+              final filtered = _filterEntries(entries);
+              final diary = _buildDiary(filtered);
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                children: [
+                  _buildIntroCard(filtered),
+                  const SizedBox(height: 12),
+                  _buildRangeCard(),
+                  const SizedBox(height: 12),
+                  if (filtered.isEmpty)
+                    _buildEmptyCard()
+                  else ...[
+                    _buildSummaryCard(filtered),
                     const SizedBox(height: 12),
-                    _buildFlowNavigator(),
+                    _buildDiaryCard(diary),
+                    const SizedBox(height: 12),
+                    _buildRecentRecordsCard(filtered),
                   ],
-                ),
-              ),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  child: ListView(
-                    key: ValueKey<int>(_currentFlowStep),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    children: _buildActiveStepWidgets(activeStep.index),
-                  ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFlowNavigator() {
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          final step = _flowSteps[index];
-          final selected = index == _currentFlowStep;
-          return ChoiceChip(
-            selected: selected,
-            label: Text(_isKo ? step.titleKo : step.titleEn),
-            onSelected: (_) => setState(() => _currentFlowStep = index),
-          );
-        },
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemCount: _flowSteps.length,
+  Widget _buildIntroCard(List<TrainingEntry> entries) {
+    final count = entries.length;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: Icon(
+                Icons.auto_stories_outlined,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isKo ? '훈련 기록 일기 변환' : 'Training diary writer',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _isKo
+                        ? '훈련기록을 바탕으로 일기나 다이어리 형식의 문장으로 다시 써줍니다.'
+                        : 'Turn your training records into a diary-style journal entry.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Chip(
+                        label: Text(
+                          _isKo ? '기록 $count개 반영' : '$count records used',
+                        ),
+                      ),
+                      Chip(
+                        label: Text(
+                          _isKo
+                              ? _selectedRange.labelKo
+                              : _selectedRange.labelEn,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  List<Widget> _buildActiveStepWidgets(int step) {
-    if (step == 0) {
-      return [
-        _buildFocusHabitCard(),
-        const SizedBox(height: 12),
-        _buildDiagnosisCard(),
-      ];
-    }
-    if (step == 1) {
-      return [
-        _buildHabitMissionCard(),
-        const SizedBox(height: 12),
-        _buildFailureLogCard(),
-      ];
-    }
-    return [
-      _buildSelfCheckCard(),
-      const SizedBox(height: 12),
-      _buildGameRewardCard(),
-      const SizedBox(height: 12),
-      _buildMaintainCard(),
-      const SizedBox(height: 12),
-      _buildWeeklyHabitSummaryCard(),
-    ];
+  Widget _buildRangeCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '반영 기간' : 'Coverage',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _DiaryRange.values
+                  .map(
+                    (range) => ChoiceChip(
+                      selected: _selectedRange == range,
+                      label: Text(_isKo ? range.labelKo : range.labelEn),
+                      onSelected: (_) {
+                        setState(() {
+                          _selectedRange = range;
+                          _variantSeed += 1;
+                        });
+                      },
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  Widget _buildIntroCard() {
-    final weekDone = _habitMissionDone.entries
-        .where((entry) => entry.value && _isMissionInLastDays(entry.key, 7))
-        .length;
-    final stars = weekDone.clamp(0, 5);
-    final progress = (stars / 5).toDouble();
-    final questProgress =
-        (_dailyQuestDone / _dailyQuestGoal).clamp(0, 1).toDouble();
+  Widget _buildEmptyCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '아직 훈련 기록이 없습니다.' : 'No training records yet.',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _isKo
+                  ? '기록을 남기면 여기서 자동으로 일기 형식의 문장을 만들어 줍니다.'
+                  : 'Add training entries first, then this screen will draft a diary entry automatically.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(List<TrainingEntry> entries) {
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    final avgMood =
+        entries.fold<int>(0, (sum, entry) => sum + entry.mood) / entries.length;
+    final focus = _topFocus(entries);
+    final latest = entries.first;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isKo ? '기록 요약' : 'Record summary',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(
+                  label: Text(
+                    _isKo
+                        ? '총 ${entries.length}회'
+                        : '${entries.length} sessions',
+                  ),
+                ),
+                Chip(
+                  label: Text(
+                    _isKo ? '누적 $totalMinutes분' : '$totalMinutes minutes total',
+                  ),
+                ),
+                Chip(
+                  label: Text(
+                    _isKo
+                        ? '평균 컨디션 ${avgMood.toStringAsFixed(1)}/5'
+                        : 'Avg mood ${avgMood.toStringAsFixed(1)}/5',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(_isKo ? '가장 자주 나온 주제: $focus' : 'Most frequent focus: $focus'),
+            const SizedBox(height: 4),
+            Text(
+              _isKo
+                  ? '최근 기록: ${_formatDate(latest.date)} · ${latest.type}'
+                  : 'Latest record: ${_formatDate(latest.date)} · ${latest.type}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiaryCard(String diary) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -196,70 +273,41 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.emoji_events_outlined,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _isKo
-                        ? '오늘의 축구 미션: 나쁜 습관 1개만 고치자'
-                        : 'Today mission: fix just one bad habit',
+                    _isKo ? '훈련 일기' : 'Diary draft',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                   ),
                 ),
-                if (_lastSavedAt != null)
-                  Chip(
-                    visualDensity: VisualDensity.compact,
-                    label: Text(_isKo ? '저장됨' : 'Saved'),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(_isKo ? '별 $stars/5' : 'Stars $stars/5'),
-            const SizedBox(height: 6),
-            LinearProgressIndicator(value: progress),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Chip(label: Text(_isKo ? 'Lv.$_level' : 'Lv.$_level')),
-                Chip(
-                    label: Text(
-                        _isKo ? 'XP $_xpInLevel/100' : 'XP $_xpInLevel/100')),
-                Chip(label: Text(_isKo ? '코인 $_coins' : 'Coins $_coins')),
-                Chip(label: Text(_isKo ? '콤보 $_combo' : 'Combo $_combo')),
+                IconButton(
+                  tooltip: _isKo ? '새 문장 만들기' : 'Regenerate',
+                  onPressed: () => setState(() => _variantSeed += 1),
+                  icon: const Icon(Icons.refresh_rounded),
+                ),
+                IconButton(
+                  tooltip: _isKo ? '복사' : 'Copy',
+                  onPressed: () => _copyDiary(diary),
+                  icon: const Icon(Icons.content_copy_outlined),
+                ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              _isKo
-                  ? '일일 퀘스트: $_dailyQuestDone/$_dailyQuestGoal'
-                  : 'Daily quest: $_dailyQuestDone/$_dailyQuestGoal',
-              style: Theme.of(context).textTheme.bodySmall,
+            SelectableText(
+              diary,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(height: 1.6),
             ),
-            const SizedBox(height: 4),
-            LinearProgressIndicator(value: questProgress),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDiagnosisCard() {
-    final avg = _diagnosisScores.values.fold<int>(0, (a, b) => a + b) / 4.0;
-    final level = _levelText(avg);
-    final markedCount = _habitFlags.values.where((v) => v).length;
-
+  Widget _buildRecentRecordsCard(List<TrainingEntry> entries) {
+    final visible = entries.take(4).toList(growable: false);
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -267,45 +315,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '내가 아는 나쁜 습관 마킹' : 'Mark known bad habits',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              _isKo ? '참고한 최근 기록' : 'Recent records used',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _allHabits
-                  .map(
-                    (habit) => FilterChip(
-                      selected: _habitFlags[habit.id] == true,
-                      label: Text(_isKo ? habit.shortKo : habit.shortEn),
-                      onSelected: (selected) async {
-                        setState(() => _habitFlags[habit.id] = selected);
-                        await _saveHabitFlags();
-                      },
+            ...visible.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${_formatDate(entry.date)} · ${entry.type}',
+                      style: Theme.of(context).textTheme.labelLarge,
                     ),
-                  )
-                  .toList(growable: false),
-            ),
-            const SizedBox(height: 8),
-            Chip(label: Text(_isKo ? '레벨 $level' : 'Level $level')),
-            const SizedBox(height: 4),
-            Text(
-              _isKo ? '선택됨: $markedCount개' : 'Selected: $markedCount',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: OutlinedButton.icon(
-                onPressed: _allHabits.length >= _maxHabitCount
-                    ? null
-                    : _showAddCustomHabitDialog,
-                icon: const Icon(Icons.add_circle_outline),
-                label: Text(
-                  _isKo ? '나쁜 습관 추가' : 'Add bad habit',
+                    const SizedBox(height: 2),
+                    Text(
+                      _summarizeEntry(entry),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -315,1127 +346,232 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildFocusHabitCard() {
-    final habits = _activeHabits();
-    final top = habits.isNotEmpty ? habits.first : null;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: top == null
-            ? Text(
-                _isKo ? '먼저 나쁜 습관을 선택해줘!' : 'Select bad habits first!',
-                style: Theme.of(context).textTheme.bodySmall,
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isKo ? '오늘의 타깃 습관' : 'Today target habit',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _isKo ? top.labelKo : top.labelEn,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 10),
-                  FilledButton.icon(
-                    onPressed: () => setState(() => _currentFlowStep = 1),
-                    icon: const Icon(Icons.sports_soccer),
-                    label: Text(_isKo ? '이 습관 고치기 시작' : 'Start fixing this'),
-                  ),
-                ],
-              ),
-      ),
-    );
+  List<TrainingEntry> _filterEntries(List<TrainingEntry> entries) {
+    final now = DateTime.now();
+    if (_selectedRange.days == null) return entries;
+    final start = now.subtract(Duration(days: _selectedRange.days! - 1));
+    return entries
+        .where(
+          (entry) => !entry.date.isBefore(
+            DateTime(start.year, start.month, start.day),
+          ),
+        )
+        .toList(growable: false);
   }
 
-  Widget _buildHabitMissionCard() {
-    final habits = _activeHabits();
-    if (habits.isEmpty) {
-      return Card(
-        child: ListTile(
-          title: Text(_isKo ? '미션 가이드' : 'Mission guide'),
-          subtitle: Text(
-            _isKo
-                ? '진단 문항/습관 체크를 먼저 입력해 주세요.'
-                : 'Complete diagnosis questions/habit checks first.',
-          ),
-        ),
-      );
+  String _buildDiary(List<TrainingEntry> entries) {
+    if (entries.isEmpty) {
+      return _isKo
+          ? '오늘은 아직 남겨 둔 훈련 기록이 없다. 다음 훈련을 기록하면 이 공간이 나만의 축구 일기로 채워질 것이다.'
+          : 'There are no training records yet. Once you log a session, this space will turn it into your football diary.';
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isKo ? '오늘의 미션 카드' : 'Today mission card',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            _buildMissionHabitCard(habits.first, true),
-            if (habits.length > 1) ...[
-              const SizedBox(height: 8),
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Text(_isKo ? '보너스 미션 보기' : 'Show bonus mission'),
-                children: [
-                  _buildMissionHabitCard(habits[1], false),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
+    final latest = entries.first;
+    final oldest = entries.last;
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
     );
+    final opener = _pickOpener();
+    final body = _buildBody(entries, totalMinutes);
+    final closing = _buildClosing(entries);
+
+    if (_isKo) {
+      return '$opener\n\n${_formatDate(oldest.date)}부터 ${_formatDate(latest.date)}까지 총 ${entries.length}번의 훈련을 했다. $body\n\n$closing';
+    }
+    return '$opener\n\nFrom ${_formatDate(oldest.date)} to ${_formatDate(latest.date)}, I logged ${entries.length} training sessions. $body\n\n$closing';
   }
 
-  Widget _buildMissionHabitCard(_HabitIssue habit, bool isCore) {
-    final missionKey = _todayMissionKey(habit.id);
-    final done = _habitMissionDone[missionKey] ?? false;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${isCore ? (_isKo ? '핵심 미션' : 'Core mission') : (_isKo ? '보너스 미션' : 'Bonus mission')}: ${_isKo ? habit.labelKo : habit.labelEn}',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 4),
-          Text(_isKo ? habit.missionKo : habit.missionEn),
-          const SizedBox(height: 6),
-          FilledButton.tonalIcon(
-            onPressed: () => _toggleMissionDone(habit.id),
-            icon:
-                Icon(done ? Icons.check_circle : Icons.radio_button_unchecked),
-            label: Text(
-              done
-                  ? (_isKo ? '완료했어!' : 'Done!')
-                  : (_isKo ? '완료 체크' : 'Mark done'),
-            ),
-          ),
-        ],
-      ),
-    );
+  String _pickOpener() {
+    final ko = <String>[
+      '오늘은 내 훈련 기록을 다시 읽어 보며 하루를 정리했다.',
+      '훈련 노트를 펼쳐 보니 내가 어떻게 쌓아 왔는지가 한눈에 들어왔다.',
+      '짧게 남겨 둔 기록들이 모이니 하나의 축구 일기처럼 느껴졌다.',
+    ];
+    final en = <String>[
+      'Today I looked back through my training notes and turned them into one journal entry.',
+      'Reading my logs again made the flow of recent training much clearer.',
+      'The short notes I left behind now read like one football diary entry.',
+    ];
+    final options = _isKo ? ko : en;
+    return options[_variantSeed % options.length];
   }
 
-  Widget _buildSelfCheckCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isKo ? '오늘 점검하기' : 'Today check-in',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilledButton.tonal(
-                  onPressed: () async {
-                    setState(() {
-                      _editSuccessRate = 30;
-                      _editStreak = 2;
-                      _editWeakFootRate = 20;
-                    });
-                    await _saveSelfCheck();
-                  },
-                  child: Text(_isKo ? '어려웠어' : 'Hard'),
-                ),
-                FilledButton.tonal(
-                  onPressed: () async {
-                    setState(() {
-                      _editSuccessRate = 60;
-                      _editStreak = 6;
-                      _editWeakFootRate = 45;
-                    });
-                    await _saveSelfCheck();
-                  },
-                  child: Text(_isKo ? '보통이야' : 'Okay'),
-                ),
-                FilledButton.tonal(
-                  onPressed: () async {
-                    setState(() {
-                      _editSuccessRate = 85;
-                      _editStreak = 12;
-                      _editWeakFootRate = 70;
-                    });
-                    await _saveSelfCheck();
-                  },
-                  child: Text(_isKo ? '잘했어' : 'Great'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: Text(_isKo ? '세부 점수 조정' : 'Detailed score'),
-              children: [
-                Text(_isKo
-                    ? '성공률 ${_editSuccessRate.round()}%'
-                    : 'Success ${_editSuccessRate.round()}%'),
-                Slider(
-                  value: _editSuccessRate,
-                  min: 0,
-                  max: 100,
-                  divisions: 20,
-                  onChanged: (v) => setState(() => _editSuccessRate = v),
-                ),
-                Text(_isKo ? '연속 성공 $_editStreak회' : 'Streak $_editStreak'),
-                Slider(
-                  value: _editStreak.toDouble(),
-                  min: 0,
-                  max: 20,
-                  divisions: 20,
-                  onChanged: (v) => setState(() => _editStreak = v.round()),
-                ),
-                Text(
-                  _isKo
-                      ? '약발 성공률 ${_editWeakFootRate.round()}%'
-                      : 'Weak-foot ${_editWeakFootRate.round()}%',
-                ),
-                Slider(
-                  value: _editWeakFootRate,
-                  min: 0,
-                  max: 100,
-                  divisions: 20,
-                  onChanged: (v) => setState(() => _editWeakFootRate = v),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: _saveSelfCheck,
-              icon: const Icon(Icons.save_outlined),
-              label: Text(_isKo ? '점검 결과 저장' : 'Save check result'),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _buildBody(List<TrainingEntry> entries, int totalMinutes) {
+    final latest = entries.first;
+    final focus = _topFocus(entries);
+    final places = _topPlaces(entries);
+    final keyMoments = entries
+        .take(3)
+        .map(_entryMoment)
+        .where((text) => text.isNotEmpty)
+        .join(_isKo ? ' ' : ' ');
+    if (_isKo) {
+      final moodSentence = _moodSentence(entries);
+      return '누적 시간은 $totalMinutes분이었고, 가장 자주 붙잡은 주제는 $focus였다. $moodSentence 최근에는 ${latest.type} 훈련을 ${latest.location}에서 진행했고, 기록 속 장면들은 이렇게 이어졌다. $keyMoments ${places.isNotEmpty ? '주로 $places에서 리듬을 이어 갔다.' : ''}'
+          .trim();
+    }
+    final moodSentence = _moodSentence(entries);
+    return 'The total volume came to $totalMinutes minutes, and the focus that appeared most often was $focus. $moodSentence Most recently I worked on ${latest.type} at ${latest.location}, and the notes connected into these moments: $keyMoments ${places.isNotEmpty ? 'The routine kept returning to $places.' : ''}'
+        .trim();
   }
 
-  Widget _buildFailureLogCard() {
-    final active = _activeHabits();
-    final quickHabits =
-        active.isNotEmpty ? active : _allHabits.take(4).toList();
-    final extraHabits = _allHabits
-        .where((habit) => !quickHabits.any((q) => q.id == habit.id))
-        .toList(growable: false);
-    final recent = _failureLogs
-        .where((log) => _withinLastDays(log.at, 3))
-        .toList(growable: false)
-      ..sort((a, b) => b.at.compareTo(a.at));
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isKo ? '어떤 실수를 했을까?' : 'What mistake happened?',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: quickHabits
-                  .map(
-                    (habit) => OutlinedButton(
-                      onPressed: () => _logFailure(habit.id),
-                      child: Text(_isKo ? habit.shortKo : habit.shortEn),
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
-            if (extraHabits.isNotEmpty)
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Text(_isKo ? '다른 실수도 기록하기' : 'Log other mistakes'),
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: extraHabits
-                        .map(
-                          (habit) => OutlinedButton(
-                            onPressed: () => _logFailure(habit.id),
-                            child: Text(_isKo ? habit.shortKo : habit.shortEn),
-                          ),
-                        )
-                        .toList(growable: false),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 8),
-            if (recent.isEmpty)
-              Text(
-                _isKo ? '최근 기록 없음' : 'No recent log',
-                style: Theme.of(context).textTheme.bodySmall,
-              )
-            else
-              Text(
-                _isKo
-                    ? '최근 3일 실수 ${recent.length}회'
-                    : '${recent.length} mistakes in 3 days',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-          ],
-        ),
-      ),
-    );
+  String _buildClosing(List<TrainingEntry> entries) {
+    final latest = entries.first;
+    final nextGoal = _firstNonEmpty(<String>[
+      latest.nextGoal,
+      latest.goal,
+      latest.improvements,
+    ]);
+    final strength = _firstNonEmpty(<String>[
+      latest.goodPoints,
+      latest.feedback,
+      latest.notes,
+    ]);
+    if (_isKo) {
+      final goalText = nextGoal.isEmpty
+          ? '다음 기록에서는 조금 더 선명한 목표를 남겨 보고 싶다.'
+          : '다음 목표는 $nextGoal 이다.';
+      final strengthText = strength.isEmpty
+          ? '그래도 기록을 남긴 덕분에 흐름을 놓치지 않았다.'
+          : '특히 $strength 부분은 계속 살리고 싶다.';
+      return '$strengthText $goalText';
+    }
+    final goalText = nextGoal.isEmpty
+        ? 'Next time I want to leave a clearer target in the log.'
+        : 'My next target is $nextGoal.';
+    final strengthText = strength.isEmpty
+        ? 'Still, keeping the log helped me hold onto the flow.'
+        : 'I want to keep building on $strength.';
+    return '$strengthText $goalText';
   }
 
-  Widget _buildWeeklyHabitSummaryCard() {
-    final counts = <String, int>{for (final habit in _allHabits) habit.id: 0};
-    for (final log in _failureLogs) {
-      if (!_withinLastDays(log.at, 7)) continue;
-      counts[log.habitId] = (counts[log.habitId] ?? 0) + 1;
+  String _moodSentence(List<TrainingEntry> entries) {
+    final avgMood =
+        entries.fold<int>(0, (sum, entry) => sum + entry.mood) / entries.length;
+    if (_isKo) {
+      if (avgMood >= 4) {
+        return '전체적인 컨디션과 기분은 꽤 안정적이었다.';
+      }
+      if (avgMood >= 3) {
+        return '기복은 있었지만 전체 흐름은 무난했다.';
+      }
+      return '몸과 마음이 가벼운 날만 있었던 것은 아니었다.';
+    }
+    if (avgMood >= 4) {
+      return 'The overall feeling stayed steady and positive.';
+    }
+    if (avgMood >= 3) {
+      return 'There were ups and downs, but the rhythm stayed fairly stable.';
+    }
+    return 'Not every session felt light, but the record still moved forward.';
+  }
+
+  String _entryMoment(TrainingEntry entry) {
+    final pieces = <String>[
+      entry.program,
+      entry.drills,
+      entry.goodPoints,
+      entry.improvements,
+      entry.nextGoal,
+      entry.notes,
+    ].map((text) => text.trim()).where((text) => text.isNotEmpty).toList();
+    if (pieces.isEmpty) {
+      if (_isKo) {
+        return '${_formatDate(entry.date)}에는 ${entry.type}에 시간을 썼다.';
+      }
+      return 'On ${_formatDate(entry.date)}, I spent time on ${entry.type}.';
+    }
+    final detail = pieces.first;
+    if (_isKo) {
+      return '${_formatDate(entry.date)}에는 ${entry.type} 훈련에서 $detail 를 남겼다.';
+    }
+    return 'On ${_formatDate(entry.date)}, ${entry.type} training left me with: $detail.';
+  }
+
+  String _topFocus(List<TrainingEntry> entries) {
+    final counts = <String, int>{};
+    for (final entry in entries) {
+      for (final raw in <String>[
+        entry.program,
+        entry.type,
+        ...entry.goalFocuses,
+      ]) {
+        final value = raw.trim();
+        if (value.isEmpty) continue;
+        counts[value] = (counts[value] ?? 0) + 1;
+      }
+    }
+    if (counts.isEmpty) {
+      return _isKo ? '기본기' : 'fundamentals';
     }
     final sorted = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    final top =
-        sorted.take(3).where((e) => e.value > 0).toList(growable: false);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isKo ? '주간 습관 요약(7일)' : 'Weekly habit summary (7 days)',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            if (top.isEmpty)
-              Text(
-                _isKo ? '아직 기록이 없습니다.' : 'No data yet.',
-                style: Theme.of(context).textTheme.bodySmall,
-              )
-            else
-              ...top.map((entry) {
-                final habit = _habitById(entry.key);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    '• ${_isKo ? habit?.labelKo ?? entry.key : habit?.labelEn ?? entry.key}: ${entry.value}${_isKo ? '회' : ' times'}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                );
-              }),
-          ],
-        ),
-      ),
-    );
+    return sorted.first.key;
   }
 
-  Widget _buildMaintainCard() {
-    final status = _maintainStatus();
-    final missionDoneInWeek = _habitMissionDone.entries
-        .where((entry) => entry.value && _isMissionInLastDays(entry.key, 7))
-        .length;
-    final stars = missionDoneInWeek.clamp(0, 5);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isKo ? '성장 결과' : 'Growth result',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isKo ? '이번 주 별: $stars/5' : 'Stars this week: $stars/5',
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _isKo ? '판정: ${status.labelKo}' : 'Status: ${status.labelEn}',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: status.color,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            FilledButton.tonalIcon(
-              onPressed: () => setState(() => _currentFlowStep = 0),
-              icon: const Icon(Icons.refresh),
-              label: Text(_isKo ? '다음 주 다시 시작' : 'Restart next week'),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _topPlaces(List<TrainingEntry> entries) {
+    final counts = <String, int>{};
+    for (final entry in entries) {
+      final location = entry.location.trim();
+      if (location.isEmpty) continue;
+      counts[location] = (counts[location] ?? 0) + 1;
+    }
+    if (counts.isEmpty) return '';
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sorted.take(2).map((entry) => entry.key).join(_isKo ? ', ' : ', ');
   }
 
-  Widget _buildGameRewardCard() {
-    final badges = _earnedBadges();
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isKo ? '게임 리워드' : 'Game rewards',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: badges
-                  .map((badge) => Chip(label: Text(badge)))
-                  .toList(growable: false),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isKo
-                  ? '최고 콤보 $_bestCombo · 현재 콤보 $_combo'
-                  : 'Best combo $_bestCombo · Current combo $_combo',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ),
-      ),
-    );
+  String _summarizeEntry(TrainingEntry entry) {
+    final details = <String>[
+      entry.program,
+      entry.drills,
+      entry.goodPoints,
+      entry.improvements,
+      entry.nextGoal,
+      entry.notes,
+    ].map((text) => text.trim()).where((text) => text.isNotEmpty).toList();
+    final summary = details.isEmpty
+        ? (_isKo ? '세부 메모 없음' : 'No detailed notes')
+        : details.first;
+    return _isKo
+        ? '${entry.durationMinutes}분 · ${entry.location} · $summary'
+        : '${entry.durationMinutes} min · ${entry.location} · $summary';
   }
 
-  void _loadStoredData() {
-    final customHabitRaw =
-        widget.optionRepository.getValue<String>(_customHabitsKey);
-    if (customHabitRaw != null && customHabitRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(customHabitRaw);
-        if (decoded is List) {
-          _customHabits = decoded
-              .whereType<Map>()
-              .map((e) => _HabitIssue.fromMap(e.cast<String, dynamic>()))
-              .toList(growable: false);
-          for (final habit in _customHabits) {
-            _habitFlags.putIfAbsent(habit.id, () => false);
-          }
-        }
-      } catch (_) {}
+  String _firstNonEmpty(List<String> values) {
+    for (final value in values) {
+      final trimmed = value.trim();
+      if (trimmed.isNotEmpty) return trimmed;
     }
-
-    final diagnosisRaw =
-        widget.optionRepository.getValue<String>(_diagnosisKey);
-    if (diagnosisRaw != null && diagnosisRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(diagnosisRaw);
-        if (decoded is Map<String, dynamic>) {
-          for (final entry in _diagnosisScores.entries) {
-            _diagnosisScores[entry.key] =
-                (decoded[entry.key] as num?)?.round() ?? entry.value;
-          }
-        }
-      } catch (_) {}
-    }
-
-    final habitRaw = widget.optionRepository.getValue<String>(_habitFlagsKey);
-    if (habitRaw != null && habitRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(habitRaw);
-        if (decoded is Map<String, dynamic>) {
-          for (final habit in _allHabits) {
-            _habitFlags[habit.id] = decoded[habit.id] == true;
-          }
-        }
-      } catch (_) {}
-    }
-
-    final missionRaw =
-        widget.optionRepository.getValue<String>(_habitMissionDoneKey);
-    if (missionRaw != null && missionRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(missionRaw);
-        if (decoded is Map<String, dynamic>) {
-          _habitMissionDone = {
-            for (final entry in decoded.entries) entry.key: entry.value == true,
-          };
-        }
-      } catch (_) {}
-    }
-
-    final logRaw = widget.optionRepository.getValue<String>(_failureLogsKey);
-    if (logRaw != null && logRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(logRaw);
-        if (decoded is List) {
-          _failureLogs = decoded
-              .whereType<Map>()
-              .map((e) => _FailureLog.fromMap(e.cast<String, dynamic>()))
-              .toList(growable: false);
-        }
-      } catch (_) {}
-    }
-
-    _currentProgress = _loadProgress(_progressCurrentKey);
-    _previousProgress = _loadProgress(_progressPreviousKey);
-    if (_currentProgress != null) {
-      _editSuccessRate = _currentProgress!.successRate;
-      _editStreak = _currentProgress!.streak;
-      _editWeakFootRate = _currentProgress!.weakFootRate;
-    }
-
-    final gameRaw = widget.optionRepository.getValue<String>(_gameStatsKey);
-    if (gameRaw != null && gameRaw.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(gameRaw);
-        if (decoded is Map<String, dynamic>) {
-          _xp = (decoded['xp'] as num?)?.toInt() ?? _xp;
-          _coins = (decoded['coins'] as num?)?.toInt() ?? _coins;
-          _combo = (decoded['combo'] as num?)?.toInt() ?? _combo;
-          _bestCombo = (decoded['bestCombo'] as num?)?.toInt() ?? _bestCombo;
-        }
-      } catch (_) {}
-    }
+    return '';
   }
 
-  _HabitProgress? _loadProgress(String key) {
-    final raw = widget.optionRepository.getValue<String>(key);
-    if (raw == null || raw.isEmpty) return null;
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map<String, dynamic>) {
-        return _HabitProgress.fromMap(decoded);
-      }
-      return null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<void> _saveHabitFlags() async {
-    await widget.optionRepository
-        .setValue(_habitFlagsKey, jsonEncode(_habitFlags));
-    _markSaved();
-  }
-
-  Future<void> _saveGameStats() async {
-    await widget.optionRepository.setValue(
-      _gameStatsKey,
-      jsonEncode(<String, dynamic>{
-        'xp': _xp,
-        'coins': _coins,
-        'combo': _combo,
-        'bestCombo': _bestCombo,
-      }),
-    );
-    _markSaved();
-  }
-
-  Future<void> _saveSelfCheck() async {
-    final current = _HabitProgress(
-      successRate: _editSuccessRate,
-      streak: _editStreak,
-      weakFootRate: _editWeakFootRate,
-      recordedAt: DateTime.now(),
-    );
-
-    final previous = _currentProgress;
-    setState(() {
-      _previousProgress = previous;
-      _currentProgress = current;
-    });
-
-    await widget.optionRepository
-        .setValue(_progressCurrentKey, jsonEncode(current.toMap()));
-    if (previous != null) {
-      await widget.optionRepository
-          .setValue(_progressPreviousKey, jsonEncode(previous.toMap()));
-    }
-    if (_editSuccessRate >= 80) {
-      _xp += 8;
-      await _saveGameStats();
-    } else {
-      _markSaved();
-    }
-
+  Future<void> _copyDiary(String diary) async {
+    await Clipboard.setData(ClipboardData(text: diary));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_isKo ? '진행도를 기록했어요.' : 'Progress saved.')),
+      SnackBar(content: Text(_isKo ? '일기를 복사했어요.' : 'Diary copied.')),
     );
   }
 
-  Future<void> _toggleMissionDone(String habitId) async {
-    final key = _todayMissionKey(habitId);
-    final next = Map<String, bool>.from(_habitMissionDone);
-    final nextValue = !(next[key] ?? false);
-    next[key] = nextValue;
-    setState(() => _habitMissionDone = next);
-    await widget.optionRepository
-        .setValue(_habitMissionDoneKey, jsonEncode(next));
-    if (nextValue) {
-      _xp += 20;
-      _coins += 1;
-      _combo += 1;
-      if (_combo > _bestCombo) _bestCombo = _combo;
-      await _saveGameStats();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_isKo ? '+20 XP · +1 코인' : '+20 XP · +1 coin'),
-            duration: const Duration(milliseconds: 900),
-          ),
-        );
-      }
-    } else {
-      _markSaved();
-    }
-  }
-
-  Future<void> _logFailure(String habitId) async {
-    final next = [
-      ..._failureLogs,
-      _FailureLog(habitId: habitId, at: DateTime.now())
-    ];
-    setState(() => _failureLogs = next);
-    await widget.optionRepository.setValue(
-      _failureLogsKey,
-      jsonEncode(next.map((e) => e.toMap()).toList(growable: false)),
-    );
-    _combo = 0;
-    await _saveGameStats();
-  }
-
-  List<String> _recommendedHabitIdsByDiagnosis() {
-    final entries = _diagnosisScores.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
-    final weakKeys = entries.take(2).map((e) => e.key).toList(growable: false);
-
-    final result = <String>[];
-    for (final key in weakKeys) {
-      if (key == 'dribble') {
-        result
-            .addAll(<String>['head_down', 'long_first_touch', 'flat_dribble']);
-      }
-      if (key == 'passing' || key == 'first_touch') {
-        result.addAll(<String>['closed_body', 'late_scan', 'slow_release']);
-      }
-      if (key == 'shooting') {
-        result.addAll(
-            <String>['lean_back_shot', 'weak_foot_avoid', 'wrong_plant_foot']);
-      }
-    }
-    return result;
-  }
-
-  List<_HabitIssue> _activeHabits() {
-    final marked = _allHabits
-        .where((habit) => _habitFlags[habit.id] == true)
-        .take(2)
-        .toList(growable: false);
-    if (marked.isNotEmpty) return marked;
-
-    final recommended = _recommendedHabitIdsByDiagnosis().toSet();
-    final counts = <String, int>{for (final h in _allHabits) h.id: 0};
-
-    for (final log in _failureLogs) {
-      if (_withinLastDays(log.at, 7)) {
-        counts[log.habitId] = (counts[log.habitId] ?? 0) + 1;
-      }
-    }
-
-    final scored = _allHabits.map((habit) {
-      var score = 0;
-      if (_habitFlags[habit.id] == true) score += 3;
-      if (recommended.contains(habit.id)) score += 1;
-      score += (counts[habit.id] ?? 0).clamp(0, 3);
-      return (habit: habit, score: score);
-    }).toList(growable: false)
-      ..sort((a, b) => b.score.compareTo(a.score));
-
-    final top = scored
-        .where((entry) => entry.score > 0)
-        .take(2)
-        .toList(growable: false);
-    if (top.isNotEmpty) {
-      return top.map((entry) => entry.habit).toList(growable: false);
-    }
-    return _allHabits.take(2).toList(growable: false);
-  }
-
-  _HabitIssue? _habitById(String id) {
-    for (final habit in _allHabits) {
-      if (habit.id == id) return habit;
-    }
-    return null;
-  }
-
-  Future<void> _showAddCustomHabitDialog() async {
-    final titleController = TextEditingController();
-    final hintController = TextEditingController();
-    final missionController = TextEditingController();
-    final cueController = TextEditingController();
-
-    final added = await showDialog<_HabitIssue>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(_isKo ? '나쁜 습관 추가' : 'Add bad habit'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: _isKo ? '습관명' : 'Habit title',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: hintController,
-                  decoration: InputDecoration(
-                    labelText: _isKo ? '문제 설명' : 'Problem description',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: missionController,
-                  decoration: InputDecoration(
-                    labelText: _isKo ? '교정 미션' : 'Correction mission',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: cueController,
-                  decoration: InputDecoration(
-                    labelText: _isKo ? '코칭 큐' : 'Coaching cue',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(_isKo ? '취소' : 'Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final title = titleController.text.trim();
-                if (title.isEmpty) return;
-
-                final id = 'custom_${DateTime.now().microsecondsSinceEpoch}';
-                final hint = hintController.text.trim();
-                final mission = missionController.text.trim();
-                final cue = cueController.text.trim();
-
-                Navigator.of(context).pop(
-                  _HabitIssue(
-                    id: id,
-                    labelKo: title,
-                    labelEn: title,
-                    shortKo: title,
-                    shortEn: title,
-                    hintKo: hint.isEmpty ? title : hint,
-                    hintEn: hint.isEmpty ? title : hint,
-                    missionKo: mission.isEmpty ? title : mission,
-                    missionEn: mission.isEmpty ? title : mission,
-                    cueKo: cue.isEmpty ? title : cue,
-                    cueEn: cue.isEmpty ? title : cue,
-                  ),
-                );
-              },
-              child: Text(_isKo ? '추가' : 'Add'),
-            ),
-          ],
-        );
-      },
-    );
-
-    titleController.dispose();
-    hintController.dispose();
-    missionController.dispose();
-    cueController.dispose();
-
-    if (added == null) return;
-
-    final next = [..._customHabits, added];
-    setState(() {
-      _customHabits = next;
-      _habitFlags.putIfAbsent(added.id, () => false);
-    });
-
-    await widget.optionRepository.setValue(
-      _customHabitsKey,
-      jsonEncode(next.map((habit) => habit.toMap()).toList(growable: false)),
-    );
-    await _saveHabitFlags();
-  }
-
-  void _markSaved() {
-    if (!mounted) return;
-    setState(() => _lastSavedAt = DateTime.now());
-  }
-
-  String _todayMissionKey(String habitId) {
-    final now = DateTime.now();
-    return '$habitId::${now.year}-${now.month}-${now.day}';
-  }
-
-  List<String> _completedMissionsToday() {
-    final now = DateTime.now();
-    final today = '${now.year}-${now.month}-${now.day}';
-    return _habitMissionDone.entries
-        .where((entry) => entry.value && entry.key.endsWith('::$today'))
-        .map((entry) => entry.key)
-        .toList(growable: false);
-  }
-
-  bool _withinLastDays(DateTime at, int days) {
-    return DateTime.now().difference(at).inDays < days;
-  }
-
-  bool _isMissionInLastDays(String missionKey, int days) {
-    final parts = missionKey.split('::');
-    if (parts.length != 2) return false;
-    final date = DateTime.tryParse(parts[1]);
-    if (date == null) return false;
-    return _withinLastDays(date, days);
-  }
-
-  List<String> _earnedBadges() {
-    final badges = <String>[];
-    if (_xp >= 100) badges.add(_isKo ? '레벨업 배지' : 'Level-up');
-    if (_bestCombo >= 3) badges.add(_isKo ? '콤보 배지' : 'Combo');
-    if (_coins >= 10) badges.add(_isKo ? '코인 배지' : 'Coin');
-    if (_dailyQuestDone >= _dailyQuestGoal) {
-      badges.add(_isKo ? '일일퀘스트 완료' : 'Daily quest');
-    }
-    if (badges.isEmpty) {
-      badges.add(_isKo ? '첫 배지 도전 중' : 'First badge');
-    }
-    return badges;
-  }
-
-  String _levelText(double avg) {
-    if (avg < 2.1) return _isKo ? 'L1 기초' : 'L1 Basic';
-    if (avg < 3.1) return _isKo ? 'L2 기본' : 'L2 Foundation';
-    if (avg < 4.1) return _isKo ? 'L3 표준' : 'L3 Standard';
-    return _isKo ? 'L4 심화' : 'L4 Advanced';
-  }
-
-  _MaintainStatus _maintainStatus() {
-    if (_currentProgress == null || _previousProgress == null) {
-      return _MaintainStatus(
-        labelKo: '데이터 부족',
-        labelEn: 'Not enough data',
-        color: Theme.of(context).colorScheme.outline,
-      );
-    }
-    final delta =
-        _currentProgress!.successRate - _previousProgress!.successRate;
-    if (delta >= 5) {
-      return const _MaintainStatus(
-        labelKo: '개선',
-        labelEn: 'Improving',
-        color: Colors.green,
-      );
-    }
-    if (delta <= -5) {
-      return const _MaintainStatus(
-        labelKo: '악화',
-        labelEn: 'Regressing',
-        color: Colors.red,
-      );
-    }
-    return const _MaintainStatus(
-      labelKo: '유지',
-      labelEn: 'Stable',
-      color: Colors.orange,
-    );
+  String _formatDate(DateTime date) {
+    return _isKo
+        ? DateFormat('M월 d일', 'ko').format(date)
+        : DateFormat('MMM d', 'en').format(date);
   }
 }
 
-class _HabitProgress {
-  final double successRate;
-  final int streak;
-  final double weakFootRate;
-  final DateTime recordedAt;
+enum _DiaryRange {
+  week(7, '최근 7일', 'Last 7 days'),
+  twoWeeks(14, '최근 14일', 'Last 14 days'),
+  month(30, '최근 30일', 'Last 30 days'),
+  all(null, '전체 기록', 'All records');
 
-  const _HabitProgress({
-    required this.successRate,
-    required this.streak,
-    required this.weakFootRate,
-    required this.recordedAt,
-  });
+  const _DiaryRange(this.days, this.labelKo, this.labelEn);
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'successRate': successRate,
-      'streak': streak,
-      'weakFootRate': weakFootRate,
-      'recordedAt': recordedAt.toIso8601String(),
-    };
-  }
-
-  factory _HabitProgress.fromMap(Map<String, dynamic> map) {
-    return _HabitProgress(
-      successRate: (map['successRate'] as num?)?.toDouble() ?? 0,
-      streak: (map['streak'] as num?)?.round() ?? 0,
-      weakFootRate: (map['weakFootRate'] as num?)?.toDouble() ?? 0,
-      recordedAt: DateTime.tryParse(map['recordedAt']?.toString() ?? '') ??
-          DateTime.now(),
-    );
-  }
-}
-
-class _FailureLog {
-  final String habitId;
-  final DateTime at;
-
-  const _FailureLog({required this.habitId, required this.at});
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'habitId': habitId,
-      'at': at.toIso8601String(),
-    };
-  }
-
-  factory _FailureLog.fromMap(Map<String, dynamic> map) {
-    return _FailureLog(
-      habitId: map['habitId']?.toString() ?? '',
-      at: DateTime.tryParse(map['at']?.toString() ?? '') ?? DateTime.now(),
-    );
-  }
-}
-
-class _HabitIssue {
-  final String id;
+  final int? days;
   final String labelKo;
   final String labelEn;
-  final String shortKo;
-  final String shortEn;
-  final String hintKo;
-  final String hintEn;
-  final String missionKo;
-  final String missionEn;
-  final String cueKo;
-  final String cueEn;
-
-  const _HabitIssue({
-    required this.id,
-    required this.labelKo,
-    required this.labelEn,
-    required this.shortKo,
-    required this.shortEn,
-    required this.hintKo,
-    required this.hintEn,
-    required this.missionKo,
-    required this.missionEn,
-    required this.cueKo,
-    required this.cueEn,
-  });
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
-      'labelKo': labelKo,
-      'labelEn': labelEn,
-      'shortKo': shortKo,
-      'shortEn': shortEn,
-      'hintKo': hintKo,
-      'hintEn': hintEn,
-      'missionKo': missionKo,
-      'missionEn': missionEn,
-      'cueKo': cueKo,
-      'cueEn': cueEn,
-    };
-  }
-
-  factory _HabitIssue.fromMap(Map<String, dynamic> map) {
-    return _HabitIssue(
-      id: map['id']?.toString() ?? 'custom',
-      labelKo: map['labelKo']?.toString() ?? '',
-      labelEn: map['labelEn']?.toString() ?? '',
-      shortKo: map['shortKo']?.toString() ?? '',
-      shortEn: map['shortEn']?.toString() ?? '',
-      hintKo: map['hintKo']?.toString() ?? '',
-      hintEn: map['hintEn']?.toString() ?? '',
-      missionKo: map['missionKo']?.toString() ?? '',
-      missionEn: map['missionEn']?.toString() ?? '',
-      cueKo: map['cueKo']?.toString() ?? '',
-      cueEn: map['cueEn']?.toString() ?? '',
-    );
-  }
 }
-
-class _MaintainStatus {
-  final String labelKo;
-  final String labelEn;
-  final Color color;
-
-  const _MaintainStatus({
-    required this.labelKo,
-    required this.labelEn,
-    required this.color,
-  });
-}
-
-class _FlowStepMeta {
-  final int index;
-  final String titleKo;
-  final String titleEn;
-
-  const _FlowStepMeta({
-    required this.index,
-    required this.titleKo,
-    required this.titleEn,
-  });
-}
-
-const List<_HabitIssue> _habitCatalog = <_HabitIssue>[
-  _HabitIssue(
-    id: 'head_down',
-    labelKo: '시선이 계속 아래로 고정됨',
-    labelEn: 'Eyes stay down too long',
-    shortKo: '시선 고정',
-    shortEn: 'No scanning',
-    hintKo: '드리블/패스 전에 주변 확인이 부족해요.',
-    hintEn: 'Limited scanning before dribble/pass.',
-    missionKo: '오늘 드릴마다 2초 간격으로 앞-볼-앞 시선 전환 10회',
-    missionEn: 'Do 10 scan cycles (front-ball-front) every 2 seconds.',
-    cueKo: '고개를 들고 먼저 공간을 본 뒤 터치하세요.',
-    cueEn: 'Lift your head, read space, then touch.',
-  ),
-  _HabitIssue(
-    id: 'long_first_touch',
-    labelKo: '첫 터치가 길어서 볼을 놓침',
-    labelEn: 'First touch is too long',
-    shortKo: '긴 첫 터치',
-    shortEn: 'Long first touch',
-    hintKo: '첫 터치가 다음 동작 준비가 아니라 탈출 터치가 됨',
-    hintEn: 'First touch escapes instead of preparing next action.',
-    missionKo: '첫 터치 거리 1m 이내 유지 10회 성공',
-    missionEn: 'Keep first-touch distance under 1m for 10 reps.',
-    cueKo: '다음 동작 방향으로 짧고 부드럽게 터치하세요.',
-    cueEn: 'Use soft, short touch toward next action.',
-  ),
-  _HabitIssue(
-    id: 'weak_foot_avoid',
-    labelKo: '약발 사용을 회피함',
-    labelEn: 'Avoids weak foot usage',
-    shortKo: '약발 회피',
-    shortEn: 'Weak-foot avoid',
-    hintKo: '실전에서 선택지가 줄어듭니다.',
-    hintEn: 'Reduces options in game situations.',
-    missionKo: '약발 패스/터치만으로 15회 연속 수행',
-    missionEn: 'Complete 15 consecutive weak-foot touches/passes.',
-    cueKo: '정확도보다 반복 일관성을 우선하세요.',
-    cueEn: 'Prioritize repeat consistency over power.',
-  ),
-  _HabitIssue(
-    id: 'closed_body',
-    labelKo: '몸이 닫혀서 패스 각도가 좁음',
-    labelEn: 'Body stays closed and limits angle',
-    shortKo: '닫힌 바디',
-    shortEn: 'Closed body',
-    hintKo: '받을 때 어깨 각도 때문에 시야와 선택이 제한됨',
-    hintEn: 'Shoulder angle limits vision and options on receive.',
-    missionKo: '받기 전 어깨 오픈 후 패스 12회 성공',
-    missionEn: 'Open body before receive and complete 12 passes.',
-    cueKo: '받기 전에 반 바퀴 열어두고 받으세요.',
-    cueEn: 'Half-open your body before receiving.',
-  ),
-  _HabitIssue(
-    id: 'wrong_plant_foot',
-    labelKo: '지지발 위치가 불안정함',
-    labelEn: 'Plant-foot position is unstable',
-    shortKo: '지지발 불안정',
-    shortEn: 'Plant-foot issue',
-    hintKo: '패스/슈팅 방향이 흔들립니다.',
-    hintEn: 'Pass/shot direction becomes inconsistent.',
-    missionKo: '지지발을 공 옆 15~20cm에 두고 20회 반복',
-    missionEn: 'Repeat 20 reps with plant foot 15-20cm beside the ball.',
-    cueKo: '지지발 발끝은 목표를 향하게 두세요.',
-    cueEn: 'Point your plant-foot toes at the target.',
-  ),
-  _HabitIssue(
-    id: 'lean_back_shot',
-    labelKo: '슈팅 때 상체가 뒤로 젖음',
-    labelEn: 'Leans back while shooting',
-    shortKo: '상체 뒤로',
-    shortEn: 'Lean-back shot',
-    hintKo: '공이 뜨거나 힘이 분산됩니다.',
-    hintEn: 'Ball flies high and power leaks.',
-    missionKo: '슈팅 15회 동안 코-무릎 라인 전방 유지',
-    missionEn: 'Keep nose-knee line forward for 15 shots.',
-    cueKo: '임팩트 순간 가슴을 공 위에 두세요.',
-    cueEn: 'Keep chest over the ball at impact.',
-  ),
-  _HabitIssue(
-    id: 'late_scan',
-    labelKo: '볼 받은 뒤에만 주변을 봄',
-    labelEn: 'Scans only after receiving',
-    shortKo: '늦은 스캔',
-    shortEn: 'Late scan',
-    hintKo: '결정이 늦어집니다.',
-    hintEn: 'Decision gets delayed.',
-    missionKo: '받기 전 스캔 2회 후 첫 터치 12회',
-    missionEn: 'Two scans before receive for 12 reps.',
-    cueKo: '받기 전에 이미 다음 선택지를 정하세요.',
-    cueEn: 'Decide options before the ball arrives.',
-  ),
-  _HabitIssue(
-    id: 'flat_dribble',
-    labelKo: '드리블 속도 변화가 없음',
-    labelEn: 'Dribble lacks speed change',
-    shortKo: '속도 단조',
-    shortEn: 'Flat speed',
-    hintKo: '수비를 떼어내기 어렵습니다.',
-    hintEn: 'Hard to unbalance defenders.',
-    missionKo: '3터치 느리게 + 2터치 빠르게 패턴 10회',
-    missionEn: '10 reps of 3 slow touches + 2 fast touches.',
-    cueKo: '속도 변화를 의도적으로 만드세요.',
-    cueEn: 'Create deliberate tempo changes.',
-  ),
-  _HabitIssue(
-    id: 'slow_release',
-    labelKo: '볼을 오래 끌어 패스 타이밍을 놓침',
-    labelEn: 'Holds ball too long and misses pass timing',
-    shortKo: '패스 지연',
-    shortEn: 'Late release',
-    hintKo: '동료의 유리한 타이밍이 사라집니다.',
-    hintEn: 'Teammate advantage timing disappears.',
-    missionKo: '터치 3회 이내 패스 결정 15회',
-    missionEn: 'Decide pass within 3 touches for 15 reps.',
-    cueKo: '좋은 선택은 빠른 선택입니다.',
-    cueEn: 'Good choice is timely choice.',
-  ),
-];
