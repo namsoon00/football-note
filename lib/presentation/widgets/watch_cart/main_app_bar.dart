@@ -62,10 +62,7 @@ class WatchCartAppBar extends StatelessWidget {
                     : 'Today news',
                 iconSize: 28,
                 padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(
-                  minWidth: 52,
-                  minHeight: 52,
-                ),
+                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
                 onPressed: onNewsTap,
               ),
             if (onGameTap != null)
@@ -76,44 +73,32 @@ class WatchCartAppBar extends StatelessWidget {
                     : 'Mini game',
                 iconSize: 28,
                 padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(
-                  minWidth: 52,
-                  minHeight: 52,
-                ),
+                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
                 onPressed: onGameTap,
               ),
             if (onCoachTap != null)
               IconButton(
                 icon: const Icon(Icons.sports),
                 tooltip: Localizations.localeOf(context).languageCode == 'ko'
-                    ? '축구 교습서'
-                    : 'Football manual',
+                    ? '훈련 일기'
+                    : 'Training diary',
                 iconSize: 30,
                 padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(
-                  minWidth: 52,
-                  minHeight: 52,
-                ),
+                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
                 onPressed: onCoachTap,
               ),
             IconButton(
               icon: _ProfileAppBarAvatar(photoSource: profilePhotoSource),
               iconSize: 30,
               padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(
-                minWidth: 52,
-                minHeight: 52,
-              ),
+              constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
               onPressed: onProfileTap,
             ),
             IconButton(
               icon: const Icon(Icons.settings),
               iconSize: 30,
               padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(
-                minWidth: 52,
-                minHeight: 52,
-              ),
+              constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
               onPressed: onSettingsTap,
             ),
           ],
@@ -133,10 +118,7 @@ class _ProfileAppBarAvatar extends StatelessWidget {
     final source = photoSource.trim();
     final provider = _imageProvider(source);
     if (provider == null) {
-      return const Icon(
-        Icons.person_outline,
-        size: 30,
-      );
+      return const Icon(Icons.person_outline, size: 30);
     }
     return SizedBox(
       width: 30,
