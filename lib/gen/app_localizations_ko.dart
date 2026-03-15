@@ -12,6 +12,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appTitle => '축구 훈련 일지';
 
   @override
+  String get tabHome => '홈';
+
+  @override
   String get tabLogs => '훈련기록';
 
   @override

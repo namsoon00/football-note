@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Football Training Log';
 
   @override
+  String get tabHome => 'Home';
+
+  @override
   String get tabLogs => 'Logs';
 
   @override
