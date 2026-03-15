@@ -68,31 +68,31 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const List<_FlowStepMeta> _flowSteps = <_FlowStepMeta>[
     _FlowStepMeta(
       index: 0,
-      titleKo: '발견',
-      titleEn: 'Discover',
-      subtitleKo: '지금 가장 먼저 고칠 습관을 찾습니다.',
-      subtitleEn: 'Find the one habit to fix first.',
+      titleKo: '탐정',
+      titleEn: 'Detective',
+      subtitleKo: '오늘의 나쁜 습관을 찾는 단계',
+      subtitleEn: 'Find today\'s bad habit',
     ),
     _FlowStepMeta(
       index: 1,
-      titleKo: '교정',
-      titleEn: 'Correct',
-      subtitleKo: '오늘 할 1개 미션에 집중합니다.',
-      subtitleEn: 'Focus on one mission for today.',
+      titleKo: '미션',
+      titleEn: 'Mission',
+      subtitleKo: '고치기 미션을 해보는 단계',
+      subtitleEn: 'Practice correction mission',
     ),
     _FlowStepMeta(
       index: 2,
-      titleKo: '검증',
-      titleEn: 'Verify',
-      subtitleKo: '수행 전/후 지표를 기록하고 실패 패턴을 남깁니다.',
-      subtitleEn: 'Record before/after metrics and log failure patterns.',
+      titleKo: '점검',
+      titleEn: 'Check',
+      subtitleKo: '오늘 얼마나 잘했는지 확인',
+      subtitleEn: 'Check how well you did today',
     ),
     _FlowStepMeta(
       index: 3,
-      titleKo: '유지',
-      titleEn: 'Maintain',
-      subtitleKo: '7일 기준으로 유지/개선/악화를 판정합니다.',
-      subtitleEn: 'Judge keep/improve/regress based on 7 days.',
+      titleKo: '성장',
+      titleEn: 'Growth',
+      subtitleKo: '일주일 성장 결과 보기',
+      subtitleEn: 'See your weekly growth',
     ),
   ];
 
@@ -218,7 +218,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             onPressed:
                 atStart ? null : () => setState(() => _currentFlowStep -= 1),
             icon: const Icon(Icons.arrow_back),
-            label: Text(_isKo ? '이전 단계' : 'Previous'),
+            label: Text(_isKo ? '뒤로' : 'Back'),
           ),
         ),
         const SizedBox(width: 8),
@@ -227,7 +227,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             onPressed:
                 atEnd ? null : () => setState(() => _currentFlowStep += 1),
             icon: const Icon(Icons.arrow_forward),
-            label: Text(_isKo ? '다음 단계' : 'Next'),
+            label: Text(_isKo ? '다음' : 'Next'),
           ),
         ),
       ],
@@ -235,30 +235,141 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildIntroCard() {
+    final weekDone = _habitMissionDone.entries
+        .where((entry) => entry.value && _isMissionInLastDays(entry.key, 7))
+        .length;
+    final stars = weekDone.clamp(0, 5);
+    final progress = (stars / 5).toDouble();
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                Icons.psychology_alt_outlined,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                  child: Icon(
+                    Icons.emoji_events_outlined,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _isKo
+                        ? '오늘의 축구 미션: 나쁜 습관 1개만 고치자'
+                        : 'Today mission: fix just one bad habit',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _isKo
-                    ? '루프: 발견 → 교정 → 검증 → 유지. 지금 고칠 습관 1개에 집중하세요.'
-                    : 'Loop: Discover -> Correct -> Verify -> Maintain. Focus on one habit now.',
-              ),
+            const SizedBox(height: 10),
+            Text(
+              _isKo
+                  ? '이번 주 별 $stars/5 · ${_kidRankTextKo(stars)}'
+                  : 'Stars this week $stars/5 · ${_kidRankTextEn(stars)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            LinearProgressIndicator(value: progress),
+            const SizedBox(height: 6),
+            Text(
+              _isKo
+                  ? '흐름: 탐정 → 미션 → 점검 → 성장'
+                  : 'Flow: Detective -> Mission -> Check -> Growth',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  String _kidRankTextKo(int stars) {
+    if (stars >= 5) return '슈퍼 플레이어';
+    if (stars >= 3) return '성장 중인 플레이어';
+    return '연습 시작 플레이어';
+  }
+
+  String _kidRankTextEn(int stars) {
+    if (stars >= 5) return 'Super Player';
+    if (stars >= 3) return 'Growing Player';
+    return 'Starter Player';
+  }
+
+  Widget _buildQuestionCard(_HabitQuestion question) {
+    final selected = _questionAnswers[question.id] == true;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(_isKo ? question.titleKo : question.titleEn),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.tonal(
+                  onPressed: () {
+                    setState(() => _questionAnswers[question.id] = true);
+                    _saveQuestionAnswers();
+                  },
+                  child: Text(_isKo ? '맞아요' : 'Yes'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    setState(() => _questionAnswers[question.id] = false);
+                    _saveQuestionAnswers();
+                  },
+                  style: selected
+                      ? null
+                      : OutlinedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                        ),
+                  child: Text(_isKo ? '괜찮아요' : 'No'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkillMoodSelector() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _diagnosisScores.entries.map((entry) {
+        return FilterChip(
+          selected: entry.value >= 4,
+          label: Text(
+            _isKo
+                ? '${_skillLabel(entry.key)} 자신있음'
+                : '${_skillLabel(entry.key)} confident',
+          ),
+          onSelected: (selected) {
+            setState(() => _diagnosisScores[entry.key] = selected ? 4 : 2);
+            _saveDiagnosisScores();
+          },
+        );
+      }).toList(growable: false),
     );
   }
 
@@ -311,90 +422,73 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '셀프 진단' : 'Self diagnosis',
+              _isKo ? '탐정 놀이: 어디가 어려웠을까?' : 'Detective game: what was hard?',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 8),
-            ..._diagnosisScores.entries.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${_skillLabel(entry.key)}: ${entry.value}/5'),
-                    Slider(
-                      value: entry.value.toDouble(),
-                      min: 1,
-                      max: 5,
-                      divisions: 4,
-                      label: entry.value.toString(),
-                      onChanged: (v) {
-                        setState(() => _diagnosisScores[entry.key] = v.round());
-                        _saveDiagnosisScores();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Text(_isKo ? '현재 레벨: $level' : 'Current level: $level'),
-            const SizedBox(height: 12),
-            Divider(color: Theme.of(context).colorScheme.outlineVariant),
-            const SizedBox(height: 8),
-            Text(
-              _isKo ? '자가 진단 문항' : 'Self-check questions',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 6),
-            ..._habitQuestions.map(
-              (question) => CheckboxListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(_isKo ? question.titleKo : question.titleEn),
-                value: _questionAnswers[question.id] ?? false,
-                onChanged: (value) {
-                  setState(() => _questionAnswers[question.id] = value == true);
-                  _saveQuestionAnswers();
-                },
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              _isKo ? '현재 나쁜 습관 체크' : 'Current bad habits',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 4),
             Text(
               _isKo
-                  ? '${_allHabits.length}/$_maxHabitCount 등록됨'
-                  : '${_allHabits.length}/$_maxHabitCount registered',
+                  ? '질문에 답하면 코치가 오늘의 습관을 찾아줘요.'
+                  : 'Answer and coach finds your habit today.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 6),
-            ..._allHabits.map(
-              (habit) => SwitchListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(_isKo ? habit.labelKo : habit.labelEn),
-                subtitle: Text(_isKo ? habit.hintKo : habit.hintEn),
-                value: _habitFlags[habit.id] ?? false,
-                onChanged: (v) {
-                  setState(() => _habitFlags[habit.id] = v);
-                  _saveHabitFlags();
-                },
-              ),
+            ..._habitQuestions.map(_buildQuestionCard),
+            const SizedBox(height: 10),
+            Text(
+              _isKo ? '현재 레벨: $level' : 'Current level: $level',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _allHabits.length >= _maxHabitCount
-                  ? null
-                  : _showAddCustomHabitDialog,
-              icon: const Icon(Icons.add_circle_outline),
-              label: Text(
-                _isKo ? '나쁜 습관 직접 추가' : 'Add custom bad habit',
+            const SizedBox(height: 10),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(
+                _isKo ? '코치 고급 설정(보호자용)' : 'Coach advanced setup',
               ),
+              subtitle: Text(
+                _isKo
+                    ? '${_allHabits.length}/$_maxHabitCount 등록됨'
+                    : '${_allHabits.length}/$_maxHabitCount registered',
+              ),
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    _isKo ? '기술 자신감 빠르게 체크' : 'Quick confidence check',
+                  ),
+                ),
+                const SizedBox(height: 6),
+                _buildSkillMoodSelector(),
+                const SizedBox(height: 6),
+                ..._allHabits.map(
+                  (habit) => SwitchListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(_isKo ? habit.labelKo : habit.labelEn),
+                    subtitle: Text(_isKo ? habit.hintKo : habit.hintEn),
+                    value: _habitFlags[habit.id] ?? false,
+                    onChanged: (v) {
+                      setState(() => _habitFlags[habit.id] = v);
+                      _saveHabitFlags();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton.icon(
+                    onPressed: _allHabits.length >= _maxHabitCount
+                        ? null
+                        : _showAddCustomHabitDialog,
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: Text(
+                      _isKo ? '나쁜 습관 직접 추가' : 'Add custom bad habit',
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -411,15 +505,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         child: top == null
             ? Text(
                 _isKo
-                    ? '진단 문항 또는 습관 체크를 입력하면 핵심 습관을 자동으로 제시합니다.'
-                    : 'Once you fill diagnosis/checks, your top habit appears here.',
+                    ? '질문에 답하면 오늘 고칠 습관을 바로 추천해요.'
+                    : 'Answer questions to get today\'s habit.',
                 style: Theme.of(context).textTheme.bodySmall,
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _isKo ? '지금의 핵심 습관 1개' : 'Your top habit now',
+                    _isKo ? '오늘의 타깃 습관' : 'Today target habit',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -434,6 +528,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     _isKo ? _habitImpactKo(top.id) : _habitImpactEn(top.id),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  const SizedBox(height: 10),
+                  FilledButton.icon(
+                    onPressed: () => setState(() => _currentFlowStep = 1),
+                    icon: const Icon(Icons.sports_soccer),
+                    label: Text(_isKo ? '이 습관 고치기 시작' : 'Start fixing this'),
+                  ),
                 ],
               ),
       ),
@@ -445,7 +545,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (habits.isEmpty) {
       return Card(
         child: ListTile(
-          title: Text(_isKo ? '교정 가이드' : 'Correction guide'),
+          title: Text(_isKo ? '미션 가이드' : 'Mission guide'),
           subtitle: Text(
             _isKo
                 ? '진단 문항/습관 체크를 먼저 입력해 주세요.'
@@ -462,69 +562,72 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '오늘의 교정 가이드' : 'Today\'s correction guide',
+              _isKo ? '오늘의 미션 카드' : 'Today mission card',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 10),
-            ...habits.indexed.map((entry) {
-              final index = entry.$1;
-              final habit = entry.$2;
-              final missionKey = _todayMissionKey(habit.id);
-              final done = _habitMissionDone[missionKey] ?? false;
-
-              return Padding(
-                padding: EdgeInsets.only(
-                    bottom: index == habits.length - 1 ? 0 : 12),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${index == 0 ? (_isKo ? '핵심 습관' : 'Core habit') : (_isKo ? '보조 습관' : 'Support habit')}: ${_isKo ? habit.labelKo : habit.labelEn}',
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(_isKo ? habit.missionKo : habit.missionEn),
-                      const SizedBox(height: 4),
-                      Text(
-                        _isKo ? habit.cueKo : habit.cueEn,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _isKo
-                            ? '실패 시 대체동작: ${_fallbackCueKo(habit.id)}'
-                            : 'Fallback when failed: ${_fallbackCueEn(habit.id)}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 6),
-                      FilledButton.tonalIcon(
-                        onPressed: () => _toggleMissionDone(habit.id),
-                        icon: Icon(done
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked),
-                        label: Text(
-                          done
-                              ? (_isKo ? '오늘 미션 완료' : 'Mission done today')
-                              : (_isKo ? '오늘 미션 완료로 표시' : 'Mark mission done'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+            _buildMissionHabitCard(habits.first, true),
+            if (habits.length > 1) ...[
+              const SizedBox(height: 8),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(_isKo ? '보너스 미션 보기' : 'Show bonus mission'),
+                children: [
+                  _buildMissionHabitCard(habits[1], false),
+                ],
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMissionHabitCard(_HabitIssue habit, bool isCore) {
+    final missionKey = _todayMissionKey(habit.id);
+    final done = _habitMissionDone[missionKey] ?? false;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${isCore ? (_isKo ? '핵심 미션' : 'Core mission') : (_isKo ? '보너스 미션' : 'Bonus mission')}: ${_isKo ? habit.labelKo : habit.labelEn}',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: 4),
+          Text(_isKo ? habit.missionKo : habit.missionEn),
+          const SizedBox(height: 4),
+          Text(
+            _isKo ? habit.cueKo : habit.cueEn,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            _isKo
+                ? '실패하면 이렇게: ${_fallbackCueKo(habit.id)}'
+                : 'If failed: ${_fallbackCueEn(habit.id)}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 6),
+          FilledButton.tonalIcon(
+            onPressed: () => _toggleMissionDone(habit.id),
+            icon:
+                Icon(done ? Icons.check_circle : Icons.radio_button_unchecked),
+            label: Text(
+              done
+                  ? (_isKo ? '완료했어!' : 'Done!')
+                  : (_isKo ? '완료 체크' : 'Mark done'),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -537,47 +640,84 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '교정 진행도 기록' : 'Correction progress record',
+              _isKo ? '오늘 점검하기' : 'Today check-in',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 10),
-            Text(_isKo
-                ? '성공률 ${_editSuccessRate.round()}%'
-                : 'Success ${_editSuccessRate.round()}%'),
-            Slider(
-              value: _editSuccessRate,
-              min: 0,
-              max: 100,
-              divisions: 20,
-              onChanged: (v) => setState(() => _editSuccessRate = v),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.tonal(
+                  onPressed: () => setState(() {
+                    _editSuccessRate = 30;
+                    _editStreak = 2;
+                    _editWeakFootRate = 20;
+                  }),
+                  child: Text(_isKo ? '어려웠어' : 'Hard'),
+                ),
+                FilledButton.tonal(
+                  onPressed: () => setState(() {
+                    _editSuccessRate = 60;
+                    _editStreak = 6;
+                    _editWeakFootRate = 45;
+                  }),
+                  child: Text(_isKo ? '보통이야' : 'Okay'),
+                ),
+                FilledButton.tonal(
+                  onPressed: () => setState(() {
+                    _editSuccessRate = 85;
+                    _editStreak = 12;
+                    _editWeakFootRate = 70;
+                  }),
+                  child: Text(_isKo ? '잘했어' : 'Great'),
+                ),
+              ],
             ),
-            Text(_isKo ? '연속 성공 $_editStreak회' : 'Streak $_editStreak'),
-            Slider(
-              value: _editStreak.toDouble(),
-              min: 0,
-              max: 20,
-              divisions: 20,
-              onChanged: (v) => setState(() => _editStreak = v.round()),
-            ),
-            Text(
-              _isKo
-                  ? '약발 성공률 ${_editWeakFootRate.round()}%'
-                  : 'Weak-foot ${_editWeakFootRate.round()}%',
-            ),
-            Slider(
-              value: _editWeakFootRate,
-              min: 0,
-              max: 100,
-              divisions: 20,
-              onChanged: (v) => setState(() => _editWeakFootRate = v),
+            const SizedBox(height: 8),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(_isKo ? '세부 점수 조정' : 'Detailed score'),
+              children: [
+                Text(_isKo
+                    ? '성공률 ${_editSuccessRate.round()}%'
+                    : 'Success ${_editSuccessRate.round()}%'),
+                Slider(
+                  value: _editSuccessRate,
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  onChanged: (v) => setState(() => _editSuccessRate = v),
+                ),
+                Text(_isKo ? '연속 성공 $_editStreak회' : 'Streak $_editStreak'),
+                Slider(
+                  value: _editStreak.toDouble(),
+                  min: 0,
+                  max: 20,
+                  divisions: 20,
+                  onChanged: (v) => setState(() => _editStreak = v.round()),
+                ),
+                Text(
+                  _isKo
+                      ? '약발 성공률 ${_editWeakFootRate.round()}%'
+                      : 'Weak-foot ${_editWeakFootRate.round()}%',
+                ),
+                Slider(
+                  value: _editWeakFootRate,
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  onChanged: (v) => setState(() => _editWeakFootRate = v),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             FilledButton.icon(
               onPressed: _saveSelfCheck,
               icon: const Icon(Icons.save_outlined),
-              label: Text(_isKo ? '검증 저장' : 'Save verification'),
+              label: Text(_isKo ? '점검 결과 저장' : 'Save check result'),
             ),
             const SizedBox(height: 10),
             if (_currentProgress != null)
@@ -599,6 +739,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildFailureLogCard() {
+    final active = _activeHabits();
+    final quickHabits =
+        active.isNotEmpty ? active : _allHabits.take(4).toList();
+    final extraHabits = _allHabits
+        .where((habit) => !quickHabits.any((q) => q.id == habit.id))
+        .toList(growable: false);
     final recent = _failureLogs
         .where((log) => _withinLastDays(log.at, 3))
         .toList(growable: false)
@@ -611,16 +757,23 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '실패 패턴 로그' : 'Failure pattern log',
+              _isKo ? '어떤 실수를 했을까?' : 'What mistake happened?',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 8),
+            Text(
+              _isKo
+                  ? '버튼을 누르면 실수 1회가 기록돼요.'
+                  : 'Tap a button to log one mistake.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _allHabits
+              children: quickHabits
                   .map(
                     (habit) => OutlinedButton(
                       onPressed: () => _logFailure(habit.id),
@@ -629,6 +782,25 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   )
                   .toList(growable: false),
             ),
+            if (extraHabits.isNotEmpty)
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(_isKo ? '다른 실수도 기록하기' : 'Log other mistakes'),
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: extraHabits
+                        .map(
+                          (habit) => OutlinedButton(
+                            onPressed: () => _logFailure(habit.id),
+                            child: Text(_isKo ? habit.shortKo : habit.shortEn),
+                          ),
+                        )
+                        .toList(growable: false),
+                  ),
+                ],
+              ),
             const SizedBox(height: 8),
             if (recent.isEmpty)
               Text(
@@ -705,6 +877,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final missionDoneInWeek = _habitMissionDone.entries
         .where((entry) => entry.value && _isMissionInLastDays(entry.key, 7))
         .length;
+    final stars = missionDoneInWeek.clamp(0, 5);
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -712,16 +885,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '유지 판정' : 'Maintain status',
+              _isKo ? '성장 결과' : 'Growth result',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              _isKo
-                  ? '최근 7일 미션 완료: $missionDoneInWeek회'
-                  : 'Mission done in 7 days: $missionDoneInWeek',
+              _isKo ? '이번 주 별: $stars/5' : 'Stars this week: $stars/5',
             ),
             const SizedBox(height: 4),
             Text(
@@ -733,6 +904,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ),
             const SizedBox(height: 4),
             Text(_isKo ? status.guideKo : status.guideEn),
+            const SizedBox(height: 10),
+            FilledButton.tonalIcon(
+              onPressed: () => setState(() => _currentFlowStep = 0),
+              icon: const Icon(Icons.refresh),
+              label: Text(_isKo ? '다음 주 다시 시작' : 'Restart next week'),
+            ),
           ],
         ),
       ),
