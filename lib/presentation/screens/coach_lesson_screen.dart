@@ -220,27 +220,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildSkillMoodSelector() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: _diagnosisScores.entries.map((entry) {
-        return FilterChip(
-          selected: entry.value >= 4,
-          label: Text(
-            _isKo
-                ? '${_skillLabel(entry.key)} 자신있음'
-                : '${_skillLabel(entry.key)} confident',
-          ),
-          onSelected: (selected) {
-            setState(() => _diagnosisScores[entry.key] = selected ? 4 : 2);
-            _saveDiagnosisScores();
-          },
-        );
-      }).toList(growable: false),
-    );
-  }
-
   Widget _buildDiagnosisCard() {
     final avg = _diagnosisScores.values.fold<int>(0, (a, b) => a + b) / 4.0;
     final level = _levelText(avg);
@@ -283,53 +262,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 10),
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: Text(
-                _isKo ? '코치 고급 설정(보호자용)' : 'Coach advanced setup',
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: _allHabits.length >= _maxHabitCount
+                    ? null
+                    : _showAddCustomHabitDialog,
+                icon: const Icon(Icons.add_circle_outline),
+                label: Text(
+                  _isKo ? '나쁜 습관 추가' : 'Add bad habit',
+                ),
               ),
-              subtitle: Text(
-                _isKo
-                    ? '${_allHabits.length}/$_maxHabitCount 등록됨'
-                    : '${_allHabits.length}/$_maxHabitCount registered',
-              ),
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _isKo ? '기술 자신감 빠르게 체크' : 'Quick confidence check',
-                  ),
-                ),
-                const SizedBox(height: 6),
-                _buildSkillMoodSelector(),
-                const SizedBox(height: 6),
-                ..._allHabits.map(
-                  (habit) => SwitchListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(_isKo ? habit.labelKo : habit.labelEn),
-                    subtitle: Text(_isKo ? habit.hintKo : habit.hintEn),
-                    value: _habitFlags[habit.id] ?? false,
-                    onChanged: (v) {
-                      setState(() => _habitFlags[habit.id] = v);
-                      _saveHabitFlags();
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton.icon(
-                    onPressed: _allHabits.length >= _maxHabitCount
-                        ? null
-                        : _showAddCustomHabitDialog,
-                    icon: const Icon(Icons.add_circle_outline),
-                    label: Text(
-                      _isKo ? '나쁜 습관 직접 추가' : 'Add custom bad habit',
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -812,12 +755,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
   }
 
-  Future<void> _saveDiagnosisScores() async {
-    await widget.optionRepository
-        .setValue(_diagnosisKey, jsonEncode(_diagnosisScores));
-    _markSaved();
-  }
-
   Future<void> _saveHabitFlags() async {
     await widget.optionRepository
         .setValue(_habitFlagsKey, jsonEncode(_habitFlags));
@@ -1062,21 +999,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final date = DateTime.tryParse(parts[1]);
     if (date == null) return false;
     return _withinLastDays(date, days);
-  }
-
-  String _skillLabel(String key) {
-    switch (key) {
-      case 'dribble':
-        return _isKo ? '드리블' : 'Dribble';
-      case 'passing':
-        return _isKo ? '패스' : 'Passing';
-      case 'first_touch':
-        return _isKo ? '퍼스트터치' : 'First touch';
-      case 'shooting':
-        return _isKo ? '슈팅' : 'Shooting';
-      default:
-        return key;
-    }
   }
 
   String _levelText(double avg) {
