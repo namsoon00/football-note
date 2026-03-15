@@ -69,6 +69,37 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   double _editSuccessRate = 60;
   int _editStreak = 6;
   double _editWeakFootRate = 40;
+  int _currentFlowStep = 0;
+  static const List<_FlowStepMeta> _flowSteps = <_FlowStepMeta>[
+    _FlowStepMeta(
+      index: 0,
+      titleKo: '발견',
+      titleEn: 'Discover',
+      subtitleKo: '지금 가장 먼저 고칠 습관을 찾습니다.',
+      subtitleEn: 'Find the one habit to fix first.',
+    ),
+    _FlowStepMeta(
+      index: 1,
+      titleKo: '교정',
+      titleEn: 'Correct',
+      subtitleKo: '오늘 할 1개 미션에 집중합니다.',
+      subtitleEn: 'Focus on one mission for today.',
+    ),
+    _FlowStepMeta(
+      index: 2,
+      titleKo: '검증',
+      titleEn: 'Verify',
+      subtitleKo: '수행 전/후 지표를 기록하고 실패 패턴을 남깁니다.',
+      subtitleEn: 'Record before/after metrics and log failure patterns.',
+    ),
+    _FlowStepMeta(
+      index: 3,
+      titleKo: '유지',
+      titleEn: 'Maintain',
+      subtitleKo: '7일 기준으로 유지/개선/악화를 판정합니다.',
+      subtitleEn: 'Judge keep/improve/regress based on 7 days.',
+    ),
+  ];
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   List<_HabitIssue> get _allHabits => [..._habitCatalog, ..._customHabits];
@@ -84,82 +115,141 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final activeStep = _flowSteps[_currentFlowStep];
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          child: Column(
             children: [
-              WatchCartAppBar(
-                onNewsTap: _canOpenShortcuts ? () => _openNews(context) : null,
-                onGameTap: _canOpenShortcuts ? () => _openGame(context) : null,
-                onProfileTap:
-                    _openProfile == null ? () {} : () => _openProfile!(context),
-                onSettingsTap: _openSettings == null
-                    ? () {}
-                    : () => _openSettings!(context),
-                onCoachTap: null,
-                profilePhotoSource: widget.optionRepository
-                        .getValue<String>('profile_photo_url') ??
-                    '',
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Column(
+                  children: [
+                    WatchCartAppBar(
+                      onNewsTap:
+                          _canOpenShortcuts ? () => _openNews(context) : null,
+                      onGameTap:
+                          _canOpenShortcuts ? () => _openGame(context) : null,
+                      onProfileTap: _openProfile == null
+                          ? () {}
+                          : () => _openProfile!(context),
+                      onSettingsTap: _openSettings == null
+                          ? () {}
+                          : () => _openSettings!(context),
+                      onCoachTap: null,
+                      profilePhotoSource: widget.optionRepository
+                              .getValue<String>('profile_photo_url') ??
+                          '',
+                    ),
+                    const SizedBox(height: 12),
+                    TabScreenTitle(
+                      title:
+                          _isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildIntroCard(),
+                    const SizedBox(height: 12),
+                    _buildFlowNavigator(),
+                    const SizedBox(height: 8),
+                    _buildFlowStepHeader(
+                      step: activeStep.index + 1,
+                      titleKo: activeStep.titleKo,
+                      titleEn: activeStep.titleEn,
+                      subtitleKo: activeStep.subtitleKo,
+                      subtitleEn: activeStep.subtitleEn,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              TabScreenTitle(
-                title: _isKo ? '나쁜 습관 교정 코치' : 'Bad Habit Correction Coach',
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  child: ListView(
+                    key: ValueKey<int>(_currentFlowStep),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    children: _buildActiveStepWidgets(activeStep.index),
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
-              _buildIntroCard(),
-              const SizedBox(height: 12),
-              _buildFlowStepHeader(
-                step: 1,
-                titleKo: '발견',
-                titleEn: 'Discover',
-                subtitleKo: '지금 가장 먼저 고칠 습관을 찾습니다.',
-                subtitleEn: 'Find the one habit to fix first.',
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: _buildFlowControls(),
               ),
-              const SizedBox(height: 8),
-              _buildDiagnosisCard(),
-              const SizedBox(height: 12),
-              _buildFocusHabitCard(),
-              const SizedBox(height: 12),
-              _buildFlowStepHeader(
-                step: 2,
-                titleKo: '교정',
-                titleEn: 'Correct',
-                subtitleKo: '오늘 할 1개 미션에 집중합니다.',
-                subtitleEn: 'Focus on one mission for today.',
-              ),
-              const SizedBox(height: 8),
-              _buildHabitMissionCard(),
-              const SizedBox(height: 12),
-              _buildFlowStepHeader(
-                step: 3,
-                titleKo: '검증',
-                titleEn: 'Verify',
-                subtitleKo: '수행 전/후 지표를 기록하고 실패 패턴을 남깁니다.',
-                subtitleEn:
-                    'Record before/after metrics and log failure patterns.',
-              ),
-              const SizedBox(height: 8),
-              _buildSelfCheckCard(),
-              const SizedBox(height: 12),
-              _buildFailureLogCard(),
-              const SizedBox(height: 12),
-              _buildFlowStepHeader(
-                step: 4,
-                titleKo: '유지',
-                titleEn: 'Maintain',
-                subtitleKo: '7일 기준으로 유지/개선/악화를 판정합니다.',
-                subtitleEn: 'Judge keep/improve/regress based on 7 days.',
-              ),
-              const SizedBox(height: 8),
-              _buildMaintainCard(),
-              const SizedBox(height: 12),
-              _buildWeeklyHabitSummaryCard(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFlowNavigator() {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          final step = _flowSteps[index];
+          final selected = index == _currentFlowStep;
+          return ChoiceChip(
+            selected: selected,
+            label: Text(_isKo ? step.titleKo : step.titleEn),
+            onSelected: (_) => setState(() => _currentFlowStep = index),
+          );
+        },
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemCount: _flowSteps.length,
+      ),
+    );
+  }
+
+  List<Widget> _buildActiveStepWidgets(int step) {
+    if (step == 0) {
+      return [
+        _buildDiagnosisCard(),
+        const SizedBox(height: 12),
+        _buildFocusHabitCard(),
+      ];
+    }
+    if (step == 1) {
+      return [_buildHabitMissionCard()];
+    }
+    if (step == 2) {
+      return [
+        _buildSelfCheckCard(),
+        const SizedBox(height: 12),
+        _buildFailureLogCard(),
+      ];
+    }
+    return [
+      _buildMaintainCard(),
+      const SizedBox(height: 12),
+      _buildWeeklyHabitSummaryCard(),
+    ];
+  }
+
+  Widget _buildFlowControls() {
+    final atStart = _currentFlowStep == 0;
+    final atEnd = _currentFlowStep == _flowSteps.length - 1;
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed:
+                atStart ? null : () => setState(() => _currentFlowStep -= 1),
+            icon: const Icon(Icons.arrow_back),
+            label: Text(_isKo ? '이전 단계' : 'Previous'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: FilledButton.icon(
+            onPressed:
+                atEnd ? null : () => setState(() => _currentFlowStep += 1),
+            icon: const Icon(Icons.arrow_forward),
+            label: Text(_isKo ? '다음 단계' : 'Next'),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1360,6 +1450,22 @@ class _MaintainStatus {
     required this.guideKo,
     required this.guideEn,
     required this.color,
+  });
+}
+
+class _FlowStepMeta {
+  final int index;
+  final String titleKo;
+  final String titleEn;
+  final String subtitleKo;
+  final String subtitleEn;
+
+  const _FlowStepMeta({
+    required this.index,
+    required this.titleKo,
+    required this.titleEn,
+    required this.subtitleKo,
+    required this.subtitleEn,
   });
 }
 
