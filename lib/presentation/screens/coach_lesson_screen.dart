@@ -19,6 +19,7 @@ class CoachLessonScreen extends StatefulWidget {
 }
 
 class _CoachLessonScreenState extends State<CoachLessonScreen> {
+  static const int _maxHabitCount = 30;
   static const String _recentLessonIdKey = 'coach_recent_lesson_id_v1';
   static const String _diagnosisKey = 'manual_diagnosis_scores_v1';
   static const String _progressCurrentKey = 'manual_progress_current_v1';
@@ -26,6 +27,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _habitFlagsKey = 'manual_habit_flags_v1';
   static const String _habitMissionDoneKey = 'manual_habit_mission_done_v1';
   static const String _failureLogsKey = 'manual_failure_logs_v1';
+  static const String _customHabitsKey = 'manual_custom_habits_v1';
+  static const String _habitQuestionAnswersKey = 'manual_habit_questions_v1';
 
   late final List<_ManualLesson> _lessons;
   late String _selectedLessonId;
@@ -42,8 +45,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Map<String, _ManualProgress> _previousProgressByLesson =
       <String, _ManualProgress>{};
 
-  final Map<String, bool> _habitFlags = <String, bool>{
-    for (final habit in _habitCatalog) habit.id: false,
+  final Map<String, bool> _habitFlags = <String, bool>{};
+  List<_HabitIssue> _customHabits = <_HabitIssue>[];
+  final Map<String, bool> _questionAnswers = <String, bool>{
+    for (final q in _habitQuestions) q.id: false,
   };
   Map<String, bool> _habitMissionDone = <String, bool>{};
   List<_FailureLog> _failureLogs = <_FailureLog>[];
@@ -53,6 +58,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   double _editWeakFootRate = 40;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
+  List<_HabitIssue> get _allHabits => [..._habitCatalog, ..._customHabits];
   _ManualLesson get _selectedLesson =>
       _lessons.firstWhere((lesson) => lesson.id == _selectedLessonId);
 
@@ -60,6 +66,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   void initState() {
     super.initState();
     _lessons = _defaultLessons();
+    for (final habit in _habitCatalog) {
+      _habitFlags[habit.id] = false;
+    }
     final recent =
         widget.optionRepository.getValue<String>(_recentLessonIdKey)?.trim();
     _selectedLessonId = _lessons.any((lesson) => lesson.id == recent)
@@ -263,11 +272,36 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Divider(color: Theme.of(context).colorScheme.outlineVariant),
             const SizedBox(height: 8),
             Text(
-              _isKo ? '현재 나쁜 습관 체크' : 'Current bad habits',
+              _isKo ? '자가 진단 문항' : 'Self-check questions',
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 6),
-            ..._habitCatalog.map(
+            ..._habitQuestions.map(
+              (question) => CheckboxListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(_isKo ? question.titleKo : question.titleEn),
+                value: _questionAnswers[question.id] ?? false,
+                onChanged: (value) {
+                  setState(() => _questionAnswers[question.id] = value == true);
+                  _saveQuestionAnswers();
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _isKo ? '현재 나쁜 습관 체크' : 'Current bad habits',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _isKo
+                  ? '${_allHabits.length}/$_maxHabitCount 등록됨'
+                  : '${_allHabits.length}/$_maxHabitCount registered',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            ..._allHabits.map(
               (habit) => SwitchListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
@@ -278,6 +312,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   setState(() => _habitFlags[habit.id] = v);
                   _saveHabitFlags();
                 },
+              ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _allHabits.length >= _maxHabitCount
+                  ? null
+                  : _showAddCustomHabitDialog,
+              icon: const Icon(Icons.add_circle_outline),
+              label: Text(
+                _isKo ? '나쁜 습관 직접 추가' : 'Add custom bad habit',
               ),
             ),
           ],
@@ -466,8 +510,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildHabitMissionCard() {
-    final habit = _activeHabit();
-    if (habit == null) {
+    final habits = _activeHabits();
+    if (habits.isEmpty) {
       return Card(
         child: ListTile(
           title: Text(_isKo ? '교정 미션' : 'Correction mission'),
@@ -479,8 +523,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ),
       );
     }
-    final missionKey = _todayMissionKey(habit.id);
-    final done = _habitMissionDone[missionKey] ?? false;
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -493,26 +535,54 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     fontWeight: FontWeight.w700,
                   ),
             ),
-            const SizedBox(height: 8),
-            Text(_isKo ? habit.labelKo : habit.labelEn),
-            const SizedBox(height: 4),
-            Text(_isKo ? habit.missionKo : habit.missionEn),
-            const SizedBox(height: 4),
-            Text(
-              _isKo ? habit.cueKo : habit.cueEn,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: () => _toggleMissionDone(habit.id),
-              icon: Icon(
-                  done ? Icons.check_circle : Icons.radio_button_unchecked),
-              label: Text(
-                done
-                    ? (_isKo ? '오늘 미션 완료' : 'Mission done today')
-                    : (_isKo ? '오늘 미션 완료로 표시' : 'Mark mission done'),
-              ),
-            ),
+            const SizedBox(height: 10),
+            ...habits.indexed.map((entry) {
+              final index = entry.$1;
+              final habit = entry.$2;
+              final missionKey = _todayMissionKey(habit.id);
+              final done = _habitMissionDone[missionKey] ?? false;
+              return Padding(
+                padding: EdgeInsets.only(
+                    bottom: index == habits.length - 1 ? 0 : 12),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${index == 0 ? (_isKo ? '핵심 습관' : 'Core habit') : (_isKo ? '보조 습관' : 'Support habit')}: ${_isKo ? habit.labelKo : habit.labelEn}',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(_isKo ? habit.missionKo : habit.missionEn),
+                      const SizedBox(height: 4),
+                      Text(
+                        _isKo ? habit.cueKo : habit.cueEn,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 6),
+                      FilledButton.tonalIcon(
+                        onPressed: () => _toggleMissionDone(habit.id),
+                        icon: Icon(done
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked),
+                        label: Text(
+                          done
+                              ? (_isKo ? '오늘 미션 완료' : 'Mission done today')
+                              : (_isKo ? '오늘 미션 완료로 표시' : 'Mark mission done'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -540,7 +610,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _habitCatalog
+              children: _allHabits
                   .map(
                     (habit) => OutlinedButton(
                       onPressed: () => _logFailure(habit.id),
@@ -575,9 +645,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildWeeklyHabitSummaryCard() {
-    final counts = <String, int>{
-      for (final habit in _habitCatalog) habit.id: 0
-    };
+    final counts = <String, int>{for (final habit in _allHabits) habit.id: 0};
     for (final log in _failureLogs) {
       if (!_withinLastDays(log.at, 7)) continue;
       counts[log.habitId] = (counts[log.habitId] ?? 0) + 1;
@@ -662,6 +730,23 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   void _loadStoredData() {
+    final customHabitRaw =
+        widget.optionRepository.getValue<String>(_customHabitsKey);
+    if (customHabitRaw != null && customHabitRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(customHabitRaw);
+        if (decoded is List) {
+          _customHabits = decoded
+              .whereType<Map>()
+              .map((e) => _HabitIssue.fromMap(e.cast<String, dynamic>()))
+              .toList(growable: false);
+          for (final habit in _customHabits) {
+            _habitFlags.putIfAbsent(habit.id, () => false);
+          }
+        }
+      } catch (_) {}
+    }
+
     final diagnosisRaw =
         widget.optionRepository.getValue<String>(_diagnosisKey);
     if (diagnosisRaw != null && diagnosisRaw.isNotEmpty) {
@@ -684,8 +769,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       try {
         final decoded = jsonDecode(habitRaw);
         if (decoded is Map<String, dynamic>) {
-          for (final habit in _habitCatalog) {
+          for (final habit in _allHabits) {
             _habitFlags[habit.id] = decoded[habit.id] == true;
+          }
+        }
+      } catch (_) {}
+    }
+
+    final questionRaw =
+        widget.optionRepository.getValue<String>(_habitQuestionAnswersKey);
+    if (questionRaw != null && questionRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(questionRaw);
+        if (decoded is Map<String, dynamic>) {
+          for (final question in _habitQuestions) {
+            _questionAnswers[question.id] = decoded[question.id] == true;
           }
         }
       } catch (_) {}
@@ -744,6 +842,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Future<void> _saveHabitFlags() async {
     await widget.optionRepository
         .setValue(_habitFlagsKey, jsonEncode(_habitFlags));
+  }
+
+  Future<void> _saveQuestionAnswers() async {
+    await widget.optionRepository
+        .setValue(_habitQuestionAnswersKey, jsonEncode(_questionAnswers));
   }
 
   void _syncEditWithSelectedLesson() {
@@ -845,22 +948,158 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return recommended.toList(growable: false);
   }
 
-  _HabitIssue? _activeHabit() {
-    for (final habit in _habitCatalog) {
-      if (_habitFlags[habit.id] == true) return habit;
+  Set<String> _detectedHabitIdsByQuestion() {
+    final detected = <String>{};
+    for (final question in _habitQuestions) {
+      if (_questionAnswers[question.id] == true) {
+        detected.addAll(question.habitIds);
+      }
     }
-    final recommended = _recommendedLessonsByDiagnosis();
-    if (recommended.contains('dribble')) return _habitById('long_first_touch');
-    if (recommended.contains('passing')) return _habitById('closed_body');
-    if (recommended.contains('shooting')) return _habitById('weak_foot_avoid');
-    return null;
+    return detected;
+  }
+
+  List<String> _recommendedHabitIdsByDiagnosis() {
+    final lessonIds = _recommendedLessonsByDiagnosis();
+    final result = <String>[];
+    if (lessonIds.contains('dribble')) {
+      result.addAll(<String>['head_down', 'long_first_touch']);
+    }
+    if (lessonIds.contains('passing')) {
+      result.addAll(<String>['closed_body', 'wrong_plant_foot']);
+    }
+    if (lessonIds.contains('shooting')) {
+      result.addAll(<String>['lean_back_shot', 'weak_foot_avoid']);
+    }
+    return result;
+  }
+
+  List<_HabitIssue> _activeHabits() {
+    final detected = _detectedHabitIdsByQuestion();
+    final recommended = _recommendedHabitIdsByDiagnosis().toSet();
+    final counts = <String, int>{for (final h in _allHabits) h.id: 0};
+    for (final log in _failureLogs) {
+      if (_withinLastDays(log.at, 7)) {
+        counts[log.habitId] = (counts[log.habitId] ?? 0) + 1;
+      }
+    }
+    final scored = _allHabits.map((habit) {
+      var score = 0;
+      if (_habitFlags[habit.id] == true) score += 3;
+      if (detected.contains(habit.id)) score += 2;
+      if (recommended.contains(habit.id)) score += 1;
+      score += math.min(counts[habit.id] ?? 0, 3);
+      return (habit: habit, score: score);
+    }).toList(growable: false)
+      ..sort((a, b) => b.score.compareTo(a.score));
+    final top = scored.where((entry) => entry.score > 0).take(2).toList();
+    if (top.isNotEmpty) {
+      return top.map((entry) => entry.habit).toList(growable: false);
+    }
+    return _allHabits.take(2).toList(growable: false);
   }
 
   _HabitIssue? _habitById(String id) {
-    for (final habit in _habitCatalog) {
+    for (final habit in _allHabits) {
       if (habit.id == id) return habit;
     }
     return null;
+  }
+
+  Future<void> _showAddCustomHabitDialog() async {
+    final titleController = TextEditingController();
+    final hintController = TextEditingController();
+    final missionController = TextEditingController();
+    final cueController = TextEditingController();
+    final added = await showDialog<_HabitIssue>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(_isKo ? '나쁜 습관 추가' : 'Add bad habit'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: _isKo ? '습관명' : 'Habit title',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: hintController,
+                  decoration: InputDecoration(
+                    labelText: _isKo ? '문제 설명' : 'Problem description',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: missionController,
+                  decoration: InputDecoration(
+                    labelText: _isKo ? '교정 미션' : 'Correction mission',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: cueController,
+                  decoration: InputDecoration(
+                    labelText: _isKo ? '코칭 큐' : 'Coaching cue',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(_isKo ? '취소' : 'Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final title = titleController.text.trim();
+                if (title.isEmpty) return;
+                final id =
+                    'custom_${DateTime.now().microsecondsSinceEpoch.toString()}';
+                final hint = hintController.text.trim();
+                final mission = missionController.text.trim();
+                final cue = cueController.text.trim();
+                Navigator.of(context).pop(
+                  _HabitIssue(
+                    id: id,
+                    labelKo: title,
+                    labelEn: title,
+                    shortKo: title,
+                    shortEn: title,
+                    hintKo: hint.isEmpty ? title : hint,
+                    hintEn: hint.isEmpty ? title : hint,
+                    missionKo: mission.isEmpty ? title : mission,
+                    missionEn: mission.isEmpty ? title : mission,
+                    cueKo: cue.isEmpty ? title : cue,
+                    cueEn: cue.isEmpty ? title : cue,
+                  ),
+                );
+              },
+              child: Text(_isKo ? '추가' : 'Add'),
+            ),
+          ],
+        );
+      },
+    );
+    titleController.dispose();
+    hintController.dispose();
+    missionController.dispose();
+    cueController.dispose();
+    if (added == null) return;
+    final next = [..._customHabits, added];
+    setState(() {
+      _customHabits = next;
+      _habitFlags.putIfAbsent(added.id, () => false);
+    });
+    await widget.optionRepository.setValue(
+      _customHabitsKey,
+      jsonEncode(next.map((habit) => habit.toMap()).toList(growable: false)),
+    );
+    await _saveHabitFlags();
   }
 
   String _todayMissionKey(String habitId) {
@@ -1196,6 +1435,52 @@ class _HabitIssue {
     required this.cueKo,
     required this.cueEn,
   });
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': id,
+      'labelKo': labelKo,
+      'labelEn': labelEn,
+      'shortKo': shortKo,
+      'shortEn': shortEn,
+      'hintKo': hintKo,
+      'hintEn': hintEn,
+      'missionKo': missionKo,
+      'missionEn': missionEn,
+      'cueKo': cueKo,
+      'cueEn': cueEn,
+    };
+  }
+
+  factory _HabitIssue.fromMap(Map<String, dynamic> map) {
+    return _HabitIssue(
+      id: map['id']?.toString() ?? 'custom',
+      labelKo: map['labelKo']?.toString() ?? '',
+      labelEn: map['labelEn']?.toString() ?? '',
+      shortKo: map['shortKo']?.toString() ?? '',
+      shortEn: map['shortEn']?.toString() ?? '',
+      hintKo: map['hintKo']?.toString() ?? '',
+      hintEn: map['hintEn']?.toString() ?? '',
+      missionKo: map['missionKo']?.toString() ?? '',
+      missionEn: map['missionEn']?.toString() ?? '',
+      cueKo: map['cueKo']?.toString() ?? '',
+      cueEn: map['cueEn']?.toString() ?? '',
+    );
+  }
+}
+
+class _HabitQuestion {
+  final String id;
+  final String titleKo;
+  final String titleEn;
+  final List<String> habitIds;
+
+  const _HabitQuestion({
+    required this.id,
+    required this.titleKo,
+    required this.titleEn,
+    required this.habitIds,
+  });
 }
 
 const List<_HabitIssue> _habitCatalog = <_HabitIssue>[
@@ -1250,6 +1535,135 @@ const List<_HabitIssue> _habitCatalog = <_HabitIssue>[
     missionEn: 'Open body before receive and complete 12 passes.',
     cueKo: '받기 전에 반 바퀴 열어두고 받으세요.',
     cueEn: 'Half-open your body before receiving.',
+  ),
+  _HabitIssue(
+    id: 'wrong_plant_foot',
+    labelKo: '지지발 위치가 불안정함',
+    labelEn: 'Plant-foot position is unstable',
+    shortKo: '지지발 불안정',
+    shortEn: 'Plant-foot issue',
+    hintKo: '패스/슈팅 방향이 흔들립니다.',
+    hintEn: 'Pass/shot direction becomes inconsistent.',
+    missionKo: '지지발을 공 옆 15~20cm에 두고 20회 반복',
+    missionEn: 'Repeat 20 reps with plant foot 15-20cm beside the ball.',
+    cueKo: '지지발 발끝은 목표를 향하게 두세요.',
+    cueEn: 'Point your plant-foot toes at the target.',
+  ),
+  _HabitIssue(
+    id: 'lean_back_shot',
+    labelKo: '슈팅 때 상체가 뒤로 젖음',
+    labelEn: 'Leans back while shooting',
+    shortKo: '상체 뒤로',
+    shortEn: 'Lean-back shot',
+    hintKo: '공이 뜨거나 힘이 분산됩니다.',
+    hintEn: 'Ball flies high and power leaks.',
+    missionKo: '슈팅 15회 동안 코-무릎 라인 전방 유지',
+    missionEn: 'Keep nose-knee line forward for 15 shots.',
+    cueKo: '임팩트 순간 가슴을 공 위에 두세요.',
+    cueEn: 'Keep chest over the ball at impact.',
+  ),
+  _HabitIssue(
+    id: 'late_scan',
+    labelKo: '볼 받은 뒤에만 주변을 봄',
+    labelEn: 'Scans only after receiving',
+    shortKo: '늦은 스캔',
+    shortEn: 'Late scan',
+    hintKo: '결정이 늦어집니다.',
+    hintEn: 'Decision gets delayed.',
+    missionKo: '받기 전 스캔 2회 후 첫 터치 12회',
+    missionEn: 'Two scans before receive for 12 reps.',
+    cueKo: '받기 전에 이미 다음 선택지를 정하세요.',
+    cueEn: 'Decide options before the ball arrives.',
+  ),
+  _HabitIssue(
+    id: 'flat_dribble',
+    labelKo: '드리블 속도 변화가 없음',
+    labelEn: 'Dribble lacks speed change',
+    shortKo: '속도 단조',
+    shortEn: 'Flat speed',
+    hintKo: '수비를 떼어내기 어렵습니다.',
+    hintEn: 'Hard to unbalance defenders.',
+    missionKo: '3터치 느리게 + 2터치 빠르게 패턴 10회',
+    missionEn: '10 reps of 3 slow touches + 2 fast touches.',
+    cueKo: '속도 변화를 의도적으로 만드세요.',
+    cueEn: 'Create deliberate tempo changes.',
+  ),
+  _HabitIssue(
+    id: 'ball_watch_only',
+    labelKo: '공만 보고 상대를 못 봄',
+    labelEn: 'Watches ball only, not defender',
+    shortKo: '공만 보기',
+    shortEn: 'Ball-only gaze',
+    hintKo: '수비 발 위치를 못 읽습니다.',
+    hintEn: 'Cannot read defender foot positioning.',
+    missionKo: '드릴 중 수비 발(가상) 방향 콜아웃 10회',
+    missionEn: 'Call defender-foot direction 10 times during drill.',
+    cueKo: '공-상대-공 순서로 시선을 배분하세요.',
+    cueEn: 'Split gaze ball-defender-ball.',
+  ),
+  _HabitIssue(
+    id: 'slow_release',
+    labelKo: '볼을 오래 끌어 패스 타이밍을 놓침',
+    labelEn: 'Holds ball too long and misses pass timing',
+    shortKo: '패스 지연',
+    shortEn: 'Late release',
+    hintKo: '동료의 유리한 타이밍이 사라집니다.',
+    hintEn: 'Teammate advantage timing disappears.',
+    missionKo: '터치 3회 이내 패스 결정 15회',
+    missionEn: 'Decide pass within 3 touches for 15 reps.',
+    cueKo: '좋은 선택은 빠른 선택입니다.',
+    cueEn: 'Good choice is timely choice.',
+  ),
+];
+
+const List<_HabitQuestion> _habitQuestions = <_HabitQuestion>[
+  _HabitQuestion(
+    id: 'q_scan_before_receive',
+    titleKo: '패스 받기 전에 주변을 거의 보지 않는다.',
+    titleEn: 'I rarely scan before receiving the pass.',
+    habitIds: <String>['head_down', 'late_scan', 'ball_watch_only'],
+  ),
+  _HabitQuestion(
+    id: 'q_first_touch_long',
+    titleKo: '첫 터치가 길어서 공을 자주 놓친다.',
+    titleEn: 'My first touch is often too long.',
+    habitIds: <String>['long_first_touch'],
+  ),
+  _HabitQuestion(
+    id: 'q_weak_foot',
+    titleKo: '약발로는 불안해서 거의 사용하지 않는다.',
+    titleEn: 'I avoid using my weak foot.',
+    habitIds: <String>['weak_foot_avoid'],
+  ),
+  _HabitQuestion(
+    id: 'q_closed_body',
+    titleKo: '공을 받을 때 몸이 닫혀 다음 선택이 적다.',
+    titleEn: 'My body stays closed when receiving.',
+    habitIds: <String>['closed_body'],
+  ),
+  _HabitQuestion(
+    id: 'q_plant_foot',
+    titleKo: '패스/슈팅할 때 방향이 일정하지 않다.',
+    titleEn: 'My pass/shot direction is inconsistent.',
+    habitIds: <String>['wrong_plant_foot'],
+  ),
+  _HabitQuestion(
+    id: 'q_shot_lean_back',
+    titleKo: '슈팅할 때 공이 자주 뜬다.',
+    titleEn: 'My shots often go too high.',
+    habitIds: <String>['lean_back_shot'],
+  ),
+  _HabitQuestion(
+    id: 'q_flat_speed',
+    titleKo: '드리블에서 속도 변화를 잘 주지 못한다.',
+    titleEn: 'I struggle to change dribble speed.',
+    habitIds: <String>['flat_dribble'],
+  ),
+  _HabitQuestion(
+    id: 'q_release_timing',
+    titleKo: '패스 타이밍을 놓쳐서 볼을 오래 끈다.',
+    titleEn: 'I hold the ball too long and miss pass timing.',
+    habitIds: <String>['slow_release'],
   ),
 ];
 
