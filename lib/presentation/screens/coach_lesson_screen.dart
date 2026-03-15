@@ -70,29 +70,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       index: 0,
       titleKo: '탐정',
       titleEn: 'Detective',
-      subtitleKo: '오늘의 나쁜 습관을 찾는 단계',
-      subtitleEn: 'Find today\'s bad habit',
     ),
     _FlowStepMeta(
       index: 1,
       titleKo: '미션',
       titleEn: 'Mission',
-      subtitleKo: '고치기 미션을 해보는 단계',
-      subtitleEn: 'Practice correction mission',
     ),
     _FlowStepMeta(
       index: 2,
       titleKo: '점검',
       titleEn: 'Check',
-      subtitleKo: '오늘 얼마나 잘했는지 확인',
-      subtitleEn: 'Check how well you did today',
     ),
     _FlowStepMeta(
       index: 3,
       titleKo: '성장',
       titleEn: 'Growth',
-      subtitleKo: '일주일 성장 결과 보기',
-      subtitleEn: 'See your weekly growth',
     ),
   ];
 
@@ -136,8 +128,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       step: activeStep.index + 1,
                       titleKo: activeStep.titleKo,
                       titleEn: activeStep.titleEn,
-                      subtitleKo: activeStep.subtitleKo,
-                      subtitleEn: activeStep.subtitleEn,
                     ),
                   ],
                 ),
@@ -271,37 +261,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ],
             ),
             const SizedBox(height: 10),
-            Text(
-              _isKo
-                  ? '이번 주 별 $stars/5 · ${_kidRankTextKo(stars)}'
-                  : 'Stars this week $stars/5 · ${_kidRankTextEn(stars)}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            Text(_isKo ? '별 $stars/5' : 'Stars $stars/5'),
             const SizedBox(height: 6),
             LinearProgressIndicator(value: progress),
-            const SizedBox(height: 6),
-            Text(
-              _isKo
-                  ? '흐름: 탐정 → 미션 → 점검 → 성장'
-                  : 'Flow: Detective -> Mission -> Check -> Growth',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
           ],
         ),
       ),
     );
-  }
-
-  String _kidRankTextKo(int stars) {
-    if (stars >= 5) return '슈퍼 플레이어';
-    if (stars >= 3) return '성장 중인 플레이어';
-    return '연습 시작 플레이어';
-  }
-
-  String _kidRankTextEn(int stars) {
-    if (stars >= 5) return 'Super Player';
-    if (stars >= 3) return 'Growing Player';
-    return 'Starter Player';
   }
 
   Widget _buildQuestionCard(_HabitQuestion question) {
@@ -377,8 +343,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     required int step,
     required String titleKo,
     required String titleEn,
-    required String subtitleKo,
-    required String subtitleEn,
   }) {
     return Row(
       children: [
@@ -391,20 +355,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _isKo ? titleKo : titleEn,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              Text(
-                _isKo ? subtitleKo : subtitleEn,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+          child: Text(
+            _isKo ? titleKo : titleEn,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ),
       ],
@@ -428,19 +383,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   ),
             ),
             const SizedBox(height: 8),
-            Text(
-              _isKo
-                  ? '질문에 답하면 코치가 오늘의 습관을 찾아줘요.'
-                  : 'Answer and coach finds your habit today.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 6),
             ..._habitQuestions.map(_buildQuestionCard),
             const SizedBox(height: 10),
-            Text(
-              _isKo ? '현재 레벨: $level' : 'Current level: $level',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            Chip(label: Text(_isKo ? '레벨 $level' : 'Level $level')),
             const SizedBox(height: 10),
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
@@ -504,9 +449,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: top == null
             ? Text(
-                _isKo
-                    ? '질문에 답하면 오늘 고칠 습관을 바로 추천해요.'
-                    : 'Answer questions to get today\'s habit.',
+                _isKo ? '먼저 질문에 답해줘!' : 'Answer questions first!',
                 style: Theme.of(context).textTheme.bodySmall,
               )
             : Column(
@@ -522,11 +465,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   Text(
                     _isKo ? top.labelKo : top.labelEn,
                     style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _isKo ? _habitImpactKo(top.id) : _habitImpactEn(top.id),
-                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 10),
                   FilledButton.icon(
@@ -604,18 +542,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ),
           const SizedBox(height: 4),
           Text(_isKo ? habit.missionKo : habit.missionEn),
-          const SizedBox(height: 4),
-          Text(
-            _isKo ? habit.cueKo : habit.cueEn,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            _isKo
-                ? '실패하면 이렇게: ${_fallbackCueKo(habit.id)}'
-                : 'If failed: ${_fallbackCueEn(habit.id)}',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
           const SizedBox(height: 6),
           FilledButton.tonalIcon(
             onPressed: () => _toggleMissionDone(habit.id),
@@ -719,19 +645,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               icon: const Icon(Icons.save_outlined),
               label: Text(_isKo ? '점검 결과 저장' : 'Save check result'),
             ),
-            const SizedBox(height: 10),
-            if (_currentProgress != null)
-              Text(
-                _isKo
-                    ? '최근: 성공률 ${_currentProgress!.successRate.round()}% · 연속 ${_currentProgress!.streak} · 약발 ${_currentProgress!.weakFootRate.round()}%'
-                    : 'Latest: success ${_currentProgress!.successRate.round()}% · streak ${_currentProgress!.streak} · weak-foot ${_currentProgress!.weakFootRate.round()}%',
-              ),
-            if (_previousProgress != null && _currentProgress != null)
-              Text(
-                _isKo
-                    ? '이전 대비: 성공률 ${_deltaText(_currentProgress!.successRate - _previousProgress!.successRate)} · 연속 ${_deltaText((_currentProgress!.streak - _previousProgress!.streak).toDouble())}'
-                    : 'Delta: success ${_deltaText(_currentProgress!.successRate - _previousProgress!.successRate)} · streak ${_deltaText((_currentProgress!.streak - _previousProgress!.streak).toDouble())}',
-              ),
           ],
         ),
       ),
@@ -761,13 +674,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isKo
-                  ? '버튼을 누르면 실수 1회가 기록돼요.'
-                  : 'Tap a button to log one mistake.',
-              style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -804,22 +710,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             const SizedBox(height: 8),
             if (recent.isEmpty)
               Text(
-                _isKo ? '최근 3일 기록이 없습니다.' : 'No logs in last 3 days.',
+                _isKo ? '최근 기록 없음' : 'No recent log',
                 style: Theme.of(context).textTheme.bodySmall,
               )
             else
-              ...recent.take(5).map((log) {
-                final habit = _habitById(log.habitId);
-                final date =
-                    '${log.at.month}/${log.at.day} ${log.at.hour.toString().padLeft(2, '0')}:${log.at.minute.toString().padLeft(2, '0')}';
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    '• $date · ${_isKo ? habit?.labelKo ?? log.habitId : habit?.labelEn ?? log.habitId}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                );
-              }),
+              Text(
+                _isKo
+                    ? '최근 3일 실수 ${recent.length}회'
+                    : '${recent.length} mistakes in 3 days',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
           ],
         ),
       ),
@@ -902,8 +802,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     color: status.color,
                   ),
             ),
-            const SizedBox(height: 4),
-            Text(_isKo ? status.guideKo : status.guideEn),
             const SizedBox(height: 10),
             FilledButton.tonalIcon(
               onPressed: () => setState(() => _currentFlowStep = 0),
@@ -1297,87 +1195,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _isKo ? 'L4 심화' : 'L4 Advanced';
   }
 
-  String _deltaText(double value) {
-    if (value > 0) return '+${value.round()}';
-    if (value < 0) return value.round().toString();
-    return '0';
-  }
-
-  String _habitImpactKo(String id) {
-    switch (id) {
-      case 'head_down':
-      case 'late_scan':
-        return '주변 인식이 늦어 패스 선택이 늦어집니다.';
-      case 'long_first_touch':
-        return '첫 터치 이후 볼 소유 유지율이 떨어집니다.';
-      case 'closed_body':
-      case 'slow_release':
-        return '패스 각도와 타이밍이 줄어 공격 전개가 느려집니다.';
-      case 'lean_back_shot':
-      case 'wrong_plant_foot':
-        return '슈팅 정확도가 떨어져 득점 확률이 낮아집니다.';
-      default:
-        return '반복될수록 경기 중 의사결정 품질이 떨어집니다.';
-    }
-  }
-
-  String _habitImpactEn(String id) {
-    switch (id) {
-      case 'head_down':
-      case 'late_scan':
-        return 'Late scanning delays passing decisions.';
-      case 'long_first_touch':
-        return 'Ball retention drops after first touch.';
-      case 'closed_body':
-      case 'slow_release':
-        return 'Passing angle/timing shrink and buildup slows down.';
-      case 'lean_back_shot':
-      case 'wrong_plant_foot':
-        return 'Shooting accuracy drops and scoring chance falls.';
-      default:
-        return 'Repeated habit lowers game decision quality.';
-    }
-  }
-
-  String _fallbackCueKo(String id) {
-    switch (id) {
-      case 'head_down':
-      case 'late_scan':
-        return '터치 전 멈추고 1초 스캔 후 재시도';
-      case 'long_first_touch':
-        return '터치 강도를 절반으로 줄여 5회 반복';
-      case 'weak_foot_avoid':
-        return '약발만으로 짧은 터치 10회 먼저 수행';
-      case 'closed_body':
-        return '받기 전 어깨를 먼저 열고 제자리 패스';
-      default:
-        return '동작 속도를 낮추고 정확도 우선으로 재시도';
-    }
-  }
-
-  String _fallbackCueEn(String id) {
-    switch (id) {
-      case 'head_down':
-      case 'late_scan':
-        return 'Pause, 1-sec scan, then retry';
-      case 'long_first_touch':
-        return 'Cut touch power in half for 5 reps';
-      case 'weak_foot_avoid':
-        return 'Do 10 short weak-foot reps first';
-      case 'closed_body':
-        return 'Open shoulder before receive, then retry pass';
-      default:
-        return 'Slow down and retry with accuracy first';
-    }
-  }
-
   _MaintainStatus _maintainStatus() {
     if (_currentProgress == null || _previousProgress == null) {
       return _MaintainStatus(
         labelKo: '데이터 부족',
         labelEn: 'Not enough data',
-        guideKo: '검증을 2회 이상 저장하면 판정을 제공합니다.',
-        guideEn: 'Save verification 2+ times to get status.',
         color: Theme.of(context).colorScheme.outline,
       );
     }
@@ -1387,8 +1209,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return const _MaintainStatus(
         labelKo: '개선',
         labelEn: 'Improving',
-        guideKo: '현 난이도를 3일 유지 후 다음 난이도로 올리세요.',
-        guideEn: 'Keep this level for 3 days, then increase difficulty.',
         color: Colors.green,
       );
     }
@@ -1396,16 +1216,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return const _MaintainStatus(
         labelKo: '악화',
         labelEn: 'Regressing',
-        guideKo: '이전 난이도로 2일 롤백하고 핵심 미션 1개만 수행하세요.',
-        guideEn: 'Rollback for 2 days and do only one core mission.',
         color: Colors.red,
       );
     }
     return const _MaintainStatus(
       labelKo: '유지',
       labelEn: 'Stable',
-      guideKo: '현재 강도로 반복하면서 실패 패턴을 줄이세요.',
-      guideEn: 'Keep current intensity and reduce failure patterns.',
       color: Colors.orange,
     );
   }
@@ -1542,15 +1358,11 @@ class _HabitQuestion {
 class _MaintainStatus {
   final String labelKo;
   final String labelEn;
-  final String guideKo;
-  final String guideEn;
   final Color color;
 
   const _MaintainStatus({
     required this.labelKo,
     required this.labelEn,
-    required this.guideKo,
-    required this.guideEn,
     required this.color,
   });
 }
@@ -1559,15 +1371,11 @@ class _FlowStepMeta {
   final int index;
   final String titleKo;
   final String titleEn;
-  final String subtitleKo;
-  final String subtitleEn;
 
   const _FlowStepMeta({
     required this.index,
     required this.titleKo,
     required this.titleEn,
-    required this.subtitleKo,
-    required this.subtitleEn,
   });
 }
 
