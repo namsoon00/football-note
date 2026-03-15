@@ -252,7 +252,7 @@ List<_WelcomeSection> _buildSections(bool isKo) {
         id: 'game',
         icon: Icons.sports_esports_outlined,
         title: '게임/퀴즈',
-        overview: '패스 게임과 스킬 퀴즈를 통해 훈련 판단력을 재미있게 반복 학습하는 화면입니다.',
+        overview: '패스 게임과 실전 퀴즈를 통해 훈련 판단력을 재미있게 반복 학습하는 화면입니다.',
         details: [
           '게임 가이드/랭킹/퀴즈 버튼으로 학습과 플레이를 빠르게 전환할 수 있습니다.',
           '퀴즈는 유형별 문제풀과 오답 다시풀기로 학습 강화를 지원합니다.',

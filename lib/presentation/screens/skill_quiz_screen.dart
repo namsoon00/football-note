@@ -1,9 +1,18 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../domain/repositories/option_repository.dart';
+
 class SkillQuizScreen extends StatefulWidget {
-  const SkillQuizScreen({super.key});
+  final OptionRepository optionRepository;
+  static const String completionKey = 'skill_quiz_completed_at';
+
+  const SkillQuizScreen({
+    super.key,
+    required this.optionRepository,
+  });
 
   @override
   State<SkillQuizScreen> createState() => _SkillQuizScreenState();
@@ -12,77 +21,68 @@ class SkillQuizScreen extends StatefulWidget {
 class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _dailyQuestionCount = 20;
 
-  late final Map<_QuizType, List<_QuizQuestion>> _poolByType;
-  _QuizType _selectedType = _QuizType.mixed;
+  late final List<_QuizQuestion> _mixedPool;
   late List<_QuizQuestion> _dailyQuestions;
   late List<_QuizQuestion> _questions;
-  int _dailySeed = 0;
   bool _reviewMode = false;
 
   int _index = 0;
   int _score = 0;
   int? _selectedIndex;
   bool _answered = false;
+  bool _retryUsed = false;
+  String? _retryFeedback;
   final Set<String> _wrongIds = <String>{};
+  bool _completionRecorded = false;
 
   bool get _isFinished => _index >= _questions.length;
-  List<_QuizQuestion> get _selectedPool =>
-      _poolByType[_selectedType] ?? const <_QuizQuestion>[];
 
   @override
   void initState() {
     super.initState();
-    final typed = <_QuizType, List<_QuizQuestion>>{
-      _QuizType.pass: _buildTypedQuizPool(_QuizType.pass),
-      _QuizType.dribble: _buildTypedQuizPool(_QuizType.dribble),
-      _QuizType.control: _buildTypedQuizPool(_QuizType.control),
-      _QuizType.scan: _buildTypedQuizPool(_QuizType.scan),
-    };
-    _poolByType = {
-      ...typed,
-      _QuizType.mixed:
-          typed.values.expand((list) => list).toList(growable: false),
-    };
-    _startDailyForType(_selectedType);
+    _mixedPool = _buildMixedQuizPool();
+    _startRandomMixedSession();
   }
 
-  void _startDailyForType(_QuizType type) {
-    final now = DateTime.now();
-    final date = DateTime(now.year, now.month, now.day);
-    final seed = (date.year * 10000) +
-        (date.month * 100) +
-        date.day +
-        (_stableHash(type.name) * 17);
-    final picked = _buildDailyQuestions(
-      _poolByType[type] ?? const <_QuizQuestion>[],
-      seed,
-      _dailyQuestionCount,
-    );
+  void _startRandomMixedSession() {
+    final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final picked = [..._mixedPool]..shuffle(random);
+    final selected = picked
+        .take(math.min(_dailyQuestionCount, picked.length))
+        .map((question) => _shuffleQuestionOptions(question, random))
+        .toList(growable: false);
 
     setState(() {
-      _selectedType = type;
-      _dailySeed = seed;
-      _dailyQuestions = picked;
-      _questions = picked;
+      _dailyQuestions = selected;
+      _questions = selected;
       _reviewMode = false;
       _index = 0;
       _score = 0;
       _selectedIndex = null;
       _answered = false;
+      _retryUsed = false;
+      _retryFeedback = null;
       _wrongIds.clear();
     });
   }
 
   void _selectAnswer(int choice) {
-    if (_answered || _isFinished) return;
+    if (_isFinished || _answered) return;
     final question = _questions[_index];
+    final isCorrect = choice == question.correctIndex;
     setState(() {
       _selectedIndex = choice;
-      _answered = true;
-      if (choice == question.correctIndex) {
+      if (isCorrect) {
+        _answered = true;
         _score++;
+        _retryFeedback = null;
+      } else if (!_retryUsed) {
+        _retryUsed = true;
+        _retryFeedback = 'incorrect';
       } else {
+        _answered = true;
         _wrongIds.add(question.id);
+        _retryFeedback = null;
       }
     });
   }
@@ -93,18 +93,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _index++;
       _selectedIndex = null;
       _answered = false;
-    });
-  }
-
-  void _restartDaily() {
-    setState(() {
-      _questions = _dailyQuestions;
-      _reviewMode = false;
-      _index = 0;
-      _score = 0;
-      _selectedIndex = null;
-      _answered = false;
-      _wrongIds.clear();
+      _retryUsed = false;
+      _retryFeedback = null;
     });
   }
 
@@ -122,6 +112,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _score = 0;
       _selectedIndex = null;
       _answered = false;
+      _retryUsed = false;
+      _retryFeedback = null;
       _wrongIds.clear();
     });
   }
@@ -131,7 +123,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '스킬 퀴즈' : 'Skill Quiz'),
+        title: Text(isKo ? '실전 퀴즈' : 'Match Quiz'),
       ),
       body: SafeArea(
         child: Padding(
@@ -148,19 +140,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: _QuizType.values.map((type) {
-            final selected = _selectedType == type;
-            return ChoiceChip(
-              label: Text(type.label(isKo)),
-              selected: selected,
-              onSelected: (_) => _startDailyForType(type),
-            );
-          }).toList(growable: false),
-        ),
-        const SizedBox(height: 8),
         Text(
           _reviewMode
               ? (isKo ? '오답 복습 · 진행 $progress' : 'Wrong review · $progress')
@@ -172,8 +151,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         const SizedBox(height: 4),
         Text(
           isKo
-              ? '${_selectedType.label(true)} 유형 문제풀 ${_selectedPool.length}개(유형당 100개) · 오늘 세트 ${_dailyQuestions.length}개'
-              : '${_selectedType.label(false)} pool ${_selectedPool.length} (100 per type) · today set ${_dailyQuestions.length}',
+              ? '혼합 문제풀 ${_mixedPool.length}개 · 이번 세트 ${_dailyQuestions.length}개'
+              : 'Mixed pool ${_mixedPool.length} · this set ${_dailyQuestions.length}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 10),
@@ -196,7 +175,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           final isCorrect = optionIndex == question.correctIndex;
           Color? borderColor;
           Color? bgColor;
-          if (_answered) {
+          if (_answered || (_retryUsed && selected)) {
             if (isCorrect) {
               borderColor = const Color(0xFF0FA968);
               bgColor = const Color(0x1A0FA968);
@@ -225,13 +204,25 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   Expanded(child: Text(isKo ? option.koText : option.enText)),
                   if (_answered && isCorrect)
                     const Icon(Icons.check_circle, color: Color(0xFF0FA968)),
-                  if (_answered && selected && !isCorrect)
+                  if ((_answered || _retryUsed) && selected && !isCorrect)
                     const Icon(Icons.cancel, color: Color(0xFFEB5757)),
                 ],
               ),
             ),
           );
         }),
+        if (!_answered && _retryFeedback == 'incorrect') ...[
+          const SizedBox(height: 2),
+          Text(
+            isKo
+                ? '틀렸어요. 다시 한 번 풀어보세요.'
+                : 'Incorrect. Try this question one more time.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFFEB5757),
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ],
         const SizedBox(height: 10),
         if (_answered)
           Container(
@@ -256,6 +247,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 
   Widget _buildResult(bool isKo) {
+    if (!_completionRecorded) {
+      _completionRecorded = true;
+      unawaited(
+        widget.optionRepository.setValue(
+          SkillQuizScreen.completionKey,
+          DateTime.now().toIso8601String(),
+        ),
+      );
+    }
     final total = _questions.length;
     final ratio = total == 0 ? 0 : ((_score / total) * 100).round();
     final wrongCount = _wrongIds.length;
@@ -297,8 +297,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 const SizedBox(height: 6),
                 Text(
                   isKo
-                      ? '${_selectedType.label(true)} 유형(시드: $_dailySeed)'
-                      : '${_selectedType.label(false)} type (seed: $_dailySeed)',
+                      ? '퀴즈 세트'
+                      : 'Quiz set',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -311,9 +311,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   ),
                 if (wrongCount > 0) const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _restartDaily,
+                  onPressed: _startRandomMixedSession,
                   icon: const Icon(Icons.replay),
-                  label: Text(isKo ? '오늘 문제 다시 풀기' : 'Retry today set'),
+                  label: Text(isKo ? '랜덤 세트 다시 받기' : 'Get another random set'),
                 ),
               ],
             ),
@@ -324,19 +324,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 }
 
-enum _QuizType { mixed, pass, dribble, control, scan }
-
-extension _QuizTypeLabel on _QuizType {
-  String label(bool isKo) {
-    return switch (this) {
-      _QuizType.pass => isKo ? '패스' : 'Pass',
-      _QuizType.dribble => isKo ? '드리블' : 'Dribble',
-      _QuizType.control => isKo ? '컨트롤' : 'Control',
-      _QuizType.scan => isKo ? '스캔' : 'Scan',
-      _QuizType.mixed => isKo ? '혼합' : 'Mixed',
-    };
-  }
-}
+enum _QuizType { pass, dribble, control, scan, match }
 
 class _QuizQuestion {
   final String id;
@@ -396,9 +384,55 @@ class _QuizConcept {
   });
 }
 
+class _MatchPhaseContext {
+  final String id;
+  final String koPrefix;
+  final String enPrefix;
+
+  const _MatchPhaseContext({
+    required this.id,
+    required this.koPrefix,
+    required this.enPrefix,
+  });
+}
+
+class _MatchScoreContext {
+  final String id;
+  final String koPrefix;
+  final String enPrefix;
+
+  const _MatchScoreContext({
+    required this.id,
+    required this.koPrefix,
+    required this.enPrefix,
+  });
+}
+
+class _MatchKnowledgeTemplate {
+  final String id;
+  final String koPrompt;
+  final String enPrompt;
+  final _QuizOption correct;
+  final _QuizOption wrongA;
+  final _QuizOption wrongB;
+  final String koExplain;
+  final String enExplain;
+
+  const _MatchKnowledgeTemplate({
+    required this.id,
+    required this.koPrompt,
+    required this.enPrompt,
+    required this.correct,
+    required this.wrongA,
+    required this.wrongB,
+    required this.koExplain,
+    required this.enExplain,
+  });
+}
+
 List<_QuizQuestion> _buildTypedQuizPool(_QuizType type) {
-  if (type == _QuizType.mixed) {
-    return const <_QuizQuestion>[];
+  if (type == _QuizType.match) {
+    return _buildMatchQuizPool();
   }
   final concepts = _conceptsByType[type] ?? const <_QuizConcept>[];
   final pool = <_QuizQuestion>[];
@@ -422,6 +456,65 @@ List<_QuizQuestion> _buildTypedQuizPool(_QuizType type) {
   return pool;
 }
 
+List<_QuizQuestion> _buildMixedQuizPool() {
+  return [
+    ..._buildTypedQuizPool(_QuizType.pass),
+    ..._buildTypedQuizPool(_QuizType.dribble),
+    ..._buildTypedQuizPool(_QuizType.control),
+    ..._buildTypedQuizPool(_QuizType.scan),
+    ..._buildTypedQuizPool(_QuizType.match),
+  ];
+}
+
+List<_QuizQuestion> _buildMatchQuizPool() {
+  final pool = <_QuizQuestion>[];
+  for (final phase in _matchPhaseContexts) {
+    for (final score in _matchScoreContexts) {
+      for (final template in _matchKnowledgeTemplates) {
+        final id = 'm_${phase.id}_${score.id}_${template.id}';
+        final pack = _buildOptionPack(
+          id,
+          template.correct,
+          template.wrongA,
+          template.wrongB,
+        );
+        pool.add(
+          _QuizQuestion(
+            id: id,
+            koQuestion:
+                '${phase.koPrefix} ${score.koPrefix} ${template.koPrompt}',
+            enQuestion:
+                '${phase.enPrefix} ${score.enPrefix} ${template.enPrompt}',
+            options: pack.options,
+            correctIndex: pack.correctIndex,
+            koExplain: template.koExplain,
+            enExplain: template.enExplain,
+          ),
+        );
+      }
+    }
+  }
+  return pool;
+}
+
+_QuizQuestion _shuffleQuestionOptions(_QuizQuestion question, math.Random random) {
+  final indexed = question.options.asMap().entries.toList(growable: false)
+    ..shuffle(random);
+  final shuffledOptions = indexed.map((entry) => entry.value).toList(growable: false);
+  final shuffledCorrectIndex = indexed.indexWhere(
+    (entry) => entry.key == question.correctIndex,
+  );
+  return _QuizQuestion(
+    id: question.id,
+    koQuestion: question.koQuestion,
+    enQuestion: question.enQuestion,
+    options: shuffledOptions,
+    correctIndex: shuffledCorrectIndex,
+    koExplain: question.koExplain,
+    enExplain: question.enExplain,
+  );
+}
+
 _OptionPack _buildOptionPack(
   String seed,
   _QuizOption correct,
@@ -441,13 +534,6 @@ class _OptionPack {
   const _OptionPack(this.options, this.correctIndex);
 }
 
-List<_QuizQuestion> _buildDailyQuestions(
-    List<_QuizQuestion> pool, int seed, int count) {
-  if (pool.isEmpty) return const <_QuizQuestion>[];
-  final list = [...pool]..shuffle(math.Random(seed));
-  return list.take(math.min(count, list.length)).toList(growable: false);
-}
-
 int _stableHash(String text) {
   var hash = 0;
   for (final code in text.codeUnits) {
@@ -455,6 +541,344 @@ int _stableHash(String text) {
   }
   return hash;
 }
+
+const List<_MatchPhaseContext> _matchPhaseContexts = <_MatchPhaseContext>[
+  _MatchPhaseContext(
+    id: 'ph01',
+    koPrefix: '전반 초반(1~10분),',
+    enPrefix: 'Early first half (1-10 min),',
+  ),
+  _MatchPhaseContext(
+    id: 'ph02',
+    koPrefix: '전반 중반(11~25분),',
+    enPrefix: 'Mid first half (11-25 min),',
+  ),
+  _MatchPhaseContext(
+    id: 'ph03',
+    koPrefix: '전반 막판(26~45분),',
+    enPrefix: 'Late first half (26-45 min),',
+  ),
+  _MatchPhaseContext(
+    id: 'ph04',
+    koPrefix: '후반 초반(46~60분),',
+    enPrefix: 'Early second half (46-60 min),',
+  ),
+  _MatchPhaseContext(
+    id: 'ph05',
+    koPrefix: '후반 중반(61~75분),',
+    enPrefix: 'Mid second half (61-75 min),',
+  ),
+  _MatchPhaseContext(
+    id: 'ph06',
+    koPrefix: '후반 막판(76~90분),',
+    enPrefix: 'Late second half (76-90 min),',
+  ),
+  _MatchPhaseContext(
+    id: 'ph07',
+    koPrefix: '추가시간,',
+    enPrefix: 'Stoppage time,',
+  ),
+  _MatchPhaseContext(
+    id: 'ph08',
+    koPrefix: '우리 팀이 방금 실점 직후,',
+    enPrefix: 'Right after our team conceded,',
+  ),
+  _MatchPhaseContext(
+    id: 'ph09',
+    koPrefix: '우리 팀이 방금 득점 직후,',
+    enPrefix: 'Right after our team scored,',
+  ),
+  _MatchPhaseContext(
+    id: 'ph10',
+    koPrefix: '교체 직후 새 포지션 적응 상황에서,',
+    enPrefix: 'Right after a substitution in a new role,',
+  ),
+];
+
+const List<_MatchScoreContext> _matchScoreContexts = <_MatchScoreContext>[
+  _MatchScoreContext(
+    id: 'sc01',
+    koPrefix: '0-0 균형 상황에서',
+    enPrefix: 'at 0-0 balance',
+  ),
+  _MatchScoreContext(
+    id: 'sc02',
+    koPrefix: '1점 앞선 상황에서',
+    enPrefix: 'while leading by one',
+  ),
+  _MatchScoreContext(
+    id: 'sc03',
+    koPrefix: '2점 이상 앞선 상황에서',
+    enPrefix: 'while leading by two or more',
+  ),
+  _MatchScoreContext(
+    id: 'sc04',
+    koPrefix: '1점 뒤진 상황에서',
+    enPrefix: 'while trailing by one',
+  ),
+  _MatchScoreContext(
+    id: 'sc05',
+    koPrefix: '2점 이상 뒤진 상황에서',
+    enPrefix: 'while trailing by two or more',
+  ),
+  _MatchScoreContext(
+    id: 'sc06',
+    koPrefix: '상대가 수비 블록을 내린 상황에서',
+    enPrefix: 'against a low defensive block',
+  ),
+  _MatchScoreContext(
+    id: 'sc07',
+    koPrefix: '상대가 전방 압박을 강하게 거는 상황에서',
+    enPrefix: 'against intense high press',
+  ),
+  _MatchScoreContext(
+    id: 'sc08',
+    koPrefix: '우리 팀에 경고 누적 선수가 많은 상황에서',
+    enPrefix: 'with many teammates on cautions',
+  ),
+  _MatchScoreContext(
+    id: 'sc09',
+    koPrefix: '비가 와서 그라운드가 미끄러운 상황에서',
+    enPrefix: 'on a slippery rainy pitch',
+  ),
+  _MatchScoreContext(
+    id: 'sc10',
+    koPrefix: '체력 저하가 뚜렷해진 상황에서',
+    enPrefix: 'with clear physical fatigue',
+  ),
+];
+
+const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
+    <_MatchKnowledgeTemplate>[
+  _MatchKnowledgeTemplate(
+    id: 'mk01',
+    koPrompt: '빌드업 첫 선택으로 가장 안전한 원칙은?',
+    enPrompt: 'what is the safest first principle in buildup?',
+    correct: _QuizOption(
+      koText: '볼-몸-상대 순서로 보호하며 가까운 지원부터 연결',
+      enText: 'Protect ball-body-opponent order and connect nearest support first',
+    ),
+    wrongA: _QuizOption(
+      koText: '압박 방향과 무관하게 중앙 고정 패스',
+      enText: 'Force central pass regardless of pressure',
+    ),
+    wrongB: _QuizOption(
+      koText: '첫 터치 후 멈춘 뒤 판단',
+      enText: 'Stop after first touch, then decide',
+    ),
+    koExplain: '시합에서는 위험을 먼저 줄이는 선택이 실점/턴오버를 줄입니다.',
+    enExplain: 'In matches, lowering immediate risk reduces goals conceded and turnovers.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk02',
+    koPrompt: '전환 수비에서 가장 먼저 해야 할 행동은?',
+    enPrompt: 'what is the first action in defensive transition?',
+    correct: _QuizOption(
+      koText: '가장 가까운 패스길 차단과 지연',
+      enText: 'Block nearest passing lane and delay',
+    ),
+    wrongA: _QuizOption(
+      koText: '즉시 공만 향해 전원 돌진',
+      enText: 'Everyone sprints straight to the ball',
+    ),
+    wrongB: _QuizOption(
+      koText: '뒤로만 빠지며 압박 포기',
+      enText: 'Drop only and abandon pressure',
+    ),
+    koExplain: '지연과 패스길 차단이 동료 복귀 시간을 벌어줍니다.',
+    enExplain: 'Delay and lane blocking buy recovery time for teammates.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk03',
+    koPrompt: '공격 전환에서 우선 확인할 정보는?',
+    enPrompt: 'what should be checked first in attacking transition?',
+    correct: _QuizOption(
+      koText: '상대 뒷공간과 전진 런 타이밍',
+      enText: 'Back-space and forward-run timing',
+    ),
+    wrongA: _QuizOption(
+      koText: '항상 측면으로만 전개',
+      enText: 'Always play wide only',
+    ),
+    wrongB: _QuizOption(
+      koText: '공 점유를 위해 무조건 후퇴',
+      enText: 'Always retreat for possession',
+    ),
+    koExplain: '전환 순간에는 뒷공간과 런 정보가 득점 기회를 만듭니다.',
+    enExplain: 'In transition moments, back-space and run cues create chances.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk04',
+    koPrompt: '세트피스 수비에서 기본 원칙으로 맞는 것은?',
+    enPrompt: 'which basic principle is correct in set-piece defense?',
+    correct: _QuizOption(
+      koText: '마크 대상과 볼 궤적을 교차 확인',
+      enText: 'Alternate checks between mark and ball flight',
+    ),
+    wrongA: _QuizOption(
+      koText: '볼만 끝까지 응시',
+      enText: 'Stare at ball only',
+    ),
+    wrongB: _QuizOption(
+      koText: '상대만 잡고 볼은 포기',
+      enText: 'Hold mark only and ignore ball',
+    ),
+    koExplain: '마크와 볼을 함께 봐야 세컨드볼 대응이 가능합니다.',
+    enExplain: 'Tracking both mark and ball enables second-ball responses.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk05',
+    koPrompt: '오프사이드 라인 관리에서 핵심은?',
+    enPrompt: 'what is key in offside-line management?',
+    correct: _QuizOption(
+      koText: '라인 간격과 커버 선수 소통 유지',
+      enText: 'Maintain line spacing and cover communication',
+    ),
+    wrongA: _QuizOption(
+      koText: '각자 판단으로 개별 전진',
+      enText: 'Each player steps independently',
+    ),
+    wrongB: _QuizOption(
+      koText: '항상 라인을 깊게만 내림',
+      enText: 'Always keep an extremely deep line',
+    ),
+    koExplain: '라인 수비는 동기화와 커버 의사소통이 핵심입니다.',
+    enExplain: 'Line defending depends on synchronization and cover communication.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk06',
+    koPrompt: '측면 수비에서 크로스 억제의 우선순위는?',
+    enPrompt: 'what is the priority to suppress crosses on the flank?',
+    correct: _QuizOption(
+      koText: '안쪽 유도 후 크로스 발 차단',
+      enText: 'Show inside then block crossing foot',
+    ),
+    wrongA: _QuizOption(
+      koText: '거리 두고 기다리기만',
+      enText: 'Keep distance and only wait',
+    ),
+    wrongB: _QuizOption(
+      koText: '무조건 태클 먼저 시도',
+      enText: 'Always tackle first',
+    ),
+    koExplain: '크로스 발을 막는 각도 수비가 실점 확률을 낮춥니다.',
+    enExplain: 'Angle defending that blocks crossing foot reduces conceding risk.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk07',
+    koPrompt: '박스 근처 수비에서 파울을 줄이는 선택은?',
+    enPrompt: 'which choice reduces fouls near the box?',
+    correct: _QuizOption(
+      koText: '발보다 몸의 위치 선점',
+      enText: 'Win position with body before foot',
+    ),
+    wrongA: _QuizOption(
+      koText: '뒤에서 발만 뻗기',
+      enText: 'Stab a foot from behind',
+    ),
+    wrongB: _QuizOption(
+      koText: '볼과 상관없이 밀어내기',
+      enText: 'Push regardless of ball',
+    ),
+    koExplain: '박스 앞에서는 무리한 발 동작보다 위치 선점이 안전합니다.',
+    enExplain: 'Near the box, positional body control is safer than risky foot actions.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk08',
+    koPrompt: '경기 운영(게임 매니지먼트)에서 중요한 행동은?',
+    enPrompt: 'what matters in game management?',
+    correct: _QuizOption(
+      koText: '스코어/시간에 맞는 템포 조절',
+      enText: 'Adjust tempo to scoreline and time',
+    ),
+    wrongA: _QuizOption(
+      koText: '항상 같은 속도로 플레이',
+      enText: 'Play at one constant speed always',
+    ),
+    wrongB: _QuizOption(
+      koText: '개인 리듬만 고집',
+      enText: 'Stick to personal rhythm only',
+    ),
+    koExplain: '시합은 상황별 템포 조절 능력이 승부를 좌우합니다.',
+    enExplain: 'Match outcomes often depend on contextual tempo control.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk09',
+    koPrompt: '역습 상황에서 마지막 패스 성공률을 높이는 법은?',
+    enPrompt: 'how do you improve final-pass success in counterattacks?',
+    correct: _QuizOption(
+      koText: '러너의 몸 방향 앞 공간에 맞춤 전달',
+      enText: 'Play into runner front-space by body angle',
+    ),
+    wrongA: _QuizOption(
+      koText: '러너 발밑으로만 고정 전달',
+      enText: 'Always pass directly to feet',
+    ),
+    wrongB: _QuizOption(
+      koText: '속도와 관계없이 강하게만 전달',
+      enText: 'Hit hard regardless of speed',
+    ),
+    koExplain: '러너의 진행 방향과 속도에 맞춰야 마무리 확률이 올라갑니다.',
+    enExplain: 'Matching runner direction and speed increases finishing probability.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk10',
+    koPrompt: '의사결정 속도를 높이는 가장 현실적인 루틴은?',
+    enPrompt: 'what is the most practical routine for faster decisions?',
+    correct: _QuizOption(
+      koText: '받기 전 짧은 좌우 스캔 반복',
+      enText: 'Repeat brief left-right pre-scans',
+    ),
+    wrongA: _QuizOption(
+      koText: '공 받은 뒤에만 주변 확인',
+      enText: 'Check surroundings only after receiving',
+    ),
+    wrongB: _QuizOption(
+      koText: '시선 고정 후 터치 수 늘리기',
+      enText: 'Fix gaze and add touches',
+    ),
+    koExplain: '프리스캔 루틴은 경기 속도에서 판단 지연을 줄입니다.',
+    enExplain: 'Pre-scan routines reduce decision lag at game speed.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk11',
+    koPrompt: '멘탈 흔들림(실수 직후)에서 바른 반응은?',
+    enPrompt: 'what is the right reaction after a mistake?',
+    correct: _QuizOption(
+      koText: '즉시 다음 수비/지원 역할에 재집중',
+      enText: 'Refocus immediately on next defensive/support task',
+    ),
+    wrongA: _QuizOption(
+      koText: '이전 실수 장면만 계속 생각',
+      enText: 'Keep replaying the mistake',
+    ),
+    wrongB: _QuizOption(
+      koText: '한 플레이 쉬면서 감정 정리',
+      enText: 'Take a play off to reset emotions',
+    ),
+    koExplain: '시합 중 회복 탄력성은 다음 행동의 질로 드러납니다.',
+    enExplain: 'In-game resilience is shown by quality of the next action.',
+  ),
+  _MatchKnowledgeTemplate(
+    id: 'mk12',
+    koPrompt: '경고가 있는 상황에서 수비 선택으로 맞는 것은?',
+    enPrompt: 'which defensive choice is correct when on a yellow card?',
+    correct: _QuizOption(
+      koText: '접촉 타이밍 관리와 커버 유도',
+      enText: 'Manage contact timing and guide into cover',
+    ),
+    wrongA: _QuizOption(
+      koText: '이전처럼 동일 강도로 태클',
+      enText: 'Tackle at same intensity as before',
+    ),
+    wrongB: _QuizOption(
+      koText: '압박 자체를 완전히 중단',
+      enText: 'Completely stop pressing',
+    ),
+    koExplain: '경고 상황에서는 타이밍/각도/커버 활용이 필수입니다.',
+    enExplain: 'On a caution, timing-angle-cover discipline is essential.',
+  ),
+];
 
 const List<_QuizSituation> _situations = <_QuizSituation>[
   _QuizSituation(

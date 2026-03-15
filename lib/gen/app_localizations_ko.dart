@@ -575,4 +575,112 @@ class AppLocalizationsKo extends AppLocalizations {
   String photoLimitReached(Object value) {
     return '사진은 최대 $value장까지 추가할 수 있어요.';
   }
+
+  @override
+  String get gameGuideTitle => '게임 가이드';
+
+  @override
+  String get gameGuideQuickTitle => '10초 요약';
+
+  @override
+  String get gameGuideQuickLine1 => '목표: 제한 시간 안에 패스 성공과 골로 랭킹 점수를 올리기';
+
+  @override
+  String get gameGuideQuickLine2 => '조작: 좌측 조이스틱 이동 / 우측 패스 버튼 길게 눌러 파워 조절';
+
+  @override
+  String get gameGuideQuickLine3 => '득점: 패스 성공 +1, 골 성공 +3 (골은 랭킹 점수에 큰 영향)';
+
+  @override
+  String get gameGuideQuickLine4 => '실패: 차단/미스/3초 무패스/충돌 시 페널티 또는 종료';
+
+  @override
+  String get gameGuideRiskTitle => '위험-보상 선택';
+
+  @override
+  String get gameGuideRiskLine1 => '안전 패스: 성공률이 높아 연속 리듬 유지에 유리';
+
+  @override
+  String get gameGuideRiskLine2 => '전진 패스: 리턴은 어렵지만 성공 시 전개 속도 상승';
+
+  @override
+  String get gameGuideRiskLine3 => '슈팅 타이밍: 골키퍼 빈 공간이 클 때 시도하면 성공률 상승';
+
+  @override
+  String get gameGuideRiskLine4 => '핵심: 상황에 따라 안전/도전 선택을 바꿔야 고득점 가능';
+
+  @override
+  String get gameGuideFailureTitle => '실패 원인 빠른 해석';
+
+  @override
+  String get gameGuideFailureLine1 => '차단됨: 패스 각도가 닫힘 -> 바깥 각도로 재조정';
+
+  @override
+  String get gameGuideFailureLine2 => '빠름/느림: 패스 버튼 누른 시간으로 파워 미세 조절';
+
+  @override
+  String get gameGuideFailureLine3 => '슛 선방: 골키퍼 반대 공간을 노리고 타이밍 분리';
+
+  @override
+  String get gameGuideFailureLine4 => '3초 무패스: 템포 유지 위해 빠른 판단 루틴 필요';
+
+  @override
+  String get gameGuideRankingTitle => '랭킹 계산';
+
+  @override
+  String get gameGuideRankingLine1 => '랭킹 점수 = (패스 점수x10) + (레벨x15) + (골x60)';
+
+  @override
+  String get gameGuideRankingLine2 => 'S: 320점 이상 / A: 240점 이상 / B: 170점 이상';
+
+  @override
+  String get gameGuideRankingLine3 => 'C: 110점 이상 / D: 110점 미만';
+
+  @override
+  String get gameGuideRankingLine4 => '팁: 골 보너스 비중이 커서, 슈팅 성공이 최종 랭킹에 매우 중요';
+
+  @override
+  String get gameGuideCharPacTitle => '팩맨 공격수';
+
+  @override
+  String get gameGuideCharPacSubtitle => '패스 시작/연결 담당';
+
+  @override
+  String get gameGuideCharPacTag => '공격';
+
+  @override
+  String get gameGuideCharBlueTitle => '블루 고스트 - BLOCK';
+
+  @override
+  String get gameGuideCharBlueSubtitle => '패스 라인 차단';
+
+  @override
+  String get gameGuideCharBlueTag => '차단';
+
+  @override
+  String get gameGuideCharOrangeTitle => '오렌지 고스트 - PRESS';
+
+  @override
+  String get gameGuideCharOrangeSubtitle => '공 근처 압박';
+
+  @override
+  String get gameGuideCharOrangeTag => '압박';
+
+  @override
+  String get gameGuideCharRedTitle => '레드 고스트 - MARK';
+
+  @override
+  String get gameGuideCharRedSubtitle => '패서 마킹';
+
+  @override
+  String get gameGuideCharRedTag => '마크';
+
+  @override
+  String get gameGuideCharPinkTitle => '핑크 고스트 - READ';
+
+  @override
+  String get gameGuideCharPinkSubtitle => '리시버 예측 차단';
+
+  @override
+  String get gameGuideCharPinkTag => '예측';
 }

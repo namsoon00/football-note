@@ -1201,6 +1201,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can add up to {value} photos.'**
   String photoLimitReached(Object value);
+
+  /// No description provided for @gameGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Game Guide'**
+  String get gameGuideTitle;
+
+  /// No description provided for @gameGuideQuickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'10s Quick Start'**
+  String get gameGuideQuickTitle;
+
+  /// No description provided for @gameGuideQuickLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: increase rank score with passes and goals within time.'**
+  String get gameGuideQuickLine1;
+
+  /// No description provided for @gameGuideQuickLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Control: left joystick move / hold pass button to charge power.'**
+  String get gameGuideQuickLine2;
+
+  /// No description provided for @gameGuideQuickLine3.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring: pass +1, goal +3 (goals heavily affect rank).'**
+  String get gameGuideQuickLine3;
+
+  /// No description provided for @gameGuideQuickLine4.
+  ///
+  /// In en, this message translates to:
+  /// **'Failure: intercept/miss/no-pass-for-3s/collision cause penalties.'**
+  String get gameGuideQuickLine4;
+
+  /// No description provided for @gameGuideRiskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Risk vs Reward'**
+  String get gameGuideRiskTitle;
+
+  /// No description provided for @gameGuideRiskLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Safe pass: higher success rate, better for combo stability.'**
+  String get gameGuideRiskLine1;
+
+  /// No description provided for @gameGuideRiskLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward pass: harder return, but faster progression when successful.'**
+  String get gameGuideRiskLine2;
+
+  /// No description provided for @gameGuideRiskLine3.
+  ///
+  /// In en, this message translates to:
+  /// **'Shot timing: success increases when keeper leaves larger gaps.'**
+  String get gameGuideRiskLine3;
+
+  /// No description provided for @gameGuideRiskLine4.
+  ///
+  /// In en, this message translates to:
+  /// **'Key: switch between safe and risky choices by context.'**
+  String get gameGuideRiskLine4;
+
+  /// No description provided for @gameGuideFailureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Failure Decoder'**
+  String get gameGuideFailureTitle;
+
+  /// No description provided for @gameGuideFailureLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Intercepted: lane too closed, re-open passing angle.'**
+  String get gameGuideFailureLine1;
+
+  /// No description provided for @gameGuideFailureLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'Too fast/slow: fine-tune power by hold duration.'**
+  String get gameGuideFailureLine2;
+
+  /// No description provided for @gameGuideFailureLine3.
+  ///
+  /// In en, this message translates to:
+  /// **'Shot saved: separate timing and target opposite keeper side.'**
+  String get gameGuideFailureLine3;
+
+  /// No description provided for @gameGuideFailureLine4.
+  ///
+  /// In en, this message translates to:
+  /// **'No-pass-3s: keep quick decision rhythm to maintain flow.'**
+  String get gameGuideFailureLine4;
+
+  /// No description provided for @gameGuideRankingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ranking Formula'**
+  String get gameGuideRankingTitle;
+
+  /// No description provided for @gameGuideRankingLine1.
+  ///
+  /// In en, this message translates to:
+  /// **'Rank score = (pass score x 10) + (level x 15) + (goals x 60).'**
+  String get gameGuideRankingLine1;
+
+  /// No description provided for @gameGuideRankingLine2.
+  ///
+  /// In en, this message translates to:
+  /// **'S: 320+ / A: 240+ / B: 170+'**
+  String get gameGuideRankingLine2;
+
+  /// No description provided for @gameGuideRankingLine3.
+  ///
+  /// In en, this message translates to:
+  /// **'C: 110+ / D: below 110'**
+  String get gameGuideRankingLine3;
+
+  /// No description provided for @gameGuideRankingLine4.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: goals are heavily weighted, so shot success matters most.'**
+  String get gameGuideRankingLine4;
+
+  /// No description provided for @gameGuideCharPacTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pacman Attacker'**
+  String get gameGuideCharPacTitle;
+
+  /// No description provided for @gameGuideCharPacSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts and links passes'**
+  String get gameGuideCharPacSubtitle;
+
+  /// No description provided for @gameGuideCharPacTag.
+  ///
+  /// In en, this message translates to:
+  /// **'ATTACK'**
+  String get gameGuideCharPacTag;
+
+  /// No description provided for @gameGuideCharBlueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue Ghost - BLOCK'**
+  String get gameGuideCharBlueTitle;
+
+  /// No description provided for @gameGuideCharBlueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks passing lanes'**
+  String get gameGuideCharBlueSubtitle;
+
+  /// No description provided for @gameGuideCharBlueTag.
+  ///
+  /// In en, this message translates to:
+  /// **'BLOCK'**
+  String get gameGuideCharBlueTag;
+
+  /// No description provided for @gameGuideCharOrangeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange Ghost - PRESS'**
+  String get gameGuideCharOrangeTitle;
+
+  /// No description provided for @gameGuideCharOrangeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure near ball'**
+  String get gameGuideCharOrangeSubtitle;
+
+  /// No description provided for @gameGuideCharOrangeTag.
+  ///
+  /// In en, this message translates to:
+  /// **'PRESS'**
+  String get gameGuideCharOrangeTag;
+
+  /// No description provided for @gameGuideCharRedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Red Ghost - MARK'**
+  String get gameGuideCharRedTitle;
+
+  /// No description provided for @gameGuideCharRedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Marks the passer'**
+  String get gameGuideCharRedSubtitle;
+
+  /// No description provided for @gameGuideCharRedTag.
+  ///
+  /// In en, this message translates to:
+  /// **'MARK'**
+  String get gameGuideCharRedTag;
+
+  /// No description provided for @gameGuideCharPinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink Ghost - READ'**
+  String get gameGuideCharPinkTitle;
+
+  /// No description provided for @gameGuideCharPinkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Anticipates receiver route'**
+  String get gameGuideCharPinkSubtitle;
+
+  /// No description provided for @gameGuideCharPinkTag.
+  ///
+  /// In en, this message translates to:
+  /// **'READ'**
+  String get gameGuideCharPinkTag;
 }
 
 class _AppLocalizationsDelegate

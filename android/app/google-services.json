@@ -12,7 +12,20 @@
           "package_name": "com.namsoon.footballnote"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "771305087734-2sc3rigg3np33hfhm71ak6cncurcqdbl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.namsoon.footballnote",
+            "certificate_hash": "a0803052fbddd91ed19260b80d800d7c5ed0d7d4"
+          }
+        },
+        {
+          "client_id": "771305087734-atioeqhkpt2f0kqqhqq54nqkqi8630ju.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAOCkZfaqvG5ZCk-q5ymtUx4jB_8e0pryc"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "771305087734-atioeqhkpt2f0kqqhqq54nqkqi8630ju.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "771305087734-9t068sugq2613or2h7h53vnr1vgld604.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.namsoon.footballnote"
+              }
+            }
+          ]
         }
       }
     }

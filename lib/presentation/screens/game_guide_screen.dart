@@ -1,140 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
 
 class GameGuideScreen extends StatelessWidget {
   const GameGuideScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '게임 가이드' : 'Game Guide'),
+        title: Text(l10n.gameGuideTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _GuideSection(
-            title: isKo ? '게임 방법' : 'How To Play',
-            icon: Icons.sports_esports_outlined,
-            lines: isKo
-                ? const [
-                    '1) 60초 동안 패스를 성공시켜 점수와 레벨을 올립니다.',
-                    '2) 패스 버튼을 누른 뒤 떼면 발사됩니다.',
-                    '3) 누른 상태에서 드래그해 패스 방향과 길이를 조절할 수 있습니다.',
-                    '4) 수비수에게 공이 닿으면 즉시 종료됩니다.',
-                    '5) 60초 종료 후 최종 슈팅 라운드가 시작됩니다.',
-                    '6) 슈팅 성공 시 보너스 점수와 함께 최종 랭킹이 표시됩니다.',
-                  ]
-                : const [
-                    '1) Build score and level with successful passes for 60 seconds.',
-                    '2) Press and release the pass button to pass.',
-                    '3) Drag while holding to control pass direction and distance.',
-                    '4) Match ends immediately if the ball is intercepted.',
-                    '5) Final shot round starts after 60 seconds.',
-                    '6) A successful shot gives bonus score and final rank.',
-                  ],
+            title: l10n.gameGuideQuickTitle,
+            icon: Icons.flash_on_outlined,
+            lines: [
+              l10n.gameGuideQuickLine1,
+              l10n.gameGuideQuickLine2,
+              l10n.gameGuideQuickLine3,
+              l10n.gameGuideQuickLine4,
+            ],
           ),
           const SizedBox(height: 12),
           _GuideSection(
-            title: isKo ? '레벨 설명' : 'Level System',
-            icon: Icons.stacked_line_chart_outlined,
-            lines: isKo
-                ? const [
-                    '초급: 수비수 3~6명, 블루/오렌지 고스트만 등장합니다.',
-                    '중급: 수비수 5~9명, 블루/오렌지/레드 고스트가 등장합니다.',
-                    '고급: 수비수 7~12명, 4종 고스트가 모두 등장합니다.',
-                    '패스 성공으로 레벨이 오르면 수비수 수와 압박 강도가 증가합니다.',
-                  ]
-                : const [
-                    'Easy: 3-6 defenders, Blue/Orange ghosts only.',
-                    'Medium: 5-9 defenders, Blue/Orange/Red ghosts.',
-                    'Hard: 7-12 defenders, all 4 ghost types.',
-                    'As level rises from successful passes, pressure and defender count increase.',
-                  ],
+            title: l10n.gameGuideRiskTitle,
+            icon: Icons.balance_outlined,
+            lines: [
+              l10n.gameGuideRiskLine1,
+              l10n.gameGuideRiskLine2,
+              l10n.gameGuideRiskLine3,
+              l10n.gameGuideRiskLine4,
+            ],
           ),
           const SizedBox(height: 12),
           _GuideSection(
-            title: isKo ? '랭킹 설명' : 'Ranking System',
+            title: l10n.gameGuideFailureTitle,
+            icon: Icons.rule_folder_outlined,
+            lines: [
+              l10n.gameGuideFailureLine1,
+              l10n.gameGuideFailureLine2,
+              l10n.gameGuideFailureLine3,
+              l10n.gameGuideFailureLine4,
+            ],
+          ),
+          const SizedBox(height: 12),
+          _GuideSection(
+            title: l10n.gameGuideRankingTitle,
             icon: Icons.emoji_events_outlined,
-            lines: isKo
-                ? const [
-                    '랭킹 점수 = (패스 점수×10) + (레벨×15) + (골×60)',
-                    'S: 320점 이상',
-                    'A: 240점 이상',
-                    'B: 170점 이상',
-                    'C: 110점 이상',
-                    'D: 110점 미만',
-                    '골 보너스 비중이 커서, 60초 후 슈팅 성공이 최종 랭킹에 큰 영향을 줍니다.',
-                  ]
-                : const [
-                    'Rank score = (pass score x 10) + (level x 15) + (goals x 60)',
-                    'S: 320+',
-                    'A: 240+',
-                    'B: 170+',
-                    'C: 110+',
-                    'D: below 110',
-                    'Goal bonus has high weight, so final-shot success strongly affects final rank.',
-                  ],
-          ),
-          const SizedBox(height: 12),
-          _GuideSection(
-            title: isKo ? '캐릭터 소개' : 'Character Intro',
-            icon: Icons.groups_2_outlined,
-            lines: isKo
-                ? const [
-                    '팩맨(노랑): 우리팀 공격수. 패스를 주고받으며 전진합니다.',
-                    '블루 고스트(BLOCK): 패스 라인을 차단하는 수비수.',
-                    '오렌지 고스트(PRESS): 공 주변을 빠르게 압박하는 수비수.',
-                    '레드 고스트(MARK): 패서를 따라붙는 마킹 수비수.',
-                    '핑크 고스트(READ): 리시버 이동을 예측해 커팅하는 수비수.',
-                  ]
-                : const [
-                    'Pacman (Yellow): your attackers advancing by passing.',
-                    'Blue Ghost (BLOCK): blocks passing lanes.',
-                    'Orange Ghost (PRESS): fast pressure around the ball.',
-                    'Red Ghost (MARK): tracks and marks the passer.',
-                    'Pink Ghost (READ): anticipates receiver movement and cuts.',
-                  ],
+            lines: [
+              l10n.gameGuideRankingLine1,
+              l10n.gameGuideRankingLine2,
+              l10n.gameGuideRankingLine3,
+              l10n.gameGuideRankingLine4,
+            ],
           ),
           const SizedBox(height: 12),
           _CharacterGuideCard(
-            title: isKo ? '팩맨 공격수' : 'Pacman Attacker',
-            subtitle: isKo ? '패스 시작/연결 담당' : 'Starts and links passes',
+            title: l10n.gameGuideCharPacTitle,
+            subtitle: l10n.gameGuideCharPacSubtitle,
             color: const Color(0xFFFFC107),
-            tag: isKo ? '공격' : 'ATTACK',
+            tag: l10n.gameGuideCharPacTag,
             painter: const _GuidePacmanPainter(color: Color(0xFFFFD54F)),
           ),
           const SizedBox(height: 10),
           _CharacterGuideCard(
-            title: isKo ? '블루 고스트 - BLOCK' : 'Blue Ghost - BLOCK',
-            subtitle: isKo ? '패스 라인 차단' : 'Blocks passing lanes',
+            title: l10n.gameGuideCharBlueTitle,
+            subtitle: l10n.gameGuideCharBlueSubtitle,
             color: const Color(0xFF42A5F5),
-            tag: isKo ? '차단' : 'BLOCK',
+            tag: l10n.gameGuideCharBlueTag,
             painter: const _GuideGhostPainter(color: Color(0xFF42A5F5)),
           ),
           const SizedBox(height: 10),
           _CharacterGuideCard(
-            title: isKo ? '오렌지 고스트 - PRESS' : 'Orange Ghost - PRESS',
-            subtitle: isKo ? '공 근처 압박' : 'Pressure near ball',
+            title: l10n.gameGuideCharOrangeTitle,
+            subtitle: l10n.gameGuideCharOrangeSubtitle,
             color: const Color(0xFFFFA726),
-            tag: isKo ? '압박' : 'PRESS',
+            tag: l10n.gameGuideCharOrangeTag,
             painter: const _GuideGhostPainter(color: Color(0xFFFFA726)),
           ),
           const SizedBox(height: 10),
           _CharacterGuideCard(
-            title: isKo ? '레드 고스트 - MARK' : 'Red Ghost - MARK',
-            subtitle: isKo ? '패서 마킹' : 'Marks the passer',
+            title: l10n.gameGuideCharRedTitle,
+            subtitle: l10n.gameGuideCharRedSubtitle,
             color: const Color(0xFFEF5350),
-            tag: isKo ? '마크' : 'MARK',
+            tag: l10n.gameGuideCharRedTag,
             painter: const _GuideGhostPainter(color: Color(0xFFEF5350)),
           ),
           const SizedBox(height: 10),
           _CharacterGuideCard(
-            title: isKo ? '핑크 고스트 - READ' : 'Pink Ghost - READ',
-            subtitle: isKo ? '리시버 예측 차단' : 'Anticipates receiver route',
+            title: l10n.gameGuideCharPinkTitle,
+            subtitle: l10n.gameGuideCharPinkSubtitle,
             color: const Color(0xFFEC70C0),
-            tag: isKo ? '예측' : 'READ',
+            tag: l10n.gameGuideCharPinkTag,
             painter: const _GuideGhostPainter(color: Color(0xFFEC70C0)),
           ),
         ],
