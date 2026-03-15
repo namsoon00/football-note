@@ -3,7 +3,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/app_feedback.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -34,6 +36,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   String? _retryFeedback;
   final Set<String> _wrongIds = <String>{};
   bool _completionRecorded = false;
+  PlayerLevelAward? _quizAward;
 
   bool get _isFinished => _index >= _questions.length;
 
@@ -249,12 +252,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Widget _buildResult(bool isKo) {
     if (!_completionRecorded) {
       _completionRecorded = true;
-      unawaited(
-        widget.optionRepository.setValue(
-          SkillQuizScreen.completionKey,
-          DateTime.now().toIso8601String(),
-        ),
-      );
+      unawaited(_recordCompletionReward());
     }
     final total = _questions.length;
     final ratio = total == 0 ? 0 : ((_score / total) * 100).round();
@@ -294,11 +292,37 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
+                if (_quizAward != null && _quizAward!.gainedXp > 0) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      _quizAward!.didLevelUp
+                          ? (isKo
+                              ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
+                              : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
+                          : (isKo
+                              ? '+${_quizAward!.gainedXp} XP 획득'
+                              : '+${_quizAward!.gainedXp} XP earned'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 6),
                 Text(
-                  isKo
-                      ? '퀴즈 세트'
-                      : 'Quiz set',
+                  isKo ? '퀴즈 세트' : 'Quiz set',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -320,6 +344,31 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _recordCompletionReward() async {
+    final completedAt = DateTime.now();
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.completionKey,
+      completedAt.toIso8601String(),
+    );
+    final award = await PlayerLevelService(
+      widget.optionRepository,
+    ).awardForQuizCompletion(completedAt: completedAt);
+    if (!mounted) return;
+    setState(() => _quizAward = award);
+    if (award.gainedXp <= 0) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    AppFeedback.showSuccess(
+      context,
+      text: award.didLevelUp
+          ? (isKo
+              ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
+              : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
+          : (isKo
+              ? '+${award.gainedXp} XP 획득'
+              : '+${award.gainedXp} XP earned'),
     );
   }
 }
@@ -497,10 +546,12 @@ List<_QuizQuestion> _buildMatchQuizPool() {
   return pool;
 }
 
-_QuizQuestion _shuffleQuestionOptions(_QuizQuestion question, math.Random random) {
+_QuizQuestion _shuffleQuestionOptions(
+    _QuizQuestion question, math.Random random) {
   final indexed = question.options.asMap().entries.toList(growable: false)
     ..shuffle(random);
-  final shuffledOptions = indexed.map((entry) => entry.value).toList(growable: false);
+  final shuffledOptions =
+      indexed.map((entry) => entry.value).toList(growable: false);
   final shuffledCorrectIndex = indexed.indexWhere(
     (entry) => entry.key == question.correctIndex,
   );
@@ -656,7 +707,8 @@ const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
     enPrompt: 'what is the safest first principle in buildup?',
     correct: _QuizOption(
       koText: '볼-몸-상대 순서로 보호하며 가까운 지원부터 연결',
-      enText: 'Protect ball-body-opponent order and connect nearest support first',
+      enText:
+          'Protect ball-body-opponent order and connect nearest support first',
     ),
     wrongA: _QuizOption(
       koText: '압박 방향과 무관하게 중앙 고정 패스',
@@ -667,7 +719,8 @@ const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
       enText: 'Stop after first touch, then decide',
     ),
     koExplain: '시합에서는 위험을 먼저 줄이는 선택이 실점/턴오버를 줄입니다.',
-    enExplain: 'In matches, lowering immediate risk reduces goals conceded and turnovers.',
+    enExplain:
+        'In matches, lowering immediate risk reduces goals conceded and turnovers.',
   ),
   _MatchKnowledgeTemplate(
     id: 'mk02',
@@ -743,7 +796,8 @@ const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
       enText: 'Always keep an extremely deep line',
     ),
     koExplain: '라인 수비는 동기화와 커버 의사소통이 핵심입니다.',
-    enExplain: 'Line defending depends on synchronization and cover communication.',
+    enExplain:
+        'Line defending depends on synchronization and cover communication.',
   ),
   _MatchKnowledgeTemplate(
     id: 'mk06',
@@ -762,7 +816,8 @@ const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
       enText: 'Always tackle first',
     ),
     koExplain: '크로스 발을 막는 각도 수비가 실점 확률을 낮춥니다.',
-    enExplain: 'Angle defending that blocks crossing foot reduces conceding risk.',
+    enExplain:
+        'Angle defending that blocks crossing foot reduces conceding risk.',
   ),
   _MatchKnowledgeTemplate(
     id: 'mk07',
@@ -781,7 +836,8 @@ const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
       enText: 'Push regardless of ball',
     ),
     koExplain: '박스 앞에서는 무리한 발 동작보다 위치 선점이 안전합니다.',
-    enExplain: 'Near the box, positional body control is safer than risky foot actions.',
+    enExplain:
+        'Near the box, positional body control is safer than risky foot actions.',
   ),
   _MatchKnowledgeTemplate(
     id: 'mk08',
@@ -819,7 +875,8 @@ const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
       enText: 'Hit hard regardless of speed',
     ),
     koExplain: '러너의 진행 방향과 속도에 맞춰야 마무리 확률이 올라갑니다.',
-    enExplain: 'Matching runner direction and speed increases finishing probability.',
+    enExplain:
+        'Matching runner direction and speed increases finishing probability.',
   ),
   _MatchKnowledgeTemplate(
     id: 'mk10',

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../application/local_fortune_service.dart';
 import '../../application/localized_option_defaults.dart';
+import '../../application/player_level_service.dart';
 import '../../application/training_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/player_profile_service.dart';
@@ -1867,6 +1868,22 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
       if (widget.entry == null) {
         await widget.trainingService.add(entry);
+        final levelAward = await PlayerLevelService(
+          widget.optionRepository,
+        ).awardForTrainingLog(
+          entry: entry,
+          existingEntries: allEntries,
+        );
+        if (!mounted) return;
+        if (popAfterSave) {
+          AppFeedback.showSuccess(
+            context,
+            text: _buildSaveFeedback(
+              isKo: isKo,
+              levelAward: levelAward,
+            ),
+          );
+        }
       } else {
         final editingKey = _editingKey;
         if (editingKey == null) {
@@ -1896,10 +1913,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (!mounted) return;
       }
       if (popAfterSave) {
-        AppFeedback.showSuccess(
-          context,
-          text: isKo ? '훈련노트를 저장했어요.' : 'Training note saved.',
-        );
+        if (widget.entry != null) {
+          AppFeedback.showSuccess(
+            context,
+            text: isKo ? '훈련노트를 저장했어요.' : 'Training note saved.',
+          );
+        }
         Navigator.of(context).pop();
       }
     } finally {
@@ -1909,6 +1928,25 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (mounted) setState(() {});
       }
     }
+  }
+
+  String _buildSaveFeedback({
+    required bool isKo,
+    required PlayerLevelAward levelAward,
+  }) {
+    final base = isKo ? '훈련노트를 저장했어요.' : 'Training note saved.';
+    if (levelAward.gainedXp <= 0) return base;
+    final xpText = isKo
+        ? '+${levelAward.gainedXp} XP 획득'
+        : '+${levelAward.gainedXp} XP earned';
+    if (!levelAward.didLevelUp) {
+      return '$base $xpText';
+    }
+    final levelName =
+        PlayerLevelService.levelName(levelAward.after.level, isKo);
+    return isKo
+        ? '$base $xpText · Lv.${levelAward.after.level} $levelName 달성'
+        : '$base $xpText · Reached Lv.${levelAward.after.level} $levelName';
   }
 
   Future<void> _showFortuneRevealDialog(String fortuneComment) async {

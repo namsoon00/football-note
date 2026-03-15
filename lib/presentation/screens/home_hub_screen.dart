@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
+import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_service.dart';
@@ -77,6 +78,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardsById =
                   TrainingBoardService(widget.optionRepository).boardMap();
+              final levelState =
+                  PlayerLevelService(widget.optionRepository).loadState();
               final data = _HomeHubData.build(
                 entries: allEntries,
                 plans: _loadPlans(widget.optionRepository),
@@ -103,6 +106,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         onCoachTap: () => _openCoach(context),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    _LevelHeroCard(levelState: levelState, isKo: isKo),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -390,6 +395,239 @@ class _WeeklyBadge extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
       ),
+    );
+  }
+}
+
+class _LevelHeroCard extends StatelessWidget {
+  final PlayerLevelState levelState;
+  final bool isKo;
+
+  const _LevelHeroCard({required this.levelState, required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    final tier = _LevelVisualTier.fromLevel(levelState.level);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: tier.colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isKo ? '선수 레벨' : 'Player level',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.86),
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  PlayerLevelService.stageName(levelState.level, isKo),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 14),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: levelState.progress,
+                    minHeight: 10,
+                    backgroundColor: Colors.white.withValues(alpha: 0.22),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isKo
+                      ? '다음 레벨까지 ${levelState.xpToNextLevel} XP'
+                      : '${levelState.xpToNextLevel} XP to next level',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isKo
+                      ? '총 ${levelState.totalXp} XP'
+                      : 'Total ${levelState.totalXp} XP',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.86),
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          _LevelIllustration(tier: tier, isKo: isKo, level: levelState.level),
+        ],
+      ),
+    );
+  }
+}
+
+class _LevelIllustration extends StatelessWidget {
+  final _LevelVisualTier tier;
+  final bool isKo;
+  final int level;
+
+  const _LevelIllustration({
+    required this.tier,
+    required this.isKo,
+    required this.level,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 118,
+      height: 124,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            right: 2,
+            top: 2,
+            child: Container(
+              width: 92,
+              height: 92,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 12,
+            top: 16,
+            child: Icon(
+              tier.primaryIcon,
+              size: 54,
+              color: Colors.white,
+            ),
+          ),
+          Positioned(
+            right: 56,
+            top: 0,
+            child: Icon(
+              tier.secondaryIcon,
+              size: 20,
+              color: Colors.white.withValues(alpha: 0.94),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    PlayerLevelService.illustrationLabel(level, isKo),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isKo ? '비주얼 성장 단계' : 'Visual growth tier',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.82),
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LevelVisualTier {
+  final List<Color> colors;
+  final IconData primaryIcon;
+  final IconData secondaryIcon;
+
+  const _LevelVisualTier({
+    required this.colors,
+    required this.primaryIcon,
+    required this.secondaryIcon,
+  });
+
+  factory _LevelVisualTier.fromLevel(int level) {
+    if (level <= 2) {
+      return const _LevelVisualTier(
+        colors: <Color>[Color(0xFF1D976C), Color(0xFF3A7BD5)],
+        primaryIcon: Icons.sports_soccer,
+        secondaryIcon: Icons.flag_outlined,
+      );
+    }
+    if (level <= 4) {
+      return const _LevelVisualTier(
+        colors: <Color>[Color(0xFFED8F03), Color(0xFFFFB75E)],
+        primaryIcon: Icons.sports,
+        secondaryIcon: Icons.fitness_center_outlined,
+      );
+    }
+    if (level <= 6) {
+      return const _LevelVisualTier(
+        colors: <Color>[Color(0xFF355C7D), Color(0xFF6C5B7B)],
+        primaryIcon: Icons.dashboard_customize_outlined,
+        secondaryIcon: Icons.auto_graph,
+      );
+    }
+    if (level <= 8) {
+      return const _LevelVisualTier(
+        colors: <Color>[Color(0xFFC04848), Color(0xFF480048)],
+        primaryIcon: Icons.workspace_premium_outlined,
+        secondaryIcon: Icons.shield_outlined,
+      );
+    }
+    return const _LevelVisualTier(
+      colors: <Color>[Color(0xFF232526), Color(0xFF414345)],
+      primaryIcon: Icons.emoji_events_outlined,
+      secondaryIcon: Icons.stadium_outlined,
     );
   }
 }

@@ -232,6 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+    if (mounted) setState(() {});
   }
 
   void _openCalendarQuickCreate(CalendarQuickCreateAction action) {
@@ -254,6 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
+    if (mounted) setState(() {});
   }
 
   Future<void> _openEdit(entry) async {
@@ -269,5 +271,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+    if (mounted) setState(() {});
   }
 }

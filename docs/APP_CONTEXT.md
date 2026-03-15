@@ -10,13 +10,16 @@ Last updated: 2026-03-15
 ## Current Product Shape
 - Platform: Flutter app for iOS, Android, Web, desktop targets present
 - App entry: [`lib/main.dart`](../lib/main.dart)
-- Main navigation: 5-tab home in [`lib/presentation/screens/home_screen.dart`](../lib/presentation/screens/home_screen.dart)
+- Main navigation: 4-tab structure in [`lib/presentation/screens/home_screen.dart`](../lib/presentation/screens/home_screen.dart)
 - Tabs:
+  - Home
   - Logs
   - Calendar
   - Stats
-  - News
-  - Game
+- Secondary destinations:
+  - News via top app bar shortcut
+  - Game via top app bar shortcut
+  - Coach via top app bar shortcut
 
 ## Implemented Core Areas
 
@@ -218,6 +221,19 @@ Last updated: 2026-03-15
 - better daily return behavior
 - lower friction to first action
 - clearer perceived value from existing features
+
+## Gamification Layer
+- Level system service: [`lib/application/player_level_service.dart`](../lib/application/player_level_service.dart)
+- Current MVP:
+  - player XP and level persisted locally in options storage
+  - home hero card shows level, progress bar, and visual growth tier
+  - training log save grants XP
+  - quiz completion grants daily XP
+  - training plan creation grants XP
+- Current level philosophy:
+  - fast early progression for onboarding and habit formation
+  - football-themed level titles
+  - built-in visual tier illustration on home as a placeholder for future art assets
 - stronger foundation for premium weekly report and guided programs
 
 ## Working Rule For Future Updates
