@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onMenuTap;
+  final VoidCallback? onCoachTap;
   final VoidCallback onProfileTap;
   final VoidCallback onSettingsTap;
   final String profilePhotoSource;
@@ -14,6 +15,7 @@ class WatchCartAppBar extends StatelessWidget {
   const WatchCartAppBar({
     super.key,
     this.onMenuTap,
+    this.onCoachTap,
     required this.onProfileTap,
     required this.onSettingsTap,
     this.profilePhotoSource = '',
@@ -48,6 +50,20 @@ class WatchCartAppBar extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (onCoachTap != null)
+              IconButton(
+                icon: const Icon(Icons.sports),
+                tooltip: Localizations.localeOf(context).languageCode == 'ko'
+                    ? '축구 코치'
+                    : 'Football coach',
+                iconSize: 30,
+                padding: const EdgeInsets.all(10),
+                constraints: const BoxConstraints(
+                  minWidth: 52,
+                  minHeight: 52,
+                ),
+                onPressed: onCoachTap,
+              ),
             IconButton(
               icon: _ProfileAppBarAvatar(photoSource: profilePhotoSource),
               iconSize: 30,
