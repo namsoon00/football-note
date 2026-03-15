@@ -9,6 +9,8 @@ import '../screens/home_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/training_method_board_screen.dart';
+import '../screens/news_screen.dart';
+import '../screens/space_speed_game_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -46,34 +48,28 @@ class AppDrawer extends StatelessWidget {
             ),
             const Divider(height: 1),
             _NavTile(
-              icon: Icons.list_alt,
-              label: l10n.tabLogs,
+              icon: Icons.home,
+              label: l10n.tabHome,
               selected: currentIndex == 0,
               onTap: () => _navigateTo(context, 0),
             ),
             _NavTile(
-              icon: Icons.calendar_month,
-              label: l10n.tabCalendar,
+              icon: Icons.list_alt,
+              label: l10n.tabLogs,
               selected: currentIndex == 1,
               onTap: () => _navigateTo(context, 1),
             ),
             _NavTile(
-              icon: Icons.bar_chart,
-              label: l10n.tabStats,
+              icon: Icons.calendar_month,
+              label: l10n.tabCalendar,
               selected: currentIndex == 2,
               onTap: () => _navigateTo(context, 2),
             ),
             _NavTile(
-              icon: Icons.newspaper,
-              label: l10n.tabNews,
+              icon: Icons.bar_chart,
+              label: l10n.tabStats,
               selected: currentIndex == 3,
               onTap: () => _navigateTo(context, 3),
-            ),
-            _NavTile(
-              icon: Icons.sports_esports,
-              label: l10n.tabGame,
-              selected: currentIndex == 4,
-              onTap: () => _navigateTo(context, 4),
             ),
             const Divider(height: 1),
             ListTile(
@@ -103,7 +99,7 @@ class AppDrawer extends StatelessWidget {
               ),
               onTap: () => _navigateTo(
                 context,
-                1,
+                2,
                 calendarQuickCreateAction: CalendarQuickCreateAction.plan,
               ),
             ),
@@ -116,7 +112,7 @@ class AppDrawer extends StatelessWidget {
               ),
               onTap: () => _navigateTo(
                 context,
-                1,
+                2,
                 calendarQuickCreateAction: CalendarQuickCreateAction.match,
               ),
             ),
@@ -135,6 +131,43 @@ class AppDrawer extends StatelessWidget {
                       boardTitle: '',
                       initialLayoutJson: '',
                       optionRepository: optionRepository,
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.newspaper_outlined),
+              title: Text(l10n.tabNews),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => NewsScreen(
+                      trainingService: trainingService,
+                      localeService: localeService,
+                      optionRepository: optionRepository,
+                      settingsService: settingsService,
+                      driveBackupService: driveBackupService,
+                      isActive: true,
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sports_esports_outlined),
+              title: Text(l10n.tabGame),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => SpaceSpeedGameScreen(
+                      trainingService: trainingService,
+                      localeService: localeService,
+                      optionRepository: optionRepository,
+                      settingsService: settingsService,
+                      driveBackupService: driveBackupService,
                     ),
                   ),
                 );

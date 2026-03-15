@@ -153,7 +153,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         localeService: widget.localeService,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
-        currentIndex: 3,
+        currentIndex: -1,
       ),
       body: AppBackground(
         child: SafeArea(

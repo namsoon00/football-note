@@ -75,7 +75,7 @@ class _StatsScreenState extends State<StatsScreen> {
         localeService: widget.localeService,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
-        currentIndex: 2,
+        currentIndex: 3,
       ),
       body: AppBackground(
         child: SafeArea(

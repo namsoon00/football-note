@@ -147,7 +147,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         localeService: widget.localeService,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
-        currentIndex: 1,
+        currentIndex: 2,
       ),
       body: AppBackground(
         child: SafeArea(

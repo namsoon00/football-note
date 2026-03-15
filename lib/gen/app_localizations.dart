@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Football Training Log'**
   String get appTitle;
 
+  /// No description provided for @tabHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get tabHome;
+
   /// No description provided for @tabLogs.
   ///
   /// In en, this message translates to:

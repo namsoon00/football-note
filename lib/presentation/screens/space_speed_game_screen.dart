@@ -300,7 +300,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         localeService: widget.localeService,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
-        currentIndex: 4,
+        currentIndex: -1,
       ),
       body: AppBackground(
         child: SafeArea(
