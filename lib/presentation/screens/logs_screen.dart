@@ -191,7 +191,6 @@ class _LogsScreenState extends State<LogsScreen> {
               final boardsById = boardService.boardMap();
               final dashboardData = _buildDashboardData(
                 allEntries: allEntries,
-                boardsById: boardsById,
               );
 
               return NotificationListener<ScrollNotification>(
@@ -249,19 +248,6 @@ class _LogsScreenState extends State<LogsScreen> {
                       _WeeklySummaryCard(
                         data: dashboardData,
                         isKo: isKo,
-                      ),
-                      const SizedBox(height: 12),
-                      _ContinueSection(
-                        data: dashboardData,
-                        isKo: isKo,
-                        onOpenRecentEntry: dashboardData.latestEntry == null
-                            ? null
-                            : () => _onEntryTap(dashboardData.latestEntry!),
-                        onOpenRecentBoard: dashboardData.recentBoard == null
-                            ? null
-                            : _openBoardList,
-                        onOpenNextPlan: widget.onQuickPlan,
-                        onOpenQuiz: widget.onQuickQuiz,
                       ),
                       const SizedBox(height: 18),
                       TabScreenTitle(
@@ -494,7 +480,6 @@ class _LogsScreenState extends State<LogsScreen> {
 
   _LogsDashboardData _buildDashboardData({
     required List<TrainingEntry> allEntries,
-    required Map<String, TrainingBoard> boardsById,
   }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -539,14 +524,6 @@ class _LogsScreenState extends State<LogsScreen> {
       );
       return day == today;
     }).toList(growable: false);
-    final nextPlan = _loadPlans()
-        .where((plan) => plan.scheduledAt.isAfter(now))
-        .toList(growable: false)
-      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
-    final boards = boardsById.values.toList(growable: false)
-      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    final recentBoard = boards.isEmpty ? null : boards.first;
-
     final totalMood =
         weeklyEntries.fold<int>(0, (sum, entry) => sum + entry.mood);
     final averageMood =
@@ -576,26 +553,14 @@ class _LogsScreenState extends State<LogsScreen> {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedAtRaw = widget.optionRepository.getValue<String>(
-      'skill_quiz_completed_at',
-    );
-    final quizCompletedAt = quizCompletedAtRaw == null
-        ? null
-        : DateTime.tryParse(quizCompletedAtRaw);
-    final quizCompletedToday =
-        quizCompletedAt != null && _isSameDay(quizCompletedAt, now);
-
     return _LogsDashboardData(
       todayPlans: todayPlans,
-      nextPlan: nextPlan.isEmpty ? null : nextPlan.first,
       latestEntry: latestEntry,
-      recentBoard: recentBoard,
       weeklyTrainingCount: weeklyEntries.length,
       weeklyMinutes: weeklyMinutes,
       streakDays: streakDays,
       strongestSignal: strongest,
       focusSignal: focus,
-      quizCompletedToday: quizCompletedToday,
     );
   }
 
@@ -614,10 +579,6 @@ class _LogsScreenState extends State<LogsScreen> {
     } catch (_) {
       return const <_DashboardPlan>[];
     }
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   Widget _buildWeeklyBadge({required int count, required bool isKo}) {
@@ -1220,27 +1181,21 @@ class _LogFilters {
 
 class _LogsDashboardData {
   final List<_DashboardPlan> todayPlans;
-  final _DashboardPlan? nextPlan;
   final TrainingEntry? latestEntry;
-  final TrainingBoard? recentBoard;
   final int weeklyTrainingCount;
   final int weeklyMinutes;
   final int streakDays;
   final String strongestSignal;
   final String focusSignal;
-  final bool quizCompletedToday;
 
   const _LogsDashboardData({
     required this.todayPlans,
-    required this.nextPlan,
     required this.latestEntry,
-    required this.recentBoard,
     required this.weeklyTrainingCount,
     required this.weeklyMinutes,
     required this.streakDays,
     required this.strongestSignal,
     required this.focusSignal,
-    required this.quizCompletedToday,
   });
 }
 
@@ -1503,97 +1458,6 @@ class _WeeklySummaryCard extends StatelessWidget {
   }
 }
 
-class _ContinueSection extends StatelessWidget {
-  final _LogsDashboardData data;
-  final bool isKo;
-  final VoidCallback? onOpenRecentEntry;
-  final VoidCallback? onOpenRecentBoard;
-  final VoidCallback? onOpenNextPlan;
-  final VoidCallback? onOpenQuiz;
-
-  const _ContinueSection({
-    required this.data,
-    required this.isKo,
-    required this.onOpenRecentEntry,
-    required this.onOpenRecentBoard,
-    required this.onOpenNextPlan,
-    required this.onOpenQuiz,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final items = <_ContinueItem>[
-      _ContinueItem(
-        title: isKo ? '최근 기록' : 'Latest log',
-        subtitle: data.latestEntry == null
-            ? (isKo ? '기록을 시작해보세요.' : 'Start your first log.')
-            : _entrySubtitle(data.latestEntry!, isKo),
-        icon: Icons.history_toggle_off,
-        onTap: onOpenRecentEntry,
-      ),
-      _ContinueItem(
-        title: isKo ? '다음 계획' : 'Next plan',
-        subtitle: data.nextPlan == null
-            ? (isKo ? '계획을 추가해보세요.' : 'Add a plan.')
-            : _planSubtitle(data.nextPlan!, isKo),
-        icon: Icons.schedule_outlined,
-        onTap: onOpenNextPlan,
-      ),
-      _ContinueItem(
-        title: isKo ? '최근 스케치' : 'Recent sketch',
-        subtitle: data.recentBoard == null
-            ? (isKo ? '첫 스케치를 만들어보세요.' : 'Create your first sketch.')
-            : data.recentBoard!.title,
-        icon: Icons.developer_board_outlined,
-        onTap: onOpenRecentBoard,
-      ),
-      _ContinueItem(
-        title: isKo ? '오늘의 퀴즈' : 'Daily quiz',
-        subtitle: data.quizCompletedToday
-            ? (isKo ? '오늘 퀴즈를 완료했어요.' : 'Quiz completed today.')
-            : (isKo ? '짧게 풀고 판단력 점검' : 'Quick decision-making check.'),
-        icon: Icons.quiz_outlined,
-        onTap: onOpenQuiz,
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          isKo ? '이어 하기' : 'Continue',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-        const SizedBox(height: 10),
-        ...items.map(
-          (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _ContinueCard(item: item),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _entrySubtitle(TrainingEntry entry, bool isKo) {
-    final date = DateFormat('M/d').format(entry.date);
-    final program = entry.program.trim().isEmpty
-        ? (isKo ? '훈련 기록' : 'Training log')
-        : entry.program.trim();
-    return '$date · $program';
-  }
-
-  String _planSubtitle(_DashboardPlan plan, bool isKo) {
-    final date = DateFormat('M/d HH:mm').format(plan.scheduledAt);
-    final category = plan.category.isEmpty
-        ? (isKo ? '훈련 계획' : 'Training plan')
-        : plan.category;
-    return '$date · $category';
-  }
-}
-
 class _QuickActionItem {
   final IconData icon;
   final String title;
@@ -1708,55 +1572,6 @@ class _SummaryMetric extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ContinueItem {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  const _ContinueItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.onTap,
-  });
-}
-
-class _ContinueCard extends StatelessWidget {
-  final _ContinueItem item;
-
-  const _ContinueCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: item.onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: ListTile(
-            leading: Icon(item.icon, color: theme.colorScheme.primary),
-            title: Text(
-              item.title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            subtitle: Text(item.subtitle),
-            trailing: const Icon(Icons.chevron_right),
-          ),
-        ),
       ),
     );
   }
