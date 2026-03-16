@@ -102,7 +102,7 @@ void main() {
 
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
-    expect(find.text('오늘의 응원'), findsOneWidget);
+    expect(find.text('오늘의 응원'), findsNothing);
     expect(find.text('오늘의 운세 노트'), findsOneWidget);
     expect(find.text('자기 전 다이어리'), findsOneWidget);
     expect(find.textContaining('훈련 1개'), findsOneWidget);
@@ -120,7 +120,7 @@ void main() {
     expect(find.textContaining('Blue FC전'), findsWidgets);
     expect(
       tester.getTopLeft(find.text('자기 전 다이어리')).dy,
-      lessThan(tester.getTopLeft(find.text('오늘의 응원')).dy),
+      lessThan(tester.getTopLeft(find.text('오늘의 운세 노트')).dy),
     );
 
     expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
@@ -203,7 +203,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('다이어리'), findsOneWidget);
-    expect(find.text('오늘의 응원'), findsOneWidget);
+    expect(find.text('오늘의 응원'), findsNothing);
     expect(find.text('오늘의 운세 노트'), findsOneWidget);
   });
 }
