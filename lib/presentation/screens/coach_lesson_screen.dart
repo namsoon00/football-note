@@ -12,6 +12,7 @@ import '../../application/training_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../../gen/app_localizations.dart';
 import '../models/training_board_link_codec.dart';
 import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
@@ -48,6 +49,30 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   int _selectedDayIndex = 0;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
+  ThemeData get _theme => Theme.of(context);
+  ColorScheme get _scheme => _theme.colorScheme;
+  bool get _isDark => _theme.brightness == Brightness.dark;
+  AppLocalizations get _l10n => AppLocalizations.of(context)!;
+  Color get _paperSurface => _isDark
+      ? Color.lerp(_scheme.surfaceContainerHigh, _scheme.surface, 0.38)!
+      : _paper;
+  Color get _paperEdge =>
+      _isDark ? _scheme.outline.withValues(alpha: 0.5) : _paperBorder;
+  Color get _headlineInk => _isDark ? _scheme.onSurface : _deepGreen;
+  Color get _bodyInk => _isDark ? _scheme.onSurfaceVariant : _coffee;
+  Color get _accentInk => _isDark ? _scheme.primaryFixedDim : _starbucksGreen;
+  Color get _accentWash => _accentInk.withValues(alpha: _isDark ? 0.16 : 0.1);
+  Color get _tileSurface => _isDark
+      ? _scheme.surfaceContainerHighest.withValues(alpha: 0.52)
+      : Colors.white.withValues(alpha: 0.58);
+  Color get _notebookLine => _isDark
+      ? _scheme.outlineVariant.withValues(alpha: 0.28)
+      : const Color(0xFFC8DBF5);
+  Color get _notebookMargin =>
+      _isDark ? _scheme.error.withValues(alpha: 0.35) : const Color(0xFFE6A6A6);
+  Color get _holeColor => _isDark
+      ? _scheme.surface.withValues(alpha: 0.95)
+      : const Color(0xFFE6DDCF);
 
   @override
   void dispose() {
@@ -57,7 +82,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stream = widget.trainingService?.watchEntries() ??
+    final stream =
+        widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
 
     return Scaffold(
@@ -156,9 +182,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   Text(
                     selectedLabel,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: _deepGreen,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      color: _headlineInk,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -167,7 +193,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         : 'Page ${selectedIndex + 1} / $dayCount · swipe left or right',
                     style: Theme.of(
                       context,
-                    ).textTheme.bodySmall?.copyWith(color: _coffee),
+                    ).textTheme.bodySmall?.copyWith(color: _bodyInk),
                   ),
                 ],
               ),
@@ -195,33 +221,39 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final diary = _buildDiary(day);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildDayHeadlineCard(day),
-          const SizedBox(height: 12),
-          _buildNightReviewCard(day, diary),
-          if (day.plans.isNotEmpty) ...[
+      child: _buildNotebookSheet(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildDayHeadlineCard(day),
             const SizedBox(height: 12),
-            _buildPlanCard(day.plans),
-          ],
-          if (day.matchEntries.isNotEmpty) ...[
+            _buildEncouragementCard(day),
             const SizedBox(height: 12),
-            _buildMatchCard(day.matchEntries),
-          ],
-          if (day.trainingEntries.isNotEmpty) ...[
+            _buildFortuneCard(day),
             const SizedBox(height: 12),
-            _buildTrainingCard(day.trainingEntries),
+            _buildNightReviewCard(day, diary),
+            if (day.plans.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildPlanCard(day.plans),
+            ],
+            if (day.matchEntries.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildMatchCard(day.matchEntries),
+            ],
+            if (day.trainingEntries.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildTrainingCard(day.trainingEntries),
+            ],
+            if (_hasRecoveryRecord(day)) ...[
+              const SizedBox(height: 12),
+              _buildRecoveryCard(day),
+            ],
+            if (day.boards.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildBoardCard(day),
+            ],
           ],
-          if (_hasRecoveryRecord(day)) ...[
-            const SizedBox(height: 12),
-            _buildRecoveryCard(day),
-          ],
-          if (day.boards.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _buildBoardCard(day),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -243,9 +275,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Text(
               _formatDiaryDate(day.date),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _deepGreen,
-                    fontWeight: FontWeight.w900,
-                  ),
+                color: _headlineInk,
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -254,7 +286,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   : 'Saved plans, matches, training, and recovery notes are gathered here as one diary entry.',
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: _coffee, height: 1.45),
+              ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.45),
             ),
             const SizedBox(height: 14),
             Wrap(
@@ -293,15 +325,58 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: _starbucksGreen.withValues(alpha: 0.08),
+        color: _accentWash,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: _starbucksGreen,
-              fontWeight: FontWeight.w800,
-            ),
+          color: _accentInk,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEncouragementCard(_DiaryDayData day) {
+    return _buildPaperCard(
+      title: _isKo ? '오늘의 응원' : 'Today encouragement',
+      subtitle: _isKo
+          ? '기록 전체를 묶어서 오늘의 흐름을 한 문장으로 정리했어요.'
+          : 'A quick encouragement blended from today\'s full log.',
+      child: Text(
+        _buildEncouragement(day),
+        style: _theme.textTheme.bodyLarge?.copyWith(
+          height: 1.65,
+          color: _headlineInk,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFortuneCard(_DiaryDayData day) {
+    final lines = _buildFortuneLines(day);
+    return _buildPaperCard(
+      title: _isKo ? '오늘의 운세 노트' : 'Today fortune note',
+      subtitle: _isKo
+          ? '기록을 바탕으로 가볍게 읽는 오늘의 재미 요소예요.'
+          : 'A playful fortune digest based on the day\'s record.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: lines
+            .map(
+              (line) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  line,
+                  style: _theme.textTheme.bodyMedium?.copyWith(
+                    height: 1.55,
+                    color: _headlineInk,
+                  ),
+                ),
+              ),
+            )
+            .toList(growable: false),
       ),
     );
   }
@@ -326,7 +401,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         diary,
         style: Theme.of(
           context,
-        ).textTheme.bodyLarge?.copyWith(height: 1.7, color: _deepGreen),
+        ).textTheme.bodyLarge?.copyWith(height: 1.7, color: _headlineInk),
       ),
     );
   }
@@ -434,7 +509,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             : 'Once you add a training note, match, or plan, this screen will build a diary page for that date.',
         style: Theme.of(
           context,
-        ).textTheme.bodyMedium?.copyWith(color: _coffee, height: 1.5),
+        ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.5),
       ),
     );
   }
@@ -461,20 +536,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     children: [
                       Text(
                         title,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: _deepGreen,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: _headlineInk,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: _coffee, height: 1.45),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: _bodyInk, height: 1.45),
                         ),
                       ],
                     ],
@@ -497,9 +570,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
+        color: _tileSurface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _paperBorder),
+        border: Border.all(color: _paperEdge),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,16 +580,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: _deepGreen,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: _headlineInk,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             detail,
             style: Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(color: _coffee, height: 1.45),
+            ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.45),
           ),
         ],
       ),
@@ -530,21 +603,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         text,
         style: Theme.of(
           context,
-        ).textTheme.bodyMedium?.copyWith(color: _deepGreen, height: 1.5),
+        ).textTheme.bodyMedium?.copyWith(color: _headlineInk, height: 1.5),
       ),
     );
   }
 
   BoxDecoration _paperDecoration() {
     return BoxDecoration(
-      color: _paper,
+      color: _paperSurface,
       borderRadius: BorderRadius.circular(26),
-      border: Border.all(color: _paperBorder),
-      boxShadow: const [
+      border: Border.all(color: _paperEdge),
+      boxShadow: [
         BoxShadow(
-          color: Color(0x12000000),
-          blurRadius: 18,
-          offset: Offset(0, 10),
+          color: Colors.black.withValues(alpha: _isDark ? 0.26 : 0.07),
+          blurRadius: _isDark ? 26 : 18,
+          offset: const Offset(0, 10),
         ),
       ],
     );
@@ -570,27 +643,31 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
     }
 
-    final days = dayKeys.map((day) {
-      final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
-      final linkedBoards = <String, TrainingBoard>{};
-      for (final entry in dayEntries) {
-        for (final id in TrainingBoardLinkCodec.decodeBoardIds(
-          entry.drills,
-        )) {
-          final board = boardMap[id];
-          if (board != null) linkedBoards[id] = board;
-        }
-      }
-      return _DiaryDayData(
-        date: day,
-        entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
-        plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
-          ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
-        boards: linkedBoards.values.toList(growable: false)
-          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
-      );
-    }).toList(growable: false)
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final days =
+        dayKeys
+            .map((day) {
+              final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
+              final linkedBoards = <String, TrainingBoard>{};
+              for (final entry in dayEntries) {
+                for (final id in TrainingBoardLinkCodec.decodeBoardIds(
+                  entry.drills,
+                )) {
+                  final board = boardMap[id];
+                  if (board != null) linkedBoards[id] = board;
+                }
+              }
+              return _DiaryDayData(
+                date: day,
+                entries: [...dayEntries]
+                  ..sort((a, b) => a.date.compareTo(b.date)),
+                plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
+                  ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
+                boards: linkedBoards.values.toList(growable: false)
+                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+              );
+            })
+            .toList(growable: false)
+          ..sort((a, b) => b.date.compareTo(a.date));
     return days;
   }
 
@@ -660,6 +737,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (boardParagraph.isNotEmpty) {
       paragraphs.add(boardParagraph);
     }
+
+    paragraphs.add(_buildEncouragement(day));
+    paragraphs.add(_buildFortuneDiaryParagraph(day));
 
     paragraphs.add(
       _isKo
@@ -832,7 +912,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (totals.isEmpty) return '';
     final sorted = totals.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return sorted.map((entry) => '${entry.key} ${entry.value}회').join(', ');
+    return sorted
+        .map((entry) => '${_liftingPartLabel(entry.key)} ${entry.value}회')
+        .join(', ');
   }
 
   String _buildJumpRopeSummary(List<TrainingEntry> entries) {
@@ -880,25 +962,165 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : 'For recovery and supporting work, ${parts.join(', ')}.';
   }
 
+  String _buildEncouragement(_DiaryDayData day) {
+    final focus = _topFocus(day.trainingEntries);
+    final totalMinutes = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    final recovery = _hasRecoveryRecord(day);
+    final boards = day.boards.isNotEmpty;
+    if (_isKo) {
+      final details = <String>[
+        '$focus에 계속 중심을 둔 점이 좋았고',
+        '$totalMinutes분 동안 흐름을 끊지 않은 집중력이 남아 있습니다',
+        if (recovery) '회복 기록까지 남겨서 다음 훈련 준비도 꼼꼼합니다',
+        if (boards) '훈련보드로 생각을 시각화한 점도 큰 자산입니다',
+      ];
+      return '${details.join(', ')}. 오늘처럼 기록을 끝까지 남기는 습관이면 성장 속도가 꾸준히 이어집니다.';
+    }
+    final details = <String>[
+      'you kept the day centered on $focus',
+      'your focus held for $totalMinutes minutes',
+      if (recovery) 'you also logged recovery details for the next session',
+      if (boards) 'the board notes turned ideas into something concrete',
+    ];
+    return '${details.join('. ')}. Keeping records this consistently will keep your growth steady.';
+  }
+
+  List<String> _buildFortuneLines(_DiaryDayData day) {
+    final lastEntry = day.entries.isNotEmpty ? day.entries.last : null;
+    final totalLifting = day.entries.fold<int>(
+      0,
+      (sum, entry) =>
+          sum + entry.liftingByPart.values.fold<int>(0, (a, b) => a + b),
+    );
+    final jumpRopeMinutes = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeMinutes,
+    );
+    final fortuneSnippet = day.entries
+        .map((entry) => entry.fortuneComment.trim())
+        .firstWhere((text) => text.isNotEmpty, orElse: () => '');
+    final recommendation = day.entries
+        .map((entry) => entry.fortuneRecommendation.trim())
+        .firstWhere((text) => text.isNotEmpty, orElse: () => '');
+    final luckyPlay = totalLifting >= 100
+        ? (_isKo ? '리듬을 살리는 짧은 볼터치' : 'short rhythm-setting ball touches')
+        : jumpRopeMinutes >= 10
+        ? (_isKo ? '가볍게 발을 푸는 스텝워크' : 'light footwork to wake up your feet')
+        : (_isKo
+              ? '${_topFocus(day.trainingEntries)} 복습 한 세트'
+              : 'one more rep of ${_topFocus(day.trainingEntries)}');
+    final luckyMood =
+        (day.matchEntries.isNotEmpty && day.trainingEntries.isNotEmpty)
+        ? (_isKo
+              ? '실전 감각과 훈련 감각이 같이 붙는 날'
+              : 'training feel and match feel work together')
+        : day.plans.isNotEmpty
+        ? (_isKo
+              ? '계획한 걸 그대로 해낼 때 운이 붙는 날'
+              : 'luck follows finishing what you planned')
+        : (_isKo
+              ? '작게 시작할수록 템포가 살아나는 날'
+              : 'starting small brings your tempo alive');
+    final luckyTiming = day.entries.length >= 2
+        ? (_isKo
+              ? '기록 사이 간격이 짧을수록 감각이 더 선명해져요.'
+              : 'short gaps between sessions sharpen your feel.')
+        : (_isKo
+              ? '처음 10분 집중이 하루 운세를 끌어올려요.'
+              : 'the first 10 focused minutes set the tone.');
+
+    final lines = <String>[
+      _isKo ? '행운 플레이: $luckyPlay' : 'Lucky play: $luckyPlay',
+      _isKo ? '오늘의 신호: $luckyMood' : 'Today signal: $luckyMood',
+      _isKo ? '읽는 포인트: $luckyTiming' : 'Reading point: $luckyTiming',
+    ];
+    if (fortuneSnippet.isNotEmpty) {
+      final firstLine = fortuneSnippet.split('\n').first.trim();
+      lines.add(_isKo ? '저장된 운세: $firstLine' : 'Saved fortune: $firstLine');
+    }
+    if (recommendation.isNotEmpty) {
+      lines.add(
+        _isKo ? '다음 한 걸음: $recommendation' : 'Next step: $recommendation',
+      );
+    } else if (lastEntry != null) {
+      lines.add(
+        _isKo
+            ? '다음 한 걸음: ${lastEntry.nextGoal.trim().isNotEmpty ? lastEntry.nextGoal.trim() : '${_topFocus(day.trainingEntries)}를 한 번 더 깔끔하게'}'
+            : 'Next step: ${lastEntry.nextGoal.trim().isNotEmpty ? lastEntry.nextGoal.trim() : 'one cleaner rep of ${_topFocus(day.trainingEntries)}'}',
+      );
+    }
+    return lines;
+  }
+
+  String _buildFortuneDiaryParagraph(_DiaryDayData day) {
+    final lines = _buildFortuneLines(day);
+    return _isKo
+        ? '가볍게 운세를 덧붙이면 ${lines.join(', ')}.'
+        : 'For a playful fortune note, ${lines.join(', ')}.';
+  }
+
+  String _liftingPartLabel(String key) {
+    switch (key) {
+      case 'infront':
+        return _l10n.liftingPartInfront;
+      case 'inside':
+        return _l10n.liftingPartInside;
+      case 'outside':
+        return _l10n.liftingPartOutside;
+      case 'muple':
+        return _l10n.liftingPartMuple;
+      case 'head':
+        return _l10n.liftingPartHead;
+      case 'chest':
+        return _l10n.liftingPartChest;
+      case 'left_foot':
+        return '${_l10n.liftingPartInfront} (${_l10n.legacyLabel})';
+      case 'right_foot':
+        return '${_l10n.liftingPartInside} (${_l10n.legacyLabel})';
+      case 'left_thigh':
+        return '${_l10n.liftingPartOutside} (${_l10n.legacyLabel})';
+      case 'right_thigh':
+        return '${_l10n.liftingPartMuple} (${_l10n.legacyLabel})';
+      case 'back':
+        return '${_l10n.liftingPartInside} (${_l10n.oldLabel})';
+      case 'legs':
+        return '${_l10n.liftingPartOutside} (${_l10n.oldLabel})';
+      case 'shoulders':
+        return '${_l10n.liftingPartMuple} (${_l10n.oldLabel})';
+      case 'arms':
+        return '${_l10n.liftingPartHead} (${_l10n.legacyLabel})';
+      case 'core':
+        return '${_l10n.liftingPartChest} (${_l10n.legacyLabel})';
+      default:
+        return key;
+    }
+  }
+
   String _buildBoardDiaryParagraph(_DiaryDayData day) {
     if (day.boards.isEmpty) return '';
-    final boardNotes = day.boards.map((board) {
-      final layout = TrainingMethodLayout.decode(board.layoutJson);
-      final memo =
-          layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
-      final linkedEntryNotes = _boardLinkedEntryNotes(
-        day: day,
-        board: board,
-      );
-      if (_isKo) {
-        return memo.isEmpty && linkedEntryNotes.isEmpty
-            ? board.title
-            : '${board.title}${memo.isEmpty ? '' : ' 메모는 "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', 기록 메모는 $linkedEntryNotes'}';
-      }
-      return memo.isEmpty && linkedEntryNotes.isEmpty
-          ? board.title
-          : '${board.title}${memo.isEmpty ? '' : ' memo was "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', linked log notes were $linkedEntryNotes'}';
-    }).join(' / ');
+    final boardNotes = day.boards
+        .map((board) {
+          final layout = TrainingMethodLayout.decode(board.layoutJson);
+          final memo = layout.pages.isNotEmpty
+              ? layout.pages.first.methodText.trim()
+              : '';
+          final linkedEntryNotes = _boardLinkedEntryNotes(
+            day: day,
+            board: board,
+          );
+          if (_isKo) {
+            return memo.isEmpty && linkedEntryNotes.isEmpty
+                ? board.title
+                : '${board.title}${memo.isEmpty ? '' : ' 메모는 "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', 기록 메모는 $linkedEntryNotes'}';
+          }
+          return memo.isEmpty && linkedEntryNotes.isEmpty
+              ? board.title
+              : '${board.title}${memo.isEmpty ? '' : ' memo was "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', linked log notes were $linkedEntryNotes'}';
+        })
+        .join(' / ');
     return _isKo
         ? '훈련보드에는 $boardNotes 같은 그림과 메모를 함께 남겼다.'
         : 'The training boards kept both the visual sketch and notes such as $boardNotes.';
@@ -917,9 +1139,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
+        color: _tileSurface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _paperBorder),
+        border: Border.all(color: _paperEdge),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -930,9 +1152,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 child: Text(
                   board.title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: _deepGreen,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -942,7 +1164,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     : DateFormat('MMM d HH:mm', 'en').format(board.updatedAt),
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: _coffee),
+                ).textTheme.bodySmall?.copyWith(color: _bodyInk),
               ),
             ],
           ),
@@ -1012,6 +1234,77 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _isKo
         ? DateFormat('a h:mm', 'ko').format(date)
         : DateFormat('h:mm a', 'en').format(date);
+  }
+
+  Widget _buildNotebookSheet({required Widget child}) {
+    return Container(
+      decoration: _paperDecoration(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _NotebookSheetPainter(
+                  lineColor: _notebookLine,
+                  marginColor: _notebookMargin,
+                  holeColor: _holeColor,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 18, 18, 18),
+              child: child,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotebookSheetPainter extends CustomPainter {
+  final Color lineColor;
+  final Color marginColor;
+  final Color holeColor;
+
+  const _NotebookSheetPainter({
+    required this.lineColor,
+    required this.marginColor,
+    required this.holeColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final linePaint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 1;
+    final marginPaint = Paint()
+      ..color = marginColor
+      ..strokeWidth = 1.4;
+    final holePaint = Paint()..color = holeColor;
+    final holeBorder = Paint()
+      ..color = lineColor.withValues(alpha: 0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    canvas.drawLine(const Offset(22, 0), Offset(22, size.height), marginPaint);
+
+    for (double y = 24; y < size.height; y += 28) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+    }
+
+    for (double y = 28; y < size.height - 8; y += 72) {
+      canvas.drawCircle(Offset(12, y), 5, holePaint);
+      canvas.drawCircle(Offset(12, y), 5, holeBorder);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _NotebookSheetPainter oldDelegate) {
+    return oldDelegate.lineColor != lineColor ||
+        oldDelegate.marginColor != marginColor ||
+        oldDelegate.holeColor != holeColor;
   }
 }
 
@@ -1225,9 +1518,11 @@ class _DiaryPlan {
 
   factory _DiaryPlan.fromMap(Map<String, dynamic> map) {
     return _DiaryPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
