@@ -313,7 +313,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             isKo: isKo,
             entries: mbtiSavedAnswers,
           ),
-          onPressed: () => _runMbtiTest(isKo),
+          onPressed: () => _openMbtiTestScreen(isKo),
         ),
         const SizedBox(height: 10),
         _buildTestCard(
@@ -331,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             isKo: isKo,
             entries: positionSavedAnswers,
           ),
-          onPressed: () => _runPositionTest(isKo),
+          onPressed: () => _openPositionTestScreen(isKo),
         ),
       ],
     );
@@ -387,7 +387,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Text(
                             result,
-                            style: Theme.of(context).textTheme.titleSmall
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           if (resultDetail != null &&
@@ -459,86 +461,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _runMbtiTest(bool isKo) async {
-    final result = await showDialog<_CompletedTest>(
-      context: context,
-      builder: (context) {
-        final answers = _restoreAnswers(
+  Future<void> _openMbtiTestScreen(bool isKo) async {
+    final result = await Navigator.of(context).push<_CompletedTest>(
+      MaterialPageRoute(
+        builder: (_) => _ProfileTestScreen(
+          title: isKo ? 'MBTI 테스트' : 'MBTI test',
+          description: isKo
+              ? '20개 문항으로 훈련 성향을 더 세밀하게 정리합니다.'
+              : 'Twenty questions to map your training style in more detail.',
+          questions: _mbtiQuestions
+              .map(
+                (question) => _ProfileTestQuestionData(
+                  koPrompt: question.koPrompt,
+                  enPrompt: question.enPrompt,
+                  options: question.options
+                      .map(
+                        (option) => _ProfileTestOptionData(
+                          koLabel: option.koLabel,
+                          enLabel: option.enLabel,
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              )
+              .toList(growable: false),
           savedAnswers: _mbtiAnswers,
-          questionCount: _mbtiQuestions.length,
-          optionCountForIndex: (index) => _mbtiQuestions[index].options.length,
-        );
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final isComplete = answers.every((answer) => answer != null);
-            return AlertDialog(
-              title: Text(isKo ? 'MBTI 테스트' : 'MBTI test'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var i = 0; i < _mbtiQuestions.length; i++) ...[
-                      Text(
-                        '${i + 1}. ${isKo ? _mbtiQuestions[i].koPrompt : _mbtiQuestions[i].enPrompt}',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (
-                            var optionIndex = 0;
-                            optionIndex < _mbtiQuestions[i].options.length;
-                            optionIndex++
-                          )
-                            ChoiceChip(
-                              label: Text(
-                                isKo
-                                    ? _mbtiQuestions[i]
-                                          .options[optionIndex]
-                                          .koLabel
-                                    : _mbtiQuestions[i]
-                                          .options[optionIndex]
-                                          .enLabel,
-                              ),
-                              selected: answers[i] == optionIndex,
-                              onSelected: (_) {
-                                setDialogState(() => answers[i] = optionIndex);
-                              },
-                            ),
-                        ],
-                      ),
-                      if (i != _mbtiQuestions.length - 1)
-                        const Divider(height: 20),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(isKo ? '취소' : 'Cancel'),
-                ),
-                FilledButton(
-                  onPressed: !isComplete
-                      ? null
-                      : () {
-                          Navigator.of(context).pop(
-                            _CompletedTest(
-                              result: _buildMbtiResult(answers.cast<int>()),
-                              answers: answers.cast<int>(),
-                            ),
-                          );
-                        },
-                  child: Text(isKo ? '결과 저장' : 'Save result'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+          buildResult: (answers) => _buildMbtiResult(answers),
+        ),
+      ),
     );
     if (result == null || !mounted) return;
     setState(() {
@@ -548,93 +498,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await _saveLatestNow();
   }
 
-  Future<void> _runPositionTest(bool isKo) async {
-    final result = await showDialog<_CompletedTest>(
-      context: context,
-      builder: (context) {
-        final answers = _restoreAnswers(
-          savedAnswers: _positionTestAnswers,
-          questionCount: _positionQuestions.length,
-          optionCountForIndex: (index) =>
-              _positionQuestions[index].options.length,
-        );
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final isComplete = answers.every((answer) => answer != null);
-            return AlertDialog(
-              title: Text(isKo ? '포지션 테스트' : 'Position test'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var i = 0; i < _positionQuestions.length; i++) ...[
-                      Text(
-                        '${i + 1}. ${isKo ? _positionQuestions[i].koPrompt : _positionQuestions[i].enPrompt}',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (
-                            var optionIndex = 0;
-                            optionIndex < _positionQuestions[i].options.length;
-                            optionIndex++
-                          )
-                            ChoiceChip(
-                              label: Text(
-                                isKo
-                                    ? _positionQuestions[i]
-                                          .options[optionIndex]
-                                          .koLabel
-                                    : _positionQuestions[i]
-                                          .options[optionIndex]
-                                          .enLabel,
-                              ),
-                              selected: answers[i] == optionIndex,
-                              onSelected: (_) {
-                                setDialogState(() => answers[i] = optionIndex);
-                              },
-                            ),
-                        ],
-                      ),
-                      if (i != _positionQuestions.length - 1)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(height: 1),
+  Future<void> _openPositionTestScreen(bool isKo) async {
+    final result = await Navigator.of(context).push<_CompletedTest>(
+      MaterialPageRoute(
+        builder: (_) => _ProfileTestScreen(
+          title: isKo ? '포지션 테스트' : 'Position test',
+          description: isKo
+              ? '20개 문항으로 플레이 선호를 분석해 어울리는 포지션을 찾습니다.'
+              : 'Twenty questions analyze your play preferences to suggest a fitting role.',
+          questions: _positionQuestions
+              .map(
+                (question) => _ProfileTestQuestionData(
+                  koPrompt: question.koPrompt,
+                  enPrompt: question.enPrompt,
+                  options: question.options
+                      .map(
+                        (option) => _ProfileTestOptionData(
+                          koLabel: option.koLabel,
+                          enLabel: option.enLabel,
                         ),
-                    ],
-                  ],
+                      )
+                      .toList(growable: false),
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(isKo ? '취소' : 'Cancel'),
-                ),
-                FilledButton(
-                  onPressed: !isComplete
-                      ? null
-                      : () {
-                          Navigator.of(context).pop(
-                            _CompletedTest(
-                              result: _buildPositionResult(
-                                answers.cast<int>(),
-                                isKo,
-                              ),
-                              answers: answers.cast<int>(),
-                            ),
-                          );
-                        },
-                  child: Text(isKo ? '결과 저장' : 'Save result'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+              )
+              .toList(growable: false),
+          savedAnswers: _positionTestAnswers,
+          buildResult: (answers) => _buildPositionResult(answers, isKo),
+        ),
+      ),
     );
     if (result == null || !mounted) return;
     setState(() {
@@ -642,18 +533,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _positionTestAnswers = result.answers;
     });
     await _saveLatestNow();
-  }
-
-  List<int?> _restoreAnswers({
-    required List<int> savedAnswers,
-    required int questionCount,
-    required int Function(int index) optionCountForIndex,
-  }) {
-    return List<int?>.generate(questionCount, (index) {
-      if (index >= savedAnswers.length) return null;
-      final answer = savedAnswers[index];
-      return answer >= 0 && answer < optionCountForIndex(index) ? answer : null;
-    });
   }
 
   List<_SavedAnswerEntry> _savedMbtiAnswerEntries(bool isKo) {
@@ -677,11 +556,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   List<_SavedAnswerEntry> _savedPositionAnswerEntries(bool isKo) {
     final entries = <_SavedAnswerEntry>[];
-    for (
-      var i = 0;
-      i < _positionQuestions.length && i < _positionTestAnswers.length;
-      i++
-    ) {
+    for (var i = 0;
+        i < _positionQuestions.length && i < _positionTestAnswers.length;
+        i++) {
       final answerIndex = _positionTestAnswers[i];
       if (answerIndex < 0 ||
           answerIndex >= _positionQuestions[i].options.length) {
@@ -828,70 +705,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String? _mbtiTypeDescription(String code, bool isKo) {
     return switch (code) {
-      'ISTJ' =>
-        isKo
-            ? '루틴과 기준을 지키며 안정적으로 훈련을 쌓는 성향입니다.'
-            : 'Builds training consistency through routines and clear standards.',
-      'ISFJ' =>
-        isKo
-            ? '팀을 세심하게 챙기며 맡은 역할을 꾸준히 수행하는 성향입니다.'
-            : 'Supports the team carefully and executes responsibilities consistently.',
-      'INFJ' =>
-        isKo
-            ? '흐름을 읽고 팀에 필요한 방향을 조용히 제시하는 성향입니다.'
-            : 'Reads the flow and quietly suggests the direction the team needs.',
-      'INTJ' =>
-        isKo
-            ? '장기 그림과 전술 구조를 먼저 설계하는 성향입니다.'
-            : 'Prefers designing long-term plans and tactical structure first.',
-      'ISTP' =>
-        isKo
-            ? '실전 상황에서 빠르게 판단하고 해결책을 찾는 성향입니다.'
-            : 'Adapts quickly in real situations and finds practical solutions.',
-      'ISFP' =>
-        isKo
-            ? '몸 상태와 리듬을 살피며 균형 있게 플레이하는 성향입니다.'
-            : 'Plays with balance by tracking body condition and rhythm.',
-      'INFP' =>
-        isKo
-            ? '자신의 기준과 의미를 느낄 때 몰입도가 커지는 성향입니다.'
-            : 'Engages deeply when training aligns with personal values and meaning.',
-      'INTP' =>
-        isKo
-            ? '패턴을 분석하고 새로운 해법을 탐색하는 성향입니다.'
-            : 'Enjoys analyzing patterns and exploring new solutions.',
-      'ESTP' =>
-        isKo
-            ? '순간 판단과 과감한 실행으로 흐름을 바꾸는 성향입니다.'
-            : 'Changes momentum through decisive instincts and bold execution.',
-      'ESFP' =>
-        isKo
-            ? '현장 에너지를 끌어올리고 팀 분위기를 밝히는 성향입니다.'
-            : 'Lifts team energy and brightens the environment in the moment.',
-      'ENFP' =>
-        isKo
-            ? '새로운 자극과 가능성에서 동기를 얻는 성향입니다.'
-            : 'Finds motivation in new stimuli and emerging possibilities.',
-      'ENTP' =>
-        isKo
-            ? '변화를 두려워하지 않고 다양한 시도를 즐기는 성향입니다.'
-            : 'Experiments freely and is comfortable with change.',
-      'ESTJ' =>
-        isKo
-            ? '목표를 분명히 세우고 실행을 끝까지 끌고 가는 성향입니다.'
-            : 'Sets clear goals and drives execution through to the end.',
-      'ESFJ' =>
-        isKo
-            ? '팀 컨디션과 호흡을 챙기며 조직력을 높이는 성향입니다.'
-            : 'Improves cohesion by caring about team condition and chemistry.',
-      'ENFJ' =>
-        isKo
-            ? '동료를 북돋우며 팀의 집중력을 함께 끌어올리는 성향입니다.'
-            : 'Raises team focus by encouraging and aligning teammates.',
-      'ENTJ' =>
-        isKo
-            ? '전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'
-            : 'Clarifies tactical direction and leads the push toward goals.',
+      'ISTJ' => isKo
+          ? '루틴과 기준을 지키며 안정적으로 훈련을 쌓는 성향입니다.'
+          : 'Builds training consistency through routines and clear standards.',
+      'ISFJ' => isKo
+          ? '팀을 세심하게 챙기며 맡은 역할을 꾸준히 수행하는 성향입니다.'
+          : 'Supports the team carefully and executes responsibilities consistently.',
+      'INFJ' => isKo
+          ? '흐름을 읽고 팀에 필요한 방향을 조용히 제시하는 성향입니다.'
+          : 'Reads the flow and quietly suggests the direction the team needs.',
+      'INTJ' => isKo
+          ? '장기 그림과 전술 구조를 먼저 설계하는 성향입니다.'
+          : 'Prefers designing long-term plans and tactical structure first.',
+      'ISTP' => isKo
+          ? '실전 상황에서 빠르게 판단하고 해결책을 찾는 성향입니다.'
+          : 'Adapts quickly in real situations and finds practical solutions.',
+      'ISFP' => isKo
+          ? '몸 상태와 리듬을 살피며 균형 있게 플레이하는 성향입니다.'
+          : 'Plays with balance by tracking body condition and rhythm.',
+      'INFP' => isKo
+          ? '자신의 기준과 의미를 느낄 때 몰입도가 커지는 성향입니다.'
+          : 'Engages deeply when training aligns with personal values and meaning.',
+      'INTP' => isKo
+          ? '패턴을 분석하고 새로운 해법을 탐색하는 성향입니다.'
+          : 'Enjoys analyzing patterns and exploring new solutions.',
+      'ESTP' => isKo
+          ? '순간 판단과 과감한 실행으로 흐름을 바꾸는 성향입니다.'
+          : 'Changes momentum through decisive instincts and bold execution.',
+      'ESFP' => isKo
+          ? '현장 에너지를 끌어올리고 팀 분위기를 밝히는 성향입니다.'
+          : 'Lifts team energy and brightens the environment in the moment.',
+      'ENFP' => isKo
+          ? '새로운 자극과 가능성에서 동기를 얻는 성향입니다.'
+          : 'Finds motivation in new stimuli and emerging possibilities.',
+      'ENTP' => isKo
+          ? '변화를 두려워하지 않고 다양한 시도를 즐기는 성향입니다.'
+          : 'Experiments freely and is comfortable with change.',
+      'ESTJ' => isKo
+          ? '목표를 분명히 세우고 실행을 끝까지 끌고 가는 성향입니다.'
+          : 'Sets clear goals and drives execution through to the end.',
+      'ESFJ' => isKo
+          ? '팀 컨디션과 호흡을 챙기며 조직력을 높이는 성향입니다.'
+          : 'Improves cohesion by caring about team condition and chemistry.',
+      'ENFJ' => isKo
+          ? '동료를 북돋우며 팀의 집중력을 함께 끌어올리는 성향입니다.'
+          : 'Raises team focus by encouraging and aligning teammates.',
+      'ENTJ' => isKo
+          ? '전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'
+          : 'Clarifies tactical direction and leads the push toward goals.',
       _ => null,
     };
   }
@@ -960,14 +821,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   static final TextInputFormatter _decimalInputFormatter =
       TextInputFormatter.withFunction((oldValue, newValue) {
-        final text = newValue.text;
-        if (text.isEmpty) return newValue;
-        final normalized = text.replaceAll(',', '.');
-        if (!RegExp(r'^\d*(?:\.\d{0,2})?$').hasMatch(normalized)) {
-          return oldValue;
-        }
-        return newValue;
-      });
+    final text = newValue.text;
+    if (text.isEmpty) return newValue;
+    final normalized = text.replaceAll(',', '.');
+    if (!RegExp(r'^\d*(?:\.\d{0,2})?$').hasMatch(normalized)) {
+      return oldValue;
+    }
+    return newValue;
+  });
 
   Future<void> _pickProfilePhoto() async {
     try {
@@ -1106,6 +967,179 @@ class _SavedAnswerEntry {
   final String answer;
 
   const _SavedAnswerEntry({required this.question, required this.answer});
+}
+
+class _ProfileTestQuestionData {
+  final String koPrompt;
+  final String enPrompt;
+  final List<_ProfileTestOptionData> options;
+
+  const _ProfileTestQuestionData({
+    required this.koPrompt,
+    required this.enPrompt,
+    required this.options,
+  });
+}
+
+class _ProfileTestOptionData {
+  final String koLabel;
+  final String enLabel;
+
+  const _ProfileTestOptionData({required this.koLabel, required this.enLabel});
+}
+
+class _ProfileTestScreen extends StatefulWidget {
+  final String title;
+  final String description;
+  final List<_ProfileTestQuestionData> questions;
+  final List<int> savedAnswers;
+  final String Function(List<int>) buildResult;
+
+  const _ProfileTestScreen({
+    required this.title,
+    required this.description,
+    required this.questions,
+    required this.savedAnswers,
+    required this.buildResult,
+  });
+
+  @override
+  State<_ProfileTestScreen> createState() => _ProfileTestScreenState();
+}
+
+class _ProfileTestScreenState extends State<_ProfileTestScreen> {
+  late final List<int?> _answers;
+
+  @override
+  void initState() {
+    super.initState();
+    _answers = List<int?>.generate(widget.questions.length, (index) {
+      if (index >= widget.savedAnswers.length) return null;
+      final saved = widget.savedAnswers[index];
+      final optionCount = widget.questions[index].options.length;
+      return saved >= 0 && saved < optionCount ? saved : null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final isComplete = _answers.every((answer) => answer != null);
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.title)),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        children: [
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.description,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isKo
+                        ? '${widget.questions.length}개 문항을 모두 선택하면 결과가 저장됩니다.'
+                        : 'Complete all ${widget.questions.length} questions to save the result.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          for (var i = 0; i < widget.questions.length; i++) ...[
+            _ProfileTestQuestionCard(
+              index: i,
+              question: widget.questions[i],
+              selectedIndex: _answers[i],
+              isKo: isKo,
+              onSelected: (optionIndex) {
+                setState(() => _answers[i] = optionIndex);
+              },
+            ),
+            if (i != widget.questions.length - 1) const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: !isComplete
+                ? null
+                : () {
+                    final answers = _answers.cast<int>();
+                    Navigator.of(context).pop(
+                      _CompletedTest(
+                        result: widget.buildResult(answers),
+                        answers: answers,
+                      ),
+                    );
+                  },
+            child: Text(isKo ? '결과 저장' : 'Save result'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileTestQuestionCard extends StatelessWidget {
+  final int index;
+  final _ProfileTestQuestionData question;
+  final int? selectedIndex;
+  final bool isKo;
+  final ValueChanged<int> onSelected;
+
+  const _ProfileTestQuestionCard({
+    required this.index,
+    required this.question,
+    required this.selectedIndex,
+    required this.isKo,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${index + 1}. ${isKo ? question.koPrompt : question.enPrompt}',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (var optionIndex = 0;
+                    optionIndex < question.options.length;
+                    optionIndex++)
+                  ChoiceChip(
+                    label: Text(
+                      isKo
+                          ? question.options[optionIndex].koLabel
+                          : question.options[optionIndex].enLabel,
+                    ),
+                    selected: selectedIndex == optionIndex,
+                    onSelected: (_) => onSelected(optionIndex),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _MbtiOption {

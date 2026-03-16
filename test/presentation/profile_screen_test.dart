@@ -37,7 +37,7 @@ void main() {
     );
     expect(find.text('20. 원정 경기 준비에서 더 안심되는 방식은 무엇인가요?'), findsOneWidget);
 
-    await tester.tap(find.text('취소'));
+    await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
 
     final positionStartButton = _findTestStartButton('포지션 테스트');
