@@ -227,11 +227,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           children: [
             _buildDayHeadlineCard(day),
             const SizedBox(height: 12),
+            _buildNightReviewCard(day, diary),
+            const SizedBox(height: 12),
             _buildEncouragementCard(day),
             const SizedBox(height: 12),
             _buildFortuneCard(day),
-            const SizedBox(height: 12),
-            _buildNightReviewCard(day, diary),
             if (day.plans.isNotEmpty) ...[
               const SizedBox(height: 12),
               _buildPlanCard(day.plans),
@@ -1107,18 +1107,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           final memo = layout.pages.isNotEmpty
               ? layout.pages.first.methodText.trim()
               : '';
-          final linkedEntryNotes = _boardLinkedEntryNotes(
-            day: day,
-            board: board,
-          );
           if (_isKo) {
-            return memo.isEmpty && linkedEntryNotes.isEmpty
-                ? board.title
-                : '${board.title}${memo.isEmpty ? '' : ' 메모는 "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', 기록 메모는 $linkedEntryNotes'}';
+            return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
           }
-          return memo.isEmpty && linkedEntryNotes.isEmpty
-              ? board.title
-              : '${board.title}${memo.isEmpty ? '' : ' memo was "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', linked log notes were $linkedEntryNotes'}';
+          return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
         })
         .join(' / ');
     return _isKo
@@ -1133,7 +1125,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final layout = TrainingMethodLayout.decode(board.layoutJson);
     final page = layout.pages.isNotEmpty ? layout.pages.first : null;
     final boardMemo = page?.methodText.trim() ?? '';
-    final linkedNotes = _boardLinkedEntryNotes(day: day, board: board);
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -1176,40 +1167,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               _isKo ? '보드 메모: $boardMemo' : 'Board note: $boardMemo',
             ),
           ],
-          if (linkedNotes.isNotEmpty)
-            _buildSummaryLine(
-              _isKo
-                  ? '연결된 기록 메모: $linkedNotes'
-                  : 'Linked log notes: $linkedNotes',
-            ),
         ],
       ),
     );
-  }
-
-  String _boardLinkedEntryNotes({
-    required _DiaryDayData day,
-    required TrainingBoard board,
-  }) {
-    final notes = day.entries
-        .where(
-          (entry) => TrainingBoardLinkCodec.decodeBoardIds(
-            entry.drills,
-          ).contains(board.id),
-        )
-        .expand(
-          (entry) => <String>[
-            entry.program.trim(),
-            entry.goodPoints.trim(),
-            entry.improvements.trim(),
-            entry.nextGoal.trim(),
-            entry.notes.trim(),
-          ],
-        )
-        .where((text) => text.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-    return notes.join(' / ');
   }
 
   Future<void> _copyDiary(String diary) async {

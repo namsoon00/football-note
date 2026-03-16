@@ -110,21 +110,18 @@ void main() {
     expect(find.text('계획 1개'), findsOneWidget);
     expect(find.textContaining('합계 160분'), findsOneWidget);
     expect(find.textContaining('행운 플레이:'), findsWidgets);
-    expect(
-      find.textContaining('저장된 운세: 전체 흐름: 작은 노력도 큰 힘이 돼요.'),
-      findsWidgets,
-    );
+    expect(find.textContaining('저장된 운세: 전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsWidgets);
     expect(find.textContaining('측면에서 2:1 패턴 확인'), findsWidgets);
     expect(find.text('보드 메모: 측면에서 2:1 패턴 확인'), findsOneWidget);
-    expect(
-      find.textContaining('연결된 기록 메모: 볼터치 / 터치 수를 일정하게 유지했다 / 왼발 퍼스트터치 안정화'),
-      findsOneWidget,
-    );
     expect(find.textContaining('측면 전개 보드'), findsWidgets);
     expect(find.textContaining('오른쪽 발목'), findsWidgets);
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);
     expect(find.textContaining('리프팅: 인사이드 80회, 아웃사이드 60회'), findsWidgets);
     expect(find.textContaining('Blue FC전'), findsWidgets);
+    expect(
+      tester.getTopLeft(find.text('자기 전 다이어리')).dy,
+      lessThan(tester.getTopLeft(find.text('오늘의 응원')).dy),
+    );
 
     expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
 
