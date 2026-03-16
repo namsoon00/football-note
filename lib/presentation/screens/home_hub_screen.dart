@@ -12,6 +12,7 @@ import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/entities/news_article.dart';
+import '../../domain/entities/training_board.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../infrastructure/rss_news_repository.dart';
@@ -20,6 +21,7 @@ import '../widgets/app_drawer.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'coach_lesson_screen.dart';
+import 'player_level_guide_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'skill_quiz_screen.dart';
@@ -85,21 +87,24 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
-                  .where((entry) => !entry.isMatch)
-                  .toList()
-                ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries =
+                  (snapshot.data ?? const <TrainingEntry>[])
+                      .where((entry) => !entry.isMatch)
+                      .toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardsById = TrainingBoardService(
                 widget.optionRepository,
               ).boardMap();
+              final boards = boardsById.values.toList(growable: false)
+                ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
               final levelState = PlayerLevelService(
                 widget.optionRepository,
               ).loadState();
               final data = _HomeHubData.build(
                 entries: allEntries,
                 plans: _loadPlans(widget.optionRepository),
-                boardCount: boardsById.length,
+                boards: boards,
                 quizCompletedAt: _loadQuizCompletedAt(widget.optionRepository),
                 quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                   widget.optionRepository,
@@ -120,9 +125,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                              'profile_photo_url',
+                            ) ??
+                            '',
                         onNewsTap: _openNews,
                         onGameTap: _openGame,
                         onProfileTap: () => _openProfile(context),
@@ -131,16 +136,18 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _LevelHeroCard(levelState: levelState, isKo: isKo),
+                    _LevelHeroCard(
+                      levelState: levelState,
+                      isKo: isKo,
+                      onTap: () => _openLevelGuide(context, levelState.level),
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: Text(
                             isKo ? '오늘의 홈' : 'Today Home',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -165,16 +172,20 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       onOpenDiary: () => _openCoach(context),
                     ),
                     const SizedBox(height: 12),
-                    _WeeklySummaryCard(data: data, isKo: isKo),
-                    const SizedBox(height: 12),
                     _ContinueCard(
                       data: data,
                       isKo: isKo,
                       onContinueQuiz: widget.onQuickQuiz,
-                      onContinueEntry: data.latestEntry == null
-                          ? null
-                          : () => widget.onEdit(data.latestEntry!),
+                      onContinueTraining: data.latestTrainingEntry == null
+                          ? widget.onCreate
+                          : () => widget.onEdit(data.latestTrainingEntry!),
+                      onContinueMatch: widget.onQuickMatch,
+                      onContinuePlan: widget.onQuickPlan,
+                      onContinueBoard: widget.onQuickBoard,
+                      onOpenDiary: () => _openCoach(context),
                     ),
+                    const SizedBox(height: 12),
+                    _WeeklySummaryCard(data: data, isKo: isKo),
                   ],
                 ),
               );
@@ -275,6 +286,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
   }
 
+  Future<void> _openLevelGuide(BuildContext context, int currentLevel) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PlayerLevelGuideScreen(currentLevel: currentLevel),
+      ),
+    );
+  }
+
   Future<int> _loadTodayNewsCount() async {
     final service = NewsService(RssNewsRepository(widget.optionRepository));
     final channels = service.channels();
@@ -323,10 +342,11 @@ class _HomeHubData {
   final int weeklyMinutes;
   final int streakDays;
   final int boardCount;
+  final DateTime? latestBoardUpdatedAt;
   final int todayPlanCount;
   final String strongestSignal;
   final String focusSignal;
-  final TrainingEntry? latestEntry;
+  final TrainingEntry? latestTrainingEntry;
   final bool quizCompletedToday;
   final SkillQuizResumeSummary quizResumeSummary;
   final Future<int> todayNewsCountFuture;
@@ -336,10 +356,11 @@ class _HomeHubData {
     required this.weeklyMinutes,
     required this.streakDays,
     required this.boardCount,
+    required this.latestBoardUpdatedAt,
     required this.todayPlanCount,
     required this.strongestSignal,
     required this.focusSignal,
-    required this.latestEntry,
+    required this.latestTrainingEntry,
     required this.quizCompletedToday,
     required this.quizResumeSummary,
     required this.todayNewsCountFuture,
@@ -348,7 +369,7 @@ class _HomeHubData {
   factory _HomeHubData.build({
     required List<TrainingEntry> entries,
     required List<_DashboardPlan> plans,
-    required int boardCount,
+    required List<TrainingBoard> boards,
     required DateTime? quizCompletedAt,
     required SkillQuizResumeSummary quizResumeSummary,
     required Future<int> todayNewsCountFuture,
@@ -368,7 +389,7 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.durationMinutes,
     );
-    final latestEntry = entries.isEmpty ? null : entries.first;
+    final latestTrainingEntry = entries.isEmpty ? null : entries.first;
 
     final entryDays = entries
         .map(
@@ -377,12 +398,12 @@ class _HomeHubData {
         )
         .toSet();
     var streakDays = 0;
-    DateTime? cursor = latestEntry == null
+    DateTime? cursor = latestTrainingEntry == null
         ? null
         : DateTime(
-            latestEntry.date.year,
-            latestEntry.date.month,
-            latestEntry.date.day,
+            latestTrainingEntry.date.year,
+            latestTrainingEntry.date.month,
+            latestTrainingEntry.date.day,
           );
     while (cursor != null && entryDays.contains(cursor)) {
       streakDays++;
@@ -402,8 +423,9 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.mood,
     );
-    final averageMood =
-        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
+    final averageMood = weeklyEntries.isEmpty
+        ? 0
+        : totalMood / weeklyEntries.length;
 
     String strongest;
     String focus;
@@ -429,7 +451,8 @@ class _HomeHubData {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedToday = quizCompletedAt != null &&
+    final quizCompletedToday =
+        quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
@@ -438,11 +461,12 @@ class _HomeHubData {
       weeklyTrainingCount: weeklyEntries.length,
       weeklyMinutes: weeklyMinutes,
       streakDays: streakDays,
-      boardCount: boardCount,
+      boardCount: boards.length,
+      latestBoardUpdatedAt: boards.isEmpty ? null : boards.first.updatedAt,
       todayPlanCount: todayPlanCount,
       strongestSignal: strongest,
       focusSignal: focus,
-      latestEntry: latestEntry,
+      latestTrainingEntry: latestTrainingEntry,
       quizCompletedToday: quizCompletedToday,
       quizResumeSummary: quizResumeSummary,
       todayNewsCountFuture: todayNewsCountFuture,
@@ -457,7 +481,8 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -479,9 +504,9 @@ class _WeeklyBadge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -490,96 +515,122 @@ class _WeeklyBadge extends StatelessWidget {
 class _LevelHeroCard extends StatelessWidget {
   final PlayerLevelState levelState;
   final bool isKo;
+  final VoidCallback onTap;
 
-  const _LevelHeroCard({required this.levelState, required this.isKo});
+  const _LevelHeroCard({
+    required this.levelState,
+    required this.isKo,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final tier = _LevelVisualTier.fromLevel(levelState.level);
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: tier.colors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const ValueKey('level-hero-card'),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 18,
-            offset: Offset(0, 6),
+        child: Ink(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: tier.colors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isKo ? '선수 레벨' : 'Player level',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isKo ? '선수 레벨' : 'Player level',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: Colors.white.withValues(alpha: 0.86),
                         fontWeight: FontWeight.w700,
                       ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  PlayerLevelService.stageName(levelState.level, isKo),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      PlayerLevelService.stageName(levelState.level, isKo),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w700,
                       ),
-                ),
-                const SizedBox(height: 14),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: levelState.progress,
-                    minHeight: 10,
-                    backgroundColor: Colors.white.withValues(alpha: 0.22),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.white,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  isKo
-                      ? '다음 레벨까지 ${levelState.xpToNextLevel} XP'
-                      : '${levelState.xpToNextLevel} XP to next level',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        value: levelState.progress,
+                        minHeight: 10,
+                        backgroundColor: Colors.white.withValues(alpha: 0.22),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isKo
+                          ? '다음 레벨까지 ${levelState.xpToNextLevel} XP'
+                          : '${levelState.xpToNextLevel} XP to next level',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                       ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  isKo
-                      ? '총 ${levelState.totalXp} XP'
-                      : 'Total ${levelState.totalXp} XP',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isKo
+                          ? '총 ${levelState.totalXp} XP'
+                          : 'Total ${levelState.totalXp} XP',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.white.withValues(alpha: 0.86),
                         fontWeight: FontWeight.w600,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isKo ? '탭해서 전체 레벨 보기' : 'Tap to view all levels',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 16),
+              _LevelIllustration(
+                tier: tier,
+                isKo: isKo,
+                level: levelState.level,
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          _LevelIllustration(tier: tier, isKo: isKo, level: levelState.level),
-        ],
+        ),
       ),
     );
   }
@@ -640,17 +691,17 @@ class _LevelIllustration extends StatelessWidget {
                   Text(
                     PlayerLevelService.illustrationLabel(level, isKo),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     isKo ? '비주얼 성장 단계' : 'Visual growth tier',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.82),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -1008,11 +1059,11 @@ class _TodayOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final latestLabel = data.latestEntry == null
+    final latestLabel = data.latestTrainingEntry == null
         ? (isKo ? '최근 기록 없음' : 'No recent log')
         : (isKo
-            ? '최근 기록 ${DateFormat('M/d').format(data.latestEntry!.date)}'
-            : 'Last log ${DateFormat('M/d').format(data.latestEntry!.date)}');
+              ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
+              : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1192,9 +1243,9 @@ class _WeeklySummaryCard extends StatelessWidget {
                 ? '다음 포커스: ${_focusLabel(data.focusSignal, true)}'
                 : 'Next focus: ${_focusLabel(data.focusSignal, false)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -1251,13 +1302,21 @@ class _ContinueCard extends StatelessWidget {
   final _HomeHubData data;
   final bool isKo;
   final VoidCallback? onContinueQuiz;
-  final VoidCallback? onContinueEntry;
+  final VoidCallback? onContinueTraining;
+  final VoidCallback? onContinueMatch;
+  final VoidCallback? onContinuePlan;
+  final VoidCallback? onContinueBoard;
+  final VoidCallback onOpenDiary;
 
   const _ContinueCard({
     required this.data,
     required this.isKo,
     required this.onContinueQuiz,
-    required this.onContinueEntry,
+    required this.onContinueTraining,
+    required this.onContinueMatch,
+    required this.onContinuePlan,
+    required this.onContinueBoard,
+    required this.onOpenDiary,
   });
 
   @override
@@ -1265,41 +1324,87 @@ class _ContinueCard extends StatelessWidget {
     final quizSummary = data.quizResumeSummary;
     final hasQuizSession = quizSummary.hasActiveSession;
     final hasWrongReview = !hasQuizSession && quizSummary.pendingWrongCount > 0;
-    final latestEntry = data.latestEntry;
-    final title = hasQuizSession
+    final latestTrainingEntry = data.latestTrainingEntry;
+    final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-            ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
-            : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
+              ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
+              : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
         : hasWrongReview
-            ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
-            : latestEntry != null
-                ? (isKo ? '최근 기록 이어하기' : 'Continue latest log')
-                : (isKo ? '이어하기 준비' : 'Continue');
-    final subtitle = hasQuizSession
+        ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
+        : (isKo ? '새 퀴즈 시작' : 'Start quiz');
+    final quizSubtitle = hasQuizSession
         ? (isKo
-            ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
-            : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
+              ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
+              : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
         : hasWrongReview
+        ? (isKo
+              ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
+              : '${quizSummary.pendingWrongCount} saved wrong answers')
+        : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
+    final items = <_ContinueItemData>[
+      _ContinueItemData(
+        icon: Icons.edit_note_outlined,
+        title: isKo ? '훈련 기록' : 'Training log',
+        subtitle: latestTrainingEntry == null
+            ? (isKo ? '새 기록 작성' : 'Create a new log')
+            : (latestTrainingEntry.program.trim().isEmpty
+                  ? '${DateFormat('M/d').format(latestTrainingEntry.date)} · ${latestTrainingEntry.durationMinutes}${isKo ? '분' : ' min'}'
+                  : '${latestTrainingEntry.program.trim()} · ${DateFormat('M/d').format(latestTrainingEntry.date)}'),
+        buttonLabel: isKo ? '열기' : 'Open',
+        onPressed: onContinueTraining,
+      ),
+      _ContinueItemData(
+        icon: Icons.sports_soccer_outlined,
+        title: isKo ? '시합 기록' : 'Match record',
+        subtitle: isKo ? '새 시합 기록으로 이어서 작성' : 'Open match record flow',
+        buttonLabel: isKo ? '작성' : 'Start',
+        onPressed: onContinueMatch,
+      ),
+      _ContinueItemData(
+        icon: Icons.event_note_outlined,
+        title: isKo ? '훈련 계획' : 'Training plan',
+        subtitle: data.todayPlanCount > 0
             ? (isKo
-                ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개가 저장되어 있습니다.'
-                : '${quizSummary.pendingWrongCount} saved question(s) waiting for review.')
-            : latestEntry != null
-                ? (latestEntry.program.trim().isEmpty
-                    ? '${DateFormat('M/d').format(latestEntry.date)} · ${latestEntry.durationMinutes}${isKo ? '분' : ' min'}'
-                    : '${latestEntry.program.trim()} · ${DateFormat('M/d').format(latestEntry.date)}')
-                : (isKo
-                    ? '이어할 세션이 없어요. 오늘 첫 기록이나 퀴즈부터 시작해 보세요.'
-                    : 'No session to continue yet. Start with a log or a quiz today.');
-    final onPressed = hasQuizSession || hasWrongReview
-        ? onContinueQuiz
-        : latestEntry != null
-            ? onContinueEntry
-            : null;
-    final buttonLabel = hasQuizSession || hasWrongReview
-        ? (isKo ? '퀴즈 열기' : 'Open quiz')
-        : latestEntry != null
-            ? (isKo ? '기록 열기' : 'Open log')
-            : (isKo ? '시작할 내용 없음' : 'Nothing to open');
+                  ? '오늘 계획 ${data.todayPlanCount}개'
+                  : '${data.todayPlanCount} plans today')
+            : (isKo ? '오늘 계획 추가' : 'Add today’s plan'),
+        buttonLabel: isKo ? '열기' : 'Open',
+        onPressed: onContinuePlan,
+      ),
+      _ContinueItemData(
+        icon: Icons.quiz_outlined,
+        title: quizTitle,
+        subtitle: quizSubtitle,
+        buttonLabel: isKo ? '퀴즈 열기' : 'Open quiz',
+        onPressed: onContinueQuiz,
+      ),
+      _ContinueItemData(
+        icon: Icons.developer_board_outlined,
+        title: isKo ? '훈련보드' : 'Training board',
+        subtitle: data.boardCount > 0
+            ? (data.latestBoardUpdatedAt == null
+                  ? (isKo
+                        ? '스케치 ${data.boardCount}개'
+                        : '${data.boardCount} sketches')
+                  : (isKo
+                        ? '최근 수정 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)} · 총 ${data.boardCount}개'
+                        : 'Updated ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)} · ${data.boardCount} total'))
+            : (isKo ? '새 훈련보드 만들기' : 'Create a new board'),
+        buttonLabel: isKo ? '보드 열기' : 'Open boards',
+        onPressed: onContinueBoard,
+      ),
+      _ContinueItemData(
+        icon: Icons.auto_stories_outlined,
+        title: isKo ? '다이어리' : 'Diary',
+        subtitle: latestTrainingEntry == null
+            ? (isKo
+                  ? '기록이 생기면 날짜별로 이어집니다.'
+                  : 'Diary pages appear as you log training.')
+            : (isKo ? '최근 기록 날짜로 이동' : 'Jump to the latest diary page'),
+        buttonLabel: isKo ? '다이어리 열기' : 'Open diary',
+        onPressed: onOpenDiary,
+      ),
+    ];
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1311,33 +1416,86 @@ class _ContinueCard extends StatelessWidget {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(18),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _ContinueItem(item: item),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContinueItemData {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String buttonLabel;
+  final VoidCallback? onPressed;
+
+  const _ContinueItemData({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.buttonLabel,
+    required this.onPressed,
+  });
+}
+
+class _ContinueItem extends StatelessWidget {
+  final _ContinueItemData item;
+
+  const _ContinueItem({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              item.icon,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  item.title,
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
                 ),
-                const SizedBox(height: 6),
-                Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
+                Text(
+                  item.subtitle,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 10),
                 FilledButton.tonalIcon(
-                  onPressed: onPressed,
-                  icon: Icon(
-                    hasQuizSession || hasWrongReview
-                        ? Icons.quiz_outlined
-                        : Icons.edit_note_outlined,
-                  ),
-                  label: Text(buttonLabel),
+                  onPressed: item.onPressed,
+                  icon: Icon(item.icon),
+                  label: Text(item.buttonLabel),
                 ),
               ],
             ),

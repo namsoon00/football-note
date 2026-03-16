@@ -46,6 +46,20 @@ void main() {
           fortuneRecommendation: '전진 패스 연계로 리듬을 이어가세요.',
         ),
         TrainingEntry(
+          date: DateTime(2026, 3, 15, 19, 10),
+          durationMinutes: 30,
+          intensity: 3,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '받기 전에 시야를 넓히는 연습을 했다',
+          location: '학교 운동장',
+          program: '원터치 패스',
+          goodPoints: '패스 템포를 유지했다',
+          fortuneComment: '패스 각도: 오늘은 빠른 판단이 빛나요.\n행운 구역: 오른쪽 하프스페이스',
+          fortuneRecommendation: '첫 터치 후 전진 패스를 바로 연결해보세요.',
+        ),
+        TrainingEntry(
           date: DateTime(2026, 3, 15, 20, 0),
           durationMinutes: 90,
           intensity: 4,
@@ -105,12 +119,13 @@ void main() {
     expect(find.text('오늘의 응원'), findsNothing);
     expect(find.text('오늘의 운세 노트'), findsOneWidget);
     expect(find.text('자기 전 다이어리'), findsOneWidget);
-    expect(find.textContaining('훈련 1개'), findsOneWidget);
+    expect(find.textContaining('훈련 2개'), findsOneWidget);
     expect(find.textContaining('시합 1개'), findsOneWidget);
     expect(find.text('계획 1개'), findsOneWidget);
-    expect(find.textContaining('합계 160분'), findsOneWidget);
-    expect(find.textContaining('행운 플레이:'), findsWidgets);
-    expect(find.textContaining('저장된 운세: 전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsWidgets);
+    expect(find.textContaining('합계 190분'), findsOneWidget);
+    expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsWidgets);
+    expect(find.textContaining('좌우로 넘겨서 다른 운세 보기'), findsOneWidget);
+    expect(find.text('1 / 2'), findsOneWidget);
     expect(find.textContaining('측면에서 2:1 패턴 확인'), findsWidgets);
     expect(find.text('보드 메모: 측면에서 2:1 패턴 확인'), findsOneWidget);
     expect(find.textContaining('측면 전개 보드'), findsWidgets);
@@ -124,6 +139,14 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
+
+    await tester.ensureVisible(find.byType(PageView).last);
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(PageView).last, const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('패스 각도: 오늘은 빠른 판단이 빛나요.'), findsOneWidget);
+    expect(find.text('2 / 2'), findsOneWidget);
 
     await tester.tap(find.byTooltip('이전 날짜'));
     await tester.pumpAndSettle();

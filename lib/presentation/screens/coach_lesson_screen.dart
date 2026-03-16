@@ -129,6 +129,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: _buildPagerCard(
+                      days: days,
                       dayCount: days.length,
                       selectedIndex: selectedIndex,
                       selectedLabel: _formatDiaryDate(selectedDay.date),
@@ -158,6 +159,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildPagerCard({
+    required List<_DiaryDayData> days,
     required int dayCount,
     required int selectedIndex,
     required String selectedLabel,
@@ -176,26 +178,51 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               icon: const Icon(Icons.chevron_left),
             ),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    selectedLabel,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: _headlineInk,
-                      fontWeight: FontWeight.w900,
-                    ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => _pickDiaryDate(days, selectedIndex),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _isKo
-                        ? '${selectedIndex + 1} / $dayCount 페이지 · 좌우로 넘기기'
-                        : 'Page ${selectedIndex + 1} / $dayCount · swipe left or right',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: _bodyInk),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              selectedLabel,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    color: _headlineInk,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.calendar_month_outlined,
+                            size: 18,
+                            color: _accentInk,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _isKo
+                            ? '${selectedIndex + 1} / $dayCount 페이지 · 탭해서 날짜 선택'
+                            : 'Page ${selectedIndex + 1} / $dayCount · tap to pick a date',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: _bodyInk),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
             IconButton(
@@ -337,28 +364,140 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildFortuneCard(_DiaryDayData day) {
-    final lines = _buildFortuneLines(day);
+    final fortunes = day.savedFortunes;
+    if (fortunes.isEmpty) {
+      return _buildPaperCard(
+        title: _isKo ? '오늘의 운세 노트' : 'Today fortune note',
+        subtitle: _isKo
+            ? '같은 날 훈련노트에 저장된 운세가 아직 없어요.'
+            : 'No saved fortunes from training notes on this day yet.',
+        child: Text(
+          _isKo
+              ? '훈련노트에서 오늘의 운세를 저장하면 이 다이어리 페이지에 함께 보여줍니다.'
+              : 'Saved fortunes from training notes will appear here on the same diary day.',
+          style: _theme.textTheme.bodyMedium?.copyWith(
+            height: 1.55,
+            color: _headlineInk,
+          ),
+        ),
+      );
+    }
     return _buildPaperCard(
       title: _isKo ? '오늘의 운세 노트' : 'Today fortune note',
       subtitle: _isKo
-          ? '기록을 바탕으로 가볍게 읽는 오늘의 재미 요소예요.'
-          : 'A playful fortune digest based on the day\'s record.',
+          ? '같은 날 훈련노트에 저장된 운세를 모아서 보여줘요.'
+          : 'Saved fortunes from training notes on the same day are shown here.',
+      child: SizedBox(
+        height: fortunes.length > 1 ? 220 : 180,
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                itemCount: fortunes.length,
+                itemBuilder: (context, index) {
+                  final fortune = fortunes[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: _buildFortunePage(
+                      fortune: fortune,
+                      page: index + 1,
+                      totalPages: fortunes.length,
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (fortunes.length > 1) ...[
+              const SizedBox(height: 12),
+              Text(
+                _isKo
+                    ? '좌우로 넘겨서 다른 운세 보기'
+                    : 'Swipe left or right for more fortunes',
+                style: _theme.textTheme.bodySmall?.copyWith(color: _bodyInk),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFortunePage({
+    required _DiaryFortune fortune,
+    required int page,
+    required int totalPages,
+  }) {
+    final sourceLabel = fortune.program.trim().isEmpty
+        ? _formatTime(fortune.entryDate)
+        : '${_formatTime(fortune.entryDate)} · ${fortune.program.trim()}';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: _tileSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _paperEdge),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: lines
-            .map(
-              (line) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+        children: [
+          Row(
+            children: [
+              Expanded(
                 child: Text(
-                  line,
-                  style: _theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.55,
-                    color: _headlineInk,
+                  sourceLabel,
+                  style: _theme.textTheme.labelLarge?.copyWith(
+                    color: _accentInk,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-            )
-            .toList(growable: false),
+              if (totalPages > 1)
+                Text(
+                  '$page / $totalPages',
+                  style: _theme.textTheme.labelMedium?.copyWith(
+                    color: _bodyInk,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              children: [
+                ...fortune.commentLines.map(
+                  (line) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      line,
+                      style: _theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.55,
+                        color: _headlineInk,
+                      ),
+                    ),
+                  ),
+                ),
+                if (fortune.recommendation.trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      _isKo
+                          ? '다음 한 걸음: ${fortune.recommendation.trim()}'
+                          : 'Next step: ${fortune.recommendation.trim()}',
+                      style: _theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.55,
+                        color: _headlineInk,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -941,73 +1080,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : 'For recovery and supporting work, ${parts.join(', ')}.';
   }
 
-  List<String> _buildFortuneLines(_DiaryDayData day) {
-    final lastEntry = day.entries.isNotEmpty ? day.entries.last : null;
-    final totalLifting = day.entries.fold<int>(
-      0,
-      (sum, entry) =>
-          sum + entry.liftingByPart.values.fold<int>(0, (a, b) => a + b),
-    );
-    final jumpRopeMinutes = day.entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.jumpRopeMinutes,
-    );
-    final fortuneSnippet = day.entries
-        .map((entry) => entry.fortuneComment.trim())
-        .firstWhere((text) => text.isNotEmpty, orElse: () => '');
-    final recommendation = day.entries
-        .map((entry) => entry.fortuneRecommendation.trim())
-        .firstWhere((text) => text.isNotEmpty, orElse: () => '');
-    final luckyPlay = totalLifting >= 100
-        ? (_isKo ? '리듬을 살리는 짧은 볼터치' : 'short rhythm-setting ball touches')
-        : jumpRopeMinutes >= 10
-        ? (_isKo ? '가볍게 발을 푸는 스텝워크' : 'light footwork to wake up your feet')
-        : (_isKo
-              ? '${_topFocus(day.trainingEntries)} 복습 한 세트'
-              : 'one more rep of ${_topFocus(day.trainingEntries)}');
-    final luckyMood =
-        (day.matchEntries.isNotEmpty && day.trainingEntries.isNotEmpty)
-        ? (_isKo
-              ? '실전 감각과 훈련 감각이 같이 붙는 날'
-              : 'training feel and match feel work together')
-        : day.plans.isNotEmpty
-        ? (_isKo
-              ? '계획한 걸 그대로 해낼 때 운이 붙는 날'
-              : 'luck follows finishing what you planned')
-        : (_isKo
-              ? '작게 시작할수록 템포가 살아나는 날'
-              : 'starting small brings your tempo alive');
-    final luckyTiming = day.entries.length >= 2
-        ? (_isKo
-              ? '기록 사이 간격이 짧을수록 감각이 더 선명해져요.'
-              : 'short gaps between sessions sharpen your feel.')
-        : (_isKo
-              ? '처음 10분 집중이 하루 운세를 끌어올려요.'
-              : 'the first 10 focused minutes set the tone.');
-
-    final lines = <String>[
-      _isKo ? '행운 플레이: $luckyPlay' : 'Lucky play: $luckyPlay',
-      _isKo ? '오늘의 신호: $luckyMood' : 'Today signal: $luckyMood',
-      _isKo ? '읽는 포인트: $luckyTiming' : 'Reading point: $luckyTiming',
-    ];
-    if (fortuneSnippet.isNotEmpty) {
-      final firstLine = fortuneSnippet.split('\n').first.trim();
-      lines.add(_isKo ? '저장된 운세: $firstLine' : 'Saved fortune: $firstLine');
-    }
-    if (recommendation.isNotEmpty) {
-      lines.add(
-        _isKo ? '다음 한 걸음: $recommendation' : 'Next step: $recommendation',
-      );
-    } else if (lastEntry != null) {
-      lines.add(
-        _isKo
-            ? '다음 한 걸음: ${lastEntry.nextGoal.trim().isNotEmpty ? lastEntry.nextGoal.trim() : '${_topFocus(day.trainingEntries)}를 한 번 더 깔끔하게'}'
-            : 'Next step: ${lastEntry.nextGoal.trim().isNotEmpty ? lastEntry.nextGoal.trim() : 'one cleaner rep of ${_topFocus(day.trainingEntries)}'}',
-      );
-    }
-    return lines;
-  }
-
   String _liftingPartLabel(String key) {
     switch (key) {
       case 'infront':
@@ -1128,6 +1200,29 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   DateTime _normalizeDay(DateTime value) {
     return DateTime(value.year, value.month, value.day);
+  }
+
+  Future<void> _pickDiaryDate(
+    List<_DiaryDayData> days,
+    int selectedIndex,
+  ) async {
+    final selectedDay = days[selectedIndex].date;
+    final availableDays = days.map((day) => day.date).toSet();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDay,
+      firstDate: days.last.date,
+      lastDate: days.first.date,
+      selectableDayPredicate: (day) =>
+          availableDays.contains(_normalizeDay(day)),
+      locale: Locale(_isKo ? 'ko' : 'en'),
+    );
+    if (picked == null) return;
+    final normalized = _normalizeDay(picked);
+    final targetIndex = days.indexWhere((day) => day.date == normalized);
+    if (targetIndex == -1) return;
+    setState(() => _selectedDayIndex = targetIndex);
+    await _movePage(targetIndex);
   }
 
   String _formatDiaryDate(DateTime date) {
@@ -1405,6 +1500,39 @@ class _DiaryDayData {
 
   List<TrainingEntry> get matchEntries =>
       entries.where((entry) => entry.isMatch).toList(growable: false);
+
+  List<_DiaryFortune> get savedFortunes => trainingEntries
+      .where((entry) => entry.fortuneComment.trim().isNotEmpty)
+      .map(_DiaryFortune.fromEntry)
+      .toList(growable: false);
+}
+
+class _DiaryFortune {
+  final DateTime entryDate;
+  final String program;
+  final List<String> commentLines;
+  final String recommendation;
+
+  const _DiaryFortune({
+    required this.entryDate,
+    required this.program,
+    required this.commentLines,
+    required this.recommendation,
+  });
+
+  factory _DiaryFortune.fromEntry(TrainingEntry entry) {
+    final commentLines = entry.fortuneComment
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
+    return _DiaryFortune(
+      entryDate: entry.date,
+      program: entry.program,
+      commentLines: commentLines,
+      recommendation: entry.fortuneRecommendation,
+    );
+  }
 }
 
 class _DiaryPlan {

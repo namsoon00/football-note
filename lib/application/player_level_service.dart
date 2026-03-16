@@ -23,6 +23,9 @@ class PlayerLevelService {
     970,
   ];
 
+  static List<int> get levelThresholds =>
+      List<int>.unmodifiable(_levelThresholds);
+
   final OptionRepository _options;
 
   PlayerLevelService(this._options);
@@ -40,8 +43,9 @@ class PlayerLevelService {
     final reasons = <String>[];
     var gainedXp = 0;
     final entryDay = _normalizeDay(entry.date);
-    final existingTrainingEntries =
-        existingEntries.where((item) => !item.isMatch).toList(growable: false);
+    final existingTrainingEntries = existingEntries
+        .where((item) => !item.isMatch)
+        .toList(growable: false);
     final sameDayEntries = existingTrainingEntries
         .where((item) => _normalizeDay(item.date) == entryDay)
         .toList(growable: false);
@@ -75,8 +79,9 @@ class PlayerLevelService {
     final beforeWeeklyCount = existingTrainingEntries
         .where((item) => _isSameWeek(item.date, entryDay))
         .length;
-    final afterWeeklyCount =
-        updatedEntries.where((item) => _isSameWeek(item.date, entryDay)).length;
+    final afterWeeklyCount = updatedEntries
+        .where((item) => _isSameWeek(item.date, entryDay))
+        .length;
     if (beforeWeeklyCount < 3 && afterWeeklyCount >= 3) {
       gainedXp += 40;
       reasons.add('weekly_3');
@@ -88,10 +93,7 @@ class PlayerLevelService {
 
     final nextTotal = before.totalXp + gainedXp;
     await _options.setValue(totalXpKey, nextTotal);
-    await _options.setValue(
-      awardedStreaksKey,
-      awardedStreaks.toList()..sort(),
-    );
+    await _options.setValue(awardedStreaksKey, awardedStreaks.toList()..sort());
     final after = PlayerLevelState.fromXp(nextTotal);
     return PlayerLevelAward(
       gainedXp: gainedXp,
@@ -144,10 +146,7 @@ class PlayerLevelService {
     const gainedXp = 10;
     final nextTotal = before.totalXp + gainedXp;
     await _options.setValue(totalXpKey, nextTotal);
-    await _options.setValue(
-      awardedPlanIdsKey,
-      awardedPlanIds.toList()..sort(),
-    );
+    await _options.setValue(awardedPlanIdsKey, awardedPlanIds.toList()..sort());
     final after = PlayerLevelState.fromXp(nextTotal);
     return PlayerLevelAward(
       gainedXp: gainedXp,
@@ -211,8 +210,9 @@ class PlayerLevelService {
       if (decoded is! List) return false;
       return decoded.whereType<Map>().any((item) {
         final map = item.cast<String, dynamic>();
-        final scheduledAt =
-            DateTime.tryParse(map['scheduledAt']?.toString() ?? '');
+        final scheduledAt = DateTime.tryParse(
+          map['scheduledAt']?.toString() ?? '',
+        );
         return scheduledAt != null && _normalizeDay(scheduledAt) == day;
       });
     } catch (_) {
@@ -222,11 +222,12 @@ class PlayerLevelService {
 
   int _calculateTrainingStreak(List<TrainingEntry> entries) {
     if (entries.isEmpty) return 0;
-    final days = entries
-        .map((entry) => _normalizeDay(entry.date))
-        .toSet()
-        .toList(growable: false)
-      ..sort((a, b) => b.compareTo(a));
+    final days =
+        entries
+            .map((entry) => _normalizeDay(entry.date))
+            .toSet()
+            .toList(growable: false)
+          ..sort((a, b) => b.compareTo(a));
     var streak = 0;
     var cursor = days.first;
     for (final day in days) {
@@ -276,16 +277,21 @@ class PlayerLevelState {
 
   factory PlayerLevelState.fromXp(int totalXp) {
     var level = 1;
-    for (var index = 0;
-        index < PlayerLevelService._levelThresholds.length;
-        index++) {
+    for (
+      var index = 0;
+      index < PlayerLevelService._levelThresholds.length;
+      index++
+    ) {
       final threshold = PlayerLevelService._levelThresholds[index];
       if (totalXp >= threshold) {
         level = index + 1;
       }
     }
-    final currentLevelXp = PlayerLevelService._levelThresholds[
-        (level - 1).clamp(0, PlayerLevelService._levelThresholds.length - 1)];
+    final currentLevelXp =
+        PlayerLevelService._levelThresholds[(level - 1).clamp(
+          0,
+          PlayerLevelService._levelThresholds.length - 1,
+        )];
     final nextLevelXp = level >= PlayerLevelService._levelThresholds.length
         ? currentLevelXp + 260
         : PlayerLevelService._levelThresholds[level];
