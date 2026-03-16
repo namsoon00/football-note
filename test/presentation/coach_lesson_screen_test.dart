@@ -38,10 +38,12 @@ void main() {
           drills: '{"version":2,"boardIds":["board-1"]}',
           goodPoints: '터치 수를 일정하게 유지했다',
           nextGoal: '왼발 퍼스트터치 안정화',
-          liftingByPart: const {'왼발': 80, '오른발': 60},
+          liftingByPart: const {'inside': 80, 'outside': 60},
           jumpRopeCount: 200,
           jumpRopeMinutes: 8,
           jumpRopeEnabled: true,
+          fortuneComment: '전체 흐름: 작은 노력도 큰 힘이 돼요.\n행운 색상: 에메랄드',
+          fortuneRecommendation: '전진 패스 연계로 리듬을 이어가세요.',
         ),
         TrainingEntry(
           date: DateTime(2026, 3, 15, 20, 0),
@@ -100,22 +102,28 @@ void main() {
 
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    expect(find.text('오늘의 응원'), findsOneWidget);
+    expect(find.text('오늘의 운세 노트'), findsOneWidget);
     expect(find.text('자기 전 다이어리'), findsOneWidget);
     expect(find.textContaining('훈련 1개'), findsOneWidget);
     expect(find.textContaining('시합 1개'), findsOneWidget);
     expect(find.text('계획 1개'), findsOneWidget);
     expect(find.textContaining('합계 160분'), findsOneWidget);
+    expect(find.textContaining('행운 플레이:'), findsWidgets);
+    expect(
+      find.textContaining('저장된 운세: 전체 흐름: 작은 노력도 큰 힘이 돼요.'),
+      findsWidgets,
+    );
     expect(find.textContaining('측면에서 2:1 패턴 확인'), findsWidgets);
     expect(find.text('보드 메모: 측면에서 2:1 패턴 확인'), findsOneWidget);
     expect(
-      find.textContaining(
-        '연결된 기록 메모: 볼터치 / 터치 수를 일정하게 유지했다 / 왼발 퍼스트터치 안정화',
-      ),
+      find.textContaining('연결된 기록 메모: 볼터치 / 터치 수를 일정하게 유지했다 / 왼발 퍼스트터치 안정화'),
       findsOneWidget,
     );
     expect(find.textContaining('측면 전개 보드'), findsWidgets);
     expect(find.textContaining('오른쪽 발목'), findsWidgets);
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);
+    expect(find.textContaining('리프팅: 인사이드 80회, 아웃사이드 60회'), findsWidgets);
     expect(find.textContaining('Blue FC전'), findsWidgets);
 
     expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
@@ -155,6 +163,51 @@ void main() {
 
     expect(find.text('아직 기록이 없습니다.'), findsOneWidget);
     expect(find.textContaining('훈련이나 시합, 계획을 남기면'), findsOneWidget);
+  });
+
+  testWidgets('coach lesson screen supports dark mode notebook layout', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: ThemeMode.dark,
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: _FakeOptionRepository(),
+            trainingService: TrainingService(
+              _FakeTrainingRepository(<TrainingEntry>[
+                TrainingEntry(
+                  date: DateTime(2026, 3, 15, 18, 0),
+                  durationMinutes: 30,
+                  intensity: 3,
+                  type: '볼터치',
+                  mood: 4,
+                  injury: false,
+                  notes: '다크모드 확인',
+                  location: '실내 구장',
+                ),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('다이어리'), findsOneWidget);
+    expect(find.text('오늘의 응원'), findsOneWidget);
+    expect(find.text('오늘의 운세 노트'), findsOneWidget);
   });
 }
 
