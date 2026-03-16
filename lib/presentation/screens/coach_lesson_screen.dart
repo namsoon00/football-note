@@ -229,8 +229,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             const SizedBox(height: 12),
             _buildNightReviewCard(day, diary),
             const SizedBox(height: 12),
-            _buildEncouragementCard(day),
-            const SizedBox(height: 12),
             _buildFortuneCard(day),
             if (day.plans.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -333,22 +331,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
           color: _accentInk,
           fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEncouragementCard(_DiaryDayData day) {
-    return _buildPaperCard(
-      title: _isKo ? '오늘의 응원' : 'Today encouragement',
-      subtitle: _isKo
-          ? '기록 전체를 묶어서 오늘의 흐름을 한 문장으로 정리했어요.'
-          : 'A quick encouragement blended from today\'s full log.',
-      child: Text(
-        _buildEncouragement(day),
-        style: _theme.textTheme.bodyLarge?.copyWith(
-          height: 1.65,
-          color: _headlineInk,
         ),
       ),
     );
@@ -738,9 +720,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       paragraphs.add(boardParagraph);
     }
 
-    paragraphs.add(_buildEncouragement(day));
-    paragraphs.add(_buildFortuneDiaryParagraph(day));
-
     paragraphs.add(
       _isKo
           ? '오늘 남긴 메모를 다시 읽으면 무엇이 잘됐고 무엇을 다음 목표로 가져가야 하는지 흐름이 자연스럽게 이어진다.'
@@ -962,32 +941,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : 'For recovery and supporting work, ${parts.join(', ')}.';
   }
 
-  String _buildEncouragement(_DiaryDayData day) {
-    final focus = _topFocus(day.trainingEntries);
-    final totalMinutes = day.entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.durationMinutes,
-    );
-    final recovery = _hasRecoveryRecord(day);
-    final boards = day.boards.isNotEmpty;
-    if (_isKo) {
-      final details = <String>[
-        '$focus에 계속 중심을 둔 점이 좋았고',
-        '$totalMinutes분 동안 흐름을 끊지 않은 집중력이 남아 있습니다',
-        if (recovery) '회복 기록까지 남겨서 다음 훈련 준비도 꼼꼼합니다',
-        if (boards) '훈련보드로 생각을 시각화한 점도 큰 자산입니다',
-      ];
-      return '${details.join(', ')}. 오늘처럼 기록을 끝까지 남기는 습관이면 성장 속도가 꾸준히 이어집니다.';
-    }
-    final details = <String>[
-      'you kept the day centered on $focus',
-      'your focus held for $totalMinutes minutes',
-      if (recovery) 'you also logged recovery details for the next session',
-      if (boards) 'the board notes turned ideas into something concrete',
-    ];
-    return '${details.join('. ')}. Keeping records this consistently will keep your growth steady.';
-  }
-
   List<String> _buildFortuneLines(_DiaryDayData day) {
     final lastEntry = day.entries.isNotEmpty ? day.entries.last : null;
     final totalLifting = day.entries.fold<int>(
@@ -1053,13 +1006,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
     }
     return lines;
-  }
-
-  String _buildFortuneDiaryParagraph(_DiaryDayData day) {
-    final lines = _buildFortuneLines(day);
-    return _isKo
-        ? '가볍게 운세를 덧붙이면 ${lines.join(', ')}.'
-        : 'For a playful fortune note, ${lines.join(', ')}.';
   }
 
   String _liftingPartLabel(String key) {
