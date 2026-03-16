@@ -78,10 +78,10 @@ class WatchCartAppBar extends StatelessWidget {
               ),
             if (onCoachTap != null)
               IconButton(
-                icon: const Icon(Icons.sports),
+                icon: const Icon(Icons.auto_stories_outlined),
                 tooltip: Localizations.localeOf(context).languageCode == 'ko'
-                    ? '훈련 일기'
-                    : 'Training diary',
+                    ? '다이어리'
+                    : 'Diary',
                 iconSize: 30,
                 padding: const EdgeInsets.all(10),
                 constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
