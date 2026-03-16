@@ -6,12 +6,15 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
+import '../../application/news_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_service.dart';
+import '../../domain/entities/news_article.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../../infrastructure/rss_news_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
@@ -55,6 +58,14 @@ class HomeHubScreen extends StatefulWidget {
 }
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
+  late Future<int> _todayNewsCountFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _todayNewsCountFuture = _loadTodayNewsCount();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,29 +87,36 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   .toList()
                 ..sort(TrainingEntry.compareByRecentCreated);
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
-              final boardsById =
-                  TrainingBoardService(widget.optionRepository).boardMap();
-              final levelState =
-                  PlayerLevelService(widget.optionRepository).loadState();
+              final boardsById = TrainingBoardService(
+                widget.optionRepository,
+              ).boardMap();
+              final levelState = PlayerLevelService(
+                widget.optionRepository,
+              ).loadState();
               final data = _HomeHubData.build(
                 entries: allEntries,
                 plans: _loadPlans(widget.optionRepository),
                 boardCount: boardsById.length,
                 quizCompletedAt: _loadQuizCompletedAt(widget.optionRepository),
+                todayNewsCountFuture: _todayNewsCountFuture,
               );
 
               return SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Builder(
                       builder: (context) => WatchCartAppBar(
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
-                        profilePhotoSource: widget.optionRepository
-                                .getValue<String>('profile_photo_url') ??
-                            '',
+                        profilePhotoSource:
+                            widget.optionRepository.getValue<String>(
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onNewsTap: _openNews,
                         onGameTap: _openGame,
                         onProfileTap: () => _openProfile(context),
@@ -228,6 +246,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ),
       ),
     );
+    if (!mounted) return;
+    setState(() {
+      _todayNewsCountFuture = _loadTodayNewsCount();
+    });
   }
 
   Future<void> _openGame() async {
@@ -243,6 +265,48 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       ),
     );
   }
+
+  Future<int> _loadTodayNewsCount() async {
+    final service = NewsService(RssNewsRepository(widget.optionRepository));
+    final channels = service.channels();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final seenKeys = <String>{};
+    var count = 0;
+
+    await Future.wait(
+      channels.map((channel) async {
+        try {
+          final articles = await service.latest(channel.id);
+          for (final article in articles) {
+            if (!_isTodayArticle(article, today)) continue;
+            final key = _newsArticleKey(article);
+            if (!seenKeys.add(key)) continue;
+            count += 1;
+          }
+        } catch (_) {
+          // Ignore per-channel failures and show the count from successful feeds.
+        }
+      }),
+    );
+
+    return count;
+  }
+
+  bool _isTodayArticle(NewsArticle article, DateTime today) {
+    final publishedAt = article.publishedAt;
+    if (publishedAt == null) return false;
+    final local = publishedAt.toLocal();
+    return local.year == today.year &&
+        local.month == today.month &&
+        local.day == today.day;
+  }
+
+  String _newsArticleKey(NewsArticle article) {
+    final link = article.link.trim();
+    if (link.isNotEmpty) return link;
+    return '${article.source.trim()}::${article.title.trim().toLowerCase()}';
+  }
 }
 
 class _HomeHubData {
@@ -255,6 +319,7 @@ class _HomeHubData {
   final String focusSignal;
   final TrainingEntry? latestEntry;
   final bool quizCompletedToday;
+  final Future<int> todayNewsCountFuture;
 
   const _HomeHubData({
     required this.weeklyTrainingCount,
@@ -266,6 +331,7 @@ class _HomeHubData {
     required this.focusSignal,
     required this.latestEntry,
     required this.quizCompletedToday,
+    required this.todayNewsCountFuture,
   });
 
   factory _HomeHubData.build({
@@ -273,6 +339,7 @@ class _HomeHubData {
     required List<_DashboardPlan> plans,
     required int boardCount,
     required DateTime? quizCompletedAt,
+    required Future<int> todayNewsCountFuture,
   }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -292,14 +359,19 @@ class _HomeHubData {
     final latestEntry = entries.isEmpty ? null : entries.first;
 
     final entryDays = entries
-        .map((entry) =>
-            DateTime(entry.date.year, entry.date.month, entry.date.day))
+        .map(
+          (entry) =>
+              DateTime(entry.date.year, entry.date.month, entry.date.day),
+        )
         .toSet();
     var streakDays = 0;
     DateTime? cursor = latestEntry == null
         ? null
-        : DateTime(latestEntry.date.year, latestEntry.date.month,
-            latestEntry.date.day);
+        : DateTime(
+            latestEntry.date.year,
+            latestEntry.date.month,
+            latestEntry.date.day,
+          );
     while (cursor != null && entryDays.contains(cursor)) {
       streakDays++;
       cursor = cursor.subtract(const Duration(days: 1));
@@ -314,8 +386,10 @@ class _HomeHubData {
       return day == today;
     }).length;
 
-    final totalMood =
-        weeklyEntries.fold<int>(0, (sum, entry) => sum + entry.mood);
+    final totalMood = weeklyEntries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.mood,
+    );
     final averageMood =
         weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
 
@@ -358,6 +432,7 @@ class _HomeHubData {
       focusSignal: focus,
       latestEntry: latestEntry,
       quizCompletedToday: quizCompletedToday,
+      todayNewsCountFuture: todayNewsCountFuture,
     );
   }
 }
@@ -531,11 +606,7 @@ class _LevelIllustration extends StatelessWidget {
           Positioned(
             right: 12,
             top: 16,
-            child: Icon(
-              tier.primaryIcon,
-              size: 54,
-              color: Colors.white,
-            ),
+            child: Icon(tier.primaryIcon, size: 54, color: Colors.white),
           ),
           Positioned(
             right: 56,
@@ -649,30 +720,42 @@ class _TodayOverviewCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _StatPill(
-                icon: Icons.today_outlined,
-                label: isKo
-                    ? '오늘 계획 ${data.todayPlanCount}개'
-                    : '${data.todayPlanCount} plans today',
-              ),
-              _StatPill(
-                icon: Icons.local_fire_department_outlined,
-                label: isKo
-                    ? '${data.streakDays}일 연속'
-                    : '${data.streakDays}-day streak',
-              ),
-              _StatPill(icon: Icons.history, label: latestLabel),
-              _StatPill(
-                icon: Icons.developer_board_outlined,
-                label: isKo
-                    ? '스케치 ${data.boardCount}개'
-                    : '${data.boardCount} sketches',
-              ),
-            ],
+          FutureBuilder<int>(
+            future: data.todayNewsCountFuture,
+            builder: (context, snapshot) {
+              final todayNewsCount = snapshot.data ?? 0;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _StatPill(
+                    icon: Icons.today_outlined,
+                    label: isKo
+                        ? '오늘 계획 ${data.todayPlanCount}개'
+                        : '${data.todayPlanCount} plans today',
+                  ),
+                  _StatPill(
+                    icon: Icons.newspaper_outlined,
+                    label: isKo
+                        ? '오늘 소식 $todayNewsCount개'
+                        : '$todayNewsCount news today',
+                  ),
+                  _StatPill(
+                    icon: Icons.local_fire_department_outlined,
+                    label: isKo
+                        ? '${data.streakDays}일 연속'
+                        : '${data.streakDays}-day streak',
+                  ),
+                  _StatPill(icon: Icons.history, label: latestLabel),
+                  _StatPill(
+                    icon: Icons.developer_board_outlined,
+                    label: isKo
+                        ? '스케치 ${data.boardCount}개'
+                        : '${data.boardCount} sketches',
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -731,9 +814,9 @@ class _QuickActionGrid extends StatelessWidget {
       children: [
         Text(
           isKo ? '빠른 실행' : 'Quick actions',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 10),
         GridView.builder(
@@ -768,9 +851,9 @@ class _WeeklySummaryCard extends StatelessWidget {
         children: [
           Text(
             isKo ? '이번 주 성장 요약' : 'Weekly growth summary',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 10),
           Row(
@@ -795,9 +878,9 @@ class _WeeklySummaryCard extends StatelessWidget {
             isKo
                 ? '강점: ${_strongestLabel(data.strongestSignal, true)}'
                 : 'Strongest signal: ${_strongestLabel(data.strongestSignal, false)}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
@@ -949,8 +1032,9 @@ class _QuickActionButton extends StatelessWidget {
             color: Theme.of(context).colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color:
-                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.18),
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.18),
             ),
           ),
           child: Padding(
@@ -966,9 +1050,9 @@ class _QuickActionButton extends StatelessWidget {
                 const Spacer(),
                 Text(
                   item.title,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
               ],
             ),
@@ -1000,9 +1084,9 @@ class _StatPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -1029,16 +1113,16 @@ class _SummaryMetric extends StatelessWidget {
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
           ),
         ],
       ),

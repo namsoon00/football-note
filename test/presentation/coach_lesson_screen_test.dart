@@ -11,7 +11,7 @@ import 'package:football_note/presentation/screens/coach_lesson_screen.dart';
 import '../helpers/test_asset_bundle.dart';
 
 void main() {
-  testWidgets('coach lesson screen turns training records into diary text', (
+  testWidgets('coach lesson screen shows daily diary pages', (
     WidgetTester tester,
   ) async {
     final trainingService = TrainingService(
@@ -65,11 +65,18 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('훈련 기록 일기 변환'), findsOneWidget);
-    expect(find.text('훈련 일기'), findsOneWidget);
-    expect(find.textContaining('총 2회'), findsOneWidget);
-    expect(find.textContaining('누적 120분'), findsOneWidget);
-    expect(find.textContaining('가장 자주 나온 주제'), findsOneWidget);
+    expect(find.text('다이어리'), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    expect(find.text('하루씩 넘겨보는 다이어리'), findsOneWidget);
+    expect(find.text('오늘의 일기'), findsOneWidget);
+    expect(find.textContaining('기록 1개'), findsOneWidget);
+    expect(find.textContaining('합계 70분'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('이전 날짜'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('합계 50분'), findsOneWidget);
+    expect(find.textContaining('패스'), findsWidgets);
   });
 
   testWidgets('coach lesson screen shows empty guidance without records', (
@@ -99,7 +106,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('아직 훈련 기록이 없습니다.'), findsOneWidget);
-    expect(find.textContaining('기록을 남기면 여기서 자동으로'), findsOneWidget);
+    expect(find.textContaining('날짜별 다이어리 페이지가 하나씩'), findsOneWidget);
   });
 }
 

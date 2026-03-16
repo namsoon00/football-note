@@ -31,42 +31,56 @@ class CoachLessonScreen extends StatefulWidget {
 }
 
 class _CoachLessonScreenState extends State<CoachLessonScreen> {
-  _DiaryRange _selectedRange = _DiaryRange.week;
+  int _selectedDayIndex = 0;
   int _variantSeed = 0;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
 
   @override
   Widget build(BuildContext context) {
-    final stream = widget.trainingService?.watchEntries() ??
+    final stream =
+        widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        title: Text(_isKo ? '다이어리' : 'Diary'),
+      ),
       body: AppBackground(
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
             stream: stream,
             builder: (context, snapshot) {
-              final entries = (snapshot.data ?? const <TrainingEntry>[])
-                  .where((entry) => !entry.isMatch)
-                  .toList(growable: false)
-                ..sort(TrainingEntry.compareByRecentCreated);
-              final filtered = _filterEntries(entries);
-              final diary = _buildDiary(filtered);
+              final entries =
+                  (snapshot.data ?? const <TrainingEntry>[])
+                      .where((entry) => !entry.isMatch)
+                      .toList(growable: false)
+                    ..sort(TrainingEntry.compareByRecentCreated);
+              final days = _groupEntriesByDay(entries);
+              final selectedIndex = days.isEmpty
+                  ? 0
+                  : _selectedDayIndex.clamp(0, days.length - 1);
+              final selectedDay = days.isEmpty ? null : days[selectedIndex];
+              final diary = selectedDay == null ? '' : _buildDiary(selectedDay);
+
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                 children: [
-                  _buildIntroCard(filtered),
+                  _buildIntroCard(days, selectedDay),
                   const SizedBox(height: 12),
-                  _buildRangeCard(),
-                  const SizedBox(height: 12),
-                  if (filtered.isEmpty)
+                  if (selectedDay == null)
                     _buildEmptyCard()
                   else ...[
-                    _buildSummaryCard(filtered),
+                    _buildDayPagerCard(days, selectedIndex),
+                    const SizedBox(height: 12),
+                    _buildSummaryCard(selectedDay),
                     const SizedBox(height: 12),
                     _buildDiaryCard(diary),
                     const SizedBox(height: 12),
-                    _buildRecentRecordsCard(filtered),
+                    _buildRecentRecordsCard(selectedDay.entries),
                   ],
                 ],
               );
@@ -77,8 +91,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildIntroCard(List<TrainingEntry> entries) {
-    final count = entries.length;
+  Widget _buildIntroCard(List<_DiaryDayData> days, _DiaryDayData? selectedDay) {
+    final dayCount = days.length;
+    final selectedLabel = selectedDay == null
+        ? (_isKo ? '작성할 기록 없음' : 'No diary day yet')
+        : _formatDiaryDate(selectedDay.date);
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -99,16 +116,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _isKo ? '훈련 기록 일기 변환' : 'Training diary writer',
+                    _isKo ? '하루씩 넘겨보는 다이어리' : 'Daily football diary',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _isKo
-                        ? '훈련기록을 바탕으로 일기나 다이어리 형식의 문장으로 다시 써줍니다.'
-                        : 'Turn your training records into a diary-style journal entry.',
+                        ? '기간 전체를 합치지 않고, 기록이 있는 날짜마다 하루치 일기를 따로 정리합니다.'
+                        : 'Each page stays focused on one day instead of merging multiple days into one entry.',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 10),
@@ -118,16 +135,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     children: [
                       Chip(
                         label: Text(
-                          _isKo ? '기록 $count개 반영' : '$count records used',
+                          _isKo ? '일기 $dayCount일치' : '$dayCount diary days',
                         ),
                       ),
-                      Chip(
-                        label: Text(
-                          _isKo
-                              ? _selectedRange.labelKo
-                              : _selectedRange.labelEn,
-                        ),
-                      ),
+                      Chip(label: Text(selectedLabel)),
                     ],
                   ),
                 ],
@@ -139,37 +150,57 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildRangeCard() {
+  Widget _buildDayPagerCard(List<_DiaryDayData> days, int selectedIndex) {
+    final day = days[selectedIndex];
+    final canGoPrev = selectedIndex < days.length - 1;
+    final canGoNext = selectedIndex > 0;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        child: Row(
           children: [
-            Text(
-              _isKo ? '반영 기간' : 'Coverage',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            IconButton(
+              tooltip: _isKo ? '이전 날짜' : 'Previous day',
+              onPressed: canGoPrev
+                  ? () {
+                      setState(() {
+                        _selectedDayIndex += 1;
+                        _variantSeed = 0;
+                      });
+                    }
+                  : null,
+              icon: const Icon(Icons.chevron_left),
             ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _DiaryRange.values
-                  .map(
-                    (range) => ChoiceChip(
-                      selected: _selectedRange == range,
-                      label: Text(_isKo ? range.labelKo : range.labelEn),
-                      onSelected: (_) {
-                        setState(() {
-                          _selectedRange = range;
-                          _variantSeed += 1;
-                        });
-                      },
+            Expanded(
+              child: Column(
+                children: [
+                  Text(
+                    _formatDiaryDate(day.date),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                  )
-                  .toList(growable: false),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _isKo
+                        ? '${selectedIndex + 1} / ${days.length} 페이지'
+                        : 'Page ${selectedIndex + 1} of ${days.length}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: _isKo ? '다음 날짜' : 'Next day',
+              onPressed: canGoNext
+                  ? () {
+                      setState(() {
+                        _selectedDayIndex -= 1;
+                        _variantSeed = 0;
+                      });
+                    }
+                  : null,
+              icon: const Icon(Icons.chevron_right),
             ),
           ],
         ),
@@ -193,8 +224,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             const SizedBox(height: 6),
             Text(
               _isKo
-                  ? '기록을 남기면 여기서 자동으로 일기 형식의 문장을 만들어 줍니다.'
-                  : 'Add training entries first, then this screen will draft a diary entry automatically.',
+                  ? '하루 기록을 남기면 날짜별 다이어리 페이지가 하나씩 만들어집니다.'
+                  : 'Once you add a training log, this screen will create a diary page for that day.',
             ),
           ],
         ),
@@ -202,7 +233,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildSummaryCard(List<TrainingEntry> entries) {
+  Widget _buildSummaryCard(_DiaryDayData day) {
+    final entries = day.entries;
     final totalMinutes = entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
@@ -210,7 +242,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final avgMood =
         entries.fold<int>(0, (sum, entry) => sum + entry.mood) / entries.length;
     final focus = _topFocus(entries);
-    final latest = entries.first;
+    final places = _topPlaces(entries);
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -218,7 +250,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '기록 요약' : 'Record summary',
+              _isKo ? '하루 요약' : 'Day summary',
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -230,14 +262,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               children: [
                 Chip(
                   label: Text(
-                    _isKo
-                        ? '총 ${entries.length}회'
-                        : '${entries.length} sessions',
+                    _isKo ? '기록 ${entries.length}개' : '${entries.length} logs',
                   ),
                 ),
                 Chip(
                   label: Text(
-                    _isKo ? '누적 $totalMinutes분' : '$totalMinutes minutes total',
+                    _isKo ? '합계 $totalMinutes분' : '$totalMinutes minutes',
                   ),
                 ),
                 Chip(
@@ -250,14 +280,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(_isKo ? '가장 자주 나온 주제: $focus' : 'Most frequent focus: $focus'),
-            const SizedBox(height: 4),
-            Text(
-              _isKo
-                  ? '최근 기록: ${_formatDate(latest.date)} · ${latest.type}'
-                  : 'Latest record: ${_formatDate(latest.date)} · ${latest.type}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            Text(_isKo ? '오늘 붙잡은 주제: $focus' : 'Today focus: $focus'),
+            if (places.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                _isKo ? '기록한 장소: $places' : 'Logged places: $places',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
           ],
         ),
       ),
@@ -275,14 +305,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    _isKo ? '훈련 일기' : 'Diary draft',
+                    _isKo ? '오늘의 일기' : 'Diary entry',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 IconButton(
-                  tooltip: _isKo ? '새 문장 만들기' : 'Regenerate',
+                  tooltip: _isKo ? '다른 문장으로 다시 쓰기' : 'Regenerate',
                   onPressed: () => setState(() => _variantSeed += 1),
                   icon: const Icon(Icons.refresh_rounded),
                 ),
@@ -315,7 +345,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isKo ? '참고한 최근 기록' : 'Recent records used',
+              _isKo ? '이 날의 기록' : 'Logs from this day',
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -328,7 +358,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${_formatDate(entry.date)} · ${entry.type}',
+                      '${_formatTime(entry.date)} · ${entry.type}',
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: 2),
@@ -346,52 +376,53 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  List<TrainingEntry> _filterEntries(List<TrainingEntry> entries) {
-    final now = DateTime.now();
-    if (_selectedRange.days == null) return entries;
-    final start = now.subtract(Duration(days: _selectedRange.days! - 1));
-    return entries
-        .where(
-          (entry) => !entry.date.isBefore(
-            DateTime(start.year, start.month, start.day),
-          ),
-        )
-        .toList(growable: false);
+  List<_DiaryDayData> _groupEntriesByDay(List<TrainingEntry> entries) {
+    final byDay = <DateTime, List<TrainingEntry>>{};
+    for (final entry in entries) {
+      final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
+      byDay.putIfAbsent(day, () => <TrainingEntry>[]).add(entry);
+    }
+    final days =
+        byDay.entries
+            .map(
+              (item) => _DiaryDayData(
+                date: item.key,
+                entries: item.value..sort(TrainingEntry.compareByRecentCreated),
+              ),
+            )
+            .toList(growable: false)
+          ..sort((a, b) => b.date.compareTo(a.date));
+    return days;
   }
 
-  String _buildDiary(List<TrainingEntry> entries) {
+  String _buildDiary(_DiaryDayData day) {
+    final entries = day.entries;
     if (entries.isEmpty) {
       return _isKo
-          ? '오늘은 아직 남겨 둔 훈련 기록이 없다. 다음 훈련을 기록하면 이 공간이 나만의 축구 일기로 채워질 것이다.'
-          : 'There are no training records yet. Once you log a session, this space will turn it into your football diary.';
+          ? '이 날에는 아직 정리할 기록이 없다.'
+          : 'There is no diary content for this day yet.';
     }
-
-    final latest = entries.first;
-    final oldest = entries.last;
     final totalMinutes = entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
     );
-    final opener = _pickOpener();
+    final opener = _pickOpener(day.date);
     final body = _buildBody(entries, totalMinutes);
     final closing = _buildClosing(entries);
-
-    if (_isKo) {
-      return '$opener\n\n${_formatDate(oldest.date)}부터 ${_formatDate(latest.date)}까지 총 ${entries.length}번의 훈련을 했다. $body\n\n$closing';
-    }
-    return '$opener\n\nFrom ${_formatDate(oldest.date)} to ${_formatDate(latest.date)}, I logged ${entries.length} training sessions. $body\n\n$closing';
+    return '$opener\n\n$body\n\n$closing';
   }
 
-  String _pickOpener() {
+  String _pickOpener(DateTime date) {
+    final label = _formatDiaryDate(date);
     final ko = <String>[
-      '오늘은 내 훈련 기록을 다시 읽어 보며 하루를 정리했다.',
-      '훈련 노트를 펼쳐 보니 내가 어떻게 쌓아 왔는지가 한눈에 들어왔다.',
-      '짧게 남겨 둔 기록들이 모이니 하나의 축구 일기처럼 느껴졌다.',
+      '$label의 훈련을 다시 읽어 보니 하루의 흐름이 또렷하게 살아났다.',
+      '$label은 짧은 메모들이 모여 하나의 축구 일기가 된 날이었다.',
+      '$label의 기록을 넘겨 보며 그날의 리듬을 차분히 정리했다.',
     ];
     final en = <String>[
-      'Today I looked back through my training notes and turned them into one journal entry.',
-      'Reading my logs again made the flow of recent training much clearer.',
-      'The short notes I left behind now read like one football diary entry.',
+      'Reading back through $label made the whole day feel vivid again.',
+      '$label turned a few short notes into one football diary page.',
+      'Looking over $label helped me line up the rhythm of that day.',
     ];
     final options = _isKo ? ko : en;
     return options[_variantSeed % options.length];
@@ -402,17 +433,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final focus = _topFocus(entries);
     final places = _topPlaces(entries);
     final keyMoments = entries
-        .take(3)
         .map(_entryMoment)
         .where((text) => text.isNotEmpty)
-        .join(_isKo ? ' ' : ' ');
+        .join(' ');
+    final moodSentence = _moodSentence(entries);
     if (_isKo) {
-      final moodSentence = _moodSentence(entries);
-      return '누적 시간은 $totalMinutes분이었고, 가장 자주 붙잡은 주제는 $focus였다. $moodSentence 최근에는 ${latest.type} 훈련을 ${latest.location}에서 진행했고, 기록 속 장면들은 이렇게 이어졌다. $keyMoments ${places.isNotEmpty ? '주로 $places에서 리듬을 이어 갔다.' : ''}'
+      return '이날은 총 ${entries.length}개의 기록으로 $totalMinutes분을 채웠고, 가장 오래 붙잡은 주제는 $focus였다. $moodSentence ${latest.type} 훈련을 중심으로 하루가 이어졌고, 메모에는 $keyMoments ${places.isNotEmpty ? '주로 $places에서 움직였다.' : ''}'
           .trim();
     }
-    final moodSentence = _moodSentence(entries);
-    return 'The total volume came to $totalMinutes minutes, and the focus that appeared most often was $focus. $moodSentence Most recently I worked on ${latest.type} at ${latest.location}, and the notes connected into these moments: $keyMoments ${places.isNotEmpty ? 'The routine kept returning to $places.' : ''}'
+    return 'That day held ${entries.length} logs and $totalMinutes minutes in total, with $focus showing up as the clearest focus. $moodSentence The day revolved around ${latest.type} work, and the notes read like this: $keyMoments ${places.isNotEmpty ? 'Most of it happened around $places.' : ''}'
         .trim();
   }
 
@@ -429,20 +458,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       latest.notes,
     ]);
     if (_isKo) {
-      final goalText = nextGoal.isEmpty
-          ? '다음 기록에서는 조금 더 선명한 목표를 남겨 보고 싶다.'
-          : '다음 목표는 $nextGoal 이다.';
       final strengthText = strength.isEmpty
-          ? '그래도 기록을 남긴 덕분에 흐름을 놓치지 않았다.'
-          : '특히 $strength 부분은 계속 살리고 싶다.';
+          ? '그날의 흐름을 기록으로 남긴 것만으로도 충분히 의미가 있었다.'
+          : '특히 $strength 부분은 다음 훈련에도 이어 가고 싶다.';
+      final goalText = nextGoal.isEmpty
+          ? '다음 기록에는 더 또렷한 목표를 적어 두고 싶다.'
+          : '다음 목표는 $nextGoal 이다.';
       return '$strengthText $goalText';
     }
+    final strengthText = strength.isEmpty
+        ? 'Keeping a record of the day already gave the session some shape.'
+        : 'I want to keep building on $strength.';
     final goalText = nextGoal.isEmpty
         ? 'Next time I want to leave a clearer target in the log.'
         : 'My next target is $nextGoal.';
-    final strengthText = strength.isEmpty
-        ? 'Still, keeping the log helped me hold onto the flow.'
-        : 'I want to keep building on $strength.';
     return '$strengthText $goalText';
   }
 
@@ -454,17 +483,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return '전체적인 컨디션과 기분은 꽤 안정적이었다.';
       }
       if (avgMood >= 3) {
-        return '기복은 있었지만 전체 흐름은 무난했다.';
+        return '기복은 있었지만 흐름은 무너지지 않았다.';
       }
-      return '몸과 마음이 가벼운 날만 있었던 것은 아니었다.';
+      return '몸이 가벼운 날만 있었던 것은 아니지만 끝까지 기록을 남겼다.';
     }
     if (avgMood >= 4) {
       return 'The overall feeling stayed steady and positive.';
     }
     if (avgMood >= 3) {
-      return 'There were ups and downs, but the rhythm stayed fairly stable.';
+      return 'There were some ups and downs, but the rhythm held together.';
     }
-    return 'Not every session felt light, but the record still moved forward.';
+    return 'It was not an easy day throughout, but the notes still carried it forward.';
   }
 
   String _entryMoment(TrainingEntry entry) {
@@ -478,15 +507,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     ].map((text) => text.trim()).where((text) => text.isNotEmpty).toList();
     if (pieces.isEmpty) {
       if (_isKo) {
-        return '${_formatDate(entry.date)}에는 ${entry.type}에 시간을 썼다.';
+        return '${entry.type}에 시간을 썼다.';
       }
-      return 'On ${_formatDate(entry.date)}, I spent time on ${entry.type}.';
+      return 'I spent time on ${entry.type}.';
     }
     final detail = pieces.first;
     if (_isKo) {
-      return '${_formatDate(entry.date)}에는 ${entry.type} 훈련에서 $detail 를 남겼다.';
+      return '${entry.type}에서는 $detail 를 남겼다.';
     }
-    return 'On ${_formatDate(entry.date)}, ${entry.type} training left me with: $detail.';
+    return '${entry.type} left me with $detail.';
   }
 
   String _topFocus(List<TrainingEntry> entries) {
@@ -520,7 +549,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (counts.isEmpty) return '';
     final sorted = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return sorted.take(2).map((entry) => entry.key).join(_isKo ? ', ' : ', ');
+    return sorted.take(2).map((entry) => entry.key).join(', ');
   }
 
   String _summarizeEntry(TrainingEntry entry) {
@@ -556,22 +585,22 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDiaryDate(DateTime date) {
     return _isKo
-        ? DateFormat('M월 d일', 'ko').format(date)
-        : DateFormat('MMM d', 'en').format(date);
+        ? DateFormat('M월 d일 EEEE', 'ko').format(date)
+        : DateFormat('EEE, MMM d', 'en').format(date);
+  }
+
+  String _formatTime(DateTime date) {
+    return _isKo
+        ? DateFormat('a h:mm', 'ko').format(date)
+        : DateFormat('h:mm a', 'en').format(date);
   }
 }
 
-enum _DiaryRange {
-  week(7, '최근 7일', 'Last 7 days'),
-  twoWeeks(14, '최근 14일', 'Last 14 days'),
-  month(30, '최근 30일', 'Last 30 days'),
-  all(null, '전체 기록', 'All records');
+class _DiaryDayData {
+  final DateTime date;
+  final List<TrainingEntry> entries;
 
-  const _DiaryRange(this.days, this.labelKo, this.labelEn);
-
-  final int? days;
-  final String labelKo;
-  final String labelEn;
+  const _DiaryDayData({required this.date, required this.entries});
 }
