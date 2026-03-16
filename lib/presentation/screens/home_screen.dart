@@ -14,6 +14,7 @@ import 'entry_form_screen.dart';
 import '../widgets/app_page_route.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
+import 'training_board_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -65,13 +66,12 @@ class _HomeScreenState extends State<HomeScreen> {
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
         onCreate: _openCreate,
-        onQuickPlan: () => _openCalendarQuickCreate(
-          CalendarQuickCreateAction.plan,
-        ),
-        onQuickMatch: () => _openCalendarQuickCreate(
-          CalendarQuickCreateAction.match,
-        ),
+        onQuickPlan: () =>
+            _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
+        onQuickMatch: () =>
+            _openCalendarQuickCreate(CalendarQuickCreateAction.match),
         onQuickQuiz: _openQuiz,
+        onQuickBoard: _openTrainingBoards,
         onOpenLogs: () => _onDestinationSelected(1),
         onEdit: _openEdit,
       ),
@@ -83,12 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
         onCreate: _openCreate,
-        onQuickPlan: () => _openCalendarQuickCreate(
-          CalendarQuickCreateAction.plan,
-        ),
-        onQuickMatch: () => _openCalendarQuickCreate(
-          CalendarQuickCreateAction.match,
-        ),
+        onQuickPlan: () =>
+            _openCalendarQuickCreate(CalendarQuickCreateAction.plan),
+        onQuickMatch: () =>
+            _openCalendarQuickCreate(CalendarQuickCreateAction.match),
         onQuickQuiz: _openQuiz,
       ),
       CalendarScreen(
@@ -241,6 +239,18 @@ class _HomeScreenState extends State<HomeScreen> {
       _index = 1;
     });
     unawaited(_showTabGuideIfNeeded(1));
+  }
+
+  Future<void> _openTrainingBoards() async {
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => TrainingBoardListScreen(
+          optionRepository: widget.optionRepository,
+          trainingService: widget.trainingService,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
   }
 
   void _clearCalendarQuickCreateAction() {

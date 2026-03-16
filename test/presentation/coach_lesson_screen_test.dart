@@ -21,7 +21,7 @@ void main() {
       )
       ..setRawValue(
         'training_boards_v1',
-        '[{"id":"board-1","title":"측면 전개 보드","layoutJson":"{}","createdAt":"2026-03-14T10:00:00.000","updatedAt":"2026-03-15T20:00:00.000"}]',
+        '[{"id":"board-1","title":"측면 전개 보드","layoutJson":"{\\"version\\":1,\\"pages\\":[{\\"name\\":\\"측면 전개\\",\\"methodText\\":\\"측면에서 2:1 패턴 확인\\",\\"items\\":[{\\"type\\":\\"player\\",\\"x\\":0.2,\\"y\\":0.5,\\"size\\":32,\\"rotationDeg\\":0,\\"colorValue\\":4294967295}],\\"strokes\\":[],\\"playerPath\\":[{\\"x\\":0.2,\\"y\\":0.5},{\\"x\\":0.55,\\"y\\":0.4}],\\"ballPath\\":[{\\"x\\":0.25,\\"y\\":0.5},{\\"x\\":0.6,\\"y\\":0.45}]}]}","createdAt":"2026-03-14T10:00:00.000","updatedAt":"2026-03-15T20:00:00.000"}]',
       );
     final trainingService = TrainingService(
       _FakeTrainingRepository(<TrainingEntry>[
@@ -100,12 +100,19 @@ void main() {
 
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
-    expect(find.text('하루씩 넘겨보는 다이어리'), findsOneWidget);
     expect(find.text('자기 전 다이어리'), findsOneWidget);
     expect(find.textContaining('훈련 1개'), findsOneWidget);
     expect(find.textContaining('시합 1개'), findsOneWidget);
     expect(find.text('계획 1개'), findsOneWidget);
     expect(find.textContaining('합계 160분'), findsOneWidget);
+    expect(find.textContaining('측면에서 2:1 패턴 확인'), findsWidgets);
+    expect(find.text('보드 메모: 측면에서 2:1 패턴 확인'), findsOneWidget);
+    expect(
+      find.textContaining(
+        '연결된 기록 메모: 볼터치 / 터치 수를 일정하게 유지했다 / 왼발 퍼스트터치 안정화',
+      ),
+      findsOneWidget,
+    );
     expect(find.textContaining('측면 전개 보드'), findsWidgets);
     expect(find.textContaining('오른쪽 발목'), findsWidgets);
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);

@@ -35,6 +35,7 @@ class HomeHubScreen extends StatefulWidget {
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickQuiz;
+  final VoidCallback? onQuickBoard;
   final VoidCallback onOpenLogs;
   final ValueChanged<TrainingEntry> onEdit;
 
@@ -49,6 +50,7 @@ class HomeHubScreen extends StatefulWidget {
     this.onQuickPlan,
     this.onQuickMatch,
     this.onQuickQuiz,
+    this.onQuickBoard,
     required this.onOpenLogs,
     required this.onEdit,
   });
@@ -155,6 +157,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       onQuickMatch: widget.onQuickMatch,
                       onQuickPlan: widget.onQuickPlan,
                       onQuickQuiz: widget.onQuickQuiz,
+                      onQuickBoard: widget.onQuickBoard,
                       onOpenLogs: widget.onOpenLogs,
                     ),
                     const SizedBox(height: 12),
@@ -769,6 +772,7 @@ class _QuickActionGrid extends StatelessWidget {
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickQuiz;
+  final VoidCallback? onQuickBoard;
   final VoidCallback onOpenLogs;
 
   const _QuickActionGrid({
@@ -777,6 +781,7 @@ class _QuickActionGrid extends StatelessWidget {
     required this.onQuickMatch,
     required this.onQuickPlan,
     required this.onQuickQuiz,
+    required this.onQuickBoard,
     required this.onOpenLogs,
   });
 
@@ -802,6 +807,11 @@ class _QuickActionGrid extends StatelessWidget {
         icon: Icons.quiz_outlined,
         title: isKo ? '퀴즈 시작' : 'Start quiz',
         onTap: onQuickQuiz,
+      ),
+      _QuickActionItem(
+        icon: Icons.developer_board_outlined,
+        title: isKo ? '훈련보드' : 'Boards',
+        onTap: onQuickBoard,
       ),
       _QuickActionItem(
         icon: Icons.list_alt_outlined,

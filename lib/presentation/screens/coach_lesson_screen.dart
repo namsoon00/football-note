@@ -13,6 +13,7 @@ import '../../domain/entities/training_board.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_board_link_codec.dart';
+import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
 
 class CoachLessonScreen extends StatefulWidget {
@@ -81,11 +82,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               if (days.isEmpty) {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  children: [
-                    _buildIntroCard(dayCount: 0, selectedLabel: _emptyLabel),
-                    const SizedBox(height: 12),
-                    _buildEmptyCard(),
-                  ],
+                  children: [_buildEmptyCard()],
                 );
               }
 
@@ -105,14 +102,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: _buildIntroCard(
+                    child: _buildPagerCard(
                       dayCount: days.length,
+                      selectedIndex: selectedIndex,
                       selectedLabel: _formatDiaryDate(selectedDay.date),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: _buildPagerCard(days.length, selectedIndex),
                   ),
                   Expanded(
                     child: PageView.builder(
@@ -137,95 +131,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  String get _emptyLabel => _isKo ? '작성할 기록 없음' : 'No diary day yet';
-
-  Widget _buildIntroCard({
+  Widget _buildPagerCard({
     required int dayCount,
+    required int selectedIndex,
     required String selectedLabel,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_starbucksGreen, _deepGreen],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x24000000),
-            blurRadius: 24,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isKo
-                  ? '하루의 모든 기록을 밤에 다시 읽는 다이어리'
-                  : 'A nightly diary for your full day',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _isKo
-                  ? '시합, 훈련 계획, 훈련 기록, 부상, 리프팅, 줄넘기, 훈련보드를 날짜별 한 페이지에 모았습니다.'
-                  : 'Each page combines match notes, plans, training logs, injury, lifting, jump rope, and board links for one date.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white70,
-                    height: 1.45,
-                  ),
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildHeroChip(
-                  _isKo ? '다이어리 $dayCount일치' : '$dayCount diary days',
-                ),
-                _buildHeroChip(selectedLabel),
-                _buildHeroChip(_isKo ? '좌우 스와이프' : 'Swipe pages'),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-      ),
-    );
-  }
-
-  Widget _buildPagerCard(int dayCount, int selectedIndex) {
     final canGoPrev = selectedIndex < dayCount - 1;
     final canGoNext = selectedIndex > 0;
     return Container(
       decoration: _paperDecoration(),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
         child: Row(
           children: [
             IconButton(
@@ -235,9 +151,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ),
             Expanded(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    _isKo ? '하루씩 넘겨보는 다이어리' : 'Daily football diary',
+                    selectedLabel,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: _deepGreen,
                           fontWeight: FontWeight.w900,
@@ -284,8 +201,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           _buildDayHeadlineCard(day),
           const SizedBox(height: 12),
           _buildNightReviewCard(day, diary),
-          const SizedBox(height: 12),
-          _buildFactSummaryCard(day),
           if (day.plans.isNotEmpty) ...[
             const SizedBox(height: 12),
             _buildPlanCard(day.plans),
@@ -304,7 +219,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
           if (day.boards.isNotEmpty) ...[
             const SizedBox(height: 12),
-            _buildBoardCard(day.boards),
+            _buildBoardCard(day),
           ],
         ],
       ),
@@ -335,8 +250,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             const SizedBox(height: 8),
             Text(
               _isKo
-                  ? '자기 전에 오늘의 계획과 실전, 훈련 세부 기록을 한 번에 다시 읽는 페이지입니다.'
-                  : 'A single page to revisit the day’s plan, match work, and training details before bed.',
+                  ? '저장된 계획, 경기, 훈련, 회복 기록을 한 편의 일기처럼 이어서 읽을 수 있도록 정리했습니다.'
+                  : 'Saved plans, matches, training, and recovery notes are gathered here as one diary entry.',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: _coffee, height: 1.45),
@@ -412,58 +327,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         style: Theme.of(
           context,
         ).textTheme.bodyLarge?.copyWith(height: 1.7, color: _deepGreen),
-      ),
-    );
-  }
-
-  Widget _buildFactSummaryCard(_DiaryDayData day) {
-    final liftingTotal = day.entries.fold<int>(
-      0,
-      (sum, entry) =>
-          sum + entry.liftingByPart.values.fold<int>(0, (a, b) => a + b),
-    );
-    final jumpRopeCount = day.entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.jumpRopeCount,
-    );
-    final jumpRopeMinutes = day.entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.jumpRopeMinutes,
-    );
-    final injuries = day.entries.where((entry) => entry.injury).toList();
-
-    return _buildPaperCard(
-      title: _isKo ? '하루 요약' : 'Day summary',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSummaryLine(
-            _isKo
-                ? '훈련 주제: ${_topFocus(day.trainingEntries)}'
-                : 'Training focus: ${_topFocus(day.trainingEntries)}',
-          ),
-          _buildSummaryLine(
-            _isKo
-                ? '기록 장소: ${_topPlaces(day.entries)}'
-                : 'Locations: ${_topPlaces(day.entries)}',
-          ),
-          if (injuries.isNotEmpty)
-            _buildSummaryLine(
-              _isKo
-                  ? '부상 기록: ${injuries.map(_injurySummary).join(' / ')}'
-                  : 'Injury notes: ${injuries.map(_injurySummary).join(' / ')}',
-            ),
-          if (liftingTotal > 0)
-            _buildSummaryLine(
-              _isKo ? '리프팅 합계: $liftingTotal회' : 'Lifting total: $liftingTotal',
-            ),
-          if (jumpRopeCount > 0 || jumpRopeMinutes > 0)
-            _buildSummaryLine(
-              _isKo
-                  ? '줄넘기: ${jumpRopeCount > 0 ? '$jumpRopeCount회' : ''}${jumpRopeCount > 0 && jumpRopeMinutes > 0 ? ' · ' : ''}${jumpRopeMinutes > 0 ? '$jumpRopeMinutes분' : ''}'
-                  : 'Jump rope: ${jumpRopeCount > 0 ? '$jumpRopeCount reps' : ''}${jumpRopeCount > 0 && jumpRopeMinutes > 0 ? ' · ' : ''}${jumpRopeMinutes > 0 ? '$jumpRopeMinutes min' : ''}',
-            ),
-        ],
       ),
     );
   }
@@ -548,19 +411,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildBoardCard(List<TrainingBoard> boards) {
+  Widget _buildBoardCard(_DiaryDayData day) {
     return _buildPaperCard(
-      title: _isKo ? '연결된 훈련보드' : 'Linked training boards',
+      title: _isKo ? '다이어리에 담긴 훈련보드' : 'Training boards in this diary',
+      subtitle: _isKo
+          ? '실제 보드 화면과 보드 메모, 연결된 기록 메모를 함께 남깁니다.'
+          : 'Keeps the board preview, board memo, and linked log notes together.',
       child: Column(
-        children: boards
-            .map(
-              (board) => _buildTimelineTile(
-                title: board.title,
-                detail: _isKo
-                    ? '보드 업데이트 ${DateFormat('M.d HH:mm', 'ko').format(board.updatedAt)}'
-                    : 'Updated ${DateFormat('MMM d HH:mm', 'en').format(board.updatedAt)}',
-              ),
-            )
+        children: day.boards
+            .map((board) => _buildBoardDiaryTile(day: day, board: board))
             .toList(growable: false),
       ),
     );
@@ -751,25 +610,24 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   String _buildDiary(_DiaryDayData day) {
-    final lines = <String>[
+    final paragraphs = <String>[
       _isKo
-          ? '${_formatDiaryDate(day.date)} 기록 요약'
-          : 'Daily review for ${_formatDiaryDate(day.date)}',
+          ? '${_formatDiaryDate(day.date)}에는 ${_topPlaces(day.entries)}에서 움직였고, 하루의 중심은 ${_topFocus(day.trainingEntries)}에 맞춰졌다.'
+          : 'On ${_formatDiaryDate(day.date)}, the day unfolded around ${_topPlaces(day.entries)} with ${_topFocus(day.trainingEntries)} as the main focus.',
     ];
 
     if (day.plans.isNotEmpty) {
-      lines.add(
+      final planLines = day.plans
+          .map(
+            (plan) => _isKo
+                ? '${_formatTime(plan.scheduledAt)} ${plan.category} ${plan.durationMinutes}분${plan.note.trim().isEmpty ? '' : ' (${plan.note.trim()})'}'
+                : '${_formatTime(plan.scheduledAt)} ${plan.category} ${plan.durationMinutes} min${plan.note.trim().isEmpty ? '' : ' (${plan.note.trim()})'}',
+          )
+          .join(', ');
+      paragraphs.add(
         _isKo
-            ? '훈련 계획 ${day.plans.length}개가 있었고, ${day.plans.map((plan) => '${_formatTime(plan.scheduledAt)} ${plan.category} ${plan.durationMinutes}분').join(', ')}${day.plans.any((plan) => plan.note.trim().isNotEmpty) ? ' 일정 메모는 ${day.plans.map((plan) => plan.note.trim()).where((note) => note.isNotEmpty).join(' / ')}.' : '.'}'
-            : 'There were ${day.plans.length} training plans: ${day.plans.map((plan) => '${_formatTime(plan.scheduledAt)} ${plan.category} ${plan.durationMinutes} min').join(', ')}${day.plans.any((plan) => plan.note.trim().isNotEmpty) ? '. Plan notes: ${day.plans.map((plan) => plan.note.trim()).where((note) => note.isNotEmpty).join(' / ')}.' : '.'}',
-      );
-    }
-
-    if (day.matchEntries.isNotEmpty) {
-      lines.add(
-        _isKo
-            ? '시합 기록은 ${day.matchEntries.map(_matchSummary).join(' / ')}'
-            : 'Match record: ${day.matchEntries.map(_matchSummary).join(' / ')}',
+            ? '먼저 계획은 $planLines 순서로 잡혀 있었다.'
+            : 'The plan for the day was set as: $planLines.',
       );
     }
 
@@ -778,46 +636,37 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         0,
         (sum, entry) => sum + entry.durationMinutes,
       );
-      lines.add(
+      paragraphs.add(
         _isKo
-            ? '훈련은 총 ${day.trainingEntries.length}개 기록으로 $totalMinutes분 진행했다. 핵심 주제는 ${_topFocus(day.trainingEntries)}이고, 세부 내용은 ${day.trainingEntries.map(_trainingSummary).join(' / ')}'
-            : 'Training covered ${day.trainingEntries.length} logs and $totalMinutes minutes in total. Main focus was ${_topFocus(day.trainingEntries)}. Details: ${day.trainingEntries.map(_trainingSummary).join(' / ')}',
+            ? '훈련 기록은 ${day.trainingEntries.length}개, 총 $totalMinutes분이었다. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}'
+            : 'There were ${day.trainingEntries.length} training logs for $totalMinutes minutes total. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}',
       );
     }
 
-    final injuryEntries = day.entries.where((entry) => entry.injury).toList();
-    if (injuryEntries.isNotEmpty) {
-      lines.add(
+    if (day.matchEntries.isNotEmpty) {
+      paragraphs.add(
         _isKo
-            ? '부상 기록은 ${injuryEntries.map(_injurySummary).join(' / ')}'
-            : 'Injury record: ${injuryEntries.map(_injurySummary).join(' / ')}',
+            ? '실전에서는 ${day.matchEntries.map(_matchDiarySentence).join(' ')}'
+            : 'In matches, ${day.matchEntries.map(_matchDiarySentence).join(' ')}',
       );
     }
 
-    final lifting = _buildLiftingSummary(day.entries);
-    if (lifting.isNotEmpty) {
-      lines.add(_isKo ? '리프팅 기록은 $lifting' : 'Lifting record: $lifting');
+    final recoveryParagraph = _buildRecoveryDiaryParagraph(day);
+    if (recoveryParagraph.isNotEmpty) {
+      paragraphs.add(recoveryParagraph);
     }
 
-    final jumpRope = _buildJumpRopeSummary(day.entries);
-    if (jumpRope.isNotEmpty) {
-      lines.add(_isKo ? '줄넘기 기록은 $jumpRope' : 'Jump rope record: $jumpRope');
+    final boardParagraph = _buildBoardDiaryParagraph(day);
+    if (boardParagraph.isNotEmpty) {
+      paragraphs.add(boardParagraph);
     }
 
-    if (day.boards.isNotEmpty) {
-      lines.add(
-        _isKo
-            ? '연결된 훈련보드는 ${day.boards.map((board) => board.title).join(', ')}'
-            : 'Linked boards: ${day.boards.map((board) => board.title).join(', ')}',
-      );
-    }
-
-    lines.add(
+    paragraphs.add(
       _isKo
-          ? '오늘 남긴 계획과 기록을 한 페이지에서 다시 읽고, 다음 목표는 입력된 메모와 목표 항목을 기준으로 정리하면 된다.'
-          : 'This page keeps the full day in one place so the next target can be reviewed directly from the saved notes and goals.',
+          ? '오늘 남긴 메모를 다시 읽으면 무엇이 잘됐고 무엇을 다음 목표로 가져가야 하는지 흐름이 자연스럽게 이어진다.'
+          : 'Reading the saved notes back makes the next goal easier to carry forward from what worked and what still needs work.',
     );
-    return lines.join('\n\n');
+    return paragraphs.join('\n\n');
   }
 
   String _topFocus(List<TrainingEntry> entries) {
@@ -889,6 +738,31 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : '${entry.type} for ${entry.durationMinutes} min at ${entry.location.trim().isEmpty ? 'no location logged' : entry.location.trim()}, $detailText';
   }
 
+  String _trainingDiarySentence(TrainingEntry entry) {
+    final noteParts = <String>[
+      if (entry.goodPoints.trim().isNotEmpty)
+        _isKo
+            ? '잘된 점은 ${entry.goodPoints.trim()}'
+            : 'the good part was ${entry.goodPoints.trim()}',
+      if (entry.improvements.trim().isNotEmpty)
+        _isKo
+            ? '보완할 점은 ${entry.improvements.trim()}'
+            : 'the adjustment point was ${entry.improvements.trim()}',
+      if (entry.nextGoal.trim().isNotEmpty)
+        _isKo
+            ? '다음 목표는 ${entry.nextGoal.trim()}'
+            : 'the next goal was ${entry.nextGoal.trim()}',
+      if (entry.notes.trim().isNotEmpty)
+        _isKo
+            ? '메모에는 ${entry.notes.trim()}'
+            : 'the note said ${entry.notes.trim()}',
+    ];
+    final suffix = noteParts.isEmpty ? '' : ' ${noteParts.join('. ')}.';
+    return _isKo
+        ? '${_formatTime(entry.date)} ${entry.type} ${entry.durationMinutes}분을 ${entry.location.trim().isEmpty ? '장소 기록 없이' : entry.location.trim()}에서 진행했다.$suffix'
+        : 'At ${_formatTime(entry.date)}, ${entry.type} ran for ${entry.durationMinutes} minutes ${entry.location.trim().isEmpty ? 'without a logged location' : 'at ${entry.location.trim()}'}.$suffix';
+  }
+
   String _matchSummary(TrainingEntry entry) {
     final parts = <String>[
       if (_isKo)
@@ -912,6 +786,24 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       if (entry.notes.trim().isNotEmpty) entry.notes.trim(),
     ];
     return parts.join(' · ');
+  }
+
+  String _matchDiarySentence(TrainingEntry entry) {
+    final result = (entry.scoredGoals != null || entry.concededGoals != null)
+        ? '${entry.scoredGoals ?? 0}:${entry.concededGoals ?? 0}'
+        : null;
+    final extras = <String>[
+      if (entry.playerGoals != null)
+        _isKo ? '개인 득점 ${entry.playerGoals}' : '${entry.playerGoals} goal(s)',
+      if (entry.playerAssists != null)
+        _isKo
+            ? '도움 ${entry.playerAssists}'
+            : '${entry.playerAssists} assist(s)',
+      if (entry.notes.trim().isNotEmpty) entry.notes.trim(),
+    ];
+    return _isKo
+        ? '${entry.opponentTeam.isEmpty ? '상대 팀 미기록 경기' : '${entry.opponentTeam}전'}${result == null ? '' : '은 $result'}으로 남았고${extras.isEmpty ? ' 세부 메모는 비어 있었다.' : ' ${extras.join(', ')}까지 기록했다.'}'
+        : '${entry.opponentTeam.isEmpty ? 'the opponent was not logged' : 'vs ${entry.opponentTeam}'}${result == null ? '' : ' ended $result'}${extras.isEmpty ? '.' : ' with ${extras.join(', ')} recorded.'}';
   }
 
   String _injurySummary(TrainingEntry entry) {
@@ -966,6 +858,138 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return parts.join(' · ');
   }
 
+  String _buildRecoveryDiaryParagraph(_DiaryDayData day) {
+    final injuries = day.entries
+        .where((entry) => entry.injury)
+        .map(_injurySummary)
+        .toList(growable: false);
+    final lifting = _buildLiftingSummary(day.entries);
+    final jumpRope = _buildJumpRopeSummary(day.entries);
+    if (injuries.isEmpty && lifting.isEmpty && jumpRope.isEmpty) return '';
+    final parts = <String>[
+      if (injuries.isNotEmpty)
+        _isKo
+            ? '부상 기록은 ${injuries.join(' / ')}'
+            : 'injury notes were ${injuries.join(' / ')}',
+      if (lifting.isNotEmpty) _isKo ? '리프팅은 $lifting' : 'lifting was $lifting',
+      if (jumpRope.isNotEmpty)
+        _isKo ? '줄넘기는 $jumpRope' : 'jump rope was $jumpRope',
+    ];
+    return _isKo
+        ? '회복과 보조 기록까지 보면 ${parts.join(', ')}.'
+        : 'For recovery and supporting work, ${parts.join(', ')}.';
+  }
+
+  String _buildBoardDiaryParagraph(_DiaryDayData day) {
+    if (day.boards.isEmpty) return '';
+    final boardNotes = day.boards.map((board) {
+      final layout = TrainingMethodLayout.decode(board.layoutJson);
+      final memo =
+          layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
+      final linkedEntryNotes = _boardLinkedEntryNotes(
+        day: day,
+        board: board,
+      );
+      if (_isKo) {
+        return memo.isEmpty && linkedEntryNotes.isEmpty
+            ? board.title
+            : '${board.title}${memo.isEmpty ? '' : ' 메모는 "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', 기록 메모는 $linkedEntryNotes'}';
+      }
+      return memo.isEmpty && linkedEntryNotes.isEmpty
+          ? board.title
+          : '${board.title}${memo.isEmpty ? '' : ' memo was "$memo"'}${linkedEntryNotes.isEmpty ? '' : ', linked log notes were $linkedEntryNotes'}';
+    }).join(' / ');
+    return _isKo
+        ? '훈련보드에는 $boardNotes 같은 그림과 메모를 함께 남겼다.'
+        : 'The training boards kept both the visual sketch and notes such as $boardNotes.';
+  }
+
+  Widget _buildBoardDiaryTile({
+    required _DiaryDayData day,
+    required TrainingBoard board,
+  }) {
+    final layout = TrainingMethodLayout.decode(board.layoutJson);
+    final page = layout.pages.isNotEmpty ? layout.pages.first : null;
+    final boardMemo = page?.methodText.trim() ?? '';
+    final linkedNotes = _boardLinkedEntryNotes(day: day, board: board);
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _paperBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  board.title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: _deepGreen,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _isKo
+                    ? DateFormat('M.d HH:mm', 'ko').format(board.updatedAt)
+                    : DateFormat('MMM d HH:mm', 'en').format(board.updatedAt),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: _coffee),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _DiaryBoardPreview(layout: layout),
+          if (boardMemo.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _buildSummaryLine(
+              _isKo ? '보드 메모: $boardMemo' : 'Board note: $boardMemo',
+            ),
+          ],
+          if (linkedNotes.isNotEmpty)
+            _buildSummaryLine(
+              _isKo
+                  ? '연결된 기록 메모: $linkedNotes'
+                  : 'Linked log notes: $linkedNotes',
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _boardLinkedEntryNotes({
+    required _DiaryDayData day,
+    required TrainingBoard board,
+  }) {
+    final notes = day.entries
+        .where(
+          (entry) => TrainingBoardLinkCodec.decodeBoardIds(
+            entry.drills,
+          ).contains(board.id),
+        )
+        .expand(
+          (entry) => <String>[
+            entry.program.trim(),
+            entry.goodPoints.trim(),
+            entry.improvements.trim(),
+            entry.nextGoal.trim(),
+            entry.notes.trim(),
+          ],
+        )
+        .where((text) => text.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    return notes.join(' / ');
+  }
+
   Future<void> _copyDiary(String diary) async {
     await Clipboard.setData(ClipboardData(text: diary));
     if (!mounted) return;
@@ -988,6 +1012,179 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _isKo
         ? DateFormat('a h:mm', 'ko').format(date)
         : DateFormat('h:mm a', 'en').format(date);
+  }
+}
+
+class _DiaryBoardPreview extends StatelessWidget {
+  final TrainingMethodLayout layout;
+
+  const _DiaryBoardPreview({required this.layout});
+
+  @override
+  Widget build(BuildContext context) {
+    final previewPage = layout.pages.isNotEmpty
+        ? layout.pages.first
+        : TrainingMethodLayout.empty().pages.first;
+    final itemCount = layout.pages.fold<int>(
+      0,
+      (sum, page) => sum + page.items.length,
+    );
+    return Container(
+      height: 148,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          return Stack(
+            children: [
+              CustomPaint(
+                size: Size(width, height),
+                painter: _DiaryBoardPreviewPainter(page: previewPage),
+              ),
+              ...previewPage.items.take(14).map((item) {
+                final icon = switch (item.type) {
+                  'cone' => Icons.change_history,
+                  'player' => Icons.person,
+                  'ball' => Icons.sports_soccer,
+                  'ladder' => Icons.view_week,
+                  _ => Icons.circle,
+                };
+                return Positioned(
+                  left: (item.x * width).clamp(6.0, width - 20.0),
+                  top: (item.y * height).clamp(4.0, height - 20.0),
+                  child: Transform.rotate(
+                    angle: item.rotationDeg * 3.1415926535897932 / 180,
+                    child: Icon(
+                      icon,
+                      size: (item.size * 0.42).clamp(10.0, 20.0),
+                      color: Color(item.colorValue).withValues(alpha: 0.96),
+                    ),
+                  ),
+                );
+              }),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$itemCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _DiaryBoardPreviewPainter extends CustomPainter {
+  final TrainingMethodPage page;
+
+  const _DiaryBoardPreviewPainter({required this.page});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    final pathPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(2, 2, size.width - 4, size.height - 4),
+        const Radius.circular(14),
+      ),
+      line,
+    );
+    canvas.drawLine(Offset(centerX, 2), Offset(centerX, size.height - 2), line);
+    canvas.drawCircle(Offset(centerX, centerY), 16, line);
+
+    for (final stroke in page.strokes) {
+      if (stroke.points.length < 2) continue;
+      final strokePaint = Paint()
+        ..color = Color(stroke.colorValue).withValues(alpha: 0.92)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke.width.clamp(1.0, 4.0)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final path = Path()
+        ..moveTo(
+          stroke.points.first.x * size.width,
+          stroke.points.first.y * size.height,
+        );
+      for (final point in stroke.points.skip(1)) {
+        path.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(path, strokePaint);
+    }
+
+    if (page.playerPath.length >= 2) {
+      final playerPath = Path()
+        ..moveTo(
+          page.playerPath.first.x * size.width,
+          page.playerPath.first.y * size.height,
+        );
+      for (final point in page.playerPath.skip(1)) {
+        playerPath.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(playerPath, pathPaint);
+    }
+
+    if (page.ballPath.length >= 2) {
+      final ballPaint = Paint()
+        ..color = const Color(0xFFFFF59D)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final ballPath = Path()
+        ..moveTo(
+          page.ballPath.first.x * size.width,
+          page.ballPath.first.y * size.height,
+        );
+      for (final point in page.ballPath.skip(1)) {
+        ballPath.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(ballPath, ballPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DiaryBoardPreviewPainter oldDelegate) {
+    return oldDelegate.page != page;
   }
 }
 
