@@ -62,6 +62,10 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 isKo: isKo,
                 spec: spec,
                 onClaimReward: () => _claimReward(level, isKo),
+                onEditRewardName: rewardByLevel[level] == null
+                    ? null
+                    : () =>
+                        _editRewardName(context, rewardByLevel[level]!, isKo),
               );
             },
           ),
@@ -74,11 +78,64 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     final claim = await _levelService.claimRewardForLevel(level);
     if (!mounted || claim == null) return;
     setState(() {});
+    final rewardName = claim.customRewardName.trim().isNotEmpty
+        ? claim.customRewardName
+        : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
     AppFeedback.showSuccess(
       context,
-      text: isKo
-          ? '${claim.reward.nameKo} 선물을 받았어요.'
-          : 'Claimed ${claim.reward.nameEn}.',
+      text: isKo ? '$rewardName 선물을 받았어요.' : 'Claimed $rewardName.',
+    );
+  }
+
+  Future<void> _editRewardName(
+    BuildContext context,
+    PlayerLevelRewardStatus status,
+    bool isKo,
+  ) async {
+    final controller = TextEditingController(text: status.customRewardName);
+    final saved = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isKo ? '레벨 선물 입력' : 'Set level reward'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 30,
+          decoration: InputDecoration(
+            labelText: isKo ? '선물 이름' : 'Reward name',
+            hintText: isKo ? '예) 새 축구 양말' : 'e.g. New football socks',
+            border: const OutlineInputBorder(),
+          ),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(''),
+            child: Text(isKo ? '삭제' : 'Clear'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: Text(isKo ? '저장' : 'Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (saved == null) return;
+    await _levelService.setCustomRewardName(status.reward.level, saved);
+    if (!context.mounted) return;
+    setState(() {});
+    AppFeedback.showSuccess(
+      context,
+      text: saved.trim().isEmpty
+          ? (isKo ? '레벨 선물을 지웠어요.' : 'Reward cleared.')
+          : (isKo ? '레벨 선물을 저장했어요.' : 'Reward saved.'),
     );
   }
 }
@@ -92,6 +149,7 @@ class _LevelGuideCard extends StatelessWidget {
   final bool isKo;
   final PlayerLevelVisualSpec spec;
   final VoidCallback onClaimReward;
+  final VoidCallback? onEditRewardName;
 
   const _LevelGuideCard({
     required this.level,
@@ -102,12 +160,17 @@ class _LevelGuideCard extends StatelessWidget {
     required this.isKo,
     required this.spec,
     required this.onClaimReward,
+    required this.onEditRewardName,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final reward = rewardStatus?.reward;
+    final customRewardName = rewardStatus?.customRewardName.trim() ?? '';
+    final rewardLabel = customRewardName.isNotEmpty
+        ? customRewardName
+        : (reward == null ? '' : (isKo ? reward.nameKo : reward.nameEn));
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -173,8 +236,8 @@ class _LevelGuideCard extends StatelessWidget {
                   maxXp == null
                       ? (isKo ? '$minXp XP 이상' : '$minXp XP+')
                       : (isKo
-                            ? '$minXp XP ~ $maxXp XP'
-                            : '$minXp XP to $maxXp XP'),
+                          ? '$minXp XP ~ $maxXp XP'
+                          : '$minXp XP to $maxXp XP'),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w600,
@@ -182,14 +245,32 @@ class _LevelGuideCard extends StatelessWidget {
                 ),
                 if (reward != null) ...[
                   const SizedBox(height: 12),
-                  _WhitePill(
-                    label: isKo
-                        ? '선물: ${reward.nameKo}'
-                        : 'Reward: ${reward.nameEn}',
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _WhitePill(
+                          label: isKo
+                              ? '선물: $rewardLabel'
+                              : 'Reward: $rewardLabel',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: onEditRewardName,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text(isKo ? '입력' : 'Edit'),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isKo ? reward.descriptionKo : reward.descriptionEn,
+                    customRewardName.isNotEmpty
+                        ? (isKo
+                            ? '직접 입력한 레벨 선물이에요.'
+                            : 'Your custom reward for this level.')
+                        : (isKo ? reward.descriptionKo : reward.descriptionEn),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w600,
@@ -255,9 +336,9 @@ class _WhitePill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }

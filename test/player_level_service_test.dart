@@ -27,6 +27,22 @@ void main() {
       contains(2),
     );
   });
+
+  test('custom reward name is stored and returned on claim', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 60);
+    final service = PlayerLevelService(repository);
+
+    await service.setCustomRewardName(2, '새 축구 양말');
+    final statuses = service.loadRewardStatuses();
+    final level2Reward = statuses.firstWhere((item) => item.reward.level == 2);
+    final claim = await service.claimRewardForLevel(2);
+
+    expect(level2Reward.customRewardName, '새 축구 양말');
+    expect(service.customRewardNameForLevel(2), '새 축구 양말');
+    expect(claim, isNotNull);
+    expect(claim!.customRewardName, '새 축구 양말');
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

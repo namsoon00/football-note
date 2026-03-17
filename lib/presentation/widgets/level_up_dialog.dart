@@ -7,10 +7,13 @@ Future<void> showLevelUpCelebrationDialog(
   required PlayerLevelAward award,
   required bool isKo,
   required VoidCallback? onClaimReward,
+  String customRewardName = '',
 }) async {
   if (!award.didLevelUp) return;
   final reward = PlayerLevelService.rewardForLevel(award.after.level);
   final hasReward = reward != null;
+  final rewardName = customRewardName.trim();
+  final hasCustomRewardName = rewardName.isNotEmpty;
   final theme = Theme.of(context);
   await showGeneralDialog<void>(
     context: context,
@@ -79,7 +82,9 @@ Future<void> showLevelUpCelebrationDialog(
                   const SizedBox(height: 8),
                   Text(
                     isKo
-                        ? '와! 오늘의 노력이 반짝 점수로 쌓였어요.'
+                        ? hasCustomRewardName
+                              ? '와! 오늘의 노력이 반짝 점수로 쌓여서 "$rewardName" 선물도 준비됐어요.'
+                              : '와! 오늘의 노력이 반짝 점수로 쌓였어요.'
                         : 'Your effort turned into shining XP today.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
@@ -134,7 +139,9 @@ Future<void> showLevelUpCelebrationDialog(
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            isKo ? reward.nameKo : reward.nameEn,
+                            hasCustomRewardName
+                                ? rewardName
+                                : (isKo ? reward.nameKo : reward.nameEn),
                             textAlign: TextAlign.center,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w900,
