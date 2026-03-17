@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTimeRange? _statsInitialRange;
   CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
   final Set<int> _guideCheckedInSession = <int>{};
+  bool _routePushInFlight = false;
 
   @override
   void initState() {
@@ -99,8 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction:
-            _pendingCalendarQuickCreateAction ??
+        quickCreateAction: _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
@@ -177,6 +177,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return DateTimeRange(start: start, end: end);
   }
 
+  Future<void> _pushPageSafely(Route<void> route) async {
+    if (!mounted || _routePushInFlight) return;
+    _routePushInFlight = true;
+    try {
+      final completer = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      });
+      await completer.future;
+      if (!mounted) return;
+      await Navigator.of(context).push(route);
+    } finally {
+      _routePushInFlight = false;
+      if (mounted) setState(() {});
+    }
+  }
+
   Future<void> _showTabGuideIfNeeded(int tabIndex) async {
     if (!mounted) return;
     if (_guideCheckedInSession.contains(tabIndex)) return;
@@ -241,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openCreate({DateTime? initialDate}) async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       AppPageRoute(
         builder: (_) => EntryFormScreen(
           trainingService: widget.trainingService,
@@ -253,7 +272,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   void _openCalendarQuickCreate(CalendarQuickCreateAction action) {
@@ -265,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openTrainingBoards() async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       AppPageRoute(
         builder: (_) => TrainingBoardListScreen(
           optionRepository: widget.optionRepository,
@@ -273,7 +291,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   void _clearCalendarQuickCreateAction() {
@@ -282,17 +299,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openQuiz() async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       AppPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   Future<void> _openEdit(entry) async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       AppPageRoute(
         builder: (_) => EntryFormScreen(
           trainingService: widget.trainingService,
@@ -304,6 +320,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-    if (mounted) setState(() {});
   }
 }
