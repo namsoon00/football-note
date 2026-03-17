@@ -6,18 +6,22 @@ class SettingsService extends ChangeNotifier {
 
   ThemeMode _themeMode = ThemeMode.light;
   bool _reminderEnabled = true;
+  bool _reminderVibrationEnabled = true;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 19, minute: 0);
 
   SettingsService(this._repository);
 
   ThemeMode get themeMode => _themeMode;
   bool get reminderEnabled => _reminderEnabled;
+  bool get reminderVibrationEnabled => _reminderVibrationEnabled;
   TimeOfDay get reminderTime => _reminderTime;
 
   void load() {
     final theme = _repository.getValue<String>('theme_mode');
     _themeMode = _parseThemeMode(theme) ?? ThemeMode.light;
     _reminderEnabled = _repository.getValue<bool>('reminder_enabled') ?? true;
+    _reminderVibrationEnabled =
+        _repository.getValue<bool>('reminder_vibration_enabled') ?? true;
     final time = _repository.getValue<String>('reminder_time');
     _reminderTime = _parseTime(time) ?? _reminderTime;
     notifyListeners();
@@ -32,6 +36,12 @@ class SettingsService extends ChangeNotifier {
   Future<void> setReminderEnabled(bool enabled) async {
     _reminderEnabled = enabled;
     await _repository.setValue('reminder_enabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setReminderVibrationEnabled(bool enabled) async {
+    _reminderVibrationEnabled = enabled;
+    await _repository.setValue('reminder_vibration_enabled', enabled);
     notifyListeners();
   }
 
