@@ -254,7 +254,7 @@ class PlayerLevelService {
   }
 
   static String illustrationLabel(int level, bool isKo) {
-    switch (level.clamp(1, 10)) {
+    switch (level.clamp(1, 20)) {
       case 1:
         return isKo ? '시작 호루라기' : 'Starter whistle';
       case 2:
@@ -273,8 +273,28 @@ class PlayerLevelService {
         return isKo ? '주장 왕관' : 'Captain crown';
       case 9:
         return isKo ? '우승 트로피' : 'Winner trophy';
-      default:
+      case 10:
         return isKo ? '축하 불꽃' : 'Celebration fireworks';
+      case 11:
+        return isKo ? '수비 방패' : 'Defense shield';
+      case 12:
+        return isKo ? '골키퍼 장갑' : 'Keeper gloves';
+      case 13:
+        return isKo ? '전술 레이더' : 'Tactics radar';
+      case 14:
+        return isKo ? '질주 번개' : 'Sprint lightning';
+      case 15:
+        return isKo ? '승리 메달' : 'Victory medal';
+      case 16:
+        return isKo ? '홈 경기장' : 'Home stadium';
+      case 17:
+        return isKo ? '에이스 로켓' : 'Ace rocket';
+      case 18:
+        return isKo ? '피치 스타' : 'Pitch star';
+      case 19:
+        return isKo ? '스타디움 선물상자' : 'Stadium gift box';
+      default:
+        return isKo ? '레전드 은하' : 'Legend galaxy';
     }
   }
 

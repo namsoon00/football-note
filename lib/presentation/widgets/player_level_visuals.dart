@@ -9,7 +9,7 @@ class PlayerLevelVisualSpec {
   const PlayerLevelVisualSpec({required this.colors, required this.stage});
 
   factory PlayerLevelVisualSpec.fromLevel(int level) {
-    switch (level.clamp(1, 10)) {
+    switch (level.clamp(1, 20)) {
       case 1:
         return const PlayerLevelVisualSpec(
           colors: <Color>[Color(0xFF0F9B8E), Color(0xFF38EF7D)],
@@ -55,10 +55,60 @@ class PlayerLevelVisualSpec {
           colors: <Color>[Color(0xFF134E5E), Color(0xFF71B280)],
           stage: PlayerLevelIllustrationStage.trophy,
         );
+      case 10:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF3A1C71), Color(0xFFFFAF7B)],
+          stage: PlayerLevelIllustrationStage.fireworks,
+        );
+      case 11:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF00416A), Color(0xFFE4E5E6)],
+          stage: PlayerLevelIllustrationStage.shield,
+        );
+      case 12:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF1E3C72), Color(0xFF2A5298)],
+          stage: PlayerLevelIllustrationStage.gloves,
+        );
+      case 13:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF0F2027), Color(0xFF2C5364)],
+          stage: PlayerLevelIllustrationStage.radar,
+        );
+      case 14:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFFF12711), Color(0xFFF5AF19)],
+          stage: PlayerLevelIllustrationStage.lightning,
+        );
+      case 15:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF614385), Color(0xFF516395)],
+          stage: PlayerLevelIllustrationStage.medal,
+        );
+      case 16:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF0B486B), Color(0xFFF56217)],
+          stage: PlayerLevelIllustrationStage.stadium,
+        );
+      case 17:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF232526), Color(0xFF414345)],
+          stage: PlayerLevelIllustrationStage.rocket,
+        );
+      case 18:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFFFF512F), Color(0xFFDD2476)],
+          stage: PlayerLevelIllustrationStage.star,
+        );
+      case 19:
+        return const PlayerLevelVisualSpec(
+          colors: <Color>[Color(0xFF1D4350), Color(0xFFA43931)],
+          stage: PlayerLevelIllustrationStage.gift,
+        );
       default:
         return const PlayerLevelVisualSpec(
           colors: <Color>[Color(0xFF141E30), Color(0xFF243B55)],
-          stage: PlayerLevelIllustrationStage.fireworks,
+          stage: PlayerLevelIllustrationStage.galaxy,
         );
     }
   }
@@ -96,6 +146,16 @@ enum PlayerLevelIllustrationStage {
   crown,
   trophy,
   fireworks,
+  shield,
+  gloves,
+  radar,
+  lightning,
+  medal,
+  stadium,
+  rocket,
+  star,
+  gift,
+  galaxy,
 }
 
 class PlayerLevelIllustrationPainter extends CustomPainter {
@@ -115,9 +175,16 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     final softStroke = Paint()
-      ..color = Colors.white.withValues(alpha: 0.38)
+      ..color = Colors.white.withValues(alpha: 0.36)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6;
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final glow = Paint()
+      ..color = Colors.white.withValues(alpha: 0.12)
+      ..style = PaintingStyle.fill;
+
+    _paintBackdrop(canvas, size, glow, softStroke);
 
     switch (spec.stage) {
       case PlayerLevelIllustrationStage.whistle:
@@ -150,7 +217,55 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
       case PlayerLevelIllustrationStage.fireworks:
         _paintFireworks(canvas, size, whiteFill, whiteStroke, softStroke);
         break;
+      case PlayerLevelIllustrationStage.shield:
+        _paintShield(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.gloves:
+        _paintGloves(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.radar:
+        _paintRadar(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.lightning:
+        _paintLightning(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.medal:
+        _paintMedal(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.stadium:
+        _paintStadium(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.rocket:
+        _paintRocket(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.star:
+        _paintStar(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.gift:
+        _paintGift(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
+      case PlayerLevelIllustrationStage.galaxy:
+        _paintGalaxy(canvas, size, whiteFill, whiteStroke, softStroke);
+        break;
     }
+  }
+
+  void _paintBackdrop(Canvas canvas, Size size, Paint glow, Paint softStroke) {
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.5),
+      size.width * 0.35,
+      glow,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: Offset(size.width * 0.5, size.height * 0.5),
+        radius: size.width * 0.32,
+      ),
+      -pi * 0.75,
+      pi * 1.4,
+      false,
+      softStroke,
+    );
   }
 
   void _paintWhistle(
@@ -199,13 +314,8 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint stroke,
     Paint softStroke,
   ) {
-    final center = Offset(size.width * 0.5, size.height * 0.44);
-    canvas.drawCircle(
-      center,
-      size.width * 0.24,
-      Paint()..color = Colors.white.withValues(alpha: 0.14),
-    );
-    canvas.drawCircle(center, size.width * 0.21, stroke);
+    final center = Offset(size.width * 0.5, size.height * 0.46);
+    canvas.drawCircle(center, size.width * 0.23, stroke);
     final pentagon = Path()
       ..moveTo(center.dx, center.dy - 12)
       ..lineTo(center.dx + 10, center.dy - 2)
@@ -214,31 +324,19 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
       ..lineTo(center.dx - 10, center.dy - 2)
       ..close();
     canvas.drawPath(pentagon, fill);
-    canvas.drawLine(
-      Offset(center.dx, center.dy - 12),
-      Offset(center.dx, center.dy - 26),
-      softStroke,
-    );
-    canvas.drawLine(
-      Offset(center.dx - 10, center.dy - 2),
-      Offset(center.dx - 22, center.dy - 10),
-      softStroke,
-    );
-    canvas.drawLine(
-      Offset(center.dx + 10, center.dy - 2),
-      Offset(center.dx + 22, center.dy - 10),
-      softStroke,
-    );
-    canvas.drawLine(
-      Offset(center.dx - 6, center.dy + 10),
-      Offset(center.dx - 18, center.dy + 22),
-      softStroke,
-    );
-    canvas.drawLine(
-      Offset(center.dx + 6, center.dy + 10),
-      Offset(center.dx + 18, center.dy + 22),
-      softStroke,
-    );
+    for (final offset in <Offset>[
+      const Offset(0, -24),
+      const Offset(-21, -10),
+      const Offset(21, -10),
+      const Offset(-16, 19),
+      const Offset(16, 19),
+    ]) {
+      canvas.drawLine(
+        center + Offset(offset.dx * 0.45, offset.dy * 0.45),
+        center + offset,
+        softStroke,
+      );
+    }
   }
 
   void _paintCone(
@@ -248,24 +346,34 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint stroke,
     Paint softStroke,
   ) {
-    final cone = Path()
-      ..moveTo(size.width * 0.34, size.height * 0.74)
-      ..lineTo(size.width * 0.5, size.height * 0.24)
-      ..lineTo(size.width * 0.66, size.height * 0.74)
+    final path = Path()
+      ..moveTo(size.width * 0.5, size.height * 0.22)
+      ..lineTo(size.width * 0.7, size.height * 0.72)
+      ..lineTo(size.width * 0.3, size.height * 0.72)
       ..close();
-    canvas.drawPath(cone, Paint()..color = Colors.white.withValues(alpha: 0.2));
-    canvas.drawPath(cone, stroke);
+    canvas.drawPath(path, stroke);
     canvas.drawLine(
-      Offset(size.width * 0.39, size.height * 0.58),
-      Offset(size.width * 0.61, size.height * 0.58),
+      Offset(size.width * 0.36, size.height * 0.52),
+      Offset(size.width * 0.64, size.height * 0.52),
       softStroke,
     );
     canvas.drawLine(
-      Offset(size.width * 0.36, size.height * 0.68),
-      Offset(size.width * 0.64, size.height * 0.68),
+      Offset(size.width * 0.4, size.height * 0.38),
+      Offset(size.width * 0.6, size.height * 0.38),
       softStroke,
     );
-    canvas.drawCircle(Offset(size.width * 0.76, size.height * 0.26), 6, fill);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.25,
+          size.height * 0.72,
+          size.width * 0.5,
+          size.height * 0.08,
+        ),
+        const Radius.circular(12),
+      ),
+      fill,
+    );
   }
 
   void _paintBoot(
@@ -275,28 +383,31 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint stroke,
     Paint softStroke,
   ) {
-    final boot = Path()
-      ..moveTo(size.width * 0.26, size.height * 0.54)
-      ..lineTo(size.width * 0.5, size.height * 0.54)
-      ..lineTo(size.width * 0.62, size.height * 0.34)
-      ..lineTo(size.width * 0.74, size.height * 0.38)
-      ..lineTo(size.width * 0.68, size.height * 0.58)
-      ..lineTo(size.width * 0.78, size.height * 0.66)
-      ..lineTo(size.width * 0.76, size.height * 0.76)
-      ..lineTo(size.width * 0.24, size.height * 0.76)
+    final path = Path()
+      ..moveTo(size.width * 0.24, size.height * 0.54)
+      ..quadraticBezierTo(
+        size.width * 0.42,
+        size.height * 0.34,
+        size.width * 0.58,
+        size.height * 0.42,
+      )
+      ..lineTo(size.width * 0.72, size.height * 0.46)
+      ..lineTo(size.width * 0.78, size.height * 0.62)
+      ..lineTo(size.width * 0.28, size.height * 0.62)
       ..close();
-    canvas.drawPath(
-      boot,
-      Paint()..color = Colors.white.withValues(alpha: 0.16),
-    );
-    canvas.drawPath(boot, stroke);
+    canvas.drawPath(path, stroke);
     canvas.drawLine(
-      Offset(size.width * 0.42, size.height * 0.5),
-      Offset(size.width * 0.56, size.height * 0.38),
+      Offset(size.width * 0.4, size.height * 0.46),
+      Offset(size.width * 0.52, size.height * 0.46),
       softStroke,
     );
-    for (final dx in <double>[0.38, 0.44, 0.5]) {
-      canvas.drawCircle(Offset(size.width * dx, size.height * 0.58), 2.2, fill);
+    canvas.drawLine(
+      Offset(size.width * 0.38, size.height * 0.51),
+      Offset(size.width * 0.5, size.height * 0.51),
+      softStroke,
+    );
+    for (double dx = 0.36; dx <= 0.68; dx += 0.08) {
+      canvas.drawCircle(Offset(size.width * dx, size.height * 0.67), 2.5, fill);
     }
   }
 
@@ -307,41 +418,27 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint stroke,
     Paint softStroke,
   ) {
-    final leftHandle = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        size.width * 0.2,
-        size.height * 0.48,
-        size.width * 0.08,
-        size.height * 0.18,
-      ),
-      const Radius.circular(8),
-    );
-    final rightHandle = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        size.width * 0.72,
-        size.height * 0.48,
-        size.width * 0.08,
-        size.height * 0.18,
-      ),
-      const Radius.circular(8),
-    );
-    canvas.drawRRect(leftHandle, fill);
-    canvas.drawRRect(rightHandle, fill);
+    canvas.drawCircle(Offset(size.width * 0.34, size.height * 0.36), 8, fill);
+    canvas.drawCircle(Offset(size.width * 0.66, size.height * 0.36), 8, fill);
+    final rope = Path()
+      ..moveTo(size.width * 0.34, size.height * 0.36)
+      ..quadraticBezierTo(
+        size.width * 0.5,
+        size.height * 0.82,
+        size.width * 0.66,
+        size.height * 0.36,
+      );
+    canvas.drawPath(rope, stroke);
     canvas.drawArc(
       Rect.fromLTWH(
-        size.width * 0.18,
-        size.height * 0.2,
-        size.width * 0.64,
-        size.height * 0.58,
+        size.width * 0.36,
+        size.height * 0.26,
+        size.width * 0.28,
+        size.height * 0.22,
       ),
-      3.3,
-      2.8,
+      0,
+      pi,
       false,
-      stroke,
-    );
-    canvas.drawCircle(
-      Offset(size.width * 0.5, size.height * 0.74),
-      size.width * 0.06,
       softStroke,
     );
   }
@@ -354,18 +451,35 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint softStroke,
   ) {
     canvas.drawLine(
-      Offset(size.width * 0.28, size.height * 0.5),
-      Offset(size.width * 0.72, size.height * 0.5),
+      Offset(size.width * 0.32, size.height * 0.5),
+      Offset(size.width * 0.68, size.height * 0.5),
       stroke,
     );
-    for (final dx in <double>[0.28, 0.36, 0.64, 0.72]) {
-      final rect = Rect.fromCenter(
-        center: Offset(size.width * dx, size.height * 0.5),
-        width: size.width * 0.07,
-        height: size.height * 0.28,
+    for (final dx in <double>[0.26, 0.32, 0.68, 0.74]) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(
+            center: Offset(size.width * dx, size.height * 0.5),
+            width: 8,
+            height: size.height * 0.24,
+          ),
+          const Radius.circular(4),
+        ),
+        dx == 0.32 || dx == 0.68 ? fill : stroke,
       );
-      canvas.drawRect(rect, dx == 0.36 || dx == 0.64 ? softStroke : fill);
     }
+    canvas.drawArc(
+      Rect.fromLTWH(
+        size.width * 0.34,
+        size.height * 0.26,
+        size.width * 0.32,
+        size.height * 0.34,
+      ),
+      pi * 0.9,
+      pi * 0.7,
+      false,
+      softStroke,
+    );
   }
 
   void _paintTactics(
@@ -377,38 +491,33 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
   ) {
     final rect = RRect.fromRectAndRadius(
       Rect.fromLTWH(
-        size.width * 0.16,
-        size.height * 0.2,
-        size.width * 0.68,
-        size.height * 0.48,
+        size.width * 0.24,
+        size.height * 0.24,
+        size.width * 0.52,
+        size.height * 0.52,
       ),
-      const Radius.circular(12),
-    );
-    canvas.drawRRect(
-      rect,
-      Paint()..color = Colors.white.withValues(alpha: 0.12),
+      const Radius.circular(18),
     );
     canvas.drawRRect(rect, stroke);
-    canvas.drawLine(
-      Offset(size.width * 0.5, size.height * 0.2),
-      Offset(size.width * 0.5, size.height * 0.68),
-      softStroke,
-    );
+    for (final point in <Offset>[
+      Offset(size.width * 0.34, size.height * 0.36),
+      Offset(size.width * 0.46, size.height * 0.52),
+      Offset(size.width * 0.62, size.height * 0.36),
+    ]) {
+      canvas.drawCircle(point, 5, fill);
+    }
     final arrow = Path()
-      ..moveTo(size.width * 0.28, size.height * 0.4)
+      ..moveTo(size.width * 0.34, size.height * 0.36)
       ..quadraticBezierTo(
-        size.width * 0.42,
-        size.height * 0.24,
-        size.width * 0.66,
-        size.height * 0.34,
+        size.width * 0.44,
+        size.height * 0.3,
+        size.width * 0.58,
+        size.height * 0.36,
       )
-      ..lineTo(size.width * 0.6, size.height * 0.28)
-      ..moveTo(size.width * 0.66, size.height * 0.34)
-      ..lineTo(size.width * 0.56, size.height * 0.34);
-    canvas.drawPath(arrow, stroke);
-    canvas.drawCircle(Offset(size.width * 0.28, size.height * 0.4), 4, fill);
-    canvas.drawCircle(Offset(size.width * 0.66, size.height * 0.34), 4, fill);
-    canvas.drawCircle(Offset(size.width * 0.62, size.height * 0.58), 4, fill);
+      ..lineTo(size.width * 0.54, size.height * 0.32)
+      ..moveTo(size.width * 0.58, size.height * 0.36)
+      ..lineTo(size.width * 0.52, size.height * 0.39);
+    canvas.drawPath(arrow, softStroke);
   }
 
   void _paintCrown(
@@ -418,35 +527,34 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint stroke,
     Paint softStroke,
   ) {
-    final crown = Path()
-      ..moveTo(size.width * 0.2, size.height * 0.68)
-      ..lineTo(size.width * 0.3, size.height * 0.34)
-      ..lineTo(size.width * 0.46, size.height * 0.56)
+    final path = Path()
+      ..moveTo(size.width * 0.24, size.height * 0.64)
+      ..lineTo(size.width * 0.32, size.height * 0.34)
+      ..lineTo(size.width * 0.46, size.height * 0.52)
       ..lineTo(size.width * 0.54, size.height * 0.28)
-      ..lineTo(size.width * 0.7, size.height * 0.56)
-      ..lineTo(size.width * 0.8, size.height * 0.34)
-      ..lineTo(size.width * 0.86, size.height * 0.68)
+      ..lineTo(size.width * 0.66, size.height * 0.52)
+      ..lineTo(size.width * 0.76, size.height * 0.34)
+      ..lineTo(size.width * 0.82, size.height * 0.64)
       ..close();
-    canvas.drawPath(
-      crown,
-      Paint()..color = Colors.white.withValues(alpha: 0.16),
+    canvas.drawPath(path, stroke);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.26,
+          size.height * 0.62,
+          size.width * 0.5,
+          size.height * 0.1,
+        ),
+        const Radius.circular(10),
+      ),
+      fill,
     );
-    canvas.drawPath(crown, stroke);
-    canvas.drawLine(
-      Offset(size.width * 0.24, size.height * 0.74),
-      Offset(size.width * 0.82, size.height * 0.74),
-      stroke,
-    );
-    for (final offset in <Offset>[
-      Offset(size.width * 0.3, size.height * 0.3),
-      Offset(size.width * 0.54, size.height * 0.24),
-      Offset(size.width * 0.8, size.height * 0.3),
-    ]) {
-      canvas.drawCircle(offset, 5, fill);
+    for (final dx in <double>[0.32, 0.54, 0.76]) {
+      canvas.drawCircle(Offset(size.width * dx, size.height * 0.32), 4, fill);
     }
     canvas.drawLine(
-      Offset(size.width * 0.4, size.height * 0.62),
-      Offset(size.width * 0.66, size.height * 0.62),
+      Offset(size.width * 0.32, size.height * 0.48),
+      Offset(size.width * 0.76, size.height * 0.48),
       softStroke,
     );
   }
@@ -459,53 +567,62 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint softStroke,
   ) {
     final cup = Path()
-      ..moveTo(size.width * 0.34, size.height * 0.22)
-      ..lineTo(size.width * 0.66, size.height * 0.22)
+      ..moveTo(size.width * 0.34, size.height * 0.28)
+      ..lineTo(size.width * 0.66, size.height * 0.28)
       ..quadraticBezierTo(
-        size.width * 0.62,
-        size.height * 0.46,
-        size.width * 0.56,
-        size.height * 0.54,
+        size.width * 0.64,
+        size.height * 0.5,
+        size.width * 0.5,
+        size.height * 0.56,
       )
-      ..lineTo(size.width * 0.56, size.height * 0.66)
-      ..lineTo(size.width * 0.64, size.height * 0.72)
-      ..lineTo(size.width * 0.36, size.height * 0.72)
-      ..lineTo(size.width * 0.44, size.height * 0.66)
-      ..lineTo(size.width * 0.44, size.height * 0.54)
       ..quadraticBezierTo(
-        size.width * 0.38,
-        size.height * 0.46,
+        size.width * 0.36,
+        size.height * 0.5,
         size.width * 0.34,
-        size.height * 0.22,
-      )
-      ..close();
-    canvas.drawPath(cup, Paint()..color = Colors.white.withValues(alpha: 0.16));
+        size.height * 0.28,
+      );
     canvas.drawPath(cup, stroke);
+    canvas.drawLine(
+      Offset(size.width * 0.5, size.height * 0.56),
+      Offset(size.width * 0.5, size.height * 0.68),
+      stroke,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.38,
+          size.height * 0.68,
+          size.width * 0.24,
+          size.height * 0.08,
+        ),
+        const Radius.circular(8),
+      ),
+      fill,
+    );
     canvas.drawArc(
       Rect.fromLTWH(
-        size.width * 0.2,
-        size.height * 0.28,
-        size.width * 0.18,
+        size.width * 0.24,
+        size.height * 0.3,
+        size.width * 0.16,
         size.height * 0.18,
       ),
-      1.3,
-      2.6,
+      pi * 0.5,
+      pi,
       false,
       softStroke,
     );
     canvas.drawArc(
       Rect.fromLTWH(
-        size.width * 0.62,
-        size.height * 0.28,
-        size.width * 0.18,
+        size.width * 0.6,
+        size.height * 0.3,
+        size.width * 0.16,
         size.height * 0.18,
       ),
-      -0.3,
-      2.6,
+      -pi * 0.5,
+      pi,
       false,
       softStroke,
     );
-    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.44), 6, fill);
   }
 
   void _paintFireworks(
@@ -515,35 +632,421 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint stroke,
     Paint softStroke,
   ) {
-    final center = Offset(size.width * 0.5, size.height * 0.46);
-    for (final angle in <double>[0, 0.6, 1.2, 1.8, 2.4, 3.0, 3.6, 4.2, 4.8]) {
-      final end = Offset(
-        center.dx + (size.width * 0.24) * cos(angle),
-        center.dy + (size.height * 0.24) * sin(angle),
-      );
-      canvas.drawLine(center, end, stroke);
+    for (final burst in <Offset>[
+      Offset(size.width * 0.38, size.height * 0.38),
+      Offset(size.width * 0.64, size.height * 0.54),
+      Offset(size.width * 0.56, size.height * 0.3),
+    ]) {
+      for (int i = 0; i < 8; i++) {
+        final angle = (pi * 2 / 8) * i;
+        final inner = Offset(cos(angle) * 6, sin(angle) * 6);
+        final outer = Offset(cos(angle) * 16, sin(angle) * 16);
+        canvas.drawLine(
+          burst + inner,
+          burst + outer,
+          i.isEven ? stroke : softStroke,
+        );
+      }
+      canvas.drawCircle(burst, 4, fill);
     }
-    canvas.drawCircle(center, 8, fill);
-    canvas.drawCircle(
-      Offset(size.width * 0.24, size.height * 0.28),
-      5,
+  }
+
+  void _paintShield(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final path = Path()
+      ..moveTo(size.width * 0.5, size.height * 0.18)
+      ..lineTo(size.width * 0.72, size.height * 0.28)
+      ..lineTo(size.width * 0.68, size.height * 0.6)
+      ..quadraticBezierTo(
+        size.width * 0.58,
+        size.height * 0.74,
+        size.width * 0.5,
+        size.height * 0.8,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.42,
+        size.height * 0.74,
+        size.width * 0.32,
+        size.height * 0.6,
+      )
+      ..lineTo(size.width * 0.28, size.height * 0.28)
+      ..close();
+    canvas.drawPath(path, stroke);
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width * 0.5, size.height * 0.28)
+        ..lineTo(size.width * 0.5, size.height * 0.66)
+        ..moveTo(size.width * 0.38, size.height * 0.46)
+        ..lineTo(size.width * 0.62, size.height * 0.46),
       softStroke,
     );
-    canvas.drawCircle(
-      Offset(size.width * 0.76, size.height * 0.34),
-      5,
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.28), 4, fill);
+  }
+
+  void _paintGloves(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final left = Path()
+      ..moveTo(size.width * 0.34, size.height * 0.58)
+      ..lineTo(size.width * 0.3, size.height * 0.36)
+      ..quadraticBezierTo(
+        size.width * 0.34,
+        size.height * 0.22,
+        size.width * 0.42,
+        size.height * 0.34,
+      )
+      ..lineTo(size.width * 0.46, size.height * 0.58)
+      ..close();
+    final right = Path()
+      ..moveTo(size.width * 0.66, size.height * 0.58)
+      ..lineTo(size.width * 0.7, size.height * 0.36)
+      ..quadraticBezierTo(
+        size.width * 0.66,
+        size.height * 0.22,
+        size.width * 0.58,
+        size.height * 0.34,
+      )
+      ..lineTo(size.width * 0.54, size.height * 0.58)
+      ..close();
+    canvas.drawPath(left, stroke);
+    canvas.drawPath(right, stroke);
+    canvas.drawLine(
+      Offset(size.width * 0.42, size.height * 0.62),
+      Offset(size.width * 0.58, size.height * 0.62),
       softStroke,
     );
-    canvas.drawCircle(
-      Offset(size.width * 0.34, size.height * 0.74),
-      5,
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.5), 5, fill);
+  }
+
+  void _paintRadar(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final center = Offset(size.width * 0.5, size.height * 0.5);
+    for (final radius in <double>[0.12, 0.2, 0.28]) {
+      canvas.drawCircle(center, size.width * radius, softStroke);
+    }
+    canvas.drawLine(
+      Offset(size.width * 0.22, size.height * 0.5),
+      Offset(size.width * 0.78, size.height * 0.5),
+      softStroke,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.5, size.height * 0.22),
+      Offset(size.width * 0.5, size.height * 0.78),
+      softStroke,
+    );
+    final sweep = Path()
+      ..moveTo(center.dx, center.dy)
+      ..lineTo(size.width * 0.72, size.height * 0.34)
+      ..arcToPoint(
+        Offset(size.width * 0.72, size.height * 0.66),
+        radius: Radius.circular(size.width * 0.24),
+      )
+      ..close();
+    canvas.drawPath(
+      sweep,
+      Paint()..color = Colors.white.withValues(alpha: 0.16),
+    );
+    canvas.drawCircle(Offset(size.width * 0.64, size.height * 0.38), 4, fill);
+    canvas.drawCircle(center, 5, stroke);
+  }
+
+  void _paintLightning(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final bolt = Path()
+      ..moveTo(size.width * 0.56, size.height * 0.18)
+      ..lineTo(size.width * 0.38, size.height * 0.48)
+      ..lineTo(size.width * 0.5, size.height * 0.48)
+      ..lineTo(size.width * 0.44, size.height * 0.82)
+      ..lineTo(size.width * 0.66, size.height * 0.44)
+      ..lineTo(size.width * 0.54, size.height * 0.44)
+      ..close();
+    canvas.drawPath(bolt, fill);
+    canvas.drawPath(bolt, stroke);
+    canvas.drawLine(
+      Offset(size.width * 0.26, size.height * 0.64),
+      Offset(size.width * 0.74, size.height * 0.24),
       softStroke,
     );
   }
 
+  void _paintMedal(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final ribbon = Path()
+      ..moveTo(size.width * 0.38, size.height * 0.2)
+      ..lineTo(size.width * 0.48, size.height * 0.42)
+      ..lineTo(size.width * 0.44, size.height * 0.46)
+      ..lineTo(size.width * 0.32, size.height * 0.24)
+      ..close();
+    final ribbon2 = Path()
+      ..moveTo(size.width * 0.62, size.height * 0.2)
+      ..lineTo(size.width * 0.52, size.height * 0.42)
+      ..lineTo(size.width * 0.56, size.height * 0.46)
+      ..lineTo(size.width * 0.68, size.height * 0.24)
+      ..close();
+    canvas.drawPath(ribbon, fill);
+    canvas.drawPath(ribbon2, fill);
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.58),
+      size.width * 0.16,
+      stroke,
+    );
+    canvas.drawPath(
+      _starPath(Offset(size.width * 0.5, size.height * 0.58), 12, 5),
+      softStroke,
+    );
+  }
+
+  void _paintStadium(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final bowl = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.2,
+        size.height * 0.36,
+        size.width * 0.6,
+        size.height * 0.34,
+      ),
+      const Radius.circular(18),
+    );
+    canvas.drawRRect(bowl, stroke);
+    canvas.drawLine(
+      Offset(size.width * 0.28, size.height * 0.68),
+      Offset(size.width * 0.72, size.height * 0.68),
+      fill,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(
+        size.width * 0.28,
+        size.height * 0.44,
+        size.width * 0.44,
+        size.height * 0.18,
+      ),
+      pi,
+      pi,
+      false,
+      softStroke,
+    );
+    for (final dx in <double>[0.32, 0.44, 0.56, 0.68]) {
+      canvas.drawLine(
+        Offset(size.width * dx, size.height * 0.3),
+        Offset(size.width * dx, size.height * 0.42),
+        softStroke,
+      );
+    }
+  }
+
+  void _paintRocket(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final body = Path()
+      ..moveTo(size.width * 0.5, size.height * 0.18)
+      ..quadraticBezierTo(
+        size.width * 0.66,
+        size.height * 0.34,
+        size.width * 0.58,
+        size.height * 0.62,
+      )
+      ..lineTo(size.width * 0.42, size.height * 0.62)
+      ..quadraticBezierTo(
+        size.width * 0.34,
+        size.height * 0.34,
+        size.width * 0.5,
+        size.height * 0.18,
+      )
+      ..close();
+    canvas.drawPath(body, stroke);
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.38), 6, fill);
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width * 0.42, size.height * 0.56)
+        ..lineTo(size.width * 0.32, size.height * 0.66)
+        ..lineTo(size.width * 0.4, size.height * 0.66)
+        ..moveTo(size.width * 0.58, size.height * 0.56)
+        ..lineTo(size.width * 0.68, size.height * 0.66)
+        ..lineTo(size.width * 0.6, size.height * 0.66)
+        ..moveTo(size.width * 0.46, size.height * 0.62)
+        ..lineTo(size.width * 0.42, size.height * 0.8)
+        ..lineTo(size.width * 0.5, size.height * 0.72)
+        ..lineTo(size.width * 0.58, size.height * 0.8)
+        ..lineTo(size.width * 0.54, size.height * 0.62),
+      softStroke,
+    );
+  }
+
+  void _paintStar(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final star = _starPath(
+      Offset(size.width * 0.5, size.height * 0.5),
+      size.width * 0.22,
+      5,
+    );
+    canvas.drawPath(star, fill);
+    canvas.drawPath(star, stroke);
+    for (final offset in <Offset>[
+      Offset(size.width * 0.28, size.height * 0.28),
+      Offset(size.width * 0.72, size.height * 0.34),
+      Offset(size.width * 0.66, size.height * 0.76),
+    ]) {
+      canvas.drawCircle(offset, 3.5, fill);
+    }
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: Offset(size.width * 0.5, size.height * 0.5),
+        radius: size.width * 0.34,
+      ),
+      pi * 0.15,
+      pi * 0.8,
+      false,
+      softStroke,
+    );
+  }
+
+  void _paintGift(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    final box = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.28,
+        size.height * 0.38,
+        size.width * 0.44,
+        size.height * 0.3,
+      ),
+      const Radius.circular(14),
+    );
+    canvas.drawRRect(box, stroke);
+    canvas.drawLine(
+      Offset(size.width * 0.5, size.height * 0.38),
+      Offset(size.width * 0.5, size.height * 0.68),
+      softStroke,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.28, size.height * 0.52),
+      Offset(size.width * 0.72, size.height * 0.52),
+      softStroke,
+    );
+    final bow = Path()
+      ..moveTo(size.width * 0.5, size.height * 0.38)
+      ..quadraticBezierTo(
+        size.width * 0.4,
+        size.height * 0.24,
+        size.width * 0.34,
+        size.height * 0.38,
+      )
+      ..moveTo(size.width * 0.5, size.height * 0.38)
+      ..quadraticBezierTo(
+        size.width * 0.6,
+        size.height * 0.24,
+        size.width * 0.66,
+        size.height * 0.38,
+      );
+    canvas.drawPath(bow, stroke);
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.38), 4, fill);
+  }
+
+  void _paintGalaxy(
+    Canvas canvas,
+    Size size,
+    Paint fill,
+    Paint stroke,
+    Paint softStroke,
+  ) {
+    canvas.drawArc(
+      Rect.fromLTWH(
+        size.width * 0.18,
+        size.height * 0.28,
+        size.width * 0.64,
+        size.height * 0.34,
+      ),
+      pi * 0.12,
+      pi * 1.62,
+      false,
+      stroke,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(
+        size.width * 0.28,
+        size.height * 0.18,
+        size.width * 0.44,
+        size.height * 0.5,
+      ),
+      -pi * 0.4,
+      pi * 1.52,
+      false,
+      softStroke,
+    );
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.48), 8, fill);
+    for (final point in <Offset>[
+      Offset(size.width * 0.26, size.height * 0.36),
+      Offset(size.width * 0.72, size.height * 0.3),
+      Offset(size.width * 0.66, size.height * 0.72),
+      Offset(size.width * 0.38, size.height * 0.74),
+    ]) {
+      canvas.drawCircle(point, 2.5, fill);
+    }
+  }
+
+  Path _starPath(Offset center, double radius, int points) {
+    final path = Path();
+    for (int index = 0; index < points * 2; index++) {
+      final isOuter = index.isEven;
+      final currentRadius = isOuter ? radius : radius * 0.45;
+      final angle = (-pi / 2) + (pi / points) * index;
+      final point = Offset(
+        center.dx + cos(angle) * currentRadius,
+        center.dy + sin(angle) * currentRadius,
+      );
+      if (index == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    return path..close();
+  }
+
   @override
   bool shouldRepaint(covariant PlayerLevelIllustrationPainter oldDelegate) {
-    return oldDelegate.spec.stage != spec.stage ||
-        oldDelegate.spec.colors != spec.colors;
+    return oldDelegate.spec != spec;
   }
 }

@@ -63,9 +63,11 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 const SizedBox(height: 12),
                 _XpGuideCard(isKo: isKo),
               ],
-              for (var levelIndex = 0;
-                  levelIndex < thresholds.length;
-                  levelIndex++) ...[
+              for (
+                var levelIndex = 0;
+                levelIndex < thresholds.length;
+                levelIndex++
+              ) ...[
                 const SizedBox(height: 12),
                 _LevelGuideCard(
                   level: levelIndex + 1,
@@ -81,10 +83,10 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                   onEditRewardName: rewardByLevel[levelIndex + 1] == null
                       ? null
                       : () => _editRewardName(
-                            context,
-                            rewardByLevel[levelIndex + 1]!,
-                            isKo,
-                          ),
+                          context,
+                          rewardByLevel[levelIndex + 1]!,
+                          isKo,
+                        ),
                 ),
               ],
             ],
@@ -114,10 +116,8 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   ) async {
     final saved = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => _RewardNameDialog(
-        initialValue: status.customRewardName,
-        isKo: isKo,
-      ),
+      builder: (dialogContext) =>
+          _RewardNameDialog(initialValue: status.customRewardName, isKo: isKo),
     );
     if (saved == null) return;
     await _levelService.setCustomRewardName(status.reward.level, saved);
@@ -136,10 +136,7 @@ class _RewardNameDialog extends StatefulWidget {
   final String initialValue;
   final bool isKo;
 
-  const _RewardNameDialog({
-    required this.initialValue,
-    required this.isKo,
-  });
+  const _RewardNameDialog({required this.initialValue, required this.isKo});
 
   @override
   State<_RewardNameDialog> createState() => _RewardNameDialogState();
@@ -165,32 +162,52 @@ class _RewardNameDialogState extends State<_RewardNameDialog> {
     final isKo = widget.isKo;
     return AlertDialog(
       title: Text(isKo ? '레벨 선물 입력' : 'Set level reward'),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        maxLength: 30,
-        decoration: InputDecoration(
-          labelText: isKo ? '선물 이름' : 'Reward name',
-          hintText: isKo ? '예) 새 축구 양말' : 'e.g. New football socks',
-          border: const OutlineInputBorder(),
+      content: SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              maxLength: 30,
+              decoration: InputDecoration(
+                labelText: isKo ? '선물 이름' : 'Reward name',
+                hintText: isKo ? '예) 새 축구 양말' : 'e.g. New football socks',
+                border: const OutlineInputBorder(),
+              ),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(isKo ? '취소' : 'Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(''),
+                    child: Text(isKo ? '삭제' : 'Clear'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () =>
+                        Navigator.of(context).pop(_controller.text.trim()),
+                    child: Text(isKo ? '저장' : 'Save'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        textInputAction: TextInputAction.done,
-        onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(isKo ? '취소' : 'Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(''),
-          child: Text(isKo ? '삭제' : 'Clear'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
-          child: Text(isKo ? '저장' : 'Save'),
-        ),
-      ],
     );
   }
 }
@@ -291,8 +308,8 @@ class _LevelGuideCard extends StatelessWidget {
                   maxXp == null
                       ? (isKo ? '$minXp XP 이상' : '$minXp XP+')
                       : (isKo
-                          ? '$minXp XP ~ $maxXp XP'
-                          : '$minXp XP to $maxXp XP'),
+                            ? '$minXp XP ~ $maxXp XP'
+                            : '$minXp XP to $maxXp XP'),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w600,
@@ -323,11 +340,11 @@ class _LevelGuideCard extends StatelessWidget {
                   Text(
                     customRewardName.isNotEmpty
                         ? (isKo
-                            ? '직접 입력한 레벨 선물이에요.'
-                            : 'Your custom reward for this level.')
+                              ? '직접 입력한 레벨 선물이에요.'
+                              : 'Your custom reward for this level.')
                         : (isKo
-                            ? '입력하지 않으면 빈값으로 두고 나중에 채울 수 있어요.'
-                            : 'Leave it empty for now and fill it later.'),
+                              ? '입력하지 않으면 빈값으로 두고 나중에 채울 수 있어요.'
+                              : 'Leave it empty for now and fill it later.'),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w600,
@@ -449,9 +466,9 @@ class _WhitePill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
