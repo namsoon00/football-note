@@ -22,6 +22,7 @@ class PlayerLevelGuideScreen extends StatefulWidget {
 
 class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   late final PlayerLevelService _levelService;
+  bool _showXpGuide = false;
 
   @override
   void initState() {
@@ -42,36 +43,53 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       appBar: AppBar(title: Text(isKo ? '레벨 가이드' : 'Level guide')),
       body: AppBackground(
         child: SafeArea(
-          child: ListView.separated(
+          child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-            itemCount: thresholds.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return _XpGuideCard(isKo: isKo);
-              }
-              final levelIndex = index - 1;
-              final level = levelIndex + 1;
-              final minXp = thresholds[levelIndex];
-              final maxXp = levelIndex + 1 < thresholds.length
-                  ? thresholds[levelIndex + 1] - 1
-                  : null;
-              final spec = PlayerLevelVisualSpec.fromLevel(level);
-              return _LevelGuideCard(
-                level: level,
-                minXp: minXp,
-                maxXp: maxXp,
-                isCurrent: level == widget.currentLevel,
-                rewardStatus: rewardByLevel[level],
-                isKo: isKo,
-                spec: spec,
-                onClaimReward: () => _claimReward(level, isKo),
-                onEditRewardName: rewardByLevel[level] == null
-                    ? null
-                    : () =>
-                          _editRewardName(context, rewardByLevel[level]!, isKo),
-              );
-            },
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => setState(() => _showXpGuide = !_showXpGuide),
+                icon: Icon(
+                  _showXpGuide
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+                label: Text(
+                  _showXpGuide
+                      ? (isKo ? '경험치 방법 숨기기' : 'Hide XP guide')
+                      : (isKo ? '경험치 오르는 방법 보기' : 'Show XP guide'),
+                ),
+              ),
+              if (_showXpGuide) ...[
+                const SizedBox(height: 12),
+                _XpGuideCard(isKo: isKo),
+              ],
+              for (
+                var levelIndex = 0;
+                levelIndex < thresholds.length;
+                levelIndex++
+              ) ...[
+                const SizedBox(height: 12),
+                _LevelGuideCard(
+                  level: levelIndex + 1,
+                  minXp: thresholds[levelIndex],
+                  maxXp: levelIndex + 1 < thresholds.length
+                      ? thresholds[levelIndex + 1] - 1
+                      : null,
+                  isCurrent: levelIndex + 1 == widget.currentLevel,
+                  rewardStatus: rewardByLevel[levelIndex + 1],
+                  isKo: isKo,
+                  spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
+                  onClaimReward: () => _claimReward(levelIndex + 1, isKo),
+                  onEditRewardName: rewardByLevel[levelIndex + 1] == null
+                      ? null
+                      : () => _editRewardName(
+                          context,
+                          rewardByLevel[levelIndex + 1]!,
+                          isKo,
+                        ),
+                ),
+              ],
+            ],
           ),
         ),
       ),

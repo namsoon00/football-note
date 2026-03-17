@@ -1217,31 +1217,31 @@ abstract class AppLocalizations {
   /// No description provided for @gameGuideQuickTitle.
   ///
   /// In en, this message translates to:
-  /// **'10s Quick Start'**
+  /// **'Current Rules'**
   String get gameGuideQuickTitle;
 
   /// No description provided for @gameGuideQuickLine1.
   ///
   /// In en, this message translates to:
-  /// **'Goal: increase rank score with passes and goals within time.'**
+  /// **'Goal: build rank score with passes and goals within 20 seconds.'**
   String get gameGuideQuickLine1;
 
   /// No description provided for @gameGuideQuickLine2.
   ///
   /// In en, this message translates to:
-  /// **'Control: left joystick move / hold pass button to charge power.'**
+  /// **'Control: move first, then hold and release the pass button to set pass or shot power.'**
   String get gameGuideQuickLine2;
 
   /// No description provided for @gameGuideQuickLine3.
   ///
   /// In en, this message translates to:
-  /// **'Scoring: pass +1, goal +3 (goals heavily affect rank).'**
+  /// **'Flow: level up through completed passes, then unlock a shot chance with the final pass.'**
   String get gameGuideQuickLine3;
 
   /// No description provided for @gameGuideQuickLine4.
   ///
   /// In en, this message translates to:
-  /// **'Failure: intercept/miss/no-pass-for-3s/collision cause penalties.'**
+  /// **'Round breaks can come from interceptions, passer collisions, no pass for 3s, or failed shot moments.'**
   String get gameGuideQuickLine4;
 
   /// No description provided for @gameGuideRiskTitle.
@@ -1253,25 +1253,25 @@ abstract class AppLocalizations {
   /// No description provided for @gameGuideRiskLine1.
   ///
   /// In en, this message translates to:
-  /// **'Safe pass: higher success rate, better for combo stability.'**
+  /// **'Short safe passes are better for combo rhythm and steady level gains.'**
   String get gameGuideRiskLine1;
 
   /// No description provided for @gameGuideRiskLine2.
   ///
   /// In en, this message translates to:
-  /// **'Forward pass: harder return, but faster progression when successful.'**
+  /// **'Harder passes move the play faster, but fail easily if the receiver timing is off.'**
   String get gameGuideRiskLine2;
 
   /// No description provided for @gameGuideRiskLine3.
   ///
   /// In en, this message translates to:
-  /// **'Shot timing: success increases when keeper leaves larger gaps.'**
+  /// **'For shots, hold longer and release toward open goal space away from the keeper.'**
   String get gameGuideRiskLine3;
 
   /// No description provided for @gameGuideRiskLine4.
   ///
   /// In en, this message translates to:
-  /// **'Key: switch between safe and risky choices by context.'**
+  /// **'Key: connect safely first, then finish aggressively once the lane opens.'**
   String get gameGuideRiskLine4;
 
   /// No description provided for @gameGuideFailureTitle.
@@ -1283,25 +1283,25 @@ abstract class AppLocalizations {
   /// No description provided for @gameGuideFailureLine1.
   ///
   /// In en, this message translates to:
-  /// **'Intercepted: lane too closed, re-open passing angle.'**
+  /// **'Intercepted: a ghost reached the pass lane first, so reset angle and timing.'**
   String get gameGuideFailureLine1;
 
   /// No description provided for @gameGuideFailureLine2.
   ///
   /// In en, this message translates to:
-  /// **'Too fast/slow: fine-tune power by hold duration.'**
+  /// **'Too fast/slow: hold duration did not match the receiver run.'**
   String get gameGuideFailureLine2;
 
   /// No description provided for @gameGuideFailureLine3.
   ///
   /// In en, this message translates to:
-  /// **'Shot saved: separate timing and target opposite keeper side.'**
+  /// **'Shot saved: the shot went toward the keeper instead of open goal space.'**
   String get gameGuideFailureLine3;
 
   /// No description provided for @gameGuideFailureLine4.
   ///
   /// In en, this message translates to:
-  /// **'No-pass-3s: keep quick decision rhythm to maintain flow.'**
+  /// **'No-pass-3s: make the next choice quickly or the round loses flow.'**
   String get gameGuideFailureLine4;
 
   /// No description provided for @gameGuideRankingTitle.
@@ -1313,7 +1313,7 @@ abstract class AppLocalizations {
   /// No description provided for @gameGuideRankingLine1.
   ///
   /// In en, this message translates to:
-  /// **'Rank score = (pass score x 10) + (level x 15) + (goals x 60).'**
+  /// **'Rank score = (completed passes x 10) + (level x 15) + (goals x 60).'**
   String get gameGuideRankingLine1;
 
   /// No description provided for @gameGuideRankingLine2.
@@ -1331,7 +1331,7 @@ abstract class AppLocalizations {
   /// No description provided for @gameGuideRankingLine4.
   ///
   /// In en, this message translates to:
-  /// **'Tip: goals are heavily weighted, so shot success matters most.'**
+  /// **'Tip: goals carry the biggest weight, so use passes to create a clean finish.'**
   String get gameGuideRankingLine4;
 
   /// No description provided for @gameGuideCharPacTitle.

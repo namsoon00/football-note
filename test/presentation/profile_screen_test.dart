@@ -23,8 +23,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('20개 문항으로 훈련 성향을 더 세밀하게 정리합니다.'), findsOneWidget);
-    expect(find.text('20개 문항으로 플레이 선호를 분석해 어울리는 포지션을 찾습니다.'), findsOneWidget);
+    expect(find.text('MBTI와 포지션 테스트를 별도 화면에서 볼 수 있어요.'), findsOneWidget);
+
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
 
     final mbtiStartButton = _findTestStartButton('MBTI 테스트');
     await tester.ensureVisible(mbtiStartButton);
@@ -68,6 +70,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('ENTJ · 전술 지휘형'), findsNothing);
+
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+
     expect(find.text('ENTJ · 전술 지휘형'), findsOneWidget);
     expect(find.text('전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'), findsOneWidget);
   });
@@ -92,6 +99,11 @@ void main() {
         home: ProfileScreen(optionRepository: repository),
       ),
     );
+    await tester.pumpAndSettle();
+
+    expect(find.text('저장한 응답 2개'), findsNothing);
+
+    await tester.tap(find.text('열기'));
     await tester.pumpAndSettle();
 
     expect(find.text('저장한 응답 2개'), findsOneWidget);

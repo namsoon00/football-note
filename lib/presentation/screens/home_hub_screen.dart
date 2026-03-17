@@ -808,6 +808,7 @@ class _TodayOverviewCard extends StatelessWidget {
         : (isKo
               ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
               : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
+    final motivations = _missingMotivations();
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,8 +836,112 @@ class _TodayOverviewCard extends StatelessWidget {
               );
             },
           ),
+          if (motivations.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isKo ? '오늘 비어 있는 기록' : 'Missing today',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    isKo
+                        ? '하나만 채워도 오늘 흐름이 시작됩니다.'
+                        : 'Filling just one can restart today’s flow.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 10),
+                  for (final item in motivations) ...[
+                    _MotivationLine(label: item.$1, detail: item.$2),
+                    if (item != motivations.last) const SizedBox(height: 8),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  List<(String, String)> _missingMotivations() {
+    final items = <(String, String)>[];
+    if (!data.loggedTrainingToday) {
+      items.add((
+        isKo ? '훈련기록' : 'Training log',
+        isKo
+            ? '오늘 훈련을 적으면 흐름이 남고, 첫 기록 보너스까지 챙길 수 있어요.'
+            : 'Log today’s session to keep the flow and earn the first-log bonus.',
+      ));
+    }
+    if (!data.loggedJumpRopeToday) {
+      items.add((
+        isKo ? '줄넘기' : 'Jump rope',
+        isKo
+            ? '줄넘기 횟수나 시간을 남기면 발 리듬과 민첩성 변화를 더 잘 볼 수 있어요.'
+            : 'Track count or minutes to spot foot-rhythm and agility changes.',
+      ));
+    }
+    if (!data.loggedLiftingToday) {
+      items.add((
+        isKo ? '리프팅' : 'Lifting',
+        isKo
+            ? '리프팅 기록은 터치 감각이 올라오는 날을 찾는 데 도움이 됩니다.'
+            : 'Lifting logs help you notice when first-touch feeling is improving.',
+      ));
+    }
+    return items;
+  }
+}
+
+class _MotivationLine extends StatelessWidget {
+  final String label;
+  final String detail;
+
+  const _MotivationLine({required this.label, required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            Icons.check_circle_outline,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: Theme.of(context).textTheme.bodySmall,
+              children: [
+                TextSpan(
+                  text: '$label  ',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                TextSpan(text: detail),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
