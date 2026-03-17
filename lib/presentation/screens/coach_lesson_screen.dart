@@ -389,7 +389,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ? '같은 날 훈련노트에 저장된 운세를 모아서 보여줘요.'
           : 'Saved fortunes from training notes on the same day are shown here.',
       child: SizedBox(
-        height: fortunes.length > 1 ? 220 : 180,
+        height: fortunes.length > 1 ? 300 : 260,
         child: Column(
           children: [
             Expanded(
@@ -466,7 +466,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           const SizedBox(height: 10),
           Expanded(
             child: ListView(
-              physics: const NeverScrollableScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.zero,
               children: [
                 ...fortune.bodyLines.map(
