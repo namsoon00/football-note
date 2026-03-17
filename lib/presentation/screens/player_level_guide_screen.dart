@@ -44,15 +44,19 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
         child: SafeArea(
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-            itemCount: thresholds.length,
+            itemCount: thresholds.length + 1,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              final level = index + 1;
-              final spec = PlayerLevelVisualSpec.fromLevel(level);
-              final minXp = thresholds[index];
-              final maxXp = index + 1 < thresholds.length
-                  ? thresholds[index + 1] - 1
+              if (index == 0) {
+                return _XpGuideCard(isKo: isKo);
+              }
+              final levelIndex = index - 1;
+              final level = levelIndex + 1;
+              final minXp = thresholds[levelIndex];
+              final maxXp = levelIndex + 1 < thresholds.length
+                  ? thresholds[levelIndex + 1] - 1
                   : null;
+              final spec = PlayerLevelVisualSpec.fromLevel(level);
               return _LevelGuideCard(
                 level: level,
                 minXp: minXp,
@@ -65,7 +69,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 onEditRewardName: rewardByLevel[level] == null
                     ? null
                     : () =>
-                        _editRewardName(context, rewardByLevel[level]!, isKo),
+                          _editRewardName(context, rewardByLevel[level]!, isKo),
               );
             },
           ),
@@ -80,7 +84,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     setState(() {});
     final rewardName = claim.customRewardName.trim().isNotEmpty
         ? claim.customRewardName
-        : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
+        : (isKo ? '선물' : 'Reward');
     AppFeedback.showSuccess(
       context,
       text: isKo ? '$rewardName 선물을 받았어요.' : 'Claimed $rewardName.',
@@ -168,9 +172,9 @@ class _LevelGuideCard extends StatelessWidget {
     final theme = Theme.of(context);
     final reward = rewardStatus?.reward;
     final customRewardName = rewardStatus?.customRewardName.trim() ?? '';
-    final rewardLabel = customRewardName.isNotEmpty
-        ? customRewardName
-        : (reward == null ? '' : (isKo ? reward.nameKo : reward.nameEn));
+    final nextRewardLabel = rewardStatus == null || customRewardName.isEmpty
+        ? (isKo ? '없음' : 'Empty')
+        : customRewardName;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -236,8 +240,8 @@ class _LevelGuideCard extends StatelessWidget {
                   maxXp == null
                       ? (isKo ? '$minXp XP 이상' : '$minXp XP+')
                       : (isKo
-                          ? '$minXp XP ~ $maxXp XP'
-                          : '$minXp XP to $maxXp XP'),
+                            ? '$minXp XP ~ $maxXp XP'
+                            : '$minXp XP to $maxXp XP'),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w600,
@@ -250,8 +254,8 @@ class _LevelGuideCard extends StatelessWidget {
                       Expanded(
                         child: _WhitePill(
                           label: isKo
-                              ? '선물: $rewardLabel'
-                              : 'Reward: $rewardLabel',
+                              ? '선물: $nextRewardLabel'
+                              : 'Reward: $nextRewardLabel',
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -268,16 +272,26 @@ class _LevelGuideCard extends StatelessWidget {
                   Text(
                     customRewardName.isNotEmpty
                         ? (isKo
-                            ? '직접 입력한 레벨 선물이에요.'
-                            : 'Your custom reward for this level.')
-                        : (isKo ? reward.descriptionKo : reward.descriptionEn),
+                              ? '직접 입력한 레벨 선물이에요.'
+                              : 'Your custom reward for this level.')
+                        : (isKo
+                              ? '입력하지 않으면 빈값으로 두고 나중에 채울 수 있어요.'
+                              : 'Leave it empty for now and fill it later.'),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  if (rewardStatus!.isClaimed)
+                  if (customRewardName.isEmpty)
+                    Text(
+                      isKo ? '선물을 입력하면 받을 수 있어요.' : 'Add a reward to claim it.',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  else if (rewardStatus!.isClaimed)
                     Text(
                       isKo ? '이미 받았어요' : 'Already claimed',
                       style: theme.textTheme.labelLarge?.copyWith(
@@ -320,6 +334,54 @@ class _LevelGuideCard extends StatelessWidget {
   }
 }
 
+class _XpGuideCard extends StatelessWidget {
+  final bool isKo;
+
+  const _XpGuideCard({required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <String>[
+      isKo ? '훈련 기록 저장: +20 XP' : 'Training log saved: +20 XP',
+      isKo ? '하루 첫 훈련 기록: +10 XP' : 'First log of the day: +10 XP',
+      isKo ? '계획한 날 훈련 완료: +25 XP' : 'Train on a planned day: +25 XP',
+      isKo ? '퀴즈 완료: +15 XP' : 'Quiz completion: +15 XP',
+      isKo ? '훈련 계획 생성: +10 XP' : 'Training plan created: +10 XP',
+      isKo
+          ? '3일 연속 기록: +25 XP / 7일 연속 기록: +60 XP'
+          : '3-day streak: +25 XP / 7-day streak: +60 XP',
+      isKo
+          ? '주간 3회 기록: +40 XP / 5회 기록: +70 XP'
+          : '3 logs in a week: +40 XP / 5 logs: +70 XP',
+    ];
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '경험치 오르는 방법' : 'How XP goes up',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(item, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _WhitePill extends StatelessWidget {
   final String label;
 
@@ -336,9 +398,9 @@ class _WhitePill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }

@@ -11,9 +11,9 @@ Future<void> showLevelUpCelebrationDialog(
 }) async {
   if (!award.didLevelUp) return;
   final reward = PlayerLevelService.rewardForLevel(award.after.level);
-  final hasReward = reward != null;
   final rewardName = customRewardName.trim();
   final hasCustomRewardName = rewardName.isNotEmpty;
+  final hasReward = reward != null && hasCustomRewardName;
   final theme = Theme.of(context);
   await showGeneralDialog<void>(
     context: context,
