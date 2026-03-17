@@ -43,6 +43,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   late Set<String> _selectedIds;
   String _searchQuery = '';
   _BoardListSort _sort = _BoardListSort.updatedDesc;
+  bool _showSearch = false;
 
   @override
   void initState() {
@@ -56,6 +57,16 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _showSearch = !_showSearch;
+      if (!_showSearch) {
+        _searchController.clear();
+        _searchQuery = '';
+      }
+    });
   }
 
   Future<void> _reload() async {
@@ -632,6 +643,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       appBar: AppBar(
         title: Text(listTitle),
         actions: [
+          IconButton(
+            tooltip: _showSearch
+                ? (isKo ? '검색 닫기' : 'Close search')
+                : (isKo ? '보드 검색' : 'Search boards'),
+            onPressed: _toggleSearch,
+            icon: Icon(_showSearch ? Icons.close : Icons.search),
+          ),
           if (!widget.selectionMode)
             PopupMenuButton<_BoardListSort>(
               tooltip: isKo ? '정렬' : 'Sort',
@@ -725,31 +743,33 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
             : Column(
                 key: const ValueKey('board-list-items'),
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-                    child: TextField(
-                      controller: _searchController,
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        hintText: isKo ? '보드명 검색' : 'Search board',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchQuery.isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: isKo ? '지우기' : 'Clear',
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() => _searchQuery = '');
-                                },
-                                icon: const Icon(Icons.close),
-                              ),
-                        border: const OutlineInputBorder(),
+                  if (_showSearch)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        textInputAction: TextInputAction.search,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          hintText: isKo ? '보드명 검색' : 'Search board',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: _searchQuery.isEmpty
+                              ? null
+                              : IconButton(
+                                  tooltip: isKo ? '지우기' : 'Clear',
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() => _searchQuery = '');
+                                  },
+                                  icon: const Icon(Icons.close),
+                                ),
+                          border: const OutlineInputBorder(),
+                        ),
+                        onChanged: (value) =>
+                            setState(() => _searchQuery = value.trim()),
                       ),
-                      onChanged: (value) =>
-                          setState(() => _searchQuery = value.trim()),
                     ),
-                  ),
                   Expanded(
                     child: visibleBoards.isEmpty && isFiltered
                         ? Center(
