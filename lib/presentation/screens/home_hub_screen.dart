@@ -807,6 +807,12 @@ class _TodayOverviewCard extends StatelessWidget {
     final todayStatus = data.loggedTrainingToday
         ? (isKo ? '오늘 기록 완료' : 'Today logged')
         : (isKo ? '오늘 기록 미완료' : 'Today not logged');
+    final liftingStatus = data.loggedLiftingToday
+        ? (isKo ? '리프팅 완료' : 'Lifting done')
+        : (isKo ? '리프팅 미완료' : 'Lifting pending');
+    final jumpRopeStatus = data.loggedJumpRopeToday
+        ? (isKo ? '줄넘기 완료' : 'Jump rope done')
+        : (isKo ? '줄넘기 미완료' : 'Jump rope pending');
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,6 +841,18 @@ class _TodayOverviewCard extends StatelessWidget {
                         ? Icons.check_circle_outline
                         : Icons.radio_button_unchecked,
                     label: todayStatus,
+                  ),
+                  _StatPill(
+                    icon: data.loggedLiftingToday
+                        ? Icons.fitness_center
+                        : Icons.radio_button_unchecked,
+                    label: liftingStatus,
+                  ),
+                  _StatPill(
+                    icon: data.loggedJumpRopeToday
+                        ? Icons.directions_run
+                        : Icons.radio_button_unchecked,
+                    label: jumpRopeStatus,
                   ),
                 ],
               );
