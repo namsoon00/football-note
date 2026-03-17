@@ -583,55 +583,56 @@ class AppLocalizationsKo extends AppLocalizations {
   String get gameGuideTitle => '게임 가이드';
 
   @override
-  String get gameGuideQuickTitle => '10초 요약';
+  String get gameGuideQuickTitle => '지금 규칙 요약';
 
   @override
-  String get gameGuideQuickLine1 => '목표: 제한 시간 안에 패스 성공과 골로 랭킹 점수를 올리기';
+  String get gameGuideQuickLine1 => '목표: 20초 안에 패스와 골을 이어 랭킹 점수를 높이기';
 
   @override
-  String get gameGuideQuickLine2 => '조작: 좌측 조이스틱 이동 / 우측 패스 버튼 길게 눌러 파워 조절';
+  String get gameGuideQuickLine2 => '조작: 이동 후 패스 버튼을 길게 눌러 파워를 모으고 떼면 패스 또는 슈팅';
 
   @override
-  String get gameGuideQuickLine3 => '득점: 패스 성공 +1, 골 성공 +3 (골은 랭킹 점수에 큰 영향)';
+  String get gameGuideQuickLine3 => '흐름: 패스를 이어 레벨을 올리고 마지막 패스를 성공하면 슈팅 찬스가 열림';
 
   @override
-  String get gameGuideQuickLine4 => '실패: 차단/미스/3초 무패스/충돌 시 페널티 또는 종료';
+  String get gameGuideQuickLine4 =>
+      '종료: 차단, 패서 충돌, 3초 무패스, 슈팅 실패 상황에서 라운드가 끊길 수 있음';
 
   @override
   String get gameGuideRiskTitle => '위험-보상 선택';
 
   @override
-  String get gameGuideRiskLine1 => '안전 패스: 성공률이 높아 연속 리듬 유지에 유리';
+  String get gameGuideRiskLine1 => '짧고 안정적인 패스는 콤보와 레벨 유지에 유리';
 
   @override
-  String get gameGuideRiskLine2 => '전진 패스: 리턴은 어렵지만 성공 시 전개 속도 상승';
+  String get gameGuideRiskLine2 => '강한 패스는 전개는 빠르지만 리시버 타이밍을 놓치면 실패하기 쉬움';
 
   @override
-  String get gameGuideRiskLine3 => '슈팅 타이밍: 골키퍼 빈 공간이 클 때 시도하면 성공률 상승';
+  String get gameGuideRiskLine3 => '슈팅은 골키퍼가 비운 공간을 보고 길게 눌렀다가 떼는 리듬이 중요';
 
   @override
-  String get gameGuideRiskLine4 => '핵심: 상황에 따라 안전/도전 선택을 바꿔야 고득점 가능';
+  String get gameGuideRiskLine4 => '핵심: 지금은 안전하게 잇고, 찬스가 열리면 강하게 마무리';
 
   @override
   String get gameGuideFailureTitle => '실패 원인 빠른 해석';
 
   @override
-  String get gameGuideFailureLine1 => '차단됨: 패스 각도가 닫힘 -> 바깥 각도로 재조정';
+  String get gameGuideFailureLine1 => '차단됨: 고스트가 패스 라인에 먼저 닿음 -> 각도와 타이밍 다시 잡기';
 
   @override
-  String get gameGuideFailureLine2 => '빠름/느림: 패스 버튼 누른 시간으로 파워 미세 조절';
+  String get gameGuideFailureLine2 => '빠름/느림: 버튼을 누른 시간이 리시버 속도와 맞지 않음';
 
   @override
-  String get gameGuideFailureLine3 => '슛 선방: 골키퍼 반대 공간을 노리고 타이밍 분리';
+  String get gameGuideFailureLine3 => '슛 선방: 골대 안쪽 빈 공간 대신 골키퍼 쪽으로 보냄';
 
   @override
-  String get gameGuideFailureLine4 => '3초 무패스: 템포 유지 위해 빠른 판단 루틴 필요';
+  String get gameGuideFailureLine4 => '3초 무패스: 멈추면 라운드가 끊기므로 빠르게 다음 선택하기';
 
   @override
   String get gameGuideRankingTitle => '랭킹 계산';
 
   @override
-  String get gameGuideRankingLine1 => '랭킹 점수 = (패스 점수x10) + (레벨x15) + (골x60)';
+  String get gameGuideRankingLine1 => '랭킹 점수 = (성공 패스x10) + (레벨x15) + (골x60)';
 
   @override
   String get gameGuideRankingLine2 => 'S: 320점 이상 / A: 240점 이상 / B: 170점 이상';
@@ -640,7 +641,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get gameGuideRankingLine3 => 'C: 110점 이상 / D: 110점 미만';
 
   @override
-  String get gameGuideRankingLine4 => '팁: 골 보너스 비중이 커서, 슈팅 성공이 최종 랭킹에 매우 중요';
+  String get gameGuideRankingLine4 => '팁: 골 비중이 가장 커서 패스로 찬스를 연 뒤 마무리 성공이 중요';
 
   @override
   String get gameGuideCharPacTitle => '팩맨 공격수';
