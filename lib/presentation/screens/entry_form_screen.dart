@@ -1960,10 +1960,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required PlayerLevelAward levelAward,
   }) {
     final base = isKo ? '훈련노트를 저장했어요.' : 'Training note saved.';
-    if (levelAward.gainedXp <= 0) return base;
-    final xpText = isKo
-        ? '+${levelAward.gainedXp} XP 획득'
-        : '+${levelAward.gainedXp} XP earned';
+    if (levelAward.gainedXp == 0) return base;
+    final xpText = levelAward.gainedXp > 0
+        ? (isKo
+              ? '+${levelAward.gainedXp} XP 획득'
+              : '+${levelAward.gainedXp} XP earned')
+        : (isKo
+              ? '${levelAward.gainedXp} XP 차감'
+              : '${levelAward.gainedXp} XP deducted');
     if (!levelAward.didLevelUp) {
       return '$base $xpText';
     }

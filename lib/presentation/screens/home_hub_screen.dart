@@ -20,7 +20,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/player_level_visuals.dart';
-import '../widgets/watch_cart/main_app_bar.dart';
+import '../widgets/shared_tab_header.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'player_level_guide_screen.dart';
 import 'profile_screen.dart';
@@ -128,8 +128,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Builder(
-                      builder: (context) => WatchCartAppBar(
-                        onMenuTap: () => Scaffold.of(context).openDrawer(),
+                      builder: (context) => SharedTabHeader(
+                        padding: EdgeInsets.zero,
+                        onLeadingTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
                               'profile_photo_url',
@@ -290,6 +291,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ),
       ),
     );
+    if (!mounted) return;
+    setState(() {});
   }
 
   Future<void> _openWeeklyStats(BuildContext context) async {

@@ -13,9 +13,8 @@ import '../../domain/entities/player_profile.dart';
 import '../widgets/app_background.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
-import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/app_drawer.dart';
-import '../widgets/tab_screen_title.dart';
+import '../widgets/shared_tab_header.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'average_benchmark_screen.dart';
 import 'profile_screen.dart';
@@ -197,8 +196,9 @@ class _StatsScreenState extends State<StatsScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Builder(
-            builder: (context) => WatchCartAppBar(
-              onMenuTap: () => Scaffold.of(context).openDrawer(),
+            builder: (context) => SharedTabHeader(
+              padding: EdgeInsets.zero,
+              onLeadingTap: () => Scaffold.of(context).openDrawer(),
               onNewsTap: () => _openNews(context),
               onGameTap: () => _openGame(context),
               profilePhotoSource: widget.optionRepository.getValue<String>(
@@ -208,43 +208,40 @@ class _StatsScreenState extends State<StatsScreen> {
               onProfileTap: () => _openProfile(context),
               onSettingsTap: () => _openSettings(context),
               onCoachTap: () => _openCoach(context),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TabScreenTitle(
-            title: '${l10n.statsHeadline1} ${l10n.statsHeadline2}',
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                OutlinedButton(
-                  onPressed: _setRecentWeekRange,
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(1, 38),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
+              title: '${l10n.statsHeadline1} ${l10n.statsHeadline2}',
+              titleTrailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton(
+                    onPressed: _setRecentWeekRange,
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      minimumSize: const Size(1, 38),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                    ),
+                    child: Text(isKo ? '최근 1주일' : 'Last 7 days'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => _pickRange(context),
+                    icon: const Icon(Icons.date_range_outlined, size: 18),
+                    label: Text(_rangeLabel(isKo)),
+                    style: OutlinedButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      minimumSize: const Size(1, 38),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                     ),
                   ),
-                  child: Text(isKo ? '최근 1주일' : 'Last 7 days'),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _pickRange(context),
-                  icon: const Icon(Icons.date_range_outlined, size: 18),
-                  label: Text(_rangeLabel(isKo)),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    minimumSize: const Size(1, 38),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),

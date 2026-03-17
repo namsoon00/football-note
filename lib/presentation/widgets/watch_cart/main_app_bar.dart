@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class WatchCartAppBar extends StatelessWidget {
-  final VoidCallback? onMenuTap;
+  final VoidCallback? onLeadingTap;
+  final IconData leadingIcon;
+  final String? leadingTooltip;
   final VoidCallback? onNewsTap;
   final VoidCallback? onGameTap;
   final VoidCallback? onCoachTap;
@@ -16,7 +18,9 @@ class WatchCartAppBar extends StatelessWidget {
 
   const WatchCartAppBar({
     super.key,
-    this.onMenuTap,
+    this.onLeadingTap,
+    this.leadingIcon = Icons.menu,
+    this.leadingTooltip,
     this.onNewsTap,
     this.onGameTap,
     this.onCoachTap,
@@ -28,28 +32,35 @@ class WatchCartAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final leadingButton = Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withAlpha(220),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.outline.withAlpha(120)),
+      ),
+      padding: const EdgeInsets.all(10),
+      child: Center(
+        child: leadingIcon == Icons.menu
+            ? SvgPicture.asset(
+                'assets/watch_cart/svg/menu.svg',
+                width: 18,
+                height: 18,
+                colorFilter: ColorFilter.mode(scheme.onSurface, BlendMode.srcIn),
+              )
+            : Icon(leadingIcon, size: 22, color: scheme.onSurface),
+      ),
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         InkWell(
-          onTap: onMenuTap,
+          onTap: onLeadingTap,
           borderRadius: BorderRadius.circular(10),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest.withAlpha(220),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: scheme.outline.withAlpha(120)),
-            ),
-            padding: const EdgeInsets.all(10),
-            child: SvgPicture.asset(
-              'assets/watch_cart/svg/menu.svg',
-              width: 18,
-              height: 18,
-              colorFilter: ColorFilter.mode(scheme.onSurface, BlendMode.srcIn),
-            ),
-          ),
+          child: leadingTooltip == null
+              ? leadingButton
+              : Tooltip(message: leadingTooltip!, child: leadingButton),
         ),
         Row(
           mainAxisSize: MainAxisSize.min,

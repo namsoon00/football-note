@@ -7,11 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../../domain/repositories/option_repository.dart';
-import '../widgets/watch_cart/main_app_bar.dart';
+import '../widgets/shared_tab_header.dart';
 import '../widgets/watch_cart/home_options.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
-import '../widgets/tab_screen_title.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
@@ -207,8 +206,9 @@ class _LogsScreenState extends State<LogsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Builder(
-                        builder: (context) => WatchCartAppBar(
-                          onMenuTap: () => Scaffold.of(context).openDrawer(),
+                        builder: (context) => SharedTabHeader(
+                          padding: EdgeInsets.zero,
+                          onLeadingTap: () => Scaffold.of(context).openDrawer(),
                           onNewsTap: () => _openNews(context),
                           onGameTap: () => _openGame(context),
                           profilePhotoSource:
@@ -219,12 +219,9 @@ class _LogsScreenState extends State<LogsScreen> {
                           onProfileTap: () => _openProfile(context),
                           onSettingsTap: () => _openSettings(context),
                           onCoachTap: () => _openCoach(context),
+                          title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
+                          titleTrailing: _buildLayoutToggle(),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      TabScreenTitle(
-                        title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
-                        trailing: _buildLayoutToggle(),
                       ),
                       const SizedBox(height: 12),
                       WatchCartHomeOptions(
