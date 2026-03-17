@@ -52,6 +52,7 @@ class _StatsScreenState extends State<StatsScreen> {
   late final BenchmarkService _benchmarkService;
   late DateTimeRange _selectedRange;
   int _statsTabIndex = 0;
+  bool _routePushInFlight = false;
 
   @override
   void initState() {
@@ -75,6 +76,19 @@ class _StatsScreenState extends State<StatsScreen> {
     await _benchmarkService.refreshFromExternalIfNeeded();
     if (!mounted) return;
     setState(() {});
+  }
+
+  Future<void> _pushPageSafely(Route<void> route) async {
+    if (!mounted || _routePushInFlight) return;
+    _routePushInFlight = true;
+    try {
+      await Future<void>.delayed(Duration.zero);
+      if (!mounted) return;
+      await Navigator.of(context).push(route);
+    } finally {
+      _routePushInFlight = false;
+      if (mounted) setState(() {});
+    }
   }
 
   @override
@@ -174,9 +188,8 @@ class _StatsScreenState extends State<StatsScreen> {
     final trainingEntries = filteredEntries
         .where((entry) => !entry.isMatch)
         .toList(growable: false);
-    final matchEntries = filteredEntries
-        .where((entry) => entry.isMatch)
-        .toList(growable: false);
+    final matchEntries =
+        filteredEntries.where((entry) => entry.isMatch).toList(growable: false);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -188,8 +201,7 @@ class _StatsScreenState extends State<StatsScreen> {
               onMenuTap: () => Scaffold.of(context).openDrawer(),
               onNewsTap: () => _openNews(context),
               onGameTap: () => _openGame(context),
-              profilePhotoSource:
-                  widget.optionRepository.getValue<String>(
+              profilePhotoSource: widget.optionRepository.getValue<String>(
                     'profile_photo_url',
                   ) ??
                   '',
@@ -321,9 +333,8 @@ class _StatsScreenState extends State<StatsScreen> {
             text: isKo
                 ? '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.'
                 : 'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.',
-            title: isKo
-                ? '나이/구력 정보를 입력해 주세요'
-                : 'Enter age and soccer experience',
+            title:
+                isKo ? '나이/구력 정보를 입력해 주세요' : 'Enter age and soccer experience',
             trailing: Align(
               alignment: Alignment.centerLeft,
               child: OutlinedButton.icon(
@@ -358,11 +369,11 @@ class _StatsScreenState extends State<StatsScreen> {
           showAverage: canShowAverage,
           onReferenceTap: canShowAverage
               ? () => _openAverageBenchmark(
-                  context,
-                  trainingEntries,
-                  ageYears,
-                  soccerYears,
-                )
+                    context,
+                    trainingEntries,
+                    ageYears,
+                    soccerYears,
+                  )
               : null,
         ),
         const SizedBox(height: 18),
@@ -460,12 +471,10 @@ class _StatsScreenState extends State<StatsScreen> {
   String _rangeLabel(bool isKo) {
     final start = _selectedRange.start;
     final end = _selectedRange.end;
-    final startText = isKo
-        ? '${start.month}/${start.day}'
-        : '${start.month}/${start.day}';
-    final endText = isKo
-        ? '${end.month}/${end.day}'
-        : '${end.month}/${end.day}';
+    final startText =
+        isKo ? '${start.month}/${start.day}' : '${start.month}/${start.day}';
+    final endText =
+        isKo ? '${end.month}/${end.day}' : '${end.month}/${end.day}';
     return isKo ? '$startText~$endText' : '$startText-$endText';
   }
 
@@ -501,17 +510,16 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Future<void> _openProfile(BuildContext context) async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       MaterialPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   Future<void> _openCoach(BuildContext context) async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       MaterialPageRoute(
         builder: (_) => CoachLessonScreen(
           optionRepository: widget.optionRepository,
@@ -522,11 +530,10 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   Future<void> _openNews(BuildContext context) async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       MaterialPageRoute(
         builder: (_) => NewsScreen(
           trainingService: widget.trainingService,
@@ -538,11 +545,10 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   Future<void> _openGame(BuildContext context) async {
-    await Navigator.of(context).push(
+    await _pushPageSafely(
       MaterialPageRoute(
         builder: (_) => SpaceSpeedGameScreen(
           trainingService: widget.trainingService,
@@ -553,7 +559,6 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
       ),
     );
-    if (mounted) setState(() {});
   }
 
   void _openAverageBenchmark(
@@ -600,12 +605,10 @@ String _buildPeriodAdvice({
       ? (targetSessions <= 0 ? 0.0 : (sessions / targetSessions))
       : _heuristicSessionRatio(period, sessions);
   final combined = ((ratio * 0.65) + (sessionRatio * 0.35)).clamp(0.0, 2.0);
-  final gapMinutes = showAverage
-      ? math.max(0.0, targetMinutes - minutes).round()
-      : 0;
-  final gapSessions = showAverage
-      ? math.max(0.0, targetSessions - sessions).ceil()
-      : 0;
+  final gapMinutes =
+      showAverage ? math.max(0.0, targetMinutes - minutes).round() : 0;
+  final gapSessions =
+      showAverage ? math.max(0.0, targetSessions - sessions).ceil() : 0;
   final variant = variantSeed % 3;
 
   if (combined >= 1.0) {
@@ -738,9 +741,8 @@ class _TargetGrowthChart extends StatelessWidget {
     final labels = <int, String>{};
     final workedDays = <DateTime>{};
     final dailyTarget = (target.weeklyMinutesTarget / 7).round();
-    final labelStep = dayPoints.length <= 10
-        ? 1
-        : (dayPoints.length <= 20 ? 2 : 3);
+    final labelStep =
+        dayPoints.length <= 10 ? 1 : (dayPoints.length <= 20 ? 2 : 3);
 
     for (var i = 0; i < dayPoints.length; i++) {
       final start = dayPoints[i];
@@ -761,16 +763,16 @@ class _TargetGrowthChart extends StatelessWidget {
     final workedLabel = workedDateText.isEmpty
         ? (isKo ? '운동한 날: 없음' : 'Workout days: none')
         : (isKo
-              ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
-              : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
+            ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
+            : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
     final periodDays = periodEnd.difference(periodStart).inDays + 1;
     final totalMinutes = entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
     );
     final sessions = entries.length;
-    final scaledTargetMinutes = ((target.weeklyMinutesTarget * periodDays) / 7)
-        .round();
+    final scaledTargetMinutes =
+        ((target.weeklyMinutesTarget * periodDays) / 7).round();
     final scaledTargetSessions =
         ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
     final period = _periodFromDays(periodDays);
@@ -935,9 +937,8 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           sum +
           e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
     );
-    final avgLiftPerSession = entries.isEmpty
-        ? 0
-        : (totalLifts / entries.length).round();
+    final avgLiftPerSession =
+        entries.isEmpty ? 0 : (totalLifts / entries.length).round();
     final benchmark = benchmarkService.physicalBenchmarkForAge(ageYears);
 
     return Column(
@@ -984,10 +985,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestHeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestHeight != null &&
               latestHeight - benchmark.heightCmAvg >= 0,
         ),
@@ -1004,10 +1004,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestWeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestWeight != null &&
               latestWeight - benchmark.weightKgAvg >= 0,
         ),
@@ -1025,8 +1024,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
                   isKo,
                 )
               : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+          isPositive: showAverage &&
               avgLiftPerSession - benchmark.liftsPerSessionAvg >= 0,
         ),
       ],
@@ -1198,27 +1196,23 @@ class _LiftingSummaryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                barGroups: trendEntries
-                    .asMap()
-                    .entries
-                    .map((entry) {
-                      return BarChartGroupData(
-                        x: entry.key,
-                        barRods: [
-                          BarChartRodData(
-                            toY: entry.value.value.toDouble(),
-                            width: 16,
-                            borderRadius: BorderRadius.circular(6),
-                            gradient: const LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Color(0xFF2F80ED), Color(0xFF6FCF97)],
-                            ),
-                          ),
-                        ],
-                      );
-                    })
-                    .toList(growable: false),
+                barGroups: trendEntries.asMap().entries.map((entry) {
+                  return BarChartGroupData(
+                    x: entry.key,
+                    barRods: [
+                      BarChartRodData(
+                        toY: entry.value.value.toDouble(),
+                        width: 16,
+                        borderRadius: BorderRadius.circular(6),
+                        gradient: const LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [Color(0xFF2F80ED), Color(0xFF6FCF97)],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(growable: false),
               ),
             ),
           ),
@@ -1260,8 +1254,8 @@ class _LiftingSummaryCard extends StatelessWidget {
                   Text(
                     _dateText(entry.value.date),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ],
               ),
@@ -1348,11 +1342,9 @@ class _JumpRopeSummaryCard extends StatelessWidget {
     );
     final end = DateTime(range.end.year, range.end.month, range.end.day);
     final days = <DateTime>[];
-    for (
-      var current = start;
-      !current.isAfter(end);
-      current = current.add(const Duration(days: 1))
-    ) {
+    for (var current = start;
+        !current.isAfter(end);
+        current = current.add(const Duration(days: 1))) {
       days.add(current);
     }
     final countByDay = <DateTime, int>{for (final day in days) day: 0};
@@ -1368,16 +1360,14 @@ class _JumpRopeSummaryCard extends StatelessWidget {
         .map((day) => MapEntry(day, countByDay[day] ?? 0))
         .toList(growable: false);
     final totalCount = points.fold<int>(0, (sum, item) => sum + item.value);
-    final bestCount = points.isEmpty
-        ? 0
-        : points.map((item) => item.value).reduce(math.max);
+    final bestCount =
+        points.isEmpty ? 0 : points.map((item) => item.value).reduce(math.max);
     final bestDay = points.firstWhere(
       (item) => item.value == bestCount,
       orElse: () => MapEntry(start, 0),
     );
-    final maxY = bestCount <= 0
-        ? 5.0
-        : (bestCount * 1.25).clamp(5, 1000000).toDouble();
+    final maxY =
+        bestCount <= 0 ? 5.0 : (bestCount * 1.25).clamp(5, 1000000).toDouble();
     final labelStride = math.max(1, (days.length / 6).ceil());
 
     return Column(
@@ -1536,13 +1526,13 @@ class _TrainingSummaryCard extends StatelessWidget {
     final avgIntensity = entries.isEmpty
         ? 0
         : (entries.fold<int>(0, (sum, entry) => sum + entry.intensity) /
-                  entries.length)
-              .toStringAsFixed(1);
+                entries.length)
+            .toStringAsFixed(1);
     final avgCondition = entries.isEmpty
         ? 0
         : (entries.fold<int>(0, (sum, entry) => sum + entry.mood) /
-                  entries.length)
-              .toStringAsFixed(1);
+                entries.length)
+            .toStringAsFixed(1);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1890,9 +1880,9 @@ class _SectionTitle extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.1,
-            ),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.1,
+                ),
           ),
         ),
         if (trailing != null) ...[const SizedBox(width: 8), trailing!],
@@ -1944,9 +1934,9 @@ class _CoachMessage extends StatelessWidget {
                 Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.45,
-                    fontWeight: FontWeight.w500,
-                  ),
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ],
             ),
