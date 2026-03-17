@@ -24,6 +24,16 @@ class PlayerLevelService {
     540,
     730,
     970,
+    1260,
+    1610,
+    2020,
+    2490,
+    3020,
+    3610,
+    4260,
+    4970,
+    5740,
+    6570,
   ];
 
   static List<int> get levelThresholds =>
@@ -79,6 +89,20 @@ class PlayerLevelService {
       reasons.add('plan_completed');
     }
 
+    final liftingDone = entry.liftingByPart.values.any((count) => count > 0);
+    if (!liftingDone) {
+      gainedXp -= 10;
+      reasons.add('lifting_missed');
+    }
+    final jumpRopeDone =
+        entry.jumpRopeCount > 0 ||
+        entry.jumpRopeMinutes > 0 ||
+        entry.jumpRopeNote.trim().isNotEmpty;
+    if (!jumpRopeDone) {
+      gainedXp -= 10;
+      reasons.add('jump_rope_missed');
+    }
+
     final updatedEntries = <TrainingEntry>[...existingTrainingEntries, entry];
     final streak = _calculateTrainingStreak(updatedEntries);
     final awardedStreaks = _getStringSet(awardedStreaksKey);
@@ -107,7 +131,7 @@ class PlayerLevelService {
       reasons.add('weekly_5');
     }
 
-    final nextTotal = before.totalXp + gainedXp;
+    final nextTotal = (before.totalXp + gainedXp).clamp(0, 1000000).toInt();
     await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(awardedStreaksKey, awardedStreaks.toList()..sort());
     final after = PlayerLevelState.fromXp(nextTotal);
@@ -192,6 +216,28 @@ class PlayerLevelService {
         return isKo ? '엘리트' : 'Elite';
       case 9:
         return isKo ? '매치 리더' : 'Match Leader';
+      case 10:
+        return isKo ? '하이 퍼포머' : 'High Performer';
+      case 11:
+        return isKo ? '드라이버' : 'Driver';
+      case 12:
+        return isKo ? '필드 메이커' : 'Field Maker';
+      case 13:
+        return isKo ? '컨트롤 타워' : 'Control Tower';
+      case 14:
+        return isKo ? '아이언 캡틴' : 'Iron Captain';
+      case 15:
+        return isKo ? '게임 체인저' : 'Game Changer';
+      case 16:
+        return isKo ? '세션 마스터' : 'Session Master';
+      case 17:
+        return isKo ? '에이스 코어' : 'Ace Core';
+      case 18:
+        return isKo ? '피치 아티스트' : 'Pitch Artist';
+      case 19:
+        return isKo ? '스타디움 아이콘' : 'Stadium Icon';
+      case 20:
+        return isKo ? '풋볼 선물왕' : 'Football Gift Master';
       default:
         return isKo ? '레전드 트랙' : 'Legend Track';
     }
@@ -202,6 +248,8 @@ class PlayerLevelService {
     if (level <= 4) return isKo ? '훈련 루키' : 'Training Rookie';
     if (level <= 6) return isKo ? '주전 성장기' : 'First Team Rise';
     if (level <= 8) return isKo ? '경기 리더' : 'Match Leader';
+    if (level <= 12) return isKo ? '상위 경쟁자' : 'Upper Tier';
+    if (level <= 16) return isKo ? '핵심 에이스' : 'Core Ace';
     return isKo ? '엘리트 트랙' : 'Elite Track';
   }
 

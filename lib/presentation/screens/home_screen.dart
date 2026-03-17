@@ -124,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
         localeService: widget.localeService,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
+        embeddedInHomeTab: true,
       ),
     ];
     final isKo = Localizations.localeOf(context).languageCode == 'ko';

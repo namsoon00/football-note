@@ -16,6 +16,11 @@ import '../../gen/app_localizations.dart';
 import '../models/training_board_link_codec.dart';
 import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
+import '../widgets/shared_tab_header.dart';
+import 'news_screen.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
+import 'space_speed_game_screen.dart';
 
 class CoachLessonScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -23,6 +28,7 @@ class CoachLessonScreen extends StatefulWidget {
   final LocaleService? localeService;
   final SettingsService? settingsService;
   final BackupService? driveBackupService;
+  final bool embeddedInHomeTab;
 
   const CoachLessonScreen({
     super.key,
@@ -31,6 +37,7 @@ class CoachLessonScreen extends StatefulWidget {
     this.localeService,
     this.settingsService,
     this.driveBackupService,
+    this.embeddedInHomeTab = false,
   });
 
   @override
@@ -38,41 +45,55 @@ class CoachLessonScreen extends StatefulWidget {
 }
 
 class _CoachLessonScreenState extends State<CoachLessonScreen> {
-  static const Color _starbucksGreen = Color(0xFF0F5A43);
-  static const Color _deepGreen = Color(0xFF123B2D);
-  static const Color _paper = Color(0xFFF7F1E7);
-  static const Color _paperBorder = Color(0xFFD8CBB5);
-  static const Color _coffee = Color(0xFF6E5A49);
   static const String _plansStorageKey = 'training_plans_v1';
+  static const String _diaryThemeKey = 'diary_theme_v1';
 
   final PageController _pageController = PageController();
   int _selectedDayIndex = 0;
+  late String _selectedThemeId;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   ThemeData get _theme => Theme.of(context);
   ColorScheme get _scheme => _theme.colorScheme;
   bool get _isDark => _theme.brightness == Brightness.dark;
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
+  _DiaryThemePalette get _palette => _DiaryThemePalette.fromId(_selectedThemeId);
   Color get _paperSurface => _isDark
-      ? Color.lerp(_scheme.surfaceContainerHigh, _scheme.surface, 0.38)!
-      : _paper;
-  Color get _paperEdge =>
-      _isDark ? _scheme.outline.withValues(alpha: 0.5) : _paperBorder;
-  Color get _headlineInk => _isDark ? _scheme.onSurface : _deepGreen;
-  Color get _bodyInk => _isDark ? _scheme.onSurfaceVariant : _coffee;
-  Color get _accentInk => _isDark ? _scheme.primaryFixedDim : _starbucksGreen;
+      ? Color.lerp(_palette.paper, _scheme.surface, 0.45)!
+      : _palette.paper;
+  Color get _paperEdge => _isDark
+      ? Color.lerp(_palette.paperBorder, _scheme.outline, 0.55)!
+      : _palette.paperBorder;
+  Color get _headlineInk => _isDark
+      ? Color.lerp(_palette.headlineInk, _scheme.onSurface, 0.6)!
+      : _palette.headlineInk;
+  Color get _bodyInk => _isDark
+      ? Color.lerp(_palette.bodyInk, _scheme.onSurfaceVariant, 0.55)!
+      : _palette.bodyInk;
+  Color get _accentInk => _isDark
+      ? Color.lerp(_palette.accentInk, _scheme.primary, 0.5)!
+      : _palette.accentInk;
   Color get _accentWash => _accentInk.withValues(alpha: _isDark ? 0.16 : 0.1);
   Color get _tileSurface => _isDark
       ? _scheme.surfaceContainerHighest.withValues(alpha: 0.52)
       : Colors.white.withValues(alpha: 0.58);
   Color get _notebookLine => _isDark
-      ? _scheme.outlineVariant.withValues(alpha: 0.28)
-      : const Color(0xFFC8DBF5);
-  Color get _notebookMargin =>
-      _isDark ? _scheme.error.withValues(alpha: 0.35) : const Color(0xFFE6A6A6);
+      ? Color.lerp(_palette.notebookLine, _scheme.outlineVariant, 0.5)!
+      : _palette.notebookLine;
+  Color get _notebookMargin => _isDark
+      ? Color.lerp(_palette.notebookMargin, _scheme.error, 0.4)!
+      : _palette.notebookMargin;
   Color get _holeColor => _isDark
-      ? _scheme.surface.withValues(alpha: 0.95)
-      : const Color(0xFFE6DDCF);
+      ? Color.lerp(_palette.holeColor, _scheme.surface, 0.5)!
+      : _palette.holeColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedThemeId =
+        widget.optionRepository.getValue<String>(_diaryThemeKey) ??
+        _DiaryThemePalette.notebook.id;
+  }
 
   @override
   void dispose() {
@@ -84,15 +105,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget build(BuildContext context) {
     final stream = widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+    final showBack = !widget.embeddedInHomeTab;
+    final profilePhotoSource =
+        widget.optionRepository.getValue<String>('profile_photo_url') ?? '';
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: Text(_isKo ? '다이어리' : 'Diary'),
-      ),
       body: AppBackground(
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
@@ -125,6 +142,41 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
               return Column(
                 children: [
+                  SharedTabHeader(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    onLeadingTap: showBack
+                        ? () => Navigator.of(context).maybePop()
+                        : null,
+                    leadingIcon: showBack ? Icons.arrow_back : Icons.menu,
+                    leadingTooltip: _isKo
+                        ? (showBack ? '뒤로가기' : '메뉴')
+                        : (showBack ? 'Back' : 'Menu'),
+                    onNewsTap:
+                        widget.trainingService != null &&
+                            widget.localeService != null &&
+                            widget.settingsService != null
+                        ? _openNews
+                        : null,
+                    onGameTap:
+                        widget.trainingService != null &&
+                            widget.localeService != null &&
+                            widget.settingsService != null
+                        ? _openGame
+                        : null,
+                    onProfileTap: _openProfile,
+                    onSettingsTap:
+                        widget.localeService != null &&
+                            widget.settingsService != null
+                        ? _openSettings
+                        : _openProfile,
+                    profilePhotoSource: profilePhotoSource,
+                    title: _isKo ? '다이어리' : 'Diary',
+                    titleTrailing: OutlinedButton.icon(
+                      onPressed: _showThemePicker,
+                      icon: const Icon(Icons.palette_outlined, size: 18),
+                      label: Text(_isKo ? '테마' : 'Theme'),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: _buildPagerCard(
@@ -232,6 +284,110 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               icon: const Icon(Icons.chevron_right),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showThemePicker() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final theme in _DiaryThemePalette.values)
+                ListTile(
+                  leading: Icon(
+                    theme.id == _selectedThemeId
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                  ),
+                  title: Text(_isKo ? theme.nameKo : theme.nameEn),
+                  subtitle: Text(
+                    _isKo ? theme.descriptionKo : theme.descriptionEn,
+                  ),
+                  onTap: () => Navigator.of(context).pop(theme.id),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+    if (selected == null || selected == _selectedThemeId) return;
+    await widget.optionRepository.setValue(_diaryThemeKey, selected);
+    if (!mounted) return;
+    setState(() => _selectedThemeId = selected);
+  }
+
+  Future<void> _openProfile() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProfileScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+  }
+
+  Future<void> _openSettings() async {
+    final localeService = widget.localeService;
+    final settingsService = widget.settingsService;
+    if (localeService == null || settingsService == null) {
+      return _openProfile();
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: widget.optionRepository,
+          driveBackupService: widget.driveBackupService,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openNews() async {
+    final trainingService = widget.trainingService;
+    final localeService = widget.localeService;
+    final settingsService = widget.settingsService;
+    if (trainingService == null ||
+        localeService == null ||
+        settingsService == null) {
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NewsScreen(
+          trainingService: trainingService,
+          localeService: localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: settingsService,
+          driveBackupService: widget.driveBackupService,
+          isActive: true,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openGame() async {
+    final trainingService = widget.trainingService;
+    final localeService = widget.localeService;
+    final settingsService = widget.settingsService;
+    if (trainingService == null ||
+        localeService == null ||
+        settingsService == null) {
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SpaceSpeedGameScreen(
+          trainingService: trainingService,
+          localeService: localeService,
+          optionRepository: widget.optionRepository,
+          settingsService: settingsService,
+          driveBackupService: widget.driveBackupService,
         ),
       ),
     );
@@ -832,8 +988,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   String _buildDiary(_DiaryDayData day) {
     final paragraphs = <String>[
       _isKo
-          ? '${_formatDiaryDate(day.date)}에는 ${_topPlaces(day.entries)}에서 움직였고, 하루의 중심은 ${_topFocus(day.trainingEntries)}에 맞춰졌다.'
-          : 'On ${_formatDiaryDate(day.date)}, the day unfolded around ${_topPlaces(day.entries)} with ${_topFocus(day.trainingEntries)} as the main focus.',
+          ? '${_formatDiaryDate(day.date)}의 기억은 ${_topPlaces(day.entries)}에서 천천히 몸을 풀던 장면으로 시작된다. 오늘의 중심에는 ${_topFocus(day.trainingEntries)}이(가) 놓여 있었고, 기록을 따라가다 보면 마음이 머문 곳도 자연스럽게 드러난다.'
+          : 'The memory of ${_formatDiaryDate(day.date)} begins where the body first settled into motion at ${_topPlaces(day.entries)}. ${_topFocus(day.trainingEntries)} stayed at the center of the day, and the notes quietly reveal where the mind lingered too.',
     ];
 
     if (day.plans.isNotEmpty) {
@@ -846,8 +1002,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           .join(', ');
       paragraphs.add(
         _isKo
-            ? '먼저 계획은 $planLines 순서로 잡혀 있었다.'
-            : 'The plan for the day was set as: $planLines.',
+            ? '하루를 붙들어 주던 계획은 $planLines 순서였다. 미리 적어 둔 문장들 덕분에 오늘은 허둥대기보다 천천히 방향을 확인하며 걸어갈 수 있었다.'
+            : 'The day was held together by a plan in this order: $planLines. Those lines written in advance kept the day from scattering and gave it a direction to return to.',
       );
     }
 
@@ -858,16 +1014,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
       paragraphs.add(
         _isKo
-            ? '훈련 기록은 ${day.trainingEntries.length}개, 총 $totalMinutes분이었다. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}'
-            : 'There were ${day.trainingEntries.length} training logs for $totalMinutes minutes total. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}',
+            ? '훈련은 ${day.trainingEntries.length}번, 모두 $totalMinutes분이었다. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}'
+            : 'Training appeared ${day.trainingEntries.length} times for a total of $totalMinutes minutes. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}',
       );
     }
 
     if (day.matchEntries.isNotEmpty) {
       paragraphs.add(
         _isKo
-            ? '실전에서는 ${day.matchEntries.map(_matchDiarySentence).join(' ')}'
-            : 'In matches, ${day.matchEntries.map(_matchDiarySentence).join(' ')}',
+            ? '경기 장면으로 넘어가면 ${day.matchEntries.map(_matchDiarySentence).join(' ')}'
+            : 'When the day moves into match scenes, ${day.matchEntries.map(_matchDiarySentence).join(' ')}',
       );
     }
 
@@ -883,8 +1039,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
     paragraphs.add(
       _isKo
-          ? '오늘 남긴 메모를 다시 읽으면 무엇이 잘됐고 무엇을 다음 목표로 가져가야 하는지 흐름이 자연스럽게 이어진다.'
-          : 'Reading the saved notes back makes the next goal easier to carry forward from what worked and what still needs work.',
+          ? '결국 오늘의 다이어리는 잘한 장면만 남기지 않는다. 흔들린 순간과 버티어 낸 순간을 함께 묶어 두면서, 내일의 목표가 왜 필요한지도 조용히 설명해 준다.'
+          : 'In the end, this diary does not keep only the clean moments. It holds the shaky ones beside the steady ones, and quietly explains why tomorrow still needs a goal.',
     );
     return paragraphs.join('\n\n');
   }
@@ -962,25 +1118,25 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final noteParts = <String>[
       if (entry.goodPoints.trim().isNotEmpty)
         _isKo
-            ? '잘된 점은 ${entry.goodPoints.trim()}'
-            : 'the good part was ${entry.goodPoints.trim()}',
+            ? '잘된 장면은 ${entry.goodPoints.trim()}'
+            : 'the part that held up was ${entry.goodPoints.trim()}',
       if (entry.improvements.trim().isNotEmpty)
         _isKo
-            ? '보완할 점은 ${entry.improvements.trim()}'
-            : 'the adjustment point was ${entry.improvements.trim()}',
+            ? '아직 손봐야 할 부분은 ${entry.improvements.trim()}'
+            : 'what still asks for attention is ${entry.improvements.trim()}',
       if (entry.nextGoal.trim().isNotEmpty)
         _isKo
-            ? '다음 목표는 ${entry.nextGoal.trim()}'
-            : 'the next goal was ${entry.nextGoal.trim()}',
+            ? '다음으로 데려가고 싶은 목표는 ${entry.nextGoal.trim()}'
+            : 'the next goal worth carrying forward is ${entry.nextGoal.trim()}',
       if (entry.notes.trim().isNotEmpty)
         _isKo
             ? '메모에는 ${entry.notes.trim()}'
-            : 'the note said ${entry.notes.trim()}',
+            : 'the note admitted ${entry.notes.trim()}',
     ];
     final suffix = noteParts.isEmpty ? '' : ' ${noteParts.join('. ')}.';
     return _isKo
-        ? '${_formatTime(entry.date)} ${entry.type} ${entry.durationMinutes}분을 ${entry.location.trim().isEmpty ? '장소 기록 없이' : entry.location.trim()}에서 진행했다.$suffix'
-        : 'At ${_formatTime(entry.date)}, ${entry.type} ran for ${entry.durationMinutes} minutes ${entry.location.trim().isEmpty ? 'without a logged location' : 'at ${entry.location.trim()}'}.$suffix';
+        ? '${_formatTime(entry.date)}에는 ${entry.location.trim().isEmpty ? '장소 기록 없이' : entry.location.trim()}에서 ${entry.type} ${entry.durationMinutes}분을 보냈다. 몸이 기억한 리듬은 그렇게 한 줄씩 쌓였다.$suffix'
+        : 'At ${_formatTime(entry.date)}, ${entry.type} stayed with the body for ${entry.durationMinutes} minutes ${entry.location.trim().isEmpty ? 'without a logged place' : 'at ${entry.location.trim()}'}.$suffix';
   }
 
   String _matchSummary(TrainingEntry entry) {
@@ -1022,8 +1178,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       if (entry.notes.trim().isNotEmpty) entry.notes.trim(),
     ];
     return _isKo
-        ? '${entry.opponentTeam.isEmpty ? '상대 팀 미기록 경기' : '${entry.opponentTeam}전'}${result == null ? '' : '은 $result'}으로 남았고${extras.isEmpty ? ' 세부 메모는 비어 있었다.' : ' ${extras.join(', ')}까지 기록했다.'}'
-        : '${entry.opponentTeam.isEmpty ? 'the opponent was not logged' : 'vs ${entry.opponentTeam}'}${result == null ? '' : ' ended $result'}${extras.isEmpty ? '.' : ' with ${extras.join(', ')} recorded.'}';
+        ? '${entry.opponentTeam.isEmpty ? '이름이 남지 않은 경기' : '${entry.opponentTeam}전'}${result == null ? '' : '은 $result'}으로 기록됐다.${extras.isEmpty ? ' 점수만큼 마음의 결도 남아 있었을 것이다.' : ' 그리고 ${extras.join(', ')}까지 빠짐없이 적어 두었다.'}'
+        : '${entry.opponentTeam.isEmpty ? 'a match with no opponent logged' : 'the match against ${entry.opponentTeam}'}${result == null ? '' : ' finished $result'}.${extras.isEmpty ? ' The score remains, even if the finer emotions were left unsaid.' : ' The notes also kept ${extras.join(', ')} close.'}';
   }
 
   String _injurySummary(TrainingEntry entry) {
@@ -1098,8 +1254,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         _isKo ? '줄넘기는 $jumpRope' : 'jump rope was $jumpRope',
     ];
     return _isKo
-        ? '회복과 보조 기록까지 보면 ${parts.join(', ')}.'
-        : 'For recovery and supporting work, ${parts.join(', ')}.';
+        ? '몸을 돌보는 기록까지 펼쳐 보면 ${parts.join(', ')}. 눈에 띄지 않는 반복이었지만 이런 장면들이 결국 하루의 밀도를 만든다.'
+        : 'When the quieter recovery work is unfolded, ${parts.join(', ')}. They are easy to overlook, but this is often where the day gathers its real density.';
   }
 
   String _liftingPartLabel(String key) {
@@ -1151,8 +1307,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
     }).join(' / ');
     return _isKo
-        ? '훈련보드에는 $boardNotes 같은 그림과 메모를 함께 남겼다.'
-        : 'The training boards kept both the visual sketch and notes such as $boardNotes.';
+        ? '훈련보드에는 $boardNotes 같은 그림과 메모가 남아 있다. 말로 다 적지 못한 움직임은 이런 도식 안에서 다시 또렷해진다.'
+        : 'The training boards kept sketches and notes such as $boardNotes. The movements that were difficult to explain in plain sentences become clear again inside those diagrams.';
   }
 
   Widget _buildBoardDiaryTile({
@@ -1498,6 +1654,95 @@ class _DiaryBoardPreviewPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _DiaryBoardPreviewPainter oldDelegate) {
     return oldDelegate.page != page;
+  }
+}
+
+class _DiaryThemePalette {
+  final String id;
+  final String nameKo;
+  final String nameEn;
+  final String descriptionKo;
+  final String descriptionEn;
+  final Color paper;
+  final Color paperBorder;
+  final Color headlineInk;
+  final Color bodyInk;
+  final Color accentInk;
+  final Color notebookLine;
+  final Color notebookMargin;
+  final Color holeColor;
+
+  const _DiaryThemePalette({
+    required this.id,
+    required this.nameKo,
+    required this.nameEn,
+    required this.descriptionKo,
+    required this.descriptionEn,
+    required this.paper,
+    required this.paperBorder,
+    required this.headlineInk,
+    required this.bodyInk,
+    required this.accentInk,
+    required this.notebookLine,
+    required this.notebookMargin,
+    required this.holeColor,
+  });
+
+  static const notebook = _DiaryThemePalette(
+    id: 'notebook',
+    nameKo: '노트북',
+    nameEn: 'Notebook',
+    descriptionKo: '차분한 종이 질감의 기본 다이어리입니다.',
+    descriptionEn: 'A calm paper-textured default diary.',
+    paper: Color(0xFFF7F1E7),
+    paperBorder: Color(0xFFD8CBB5),
+    headlineInk: Color(0xFF123B2D),
+    bodyInk: Color(0xFF6E5A49),
+    accentInk: Color(0xFF0F5A43),
+    notebookLine: Color(0xFFC8DBF5),
+    notebookMargin: Color(0xFFE6A6A6),
+    holeColor: Color(0xFFE6DDCF),
+  );
+
+  static const dusk = _DiaryThemePalette(
+    id: 'dusk',
+    nameKo: '노을',
+    nameEn: 'Dusk',
+    descriptionKo: '붉은 저녁빛처럼 따뜻한 분위기로 읽습니다.',
+    descriptionEn: 'Reads in the warmth of a red evening glow.',
+    paper: Color(0xFFF9EEE8),
+    paperBorder: Color(0xFFE2C8BE),
+    headlineInk: Color(0xFF5A2E27),
+    bodyInk: Color(0xFF7A544C),
+    accentInk: Color(0xFFB05A4A),
+    notebookLine: Color(0xFFF1D3C9),
+    notebookMargin: Color(0xFFD88A8A),
+    holeColor: Color(0xFFECDDCE),
+  );
+
+  static const ocean = _DiaryThemePalette(
+    id: 'ocean',
+    nameKo: '새벽 바다',
+    nameEn: 'Early Sea',
+    descriptionKo: '푸른 잉크처럼 또렷하고 서늘한 페이지입니다.',
+    descriptionEn: 'A crisp and cool page like blue ink.',
+    paper: Color(0xFFEFF5F7),
+    paperBorder: Color(0xFFC9D9DE),
+    headlineInk: Color(0xFF173D4A),
+    bodyInk: Color(0xFF41606A),
+    accentInk: Color(0xFF246C86),
+    notebookLine: Color(0xFFC7DCE6),
+    notebookMargin: Color(0xFF98B7C4),
+    holeColor: Color(0xFFDCE7EA),
+  );
+
+  static const values = <_DiaryThemePalette>[notebook, dusk, ocean];
+
+  static _DiaryThemePalette fromId(String id) {
+    return values.firstWhere(
+      (value) => value.id == id,
+      orElse: () => notebook,
+    );
   }
 }
 

@@ -19,10 +19,9 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
-import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
-import '../widgets/tab_screen_title.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -203,30 +202,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
               return Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Builder(
-                      builder: (context) => WatchCartAppBar(
-                        onMenuTap: () => Scaffold.of(context).openDrawer(),
-                        onNewsTap: () => _openNews(context),
-                        onGameTap: () => _openGame(context),
-                        profilePhotoSource:
-                            widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
-                        onProfileTap: () => _openProfile(context),
-                        onSettingsTap: () => _openSettings(context),
-                        onCoachTap: () => _openCoach(context),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TabScreenTitle(
+                  Builder(
+                    builder: (context) => SharedTabHeader(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      onLeadingTap: () => Scaffold.of(context).openDrawer(),
+                      onNewsTap: () => _openNews(context),
+                      onGameTap: () => _openGame(context),
+                      profilePhotoSource:
+                          widget.optionRepository.getValue<String>(
+                                'profile_photo_url',
+                              ) ??
+                              '',
+                      onProfileTap: () => _openProfile(context),
+                      onSettingsTap: () => _openSettings(context),
+                      onCoachTap: () => _openCoach(context),
                       title: AppLocalizations.of(context)!.calendar,
-                      trailing: Row(
+                      titleTrailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           OutlinedButton.icon(

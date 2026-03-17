@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/player_level_service.dart';
+import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
 void main() {
@@ -55,6 +56,35 @@ void main() {
     final claim = await service.claimRewardForLevel(2);
 
     expect(claim, isNull);
+  });
+
+  test('level thresholds now support up to level 20', () {
+    expect(PlayerLevelService.levelThresholds, hasLength(20));
+    expect(PlayerLevelState.fromXp(7000).level, 20);
+  });
+
+  test('training log deducts xp when lifting and jump rope are skipped', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 100);
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForTrainingLog(
+      entry: TrainingEntry(
+        date: DateTime(2026, 3, 18, 18),
+        durationMinutes: 40,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '운동장',
+      ),
+      existingEntries: const [],
+    );
+
+    expect(award.gainedXp, 10);
+    expect(award.reasons, containsAll(<String>['lifting_missed', 'jump_rope_missed']));
+    expect(service.loadState().totalXp, 110);
   });
 }
 
