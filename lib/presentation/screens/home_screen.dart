@@ -15,6 +15,7 @@ import '../widgets/app_page_route.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
 import 'training_board_list_screen.dart';
+import 'coach_lesson_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -100,7 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction: _pendingCalendarQuickCreateAction ??
+        quickCreateAction:
+            _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
@@ -116,7 +118,15 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         initialRange: _statsInitialRange,
       ),
+      CoachLessonScreen(
+        optionRepository: widget.optionRepository,
+        trainingService: widget.trainingService,
+        localeService: widget.localeService,
+        settingsService: widget.settingsService,
+        driveBackupService: widget.driveBackupService,
+      ),
     ];
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: NavigationBar(
@@ -145,6 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.bar_chart_outlined),
             selectedIcon: const Icon(Icons.bar_chart),
             label: AppLocalizations.of(context)!.tabStats,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.auto_stories_outlined),
+            selectedIcon: const Icon(Icons.auto_stories),
+            label: isKo ? '다이어리' : 'Diary',
           ),
         ],
       ),
@@ -253,7 +268,12 @@ class _HomeScreenState extends State<HomeScreen> {
               : 'Change period to compare trends and turn weak metrics into next training goals.',
         );
       case 4:
-        return ('Guide', 'Quick guide');
+        return (
+          isKo ? '다이어리 가이드' : 'Diary Guide',
+          isKo
+              ? '훈련, 시합, 계획, 회복 기록을 날짜별로 모아 하루 흐름을 한 번에 돌아볼 수 있어요.'
+              : 'Review training, match, plan, and recovery notes together by day in one diary flow.',
+        );
       default:
         return ('Guide', 'Quick guide');
     }
