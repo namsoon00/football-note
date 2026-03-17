@@ -175,12 +175,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
-      _improvementsController.text = entry.improvements.isNotEmpty
-          ? entry.improvements
-          : entry.notes;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
+      _improvementsController.text =
+          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -230,12 +228,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _jumpRopeController.text = entry.jumpRopeCount > 0
-          ? entry.jumpRopeCount.toString()
-          : '';
-      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
-          ? entry.jumpRopeMinutes.toString()
-          : '';
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
+      _jumpRopeMinutesController.text =
+          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
@@ -471,9 +467,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -484,9 +479,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -1235,9 +1229,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                       enabled: _jumpRopeEnabled,
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
-                                        labelText: isKo
-                                            ? '줄넘기 횟수'
-                                            : 'Jump rope count',
+                                        labelText:
+                                            isKo ? '줄넘기 횟수' : 'Jump rope count',
                                         hintText: '0',
                                       ),
                                     ),
@@ -1287,17 +1280,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           child: Text(
                             _autoSaving
                                 ? (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '자동 저장 중...'
-                                      : 'Autosaving...')
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '자동 저장 중...'
+                                    : 'Autosaving...')
                                 : (Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '수정 내용이 자동 저장됩니다.'
-                                      : 'Changes are saved automatically.'),
+                                          context,
+                                        ).languageCode ==
+                                        'ko'
+                                    ? '수정 내용이 자동 저장됩니다.'
+                                    : 'Changes are saved automatically.'),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
@@ -1348,13 +1341,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fg = active ? activeFg : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withValues(alpha: 0.12))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primary.withValues(alpha: 0.12))
         : theme.colorScheme.surfaceContainerHighest;
     final border = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withValues(alpha: 0.36))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primary.withValues(alpha: 0.36))
         : theme.colorScheme.outline.withValues(alpha: 0.28);
 
     return AppPressableScale(
@@ -1402,8 +1395,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
@@ -1590,8 +1582,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1704,8 +1695,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           initialBoardId: _linkedBoardIds.isNotEmpty
               ? _linkedBoardIds.first
               : (hasRecentBoard
-                    ? recentBoardId
-                    : (allBoards.isNotEmpty ? allBoards.first.id : null)),
+                  ? recentBoardId
+                  : (allBoards.isNotEmpty ? allBoards.first.id : null)),
         ),
       ),
     );
@@ -1778,13 +1769,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0;
       final jumpRopeMinutes = _jumpRopeEnabled
           ? (_parseInt(
-                  _jumpRopeMinutesController.text.trim(),
-                )?.clamp(0, 1000000) ??
-                0)
+                _jumpRopeMinutesController.text.trim(),
+              )?.clamp(0, 1000000) ??
+              0)
           : 0;
-      final jumpRopeNote = _jumpRopeEnabled
-          ? _jumpRopeNoteController.text.trim()
-          : '';
+      final jumpRopeNote =
+          _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -1825,15 +1815,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         history: allEntries,
         isKo: isKo,
       );
-      final fortuneComment = _fortuneEnabled
-          ? generatedFortune.fortuneText
-          : '';
-      final fortuneRecommendation = _fortuneEnabled
-          ? generatedFortune.recommendationText
-          : '';
-      final fortuneRecommendedProgram = _fortuneEnabled
-          ? generatedFortune.recommendedProgram
-          : '';
+      final shouldShowFortuneOnSave = popAfterSave && widget.entry == null;
+      final shouldPersistFortune = _fortuneEnabled || shouldShowFortuneOnSave;
+      final fortuneComment =
+          shouldPersistFortune ? generatedFortune.fortuneText : '';
+      final fortuneRecommendation =
+          shouldPersistFortune ? generatedFortune.recommendationText : '';
+      final fortuneRecommendedProgram =
+          shouldPersistFortune ? generatedFortune.recommendedProgram : '';
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -1912,7 +1901,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
-      final shouldShowFortuneOnSave = popAfterSave && widget.entry == null;
       final fortuneToShow = shouldShowFortuneOnSave
           ? generatedFortune.fortuneText
           : fortuneComment;
@@ -2005,9 +1993,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final contentBg = isDark
         ? theme.colorScheme.surface.withValues(alpha: 0.84)
         : Colors.white.withValues(alpha: 0.78);
-    final titleColor = isDark
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurface;
+    final titleColor =
+        isDark ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
     final lines = fortuneComment
         .split('\n')
         .map((line) => line.trim())
@@ -2105,9 +2092,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   Text(
                     isKo ? '오늘의 운세' : 'Today fortune',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: titleColor,
-                    ),
+                          fontWeight: FontWeight.w800,
+                          color: titleColor,
+                        ),
                   ),
                 ],
               ),
@@ -2133,8 +2120,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           ? '오늘도 멋진 플레이를 응원할게요.'
                           : 'Cheering for your best play today.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ],
                 ),

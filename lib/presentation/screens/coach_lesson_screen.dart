@@ -82,8 +82,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stream =
-        widget.trainingService?.watchEntries() ??
+    final stream = widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
 
     return Scaffold(
@@ -196,7 +195,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             child: Text(
                               selectedLabel,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleSmall
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
                                   ?.copyWith(
                                     color: _headlineInk,
                                     fontWeight: FontWeight.w900,
@@ -300,9 +301,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Text(
               _formatDiaryDate(day.date),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: _headlineInk,
-                fontWeight: FontWeight.w900,
-              ),
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w900,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -356,9 +357,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: _accentInk,
-          fontWeight: FontWeight.w800,
-        ),
+              color: _accentInk,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
@@ -468,7 +469,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
               children: [
-                ...fortune.commentLines.map(
+                ...fortune.bodyLines.map(
                   (line) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
@@ -480,6 +481,29 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     ),
                   ),
                 ),
+                if (fortune.luckyInfoLines.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _isKo ? '행운 정보' : 'Lucky info',
+                    style: _theme.textTheme.bodyMedium?.copyWith(
+                      color: _headlineInk,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ...fortune.luckyInfoLines.map(
+                    (line) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Text(
+                        line,
+                        style: _theme.textTheme.bodyMedium?.copyWith(
+                          height: 1.5,
+                          color: _headlineInk,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 if (fortune.recommendation.trim().isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -657,17 +681,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: _headlineInk,
-                              fontWeight: FontWeight.w900,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: _headlineInk,
+                                  fontWeight: FontWeight.w900,
+                                ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: _bodyInk, height: 1.45),
                         ),
                       ],
@@ -701,9 +727,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: _headlineInk,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: _headlineInk,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -764,31 +790,27 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
     }
 
-    final days =
-        dayKeys
-            .map((day) {
-              final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
-              final linkedBoards = <String, TrainingBoard>{};
-              for (final entry in dayEntries) {
-                for (final id in TrainingBoardLinkCodec.decodeBoardIds(
-                  entry.drills,
-                )) {
-                  final board = boardMap[id];
-                  if (board != null) linkedBoards[id] = board;
-                }
-              }
-              return _DiaryDayData(
-                date: day,
-                entries: [...dayEntries]
-                  ..sort((a, b) => a.date.compareTo(b.date)),
-                plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
-                  ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
-                boards: linkedBoards.values.toList(growable: false)
-                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
-              );
-            })
-            .toList(growable: false)
-          ..sort((a, b) => b.date.compareTo(a.date));
+    final days = dayKeys.map((day) {
+      final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
+      final linkedBoards = <String, TrainingBoard>{};
+      for (final entry in dayEntries) {
+        for (final id in TrainingBoardLinkCodec.decodeBoardIds(
+          entry.drills,
+        )) {
+          final board = boardMap[id];
+          if (board != null) linkedBoards[id] = board;
+        }
+      }
+      return _DiaryDayData(
+        date: day,
+        entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
+        plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
+          ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
+        boards: linkedBoards.values.toList(growable: false)
+          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+      );
+    }).toList(growable: false)
+      ..sort((a, b) => b.date.compareTo(a.date));
     return days;
   }
 
@@ -1119,18 +1141,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _buildBoardDiaryParagraph(_DiaryDayData day) {
     if (day.boards.isEmpty) return '';
-    final boardNotes = day.boards
-        .map((board) {
-          final layout = TrainingMethodLayout.decode(board.layoutJson);
-          final memo = layout.pages.isNotEmpty
-              ? layout.pages.first.methodText.trim()
-              : '';
-          if (_isKo) {
-            return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
-          }
-          return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
-        })
-        .join(' / ');
+    final boardNotes = day.boards.map((board) {
+      final layout = TrainingMethodLayout.decode(board.layoutJson);
+      final memo =
+          layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
+      if (_isKo) {
+        return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
+      }
+      return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
+    }).join(' / ');
     return _isKo
         ? '훈련보드에는 $boardNotes 같은 그림과 메모를 함께 남겼다.'
         : 'The training boards kept both the visual sketch and notes such as $boardNotes.';
@@ -1161,9 +1180,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 child: Text(
                   board.title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: _headlineInk,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1510,28 +1529,40 @@ class _DiaryDayData {
 class _DiaryFortune {
   final DateTime entryDate;
   final String program;
-  final List<String> commentLines;
+  final List<String> bodyLines;
+  final List<String> luckyInfoLines;
   final String recommendation;
 
   const _DiaryFortune({
     required this.entryDate,
     required this.program,
-    required this.commentLines,
+    required this.bodyLines,
+    required this.luckyInfoLines,
     required this.recommendation,
   });
 
   factory _DiaryFortune.fromEntry(TrainingEntry entry) {
-    final commentLines = entry.fortuneComment
+    final allLines = entry.fortuneComment
         .split('\n')
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
         .toList(growable: false);
+    final luckyInfoLines =
+        allLines.where(_isLuckyInfoLine).toList(growable: false);
+    final bodyLines = allLines
+        .where((line) => !_isLuckyInfoLine(line))
+        .toList(growable: false);
     return _DiaryFortune(
       entryDate: entry.date,
       program: entry.program,
-      commentLines: commentLines,
+      bodyLines: bodyLines,
+      luckyInfoLines: luckyInfoLines,
       recommendation: entry.fortuneRecommendation,
     );
+  }
+
+  static bool _isLuckyInfoLine(String line) {
+    return line.startsWith('행운 ') || line.startsWith('Lucky ');
   }
 }
 
@@ -1552,11 +1583,9 @@ class _DiaryPlan {
 
   factory _DiaryPlan.fromMap(Map<String, dynamic> map) {
     return _DiaryPlan(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
