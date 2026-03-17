@@ -92,11 +92,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries =
-                  (snapshot.data ?? const <TrainingEntry>[])
-                      .where((entry) => !entry.isMatch)
-                      .toList()
-                    ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
+                  .where((entry) => !entry.isMatch)
+                  .toList()
+                ..sort(TrainingEntry.compareByRecentCreated);
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardsById = TrainingBoardService(
                 widget.optionRepository,
@@ -133,9 +132,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         onMenuTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onNewsTap: _openNews,
                         onGameTap: _openGame,
                         onProfileTap: () => _openProfile(context),
@@ -156,7 +155,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         Expanded(
                           child: Text(
                             isKo ? '오늘의 홈' : 'Today Home',
-                            style: Theme.of(context).textTheme.headlineSmall
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -419,16 +420,14 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final todayEntries = entries
-        .where((entry) {
-          final day = DateTime(
-            entry.date.year,
-            entry.date.month,
-            entry.date.day,
-          );
-          return day == today;
-        })
-        .toList(growable: false);
+    final todayEntries = entries.where((entry) {
+      final day = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
+      return day == today;
+    }).toList(growable: false);
     final loggedTrainingToday = todayEntries.isNotEmpty;
     final loggedLiftingToday = todayEntries.any(
       (entry) => entry.liftingByPart.values.any((value) => value > 0),
@@ -468,9 +467,8 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.mood,
     );
-    final averageMood = weeklyEntries.isEmpty
-        ? 0
-        : totalMood / weeklyEntries.length;
+    final averageMood =
+        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
 
     String strongest;
     String focus;
@@ -496,8 +494,7 @@ class _HomeHubData {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedToday =
-        quizCompletedAt != null &&
+    final quizCompletedToday = quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
@@ -530,8 +527,7 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -561,9 +557,9 @@ class _WeeklyBadge extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
         ),
       ),
@@ -601,17 +597,17 @@ class _LevelHeroCard extends StatelessWidget {
     }
     final rewardSummary = claimableRewards.isNotEmpty
         ? (isKo
-              ? '지금 받을 선물 ${claimableRewards.length}개'
-              : '${claimableRewards.length} rewards ready')
+            ? '지금 받을 선물 ${claimableRewards.length}개'
+            : '${claimableRewards.length} rewards ready')
         : nextReward == null
-        ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
-        : nextReward.isAvailable
-        ? (isKo
-              ? '지금 선물: ${nextReward.customRewardName}'
-              : 'Reward now: ${nextReward.customRewardName}')
-        : (isKo
-              ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
-              : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
+            ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
+            : nextReward.isAvailable
+                ? (isKo
+                    ? '지금 선물: ${nextReward.customRewardName}'
+                    : 'Reward now: ${nextReward.customRewardName}')
+                : (isKo
+                    ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
+                    : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -644,26 +640,26 @@ class _LevelHeroCard extends StatelessWidget {
                     Text(
                       isKo ? '선수 레벨' : 'Player level',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.86),
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.86),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                              ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       PlayerLevelService.stageName(levelState.level, isKo),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 14),
                     ClipRRect(
@@ -683,9 +679,9 @@ class _LevelHeroCard extends StatelessWidget {
                           ? '다음 레벨까지 ${levelState.xpToNextLevel} XP'
                           : '${levelState.xpToNextLevel} XP to next level',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -693,25 +689,25 @@ class _LevelHeroCard extends StatelessWidget {
                           ? '총 ${levelState.totalXp} XP'
                           : 'Total ${levelState.totalXp} XP',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.86),
-                        fontWeight: FontWeight.w600,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.86),
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       isKo ? '탭해서 전체 레벨 보기' : 'Tap to view all levels',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       rewardSummary,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.94),
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.94),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ],
                 ),
@@ -773,17 +769,17 @@ class _LevelIllustration extends StatelessWidget {
                   Text(
                     PlayerLevelService.illustrationLabel(level, isKo),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     isKo ? '비주얼 성장 단계' : 'Visual growth tier',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.82),
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: Colors.white.withValues(alpha: 0.82),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ],
               ),
@@ -806,9 +802,11 @@ class _TodayOverviewCard extends StatelessWidget {
     final latestLabel = data.latestTrainingEntry == null
         ? (isKo ? '최근 기록 없음' : 'No recent log')
         : (isKo
-              ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
-              : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
-    final motivations = _missingMotivations();
+            ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
+            : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
+    final todayStatus = data.loggedTrainingToday
+        ? (isKo ? '오늘 기록 완료' : 'Today logged')
+        : (isKo ? '오늘 기록 미완료' : 'Today not logged');
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -832,116 +830,18 @@ class _TodayOverviewCard extends StatelessWidget {
                         : '${data.streakDays}-day streak',
                   ),
                   _StatPill(icon: Icons.history, label: latestLabel),
+                  _StatPill(
+                    icon: data.loggedTrainingToday
+                        ? Icons.check_circle_outline
+                        : Icons.radio_button_unchecked,
+                    label: todayStatus,
+                  ),
                 ],
               );
             },
           ),
-          if (motivations.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isKo ? '오늘 비어 있는 기록' : 'Missing today',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    isKo
-                        ? '하나만 채워도 오늘 흐름이 시작됩니다.'
-                        : 'Filling just one can restart today’s flow.',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 10),
-                  for (final item in motivations) ...[
-                    _MotivationLine(label: item.$1, detail: item.$2),
-                    if (item != motivations.last) const SizedBox(height: 8),
-                  ],
-                ],
-              ),
-            ),
-          ],
         ],
       ),
-    );
-  }
-
-  List<(String, String)> _missingMotivations() {
-    final items = <(String, String)>[];
-    if (!data.loggedTrainingToday) {
-      items.add((
-        isKo ? '훈련기록' : 'Training log',
-        isKo
-            ? '오늘 훈련을 적으면 흐름이 남고, 첫 기록 보너스까지 챙길 수 있어요.'
-            : 'Log today’s session to keep the flow and earn the first-log bonus.',
-      ));
-    }
-    if (!data.loggedJumpRopeToday) {
-      items.add((
-        isKo ? '줄넘기' : 'Jump rope',
-        isKo
-            ? '줄넘기 횟수나 시간을 남기면 발 리듬과 민첩성 변화를 더 잘 볼 수 있어요.'
-            : 'Track count or minutes to spot foot-rhythm and agility changes.',
-      ));
-    }
-    if (!data.loggedLiftingToday) {
-      items.add((
-        isKo ? '리프팅' : 'Lifting',
-        isKo
-            ? '리프팅 기록은 터치 감각이 올라오는 날을 찾는 데 도움이 됩니다.'
-            : 'Lifting logs help you notice when first-touch feeling is improving.',
-      ));
-    }
-    return items;
-  }
-}
-
-class _MotivationLine extends StatelessWidget {
-  final String label;
-  final String detail;
-
-  const _MotivationLine({required this.label, required this.detail});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Icon(
-            Icons.check_circle_outline,
-            size: 18,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: Theme.of(context).textTheme.bodySmall,
-              children: [
-                TextSpan(
-                  text: '$label  ',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                TextSpan(text: detail),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -1078,9 +978,9 @@ class _WeeklySummaryCard extends StatelessWidget {
                 ? '다음 포커스: ${_focusLabel(data.focusSignal, true)}'
                 : 'Next focus: ${_focusLabel(data.focusSignal, false)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -1158,8 +1058,7 @@ class _ContinueCard extends StatelessWidget {
     final hasQuizSession = quizSummary.hasActiveSession;
     final hasWrongReview = !hasQuizSession && quizSummary.pendingWrongCount > 0;
     final latestTrainingEntry = data.latestTrainingEntry;
-    final latestTrainingIsToday =
-        latestTrainingEntry != null &&
+    final latestTrainingIsToday = latestTrainingEntry != null &&
         DateTime(
               latestTrainingEntry.date.year,
               latestTrainingEntry.date.month,
@@ -1174,20 +1073,20 @@ class _ContinueCard extends StatelessWidget {
             );
     final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-              ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
-              : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
+            ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
+            : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
         : hasWrongReview
-        ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
-        : (isKo ? '새 퀴즈 시작' : 'Start quiz');
+            ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
+            : (isKo ? '새 퀴즈 시작' : 'Start quiz');
     final quizSubtitle = hasQuizSession
         ? (isKo
-              ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
-              : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
+            ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
+            : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
         : hasWrongReview
-        ? (isKo
-              ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
-              : '${quizSummary.pendingWrongCount} saved wrong answers')
-        : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
+            ? (isKo
+                ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
+                : '${quizSummary.pendingWrongCount} saved wrong answers')
+            : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
     final items = <_ContinueItemData>[
       if (latestTrainingIsToday)
         _ContinueItemData(
@@ -1223,15 +1122,15 @@ class _ContinueCard extends StatelessWidget {
           title: isKo ? '최근 훈련보드' : 'Recent training board',
           subtitle: data.latestBoard == null
               ? (isKo
-                    ? '스케치 ${data.boardCount}개'
-                    : '${data.boardCount} sketches')
+                  ? '스케치 ${data.boardCount}개'
+                  : '${data.boardCount} sketches')
               : data.latestBoardUpdatedAt == null
-              ? (isKo
-                    ? '스케치 ${data.boardCount}개'
-                    : '${data.boardCount} sketches')
-              : (isKo
-                    ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
-                    : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
+                  ? (isKo
+                      ? '스케치 ${data.boardCount}개'
+                      : '${data.boardCount} sketches')
+                  : (isKo
+                      ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
+                      : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
           buttonLabel: isKo ? '바로 수정' : 'Edit now',
           onPressed: onContinueBoard,
         ),
