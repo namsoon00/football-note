@@ -173,4 +173,10 @@ void main() {
     expect(find.text('훈련 계획'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
   });
+
+  testWidgets('캘린더 상단바는 홈과 동일하게 다이어리 버튼을 숨긴다', (tester) async {
+    await pumpCalendar(tester);
+
+    expect(find.byTooltip('다이어리'), findsNothing);
+  });
 }

@@ -19,7 +19,6 @@ import '../../domain/repositories/option_repository.dart';
 import 'average_benchmark_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
-import 'coach_lesson_screen.dart';
 import 'news_screen.dart';
 import 'space_speed_game_screen.dart';
 
@@ -207,7 +206,6 @@ class _StatsScreenState extends State<StatsScreen> {
                   '',
               onProfileTap: () => _openProfile(context),
               onSettingsTap: () => _openSettings(context),
-              onCoachTap: () => _openCoach(context),
               title: '${l10n.statsHeadline1} ${l10n.statsHeadline2}',
               titleTrailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -511,20 +509,6 @@ class _StatsScreenState extends State<StatsScreen> {
       MaterialPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
-      ),
-    );
-  }
-
-  Future<void> _openCoach(BuildContext context) async {
-    await _pushPageSafely(
-      MaterialPageRoute(
-        builder: (_) => CoachLessonScreen(
-          optionRepository: widget.optionRepository,
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
       ),
     );
   }

@@ -90,6 +90,7 @@ void main() {
     expect(find.text('훈련 횟수'), findsOneWidget);
     expect(find.textContaining('1회'), findsOneWidget);
     expect(find.text('전체 요약'), findsOneWidget);
+    expect(find.byTooltip('다이어리'), findsNothing);
   });
 
   testWidgets('Stats screen separates match records in match tab', (

@@ -84,6 +84,7 @@ void main() {
     expect(find.text('기술'), findsOneWidget);
     expect(find.text('60분'), findsOneWidget);
     expect(find.text('학교 운동장'), findsOneWidget);
+    expect(find.byTooltip('다이어리'), findsNothing);
 
     await tester.tap(find.byIcon(Icons.search));
     await tester.pump();

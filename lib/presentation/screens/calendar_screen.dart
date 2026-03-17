@@ -25,7 +25,6 @@ import '../widgets/watch_cart/watch_cart_card.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
-import 'coach_lesson_screen.dart';
 import 'news_screen.dart';
 import 'space_speed_game_screen.dart';
 
@@ -215,7 +214,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               '',
                       onProfileTap: () => _openProfile(context),
                       onSettingsTap: () => _openSettings(context),
-                      onCoachTap: () => _openCoach(context),
                       title: AppLocalizations.of(context)!.calendar,
                       titleTrailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -986,7 +984,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         onChanged: (value) => minutesPlayedText = value,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
+                          FilteringTextInputFormatter.digitsOnly,
                         ],
                         decoration: InputDecoration(
                           labelText: isKo ? '출전 시간(분)' : 'Minutes played',
@@ -1028,21 +1026,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               goalFocuses:
                                   editingEntry?.goalFocuses ?? const [],
                               createdAt: editingEntry?.createdAt,
-                              scoredGoals: _parseSheetInt(
-                                ourScoreText,
-                              ),
-                              concededGoals: _parseSheetInt(
-                                opponentScoreText,
-                              ),
-                              playerGoals: _parseSheetInt(
-                                playerGoalsText,
-                              ),
-                              playerAssists: _parseSheetInt(
-                                playerAssistsText,
-                              ),
-                              minutesPlayed: _parseSheetInt(
-                                minutesPlayedText,
-                              ),
+                              scoredGoals: _parseSheetInt(ourScoreText),
+                              concededGoals: _parseSheetInt(opponentScoreText),
+                              playerGoals: _parseSheetInt(playerGoalsText),
+                              playerAssists: _parseSheetInt(playerAssistsText),
+                              minutesPlayed: _parseSheetInt(minutesPlayedText),
                               matchLocation: location.trim(),
                             ),
                           );
@@ -1297,21 +1285,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
       MaterialPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
-      ),
-    );
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _openCoach(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CoachLessonScreen(
-          optionRepository: widget.optionRepository,
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
       ),
     );
     if (mounted) setState(() {});

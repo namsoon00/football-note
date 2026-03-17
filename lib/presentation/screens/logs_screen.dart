@@ -28,7 +28,6 @@ import '../widgets/app_page_route.dart';
 import '../theme/app_motion.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
-import 'coach_lesson_screen.dart';
 import 'training_board_list_screen.dart';
 import 'news_screen.dart';
 import 'space_speed_game_screen.dart';
@@ -218,7 +217,6 @@ class _LogsScreenState extends State<LogsScreen> {
                                   '',
                           onProfileTap: () => _openProfile(context),
                           onSettingsTap: () => _openSettings(context),
-                          onCoachTap: () => _openCoach(context),
                           title: '${l10n.logsHeadline1} ${l10n.logsHeadline2}',
                           titleTrailing: _buildLayoutToggle(),
                         ),
@@ -889,21 +887,6 @@ class _LogsScreenState extends State<LogsScreen> {
       AppPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
-      ),
-    );
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _openCoach(BuildContext context) async {
-    await Navigator.of(context).push(
-      AppPageRoute(
-        builder: (_) => CoachLessonScreen(
-          optionRepository: widget.optionRepository,
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
       ),
     );
     if (mounted) setState(() {});

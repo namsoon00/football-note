@@ -54,38 +54,25 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   ThemeData get _theme => Theme.of(context);
-  ColorScheme get _scheme => _theme.colorScheme;
   bool get _isDark => _theme.brightness == Brightness.dark;
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
-  _DiaryThemePalette get _palette => _DiaryThemePalette.fromId(_selectedThemeId);
-  Color get _paperSurface => _isDark
-      ? Color.lerp(_palette.paper, _scheme.surface, 0.45)!
-      : _palette.paper;
-  Color get _paperEdge => _isDark
-      ? Color.lerp(_palette.paperBorder, _scheme.outline, 0.55)!
-      : _palette.paperBorder;
-  Color get _headlineInk => _isDark
-      ? Color.lerp(_palette.headlineInk, _scheme.onSurface, 0.6)!
-      : _palette.headlineInk;
-  Color get _bodyInk => _isDark
-      ? Color.lerp(_palette.bodyInk, _scheme.onSurfaceVariant, 0.55)!
-      : _palette.bodyInk;
-  Color get _accentInk => _isDark
-      ? Color.lerp(_palette.accentInk, _scheme.primary, 0.5)!
-      : _palette.accentInk;
+  _DiaryThemePalette get _palette =>
+      _DiaryThemePalette.fromId(_selectedThemeId);
+  Color get _paperSurface => _isDark ? _palette.paperDark : _palette.paper;
+  Color get _paperEdge =>
+      _isDark ? _palette.paperBorderDark : _palette.paperBorder;
+  Color get _headlineInk =>
+      _isDark ? _palette.headlineInkDark : _palette.headlineInk;
+  Color get _bodyInk => _isDark ? _palette.bodyInkDark : _palette.bodyInk;
+  Color get _accentInk => _isDark ? _palette.accentInkDark : _palette.accentInk;
   Color get _accentWash => _accentInk.withValues(alpha: _isDark ? 0.16 : 0.1);
-  Color get _tileSurface => _isDark
-      ? _scheme.surfaceContainerHighest.withValues(alpha: 0.52)
-      : Colors.white.withValues(alpha: 0.58);
-  Color get _notebookLine => _isDark
-      ? Color.lerp(_palette.notebookLine, _scheme.outlineVariant, 0.5)!
-      : _palette.notebookLine;
-  Color get _notebookMargin => _isDark
-      ? Color.lerp(_palette.notebookMargin, _scheme.error, 0.4)!
-      : _palette.notebookMargin;
-  Color get _holeColor => _isDark
-      ? Color.lerp(_palette.holeColor, _scheme.surface, 0.5)!
-      : _palette.holeColor;
+  Color get _tileSurface =>
+      _isDark ? _palette.tileDark : Colors.white.withValues(alpha: 0.58);
+  Color get _notebookLine =>
+      _isDark ? _palette.notebookLineDark : _palette.notebookLine;
+  Color get _notebookMargin =>
+      _isDark ? _palette.notebookMarginDark : _palette.notebookMargin;
+  Color get _holeColor => _isDark ? _palette.holeColorDark : _palette.holeColor;
 
   @override
   void initState() {
@@ -103,7 +90,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stream = widget.trainingService?.watchEntries() ??
+    final stream =
+        widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     final showBack = !widget.embeddedInHomeTab;
     final profilePhotoSource =
@@ -247,9 +235,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             child: Text(
                               selectedLabel,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
                                     color: _headlineInk,
                                     fontWeight: FontWeight.w900,
@@ -325,7 +311,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Future<void> _openProfile() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ProfileScreen(optionRepository: widget.optionRepository),
+        builder: (_) =>
+            ProfileScreen(optionRepository: widget.optionRepository),
       ),
     );
   }
@@ -457,9 +444,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Text(
               _formatDiaryDate(day.date),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w900,
-                  ),
+                color: _headlineInk,
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -513,9 +500,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: _accentInk,
-              fontWeight: FontWeight.w800,
-            ),
+          color: _accentInk,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -837,19 +824,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     children: [
                       Text(
                         title,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: _headlineInk,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: _headlineInk,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: _bodyInk, height: 1.45),
                         ),
                       ],
@@ -883,9 +868,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: _headlineInk,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: _headlineInk,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -946,27 +931,31 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
     }
 
-    final days = dayKeys.map((day) {
-      final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
-      final linkedBoards = <String, TrainingBoard>{};
-      for (final entry in dayEntries) {
-        for (final id in TrainingBoardLinkCodec.decodeBoardIds(
-          entry.drills,
-        )) {
-          final board = boardMap[id];
-          if (board != null) linkedBoards[id] = board;
-        }
-      }
-      return _DiaryDayData(
-        date: day,
-        entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
-        plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
-          ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
-        boards: linkedBoards.values.toList(growable: false)
-          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
-      );
-    }).toList(growable: false)
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final days =
+        dayKeys
+            .map((day) {
+              final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
+              final linkedBoards = <String, TrainingBoard>{};
+              for (final entry in dayEntries) {
+                for (final id in TrainingBoardLinkCodec.decodeBoardIds(
+                  entry.drills,
+                )) {
+                  final board = boardMap[id];
+                  if (board != null) linkedBoards[id] = board;
+                }
+              }
+              return _DiaryDayData(
+                date: day,
+                entries: [...dayEntries]
+                  ..sort((a, b) => a.date.compareTo(b.date)),
+                plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
+                  ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
+                boards: linkedBoards.values.toList(growable: false)
+                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+              );
+            })
+            .toList(growable: false)
+          ..sort((a, b) => b.date.compareTo(a.date));
     return days;
   }
 
@@ -1297,15 +1286,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _buildBoardDiaryParagraph(_DiaryDayData day) {
     if (day.boards.isEmpty) return '';
-    final boardNotes = day.boards.map((board) {
-      final layout = TrainingMethodLayout.decode(board.layoutJson);
-      final memo =
-          layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
-      if (_isKo) {
-        return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
-      }
-      return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
-    }).join(' / ');
+    final boardNotes = day.boards
+        .map((board) {
+          final layout = TrainingMethodLayout.decode(board.layoutJson);
+          final memo = layout.pages.isNotEmpty
+              ? layout.pages.first.methodText.trim()
+              : '';
+          if (_isKo) {
+            return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
+          }
+          return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
+        })
+        .join(' / ');
     return _isKo
         ? '훈련보드에는 $boardNotes 같은 그림과 메모가 남아 있다. 말로 다 적지 못한 움직임은 이런 도식 안에서 다시 또렷해진다.'
         : 'The training boards kept sketches and notes such as $boardNotes. The movements that were difficult to explain in plain sentences become clear again inside those diagrams.';
@@ -1336,9 +1328,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 child: Text(
                   board.title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: _headlineInk,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1665,12 +1657,21 @@ class _DiaryThemePalette {
   final String descriptionEn;
   final Color paper;
   final Color paperBorder;
+  final Color paperDark;
+  final Color paperBorderDark;
   final Color headlineInk;
   final Color bodyInk;
   final Color accentInk;
+  final Color headlineInkDark;
+  final Color bodyInkDark;
+  final Color accentInkDark;
   final Color notebookLine;
   final Color notebookMargin;
   final Color holeColor;
+  final Color notebookLineDark;
+  final Color notebookMarginDark;
+  final Color holeColorDark;
+  final Color tileDark;
 
   const _DiaryThemePalette({
     required this.id,
@@ -1680,12 +1681,21 @@ class _DiaryThemePalette {
     required this.descriptionEn,
     required this.paper,
     required this.paperBorder,
+    required this.paperDark,
+    required this.paperBorderDark,
     required this.headlineInk,
     required this.bodyInk,
     required this.accentInk,
+    required this.headlineInkDark,
+    required this.bodyInkDark,
+    required this.accentInkDark,
     required this.notebookLine,
     required this.notebookMargin,
     required this.holeColor,
+    required this.notebookLineDark,
+    required this.notebookMarginDark,
+    required this.holeColorDark,
+    required this.tileDark,
   });
 
   static const notebook = _DiaryThemePalette(
@@ -1696,12 +1706,21 @@ class _DiaryThemePalette {
     descriptionEn: 'A calm paper-textured default diary.',
     paper: Color(0xFFF7F1E7),
     paperBorder: Color(0xFFD8CBB5),
+    paperDark: Color(0xFF1F242A),
+    paperBorderDark: Color(0xFF48525C),
     headlineInk: Color(0xFF123B2D),
     bodyInk: Color(0xFF6E5A49),
     accentInk: Color(0xFF0F5A43),
+    headlineInkDark: Color(0xFFE8F1EA),
+    bodyInkDark: Color(0xFFC0C9C5),
+    accentInkDark: Color(0xFF82D4B5),
     notebookLine: Color(0xFFC8DBF5),
     notebookMargin: Color(0xFFE6A6A6),
     holeColor: Color(0xFFE6DDCF),
+    notebookLineDark: Color(0xFF324252),
+    notebookMarginDark: Color(0xFF855A63),
+    holeColorDark: Color(0xFF171C20),
+    tileDark: Color(0xFF283038),
   );
 
   static const dusk = _DiaryThemePalette(
@@ -1712,12 +1731,21 @@ class _DiaryThemePalette {
     descriptionEn: 'Reads in the warmth of a red evening glow.',
     paper: Color(0xFFF9EEE8),
     paperBorder: Color(0xFFE2C8BE),
+    paperDark: Color(0xFF2B2325),
+    paperBorderDark: Color(0xFF625055),
     headlineInk: Color(0xFF5A2E27),
     bodyInk: Color(0xFF7A544C),
     accentInk: Color(0xFFB05A4A),
+    headlineInkDark: Color(0xFFF7E6E0),
+    bodyInkDark: Color(0xFFD5B9B0),
+    accentInkDark: Color(0xFFFFA38C),
     notebookLine: Color(0xFFF1D3C9),
     notebookMargin: Color(0xFFD88A8A),
     holeColor: Color(0xFFECDDCE),
+    notebookLineDark: Color(0xFF574146),
+    notebookMarginDark: Color(0xFF8F6266),
+    holeColorDark: Color(0xFF21181A),
+    tileDark: Color(0xFF362B2F),
   );
 
   static const ocean = _DiaryThemePalette(
@@ -1728,21 +1756,27 @@ class _DiaryThemePalette {
     descriptionEn: 'A crisp and cool page like blue ink.',
     paper: Color(0xFFEFF5F7),
     paperBorder: Color(0xFFC9D9DE),
+    paperDark: Color(0xFF1C2830),
+    paperBorderDark: Color(0xFF445B66),
     headlineInk: Color(0xFF173D4A),
     bodyInk: Color(0xFF41606A),
     accentInk: Color(0xFF246C86),
+    headlineInkDark: Color(0xFFE5F1F6),
+    bodyInkDark: Color(0xFFBCD1D8),
+    accentInkDark: Color(0xFF76C9E6),
     notebookLine: Color(0xFFC7DCE6),
     notebookMargin: Color(0xFF98B7C4),
     holeColor: Color(0xFFDCE7EA),
+    notebookLineDark: Color(0xFF31434C),
+    notebookMarginDark: Color(0xFF4E6672),
+    holeColorDark: Color(0xFF131A1F),
+    tileDark: Color(0xFF24333C),
   );
 
   static const values = <_DiaryThemePalette>[notebook, dusk, ocean];
 
   static _DiaryThemePalette fromId(String id) {
-    return values.firstWhere(
-      (value) => value.id == id,
-      orElse: () => notebook,
-    );
+    return values.firstWhere((value) => value.id == id, orElse: () => notebook);
   }
 }
 
@@ -1792,8 +1826,9 @@ class _DiaryFortune {
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
         .toList(growable: false);
-    final luckyInfoLines =
-        allLines.where(_isLuckyInfoLine).toList(growable: false);
+    final luckyInfoLines = allLines
+        .where(_isLuckyInfoLine)
+        .toList(growable: false);
     final bodyLines = allLines
         .where((line) => !_isLuckyInfoLine(line))
         .toList(growable: false);
@@ -1828,9 +1863,11 @@ class _DiaryPlan {
 
   factory _DiaryPlan.fromMap(Map<String, dynamic> map) {
     return _DiaryPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,

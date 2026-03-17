@@ -63,29 +63,44 @@ void main() {
     expect(PlayerLevelState.fromXp(7000).level, 20);
   });
 
-  test('training log deducts xp when lifting and jump rope are skipped', () async {
-    final repository = _MemoryOptionRepository()
-      ..seed(PlayerLevelService.totalXpKey, 100);
-    final service = PlayerLevelService(repository);
+  test('illustration labels are unique through level 20', () {
+    final labels = <String>{
+      for (var level = 1; level <= 20; level++)
+        PlayerLevelService.illustrationLabel(level, true),
+    };
 
-    final award = await service.awardForTrainingLog(
-      entry: TrainingEntry(
-        date: DateTime(2026, 3, 18, 18),
-        durationMinutes: 40,
-        intensity: 3,
-        type: '패스',
-        mood: 3,
-        injury: false,
-        notes: '',
-        location: '운동장',
-      ),
-      existingEntries: const [],
-    );
-
-    expect(award.gainedXp, 10);
-    expect(award.reasons, containsAll(<String>['lifting_missed', 'jump_rope_missed']));
-    expect(service.loadState().totalXp, 110);
+    expect(labels, hasLength(20));
   });
+
+  test(
+    'training log deducts xp when lifting and jump rope are skipped',
+    () async {
+      final repository = _MemoryOptionRepository()
+        ..seed(PlayerLevelService.totalXpKey, 100);
+      final service = PlayerLevelService(repository);
+
+      final award = await service.awardForTrainingLog(
+        entry: TrainingEntry(
+          date: DateTime(2026, 3, 18, 18),
+          durationMinutes: 40,
+          intensity: 3,
+          type: '패스',
+          mood: 3,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+        existingEntries: const [],
+      );
+
+      expect(award.gainedXp, 10);
+      expect(
+        award.reasons,
+        containsAll(<String>['lifting_missed', 'jump_rope_missed']),
+      );
+      expect(service.loadState().totalXp, 110);
+    },
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {
