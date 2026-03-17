@@ -456,20 +456,25 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 : '+${award.gainedXp} XP earned'),
     );
     if (!award.didLevelUp) return;
+    final customRewardName = PlayerLevelService(
+      widget.optionRepository,
+    ).customRewardNameForLevel(award.after.level);
     await showLevelUpCelebrationDialog(
       context,
       award: award,
       isKo: isKo,
+      customRewardName: customRewardName,
       onClaimReward: () async {
         final claim = await PlayerLevelService(
           widget.optionRepository,
         ).claimRewardForLevel(award.after.level);
         if (!mounted || claim == null) return;
+        final rewardName = claim.customRewardName.trim().isNotEmpty
+            ? claim.customRewardName
+            : (isKo ? claim.reward.nameKo : claim.reward.nameEn);
         AppFeedback.showSuccess(
           context,
-          text: isKo
-              ? '${claim.reward.nameKo} 선물을 받았어요.'
-              : 'Claimed ${claim.reward.nameEn}.',
+          text: isKo ? '$rewardName 선물을 받았어요.' : 'Claimed $rewardName.',
         );
       },
     );

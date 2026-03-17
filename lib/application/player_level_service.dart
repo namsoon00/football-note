@@ -10,6 +10,7 @@ class PlayerLevelService {
   static const String awardedStreaksKey = 'player_awarded_streaks_v1';
   static const String claimedRewardLevelsKey =
       'player_claimed_reward_levels_v1';
+  static const String customRewardNamesKey = 'player_custom_reward_names_v1';
   static const String plansStorageKey = 'training_plans_v1';
 
   static const List<int> _levelThresholds = <int>[
@@ -267,12 +268,14 @@ class PlayerLevelService {
   List<PlayerLevelRewardStatus> loadRewardStatuses() {
     final currentLevel = loadState().level;
     final claimedLevels = _getIntSet(claimedRewardLevelsKey);
+    final customRewardNames = loadCustomRewardNames();
     return _levelRewards
         .map(
           (reward) => PlayerLevelRewardStatus(
             reward: reward,
             isClaimed: claimedLevels.contains(reward.level),
             isAvailable: currentLevel >= reward.level,
+            customRewardName: customRewardNames[reward.level] ?? '',
           ),
         )
         .toList(growable: false);
@@ -291,7 +294,42 @@ class PlayerLevelService {
       claimedRewardLevelsKey,
       claimedLevels.toList()..sort(),
     );
-    return PlayerLevelRewardClaim(reward: reward, state: state);
+    return PlayerLevelRewardClaim(
+      reward: reward,
+      state: state,
+      customRewardName: customRewardNameForLevel(level),
+    );
+  }
+
+  Map<int, String> loadCustomRewardNames() {
+    final raw = _options.getValue<Map>(customRewardNamesKey) ?? const {};
+    final map = <int, String>{};
+    raw.forEach((key, value) {
+      final level = int.tryParse(key.toString());
+      final name = value?.toString().trim() ?? '';
+      if (level != null && name.isNotEmpty) {
+        map[level] = name;
+      }
+    });
+    return map;
+  }
+
+  String customRewardNameForLevel(int level) {
+    return loadCustomRewardNames()[level] ?? '';
+  }
+
+  Future<void> setCustomRewardName(int level, String name) async {
+    final current = loadCustomRewardNames();
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) {
+      current.remove(level);
+    } else {
+      current[level] = trimmed;
+    }
+    final encoded = <String, String>{
+      for (final entry in current.entries) '${entry.key}': entry.value,
+    };
+    await _options.setValue(customRewardNamesKey, encoded);
   }
 
   Set<String> _getStringSet(String key) {
@@ -449,17 +487,24 @@ class PlayerLevelRewardStatus {
   final PlayerLevelReward reward;
   final bool isClaimed;
   final bool isAvailable;
+  final String customRewardName;
 
   const PlayerLevelRewardStatus({
     required this.reward,
     required this.isClaimed,
     required this.isAvailable,
+    this.customRewardName = '',
   });
 }
 
 class PlayerLevelRewardClaim {
   final PlayerLevelReward reward;
   final PlayerLevelState state;
+  final String customRewardName;
 
-  const PlayerLevelRewardClaim({required this.reward, required this.state});
+  const PlayerLevelRewardClaim({
+    required this.reward,
+    required this.state,
+    this.customRewardName = '',
+  });
 }

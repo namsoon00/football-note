@@ -146,4 +146,40 @@ void main() {
     expect(find.text('전체 시합 기록'), findsOneWidget);
     expect(find.textContaining('라이벌 FC'), findsOneWidget);
   });
+
+  testWidgets('Stats screen applies provided initial range label', (
+    WidgetTester tester,
+  ) async {
+    await box.clear();
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+            initialRange: DateTimeRange(
+              start: DateTime(2026, 3, 16),
+              end: DateTime(2026, 3, 22),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('3/16~3/22'), findsOneWidget);
+  });
 }

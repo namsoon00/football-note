@@ -43,6 +43,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late int _index;
   DateTime? _calendarSelectedDay;
+  DateTimeRange? _statsInitialRange;
   CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
   final Set<int> _guideCheckedInSession = <int>{};
 
@@ -73,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onQuickQuiz: _openQuiz,
         onQuickBoard: _openTrainingBoards,
         onOpenLogs: () => _onDestinationSelected(1),
-        onOpenWeeklyStats: () => _onDestinationSelected(3),
+        onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
         onEdit: _openEdit,
       ),
       LogsScreen(
@@ -113,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
         optionRepository: widget.optionRepository,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
+        initialRange: _statsInitialRange,
       ),
     ];
     return Scaffold(
@@ -154,6 +156,25 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_index == value) return;
     setState(() => _index = value);
     unawaited(_showTabGuideIfNeeded(value));
+  }
+
+  void _openWeeklyStatsForCurrentWeek() {
+    setState(() {
+      _statsInitialRange = _currentWeekRange();
+      _index = 3;
+    });
+    unawaited(_showTabGuideIfNeeded(3));
+  }
+
+  DateTimeRange _currentWeekRange() {
+    final today = DateTime.now();
+    final start = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).subtract(Duration(days: today.weekday - 1));
+    final end = start.add(const Duration(days: 6));
+    return DateTimeRange(start: start, end: end);
   }
 
   Future<void> _showTabGuideIfNeeded(int tabIndex) async {

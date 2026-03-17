@@ -18,6 +18,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../../infrastructure/rss_news_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/app_page_route.dart';
 import '../widgets/player_level_visuals.dart';
 import '../widgets/watch_cart/main_app_bar.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -28,6 +29,7 @@ import 'settings_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'news_screen.dart';
 import 'space_speed_game_screen.dart';
+import 'training_method_board_screen.dart';
 
 class HomeHubScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -177,7 +179,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       onQuickPlan: widget.onQuickPlan,
                       onQuickQuiz: widget.onQuickQuiz,
                       onQuickBoard: widget.onQuickBoard,
-                      onOpenDiary: () => _openCoach(context),
+                      onOpenWeeklyStats: () => _openWeeklyStats(context),
                     ),
                     const SizedBox(height: 12),
                     _ContinueCard(
@@ -189,8 +191,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           : () => widget.onEdit(data.latestTrainingEntry!),
                       onContinueMatch: widget.onQuickMatch,
                       onContinuePlan: widget.onQuickPlan,
-                      onContinueBoard: widget.onQuickBoard,
-                      onOpenDiary: () => _openCoach(context),
+                      onContinueBoard: data.todayCreatedBoard == null
+                          ? widget.onQuickBoard
+                          : () => _openBoard(context, data.todayCreatedBoard!),
                     ),
                     const SizedBox(height: 12),
                     _TodayCheerCard(
@@ -311,6 +314,24 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
   }
 
+  Future<void> _openWeeklyStats(BuildContext context) async {
+    widget.onOpenWeeklyStats();
+    await Future<void>.delayed(Duration.zero);
+  }
+
+  Future<void> _openBoard(BuildContext context, TrainingBoard board) async {
+    await Navigator.of(context).push<void>(
+      AppPageRoute(
+        builder: (_) => TrainingMethodBoardScreen(
+          boardTitle: board.title,
+          initialLayoutJson: board.layoutJson,
+          optionRepository: widget.optionRepository,
+          initialBoardId: board.id,
+        ),
+      ),
+    );
+  }
+
   Future<int> _loadTodayNewsCount() async {
     final service = NewsService(RssNewsRepository(widget.optionRepository));
     final channels = service.channels();
@@ -360,6 +381,7 @@ class _HomeHubData {
   final int streakDays;
   final int boardCount;
   final DateTime? latestBoardUpdatedAt;
+  final TrainingBoard? todayCreatedBoard;
   final int todayPlanCount;
   final String strongestSignal;
   final String focusSignal;
@@ -377,6 +399,7 @@ class _HomeHubData {
     required this.streakDays,
     required this.boardCount,
     required this.latestBoardUpdatedAt,
+    required this.todayCreatedBoard,
     required this.todayPlanCount,
     required this.strongestSignal,
     required this.focusSignal,
@@ -458,6 +481,15 @@ class _HomeHubData {
       );
       return day == today;
     }).length;
+    final todayCreatedBoard = boards.cast<TrainingBoard?>().firstWhere((board) {
+      if (board == null) return false;
+      final createdDay = DateTime(
+        board.createdAt.year,
+        board.createdAt.month,
+        board.createdAt.day,
+      );
+      return createdDay == today;
+    }, orElse: () => null);
 
     final totalMood = weeklyEntries.fold<int>(
       0,
@@ -503,6 +535,7 @@ class _HomeHubData {
       streakDays: streakDays,
       boardCount: boards.length,
       latestBoardUpdatedAt: boards.isEmpty ? null : boards.first.updatedAt,
+      todayCreatedBoard: todayCreatedBoard,
       todayPlanCount: todayPlanCount,
       strongestSignal: strongest,
       focusSignal: focus,
@@ -803,6 +836,11 @@ class _TodayOverviewCard extends StatelessWidget {
         : (isKo
               ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
               : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
+    final extraTags = <String>[
+      if (!data.loggedTrainingToday) isKo ? '훈련 한 번 더' : 'Training left',
+      if (!data.loggedLiftingToday) isKo ? '리프팅 남음' : 'Lifting left',
+      if (!data.loggedJumpRopeToday) isKo ? '줄넘기 남음' : 'Jump rope left',
+    ];
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -840,6 +878,10 @@ class _TodayOverviewCard extends StatelessWidget {
                         ? '스케치 ${data.boardCount}개'
                         : '${data.boardCount} sketches',
                   ),
+                  ...extraTags.map(
+                    (tag) =>
+                        _StatPill(icon: Icons.add_task_outlined, label: tag),
+                  ),
                 ],
               );
             },
@@ -857,7 +899,7 @@ class _QuickActionGrid extends StatelessWidget {
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickQuiz;
   final VoidCallback? onQuickBoard;
-  final VoidCallback onOpenDiary;
+  final VoidCallback onOpenWeeklyStats;
 
   const _QuickActionGrid({
     required this.isKo,
@@ -866,7 +908,7 @@ class _QuickActionGrid extends StatelessWidget {
     required this.onQuickPlan,
     required this.onQuickQuiz,
     required this.onQuickBoard,
-    required this.onOpenDiary,
+    required this.onOpenWeeklyStats,
   });
 
   @override
@@ -898,9 +940,9 @@ class _QuickActionGrid extends StatelessWidget {
         onTap: onQuickBoard,
       ),
       _QuickActionItem(
-        icon: Icons.auto_stories_outlined,
-        title: isKo ? '다이어리' : 'Diary',
-        onTap: onOpenDiary,
+        icon: Icons.bar_chart_outlined,
+        title: isKo ? '이번 주 통계' : 'This week stats',
+        onTap: onOpenWeeklyStats,
       ),
     ];
     return Column(
@@ -1185,7 +1227,6 @@ class _ContinueCard extends StatelessWidget {
   final VoidCallback? onContinueMatch;
   final VoidCallback? onContinuePlan;
   final VoidCallback? onContinueBoard;
-  final VoidCallback onOpenDiary;
 
   const _ContinueCard({
     required this.data,
@@ -1195,7 +1236,6 @@ class _ContinueCard extends StatelessWidget {
     required this.onContinueMatch,
     required this.onContinuePlan,
     required this.onContinueBoard,
-    required this.onOpenDiary,
   });
 
   @override
@@ -1267,23 +1307,21 @@ class _ContinueCard extends StatelessWidget {
         _ContinueItemData(
           icon: Icons.developer_board_outlined,
           title: isKo ? '훈련보드' : 'Training board',
-          subtitle: data.latestBoardUpdatedAt == null
+          subtitle: data.todayCreatedBoard != null
+              ? (isKo
+                    ? '오늘 추가한 ${data.todayCreatedBoard!.title} 바로 열기'
+                    : 'Open today’s board ${data.todayCreatedBoard!.title}')
+              : data.latestBoardUpdatedAt == null
               ? (isKo
                     ? '스케치 ${data.boardCount}개'
                     : '${data.boardCount} sketches')
               : (isKo
                     ? '최근 수정 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)} · 총 ${data.boardCount}개'
                     : 'Updated ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)} · ${data.boardCount} total'),
-          buttonLabel: isKo ? '보드 열기' : 'Open boards',
+          buttonLabel: data.todayCreatedBoard != null
+              ? (isKo ? '오늘 보드 열기' : 'Open today board')
+              : (isKo ? '보드 열기' : 'Open boards'),
           onPressed: onContinueBoard,
-        ),
-      if (latestTrainingEntry != null)
-        _ContinueItemData(
-          icon: Icons.auto_stories_outlined,
-          title: isKo ? '다이어리' : 'Diary',
-          subtitle: isKo ? '최근 기록 날짜로 이동' : 'Jump to the latest diary page',
-          buttonLabel: isKo ? '다이어리 열기' : 'Open diary',
-          onPressed: onOpenDiary,
         ),
     ];
     return WatchCartCard(
