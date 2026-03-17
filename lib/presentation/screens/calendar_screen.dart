@@ -86,6 +86,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   late final TrainingPlanReminderService _reminderService;
   List<_TrainingPlan> _plans = const <_TrainingPlan>[];
   bool _quickCreateHandled = false;
+  bool _overlayOpenInFlight = false;
 
   @override
   void initState() {
@@ -140,6 +141,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (_calendarExpanded == expanded) return;
     setState(() => _calendarExpanded = expanded);
     await widget.optionRepository.setValue(_calendarExpandedKey, expanded);
+  }
+
+  Future<T?> _showModalBottomSheetSafely<T>({
+    required WidgetBuilder builder,
+    bool showDragHandle = false,
+  }) async {
+    if (!mounted || _overlayOpenInFlight) return null;
+    _overlayOpenInFlight = true;
+    try {
+      final completer = Completer<void>();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      });
+      await completer.future;
+      if (!mounted) return null;
+      return showModalBottomSheet<T>(
+        context: context,
+        showDragHandle: showDragHandle,
+        builder: builder,
+      );
+    } finally {
+      _overlayOpenInFlight = false;
+    }
   }
 
   @override
@@ -517,8 +543,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _showCreateActionSheet(List<TrainingEntry> entries) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final selectedDay = _selectedDay ?? _focusedDay;
-    final action = await showModalBottomSheet<_CalendarCreateAction>(
-      context: context,
+    final action = await _showModalBottomSheetSafely<_CalendarCreateAction>(
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(
