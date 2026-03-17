@@ -1963,6 +1963,108 @@ const List<_MbtiQuestion> _mbtiQuestions = [
           letter: 'P', koLabel: '그 상황에 맞게 움직인다', enLabel: 'Go with the moment'),
     ],
   ),
+  _MbtiQuestion(
+    koPrompt: '쉬는 시간에 나는?',
+    enPrompt: 'During breaks, I usually...',
+    options: [
+      _MbtiOption(
+          letter: 'E',
+          koLabel: '친구랑 같이 웃고 이야기한다',
+          enLabel: 'Chat and laugh with teammates'),
+      _MbtiOption(
+          letter: 'I',
+          koLabel: '조용히 숨 고르며 쉰다',
+          enLabel: 'Rest quietly by myself'),
+    ],
+  ),
+  _MbtiQuestion(
+    koPrompt: '훈련을 배울 때 더 쉬운 건?',
+    enPrompt: 'What is easier when learning drills?',
+    options: [
+      _MbtiOption(
+          letter: 'S',
+          koLabel: '동작을 따라 해보는 것',
+          enLabel: 'Copying the movement'),
+      _MbtiOption(
+          letter: 'N',
+          koLabel: '이유를 먼저 듣는 것',
+          enLabel: 'Hearing the reason first'),
+    ],
+  ),
+  _MbtiQuestion(
+    koPrompt: '승부 순간에 나는?',
+    enPrompt: 'In clutch moments, I trust...',
+    options: [
+      _MbtiOption(
+          letter: 'T', koLabel: '냉정한 선택', enLabel: 'Calm and logical choices'),
+      _MbtiOption(
+          letter: 'F', koLabel: '팀의 기운', enLabel: 'Team spirit and feeling'),
+    ],
+  ),
+  _MbtiQuestion(
+    koPrompt: '숙제 훈련은 보통?',
+    enPrompt: 'For homework practice, I...',
+    options: [
+      _MbtiOption(
+          letter: 'J', koLabel: '정해둔 시간에 딱 한다', enLabel: 'Do it at fixed time'),
+      _MbtiOption(
+          letter: 'P',
+          koLabel: '가능한 시간에 유연하게 한다',
+          enLabel: 'Do it flexibly when I can'),
+    ],
+  ),
+  _MbtiQuestion(
+    koPrompt: '새 친구를 만나면 나는?',
+    enPrompt: 'When I meet new friends, I...',
+    options: [
+      _MbtiOption(
+          letter: 'E', koLabel: '먼저 말을 건다', enLabel: 'Start talking first'),
+      _MbtiOption(
+          letter: 'I',
+          koLabel: '조금 보고 나서 말한다',
+          enLabel: 'Talk after observing first'),
+    ],
+  ),
+  _MbtiQuestion(
+    koPrompt: '전술판을 볼 때 먼저 보는 건?',
+    enPrompt: 'On tactics board, I first look at...',
+    options: [
+      _MbtiOption(
+          letter: 'S',
+          koLabel: '내 위치와 이동선',
+          enLabel: 'My spot and movement line'),
+      _MbtiOption(
+          letter: 'N',
+          koLabel: '전체 흐름과 전략',
+          enLabel: 'Overall flow and strategy'),
+    ],
+  ),
+  _MbtiQuestion(
+    koPrompt: '친구에게 조언할 때 나는?',
+    enPrompt: 'When giving advice, I...',
+    options: [
+      _MbtiOption(
+          letter: 'T',
+          koLabel: '바로 고칠 방법을 말한다',
+          enLabel: 'Give direct fix tips'),
+      _MbtiOption(
+          letter: 'F',
+          koLabel: '먼저 마음을 다독인다',
+          enLabel: 'Comfort first, then guide'),
+    ],
+  ),
+  _MbtiQuestion(
+    koPrompt: '경기 날 준비는?',
+    enPrompt: 'Game-day preparation is...',
+    options: [
+      _MbtiOption(
+          letter: 'J', koLabel: '체크리스트로 준비', enLabel: 'Checklist preparation'),
+      _MbtiOption(
+          letter: 'P',
+          koLabel: '상황 보며 바로 준비',
+          enLabel: 'Prepare as things happen'),
+    ],
+  ),
 ];
 
 const List<_PositionQuestion> _positionQuestions = [
@@ -2200,6 +2302,166 @@ const List<_PositionQuestion> _positionQuestions = [
       _PositionOption(
           koLabel: '뒤에서 안정감 주기',
           enLabel: 'Giving stability from back',
+          scores: {'GK': 3}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '공을 받기 전 가장 먼저 하는 건?',
+    enPrompt: 'Before receiving the ball, I first...',
+    options: [
+      _PositionOption(
+          koLabel: '골문 쪽 공간을 본다',
+          enLabel: 'Check scoring space',
+          scores: {'FW': 3, 'MF': 1}),
+      _PositionOption(
+          koLabel: '패스 줄을 본다',
+          enLabel: 'Check passing lanes',
+          scores: {'MF': 3, 'DF': 1}),
+      _PositionOption(
+          koLabel: '뒤 커버를 먼저 본다',
+          enLabel: 'Check defensive cover first',
+          scores: {'DF': 3, 'GK': 1}),
+      _PositionOption(
+          koLabel: '전체 라인을 살핀다',
+          enLabel: 'Scan whole defensive line',
+          scores: {'GK': 3, 'DF': 1}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '내가 가장 자신 있는 패스는?',
+    enPrompt: 'Which pass are you most confident with?',
+    options: [
+      _PositionOption(
+          koLabel: '마무리로 가는 침투 패스',
+          enLabel: 'Final through pass',
+          scores: {'FW': 3, 'MF': 1}),
+      _PositionOption(
+          koLabel: '짧고 빠른 연결 패스',
+          enLabel: 'Quick short connection pass',
+          scores: {'MF': 3}),
+      _PositionOption(
+          koLabel: '안전한 빌드업 패스',
+          enLabel: 'Safe build-up pass',
+          scores: {'DF': 3, 'MF': 1}),
+      _PositionOption(
+          koLabel: '뒤에서 길게 전환 패스',
+          enLabel: 'Long switch from the back',
+          scores: {'GK': 3, 'DF': 1}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '수비할 때 제일 자신 있는 건?',
+    enPrompt: 'What are you best at in defense?',
+    options: [
+      _PositionOption(
+          koLabel: '앞에서 압박 시작',
+          enLabel: 'Start pressing from front',
+          scores: {'FW': 3, 'MF': 1}),
+      _PositionOption(
+          koLabel: '중앙에서 길목 차단',
+          enLabel: 'Block central lanes',
+          scores: {'MF': 3, 'DF': 1}),
+      _PositionOption(
+          koLabel: '1대1 막기', enLabel: '1v1 defending', scores: {'DF': 3}),
+      _PositionOption(
+          koLabel: '마지막 슈팅 막기',
+          enLabel: 'Stopping final shots',
+          scores: {'GK': 3}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '공격할 때 나는 어디에 있나?',
+    enPrompt: 'In attack, where am I most often?',
+    options: [
+      _PositionOption(
+          koLabel: '골대 가까운 곳', enLabel: 'Near the goal', scores: {'FW': 3}),
+      _PositionOption(
+          koLabel: '중앙 연결 지점',
+          enLabel: 'Center connection point',
+          scores: {'MF': 3}),
+      _PositionOption(
+          koLabel: '뒤에서 밸런스 지키는 곳',
+          enLabel: 'Back line for balance',
+          scores: {'DF': 3}),
+      _PositionOption(
+          koLabel: '골문 앞 지휘 위치',
+          enLabel: 'Goal-front command spot',
+          scores: {'GK': 3}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '코치가 칭찬해 주는 점은?',
+    enPrompt: 'What does your coach praise most?',
+    options: [
+      _PositionOption(
+          koLabel: '결정적인 마무리',
+          enLabel: 'Decisive finishing',
+          scores: {'FW': 3}),
+      _PositionOption(
+          koLabel: '게임 조율 능력',
+          enLabel: 'Game control and tempo',
+          scores: {'MF': 3}),
+      _PositionOption(
+          koLabel: '안정적인 수비', enLabel: 'Reliable defending', scores: {'DF': 3}),
+      _PositionOption(
+          koLabel: '위기 선방', enLabel: 'Crisis saves', scores: {'GK': 3}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '친구들이 자주 맡기는 역할은?',
+    enPrompt: 'What role do teammates often ask you to do?',
+    options: [
+      _PositionOption(
+          koLabel: '골 넣는 역할', enLabel: 'Goal scorer', scores: {'FW': 3}),
+      _PositionOption(
+          koLabel: '패스 연결 역할', enLabel: 'Pass connector', scores: {'MF': 3}),
+      _PositionOption(
+          koLabel: '상대 막는 역할', enLabel: 'Main stopper', scores: {'DF': 3}),
+      _PositionOption(
+          koLabel: '골문 지키는 역할', enLabel: 'Goal protector', scores: {'GK': 3}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '연습 게임 시작하면 제일 먼저 하는 건?',
+    enPrompt: 'At kick-off in practice game, I first...',
+    options: [
+      _PositionOption(
+          koLabel: '앞으로 침투한다',
+          enLabel: 'Make a forward run',
+          scores: {'FW': 3, 'MF': 1}),
+      _PositionOption(
+          koLabel: '공 받아 방향 전환한다',
+          enLabel: 'Receive and switch play',
+          scores: {'MF': 3}),
+      _PositionOption(
+          koLabel: '뒤 정렬부터 맞춘다',
+          enLabel: 'Set defensive shape first',
+          scores: {'DF': 3}),
+      _PositionOption(
+          koLabel: '수비 라인에 콜을 준다',
+          enLabel: 'Give calls to back line',
+          scores: {'GK': 3, 'DF': 1}),
+    ],
+  ),
+  _PositionQuestion(
+    koPrompt: '승리했을 때 가장 뿌듯한 순간은?',
+    enPrompt: 'After winning, what feels best?',
+    options: [
+      _PositionOption(
+          koLabel: '내 골로 이긴 순간',
+          enLabel: 'Winning with my goal',
+          scores: {'FW': 3}),
+      _PositionOption(
+          koLabel: '팀 플레이가 잘 맞은 순간',
+          enLabel: 'Team play clicked perfectly',
+          scores: {'MF': 3}),
+      _PositionOption(
+          koLabel: '실점 없이 막아낸 순간',
+          enLabel: 'Stopping goals together',
+          scores: {'DF': 3}),
+      _PositionOption(
+          koLabel: '결정적 선방으로 지킨 순간',
+          enLabel: 'Saving the key last chance',
           scores: {'GK': 3}),
     ],
   ),
