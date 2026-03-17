@@ -68,12 +68,12 @@ class HomeHubScreen extends StatefulWidget {
 }
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
-  late Future<int> _todayNewsCountFuture;
+  late Future<int> _newsCountFuture;
 
   @override
   void initState() {
     super.initState();
-    _todayNewsCountFuture = _loadTodayNewsCount();
+    _newsCountFuture = _loadNewsCount();
   }
 
   @override
@@ -117,7 +117,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                   widget.optionRepository,
                 ),
-                todayNewsCountFuture: _todayNewsCountFuture,
+                newsCountFuture: _newsCountFuture,
               );
 
               return SingleChildScrollView(
@@ -191,15 +191,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           : () => widget.onEdit(data.latestTrainingEntry!),
                       onContinueMatch: widget.onQuickMatch,
                       onContinuePlan: widget.onQuickPlan,
-                      onContinueBoard: data.todayCreatedBoard == null
+                      onContinueBoard: data.latestBoard == null
                           ? widget.onQuickBoard
-                          : () => _openBoard(context, data.todayCreatedBoard!),
-                    ),
-                    const SizedBox(height: 12),
-                    _TodayCheerCard(
-                      data: data,
-                      isKo: isKo,
-                      onCreate: widget.onCreate,
+                          : () => _openBoard(context, data.latestBoard!),
                     ),
                     const SizedBox(height: 12),
                     _WeeklySummaryCard(data: data, isKo: isKo),
@@ -285,7 +279,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
     if (!mounted) return;
     setState(() {
-      _todayNewsCountFuture = _loadTodayNewsCount();
+      _newsCountFuture = _loadNewsCount();
     });
   }
 
@@ -326,17 +320,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           boardTitle: board.title,
           initialLayoutJson: board.layoutJson,
           optionRepository: widget.optionRepository,
+          initialSelectedBoardIds: [board.id],
           initialBoardId: board.id,
         ),
       ),
     );
   }
 
-  Future<int> _loadTodayNewsCount() async {
+  Future<int> _loadNewsCount() async {
     final service = NewsService(RssNewsRepository(widget.optionRepository));
     final channels = service.channels();
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final seenKeys = <String>{};
     var count = 0;
 
@@ -345,7 +338,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         try {
           final articles = await service.latest(channel.id);
           for (final article in articles) {
-            if (!_isTodayArticle(article, today)) continue;
             final key = _newsArticleKey(article);
             if (!seenKeys.add(key)) continue;
             count += 1;
@@ -357,15 +349,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
 
     return count;
-  }
-
-  bool _isTodayArticle(NewsArticle article, DateTime today) {
-    final publishedAt = article.publishedAt;
-    if (publishedAt == null) return false;
-    final local = publishedAt.toLocal();
-    return local.year == today.year &&
-        local.month == today.month &&
-        local.day == today.day;
   }
 
   String _newsArticleKey(NewsArticle article) {
@@ -381,7 +364,7 @@ class _HomeHubData {
   final int streakDays;
   final int boardCount;
   final DateTime? latestBoardUpdatedAt;
-  final TrainingBoard? todayCreatedBoard;
+  final TrainingBoard? latestBoard;
   final int todayPlanCount;
   final String strongestSignal;
   final String focusSignal;
@@ -391,7 +374,7 @@ class _HomeHubData {
   final bool loggedJumpRopeToday;
   final bool quizCompletedToday;
   final SkillQuizResumeSummary quizResumeSummary;
-  final Future<int> todayNewsCountFuture;
+  final Future<int> newsCountFuture;
 
   const _HomeHubData({
     required this.weeklyTrainingCount,
@@ -399,7 +382,7 @@ class _HomeHubData {
     required this.streakDays,
     required this.boardCount,
     required this.latestBoardUpdatedAt,
-    required this.todayCreatedBoard,
+    required this.latestBoard,
     required this.todayPlanCount,
     required this.strongestSignal,
     required this.focusSignal,
@@ -409,7 +392,7 @@ class _HomeHubData {
     required this.loggedJumpRopeToday,
     required this.quizCompletedToday,
     required this.quizResumeSummary,
-    required this.todayNewsCountFuture,
+    required this.newsCountFuture,
   });
 
   factory _HomeHubData.build({
@@ -418,7 +401,7 @@ class _HomeHubData {
     required List<TrainingBoard> boards,
     required DateTime? quizCompletedAt,
     required SkillQuizResumeSummary quizResumeSummary,
-    required Future<int> todayNewsCountFuture,
+    required Future<int> newsCountFuture,
   }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -481,16 +464,6 @@ class _HomeHubData {
       );
       return day == today;
     }).length;
-    final todayCreatedBoard = boards.cast<TrainingBoard?>().firstWhere((board) {
-      if (board == null) return false;
-      final createdDay = DateTime(
-        board.createdAt.year,
-        board.createdAt.month,
-        board.createdAt.day,
-      );
-      return createdDay == today;
-    }, orElse: () => null);
-
     final totalMood = weeklyEntries.fold<int>(
       0,
       (sum, entry) => sum + entry.mood,
@@ -535,7 +508,7 @@ class _HomeHubData {
       streakDays: streakDays,
       boardCount: boards.length,
       latestBoardUpdatedAt: boards.isEmpty ? null : boards.first.updatedAt,
-      todayCreatedBoard: todayCreatedBoard,
+      latestBoard: boards.isEmpty ? null : boards.first,
       todayPlanCount: todayPlanCount,
       strongestSignal: strongest,
       focusSignal: focus,
@@ -545,7 +518,7 @@ class _HomeHubData {
       loggedJumpRopeToday: loggedJumpRopeToday,
       quizCompletedToday: quizCompletedToday,
       quizResumeSummary: quizResumeSummary,
-      todayNewsCountFuture: todayNewsCountFuture,
+      newsCountFuture: newsCountFuture,
     );
   }
 }
@@ -615,31 +588,30 @@ class _LevelHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final spec = PlayerLevelVisualSpec.fromLevel(levelState.level);
     final claimableRewards = rewardStatuses.where(
-      (item) => item.isAvailable && !item.isClaimed,
+      (item) =>
+          item.isAvailable &&
+          !item.isClaimed &&
+          item.customRewardName.trim().isNotEmpty,
     );
-    final nextReward = rewardStatuses.firstWhere(
-      (item) => !item.isClaimed,
-      orElse: () => const PlayerLevelRewardStatus(
-        reward: PlayerLevelReward(
-          level: 10,
-          nameKo: '',
-          nameEn: '',
-          descriptionKo: '',
-          descriptionEn: '',
-        ),
-        isClaimed: true,
-        isAvailable: false,
-      ),
-    );
+    PlayerLevelRewardStatus? nextReward;
+    for (final status in rewardStatuses) {
+      if (status.customRewardName.trim().isEmpty || status.isClaimed) continue;
+      nextReward = status;
+      break;
+    }
     final rewardSummary = claimableRewards.isNotEmpty
         ? (isKo
               ? '지금 받을 선물 ${claimableRewards.length}개'
               : '${claimableRewards.length} rewards ready')
-        : nextReward.reward.nameKo.isEmpty
-        ? (isKo ? '모든 선물을 받았어요' : 'All rewards claimed')
+        : nextReward == null
+        ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
+        : nextReward.isAvailable
+        ? (isKo
+              ? '지금 선물: ${nextReward.customRewardName}'
+              : 'Reward now: ${nextReward.customRewardName}')
         : (isKo
-              ? '다음 선물은 Lv.${nextReward.reward.level}'
-              : 'Next reward at Lv.${nextReward.reward.level}');
+              ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
+              : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -836,34 +808,21 @@ class _TodayOverviewCard extends StatelessWidget {
         : (isKo
               ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
               : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
-    final extraTags = <String>[
-      if (!data.loggedTrainingToday) isKo ? '훈련 한 번 더' : 'Training left',
-      if (!data.loggedLiftingToday) isKo ? '리프팅 남음' : 'Lifting left',
-      if (!data.loggedJumpRopeToday) isKo ? '줄넘기 남음' : 'Jump rope left',
-    ];
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FutureBuilder<int>(
-            future: data.todayNewsCountFuture,
+            future: data.newsCountFuture,
             builder: (context, snapshot) {
-              final todayNewsCount = snapshot.data ?? 0;
+              final newsCount = snapshot.data ?? 0;
               return Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   _StatPill(
-                    icon: Icons.today_outlined,
-                    label: isKo
-                        ? '오늘 계획 ${data.todayPlanCount}개'
-                        : '${data.todayPlanCount} plans today',
-                  ),
-                  _StatPill(
                     icon: Icons.newspaper_outlined,
-                    label: isKo
-                        ? '오늘 소식 $todayNewsCount개'
-                        : '$todayNewsCount news today',
+                    label: isKo ? '소식 $newsCount개' : '$newsCount news',
                   ),
                   _StatPill(
                     icon: Icons.local_fire_department_outlined,
@@ -872,16 +831,6 @@ class _TodayOverviewCard extends StatelessWidget {
                         : '${data.streakDays}-day streak',
                   ),
                   _StatPill(icon: Icons.history, label: latestLabel),
-                  _StatPill(
-                    icon: Icons.developer_board_outlined,
-                    label: isKo
-                        ? '스케치 ${data.boardCount}개'
-                        : '${data.boardCount} sketches',
-                  ),
-                  ...extraTags.map(
-                    (tag) =>
-                        _StatPill(icon: Icons.add_task_outlined, label: tag),
-                  ),
                 ],
               );
             },
@@ -1079,146 +1028,6 @@ class _WeeklySummaryCard extends StatelessWidget {
   }
 }
 
-class _TodayCheerCard extends StatelessWidget {
-  final _HomeHubData data;
-  final bool isKo;
-  final VoidCallback onCreate;
-
-  const _TodayCheerCard({
-    required this.data,
-    required this.isKo,
-    required this.onCreate,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final items = <_CheerItemData>[
-      if (!data.loggedTrainingToday)
-        _CheerItemData(
-          icon: Icons.sports_soccer_outlined,
-          title: isKo ? '오늘 훈련' : 'Today training',
-          subtitle: isKo
-              ? '오늘의 첫 훈련 기록을 남겨봐요.'
-              : 'Log your first training session today.',
-        ),
-      if (!data.loggedLiftingToday)
-        _CheerItemData(
-          icon: Icons.fitness_center_outlined,
-          title: isKo ? '오늘 리프팅' : 'Today lifting',
-          subtitle: isKo
-              ? '근력 훈련도 체크하면 더 멋져져요.'
-              : 'Strength work counts too. Add it today.',
-        ),
-      if (!data.loggedJumpRopeToday)
-        _CheerItemData(
-          icon: Icons.timelapse_outlined,
-          title: isKo ? '오늘 줄넘기' : 'Today jump rope',
-          subtitle: isKo
-              ? '줄넘기로 발놀림 리듬을 채워봐요.'
-              : 'Build footwork rhythm with jump rope.',
-        ),
-    ];
-
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isKo ? '오늘 한 번 더!' : 'One more today!',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            items.isEmpty
-                ? (isKo
-                      ? '오늘 훈련, 리프팅, 줄넘기를 모두 채웠어요. 정말 잘하고 있어요!'
-                      : 'You finished training, lifting, and jump rope today.')
-                : (isKo
-                      ? '아직 안 한 항목이 보여요. 하나만 더 해도 오늘이 더 반짝여요.'
-                      : 'A few items are still open. One more effort will brighten today.'),
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          if (items.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            ...items.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _CheerItem(item: item, isKo: isKo, onTap: onCreate),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _CheerItemData {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _CheerItemData({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-}
-
-class _CheerItem extends StatelessWidget {
-  final _CheerItemData item;
-  final bool isKo;
-  final VoidCallback onTap;
-
-  const _CheerItem({
-    required this.item,
-    required this.isKo,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Icon(item.icon, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.subtitle,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonal(
-            onPressed: onTap,
-            child: Text(isKo ? '해보기' : 'Try now'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ContinueCard extends StatelessWidget {
   final _HomeHubData data;
   final bool isKo;
@@ -1306,21 +1115,19 @@ class _ContinueCard extends StatelessWidget {
       if (data.boardCount > 0)
         _ContinueItemData(
           icon: Icons.developer_board_outlined,
-          title: isKo ? '훈련보드' : 'Training board',
-          subtitle: data.todayCreatedBoard != null
+          title: isKo ? '최근 훈련보드' : 'Recent training board',
+          subtitle: data.latestBoard == null
               ? (isKo
-                    ? '오늘 추가한 ${data.todayCreatedBoard!.title} 바로 열기'
-                    : 'Open today’s board ${data.todayCreatedBoard!.title}')
+                    ? '스케치 ${data.boardCount}개'
+                    : '${data.boardCount} sketches')
               : data.latestBoardUpdatedAt == null
               ? (isKo
                     ? '스케치 ${data.boardCount}개'
                     : '${data.boardCount} sketches')
               : (isKo
-                    ? '최근 수정 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)} · 총 ${data.boardCount}개'
-                    : 'Updated ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)} · ${data.boardCount} total'),
-          buttonLabel: data.todayCreatedBoard != null
-              ? (isKo ? '오늘 보드 열기' : 'Open today board')
-              : (isKo ? '보드 열기' : 'Open boards'),
+                    ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
+                    : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
+          buttonLabel: isKo ? '바로 수정' : 'Edit now',
           onPressed: onContinueBoard,
         ),
     ];

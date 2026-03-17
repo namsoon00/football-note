@@ -7,14 +7,17 @@ void main() {
     final repository = _MemoryOptionRepository()
       ..seed(PlayerLevelService.totalXpKey, 60);
     final service = PlayerLevelService(repository);
+    await service.setCustomRewardName(2, '새 축구 양말');
 
     final statuses = service.loadRewardStatuses();
     final level2Reward = statuses.firstWhere((item) => item.reward.level == 2);
     final level4Reward = statuses.firstWhere((item) => item.reward.level == 4);
+    final level1Reward = statuses.firstWhere((item) => item.reward.level == 1);
 
     expect(level2Reward.isAvailable, isTrue);
     expect(level2Reward.isClaimed, isFalse);
     expect(level4Reward.isAvailable, isFalse);
+    expect(level1Reward.customRewardName, isEmpty);
 
     final claim = await service.claimRewardForLevel(2);
     final secondClaim = await service.claimRewardForLevel(2);
@@ -42,6 +45,16 @@ void main() {
     expect(service.customRewardNameForLevel(2), '새 축구 양말');
     expect(claim, isNotNull);
     expect(claim!.customRewardName, '새 축구 양말');
+  });
+
+  test('claim is blocked when reward name is empty', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 60);
+    final service = PlayerLevelService(repository);
+
+    final claim = await service.claimRewardForLevel(2);
+
+    expect(claim, isNull);
   });
 }
 

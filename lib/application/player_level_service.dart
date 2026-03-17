@@ -29,46 +29,18 @@ class PlayerLevelService {
   static List<int> get levelThresholds =>
       List<int>.unmodifiable(_levelThresholds);
 
-  static const List<PlayerLevelReward> _levelRewards = <PlayerLevelReward>[
-    PlayerLevelReward(
-      level: 2,
-      nameKo: '반짝 공 스티커',
-      nameEn: 'Shiny ball sticker',
-      descriptionKo: '프로필에 남길 수 있는 첫 번째 반짝 보상이에요.',
-      descriptionEn: 'Your first shiny reward to keep in your profile.',
-    ),
-    PlayerLevelReward(
-      level: 4,
-      nameKo: '훈련 콘 배지',
-      nameEn: 'Training cone badge',
-      descriptionKo: '꾸준히 훈련한 친구에게 주는 훈련 배지예요.',
-      descriptionEn: 'A training badge for consistent practice.',
-    ),
-    PlayerLevelReward(
-      level: 6,
-      nameKo: '힘쎈 팔찌',
-      nameEn: 'Power band',
-      descriptionKo: '리프팅과 훈련을 이어온 친구를 위한 선물이에요.',
-      descriptionEn: 'A gift for building strength through training.',
-    ),
-    PlayerLevelReward(
-      level: 8,
-      nameKo: '주장 별 뱃지',
-      nameEn: 'Captain star badge',
-      descriptionKo: '팀을 이끌 만큼 자란 친구에게 주는 별이에요.',
-      descriptionEn: 'A star for growing into a team leader.',
-    ),
-    PlayerLevelReward(
-      level: 10,
-      nameKo: '불꽃 경기장 카드',
-      nameEn: 'Firework stadium card',
-      descriptionKo: '최고 레벨을 달성한 친구만 받을 수 있어요.',
-      descriptionEn: 'Only players at the top level can claim this.',
-    ),
-  ];
-
   static List<PlayerLevelReward> get levelRewards =>
-      List<PlayerLevelReward>.unmodifiable(_levelRewards);
+      List<PlayerLevelReward>.generate(
+        _levelThresholds.length,
+        (index) => PlayerLevelReward(
+          level: index + 1,
+          nameKo: '',
+          nameEn: '',
+          descriptionKo: '',
+          descriptionEn: '',
+        ),
+        growable: false,
+      );
 
   final OptionRepository _options;
 
@@ -259,17 +231,21 @@ class PlayerLevelService {
   }
 
   static PlayerLevelReward? rewardForLevel(int level) {
-    for (final reward in _levelRewards) {
-      if (reward.level == level) return reward;
-    }
-    return null;
+    if (level < 1 || level > _levelThresholds.length) return null;
+    return PlayerLevelReward(
+      level: level,
+      nameKo: '',
+      nameEn: '',
+      descriptionKo: '',
+      descriptionEn: '',
+    );
   }
 
   List<PlayerLevelRewardStatus> loadRewardStatuses() {
     final currentLevel = loadState().level;
     final claimedLevels = _getIntSet(claimedRewardLevelsKey);
     final customRewardNames = loadCustomRewardNames();
-    return _levelRewards
+    return levelRewards
         .map(
           (reward) => PlayerLevelRewardStatus(
             reward: reward,
@@ -284,6 +260,8 @@ class PlayerLevelService {
   Future<PlayerLevelRewardClaim?> claimRewardForLevel(int level) async {
     final reward = rewardForLevel(level);
     if (reward == null) return null;
+    final customRewardName = customRewardNameForLevel(level).trim();
+    if (customRewardName.isEmpty) return null;
     final state = loadState();
     final claimedLevels = _getIntSet(claimedRewardLevelsKey);
     if (state.level < level || claimedLevels.contains(level)) {
@@ -297,7 +275,7 @@ class PlayerLevelService {
     return PlayerLevelRewardClaim(
       reward: reward,
       state: state,
-      customRewardName: customRewardNameForLevel(level),
+      customRewardName: customRewardName,
     );
   }
 
@@ -316,6 +294,22 @@ class PlayerLevelService {
 
   String customRewardNameForLevel(int level) {
     return loadCustomRewardNames()[level] ?? '';
+  }
+
+  PlayerLevelRewardStatus? nextRewardStatus({
+    int? fromLevel,
+    bool includeClaimable = true,
+  }) {
+    final currentLevel = fromLevel ?? loadState().level;
+    for (final status in loadRewardStatuses()) {
+      final rewardName = status.customRewardName.trim();
+      if (rewardName.isEmpty) continue;
+      if (status.isClaimed) continue;
+      if (!includeClaimable && status.reward.level <= currentLevel) continue;
+      if (status.reward.level < currentLevel && !status.isAvailable) continue;
+      return status;
+    }
+    return null;
   }
 
   Future<void> setCustomRewardName(int level, String name) async {
