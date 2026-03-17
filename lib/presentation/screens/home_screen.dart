@@ -73,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onQuickQuiz: _openQuiz,
         onQuickBoard: _openTrainingBoards,
         onOpenLogs: () => _onDestinationSelected(1),
+        onOpenWeeklyStats: () => _onDestinationSelected(3),
         onEdit: _openEdit,
       ),
       LogsScreen(
@@ -97,7 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
         driveBackupService: widget.driveBackupService,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction: _pendingCalendarQuickCreateAction ??
+        quickCreateAction:
+            _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/level_up_dialog.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -453,6 +454,24 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           : (isKo
                 ? '+${award.gainedXp} XP 획득'
                 : '+${award.gainedXp} XP earned'),
+    );
+    if (!award.didLevelUp) return;
+    await showLevelUpCelebrationDialog(
+      context,
+      award: award,
+      isKo: isKo,
+      onClaimReward: () async {
+        final claim = await PlayerLevelService(
+          widget.optionRepository,
+        ).claimRewardForLevel(award.after.level);
+        if (!mounted || claim == null) return;
+        AppFeedback.showSuccess(
+          context,
+          text: isKo
+              ? '${claim.reward.nameKo} 선물을 받았어요.'
+              : 'Claimed ${claim.reward.nameEn}.',
+        );
+      },
     );
   }
 
