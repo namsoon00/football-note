@@ -454,8 +454,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.reminderEnabled),
                 value: widget.settingsService.reminderEnabled,
-                onChanged: (value) =>
-                    widget.settingsService.setReminderEnabled(value),
+                onChanged: (value) async {
+                  await widget.settingsService.setReminderEnabled(value);
+                  if (mounted) setState(() {});
+                },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  isKo ? '훈련 계획 진동 알림' : 'Training plan vibration',
+                ),
+                subtitle: Text(
+                  isKo
+                      ? '훈련 계획 알림이 올 때 진동을 함께 울립니다.'
+                      : 'Adds vibration when a training plan reminder arrives.',
+                ),
+                value: widget.settingsService.reminderVibrationEnabled,
+                onChanged: widget.settingsService.reminderEnabled
+                    ? (value) async {
+                        await widget.settingsService
+                            .setReminderVibrationEnabled(value);
+                        if (mounted) setState(() {});
+                      }
+                    : null,
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,

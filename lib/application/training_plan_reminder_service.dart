@@ -14,9 +14,17 @@ class TrainingPlanReminderService {
   static const String reminderIdsKey = 'training_plan_reminder_ids_v1';
 
   static const String _androidChannelId = 'training_plan_reminders';
+  static const String _androidChannelIdVibrate =
+      'training_plan_reminders_vibrate';
   static const String _androidChannelName = 'Training Plan Reminders';
   static const String _androidChannelDescription =
       'Reminder notifications before scheduled training plans';
+  static final Int64List _vibrationPattern = Int64List.fromList(<int>[
+    0,
+    250,
+    120,
+    250,
+  ]);
 
   final OptionRepository _options;
   final SettingsService _settings;
@@ -62,6 +70,17 @@ class TrainingPlanReminderService {
         _androidChannelName,
         description: _androidChannelDescription,
         importance: Importance.high,
+        enableVibration: false,
+      ),
+    );
+    await androidImpl?.createNotificationChannel(
+      AndroidNotificationChannel(
+        _androidChannelIdVibrate,
+        _androidChannelName,
+        description: _androidChannelDescription,
+        importance: Importance.high,
+        enableVibration: true,
+        vibrationPattern: _vibrationPattern,
       ),
     );
     await androidImpl?.requestNotificationsPermission();
@@ -118,20 +137,23 @@ class TrainingPlanReminderService {
           : 'Training in ${plan.reminderMinutesBefore} min: ${plan.category}';
 
       try {
+        final vibrationEnabled = _settings.reminderVibrationEnabled;
         await _plugin.zonedSchedule(
           id,
           title,
           body,
           tz.TZDateTime.from(reminderAt, tz.local),
-          const NotificationDetails(
+          NotificationDetails(
             android: AndroidNotificationDetails(
-              _androidChannelId,
+              vibrationEnabled ? _androidChannelIdVibrate : _androidChannelId,
               _androidChannelName,
               channelDescription: _androidChannelDescription,
               importance: Importance.high,
               priority: Priority.high,
+              enableVibration: vibrationEnabled,
+              vibrationPattern: vibrationEnabled ? _vibrationPattern : null,
             ),
-            iOS: DarwinNotificationDetails(),
+            iOS: const DarwinNotificationDetails(),
           ),
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
