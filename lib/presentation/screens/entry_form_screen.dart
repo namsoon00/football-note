@@ -22,6 +22,7 @@ import '../models/training_board_link_codec.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/app_pressable_scale.dart';
+import '../widgets/level_up_dialog.dart';
 import '../theme/app_motion.dart';
 import 'training_method_board_screen.dart';
 
@@ -1306,10 +1307,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     );
   }
 
-  Widget _buildAnimatedSection({
-    required bool visible,
-    required Widget child,
-  }) {
+  Widget _buildAnimatedSection({required bool visible, required Widget child}) {
     return AnimatedSize(
       duration: AppMotion.base(context),
       curve: AppMotion.curveEnter,
@@ -1711,8 +1709,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _syncDrillsPayloadFromBoardLinks();
     });
     if (selectedIds.isNotEmpty) {
-      await widget.optionRepository
-          .setValue(_recentBoardIdKey, selectedIds.first);
+      await widget.optionRepository.setValue(
+        _recentBoardIdKey,
+        selectedIds.first,
+      );
     }
     _scheduleAutoSave();
   }
@@ -1866,22 +1866,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         minutesPlayed: draftEntry.minutesPlayed,
       );
 
+      PlayerLevelAward? levelAward;
       if (widget.entry == null) {
         await widget.trainingService.add(entry);
-        final levelAward = await PlayerLevelService(
+        levelAward = await PlayerLevelService(
           widget.optionRepository,
-        ).awardForTrainingLog(
-          entry: entry,
-          existingEntries: allEntries,
-        );
+        ).awardForTrainingLog(entry: entry, existingEntries: allEntries);
         if (!mounted) return;
         if (popAfterSave) {
           AppFeedback.showSuccess(
             context,
-            text: _buildSaveFeedback(
-              isKo: isKo,
-              levelAward: levelAward,
-            ),
+            text: _buildSaveFeedback(isKo: isKo, levelAward: levelAward),
           );
         }
       } else {
@@ -1910,6 +1905,30 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : fortuneComment;
       if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
         await _showFortuneRevealDialog(fortuneToShow);
+        if (!mounted) return;
+      }
+      if (popAfterSave &&
+          widget.entry == null &&
+          levelAward != null &&
+          levelAward.didLevelUp) {
+        final leveledUpAward = levelAward;
+        await showLevelUpCelebrationDialog(
+          context,
+          award: leveledUpAward,
+          isKo: isKo,
+          onClaimReward: () async {
+            final claim = await PlayerLevelService(
+              widget.optionRepository,
+            ).claimRewardForLevel(leveledUpAward.after.level);
+            if (!mounted || claim == null) return;
+            AppFeedback.showSuccess(
+              context,
+              text: isKo
+                  ? '${claim.reward.nameKo} 선물을 받았어요.'
+                  : 'Claimed ${claim.reward.nameEn}.',
+            );
+          },
+        );
         if (!mounted) return;
       }
       if (popAfterSave) {
@@ -1942,8 +1961,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (!levelAward.didLevelUp) {
       return '$base $xpText';
     }
-    final levelName =
-        PlayerLevelService.levelName(levelAward.after.level, isKo);
+    final levelName = PlayerLevelService.levelName(
+      levelAward.after.level,
+      isKo,
+    );
     return isKo
         ? '$base $xpText · Lv.${levelAward.after.level} $levelName 달성'
         : '$base $xpText · Reached Lv.${levelAward.after.level} $levelName';
@@ -1989,16 +2010,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         );
         if (reduced) {
           return FadeTransition(
-              opacity: animation,
-              child: _fortuneDialogBody(
-                isKo: isKo,
-                titleColor: titleColor,
-                accentBg: accentBg,
-                accentFg: accentFg,
-                contentBg: contentBg,
-                gradientColors: gradientColors,
-                lines: lines,
-              ));
+            opacity: animation,
+            child: _fortuneDialogBody(
+              isKo: isKo,
+              titleColor: titleColor,
+              accentBg: accentBg,
+              accentFg: accentFg,
+              contentBg: contentBg,
+              gradientColors: gradientColors,
+              lines: lines,
+            ),
+          );
         }
         return FadeTransition(
           opacity: animation,
@@ -2091,12 +2113,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                       isKo
                           ? '오늘도 멋진 플레이를 응원할게요.'
                           : 'Cheering for your best play today.',
-                      style: Theme.of(
-                        context,
-                      )
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ],
                 ),

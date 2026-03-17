@@ -8,6 +8,8 @@ class PlayerLevelService {
   static const String quizRewardDayKey = 'player_quiz_reward_day_v1';
   static const String awardedPlanIdsKey = 'player_awarded_plan_ids_v1';
   static const String awardedStreaksKey = 'player_awarded_streaks_v1';
+  static const String claimedRewardLevelsKey =
+      'player_claimed_reward_levels_v1';
   static const String plansStorageKey = 'training_plans_v1';
 
   static const List<int> _levelThresholds = <int>[
@@ -25,6 +27,47 @@ class PlayerLevelService {
 
   static List<int> get levelThresholds =>
       List<int>.unmodifiable(_levelThresholds);
+
+  static const List<PlayerLevelReward> _levelRewards = <PlayerLevelReward>[
+    PlayerLevelReward(
+      level: 2,
+      nameKo: '반짝 공 스티커',
+      nameEn: 'Shiny ball sticker',
+      descriptionKo: '프로필에 남길 수 있는 첫 번째 반짝 보상이에요.',
+      descriptionEn: 'Your first shiny reward to keep in your profile.',
+    ),
+    PlayerLevelReward(
+      level: 4,
+      nameKo: '훈련 콘 배지',
+      nameEn: 'Training cone badge',
+      descriptionKo: '꾸준히 훈련한 친구에게 주는 훈련 배지예요.',
+      descriptionEn: 'A training badge for consistent practice.',
+    ),
+    PlayerLevelReward(
+      level: 6,
+      nameKo: '힘쎈 팔찌',
+      nameEn: 'Power band',
+      descriptionKo: '리프팅과 훈련을 이어온 친구를 위한 선물이에요.',
+      descriptionEn: 'A gift for building strength through training.',
+    ),
+    PlayerLevelReward(
+      level: 8,
+      nameKo: '주장 별 뱃지',
+      nameEn: 'Captain star badge',
+      descriptionKo: '팀을 이끌 만큼 자란 친구에게 주는 별이에요.',
+      descriptionEn: 'A star for growing into a team leader.',
+    ),
+    PlayerLevelReward(
+      level: 10,
+      nameKo: '불꽃 경기장 카드',
+      nameEn: 'Firework stadium card',
+      descriptionKo: '최고 레벨을 달성한 친구만 받을 수 있어요.',
+      descriptionEn: 'Only players at the top level can claim this.',
+    ),
+  ];
+
+  static List<PlayerLevelReward> get levelRewards =>
+      List<PlayerLevelReward>.unmodifiable(_levelRewards);
 
   final OptionRepository _options;
 
@@ -190,16 +233,78 @@ class PlayerLevelService {
   }
 
   static String illustrationLabel(int level, bool isKo) {
-    if (level <= 2) return isKo ? '운동장 시작' : 'Field Start';
-    if (level <= 4) return isKo ? '훈련 장비 해금' : 'Training Gear';
-    if (level <= 6) return isKo ? '전술 보드 해금' : 'Tactics Board';
-    if (level <= 8) return isKo ? '주장 완장 해금' : 'Captain Band';
-    return isKo ? '스타디움 조명 해금' : 'Stadium Lights';
+    switch (level.clamp(1, 10)) {
+      case 1:
+        return isKo ? '시작 호루라기' : 'Starter whistle';
+      case 2:
+        return isKo ? '첫 축구공' : 'First football';
+      case 3:
+        return isKo ? '훈련 콘' : 'Training cone';
+      case 4:
+        return isKo ? '스피드 축구화' : 'Speed boots';
+      case 5:
+        return isKo ? '줄넘기 리듬' : 'Jump-rope rhythm';
+      case 6:
+        return isKo ? '힘쎈 아령' : 'Power dumbbell';
+      case 7:
+        return isKo ? '작전 보드' : 'Tactics board';
+      case 8:
+        return isKo ? '주장 왕관' : 'Captain crown';
+      case 9:
+        return isKo ? '우승 트로피' : 'Winner trophy';
+      default:
+        return isKo ? '축하 불꽃' : 'Celebration fireworks';
+    }
+  }
+
+  static PlayerLevelReward? rewardForLevel(int level) {
+    for (final reward in _levelRewards) {
+      if (reward.level == level) return reward;
+    }
+    return null;
+  }
+
+  List<PlayerLevelRewardStatus> loadRewardStatuses() {
+    final currentLevel = loadState().level;
+    final claimedLevels = _getIntSet(claimedRewardLevelsKey);
+    return _levelRewards
+        .map(
+          (reward) => PlayerLevelRewardStatus(
+            reward: reward,
+            isClaimed: claimedLevels.contains(reward.level),
+            isAvailable: currentLevel >= reward.level,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Future<PlayerLevelRewardClaim?> claimRewardForLevel(int level) async {
+    final reward = rewardForLevel(level);
+    if (reward == null) return null;
+    final state = loadState();
+    final claimedLevels = _getIntSet(claimedRewardLevelsKey);
+    if (state.level < level || claimedLevels.contains(level)) {
+      return null;
+    }
+    claimedLevels.add(level);
+    await _options.setValue(
+      claimedRewardLevelsKey,
+      claimedLevels.toList()..sort(),
+    );
+    return PlayerLevelRewardClaim(reward: reward, state: state);
   }
 
   Set<String> _getStringSet(String key) {
     final raw = _options.getValue<List>(key) ?? const [];
     return raw.map((item) => item.toString()).toSet();
+  }
+
+  Set<int> _getIntSet(String key) {
+    final raw = _options.getValue<List>(key) ?? const [];
+    return raw
+        .map((item) => int.tryParse(item.toString()))
+        .whereType<int>()
+        .toSet();
   }
 
   bool _hasPlanOnDay(DateTime day) {
@@ -322,4 +427,39 @@ class PlayerLevelAward {
   });
 
   bool get didLevelUp => after.level > before.level;
+}
+
+class PlayerLevelReward {
+  final int level;
+  final String nameKo;
+  final String nameEn;
+  final String descriptionKo;
+  final String descriptionEn;
+
+  const PlayerLevelReward({
+    required this.level,
+    required this.nameKo,
+    required this.nameEn,
+    required this.descriptionKo,
+    required this.descriptionEn,
+  });
+}
+
+class PlayerLevelRewardStatus {
+  final PlayerLevelReward reward;
+  final bool isClaimed;
+  final bool isAvailable;
+
+  const PlayerLevelRewardStatus({
+    required this.reward,
+    required this.isClaimed,
+    required this.isAvailable,
+  });
+}
+
+class PlayerLevelRewardClaim {
+  final PlayerLevelReward reward;
+  final PlayerLevelState state;
+
+  const PlayerLevelRewardClaim({required this.reward, required this.state});
 }
