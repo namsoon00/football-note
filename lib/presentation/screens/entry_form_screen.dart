@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../application/local_fortune_service.dart';
@@ -108,6 +111,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _fortuneEnabled = false;
   String _location = '';
   final List<String> _imagePaths = [];
+  bool _weatherLoading = false;
+  String _weatherSummary = '';
+  int? _weatherCode;
 
   @override
   void initState() {
@@ -177,8 +183,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _goodPointsController.text =
           entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
-      _improvementsController.text =
-          entry.improvements.isNotEmpty ? entry.improvements : entry.notes;
+      _improvementsController.text = entry.improvements.isNotEmpty
+          ? entry.improvements
+          : _stripWeatherFromNotes(entry.notes);
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -235,6 +242,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
+      _weatherSummary = _extractWeatherFromNotes(entry.notes);
       if (_linkedBoardIds.isEmpty && entry.drills.trim().isNotEmpty) {
         unawaited(_migrateLegacyTrainingBoard(entry));
       }
@@ -260,6 +268,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _syncDrillsPayloadFromBoardLinks();
       _jumpRopeEnabled = false;
       _fortuneEnabled = false;
+      _weatherSummary = '';
       unawaited(_applyLatestEntryDefaults());
     }
     _initialSnapshot = _formSnapshot();
@@ -335,6 +344,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _goodPointsController.text.trim(),
       _improvementsController.text.trim(),
       _fortuneEnabled.toString(),
+      _weatherSummary.trim(),
       _jumpRopeController.text.trim(),
       _jumpRopeMinutesController.text.trim(),
       _jumpRopeEnabled.toString(),
@@ -402,8 +412,32 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _locationOptions,
         latest.location,
       );
+      _weatherSummary = _extractWeatherFromNotes(latest.notes);
       _initialSnapshot = _formSnapshot();
     });
+  }
+
+  String _extractWeatherFromNotes(String notes) {
+    for (final line in notes.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.startsWith('[Weather] ')) {
+        return trimmed.substring('[Weather] '.length).trim();
+      }
+      if (trimmed.startsWith('[날씨] ')) {
+        return trimmed.substring('[날씨] '.length).trim();
+      }
+    }
+    return '';
+  }
+
+  String _stripWeatherFromNotes(String notes) {
+    return notes
+        .split('\n')
+        .map((line) => line.trimRight())
+        .where((line) => !line.trim().startsWith('[Weather]'))
+        .where((line) => !line.trim().startsWith('[날씨]'))
+        .join('\n')
+        .trim();
   }
 
   int _defaultInt(String key, int fallback) {
@@ -745,560 +779,616 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         await _attemptExit();
       },
       child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Form(
-              key: _formKey,
-              onChanged: _scheduleAutoSave,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            IconButton(
-                              onPressed: _attemptExit,
-                              icon: const Icon(Icons.arrow_back),
-                              tooltip: l10n.cancel,
-                            ),
-                            TextButton.icon(
-                              onPressed: (_saveInProgress || _deleteInProgress)
-                                  ? null
-                                  : (isEdit ? _confirmAndDelete : _save),
-                              icon: Icon(
-                                isEdit
-                                    ? Icons.delete_outline
-                                    : Icons.save_outlined,
-                                size: 18,
-                                color: isEdit ? Colors.red : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 280),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: _weatherBackgroundColors(theme),
+              ),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                onChanged: _scheduleAutoSave,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              IconButton(
+                                onPressed: _attemptExit,
+                                icon: const Icon(Icons.arrow_back),
+                                tooltip: l10n.cancel,
                               ),
-                              label: Text(
-                                isEdit ? l10n.deleteEntry : l10n.save,
-                                style: TextStyle(
+                              TextButton.icon(
+                                onPressed:
+                                    (_saveInProgress || _deleteInProgress)
+                                        ? null
+                                        : (isEdit ? _confirmAndDelete : _save),
+                                icon: Icon(
+                                  isEdit
+                                      ? Icons.delete_outline
+                                      : Icons.save_outlined,
+                                  size: 18,
                                   color: isEdit ? Colors.red : null,
                                 ),
+                                label: Text(
+                                  isEdit ? l10n.deleteEntry : l10n.save,
+                                  style: TextStyle(
+                                    color: isEdit ? Colors.red : null,
+                                  ),
+                                ),
                               ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
+                            textAlign: TextAlign.left,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                            softWrap: true,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _buildFeatureActionButton(
+                              icon: _fortuneEnabled
+                                  ? Icons.auto_awesome
+                                  : Icons.auto_awesome_outlined,
+                              label: isKo ? '오늘의 운세' : 'Today fortune',
+                              active: _fortuneEnabled,
+                              onPressed: () =>
+                                  unawaited(_handleFortuneButtonPressed()),
+                            ),
+                            _buildFeatureActionButton(
+                              icon: _linkedBoardIds.isNotEmpty
+                                  ? Icons.developer_board
+                                  : Icons.developer_board_outlined,
+                              label: isKo ? '훈련 스케치' : 'Training sketch',
+                              active: _linkedBoardIds.isNotEmpty,
+                              onPressed: _openTrainingBoardEditor,
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
-                          textAlign: TextAlign.left,
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                          softWrap: true,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    WatchCartCard(
+                      child: Column(
                         children: [
-                          _buildFeatureActionButton(
-                            icon: _fortuneEnabled
-                                ? Icons.auto_awesome
-                                : Icons.auto_awesome_outlined,
-                            label: isKo ? '오늘의 운세' : 'Today fortune',
-                            active: _fortuneEnabled,
-                            onPressed: () =>
-                                unawaited(_handleFortuneButtonPressed()),
+                          _buildStatusRow(l10n),
+                          const SizedBox(height: 12),
+                          InkWell(
+                            onTap: _pickDate,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outline.withAlpha(140),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today,
+                                    size: 18,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          l10n.trainingDate,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurface,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          dateText,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.chevron_right),
+                                ],
+                              ),
+                            ),
                           ),
-                          _buildFeatureActionButton(
-                            icon: _linkedBoardIds.isNotEmpty
-                                ? Icons.developer_board
-                                : Icons.developer_board_outlined,
-                            label: isKo ? '훈련 스케치' : 'Training sketch',
-                            active: _linkedBoardIds.isNotEmpty,
-                            onPressed: _openTrainingBoardEditor,
+                          const SizedBox(height: 16),
+                          _buildIntSelectRow(
+                            label: l10n.trainingDuration,
+                            value: _durationMinutes,
+                            options: _durationOptions,
+                            optionLabel: (value) =>
+                                value == 0 ? l10n.notSet : l10n.minutes(value),
+                            onChanged: (value) {
+                              setState(() => _durationMinutes = value);
+                              _scheduleAutoSave();
+                            },
+                            onAdd: () => _addIntOption(
+                              key: 'durations',
+                              title: l10n.trainingDuration,
+                              options: _durationOptions,
+                              onUpdated: (list) =>
+                                  setState(() => _durationOptions = list),
+                              onSelected: (value) =>
+                                  setState(() => _durationMinutes = value),
+                              hint: '90',
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _buildSelectRow(
+                            label: l10n.location,
+                            value: _location,
+                            options: _locationOptions,
+                            onChanged: (value) {
+                              setState(() => _location = value);
+                              _scheduleAutoSave();
+                            },
+                            onAdd: () => _addOption(
+                              key: 'locations',
+                              title: l10n.location,
+                              options: _locationOptions,
+                              onUpdated: (list) =>
+                                  setState(() => _locationOptions = list),
+                              onSelected: (value) =>
+                                  setState(() => _location = value),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: _weatherLoading
+                                    ? null
+                                    : _useCurrentLocationWeather,
+                                icon: _weatherLoading
+                                    ? const SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.my_location, size: 16),
+                                label: Text(
+                                  isKo ? '현재 위치 날씨' : 'Use location weather',
+                                ),
+                              ),
+                              if (_weatherSummary.trim().isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 7,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(999),
+                                    color: theme.colorScheme.primaryContainer
+                                        .withValues(alpha: 0.9),
+                                  ),
+                                  child: Text(
+                                    _weatherSummary.trim(),
+                                    style:
+                                        theme.textTheme.labelMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSelectRow(
+                            label: l10n.program,
+                            value: _type,
+                            options: _programOptions,
+                            onChanged: (value) {
+                              setState(() => _type = value);
+                              _scheduleAutoSave();
+                            },
+                            onAdd: () => _addOption(
+                              key: 'programs',
+                              title: l10n.program,
+                              options: _programOptions,
+                              onUpdated: (list) =>
+                                  setState(() => _programOptions = list),
+                              onSelected: (value) =>
+                                  setState(() => _type = value),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildIntSelectRow(
+                                  label: l10n.intensity,
+                                  value: _intensity,
+                                  options: _ratingOptions,
+                                  optionLabel: (value) => '$value / 5',
+                                  onChanged: (value) {
+                                    setState(() => _intensity = value);
+                                    _scheduleAutoSave();
+                                  },
+                                  onAdd: null,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildIntSelectRow(
+                                  label: l10n.condition,
+                                  value: _mood,
+                                  options: _ratingOptions,
+                                  optionLabel: (value) => '$value / 5',
+                                  onChanged: (value) {
+                                    setState(() => _mood = value);
+                                    _scheduleAutoSave();
+                                  },
+                                  onAdd: null,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  WatchCartCard(
-                    child: Column(
-                      children: [
-                        _buildStatusRow(l10n),
-                        const SizedBox(height: 12),
-                        InkWell(
-                          onTap: _pickDate,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 12,
+                    ),
+                    const SizedBox(height: 16),
+                    WatchCartCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDailyGoalSelector(),
+                          const SizedBox(height: 12),
+                          _buildEmphasizedField(
+                            controller: _goodPointsController,
+                            minLines: 2,
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              labelText: isKo ? '잘한 점' : 'What went well',
+                              hintText: isKo
+                                  ? '오늘 잘된 플레이를 적어보세요.'
+                                  : 'Write what you did well today.',
                             ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.outline.withAlpha(140),
-                              ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildEmphasizedField(
+                            controller: _improvementsController,
+                            minLines: 3,
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              labelText: isKo ? '아쉬운 점' : 'What to improve',
+                              hintText: isKo
+                                  ? '다음에 보완할 부분을 적어보세요.'
+                                  : 'Write what needs improvement.',
                             ),
-                            child: Row(
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    WatchCartCard(
+                      child: Column(
+                        children: [
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(l10n.injury),
+                            value: _injury,
+                            onChanged: (value) {
+                              setState(() => _injury = value);
+                              _scheduleAutoSave();
+                            },
+                          ),
+                          _buildAnimatedSection(
+                            visible: _injury,
+                            child: Column(
                               children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                  color: theme.colorScheme.primary,
+                                _buildSelectRow(
+                                  label: l10n.injuryPart,
+                                  value: _injuryPartController.text.isEmpty
+                                      ? l10n.notSet
+                                      : _injuryPartController.text,
+                                  options: [l10n.notSet, ..._injuryPartOptions],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _injuryPartController.text =
+                                          value == l10n.notSet ? '' : value;
+                                    });
+                                    _scheduleAutoSave();
+                                  },
+                                  onAdd: () => _addOption(
+                                    key: 'injury_parts',
+                                    title: l10n.injuryPart,
+                                    options: _injuryPartOptions,
+                                    onUpdated: (list) => setState(
+                                        () => _injuryPartOptions = list),
+                                    onSelected: (value) => setState(
+                                      () => _injuryPartController.text = value,
+                                    ),
+                                  ),
+                                  enabled: _injury,
                                 ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        l10n.trainingDate,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        dateText,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
+                                const SizedBox(height: 12),
+                                _buildEmphasizedField(
+                                  controller: _painController,
+                                  enabled: _injury,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: l10n.painLevel,
+                                    hintText: '4',
                                   ),
                                 ),
-                                const Icon(Icons.chevron_right),
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(l10n.rehab),
+                                  value: _rehab,
+                                  onChanged: (value) {
+                                    setState(() => _rehab = value);
+                                    _scheduleAutoSave();
+                                  },
+                                ),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildIntSelectRow(
-                          label: l10n.trainingDuration,
-                          value: _durationMinutes,
-                          options: _durationOptions,
-                          optionLabel: (value) =>
-                              value == 0 ? l10n.notSet : l10n.minutes(value),
-                          onChanged: (value) {
-                            setState(() => _durationMinutes = value);
-                            _scheduleAutoSave();
-                          },
-                          onAdd: () => _addIntOption(
-                            key: 'durations',
-                            title: l10n.trainingDuration,
-                            options: _durationOptions,
-                            onUpdated: (list) =>
-                                setState(() => _durationOptions = list),
-                            onSelected: (value) =>
-                                setState(() => _durationMinutes = value),
-                            hint: '90',
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    WatchCartCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(l10n.liftingRecord),
+                            value: _liftingEnabled,
+                            onChanged: (value) {
+                              setState(() => _liftingEnabled = value);
+                              _scheduleAutoSave();
+                            },
                           ),
-                        ),
-                        const SizedBox(height: 18),
-                        _buildSelectRow(
-                          label: l10n.location,
-                          value: _location,
-                          options: _locationOptions,
-                          onChanged: (value) {
-                            setState(() => _location = value);
-                            _scheduleAutoSave();
-                          },
-                          onAdd: () => _addOption(
-                            key: 'locations',
-                            title: l10n.location,
-                            options: _locationOptions,
-                            onUpdated: (list) =>
-                                setState(() => _locationOptions = list),
-                            onSelected: (value) =>
-                                setState(() => _location = value),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildSelectRow(
-                          label: l10n.program,
-                          value: _type,
-                          options: _programOptions,
-                          onChanged: (value) {
-                            setState(() => _type = value);
-                            _scheduleAutoSave();
-                          },
-                          onAdd: () => _addOption(
-                            key: 'programs',
-                            title: l10n.program,
-                            options: _programOptions,
-                            onUpdated: (list) =>
-                                setState(() => _programOptions = list),
-                            onSelected: (value) =>
-                                setState(() => _type = value),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildIntSelectRow(
-                                label: l10n.intensity,
-                                value: _intensity,
-                                options: _ratingOptions,
-                                optionLabel: (value) => '$value / 5',
-                                onChanged: (value) {
-                                  setState(() => _intensity = value);
-                                  _scheduleAutoSave();
-                                },
-                                onAdd: null,
-                              ),
+                          _buildAnimatedSection(
+                            visible: _liftingEnabled,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.liftingByPart,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _liftChestController,
+                                        enabled: _liftingEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: l10n.liftingPartInfront,
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _liftBackController,
+                                        enabled: _liftingEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: l10n.liftingPartInside,
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _liftLegsController,
+                                        enabled: _liftingEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: l10n.liftingPartOutside,
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _liftShouldersController,
+                                        enabled: _liftingEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: l10n.liftingPartMuple,
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _liftArmsController,
+                                        enabled: _liftingEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: l10n.liftingPartHead,
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _liftCoreController,
+                                        enabled: _liftingEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: l10n.liftingPartChest,
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildIntSelectRow(
-                                label: l10n.condition,
-                                value: _mood,
-                                options: _ratingOptions,
-                                optionLabel: (value) => '$value / 5',
-                                onChanged: (value) {
-                                  setState(() => _mood = value);
-                                  _scheduleAutoSave();
-                                },
-                                onAdd: null,
-                              ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    WatchCartCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(isKo ? '줄넘기 기록' : 'Jump rope record'),
+                            value: _jumpRopeEnabled,
+                            onChanged: (value) {
+                              setState(() => _jumpRopeEnabled = value);
+                              _scheduleAutoSave();
+                            },
+                          ),
+                          _buildAnimatedSection(
+                            visible: _jumpRopeEnabled,
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _jumpRopeController,
+                                        enabled: _jumpRopeEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: isKo
+                                              ? '줄넘기 횟수'
+                                              : 'Jump rope count',
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildEmphasizedField(
+                                        controller: _jumpRopeMinutesController,
+                                        enabled: _jumpRopeEnabled,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: isKo
+                                              ? '줄넘기 시간(분)'
+                                              : 'Jump rope time (min)',
+                                          hintText: '0',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _buildEmphasizedField(
+                                  controller: _jumpRopeNoteController,
+                                  enabled: _jumpRopeEnabled,
+                                  minLines: 3,
+                                  maxLines: 5,
+                                  decoration: InputDecoration(
+                                    labelText: isKo ? '메모' : 'Memo',
+                                    hintText: isKo
+                                        ? '줄넘기를 하면서 느낀 점을 적어보세요.'
+                                        : 'Write what you felt during jump rope.',
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  WatchCartCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildDailyGoalSelector(),
-                        const SizedBox(height: 12),
-                        _buildEmphasizedField(
-                          controller: _goodPointsController,
-                          minLines: 2,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            labelText: isKo ? '잘한 점' : 'What went well',
-                            hintText: isKo
-                                ? '오늘 잘된 플레이를 적어보세요.'
-                                : 'Write what you did well today.',
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildEmphasizedField(
-                          controller: _improvementsController,
-                          minLines: 3,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            labelText: isKo ? '아쉬운 점' : 'What to improve',
-                            hintText: isKo
-                                ? '다음에 보완할 부분을 적어보세요.'
-                                : 'Write what needs improvement.',
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  WatchCartCard(
-                    child: Column(
-                      children: [
-                        SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(l10n.injury),
-                          value: _injury,
-                          onChanged: (value) {
-                            setState(() => _injury = value);
-                            _scheduleAutoSave();
-                          },
-                        ),
-                        _buildAnimatedSection(
-                          visible: _injury,
-                          child: Column(
-                            children: [
-                              _buildSelectRow(
-                                label: l10n.injuryPart,
-                                value: _injuryPartController.text.isEmpty
-                                    ? l10n.notSet
-                                    : _injuryPartController.text,
-                                options: [l10n.notSet, ..._injuryPartOptions],
-                                onChanged: (value) {
-                                  setState(() {
-                                    _injuryPartController.text =
-                                        value == l10n.notSet ? '' : value;
-                                  });
-                                  _scheduleAutoSave();
-                                },
-                                onAdd: () => _addOption(
-                                  key: 'injury_parts',
-                                  title: l10n.injuryPart,
-                                  options: _injuryPartOptions,
-                                  onUpdated: (list) =>
-                                      setState(() => _injuryPartOptions = list),
-                                  onSelected: (value) => setState(
-                                    () => _injuryPartController.text = value,
-                                  ),
-                                ),
-                                enabled: _injury,
-                              ),
-                              const SizedBox(height: 12),
-                              _buildEmphasizedField(
-                                controller: _painController,
-                                enabled: _injury,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: l10n.painLevel,
-                                  hintText: '4',
-                                ),
-                              ),
-                              SwitchListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(l10n.rehab),
-                                value: _rehab,
-                                onChanged: (value) {
-                                  setState(() => _rehab = value);
-                                  _scheduleAutoSave();
-                                },
-                              ),
-                            ],
+                    const SizedBox(height: 20),
+                    if (isEdit)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4, bottom: 4),
+                            child: Text(
+                              _autoSaving
+                                  ? (Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '자동 저장 중...'
+                                      : 'Autosaving...')
+                                  : (Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '수정 내용이 자동 저장됩니다.'
+                                      : 'Changes are saved automatically.'),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  WatchCartCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(l10n.liftingRecord),
-                          value: _liftingEnabled,
-                          onChanged: (value) {
-                            setState(() => _liftingEnabled = value);
-                            _scheduleAutoSave();
-                          },
-                        ),
-                        _buildAnimatedSection(
-                          visible: _liftingEnabled,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.liftingByPart,
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _liftChestController,
-                                      enabled: _liftingEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: l10n.liftingPartInfront,
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _liftBackController,
-                                      enabled: _liftingEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: l10n.liftingPartInside,
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _liftLegsController,
-                                      enabled: _liftingEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: l10n.liftingPartOutside,
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _liftShouldersController,
-                                      enabled: _liftingEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: l10n.liftingPartMuple,
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _liftArmsController,
-                                      enabled: _liftingEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: l10n.liftingPartHead,
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _liftCoreController,
-                                      enabled: _liftingEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: l10n.liftingPartChest,
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  WatchCartCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(isKo ? '줄넘기 기록' : 'Jump rope record'),
-                          value: _jumpRopeEnabled,
-                          onChanged: (value) {
-                            setState(() => _jumpRopeEnabled = value);
-                            _scheduleAutoSave();
-                          },
-                        ),
-                        _buildAnimatedSection(
-                          visible: _jumpRopeEnabled,
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _jumpRopeController,
-                                      enabled: _jumpRopeEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText:
-                                            isKo ? '줄넘기 횟수' : 'Jump rope count',
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildEmphasizedField(
-                                      controller: _jumpRopeMinutesController,
-                                      enabled: _jumpRopeEnabled,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: isKo
-                                            ? '줄넘기 시간(분)'
-                                            : 'Jump rope time (min)',
-                                        hintText: '0',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              _buildEmphasizedField(
-                                controller: _jumpRopeNoteController,
-                                enabled: _jumpRopeEnabled,
-                                minLines: 3,
-                                maxLines: 5,
-                                decoration: InputDecoration(
-                                  labelText: isKo ? '메모' : 'Memo',
-                                  hintText: isKo
-                                      ? '줄넘기를 하면서 느낀 점을 적어보세요.'
-                                      : 'Write what you felt during jump rope.',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  if (isEdit)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: Text(
-                            _autoSaving
-                                ? (Localizations.localeOf(
-                                          context,
-                                        ).languageCode ==
-                                        'ko'
-                                    ? '자동 저장 중...'
-                                    : 'Autosaving...')
-                                : (Localizations.localeOf(
-                                          context,
-                                        ).languageCode ==
-                                        'ko'
-                                    ? '수정 내용이 자동 저장됩니다.'
-                                    : 'Changes are saved automatically.'),
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: 24),
-                ],
+                        ],
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1615,6 +1705,222 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
   }
 
+  Future<void> _useCurrentLocationWeather() async {
+    if (_weatherLoading || !mounted || _disposing) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    setState(() => _weatherLoading = true);
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showWeatherSnack(
+          isKo ? '위치 서비스를 먼저 켜주세요.' : 'Please enable location services first.',
+        );
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _showWeatherSnack(
+          isKo ? '위치 권한이 필요합니다.' : 'Location permission is required.',
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
+      );
+
+      final place = await _resolvePlaceName(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        isKo: isKo,
+      );
+      final weather = await _fetchCurrentWeather(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        isKo: isKo,
+      );
+      if (!mounted || _disposing) return;
+      setState(() {
+        if (place.isNotEmpty) {
+          _location = place;
+        }
+        _weatherCode = weather.$1;
+        _weatherSummary = weather.$2;
+      });
+      _scheduleAutoSave();
+    } catch (_) {
+      if (!mounted || _disposing) return;
+      _showWeatherSnack(
+        isKo ? '날씨를 불러오지 못했어요.' : 'Failed to load weather.',
+      );
+    } finally {
+      if (mounted && !_disposing) {
+        setState(() => _weatherLoading = false);
+      }
+    }
+  }
+
+  void _showWeatherSnack(String text) {
+    if (!mounted || _disposing) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  Future<String> _resolvePlaceName({
+    required double latitude,
+    required double longitude,
+    required bool isKo,
+  }) async {
+    final uri = Uri.https('geocoding-api.open-meteo.com', '/v1/reverse', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'count': '1',
+      'language': isKo ? 'ko' : 'en',
+    });
+    final response = await http.get(uri);
+    if (response.statusCode != 200) return '';
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) return '';
+    final results = decoded['results'];
+    if (results is! List || results.isEmpty) return '';
+    final first = results.first;
+    if (first is! Map<String, dynamic>) return '';
+    final city = (first['city'] ?? first['name'] ?? '').toString().trim();
+    final region = (first['admin1'] ?? '').toString().trim();
+    final country = (first['country'] ?? '').toString().trim();
+    final parts = <String>[
+      if (city.isNotEmpty) city,
+      if (region.isNotEmpty && region != city) region,
+      if (country.isNotEmpty) country,
+    ];
+    return parts.take(2).join(', ');
+  }
+
+  Future<(int?, String)> _fetchCurrentWeather({
+    required double latitude,
+    required double longitude,
+    required bool isKo,
+  }) async {
+    final uri = Uri.https('api.open-meteo.com', '/v1/forecast', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'temperature_2m,weather_code',
+      'timezone': 'auto',
+    });
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      return (null, '');
+    }
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) return (null, '');
+    final current = decoded['current'];
+    if (current is! Map<String, dynamic>) return (null, '');
+    final temp = (current['temperature_2m'] as num?)?.toDouble();
+    final code = (current['weather_code'] as num?)?.toInt();
+    final weatherText = _weatherLabelFromCode(code, isKo);
+    if (temp == null) return (code, weatherText);
+    return (code, '$weatherText ${temp.toStringAsFixed(1)}°C');
+  }
+
+  String _weatherLabelFromCode(int? code, bool isKo) {
+    switch (code) {
+      case 0:
+        return isKo ? '맑음' : 'Clear';
+      case 1:
+      case 2:
+      case 3:
+        return isKo ? '구름' : 'Cloudy';
+      case 45:
+      case 48:
+        return isKo ? '안개' : 'Fog';
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+        return isKo ? '이슬비' : 'Drizzle';
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return isKo ? '비' : 'Rain';
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return isKo ? '눈' : 'Snow';
+      case 95:
+      case 96:
+      case 99:
+        return isKo ? '천둥번개' : 'Thunderstorm';
+      default:
+        return isKo ? '날씨' : 'Weather';
+    }
+  }
+
+  List<Color> _weatherBackgroundColors(ThemeData theme) {
+    switch (_weatherCode) {
+      case 0:
+        return const [Color(0xFFFFF1B8), Color(0xFFFFD666)];
+      case 1:
+      case 2:
+      case 3:
+        return const [Color(0xFFE6F4FF), Color(0xFFBAC8E0)];
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return const [Color(0xFFD6E4FF), Color(0xFFA5B4D4)];
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return const [Color(0xFFF5F7FA), Color(0xFFDCE3EE)];
+      case 95:
+      case 96:
+      case 99:
+        return const [Color(0xFF3C4A68), Color(0xFF232D42)];
+      default:
+        return [
+          theme.scaffoldBackgroundColor,
+          theme.scaffoldBackgroundColor,
+        ];
+    }
+  }
+
+  String _withWeatherInNotes(String notes, bool isKo) {
+    final weather = _weatherSummary.trim();
+    if (weather.isEmpty) return notes;
+    final lines = notes
+        .split('\n')
+        .map((line) => line.trimRight())
+        .where((line) => line.isNotEmpty)
+        .where(
+          (line) => !line.startsWith('[Weather]') && !line.startsWith('[날씨]'),
+        )
+        .toList(growable: true);
+    lines.add(isKo ? '[날씨] $weather' : '[Weather] $weather');
+    return lines.join('\n');
+  }
+
   Future<void> _handleFortuneButtonPressed() async {
     if (!_fortuneEnabled) {
       if (!mounted) return;
@@ -1633,6 +1939,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (!mounted || _disposing) return;
     final goodPoints = _goodPointsController.text.trim();
     final improvements = _improvementsController.text.trim();
+    final notes = _withWeatherInNotes(improvements, isKo);
     final draft = TrainingEntry(
       date: DateTime(_date.year, _date.month, _date.day),
       durationMinutes: _durationMinutes,
@@ -1640,7 +1947,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       type: _type,
       mood: _mood,
       injury: _injury,
-      notes: improvements,
+      notes: notes,
       location: _location,
       program: _type,
       drills: _drillsController.text.trim(),
@@ -1762,6 +2069,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final selectedGoals = _selectedDailyGoals.toList()..sort();
       final goodPoints = _goodPointsController.text.trim();
       final improvements = _improvementsController.text.trim();
+      final notesWithWeather = _withWeatherInNotes(improvements, isKo);
       const nextGoal = '';
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
       final jumpRopeCount = _jumpRopeEnabled
@@ -1783,7 +2091,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         type: _type,
         mood: _mood,
         injury: _injury,
-        notes: improvements,
+        notes: notesWithWeather,
         location: _location,
         program: _type,
         drills: _drillsController.text.trim(),
@@ -1963,11 +2271,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (levelAward.gainedXp == 0) return base;
     final xpText = levelAward.gainedXp > 0
         ? (isKo
-              ? '+${levelAward.gainedXp} XP 획득'
-              : '+${levelAward.gainedXp} XP earned')
+            ? '+${levelAward.gainedXp} XP 획득'
+            : '+${levelAward.gainedXp} XP earned')
         : (isKo
-              ? '${levelAward.gainedXp} XP 차감'
-              : '${levelAward.gainedXp} XP deducted');
+            ? '${levelAward.gainedXp} XP 차감'
+            : '${levelAward.gainedXp} XP deducted');
     if (!levelAward.didLevelUp) {
       return '$base $xpText';
     }
