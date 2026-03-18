@@ -71,6 +71,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   int _score = 0;
   int _goals = 0;
   int _combo = 0;
+  int _bonusScore = 0;
+  int _lives = 3;
   int _weeklyBest = 0;
   int _level = 1;
   bool _gameStarted = false;
@@ -148,6 +150,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   Color _reactionColor = const Color(0xFF8FA3BF);
   IconData _reactionIcon = Icons.adjust;
   bool _attackerAIsPasser = true;
+  _PassRiskType _currentPassRisk = _PassRiskType.safe;
+  _GameEvent _activeEvent = _GameEvent.none;
+  int _eventSecondsRemaining = 0;
+  int _feverSecondsRemaining = 0;
+  DateTime? _lastSuccessAt;
+  int _rhythmStreak = 0;
+  _MissionState _mission = const _MissionState(
+    type: _MissionType.safePasses,
+    target: 4,
+    progress: 0,
+  );
+  double _plannedPassOpenSpace = 0;
   List<GameRankingEntry> _rankingHistory = const [];
   Offset _joystickInput = Offset.zero;
   bool _joystickActive = false;
@@ -159,7 +173,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _passChargeArmed = false;
   final GlobalKey _passPadKey = GlobalKey();
 
-  int get _rankScore => (_score * 10) + (_level * 15) + (_goals * 60);
+  int get _rankScore =>
+      (_score * 10) + (_level * 15) + (_goals * 60) + _bonusScore;
   double get _attackerPaceScale =>
       (0.82 + ((_level - 1) * 0.040)).clamp(0.82, 1.35);
   double get _defenderPaceScale =>
@@ -247,6 +262,70 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       detail: isKo ? '골키퍼가 라인을 잘 막고 있어요' : 'Keeper is covering the lane',
       color: const Color(0xFFEB5757),
     );
+  }
+
+  double get _eventReceiveWindowScale {
+    switch (_activeEvent) {
+      case _GameEvent.narrowLanes:
+        return 0.82;
+      case _GameEvent.wideLanes:
+        return 1.18;
+      case _GameEvent.tailWind:
+      case _GameEvent.none:
+        return 1.0;
+    }
+  }
+
+  double get _eventBallSpeedScale {
+    switch (_activeEvent) {
+      case _GameEvent.tailWind:
+        return 1.12;
+      case _GameEvent.narrowLanes:
+      case _GameEvent.wideLanes:
+      case _GameEvent.none:
+        return 1.0;
+    }
+  }
+
+  double get _feverScoreScale => _feverSecondsRemaining > 0 ? 2.0 : 1.0;
+
+  String _passRiskLabel(bool isKo, _PassRiskType type) {
+    switch (type) {
+      case _PassRiskType.safe:
+        return isKo ? '안전 패스' : 'Safe pass';
+      case _PassRiskType.killer:
+        return isKo ? '킬 패스' : 'Killer pass';
+      case _PassRiskType.risky:
+        return isKo ? '위험 패스' : 'Risky pass';
+    }
+  }
+
+  String _eventLabel(bool isKo, _GameEvent event) {
+    switch (event) {
+      case _GameEvent.none:
+        return isKo ? '이벤트 없음' : 'No event';
+      case _GameEvent.narrowLanes:
+        return isKo ? '좁은 라인' : 'Narrow lanes';
+      case _GameEvent.wideLanes:
+        return isKo ? '넓은 라인' : 'Wide lanes';
+      case _GameEvent.tailWind:
+        return isKo ? '순풍' : 'Tail wind';
+    }
+  }
+
+  String _missionLabel(bool isKo, _MissionState mission) {
+    switch (mission.type) {
+      case _MissionType.safePasses:
+        return isKo ? '안전 패스' : 'Safe passes';
+      case _MissionType.killerPasses:
+        return isKo ? '킬 패스' : 'Killer passes';
+      case _MissionType.riskyPasses:
+        return isKo ? '위험 패스' : 'Risky passes';
+      case _MissionType.combo:
+        return isKo ? '콤보 달성' : 'Combo';
+      case _MissionType.goals:
+        return isKo ? '골 넣기' : 'Goals';
+    }
   }
 
   double _predictKeeperY(double time) {
@@ -550,6 +629,45 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.82),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.50),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${isKo ? '패스 타입' : 'Pass type'}: ${_passRiskLabel(isKo, _currentPassRisk)} · ${isKo ? '생명' : 'Lives'} $_lives',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${isKo ? '미션' : 'Mission'}: ${_missionLabel(isKo, _mission)} ${_mission.progress}/${_mission.target}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${isKo ? '이벤트' : 'Event'}: ${_eventLabel(isKo, _activeEvent)}${_eventSecondsRemaining > 0 ? ' (${_eventSecondsRemaining}s)' : ''}${_feverSecondsRemaining > 0 ? ' · ${isKo ? '피버' : 'Fever'} ${_feverSecondsRemaining}s' : ''}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 6),
                 SegmentedButton<_GameDifficulty>(
                   segments: [
@@ -961,8 +1079,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                     const SizedBox(height: 6),
                                                     Text(
                                                       isKo
-                                                          ? '점수 $_score  레벨 Lv.$_level  골 $_goals'
-                                                          : 'Score $_score  Level Lv.$_level  Goals $_goals',
+                                                          ? '점수 $_score  보너스 $_bonusScore  레벨 Lv.$_level  골 $_goals'
+                                                          : 'Score $_score  Bonus $_bonusScore  Level Lv.$_level  Goals $_goals',
                                                       textAlign:
                                                           TextAlign.center,
                                                       style: const TextStyle(
@@ -1148,6 +1266,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _score = 0;
       _goals = 0;
       _combo = 0;
+      _bonusScore = 0;
+      _lives = 3;
       _maxComboInRun = 0;
       _lastFailedReason = null;
       _lastInteractionAt = DateTime.now();
@@ -1155,6 +1275,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _goalChanceActive = false;
       _attackerAIsPasser = true;
       _level = 1;
+      _currentPassRisk = _PassRiskType.safe;
+      _activeEvent = _GameEvent.none;
+      _eventSecondsRemaining = 0;
+      _feverSecondsRemaining = 0;
+      _lastSuccessAt = null;
+      _rhythmStreak = 0;
+      _mission = _rollMission();
+      _plannedPassOpenSpace = 0;
       _resetRound(keepScore: false);
       _reactionLabel = '';
       _reactionDetail = '';
@@ -1178,6 +1306,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       setState(() {
         if (_awaitingShotOutcome) return;
         _remainingSeconds = (_remainingSeconds - 1).clamp(0, 999);
+        if (_eventSecondsRemaining > 0) {
+          _eventSecondsRemaining -= 1;
+          if (_eventSecondsRemaining <= 0) {
+            _activeEvent = _GameEvent.none;
+          }
+        } else if (_remainingSeconds > 3 && _random.nextDouble() < 0.35) {
+          _rollRandomEvent();
+        }
+        if (_feverSecondsRemaining > 0) {
+          _feverSecondsRemaining -= 1;
+        }
         if (_remainingSeconds <= 0) {
           _remainingSeconds = 0;
           _enterFinalShotMode();
@@ -1187,9 +1326,40 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     });
   }
 
+  _MissionState _rollMission() {
+    const missionTypes = <_MissionType>[
+      _MissionType.safePasses,
+      _MissionType.killerPasses,
+      _MissionType.riskyPasses,
+      _MissionType.combo,
+      _MissionType.goals,
+    ];
+    final type = missionTypes[_random.nextInt(missionTypes.length)];
+    final target = switch (type) {
+      _MissionType.safePasses => 4,
+      _MissionType.killerPasses => 3,
+      _MissionType.riskyPasses => 2,
+      _MissionType.combo => 8,
+      _MissionType.goals => 1,
+    };
+    return _MissionState(type: type, target: target, progress: 0);
+  }
+
+  void _rollRandomEvent() {
+    const events = <_GameEvent>[
+      _GameEvent.narrowLanes,
+      _GameEvent.wideLanes,
+      _GameEvent.tailWind,
+    ];
+    _activeEvent = events[_random.nextInt(events.length)];
+    _eventSecondsRemaining = 8;
+  }
+
   void _updatePlayers() {
     final attackerPace = _attackerPaceScale;
     final defenderPace = _defenderPaceScale;
+    final feverMoveBoost = _feverSecondsRemaining > 0 ? 1.06 : 1.0;
+    final feverDefenderSlow = _feverSecondsRemaining > 0 ? 0.86 : 1.0;
     final comboBoost = (1 + (_combo * 0.05)).clamp(1.0, 1.8);
     final levelBoost = (1 + ((_level - 1) * 0.04)).clamp(1.0, 1.6);
     final runSpeed = (0.11 + ((_level - 1) * 0.006)).clamp(0.11, 0.22);
@@ -1319,10 +1489,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       }
       _passerSpeedMul = 1.0;
       _receiverSpeedMul = 1.0;
-      _passerXPos += _passerVx * _dt * attackerPace;
-      _passerYPos += _passerVy * _dt * attackerPace;
-      _receiverX += _receiverVx * _dt * attackerPace;
-      _receiverY += _receiverVy * _dt * attackerPace;
+      _passerXPos += _passerVx * _dt * attackerPace * feverMoveBoost;
+      _passerYPos += _passerVy * _dt * attackerPace * feverMoveBoost;
+      _receiverX += _receiverVx * _dt * attackerPace * feverMoveBoost;
+      _receiverY += _receiverVy * _dt * attackerPace * feverMoveBoost;
 
       const minX = 0.22;
       const maxX = 0.80;
@@ -1379,7 +1549,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             comboBoost *
             levelBoost *
             clutchBoost;
-        defender.x -= passBySpeed * _dt * defenderPace;
+        defender.x -= passBySpeed * _dt * defenderPace * feverDefenderSlow;
         final lanePoint = _lanePointAtX(defender.x);
         final roleTargetY = _roleTargetY(defender, lanePoint.dy);
         final lanePull = (lanePoint.dy - defender.y) *
@@ -1394,7 +1564,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                 passBySpeed *
                 defender.ghostType.wobbleFactor *
                 _dt *
-                defenderPace) +
+                defenderPace *
+                feverDefenderSlow) +
             lanePull +
             rolePull;
         if (_random.nextDouble() <
@@ -1723,6 +1894,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         passDirY: dirY,
       );
       _applyPasserBurst(dirX, dirY);
+      _currentPassRisk = _PassRiskType.killer;
+      _plannedPassOpenSpace = _minDefenderDistanceToPoint(_targetX, _targetY);
       return;
     }
     final passerIsA = _attackerAIsPasser;
@@ -1763,6 +1936,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballMinSpeed,
       _ballMaxSpeed,
     );
+    _effectiveBallSpeed =
+        (_effectiveBallSpeed * _eventBallSpeedScale).clamp(_ballMinSpeed, 1.35);
+    _currentPassRisk = _classifyPassRisk(
+      passDistance: dist,
+      targetOpenSpace: _minDefenderDistanceToPoint(_targetX, _targetY),
+    );
+    _plannedPassOpenSpace = _minDefenderDistanceToPoint(_targetX, _targetY);
     _ballVx = passDirX * _effectiveBallSpeed;
     _ballVy = passDirY * _effectiveBallSpeed;
     final holdPoint = _activePasserBallHoldPoint();
@@ -1781,6 +1961,28 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       passDirY: passDirY,
     );
     _applyPasserBurst(passDirX, passDirY);
+  }
+
+  _PassRiskType _classifyPassRisk({
+    required double passDistance,
+    required double targetOpenSpace,
+  }) {
+    if (passDistance <= 0.26 && targetOpenSpace >= 0.10) {
+      return _PassRiskType.safe;
+    }
+    if (passDistance >= 0.42 || targetOpenSpace <= 0.055) {
+      return _PassRiskType.risky;
+    }
+    return _PassRiskType.killer;
+  }
+
+  double _minDefenderDistanceToPoint(double x, double y) {
+    var nearest = 999.0;
+    for (final defender in _defenders) {
+      final d = _distance(x, y, defender.x, defender.y);
+      if (d < nearest) nearest = d;
+    }
+    return nearest.isFinite ? nearest : 0;
   }
 
   void _applyImmediatePasserAdvance({
@@ -1867,9 +2069,40 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _attackerAIsPasser = !_attackerAIsPasser;
     _score += 1;
     _combo += 1;
+    final now = DateTime.now();
+    if (_lastSuccessAt != null) {
+      final gap = now.difference(_lastSuccessAt!).inMilliseconds;
+      if (gap >= 350 && gap <= 1200) {
+        _rhythmStreak += 1;
+      } else {
+        _rhythmStreak = 1;
+      }
+    } else {
+      _rhythmStreak = 1;
+    }
+    _lastSuccessAt = now;
+    if (_rhythmStreak >= 3) {
+      _awardBonus(3, reason: _koText('리듬 보너스', 'Rhythm bonus'));
+      _rhythmStreak = 0;
+    }
+    final passBonus = switch (_currentPassRisk) {
+      _PassRiskType.safe => 1,
+      _PassRiskType.killer => 4,
+      _PassRiskType.risky => 6,
+    };
+    _awardBonus(passBonus,
+        reason: _passRiskLabel(_isKoLocale, _currentPassRisk));
+    if (_plannedPassOpenSpace >= 0.13) {
+      _awardBonus(4, reason: _koText('공간 선택', 'Space found'));
+    }
     if (_combo > _maxComboInRun) {
       _maxComboInRun = _combo;
     }
+    if (_combo >= 8 && _feverSecondsRemaining <= 0) {
+      _feverSecondsRemaining = 5;
+      _setReaction(_PassResult.fever);
+    }
+    _updateMissionProgress(success: true);
     _maybeLevelUp();
     _updateWeeklyBest();
     _continueAfterSuccess();
@@ -1886,6 +2119,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _finalShotMode = false;
     _ballFlying = false;
     _setReaction(_PassResult.goal);
+    _awardBonus(10, reason: _koText('골 보너스', 'Goal bonus'));
+    _updateMissionProgress(goalScored: true);
     _scheduleShotOutcomeFinish(
       failed: false,
       finishAfterOutcome: wasFinalShot,
@@ -2016,6 +2251,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   void _onFail([_PassResult result = _PassResult.miss]) {
     _lastInteractionAt = DateTime.now();
+    _lastSuccessAt = null;
+    _rhythmStreak = 0;
     _lastFailedReason = result;
     _clearFlightGuide();
     _combo = 0;
@@ -2026,6 +2263,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
           result == _PassResult.saved ? _ShotOutcome.saved : _ShotOutcome.miss;
     }
     _setReaction(result);
+    if (_mission.type == _MissionType.combo) {
+      _mission = _mission.copyWith(progress: _combo.clamp(0, _mission.target));
+    }
     if (_finalShotMode) {
       _goalChanceActive = false;
       _ballFlying = false;
@@ -2056,9 +2296,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       if (!mounted) return;
       setState(() {
         _awaitingFailFinish = false;
-        _endGameOnFail();
+        _consumeLifeOrEndGame();
       });
     });
+  }
+
+  void _consumeLifeOrEndGame() {
+    if (_lives > 1) {
+      _lives -= 1;
+      _setReaction(_PassResult.retry);
+      _resetRound(keepScore: true);
+      return;
+    }
+    _lives = 0;
+    _endGameOnFail();
   }
 
   void _scheduleShotOutcomeFinish({
@@ -2083,6 +2334,56 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _resetRound(keepScore: true);
     _lastShotOutcome = _ShotOutcome.none;
     _awaitingShotOutcome = false;
+  }
+
+  void _awardBonus(int basePoints, {String? reason}) {
+    final scaled = (basePoints * _feverScoreScale).round();
+    if (scaled <= 0) return;
+    _bonusScore += scaled;
+    if (reason != null && reason.trim().isNotEmpty) {
+      _reactionDetail = _koText(
+        '${reason.trim()} +$scaled',
+        '${reason.trim()} +$scaled',
+      );
+    }
+  }
+
+  bool get _isKoLocale => Localizations.localeOf(context).languageCode == 'ko';
+
+  void _updateMissionProgress({bool success = false, bool goalScored = false}) {
+    var nextProgress = _mission.progress;
+    switch (_mission.type) {
+      case _MissionType.safePasses:
+        if (success && _currentPassRisk == _PassRiskType.safe) {
+          nextProgress += 1;
+        }
+        break;
+      case _MissionType.killerPasses:
+        if (success && _currentPassRisk == _PassRiskType.killer) {
+          nextProgress += 1;
+        }
+        break;
+      case _MissionType.riskyPasses:
+        if (success && _currentPassRisk == _PassRiskType.risky) {
+          nextProgress += 1;
+        }
+        break;
+      case _MissionType.combo:
+        nextProgress = _combo.clamp(0, _mission.target);
+        break;
+      case _MissionType.goals:
+        if (goalScored) {
+          nextProgress += 1;
+        }
+        break;
+    }
+    if (nextProgress >= _mission.target) {
+      _awardBonus(12, reason: _koText('미션 완료', 'Mission complete'));
+      _mission = _rollMission();
+      _setReaction(_PassResult.missionComplete);
+      return;
+    }
+    _mission = _mission.copyWith(progress: nextProgress);
   }
 
   void _continueAfterSuccess() {
@@ -2222,6 +2523,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _targetY = _receiverY;
     _aimX = _targetX;
     _aimY = _targetY;
+    _currentPassRisk = _PassRiskType.safe;
+    _plannedPassOpenSpace = 0;
     _joystickInput = Offset.zero;
     _joystickActive = false;
     _joystickPointerId = null;
@@ -2246,6 +2549,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _stopControlledAttacker();
     if (!keepScore) {
       _lastAccuracy = 0;
+      _bonusScore = 0;
+      _lives = 3;
+      _eventSecondsRemaining = 0;
+      _activeEvent = _GameEvent.none;
+      _feverSecondsRemaining = 0;
+      _lastSuccessAt = null;
+      _rhythmStreak = 0;
       _reactionLabel = '';
       _reactionDetail = '';
       _reactionColor = const Color(0xFF8FA3BF);
@@ -2444,29 +2754,34 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             (_forwardWindow ? 0.010 : 0.0) -
             (speedNorm * 0.010))
         .clamp(0.055, 0.100);
+    final eventScale = _eventReceiveWindowScale;
+    final adjustedForwardReach = (forwardReach * eventScale).clamp(0.06, 0.20);
+    final adjustedBackReach = (backReach * eventScale).clamp(0.005, 0.025);
+    final adjustedLateralReach = (lateralReach * eventScale).clamp(0.045, 0.12);
 
-    final inside =
-        along >= -backReach && along <= forwardReach && lateral <= lateralReach;
+    final inside = along >= -adjustedBackReach &&
+        along <= adjustedForwardReach &&
+        lateral <= adjustedLateralReach;
     if (!inside) {
       return _ReceivingWindowEval(
         inside: false,
         fit: 0,
         along: along,
-        backReach: backReach,
+        backReach: adjustedBackReach,
       );
     }
 
     final alongFit = along >= 0
-        ? (1 - ((along / forwardReach) * 0.70)).clamp(0.0, 1.0)
-        : (1 - ((along.abs() / backReach) * 0.90)).clamp(0.0, 1.0);
-    final lateralFit = (1 - (lateral / lateralReach)).clamp(0.0, 1.0);
+        ? (1 - ((along / adjustedForwardReach) * 0.70)).clamp(0.0, 1.0)
+        : (1 - ((along.abs() / adjustedBackReach) * 0.90)).clamp(0.0, 1.0);
+    final lateralFit = (1 - (lateral / adjustedLateralReach)).clamp(0.0, 1.0);
     final fit = (alongFit * 0.45 + lateralFit * 0.55).clamp(0.0, 1.0);
 
     return _ReceivingWindowEval(
       inside: true,
       fit: fit,
       along: along,
-      backReach: backReach,
+      backReach: adjustedBackReach,
     );
   }
 
@@ -2662,6 +2977,33 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
           'Round ended because no pass was attempted within 3 seconds.',
         );
         return 0;
+      case _PassResult.retry:
+        _reactionIcon = Icons.replay_rounded;
+        _reactionColor = const Color(0xFF2F80ED);
+        _reactionLabel = _koText('다시 도전!', 'Try again!');
+        _reactionDetail = _koText(
+          '실수 1회를 사용했어요. 남은 생명으로 다시 이어갑니다.',
+          'One life was used. Keep playing with the remaining lives.',
+        );
+        return 0;
+      case _PassResult.missionComplete:
+        _reactionIcon = Icons.flag_rounded;
+        _reactionColor = const Color(0xFF0FA968);
+        _reactionLabel = _koText('미션 완료!', 'Mission complete!');
+        _reactionDetail = _koText(
+          '보너스 점수를 획득하고 새로운 미션이 시작됩니다.',
+          'Bonus score awarded and a new mission has started.',
+        );
+        return 1;
+      case _PassResult.fever:
+        _reactionIcon = Icons.local_fire_department;
+        _reactionColor = const Color(0xFFFF8A3D);
+        _reactionLabel = _koText('피버 타임!', 'Fever time!');
+        _reactionDetail = _koText(
+          '5초 동안 보너스 점수가 2배로 적용됩니다.',
+          'Bonus points are doubled for 5 seconds.',
+        );
+        return 1;
     }
   }
 
@@ -3866,6 +4208,12 @@ enum _EntityKind { attacker, defender, ball }
 
 enum _ShotOutcome { none, goal, saved, miss }
 
+enum _PassRiskType { safe, killer, risky }
+
+enum _GameEvent { none, narrowLanes, wideLanes, tailWind }
+
+enum _MissionType { safePasses, killerPasses, riskyPasses, combo, goals }
+
 enum _PassResult {
   perfect,
   intercepted,
@@ -3879,6 +4227,33 @@ enum _PassResult {
   tooSlow,
   miss,
   idleTimeout,
+  retry,
+  missionComplete,
+  fever,
+}
+
+class _MissionState {
+  final _MissionType type;
+  final int target;
+  final int progress;
+
+  const _MissionState({
+    required this.type,
+    required this.target,
+    required this.progress,
+  });
+
+  _MissionState copyWith({
+    _MissionType? type,
+    int? target,
+    int? progress,
+  }) {
+    return _MissionState(
+      type: type ?? this.type,
+      target: target ?? this.target,
+      progress: progress ?? this.progress,
+    );
+  }
 }
 
 enum _AccuracyTier { perfect, great, good, okay, low }
