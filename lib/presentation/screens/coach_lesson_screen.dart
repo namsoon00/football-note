@@ -432,6 +432,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
     final trainingCount = day.trainingEntries.length;
     final matchCount = day.matchEntries.length;
+    final weatherSummary = _dayWeatherSummary(day);
+    final weatherIcon = _weatherIconForSummary(weatherSummary);
     return Container(
       decoration: _paperDecoration(),
       child: Padding(
@@ -439,12 +441,27 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              _formatDiaryDate(day.date),
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w900,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _formatDiaryDate(day.date),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: _headlineInk,
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
+                ),
+                if (weatherIcon != null)
+                  Tooltip(
+                    message: weatherSummary,
+                    child: Icon(
+                      weatherIcon,
+                      size: 20,
+                      color: _accentInk,
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
@@ -1150,6 +1167,40 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .where((line) => !line.trim().startsWith('[날씨]'))
         .join('\n')
         .trim();
+  }
+
+  String _dayWeatherSummary(_DiaryDayData day) {
+    for (final entry in day.trainingEntries) {
+      final weather = _extractWeatherFromNotes(entry.notes);
+      if (weather.isNotEmpty) return weather;
+    }
+    return '';
+  }
+
+  IconData? _weatherIconForSummary(String summary) {
+    final text = summary.toLowerCase();
+    if (text.isEmpty) return null;
+    if (text.contains('번개') || text.contains('thunder')) {
+      return Icons.thunderstorm_outlined;
+    }
+    if (text.contains('눈') || text.contains('snow')) {
+      return Icons.ac_unit;
+    }
+    if (text.contains('비') ||
+        text.contains('rain') ||
+        text.contains('drizzle')) {
+      return Icons.umbrella_outlined;
+    }
+    if (text.contains('맑') || text.contains('clear') || text.contains('sun')) {
+      return Icons.wb_sunny_outlined;
+    }
+    if (text.contains('구름') ||
+        text.contains('cloud') ||
+        text.contains('안개') ||
+        text.contains('fog')) {
+      return Icons.cloud_outlined;
+    }
+    return Icons.wb_cloudy_outlined;
   }
 
   String _matchSummary(TrainingEntry entry) {
