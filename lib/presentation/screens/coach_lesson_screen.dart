@@ -570,8 +570,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     required int totalPages,
   }) {
     final sourceLabel = fortune.program.trim().isEmpty
-        ? _formatTime(fortune.entryDate)
-        : '${_formatTime(fortune.entryDate)} · ${fortune.program.trim()}';
+        ? (_isKo ? '훈련 운세' : 'Training fortune')
+        : fortune.program.trim();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
@@ -734,7 +734,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         children: entries
             .map(
               (entry) => _buildTimelineTile(
-                title: '${_formatTime(entry.date)} · ${entry.type}',
+                title: entry.type,
                 detail: _trainingSummary(entry),
               ),
             )
@@ -1125,8 +1125,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     ];
     final suffix = noteParts.isEmpty ? '' : ' ${noteParts.join('. ')}.';
     return _isKo
-        ? '${_formatTime(entry.date)}에는 ${entry.location.trim().isEmpty ? '장소 기록 없이' : entry.location.trim()}에서 ${entry.type} ${entry.durationMinutes}분을 보냈다. 몸이 기억한 리듬은 그렇게 한 줄씩 쌓였다.$suffix'
-        : 'At ${_formatTime(entry.date)}, ${entry.type} stayed with the body for ${entry.durationMinutes} minutes ${entry.location.trim().isEmpty ? 'without a logged place' : 'at ${entry.location.trim()}'}.$suffix';
+        ? '${entry.location.trim().isEmpty ? '장소 기록 없이' : entry.location.trim()}에서 ${entry.type} ${entry.durationMinutes}분을 보냈다. 몸이 기억한 리듬은 그렇게 한 줄씩 쌓였다.$suffix'
+        : '${entry.type} stayed with the body for ${entry.durationMinutes} minutes ${entry.location.trim().isEmpty ? 'without a logged place' : 'at ${entry.location.trim()}'}.$suffix';
   }
 
   String _extractWeatherFromNotes(String notes) {
