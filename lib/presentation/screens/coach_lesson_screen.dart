@@ -79,7 +79,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     super.initState();
     _selectedThemeId =
         widget.optionRepository.getValue<String>(_diaryThemeKey) ??
-        _DiaryThemePalette.notebook.id;
+            _DiaryThemePalette.notebook.id;
   }
 
   @override
@@ -90,8 +90,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stream =
-        widget.trainingService?.watchEntries() ??
+    final stream = widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     final showBack = !widget.embeddedInHomeTab;
     final profilePhotoSource =
@@ -139,21 +138,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     leadingTooltip: _isKo
                         ? (showBack ? '뒤로가기' : '메뉴')
                         : (showBack ? 'Back' : 'Menu'),
-                    onNewsTap:
-                        widget.trainingService != null &&
+                    onNewsTap: widget.trainingService != null &&
                             widget.localeService != null &&
                             widget.settingsService != null
                         ? _openNews
                         : null,
-                    onGameTap:
-                        widget.trainingService != null &&
+                    onGameTap: widget.trainingService != null &&
                             widget.localeService != null &&
                             widget.settingsService != null
                         ? _openGame
                         : null,
                     onProfileTap: _openProfile,
-                    onSettingsTap:
-                        widget.localeService != null &&
+                    onSettingsTap: widget.localeService != null &&
                             widget.settingsService != null
                         ? _openSettings
                         : _openProfile,
@@ -235,7 +231,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             child: Text(
                               selectedLabel,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleSmall
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
                                   ?.copyWith(
                                     color: _headlineInk,
                                     fontWeight: FontWeight.w900,
@@ -444,9 +442,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             Text(
               _formatDiaryDate(day.date),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: _headlineInk,
-                fontWeight: FontWeight.w900,
-              ),
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w900,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -500,9 +498,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: _accentInk,
-          fontWeight: FontWeight.w800,
-        ),
+              color: _accentInk,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
@@ -824,17 +822,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: _headlineInk,
-                              fontWeight: FontWeight.w900,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: _headlineInk,
+                                  fontWeight: FontWeight.w900,
+                                ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: _bodyInk, height: 1.45),
                         ),
                       ],
@@ -868,9 +868,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: _headlineInk,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: _headlineInk,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -931,31 +931,27 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
     }
 
-    final days =
-        dayKeys
-            .map((day) {
-              final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
-              final linkedBoards = <String, TrainingBoard>{};
-              for (final entry in dayEntries) {
-                for (final id in TrainingBoardLinkCodec.decodeBoardIds(
-                  entry.drills,
-                )) {
-                  final board = boardMap[id];
-                  if (board != null) linkedBoards[id] = board;
-                }
-              }
-              return _DiaryDayData(
-                date: day,
-                entries: [...dayEntries]
-                  ..sort((a, b) => a.date.compareTo(b.date)),
-                plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
-                  ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
-                boards: linkedBoards.values.toList(growable: false)
-                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
-              );
-            })
-            .toList(growable: false)
-          ..sort((a, b) => b.date.compareTo(a.date));
+    final days = dayKeys.map((day) {
+      final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
+      final linkedBoards = <String, TrainingBoard>{};
+      for (final entry in dayEntries) {
+        for (final id in TrainingBoardLinkCodec.decodeBoardIds(
+          entry.drills,
+        )) {
+          final board = boardMap[id];
+          if (board != null) linkedBoards[id] = board;
+        }
+      }
+      return _DiaryDayData(
+        date: day,
+        entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
+        plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
+          ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
+        boards: linkedBoards.values.toList(growable: false)
+          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+      );
+    }).toList(growable: false)
+      ..sort((a, b) => b.date.compareTo(a.date));
     return days;
   }
 
@@ -1085,6 +1081,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   String _trainingSummary(TrainingEntry entry) {
+    final weather = _extractWeatherFromNotes(entry.notes);
+    final cleanNotes = _stripWeatherFromNotes(entry.notes);
     final details = <String>[
       if (entry.program.trim().isNotEmpty) entry.program.trim(),
       if (!TrainingBoardLinkCodec.isBoardLinkPayload(entry.drills) &&
@@ -1093,7 +1091,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       if (entry.goodPoints.trim().isNotEmpty) entry.goodPoints.trim(),
       if (entry.improvements.trim().isNotEmpty) entry.improvements.trim(),
       if (entry.nextGoal.trim().isNotEmpty) entry.nextGoal.trim(),
-      if (entry.notes.trim().isNotEmpty) entry.notes.trim(),
+      if (cleanNotes.isNotEmpty) cleanNotes,
+      if (weather.isNotEmpty) _isKo ? '날씨 $weather' : 'weather $weather',
     ];
     final detailText = details.isEmpty
         ? (_isKo ? '세부 메모 없음' : 'No detailed note')
@@ -1104,6 +1103,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   String _trainingDiarySentence(TrainingEntry entry) {
+    final weather = _extractWeatherFromNotes(entry.notes);
+    final cleanNotes = _stripWeatherFromNotes(entry.notes);
     final noteParts = <String>[
       if (entry.goodPoints.trim().isNotEmpty)
         _isKo
@@ -1117,15 +1118,38 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         _isKo
             ? '다음으로 데려가고 싶은 목표는 ${entry.nextGoal.trim()}'
             : 'the next goal worth carrying forward is ${entry.nextGoal.trim()}',
-      if (entry.notes.trim().isNotEmpty)
-        _isKo
-            ? '메모에는 ${entry.notes.trim()}'
-            : 'the note admitted ${entry.notes.trim()}',
+      if (cleanNotes.isNotEmpty)
+        _isKo ? '메모에는 $cleanNotes' : 'the note admitted $cleanNotes',
+      if (weather.isNotEmpty)
+        _isKo ? '당시 날씨는 $weather' : 'the weather was $weather',
     ];
     final suffix = noteParts.isEmpty ? '' : ' ${noteParts.join('. ')}.';
     return _isKo
         ? '${_formatTime(entry.date)}에는 ${entry.location.trim().isEmpty ? '장소 기록 없이' : entry.location.trim()}에서 ${entry.type} ${entry.durationMinutes}분을 보냈다. 몸이 기억한 리듬은 그렇게 한 줄씩 쌓였다.$suffix'
         : 'At ${_formatTime(entry.date)}, ${entry.type} stayed with the body for ${entry.durationMinutes} minutes ${entry.location.trim().isEmpty ? 'without a logged place' : 'at ${entry.location.trim()}'}.$suffix';
+  }
+
+  String _extractWeatherFromNotes(String notes) {
+    for (final line in notes.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.startsWith('[Weather] ')) {
+        return trimmed.substring('[Weather] '.length).trim();
+      }
+      if (trimmed.startsWith('[날씨] ')) {
+        return trimmed.substring('[날씨] '.length).trim();
+      }
+    }
+    return '';
+  }
+
+  String _stripWeatherFromNotes(String notes) {
+    return notes
+        .split('\n')
+        .map((line) => line.trimRight())
+        .where((line) => !line.trim().startsWith('[Weather]'))
+        .where((line) => !line.trim().startsWith('[날씨]'))
+        .join('\n')
+        .trim();
   }
 
   String _matchSummary(TrainingEntry entry) {
@@ -1286,18 +1310,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _buildBoardDiaryParagraph(_DiaryDayData day) {
     if (day.boards.isEmpty) return '';
-    final boardNotes = day.boards
-        .map((board) {
-          final layout = TrainingMethodLayout.decode(board.layoutJson);
-          final memo = layout.pages.isNotEmpty
-              ? layout.pages.first.methodText.trim()
-              : '';
-          if (_isKo) {
-            return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
-          }
-          return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
-        })
-        .join(' / ');
+    final boardNotes = day.boards.map((board) {
+      final layout = TrainingMethodLayout.decode(board.layoutJson);
+      final memo =
+          layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
+      if (_isKo) {
+        return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
+      }
+      return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
+    }).join(' / ');
     return _isKo
         ? '훈련보드에는 $boardNotes 같은 그림과 메모가 남아 있다. 말로 다 적지 못한 움직임은 이런 도식 안에서 다시 또렷해진다.'
         : 'The training boards kept sketches and notes such as $boardNotes. The movements that were difficult to explain in plain sentences become clear again inside those diagrams.';
@@ -1328,9 +1349,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 child: Text(
                   board.title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: _headlineInk,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1825,9 +1846,8 @@ class _DiaryFortune {
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
         .toList(growable: false);
-    final luckyInfoLines = allLines
-        .where(_isLuckyInfoLine)
-        .toList(growable: false);
+    final luckyInfoLines =
+        allLines.where(_isLuckyInfoLine).toList(growable: false);
     final bodyLines = allLines
         .where((line) => !_isLuckyInfoLine(line))
         .toList(growable: false);
@@ -1884,13 +1904,12 @@ class _GeneratedDiaryFortuneText {
     final jumpMetric = entry.jumpRopeCount > 0
         ? (isKo ? '${entry.jumpRopeCount}회' : '${entry.jumpRopeCount} reps')
         : (entry.jumpRopeMinutes > 0
-              ? (isKo
-                    ? '${entry.jumpRopeMinutes}분'
-                    : '${entry.jumpRopeMinutes} min')
-              : (isKo ? '기록 준비' : 'prep'));
-    final focus = entry.program.trim().isNotEmpty
-        ? entry.program.trim()
-        : entry.type;
+            ? (isKo
+                ? '${entry.jumpRopeMinutes}분'
+                : '${entry.jumpRopeMinutes} min')
+            : (isKo ? '기록 준비' : 'prep'));
+    final focus =
+        entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type;
     final liftingState = liftingTotal > 0
         ? (isKo ? '리프팅 $liftingTotal회' : 'lifting $liftingTotal reps')
         : (isKo ? '리프팅 리듬 점검' : 'lifting rhythm check');
@@ -2026,22 +2045,22 @@ class _GeneratedDiaryFortuneText {
 
   static List<String> _conditionTemplates(String conditionBand, bool isKo) =>
       isKo
-      ? <String>[
-          '$conditionBand 신호가 보여서 몸의 반응을 읽으며 움직이기 좋았어요.',
-          '$conditionBand 단계여서 판단과 터치의 간격을 차분히 맞출 수 있었어요.',
-          '$conditionBand 기준으로 보아도 오늘은 감각을 잃지 않고 이어 간 편이에요.',
-          '$conditionBand 상태라서 작은 흔들림도 빨리 알아차릴 수 있었어요.',
-          '$conditionBand 흐름을 유지한 덕분에 기록 전체가 무너지지 않았어요.',
-          '$conditionBand 날에는 무리보다 정리가 중요했는데, 오늘 메모가 그 균형을 보여줘요.',
-        ]
-      : <String>[
-          'With $conditionBand signals, it was easier to read the body and move with it.',
-          'At $conditionBand, the spacing between decisions and touches stayed calm.',
-          'Even by a $conditionBand standard, the day held onto its feel without falling apart.',
-          'Being in $conditionBand made it easier to notice small slips early.',
-          'Keeping a $conditionBand flow helped the full log stay intact.',
-          'On a $conditionBand day, clean organization mattered more than forcing it, and the note shows that balance.',
-        ];
+          ? <String>[
+              '$conditionBand 신호가 보여서 몸의 반응을 읽으며 움직이기 좋았어요.',
+              '$conditionBand 단계여서 판단과 터치의 간격을 차분히 맞출 수 있었어요.',
+              '$conditionBand 기준으로 보아도 오늘은 감각을 잃지 않고 이어 간 편이에요.',
+              '$conditionBand 상태라서 작은 흔들림도 빨리 알아차릴 수 있었어요.',
+              '$conditionBand 흐름을 유지한 덕분에 기록 전체가 무너지지 않았어요.',
+              '$conditionBand 날에는 무리보다 정리가 중요했는데, 오늘 메모가 그 균형을 보여줘요.',
+            ]
+          : <String>[
+              'With $conditionBand signals, it was easier to read the body and move with it.',
+              'At $conditionBand, the spacing between decisions and touches stayed calm.',
+              'Even by a $conditionBand standard, the day held onto its feel without falling apart.',
+              'Being in $conditionBand made it easier to notice small slips early.',
+              'Keeping a $conditionBand flow helped the full log stay intact.',
+              'On a $conditionBand day, clean organization mattered more than forcing it, and the note shows that balance.',
+            ];
 
   static List<String> _effortTemplates(String intensityBand, bool isKo) => isKo
       ? <String>[
@@ -2139,23 +2158,24 @@ class _GeneratedDiaryFortuneText {
     String liftingState,
     String jumpState,
     bool isKo,
-  ) => isKo
-      ? <String>[
-          '행운 루틴: $focus 전에 $jumpState로 발 리듬을 먼저 깨워 보세요.',
-          '행운 포인트: $liftingState처럼 반복 횟수가 보이는 루틴이 오늘 감각을 오래 붙잡아 줘요.',
-          '행운 타이밍: $focus 시작 전 5분은 호흡을 고르고 박자를 맞추는 시간이 좋아요.',
-          '행운 키워드: 첫 터치, 시선 정리, 그리고 $jumpState.',
-          '행운 메모: $focus 장면은 짧은 준비 루틴과 함께할 때 더 선명해져요.',
-          '행운 연결: $liftingState 뒤에 메인 훈련을 이어가면 감각이 더 또렷해질 수 있어요.',
-        ]
-      : <String>[
-          'Lucky routine: wake the feet up with $jumpState before $focus.',
-          'Lucky point: routines with visible counts like $liftingState help the feel last longer today.',
-          'Lucky timing: the five minutes before $focus are good for settling breath and rhythm.',
-          'Lucky keywords: first touch, scanning, and $jumpState.',
-          'Lucky note: $focus becomes clearer when it starts with a short prep routine.',
-          'Lucky link: the feel may sharpen if the main session follows $liftingState.',
-        ];
+  ) =>
+      isKo
+          ? <String>[
+              '행운 루틴: $focus 전에 $jumpState로 발 리듬을 먼저 깨워 보세요.',
+              '행운 포인트: $liftingState처럼 반복 횟수가 보이는 루틴이 오늘 감각을 오래 붙잡아 줘요.',
+              '행운 타이밍: $focus 시작 전 5분은 호흡을 고르고 박자를 맞추는 시간이 좋아요.',
+              '행운 키워드: 첫 터치, 시선 정리, 그리고 $jumpState.',
+              '행운 메모: $focus 장면은 짧은 준비 루틴과 함께할 때 더 선명해져요.',
+              '행운 연결: $liftingState 뒤에 메인 훈련을 이어가면 감각이 더 또렷해질 수 있어요.',
+            ]
+          : <String>[
+              'Lucky routine: wake the feet up with $jumpState before $focus.',
+              'Lucky point: routines with visible counts like $liftingState help the feel last longer today.',
+              'Lucky timing: the five minutes before $focus are good for settling breath and rhythm.',
+              'Lucky keywords: first touch, scanning, and $jumpState.',
+              'Lucky note: $focus becomes clearer when it starts with a short prep routine.',
+              'Lucky link: the feel may sharpen if the main session follows $liftingState.',
+            ];
 
   static List<String> _recommendationTemplates({
     required bool isKo,
@@ -2216,11 +2236,9 @@ class _DiaryPlan {
 
   factory _DiaryPlan.fromMap(Map<String, dynamic> map) {
     return _DiaryPlan(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,

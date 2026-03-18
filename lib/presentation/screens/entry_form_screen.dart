@@ -734,6 +734,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final weatherStatusText = _weatherLoading
+        ? (isKo ? '날씨 불러오는 중...' : 'Loading weather...')
+        : _weatherSummary.trim().isNotEmpty
+            ? _weatherSummary.trim()
+            : _weatherAutoEnabled
+                ? (isKo ? '자동으로 날씨 불러오기 대기' : 'Auto weather ready')
+                : (isKo ? '위치 버튼으로 날씨 불러오기' : 'Tap location to load weather');
+    final weatherHasValue = _weatherSummary.trim().isNotEmpty;
     final isMatchEntry = widget.entry?.isMatch ?? false;
     if (isMatchEntry) {
       return Scaffold(
@@ -946,33 +954,40 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      if (_weatherSummary.trim().isNotEmpty)
-                                        Container(
-                                          constraints: const BoxConstraints(
-                                            maxWidth: 150,
+                                      Container(
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 170,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            999,
                                           ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              999,
-                                            ),
-                                            color: theme
-                                                .colorScheme.primaryContainer
-                                                .withValues(alpha: 0.9),
-                                          ),
-                                          child: Text(
-                                            _weatherSummary.trim(),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: theme.textTheme.labelSmall
-                                                ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                            ),
+                                          color: weatherHasValue
+                                              ? theme
+                                                  .colorScheme.primaryContainer
+                                                  .withValues(alpha: 0.9)
+                                              : theme.colorScheme
+                                                  .surfaceContainerHighest,
+                                        ),
+                                        child: Text(
+                                          weatherStatusText,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            color: weatherHasValue
+                                                ? theme.colorScheme
+                                                    .onPrimaryContainer
+                                                : theme.colorScheme
+                                                    .onSurfaceVariant,
                                           ),
                                         ),
+                                      ),
                                       const SizedBox(height: 6),
                                       IconButton(
                                         visualDensity: VisualDensity.compact,
