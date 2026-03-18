@@ -51,6 +51,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   final PageController _pageController = PageController();
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
+  final Set<String> _expandedTrainingGroups = <String>{};
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   ThemeData get _theme => Theme.of(context);
@@ -396,6 +397,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           children: [
             _buildDayHeadlineCard(day),
             const SizedBox(height: 12),
+            _buildTrainingOverviewCard(day),
+            const SizedBox(height: 12),
             _buildNightReviewCard(day, diary),
             const SizedBox(height: 12),
             _buildFortuneCard(day),
@@ -409,7 +412,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ],
             if (day.trainingEntries.isNotEmpty) ...[
               const SizedBox(height: 12),
-              _buildTrainingCard(day.trainingEntries),
+              _buildTrainingSection(day),
             ],
             if (_hasRecoveryRecord(day)) ...[
               const SizedBox(height: 12),
@@ -706,6 +709,37 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  Widget _buildTrainingOverviewCard(_DiaryDayData day) {
+    final trainings = day.trainingEntries;
+    final totalMinutes = trainings.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    final topFocus = _topFocus(trainings);
+    final topPlace = _topPlaces(trainings);
+    final modeLabel = trainings.length >= 6
+        ? (_isKo ? '압축 타임라인 모드' : 'Compact timeline mode')
+        : (_isKo ? '카드 모드' : 'Card mode');
+    return _buildPaperCard(
+      title: _isKo ? '오늘 훈련 요약' : 'Today training summary',
+      subtitle: _isKo
+          ? '핵심만 먼저 보여주고, 아래에서 상세를 펼쳐볼 수 있어요.'
+          : 'See key points first, then open details below.',
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          _buildStatChip(
+              _isKo ? '훈련 ${trainings.length}개' : '${trainings.length} logs'),
+          _buildStatChip(_isKo ? '합계 $totalMinutes분' : '$totalMinutes min'),
+          _buildStatChip(_isKo ? '중심 $topFocus' : 'Focus $topFocus'),
+          _buildStatChip(_isKo ? '장소 $topPlace' : 'Place $topPlace'),
+          _buildStatChip(modeLabel),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPlanCard(List<_DiaryPlan> plans) {
     return _buildPaperCard(
       title: _isKo ? '훈련 계획' : 'Training plans',
@@ -779,6 +813,105 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  Widget _buildTrainingSection(_DiaryDayData day) {
+    final entries = day.trainingEntries;
+    if (entries.length >= 6) {
+      return _buildTrainingTimelineCard(day);
+    }
+    return _buildTrainingCard(entries);
+  }
+
+  Widget _buildTrainingTimelineCard(_DiaryDayData day) {
+    final grouped = _groupTrainingEntriesByType(day.trainingEntries);
+    return _buildPaperCard(
+      title: _isKo ? '훈련 기록 타임라인' : 'Training timeline',
+      subtitle: _isKo
+          ? '훈련이 많아 유형별로 묶어 보여줍니다. 탭해서 펼치세요.'
+          : 'Many logs are grouped by type. Tap to expand.',
+      child: Column(
+        children: grouped.entries.map((group) {
+          final groupKey = _trainingGroupKey(day.date, group.key);
+          final expanded = _expandedTrainingGroups.contains(groupKey);
+          final items = group.value;
+          final totalMinutes = items.fold<int>(
+            0,
+            (sum, entry) => sum + entry.durationMinutes,
+          );
+          final preview = _trainingSummaryShort(items.first);
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: _tileSurface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _paperEdge),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                setState(() {
+                  if (expanded) {
+                    _expandedTrainingGroups.remove(groupKey);
+                  } else {
+                    _expandedTrainingGroups.add(groupKey);
+                  }
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${group.key} · ${items.length}${_isKo ? '회' : 'x'} · $totalMinutes${_isKo ? '분' : ' min'}',
+                            style: _theme.textTheme.labelLarge?.copyWith(
+                              color: _headlineInk,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          expanded ? Icons.expand_less : Icons.expand_more,
+                          color: _accentInk,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      preview,
+                      maxLines: expanded ? null : 2,
+                      overflow: expanded
+                          ? TextOverflow.visible
+                          : TextOverflow.ellipsis,
+                      style: _theme.textTheme.bodySmall?.copyWith(
+                        color: _bodyInk,
+                        height: 1.4,
+                      ),
+                    ),
+                    if (expanded) ...[
+                      const SizedBox(height: 8),
+                      ...items.map(
+                        (entry) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: _buildSummaryLine(
+                            '${_formatTime(entry.date)} · ${_trainingSummaryShort(entry)}',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(growable: false),
+      ),
+    );
+  }
+
   Widget _buildTrainingRecordPage({
     required TrainingEntry entry,
     required int page,
@@ -827,6 +960,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               children: [
                 Text(
                   _trainingSummary(entry),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: _theme.textTheme.bodyMedium?.copyWith(
                     color: _bodyInk,
                     height: 1.5,
@@ -838,6 +973,35 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ],
       ),
     );
+  }
+
+  Map<String, List<TrainingEntry>> _groupTrainingEntriesByType(
+    List<TrainingEntry> entries,
+  ) {
+    final grouped = <String, List<TrainingEntry>>{};
+    for (final entry in entries) {
+      final type = entry.type.trim().isEmpty
+          ? (_isKo ? '기본 훈련' : 'General training')
+          : entry.type.trim();
+      grouped.putIfAbsent(type, () => <TrainingEntry>[]).add(entry);
+    }
+    return grouped;
+  }
+
+  String _trainingGroupKey(DateTime date, String type) {
+    final dayKey = DateFormat('yyyy-MM-dd').format(date);
+    return '$dayKey::$type';
+  }
+
+  String _trainingSummaryShort(TrainingEntry entry) {
+    final detail = _trainingSummary(entry);
+    final parts = detail
+        .split(' · ')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList(growable: false);
+    if (parts.length <= 2) return detail;
+    return parts.take(2).join(' · ');
   }
 
   Widget _buildRecoveryCard(_DiaryDayData day) {
