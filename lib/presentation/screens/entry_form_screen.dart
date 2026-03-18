@@ -951,12 +951,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Container(
                                         constraints: const BoxConstraints(
-                                          maxWidth: 170,
+                                          maxWidth: 150,
                                         ),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 8,
@@ -988,7 +988,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(height: 6),
+                                      const SizedBox(width: 6),
                                       IconButton(
                                         visualDensity: VisualDensity.compact,
                                         constraints: const BoxConstraints(
