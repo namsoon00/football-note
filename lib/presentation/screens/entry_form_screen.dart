@@ -1909,13 +1909,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   List<Color> _weatherBackgroundColors(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     switch (_weatherCode) {
       case 0:
-        return const [Color(0xFFFFF1B8), Color(0xFFFFD666)];
+        return isDark
+            ? const [Color(0xFF3A2F12), Color(0xFF5A4518)]
+            : const [Color(0xFFFFF1B8), Color(0xFFFFD666)];
       case 1:
       case 2:
       case 3:
-        return const [Color(0xFFE6F4FF), Color(0xFFBAC8E0)];
+        return isDark
+            ? const [Color(0xFF1F2A3A), Color(0xFF2F3C52)]
+            : const [Color(0xFFE6F4FF), Color(0xFFBAC8E0)];
       case 61:
       case 63:
       case 65:
@@ -1924,18 +1929,24 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       case 80:
       case 81:
       case 82:
-        return const [Color(0xFFD6E4FF), Color(0xFFA5B4D4)];
+        return isDark
+            ? const [Color(0xFF1B2636), Color(0xFF2B384A)]
+            : const [Color(0xFFD6E4FF), Color(0xFFA5B4D4)];
       case 71:
       case 73:
       case 75:
       case 77:
       case 85:
       case 86:
-        return const [Color(0xFFF5F7FA), Color(0xFFDCE3EE)];
+        return isDark
+            ? const [Color(0xFF26313F), Color(0xFF3A475A)]
+            : const [Color(0xFFF5F7FA), Color(0xFFDCE3EE)];
       case 95:
       case 96:
       case 99:
-        return const [Color(0xFF3C4A68), Color(0xFF232D42)];
+        return isDark
+            ? const [Color(0xFF1A2030), Color(0xFF121826)]
+            : const [Color(0xFF3C4A68), Color(0xFF232D42)];
       default:
         return [
           theme.scaffoldBackgroundColor,
