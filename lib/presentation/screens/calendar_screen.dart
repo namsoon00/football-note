@@ -1742,11 +1742,19 @@ class _EntryTile extends StatelessWidget {
     if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
     if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
     if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
-    if (entry.fortuneComment.trim().isNotEmpty) {
-      return entry.fortuneComment.trim();
-    }
-    if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
+    final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
+    if (notesWithoutWeather.isNotEmpty) return notesWithoutWeather;
     return '';
+  }
+
+  String _stripWeatherMetaFromNotes(String notes) {
+    return notes
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .where((line) => !line.startsWith('[Weather]'))
+        .where((line) => !line.startsWith('[날씨]'))
+        .join(' ');
   }
 
   List<String> _matchTitleParts(TrainingEntry entry, {required bool isKo}) {
