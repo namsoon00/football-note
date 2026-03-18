@@ -453,13 +453,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   ),
                 ),
                 if (weatherIcon != null)
-                  Tooltip(
-                    message: weatherSummary,
-                    child: Icon(
-                      weatherIcon,
-                      size: 20,
-                      color: _accentInk,
-                    ),
+                  Icon(
+                    weatherIcon,
+                    size: 20,
+                    color: _accentInk,
                   ),
               ],
             ),
@@ -747,15 +744,98 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget _buildTrainingCard(List<TrainingEntry> entries) {
     return _buildPaperCard(
       title: _isKo ? '훈련 기록' : 'Training records',
-      child: Column(
-        children: entries
-            .map(
-              (entry) => _buildTimelineTile(
-                title: entry.type,
-                detail: _trainingSummary(entry),
+      child: SizedBox(
+        height: entries.length > 1 ? 260 : 220,
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: _buildTrainingRecordPage(
+                      entry: entry,
+                      page: index + 1,
+                      totalPages: entries.length,
+                    ),
+                  );
+                },
               ),
-            )
-            .toList(growable: false),
+            ),
+            if (entries.length > 1) ...[
+              const SizedBox(height: 12),
+              Text(
+                _isKo
+                    ? '좌우로 넘겨서 다른 훈련 기록 보기'
+                    : 'Swipe left or right for more training records',
+                style: _theme.textTheme.bodySmall?.copyWith(color: _bodyInk),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrainingRecordPage({
+    required TrainingEntry entry,
+    required int page,
+    required int totalPages,
+  }) {
+    final title = entry.type.trim().isEmpty
+        ? (_isKo ? '훈련' : 'Training')
+        : entry.type.trim();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: _tileSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _paperEdge),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: _theme.textTheme.labelLarge?.copyWith(
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (totalPages > 1)
+                Text(
+                  '$page / $totalPages',
+                  style: _theme.textTheme.labelMedium?.copyWith(
+                    color: _bodyInk,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                Text(
+                  _trainingSummary(entry),
+                  style: _theme.textTheme.bodyMedium?.copyWith(
+                    color: _bodyInk,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1098,7 +1178,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   String _trainingSummary(TrainingEntry entry) {
-    final weather = _extractWeatherFromNotes(entry.notes);
     final cleanNotes = _stripWeatherFromNotes(entry.notes);
     final details = <String>[
       if (entry.program.trim().isNotEmpty) entry.program.trim(),
@@ -1109,7 +1188,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       if (entry.improvements.trim().isNotEmpty) entry.improvements.trim(),
       if (entry.nextGoal.trim().isNotEmpty) entry.nextGoal.trim(),
       if (cleanNotes.isNotEmpty) cleanNotes,
-      if (weather.isNotEmpty) _isKo ? '날씨 $weather' : 'weather $weather',
     ];
     final detailText = details.isEmpty
         ? (_isKo ? '세부 메모 없음' : 'No detailed note')
@@ -1120,7 +1198,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   String _trainingDiarySentence(TrainingEntry entry) {
-    final weather = _extractWeatherFromNotes(entry.notes);
     final cleanNotes = _stripWeatherFromNotes(entry.notes);
     final noteParts = <String>[
       if (entry.goodPoints.trim().isNotEmpty)
@@ -1137,8 +1214,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             : 'the next goal worth carrying forward is ${entry.nextGoal.trim()}',
       if (cleanNotes.isNotEmpty)
         _isKo ? '메모에는 $cleanNotes' : 'the note admitted $cleanNotes',
-      if (weather.isNotEmpty)
-        _isKo ? '당시 날씨는 $weather' : 'the weather was $weather',
     ];
     final suffix = noteParts.isEmpty ? '' : ' ${noteParts.join('. ')}.';
     return _isKo
