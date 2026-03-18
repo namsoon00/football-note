@@ -1121,7 +1121,7 @@ class _EntryCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                _buildSummaryLine(l10n, entry, isKo: isKo),
+                _buildSummaryLine(l10n, entry),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
@@ -1166,7 +1166,6 @@ class _EntryListItem extends StatelessWidget {
     final focusText = _buildListFocusText(entry, includeFortune: false);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final weather = _extractWeatherFromNotes(entry.notes);
     final titleText = [
       _entryTitleLabel(entry, l10n),
       durationText,
@@ -1185,7 +1184,7 @@ class _EntryListItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood}${weather.isNotEmpty ? ' · ${isKo ? '날씨' : 'Weather'} $weather' : ''} · $dateText',
+              '${l10n.intensity} ${entry.intensity} · ${l10n.condition} ${entry.mood} · $dateText',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1339,30 +1338,12 @@ class _ThumbPitchPainter extends CustomPainter {
 
 String _buildSummaryLine(
   AppLocalizations l10n,
-  TrainingEntry entry, {
-  required bool isKo,
-}) {
+  TrainingEntry entry,
+) {
   final parts = <String>[];
   parts.add('${l10n.intensity} ${entry.intensity}');
   parts.add('${l10n.condition} ${entry.mood}');
-  final weather = _extractWeatherFromNotes(entry.notes);
-  if (weather.isNotEmpty) {
-    parts.add('${isKo ? '날씨' : 'Weather'} $weather');
-  }
   return parts.join('  •  ');
-}
-
-String _extractWeatherFromNotes(String notes) {
-  for (final line in notes.split('\n')) {
-    final trimmed = line.trim();
-    if (trimmed.startsWith('[Weather] ')) {
-      return trimmed.substring('[Weather] '.length).trim();
-    }
-    if (trimmed.startsWith('[날씨] ')) {
-      return trimmed.substring('[날씨] '.length).trim();
-    }
-  }
-  return '';
 }
 
 String _entryTitleLabel(TrainingEntry entry, AppLocalizations l10n) {
