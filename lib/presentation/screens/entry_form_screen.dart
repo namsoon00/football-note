@@ -55,6 +55,7 @@ class EntryFormScreen extends StatefulWidget {
 
 class _EntryFormScreenState extends State<EntryFormScreen> {
   static const String _recentBoardIdKey = 'recent_board_id';
+  static const String _weatherAutoEnabledKey = 'entry_weather_auto_enabled';
   final _formKey = GlobalKey<FormState>();
   final _goodPointsController = TextEditingController();
   final _improvementsController = TextEditingController();
@@ -114,6 +115,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _weatherLoading = false;
   String _weatherSummary = '';
   int? _weatherCode;
+  bool _weatherAutoEnabled = false;
 
   @override
   void initState() {
@@ -172,6 +174,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         l10n.defaultInjury5,
       ],
     );
+    _weatherAutoEnabled =
+        widget.optionRepository.getValue<bool>(_weatherAutoEnabledKey) ?? false;
     final entry = widget.entry;
     if (entry != null) {
       _editingKey = entry.key is int ? entry.key as int : null;
@@ -272,6 +276,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       unawaited(_applyLatestEntryDefaults());
     }
     _initialSnapshot = _formSnapshot();
+    if (widget.entry == null &&
+        _weatherAutoEnabled &&
+        _weatherSummary.trim().isEmpty) {
+      unawaited(_useCurrentLocationWeather(fromAuto: true));
+    }
   }
 
   List<String> _defaultDailyGoals() {
@@ -412,7 +421,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _locationOptions,
         latest.location,
       );
-      _weatherSummary = _extractWeatherFromNotes(latest.notes);
       _initialSnapshot = _formSnapshot();
     });
   }
@@ -934,7 +942,69 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                       ],
                                     ),
                                   ),
-                                  const Icon(Icons.chevron_right),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      if (_weatherSummary.trim().isNotEmpty)
+                                        Container(
+                                          constraints: const BoxConstraints(
+                                            maxWidth: 150,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              999,
+                                            ),
+                                            color: theme
+                                                .colorScheme.primaryContainer
+                                                .withValues(alpha: 0.9),
+                                          ),
+                                          child: Text(
+                                            _weatherSummary.trim(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.labelSmall
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      const SizedBox(height: 6),
+                                      IconButton(
+                                        visualDensity: VisualDensity.compact,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 30,
+                                          minHeight: 30,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        tooltip: isKo
+                                            ? '현재 위치 날씨'
+                                            : 'Use location weather',
+                                        onPressed: _weatherLoading
+                                            ? null
+                                            : _useCurrentLocationWeather,
+                                        icon: _weatherLoading
+                                            ? const SizedBox(
+                                                width: 16,
+                                                height: 16,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.my_location,
+                                                size: 18,
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
@@ -979,50 +1049,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               onSelected: (value) =>
                                   setState(() => _location = value),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: _weatherLoading
-                                    ? null
-                                    : _useCurrentLocationWeather,
-                                icon: _weatherLoading
-                                    ? const SizedBox(
-                                        width: 14,
-                                        height: 14,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.my_location, size: 16),
-                                label: Text(
-                                  isKo ? '현재 위치 날씨' : 'Use location weather',
-                                ),
-                              ),
-                              if (_weatherSummary.trim().isNotEmpty)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 7,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(999),
-                                    color: theme.colorScheme.primaryContainer
-                                        .withValues(alpha: 0.9),
-                                  ),
-                                  child: Text(
-                                    _weatherSummary.trim(),
-                                    style:
-                                        theme.textTheme.labelMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                            ],
                           ),
                           const SizedBox(height: 16),
                           _buildSelectRow(
@@ -1705,16 +1731,20 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     }
   }
 
-  Future<void> _useCurrentLocationWeather() async {
+  Future<void> _useCurrentLocationWeather({bool fromAuto = false}) async {
     if (_weatherLoading || !mounted || _disposing) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     setState(() => _weatherLoading = true);
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        _showWeatherSnack(
-          isKo ? '위치 서비스를 먼저 켜주세요.' : 'Please enable location services first.',
-        );
+        if (!fromAuto) {
+          _showWeatherSnack(
+            isKo
+                ? '위치 서비스를 먼저 켜주세요.'
+                : 'Please enable location services first.',
+          );
+        }
         return;
       }
 
@@ -1724,9 +1754,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        _showWeatherSnack(
-          isKo ? '위치 권한이 필요합니다.' : 'Location permission is required.',
-        );
+        if (!fromAuto) {
+          _showWeatherSnack(
+            isKo ? '위치 권한이 필요합니다.' : 'Location permission is required.',
+          );
+        }
         return;
       }
 
@@ -1755,11 +1787,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _weatherSummary = weather.$2;
       });
       _scheduleAutoSave();
+      if (!_weatherAutoEnabled) {
+        _weatherAutoEnabled = true;
+        await widget.optionRepository.setValue(_weatherAutoEnabledKey, true);
+      }
     } catch (_) {
       if (!mounted || _disposing) return;
-      _showWeatherSnack(
-        isKo ? '날씨를 불러오지 못했어요.' : 'Failed to load weather.',
-      );
+      if (!fromAuto) {
+        _showWeatherSnack(
+          isKo ? '날씨를 불러오지 못했어요.' : 'Failed to load weather.',
+        );
+      }
     } finally {
       if (mounted && !_disposing) {
         setState(() => _weatherLoading = false);
