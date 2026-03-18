@@ -1754,11 +1754,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (!fromAuto) {
-          _showWeatherSnack(
-            isKo
-                ? '위치 서비스를 먼저 켜주세요.'
-                : 'Please enable location services first.',
-          );
+          await _showLocationServiceDialog(isKo);
         }
         return;
       }
@@ -1770,9 +1766,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         if (!fromAuto) {
-          _showWeatherSnack(
-            isKo ? '위치 권한이 필요합니다.' : 'Location permission is required.',
-          );
+          if (permission == LocationPermission.deniedForever) {
+            await _showLocationPermissionDialog(isKo);
+          } else {
+            _showWeatherSnack(
+              isKo ? '위치 권한이 필요합니다.' : 'Location permission is required.',
+            );
+          }
         }
         return;
       }
@@ -1823,6 +1823,62 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   void _showWeatherSnack(String text) {
     if (!mounted || _disposing) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  Future<void> _showLocationServiceDialog(bool isKo) async {
+    if (!mounted || _disposing) return;
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '위치 서비스 필요' : 'Location Service Needed'),
+        content: Text(
+          isKo
+              ? '현재 위치 날씨를 불러오려면 위치 서비스를 켜주세요.'
+              : 'Please enable location services to load local weather.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '닫기' : 'Close'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '설정 열기' : 'Open settings'),
+          ),
+        ],
+      ),
+    );
+    if (open == true) {
+      await Geolocator.openLocationSettings();
+    }
+  }
+
+  Future<void> _showLocationPermissionDialog(bool isKo) async {
+    if (!mounted || _disposing) return;
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '위치 권한 필요' : 'Location Permission Needed'),
+        content: Text(
+          isKo
+              ? '위치 권한이 꺼져 있어요. 설정에서 권한을 허용해주세요.'
+              : 'Location permission is turned off. Allow it in app settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '닫기' : 'Close'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '권한 설정 열기' : 'Open permission settings'),
+          ),
+        ],
+      ),
+    );
+    if (open == true) {
+      await Geolocator.openAppSettings();
+    }
   }
 
   Future<String> _resolvePlaceName({
