@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/presentation/screens/player_level_guide_screen.dart';
 
@@ -38,10 +39,55 @@ void main() {
     expect((cancelY - clearY).abs(), lessThan(1));
     expect((clearY - saveY).abs(), lessThan(1));
   });
+
+  testWidgets('xp history screen opens from level guide', (tester) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.xpHistoryKey, <Map<String, dynamic>>[
+        <String, dynamic>{
+          'awardedAt': '2026-03-18T09:30:00.000',
+          'deltaXp': 30,
+          'totalXp': 130,
+          'beforeLevel': 2,
+          'afterLevel': 3,
+          'category': 'training',
+          'label': '원터치 패스',
+          'reasons': <String>['log', 'first_daily_log'],
+        },
+      ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+        home: PlayerLevelGuideScreen(
+          currentLevel: 3,
+          optionRepository: repository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('경험치 히스토리'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('경험치 히스토리'), findsWidgets);
+    expect(find.textContaining('훈련 기록 · 원터치 패스'), findsOneWidget);
+    expect(find.text('+30 XP'), findsOneWidget);
+    expect(find.textContaining('누적 130 XP'), findsOneWidget);
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {
   final Map<String, dynamic> _values = <String, dynamic>{};
+
+  void seed(String key, dynamic value) {
+    _values[key] = value;
+  }
 
   @override
   List<String> getOptions(String key, List<String> defaults) {

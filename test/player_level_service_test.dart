@@ -101,6 +101,39 @@ void main() {
       expect(service.loadState().totalXp, 110);
     },
   );
+
+  test('xp history is appended for training rewards', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 100);
+    final service = PlayerLevelService(repository);
+
+    await service.awardForTrainingLog(
+      entry: TrainingEntry(
+        date: DateTime(2026, 3, 18, 18),
+        createdAt: DateTime(2026, 3, 18, 18, 30),
+        durationMinutes: 55,
+        intensity: 4,
+        type: '패스',
+        program: '원터치 패스',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '운동장',
+        liftingByPart: const {'inside': 40},
+        jumpRopeCount: 120,
+        jumpRopeEnabled: true,
+      ),
+      existingEntries: const [],
+    );
+
+    final history = service.loadXpHistory();
+
+    expect(history, hasLength(1));
+    expect(history.first.category, PlayerXpHistoryCategory.training);
+    expect(history.first.label, '원터치 패스');
+    expect(history.first.totalXp, 130);
+    expect(history.first.reasons, contains('log'));
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

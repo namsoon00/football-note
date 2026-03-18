@@ -228,6 +228,8 @@ void main() {
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.text('오늘의 응원'), findsNothing);
     expect(find.text('오늘의 운세 노트'), findsOneWidget);
+    expect(find.textContaining('같은 날 훈련노트에 저장된 운세가 아직 없어요.'), findsNothing);
+    expect(find.textContaining('행운'), findsWidgets);
   });
 }
 

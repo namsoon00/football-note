@@ -508,7 +508,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildFortuneCard(_DiaryDayData day) {
-    final fortunes = day.savedFortunes;
+    final fortunes = day.fortunes(_isKo);
     if (fortunes.isEmpty) {
       return _buildPaperCard(
         title: _isKo ? '오늘의 운세 노트' : 'Today fortune note',
@@ -1799,9 +1799,8 @@ class _DiaryDayData {
   List<TrainingEntry> get matchEntries =>
       entries.where((entry) => entry.isMatch).toList(growable: false);
 
-  List<_DiaryFortune> get savedFortunes => trainingEntries
-      .where((entry) => entry.fortuneComment.trim().isNotEmpty)
-      .map(_DiaryFortune.fromEntry)
+  List<_DiaryFortune> fortunes(bool isKo) => trainingEntries
+      .map((entry) => _DiaryFortune.fromEntry(entry, isKo))
       .toList(growable: false);
 }
 
@@ -1820,7 +1819,7 @@ class _DiaryFortune {
     required this.recommendation,
   });
 
-  factory _DiaryFortune.fromEntry(TrainingEntry entry) {
+  factory _DiaryFortune.fromEntry(TrainingEntry entry, bool isKo) {
     final allLines = entry.fortuneComment
         .split('\n')
         .map((line) => line.trim())
@@ -1832,17 +1831,371 @@ class _DiaryFortune {
     final bodyLines = allLines
         .where((line) => !_isLuckyInfoLine(line))
         .toList(growable: false);
+    final generated = _GeneratedDiaryFortuneText.fromEntry(entry, isKo);
     return _DiaryFortune(
       entryDate: entry.date,
       program: entry.program,
-      bodyLines: bodyLines,
-      luckyInfoLines: luckyInfoLines,
-      recommendation: entry.fortuneRecommendation,
+      bodyLines: [...bodyLines, ...generated.bodyLines],
+      luckyInfoLines: [...luckyInfoLines, ...generated.luckyInfoLines],
+      recommendation: entry.fortuneRecommendation.trim().isNotEmpty
+          ? entry.fortuneRecommendation
+          : generated.recommendation,
     );
   }
 
   static bool _isLuckyInfoLine(String line) {
     return line.startsWith('행운 ') || line.startsWith('Lucky ');
+  }
+}
+
+class _GeneratedDiaryFortuneText {
+  final List<String> bodyLines;
+  final List<String> luckyInfoLines;
+  final String recommendation;
+
+  const _GeneratedDiaryFortuneText({
+    required this.bodyLines,
+    required this.luckyInfoLines,
+    required this.recommendation,
+  });
+
+  factory _GeneratedDiaryFortuneText.fromEntry(TrainingEntry entry, bool isKo) {
+    final seed = Object.hash(
+      entry.date.year,
+      entry.date.month,
+      entry.date.day,
+      entry.date.hour,
+      entry.durationMinutes,
+      entry.intensity,
+      entry.mood,
+      entry.jumpRopeCount,
+      entry.jumpRopeMinutes,
+      entry.liftingByPart.values.fold<int>(0, (sum, value) => sum + value),
+      entry.type,
+      entry.program,
+    );
+    final durationBand = _durationBand(entry.durationMinutes, isKo);
+    final intensityBand = _effortBand(entry.intensity, isKo);
+    final conditionBand = _conditionBand(entry.mood, isKo);
+    final liftingTotal = entry.liftingByPart.values.fold<int>(
+      0,
+      (sum, value) => sum + value,
+    );
+    final jumpMetric = entry.jumpRopeCount > 0
+        ? (isKo ? '${entry.jumpRopeCount}회' : '${entry.jumpRopeCount} reps')
+        : (entry.jumpRopeMinutes > 0
+              ? (isKo
+                    ? '${entry.jumpRopeMinutes}분'
+                    : '${entry.jumpRopeMinutes} min')
+              : (isKo ? '기록 준비' : 'prep'));
+    final focus = entry.program.trim().isNotEmpty
+        ? entry.program.trim()
+        : entry.type;
+    final liftingState = liftingTotal > 0
+        ? (isKo ? '리프팅 $liftingTotal회' : 'lifting $liftingTotal reps')
+        : (isKo ? '리프팅 리듬 점검' : 'lifting rhythm check');
+    final jumpState = (entry.jumpRopeCount > 0 || entry.jumpRopeMinutes > 0)
+        ? (isKo ? '줄넘기 $jumpMetric' : 'jump rope $jumpMetric')
+        : (isKo ? '줄넘기 감각 깨우기' : 'jump rope activation');
+    final combinedTone = _pick(_combinedToneTemplates(isKo), seed);
+    final tempo = _pick(_tempoTemplates(durationBand, isKo), seed ~/ 3);
+    final condition = _pick(
+      _conditionTemplates(conditionBand, isKo),
+      seed ~/ 5,
+    );
+    final effort = _pick(_effortTemplates(intensityBand, isKo), seed ~/ 7);
+    final recovery = _pick(
+      _recoveryTemplates(
+        isKo: isKo,
+        hasLifting: liftingTotal > 0,
+        hasJumpRope: entry.jumpRopeCount > 0 || entry.jumpRopeMinutes > 0,
+      ),
+      seed ~/ 11,
+    );
+    final lucky = _pick(
+      _luckyTemplates(focus, liftingState, jumpState, isKo),
+      seed ~/ 13,
+    );
+    final recommendation = _pick(
+      _recommendationTemplates(
+        isKo: isKo,
+        focus: focus,
+        durationMinutes: entry.durationMinutes,
+        intensity: entry.intensity,
+        mood: entry.mood,
+        liftingState: liftingState,
+        jumpState: jumpState,
+      ),
+      seed ~/ 17,
+    );
+    return _GeneratedDiaryFortuneText(
+      bodyLines: <String>[
+        combinedTone
+            .replaceAll('{focus}', focus)
+            .replaceAll('{duration}', '${entry.durationMinutes}분')
+            .replaceAll('{condition}', conditionBand)
+            .replaceAll('{intensity}', intensityBand),
+        tempo
+            .replaceAll('{focus}', focus)
+            .replaceAll('{duration}', '${entry.durationMinutes}분'),
+        condition.replaceAll('{condition}', conditionBand),
+        effort.replaceAll('{intensity}', intensityBand),
+        recovery
+            .replaceAll('{lifting}', liftingState)
+            .replaceAll('{jump}', jumpState),
+      ],
+      luckyInfoLines: <String>[lucky],
+      recommendation: recommendation,
+    );
+  }
+
+  static String _durationBand(int minutes, bool isKo) {
+    if (minutes >= 90) return isKo ? '긴 호흡' : 'long push';
+    if (minutes >= 60) return isKo ? '안정된 흐름' : 'steady flow';
+    if (minutes >= 35) return isKo ? '집중 세션' : 'focused session';
+    return isKo ? '짧고 선명한 리듬' : 'sharp rhythm';
+  }
+
+  static String _effortBand(int intensity, bool isKo) {
+    if (intensity >= 5) return isKo ? '강한 압박' : 'heavy pressure';
+    if (intensity >= 4) return isKo ? '높은 강도' : 'high intensity';
+    if (intensity >= 3) return isKo ? '균형 잡힌 강도' : 'balanced intensity';
+    if (intensity >= 2) return isKo ? '가볍게 조율한 강도' : 'light tuning';
+    return isKo ? '회복 중심 강도' : 'recovery pace';
+  }
+
+  static String _conditionBand(int mood, bool isKo) {
+    if (mood >= 5) return isKo ? '컨디션 최상' : 'top condition';
+    if (mood >= 4) return isKo ? '컨디션 좋음' : 'good condition';
+    if (mood >= 3) return isKo ? '컨디션 보통' : 'steady condition';
+    if (mood >= 2) return isKo ? '컨디션 주의' : 'watch condition';
+    return isKo ? '컨디션 회복 필요' : 'recovery-needed condition';
+  }
+
+  static String _pick(List<String> values, int seed) {
+    return values[seed.abs() % values.length];
+  }
+
+  static List<String> _combinedToneTemplates(bool isKo) => isKo
+      ? <String>[
+          '{focus}에 들어간 오늘의 흐름은 {duration} 동안 {condition}과 {intensity}가 맞물리며 시작됐어요.',
+          '{duration}의 훈련에서 {focus} 감각은 {condition} 위에 {intensity}를 얹는 방식으로 살아났어요.',
+          '오늘 {focus} 기록은 {condition} 상태에서 {intensity}를 견디며 쌓인 {duration}의 장면이에요.',
+          '{condition}을 바탕으로 {focus}를 붙들고, {intensity}로 밀어붙인 {duration}의 하루였어요.',
+          '{focus} 노트에는 {duration} 동안 {condition}과 {intensity}가 어떻게 섞였는지가 또렷하게 남았어요.',
+          '{duration} 동안 이어진 {focus} 세션은 {condition}과 {intensity}의 균형을 시험한 페이지였어요.',
+          '{focus}을(를) 중심에 둔 오늘은 {condition} 속에서도 {intensity}를 유지하며 리듬을 만들었어요.',
+          '{condition}의 시작점을 {intensity}로 끌어올린 덕분에 {focus} 연습이 {duration} 동안 끊기지 않았어요.',
+          '{focus} 장면은 {duration}이라는 시간 안에서 {condition}과 {intensity}를 동시에 다루는 연습이었어요.',
+          '오늘의 {focus}는 {condition}을 읽으면서도 {intensity}를 놓치지 않은 {duration}의 메모예요.',
+          '{duration} 훈련 내내 {focus}은(는) {condition}을 다독이며 {intensity}를 채워 넣는 방향으로 흘렀어요.',
+          '{focus}을(를) 다시 붙잡은 오늘은 {condition} 위에서 {intensity}를 버텨 낸 {duration}의 기록이에요.',
+        ]
+      : <String>[
+          'Today\'s {focus} session opened with {condition} and {intensity} moving together for {duration}.',
+          'Across {duration}, {focus} came alive by balancing {condition} with {intensity}.',
+          'This {focus} log held {duration} of work built through {condition} and {intensity}.',
+          'The day kept {focus} in front while leaning on {condition} and pushing through {intensity}.',
+          'The {focus} note clearly shows how {condition} and {intensity} mixed over {duration}.',
+          'This {duration} session tested the balance between {condition}, {intensity}, and {focus}.',
+          'With {focus} at the center, the session kept its rhythm through {condition} and {intensity}.',
+          'Raising the day from {condition} into {intensity} helped {focus} stay connected for {duration}.',
+          '{focus} became a practice in handling {condition} and {intensity} at the same time across {duration}.',
+          'Today\'s {focus} note kept reading {condition} without letting go of {intensity} over {duration}.',
+          'For {duration}, {focus} moved by steadying {condition} and filling in {intensity}.',
+          'Returning to {focus} turned the day into {duration} of holding {condition} under {intensity}.',
+        ];
+
+  static List<String> _tempoTemplates(String durationBand, bool isKo) => isKo
+      ? <String>[
+          '$durationBand 페이스라서 {focus}의 반복이 조급하지 않게 쌓였어요.',
+          '$durationBand 덕분에 {focus} 타이밍을 한 번 더 확인할 여유가 생겼어요.',
+          '$durationBand 흐름이 이어져서 {focus}에서 흔들린 장면도 금방 다시 정리됐어요.',
+          '$durationBand 세션이라 {focus}의 결을 끝까지 잃지 않고 가져갔어요.',
+          '$durationBand 무게감이 있어서 {focus} 디테일을 더 오래 붙들 수 있었어요.',
+          '$durationBand 리듬이 잡히면서 {focus} 장면이 하루의 중심으로 남았어요.',
+        ]
+      : <String>[
+          'That $durationBand pace let the repetitions in {focus} build without rushing.',
+          'The $durationBand session left enough room to check the timing of {focus} one more time.',
+          'Because the $durationBand flow held, shaky moments in {focus} settled quickly again.',
+          'The $durationBand session helped keep the texture of {focus} to the end.',
+          'That $durationBand weight made it easier to stay with the details of {focus}.',
+          'Once the $durationBand rhythm settled, {focus} stayed at the center of the day.',
+        ];
+
+  static List<String> _conditionTemplates(String conditionBand, bool isKo) =>
+      isKo
+      ? <String>[
+          '$conditionBand 신호가 보여서 몸의 반응을 읽으며 움직이기 좋았어요.',
+          '$conditionBand 단계여서 판단과 터치의 간격을 차분히 맞출 수 있었어요.',
+          '$conditionBand 기준으로 보아도 오늘은 감각을 잃지 않고 이어 간 편이에요.',
+          '$conditionBand 상태라서 작은 흔들림도 빨리 알아차릴 수 있었어요.',
+          '$conditionBand 흐름을 유지한 덕분에 기록 전체가 무너지지 않았어요.',
+          '$conditionBand 날에는 무리보다 정리가 중요했는데, 오늘 메모가 그 균형을 보여줘요.',
+        ]
+      : <String>[
+          'With $conditionBand signals, it was easier to read the body and move with it.',
+          'At $conditionBand, the spacing between decisions and touches stayed calm.',
+          'Even by a $conditionBand standard, the day held onto its feel without falling apart.',
+          'Being in $conditionBand made it easier to notice small slips early.',
+          'Keeping a $conditionBand flow helped the full log stay intact.',
+          'On a $conditionBand day, clean organization mattered more than forcing it, and the note shows that balance.',
+        ];
+
+  static List<String> _effortTemplates(String intensityBand, bool isKo) => isKo
+      ? <String>[
+          '$intensityBand 구간을 지나면서도 발끝 감각은 끝까지 남아 있었어요.',
+          '$intensityBand 템포가 걸려도 기록은 흐트러지지 않고 이어졌어요.',
+          '$intensityBand 장면이 있었기에 오늘의 훈련이 더 또렷하게 남아요.',
+          '$intensityBand 선택이 들어간 덕분에 세션의 밀도가 확실히 올라갔어요.',
+          '$intensityBand 부담 속에서도 오늘은 중심을 다시 찾아오는 속도가 좋았어요.',
+          '$intensityBand 하루였지만 메모는 급해지지 않고 차분하게 남았어요.',
+        ]
+      : <String>[
+          'Even through that $intensityBand stretch, the touch at the feet stayed alive.',
+          'The log stayed organized even when the pace moved into $intensityBand.',
+          'That $intensityBand segment is part of what makes the session stand out.',
+          'Choosing $intensityBand clearly raised the density of the session.',
+          'Even under $intensityBand stress, the day returned to center quickly.',
+          'It was a $intensityBand day, but the note never turned frantic.',
+        ];
+
+  static List<String> _recoveryTemplates({
+    required bool isKo,
+    required bool hasLifting,
+    required bool hasJumpRope,
+  }) {
+    if (hasLifting && hasJumpRope) {
+      return isKo
+          ? <String>[
+              '{lifting}와 {jump}가 함께 붙어서 몸의 준비도가 더 고르게 올라갔어요.',
+              '{lifting}, {jump}까지 챙긴 덕분에 오늘 기록은 기본기와 체력이 같이 움직였어요.',
+              '{jump} 뒤에 {lifting}까지 이어진 흐름이 하루의 완성도를 높였어요.',
+              '{lifting}과 {jump}를 모두 남겨 둔 날은 훈련의 뒷받침이 더 단단해 보여요.',
+              '{jump}와 {lifting}가 받쳐 줘서 메인 훈련의 리듬이 쉽게 끊기지 않았어요.',
+            ]
+          : <String>[
+              '{lifting} and {jump} together raised the body into the session more evenly.',
+              'Because both {lifting} and {jump} were checked, the day balanced fundamentals with conditioning.',
+              'The flow from {jump} into {lifting} gave the day a more complete shape.',
+              'Logging both {lifting} and {jump} makes the support work behind the session feel stronger.',
+              '{jump} and {lifting} helped keep the main training rhythm from breaking apart.',
+            ];
+    }
+    if (hasLifting) {
+      return isKo
+          ? <String>[
+              '{lifting}을 챙긴 덕분에 볼 감각이 더 오래 유지될 바탕이 생겼어요.',
+              '{lifting} 기록이 들어가 있어 오늘은 발 감각을 세밀하게 다듬은 날로 읽혀요.',
+              '{lifting}이 메인 세션 뒤를 받쳐 줘서 기록의 밀도가 더 좋아졌어요.',
+              '{lifting}이 남아 있어 반복의 성실함이 숫자로도 보이는 하루예요.',
+              '{lifting} 덕분에 오늘 메모가 기술 훈련에서 끝나지 않고 기초 체력까지 닿았어요.',
+            ]
+          : <String>[
+              '{lifting} gave the ball feel a stronger base to last longer.',
+              'Because {lifting} was logged, the day reads like one that refined foot feel in detail.',
+              '{lifting} supported the main session and improved the density of the whole record.',
+              'With {lifting} left in the log, the honesty of repetition is visible in numbers too.',
+              '{lifting} kept the day from ending at technique alone and extended it into base conditioning.',
+            ];
+    }
+    if (hasJumpRope) {
+      return isKo
+          ? <String>[
+              '{jump}가 먼저 리듬을 만들어 줘서 오늘의 첫 터치가 더 가벼웠을 거예요.',
+              '{jump} 기록이 있어 몸의 박자를 미리 올려 둔 하루로 읽혀요.',
+              '{jump}를 함께 남긴 덕분에 훈련 전환이 더 부드러웠을 가능성이 커요.',
+              '{jump}가 있어서 발놀림 준비가 오늘 기록 안에 자연스럽게 이어져요.',
+              '{jump} 하나만으로도 몸의 시동을 어떻게 걸었는지 충분히 보였어요.',
+            ]
+          : <String>[
+              '{jump} likely set the rhythm early and made the first touch lighter.',
+              'With {jump} logged, the day reads like one that raised the body rhythm in advance.',
+              'Keeping {jump} in the record probably made the shift into training smoother.',
+              '{jump} naturally extends the story of how the feet were prepared.',
+              '{jump} alone already shows a lot about how the body was started for the day.',
+            ];
+    }
+    return isKo
+        ? <String>[
+            '{lifting}과 {jump}를 다음 기록에 더하면 오늘의 리듬이 더 선명해질 거예요.',
+            '오늘은 메인 훈련이 중심이었고, 다음엔 {lifting}이나 {jump}를 곁들여도 좋아 보여요.',
+            '{lifting} 또는 {jump}를 보태면 오늘 쌓은 감각이 더 오래 남을 수 있어요.',
+            '이번 기록은 메인 세션 위주였으니 다음에는 {jump}나 {lifting}도 함께 남겨 보세요.',
+            '다음 페이지에서는 {lifting}, {jump} 같은 준비 루틴까지 연결하면 더 탄탄해질 거예요.',
+          ]
+        : <String>[
+            'Adding {lifting} and {jump} next time could make the day\'s rhythm feel even clearer.',
+            'The main session led today, and next time {lifting} or {jump} could support it well.',
+            'Adding either {lifting} or {jump} may help today\'s feel stay longer.',
+            'This record focused on the main session, so next time try logging {jump} or {lifting} too.',
+            'The next page may feel sturdier if it also connects warm-up work like {lifting} and {jump}.',
+          ];
+  }
+
+  static List<String> _luckyTemplates(
+    String focus,
+    String liftingState,
+    String jumpState,
+    bool isKo,
+  ) => isKo
+      ? <String>[
+          '행운 루틴: $focus 전에 $jumpState로 발 리듬을 먼저 깨워 보세요.',
+          '행운 포인트: $liftingState처럼 반복 횟수가 보이는 루틴이 오늘 감각을 오래 붙잡아 줘요.',
+          '행운 타이밍: $focus 시작 전 5분은 호흡을 고르고 박자를 맞추는 시간이 좋아요.',
+          '행운 키워드: 첫 터치, 시선 정리, 그리고 $jumpState.',
+          '행운 메모: $focus 장면은 짧은 준비 루틴과 함께할 때 더 선명해져요.',
+          '행운 연결: $liftingState 뒤에 메인 훈련을 이어가면 감각이 더 또렷해질 수 있어요.',
+        ]
+      : <String>[
+          'Lucky routine: wake the feet up with $jumpState before $focus.',
+          'Lucky point: routines with visible counts like $liftingState help the feel last longer today.',
+          'Lucky timing: the five minutes before $focus are good for settling breath and rhythm.',
+          'Lucky keywords: first touch, scanning, and $jumpState.',
+          'Lucky note: $focus becomes clearer when it starts with a short prep routine.',
+          'Lucky link: the feel may sharpen if the main session follows $liftingState.',
+        ];
+
+  static List<String> _recommendationTemplates({
+    required bool isKo,
+    required String focus,
+    required int durationMinutes,
+    required int intensity,
+    required int mood,
+    required String liftingState,
+    required String jumpState,
+  }) {
+    final durationText = durationMinutes >= 60
+        ? (isKo ? '후반 10분' : 'the final 10 minutes')
+        : (isKo ? '마지막 5분' : 'the last 5 minutes');
+    final intensityText = intensity >= 4
+        ? (isKo ? '강하게 밀어붙인 구간' : 'after the hard push')
+        : (isKo ? '리듬을 고른 구간' : 'after the rhythm section');
+    final conditionText = mood >= 4
+        ? (isKo ? '좋은 컨디션을 유지한 흐름' : 'the good-condition flow')
+        : (isKo ? '컨디션을 끌어올리는 과정' : 'the build back into condition');
+    return isKo
+        ? <String>[
+            '$durationText에는 $focus 한 가지만 남겨서 반복해 보세요.',
+            '$intensityText 뒤에 $jumpState를 짧게 붙이면 리듬 정리에 도움이 돼요.',
+            '$conditionText을 다시 만들기 위해 $liftingState를 다음 기록에도 이어가 보세요.',
+            '$focus 전에 시야 확인 한 번, 터치 방향 한 번을 같은 루틴으로 고정해 보세요.',
+            '오늘 메모를 기준으로 내일은 $focus 첫 성공 장면을 더 빨리 만드는 데 집중해 보세요.',
+            '$focus 훈련 뒤에 짧은 정리 메모를 남기면 좋은 감각을 더 오래 복기할 수 있어요.',
+            '$jumpState 또는 $liftingState 중 하나만 꾸준히 이어도 하루 컨디션 변화가 더 잘 보여요.',
+            '$focus 장면에서 가장 좋았던 한 번을 기준 동작으로 삼아 다시 반복해 보세요.',
+          ]
+        : <String>[
+            'Use $durationText to repeat only one clear version of $focus.',
+            '$intensityText, adding a short block of $jumpState could help reset the rhythm.',
+            'To rebuild $conditionText, try carrying $liftingState into the next log as well.',
+            'Before $focus, keep one scan cue and one touch-direction cue fixed as the same routine.',
+            'Based on today\'s note, focus tomorrow on reaching the first successful $focus moment earlier.',
+            'A short closing note after $focus can help replay the good feel for longer.',
+            'Even staying consistent with either $jumpState or $liftingState will reveal condition changes more clearly.',
+            'Use the best single $focus rep from today as the reference movement for the next round.',
+          ];
   }
 }
 

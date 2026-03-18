@@ -5,6 +5,7 @@ import '../domain/repositories/option_repository.dart';
 
 class PlayerLevelService {
   static const String totalXpKey = 'player_total_xp_v1';
+  static const String xpHistoryKey = 'player_xp_history_v1';
   static const String quizRewardDayKey = 'player_quiz_reward_day_v1';
   static const String awardedPlanIdsKey = 'player_awarded_plan_ids_v1';
   static const String awardedStreaksKey = 'player_awarded_streaks_v1';
@@ -135,6 +136,20 @@ class PlayerLevelService {
     await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(awardedStreaksKey, awardedStreaks.toList()..sort());
     final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: entry.createdAt,
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.training,
+        label: entry.program.trim().isNotEmpty
+            ? entry.program.trim()
+            : entry.type,
+        reasons: reasons,
+      ),
+    );
     return PlayerLevelAward(
       gainedXp: gainedXp,
       before: before,
@@ -163,6 +178,18 @@ class PlayerLevelService {
     await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(quizRewardDayKey, token);
     final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: completedAt ?? DateTime.now(),
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.quiz,
+        label: '',
+        reasons: const <String>['quiz_complete'],
+      ),
+    );
     return PlayerLevelAward(
       gainedXp: gainedXp,
       before: before,
@@ -188,6 +215,18 @@ class PlayerLevelService {
     await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(awardedPlanIdsKey, awardedPlanIds.toList()..sort());
     final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: DateTime.now(),
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.plan,
+        label: planId,
+        reasons: const <String>['plan_created'],
+      ),
+    );
     return PlayerLevelAward(
       gainedXp: gainedXp,
       before: before,
@@ -364,6 +403,17 @@ class PlayerLevelService {
     return loadCustomRewardNames()[level] ?? '';
   }
 
+  List<PlayerXpHistoryEntry> loadXpHistory() {
+    final raw = _options.getValue<List>(xpHistoryKey) ?? const [];
+    return raw
+        .whereType<Map>()
+        .map(
+          (item) => PlayerXpHistoryEntry.fromMap(item.cast<String, dynamic>()),
+        )
+        .toList(growable: false)
+      ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
+  }
+
   PlayerLevelRewardStatus? nextRewardStatus({
     int? fromLevel,
     bool includeClaimable = true,
@@ -460,6 +510,15 @@ class PlayerLevelService {
     final month = normalized.month.toString().padLeft(2, '0');
     final day = normalized.day.toString().padLeft(2, '0');
     return '${normalized.year}-$month-$day';
+  }
+
+  Future<void> _appendXpHistory(PlayerXpHistoryEntry entry) async {
+    final history = loadXpHistory().take(199).toList(growable: true);
+    history.insert(0, entry);
+    await _options.setValue(
+      xpHistoryKey,
+      history.map((item) => item.toMap()).toList(growable: false),
+    );
   }
 }
 
@@ -569,4 +628,65 @@ class PlayerLevelRewardClaim {
     required this.state,
     this.customRewardName = '',
   });
+}
+
+enum PlayerXpHistoryCategory { training, quiz, plan }
+
+class PlayerXpHistoryEntry {
+  final DateTime awardedAt;
+  final int deltaXp;
+  final int totalXp;
+  final int beforeLevel;
+  final int afterLevel;
+  final PlayerXpHistoryCategory category;
+  final String label;
+  final List<String> reasons;
+
+  const PlayerXpHistoryEntry({
+    required this.awardedAt,
+    required this.deltaXp,
+    required this.totalXp,
+    required this.beforeLevel,
+    required this.afterLevel,
+    required this.category,
+    required this.label,
+    required this.reasons,
+  });
+
+  factory PlayerXpHistoryEntry.fromMap(Map<String, dynamic> map) {
+    return PlayerXpHistoryEntry(
+      awardedAt:
+          DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      deltaXp: (map['deltaXp'] as num?)?.toInt() ?? 0,
+      totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
+      beforeLevel: (map['beforeLevel'] as num?)?.toInt() ?? 1,
+      afterLevel: (map['afterLevel'] as num?)?.toInt() ?? 1,
+      category: PlayerXpHistoryCategory.values.firstWhere(
+        (value) => value.name == map['category']?.toString(),
+        orElse: () => PlayerXpHistoryCategory.training,
+      ),
+      label: map['label']?.toString() ?? '',
+      reasons:
+          (map['reasons'] as List?)
+              ?.map((item) => item.toString())
+              .toList(growable: false) ??
+          const <String>[],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'awardedAt': awardedAt.toIso8601String(),
+      'deltaXp': deltaXp,
+      'totalXp': totalXp,
+      'beforeLevel': beforeLevel,
+      'afterLevel': afterLevel,
+      'category': category.name,
+      'label': label,
+      'reasons': reasons,
+    };
+  }
+
+  bool get leveledUp => afterLevel > beforeLevel;
 }

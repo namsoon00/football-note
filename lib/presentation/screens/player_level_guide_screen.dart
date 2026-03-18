@@ -5,6 +5,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/player_level_visuals.dart';
+import 'player_xp_history_screen.dart';
 
 class PlayerLevelGuideScreen extends StatefulWidget {
   final int currentLevel;
@@ -58,6 +59,12 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                       ? (isKo ? '경험치 방법 숨기기' : 'Hide XP guide')
                       : (isKo ? '경험치 오르는 방법 보기' : 'Show XP guide'),
                 ),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.tonalIcon(
+                onPressed: () => _openXpHistory(context, isKo),
+                icon: const Icon(Icons.timeline_outlined),
+                label: Text(isKo ? '경험치 히스토리' : 'XP history'),
               ),
               if (_showXpGuide) ...[
                 const SizedBox(height: 12),
@@ -128,6 +135,15 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       text: saved.trim().isEmpty
           ? (isKo ? '레벨 선물을 지웠어요.' : 'Reward cleared.')
           : (isKo ? '레벨 선물을 저장했어요.' : 'Reward saved.'),
+    );
+  }
+
+  Future<void> _openXpHistory(BuildContext context, bool isKo) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            PlayerXpHistoryScreen(optionRepository: widget.optionRepository),
+      ),
     );
   }
 }
