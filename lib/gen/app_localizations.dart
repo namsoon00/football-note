@@ -1217,121 +1217,121 @@ abstract class AppLocalizations {
   /// No description provided for @gameGuideQuickTitle.
   ///
   /// In en, this message translates to:
-  /// **'Current Rules'**
+  /// **'Current Game Flow'**
   String get gameGuideQuickTitle;
 
   /// No description provided for @gameGuideQuickLine1.
   ///
   /// In en, this message translates to:
-  /// **'Goal: build rank score with passes and goals within 20 seconds.'**
+  /// **'Each run is 20 seconds, and you start with 3 lives. If you fail, you instantly retry while lives remain.'**
   String get gameGuideQuickLine1;
 
   /// No description provided for @gameGuideQuickLine2.
   ///
   /// In en, this message translates to:
-  /// **'Control: move first, then hold and release the pass button to set pass or shot power.'**
+  /// **'Use the pass button to control direction and power, then choose safe, killer, or risky passes.'**
   String get gameGuideQuickLine2;
 
   /// No description provided for @gameGuideQuickLine3.
   ///
   /// In en, this message translates to:
-  /// **'Flow: level up through completed passes, then unlock a shot chance with the final pass.'**
+  /// **'Build combo through consecutive success. At combo 8+, Fever starts for 5 seconds and doubles bonus points.'**
   String get gameGuideQuickLine3;
 
   /// No description provided for @gameGuideQuickLine4.
   ///
   /// In en, this message translates to:
-  /// **'Round breaks can come from interceptions, passer collisions, no pass for 3s, or failed shot moments.'**
+  /// **'Random events (narrow lanes, wide lanes, tail wind) and missions rotate during a run, so adapt quickly.'**
   String get gameGuideQuickLine4;
 
   /// No description provided for @gameGuideRiskTitle.
   ///
   /// In en, this message translates to:
-  /// **'Risk vs Reward'**
+  /// **'Decision Strategy'**
   String get gameGuideRiskTitle;
 
   /// No description provided for @gameGuideRiskLine1.
   ///
   /// In en, this message translates to:
-  /// **'Short safe passes are better for combo rhythm and steady level gains.'**
+  /// **'Safe pass: highest stability, best for keeping rhythm and clearing missions safely.'**
   String get gameGuideRiskLine1;
 
   /// No description provided for @gameGuideRiskLine2.
   ///
   /// In en, this message translates to:
-  /// **'Harder passes move the play faster, but fail easily if the receiver timing is off.'**
+  /// **'Killer pass: medium risk with strong rewards for fast score growth.'**
   String get gameGuideRiskLine2;
 
   /// No description provided for @gameGuideRiskLine3.
   ///
   /// In en, this message translates to:
-  /// **'For shots, hold longer and release toward open goal space away from the keeper.'**
+  /// **'Risky pass: hardest option but gives the largest reward when completed.'**
   String get gameGuideRiskLine3;
 
   /// No description provided for @gameGuideRiskLine4.
   ///
   /// In en, this message translates to:
-  /// **'Key: connect safely first, then finish aggressively once the lane opens.'**
+  /// **'Passing into open space grants extra bonus, so read defender spacing before release.'**
   String get gameGuideRiskLine4;
 
   /// No description provided for @gameGuideFailureTitle.
   ///
   /// In en, this message translates to:
-  /// **'Failure Decoder'**
+  /// **'Recover From Mistakes'**
   String get gameGuideFailureTitle;
 
   /// No description provided for @gameGuideFailureLine1.
   ///
   /// In en, this message translates to:
-  /// **'Intercepted: a ghost reached the pass lane first, so reset angle and timing.'**
+  /// **'Interception, collision, and miss no longer end the run immediately if you still have lives.'**
   String get gameGuideFailureLine1;
 
   /// No description provided for @gameGuideFailureLine2.
   ///
   /// In en, this message translates to:
-  /// **'Too fast/slow: hold duration did not match the receiver run.'**
+  /// **'Use too-fast/too-slow feedback to adjust hold timing on the very next attempt.'**
   String get gameGuideFailureLine2;
 
   /// No description provided for @gameGuideFailureLine3.
   ///
   /// In en, this message translates to:
-  /// **'Shot saved: the shot went toward the keeper instead of open goal space.'**
+  /// **'If no-pass-3s appears, reset tempo first with a short safe pass.'**
   String get gameGuideFailureLine3;
 
   /// No description provided for @gameGuideFailureLine4.
   ///
   /// In en, this message translates to:
-  /// **'No-pass-3s: make the next choice quickly or the round loses flow.'**
+  /// **'When lives are low, switch to safer choices to protect your run.'**
   String get gameGuideFailureLine4;
 
   /// No description provided for @gameGuideRankingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Ranking Formula'**
+  /// **'Score Formula'**
   String get gameGuideRankingTitle;
 
   /// No description provided for @gameGuideRankingLine1.
   ///
   /// In en, this message translates to:
-  /// **'Rank score = (completed passes x 10) + (level x 15) + (goals x 60).'**
+  /// **'Rank score = (completed passes x 10) + (level x 15) + (goals x 60) + bonus score.'**
   String get gameGuideRankingLine1;
 
   /// No description provided for @gameGuideRankingLine2.
   ///
   /// In en, this message translates to:
-  /// **'S: 320+ / A: 240+ / B: 170+'**
+  /// **'Bonus score sources: pass-type rewards, open-space rewards, rhythm rewards, mission rewards.'**
   String get gameGuideRankingLine2;
 
   /// No description provided for @gameGuideRankingLine3.
   ///
   /// In en, this message translates to:
-  /// **'C: 110+ / D: below 110'**
+  /// **'During Fever, bonus score is doubled, enabling big jumps in a short window.'**
   String get gameGuideRankingLine3;
 
   /// No description provided for @gameGuideRankingLine4.
   ///
   /// In en, this message translates to:
-  /// **'Tip: goals carry the biggest weight, so use passes to create a clean finish.'**
+  /// **'High-score route: build rhythm with safe passes, expand with killer/risky passes, then finish with mission and goal rewards.'**
   String get gameGuideRankingLine4;
 
   /// No description provided for @gameGuideCharPacTitle.

@@ -1079,7 +1079,7 @@ class _EntryCard extends StatelessWidget {
       titleLocation,
       secondaryText,
     ].where((part) => part.trim().isNotEmpty).join(' · ');
-    final focusText = _buildListFocusText(entry, includeFortune: false);
+    final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final boardIds = TrainingBoardLinkCodec.decodeBoardIds(entry.drills);
     final linkedBoards = boardIds
@@ -1163,7 +1163,7 @@ class _EntryListItem extends StatelessWidget {
         : l10n.durationNotSet;
     final locationText =
         entry.location.trim().isEmpty ? '-' : entry.location.trim();
-    final focusText = _buildListFocusText(entry, includeFortune: false);
+    final focusText = _buildListFocusText(entry);
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final titleText = [
@@ -1361,7 +1361,7 @@ String _entrySecondaryText(TrainingEntry entry, {required bool isKo}) {
   return parts.join(' · ');
 }
 
-String _buildListFocusText(TrainingEntry entry, {bool includeFortune = true}) {
+String _buildListFocusText(TrainingEntry entry) {
   if (entry.opponentTeam.trim().isNotEmpty) {
     return entry.opponentTeam.trim();
   }
@@ -1374,11 +1374,19 @@ String _buildListFocusText(TrainingEntry entry, {bool includeFortune = true}) {
   if (entry.jumpRopeNote.trim().isNotEmpty) return entry.jumpRopeNote.trim();
   if (entry.goal.trim().isNotEmpty) return entry.goal.trim();
   if (entry.feedback.trim().isNotEmpty) return entry.feedback.trim();
-  if (includeFortune && entry.fortuneComment.trim().isNotEmpty) {
-    return entry.fortuneComment.trim();
-  }
-  if (entry.notes.trim().isNotEmpty) return entry.notes.trim();
+  final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
+  if (notesWithoutWeather.isNotEmpty) return notesWithoutWeather;
   return '';
+}
+
+String _stripWeatherMetaFromNotes(String notes) {
+  return notes
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .where((line) => !line.startsWith('[Weather]'))
+      .where((line) => !line.startsWith('[날씨]'))
+      .join(' ');
 }
 
 class _EntryImage extends StatelessWidget {
