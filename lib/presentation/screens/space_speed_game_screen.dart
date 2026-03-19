@@ -1929,7 +1929,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _beginCharge() {
-    if (_phase != _PlayPhase.ready || (_ballFlying && !_ballSettling)) return;
+    if ((_phase != _PlayPhase.ready && !_ballSettling) ||
+        (_ballFlying && !_ballSettling)) {
+      return;
+    }
     if (_ballSettling) {
       final holdPoint = _activePasserBallHoldPoint();
       _ballX = holdPoint.dx;
@@ -1977,7 +1980,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _releaseChargeAndPass() {
-    if (!_charging || _phase != _PlayPhase.ready) return;
+    if (!_charging || (_phase != _PlayPhase.ready && !_ballSettling)) return;
     if (_ballFlying && !_ballSettling) return;
     _charging = false;
     _chargeStartedAt = null;
@@ -2758,7 +2761,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     return _gameStarted &&
         !_timeUp &&
         !_awaitingShotOutcome &&
-        _phase == _PlayPhase.ready &&
+        !_awaitingFailFinish &&
+        (_phase == _PlayPhase.ready || _ballSettling) &&
         (!_ballFlying || _ballSettling);
   }
 
