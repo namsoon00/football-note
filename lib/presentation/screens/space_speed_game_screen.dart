@@ -2739,7 +2739,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _onJoystickStart(int pointer, Offset local) {
-    if (_joystickPointerId != null) return;
+    if (_joystickPointerId != null && _joystickPointerId != pointer) {
+      _joystickInput = Offset.zero;
+      _joystickActive = false;
+    }
     _joystickPointerId = pointer;
     _lastInteractionAt = DateTime.now();
     _updateJoystickFromLocal(local);

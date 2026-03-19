@@ -59,6 +59,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _goodPointsController = TextEditingController();
   final _improvementsController = TextEditingController();
+  final _nextGoalController = TextEditingController();
   final _drillsController = TextEditingController();
   final _injuryPartController = TextEditingController();
   final _painController = TextEditingController();
@@ -190,6 +191,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _improvementsController.text = entry.improvements.isNotEmpty
           ? entry.improvements
           : _stripWeatherFromNotes(entry.notes);
+      _nextGoalController.text =
+          entry.nextGoal.isNotEmpty ? entry.nextGoal : entry.goal;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -352,6 +355,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _painController.text.trim(),
       _goodPointsController.text.trim(),
       _improvementsController.text.trim(),
+      _nextGoalController.text.trim(),
       _fortuneEnabled.toString(),
       _weatherSummary.trim(),
       _jumpRopeController.text.trim(),
@@ -712,6 +716,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     unawaited(_speech.cancel());
     _goodPointsController.dispose();
     _improvementsController.dispose();
+    _nextGoalController.dispose();
     _drillsController.dispose();
     _injuryPartController.dispose();
     _painController.dispose();
@@ -1149,6 +1154,18 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   : 'Write what needs improvement.',
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          _buildEmphasizedField(
+                            controller: _nextGoalController,
+                            minLines: 2,
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              labelText: isKo ? '다음 목표' : 'Next goal',
+                              hintText: isKo
+                                  ? '다음 훈련에서 집중할 목표를 적어보세요.'
+                                  : 'Write the next goal for your next session.',
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -1528,6 +1545,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
     final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
+        controller == _nextGoalController ||
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
     final field = TextFormField(
@@ -2189,8 +2207,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       final selectedGoals = _selectedDailyGoals.toList()..sort();
       final goodPoints = _goodPointsController.text.trim();
       final improvements = _improvementsController.text.trim();
+      final nextGoal = _nextGoalController.text.trim();
       final notesWithWeather = _withWeatherInNotes(improvements, isKo);
-      const nextGoal = '';
       final createdAt = widget.entry?.createdAt ?? DateTime.now();
       final jumpRopeCount = _jumpRopeEnabled
           ? (_parseInt(_jumpRopeController.text.trim())?.clamp(0, 1000000) ?? 0)
