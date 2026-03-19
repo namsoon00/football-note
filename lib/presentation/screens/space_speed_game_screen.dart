@@ -3826,10 +3826,19 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       bottom: 12,
       child: Listener(
         key: _passPadKey,
-        onPointerDown: (event) => _onPassDown(event.pointer, event.position),
-        onPointerMove: (event) => _onPassMove(event.pointer, event.position),
-        onPointerUp: (event) => _onPassUp(event.pointer, event.position),
-        onPointerCancel: (event) => _onPassCancel(event.pointer),
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: (event) {
+          setState(() => _onPassDown(event.pointer, event.position));
+        },
+        onPointerMove: (event) {
+          setState(() => _onPassMove(event.pointer, event.position));
+        },
+        onPointerUp: (event) {
+          setState(() => _onPassUp(event.pointer, event.position));
+        },
+        onPointerCancel: (event) {
+          setState(() => _onPassCancel(event.pointer));
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
           width: 106,
