@@ -1926,6 +1926,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _beginBallSettling(double controlProbability) {
+    _attackerAIsPasser = !_attackerAIsPasser;
     _ballSettling = true;
     _settleControlProbability = controlProbability;
     _ballVx *= 0.42;
@@ -1933,7 +1934,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _updateBallSettling() {
-    final holdPoint = _activeReceiverBallHoldPoint();
+    final holdPoint = _activePasserBallHoldPoint();
     final dx = holdPoint.dx - _ballX;
     final dy = holdPoint.dy - _ballY;
     final distance = math.sqrt((dx * dx) + (dy * dy));
@@ -1949,7 +1950,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballX = holdPoint.dx;
       _ballY = holdPoint.dy;
       _ballSettling = false;
-      _onSuccess(controlProbability: _settleControlProbability);
+      _completeSuccessfulPass(controlProbability: _settleControlProbability);
     }
   }
 
@@ -2173,12 +2174,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passChargeArmed = false;
   }
 
-  void _onSuccess({double? controlProbability}) {
+  void _completeSuccessfulPass({double? controlProbability}) {
     _lastInteractionAt = DateTime.now();
     _clearFlightGuide();
     _playGameSound(_GameSoundType.passComplete);
     _setReaction(_PassResult.perfect, controlProbability: controlProbability);
-    _attackerAIsPasser = !_attackerAIsPasser;
     _relinkAttackerPair();
     _score += 1;
     _combo += 1;
@@ -3235,23 +3235,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       bodyY: _receiverY,
       vx: _receiverVx,
       vy: _receiverVy,
-    );
-  }
-
-  Offset _activeReceiverBallHoldPoint() {
-    if (_attackerAIsPasser) {
-      return _ballHoldPointFor(
-        bodyX: _receiverX,
-        bodyY: _receiverY,
-        vx: _receiverVx,
-        vy: _receiverVy,
-      );
-    }
-    return _ballHoldPointFor(
-      bodyX: _passerXPos,
-      bodyY: _passerYPos,
-      vx: _passerVx,
-      vy: _passerVy,
     );
   }
 
