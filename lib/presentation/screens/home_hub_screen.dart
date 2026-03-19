@@ -42,6 +42,7 @@ class HomeHubScreen extends StatefulWidget {
   final VoidCallback? onQuickQuiz;
   final VoidCallback? onQuickBoard;
   final VoidCallback onOpenLogs;
+  final VoidCallback onOpenDiary;
   final VoidCallback onOpenWeeklyStats;
   final ValueChanged<TrainingEntry> onEdit;
 
@@ -58,6 +59,7 @@ class HomeHubScreen extends StatefulWidget {
     this.onQuickQuiz,
     this.onQuickBoard,
     required this.onOpenLogs,
+    required this.onOpenDiary,
     required this.onOpenWeeklyStats,
     required this.onEdit,
   });
@@ -91,11 +93,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries =
-                  (snapshot.data ?? const <TrainingEntry>[])
-                      .where((entry) => !entry.isMatch)
-                      .toList()
-                    ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
+                  .where((entry) => !entry.isMatch)
+                  .toList()
+                ..sort(TrainingEntry.compareByRecentCreated);
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardsById = TrainingBoardService(
                 widget.optionRepository,
@@ -133,9 +134,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         onLeadingTap: () => Scaffold.of(context).openDrawer(),
                         profilePhotoSource:
                             widget.optionRepository.getValue<String>(
-                              'profile_photo_url',
-                            ) ??
-                            '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                         onNewsTap: _openNews,
                         onGameTap: _openGame,
                         onProfileTap: () => _openProfile(context),
@@ -155,7 +156,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         Expanded(
                           child: Text(
                             isKo ? '오늘의 홈' : 'Today Home',
-                            style: Theme.of(context).textTheme.headlineSmall
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -169,16 +172,46 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
+                    _DailyFlowCard(
+                      data: data,
+                      isKo: isKo,
+                      onLog: _trackedAction('daily_flow_log', widget.onCreate),
+                      onQuiz: _trackedAction(
+                        'daily_flow_quiz',
+                        widget.onQuickQuiz,
+                      ),
+                      onReview: _trackedAction(
+                        'daily_flow_review',
+                        widget.onOpenDiary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     _TodayOverviewCard(data: data, isKo: isKo),
                     const SizedBox(height: 12),
                     _QuickActionGrid(
                       isKo: isKo,
-                      onCreate: widget.onCreate,
-                      onQuickMatch: widget.onQuickMatch,
-                      onQuickPlan: widget.onQuickPlan,
-                      onQuickQuiz: widget.onQuickQuiz,
-                      onQuickBoard: widget.onQuickBoard,
-                      onOpenWeeklyStats: () => _openWeeklyStats(context),
+                      onCreate:
+                          _trackedAction('quick_create_log', widget.onCreate)!,
+                      onQuickMatch: _trackedAction(
+                        'quick_create_match',
+                        widget.onQuickMatch,
+                      ),
+                      onQuickPlan: _trackedAction(
+                        'quick_create_plan',
+                        widget.onQuickPlan,
+                      ),
+                      onQuickQuiz: _trackedAction(
+                        'quick_create_quiz',
+                        widget.onQuickQuiz,
+                      ),
+                      onQuickBoard: _trackedAction(
+                        'quick_open_board',
+                        widget.onQuickBoard,
+                      ),
+                      onOpenWeeklyStats: _trackedAction(
+                        'quick_open_weekly_stats',
+                        () => _openWeeklyStats(context),
+                      )!,
                     ),
                     const SizedBox(height: 12),
                     _ContinueCard(
@@ -338,6 +371,24 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     return count;
   }
 
+  VoidCallback? _trackedAction(String key, VoidCallback? action) {
+    if (action == null) return null;
+    return () {
+      unawaited(_trackHomeActionTap(key));
+      action();
+    };
+  }
+
+  Future<void> _trackHomeActionTap(String key) async {
+    final metricKey = 'home_action_count_v1_$key';
+    final current = widget.optionRepository.getValue(metricKey) as int? ?? 0;
+    await widget.optionRepository.setValue(metricKey, current + 1);
+    await widget.optionRepository.setValue(
+      'home_action_last_tap_at_v1',
+      DateTime.now().toIso8601String(),
+    );
+  }
+
   String _newsArticleKey(NewsArticle article) {
     final link = article.link.trim();
     if (link.isNotEmpty) return link;
@@ -406,16 +457,14 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final todayEntries = entries
-        .where((entry) {
-          final day = DateTime(
-            entry.date.year,
-            entry.date.month,
-            entry.date.day,
-          );
-          return day == today;
-        })
-        .toList(growable: false);
+    final todayEntries = entries.where((entry) {
+      final day = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
+      return day == today;
+    }).toList(growable: false);
     final loggedTrainingToday = todayEntries.isNotEmpty;
     final loggedLiftingToday = todayEntries.any(
       (entry) => entry.liftingByPart.values.any((value) => value > 0),
@@ -453,9 +502,8 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.mood,
     );
-    final averageMood = weeklyEntries.isEmpty
-        ? 0
-        : totalMood / weeklyEntries.length;
+    final averageMood =
+        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
 
     String strongest;
     String focus;
@@ -481,8 +529,7 @@ class _HomeHubData {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedToday =
-        quizCompletedAt != null &&
+    final quizCompletedToday = quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
@@ -515,8 +562,7 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -551,9 +597,9 @@ class _WeeklyBadge extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
         ),
       ),
@@ -591,17 +637,17 @@ class _LevelHeroCard extends StatelessWidget {
     }
     final rewardSummary = claimableRewards.isNotEmpty
         ? (isKo
-              ? '지금 받을 선물 ${claimableRewards.length}개'
-              : '${claimableRewards.length} rewards ready')
+            ? '지금 받을 선물 ${claimableRewards.length}개'
+            : '${claimableRewards.length} rewards ready')
         : nextReward == null
-        ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
-        : nextReward.isAvailable
-        ? (isKo
-              ? '지금 선물: ${nextReward.customRewardName}'
-              : 'Reward now: ${nextReward.customRewardName}')
-        : (isKo
-              ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
-              : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
+            ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
+            : nextReward.isAvailable
+                ? (isKo
+                    ? '지금 선물: ${nextReward.customRewardName}'
+                    : 'Reward now: ${nextReward.customRewardName}')
+                : (isKo
+                    ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
+                    : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -634,9 +680,9 @@ class _LevelHeroCard extends StatelessWidget {
                     Text(
                       isKo ? '선수 레벨' : 'Player level',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.86),
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.86),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -644,9 +690,9 @@ class _LevelHeroCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -654,9 +700,9 @@ class _LevelHeroCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 10),
                     ClipRRect(
@@ -678,9 +724,9 @@ class _LevelHeroCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -688,9 +734,9 @@ class _LevelHeroCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.94),
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: Colors.white.withValues(alpha: 0.94),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ],
                 ),
@@ -752,17 +798,17 @@ class _LevelIllustration extends StatelessWidget {
                   Text(
                     PlayerLevelService.illustrationLabel(level, isKo),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                   const SizedBox(height: 1),
                   Text(
                     isKo ? '비주얼 성장 단계' : 'Visual growth tier',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.82),
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: Colors.white.withValues(alpha: 0.82),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ],
               ),
@@ -785,17 +831,8 @@ class _TodayOverviewCard extends StatelessWidget {
     final latestLabel = data.latestTrainingEntry == null
         ? (isKo ? '최근 기록 없음' : 'No recent log')
         : (isKo
-              ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
-              : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
-    final todayStatus = data.loggedTrainingToday
-        ? (isKo ? '오늘 기록 완료' : 'Today logged')
-        : (isKo ? '오늘 기록 미완료' : 'Today not logged');
-    final liftingStatus = data.loggedLiftingToday
-        ? (isKo ? '리프팅 체크 완료' : 'Lifting checked')
-        : (isKo ? '리프팅 미완료' : 'Lifting pending');
-    final jumpRopeStatus = data.loggedJumpRopeToday
-        ? (isKo ? '줄넘기 체크 완료' : 'Jump rope checked')
-        : (isKo ? '줄넘기 미완료' : 'Jump rope pending');
+            ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
+            : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -819,27 +856,67 @@ class _TodayOverviewCard extends StatelessWidget {
                         : '${data.streakDays}-day streak',
                   ),
                   _StatPill(icon: Icons.history, label: latestLabel),
-                  _StatPill(
-                    icon: data.loggedTrainingToday
-                        ? Icons.check_circle_outline
-                        : Icons.radio_button_unchecked,
-                    label: todayStatus,
-                  ),
-                  _StatPill(
-                    icon: data.loggedLiftingToday
-                        ? Icons.check_circle_outline
-                        : Icons.radio_button_unchecked,
-                    label: liftingStatus,
-                  ),
-                  _StatPill(
-                    icon: data.loggedJumpRopeToday
-                        ? Icons.check_circle_outline
-                        : Icons.radio_button_unchecked,
-                    label: jumpRopeStatus,
-                  ),
                 ],
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyFlowCard extends StatelessWidget {
+  final _HomeHubData data;
+  final bool isKo;
+  final VoidCallback? onLog;
+  final VoidCallback? onQuiz;
+  final VoidCallback? onReview;
+
+  const _DailyFlowCard({
+    required this.data,
+    required this.isKo,
+    required this.onLog,
+    required this.onQuiz,
+    required this.onReview,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '오늘 할 일 3단계' : 'Today in 3 steps',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 10),
+          _FlowStepRow(
+            done: data.loggedTrainingToday,
+            label: isKo ? '1) 훈련 기록' : '1) Log training',
+            buttonLabel: data.loggedTrainingToday
+                ? (isKo ? '완료' : 'Done')
+                : (isKo ? '기록하기' : 'Log now'),
+            onTap: onLog,
+          ),
+          const SizedBox(height: 8),
+          _FlowStepRow(
+            done: data.quizCompletedToday,
+            label: isKo ? '2) 퀴즈 풀이' : '2) Solve quiz',
+            buttonLabel: data.quizCompletedToday
+                ? (isKo ? '완료' : 'Done')
+                : (isKo ? '퀴즈' : 'Open quiz'),
+            onTap: onQuiz,
+          ),
+          const SizedBox(height: 8),
+          _FlowStepRow(
+            done: data.loggedTrainingToday || data.todayPlanCount > 0,
+            label: isKo ? '3) 다이어리 회고' : '3) Diary review',
+            buttonLabel: isKo ? '다이어리' : 'Open diary',
+            onTap: onReview,
           ),
         ],
       ),
@@ -868,11 +945,16 @@ class _QuickActionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = <_QuickActionItem>[
+    final primaryItems = <_QuickActionItem>[
       _QuickActionItem(
         icon: Icons.add_circle_outline,
         title: isKo ? '훈련 기록' : 'Add log',
         onTap: onCreate,
+      ),
+      _QuickActionItem(
+        icon: Icons.quiz_outlined,
+        title: isKo ? '퀴즈' : 'Quiz',
+        onTap: onQuickQuiz,
       ),
       _QuickActionItem(
         icon: Icons.sports_soccer_outlined,
@@ -884,11 +966,8 @@ class _QuickActionGrid extends StatelessWidget {
         title: isKo ? '훈련 계획' : 'Add plan',
         onTap: onQuickPlan,
       ),
-      _QuickActionItem(
-        icon: Icons.quiz_outlined,
-        title: isKo ? '퀴즈 시작' : 'Start quiz',
-        onTap: onQuickQuiz,
-      ),
+    ];
+    final secondaryItems = <_QuickActionItem>[
       _QuickActionItem(
         icon: Icons.developer_board_outlined,
         title: isKo ? '훈련보드' : 'Boards',
@@ -914,14 +993,24 @@ class _QuickActionGrid extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
+            crossAxisCount: 2,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            childAspectRatio: 1.38,
+            childAspectRatio: 2.2,
           ),
-          itemCount: items.length,
+          itemCount: primaryItems.length,
           itemBuilder: (context, index) =>
-              _QuickActionButton(item: items[index]),
+              _QuickActionButton(item: primaryItems[index]),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: secondaryItems
+              .map(
+                (item) => _SecondaryQuickActionButton(item: item),
+              )
+              .toList(growable: false),
         ),
       ],
     );
@@ -979,9 +1068,9 @@ class _WeeklySummaryCard extends StatelessWidget {
                 ? '다음 포커스: ${_focusLabel(data.focusSignal, true)}'
                 : 'Next focus: ${_focusLabel(data.focusSignal, false)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -1059,8 +1148,7 @@ class _ContinueCard extends StatelessWidget {
     final hasQuizSession = quizSummary.hasActiveSession;
     final hasWrongReview = !hasQuizSession && quizSummary.pendingWrongCount > 0;
     final latestTrainingEntry = data.latestTrainingEntry;
-    final latestTrainingIsToday =
-        latestTrainingEntry != null &&
+    final latestTrainingIsToday = latestTrainingEntry != null &&
         DateTime(
               latestTrainingEntry.date.year,
               latestTrainingEntry.date.month,
@@ -1075,20 +1163,20 @@ class _ContinueCard extends StatelessWidget {
             );
     final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-              ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
-              : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
+            ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
+            : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
         : hasWrongReview
-        ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
-        : (isKo ? '새 퀴즈 시작' : 'Start quiz');
+            ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
+            : (isKo ? '새 퀴즈 시작' : 'Start quiz');
     final quizSubtitle = hasQuizSession
         ? (isKo
-              ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
-              : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
+            ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
+            : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
         : hasWrongReview
-        ? (isKo
-              ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
-              : '${quizSummary.pendingWrongCount} saved wrong answers')
-        : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
+            ? (isKo
+                ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
+                : '${quizSummary.pendingWrongCount} saved wrong answers')
+            : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
     final items = <_ContinueItemData>[
       if (latestTrainingIsToday)
         _ContinueItemData(
@@ -1124,15 +1212,15 @@ class _ContinueCard extends StatelessWidget {
           title: isKo ? '최근 훈련보드' : 'Recent training board',
           subtitle: data.latestBoard == null
               ? (isKo
-                    ? '스케치 ${data.boardCount}개'
-                    : '${data.boardCount} sketches')
+                  ? '스케치 ${data.boardCount}개'
+                  : '${data.boardCount} sketches')
               : data.latestBoardUpdatedAt == null
-              ? (isKo
-                    ? '스케치 ${data.boardCount}개'
-                    : '${data.boardCount} sketches')
-              : (isKo
-                    ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
-                    : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
+                  ? (isKo
+                      ? '스케치 ${data.boardCount}개'
+                      : '${data.boardCount} sketches')
+                  : (isKo
+                      ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
+                      : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
           buttonLabel: isKo ? '바로 수정' : 'Edit now',
           onPressed: onContinueBoard,
         ),
@@ -1301,6 +1389,76 @@ class _QuickActionButton extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SecondaryQuickActionButton extends StatelessWidget {
+  final _QuickActionItem item;
+
+  const _SecondaryQuickActionButton({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.tonalIcon(
+      onPressed: item.onTap,
+      icon: Icon(item.icon, size: 18),
+      label: Text(item.title),
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      ),
+    );
+  }
+}
+
+class _FlowStepRow extends StatelessWidget {
+  final bool done;
+  final String label;
+  final String buttonLabel;
+  final VoidCallback? onTap;
+
+  const _FlowStepRow({
+    required this.done,
+    required this.label,
+    required this.buttonLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            size: 18,
+            color: done ? const Color(0xFF0FA968) : scheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          FilledButton.tonal(
+            onPressed: onTap,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(88, 36),
+              visualDensity: VisualDensity.compact,
+            ),
+            child: Text(buttonLabel),
+          ),
+        ],
       ),
     );
   }
