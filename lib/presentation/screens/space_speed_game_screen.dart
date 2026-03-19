@@ -176,6 +176,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _passAimActive = false;
   int? _passPointerId;
   bool _passChargeArmed = false;
+  int _receiveControlAssistFrames = 0;
   final GlobalKey _passPadKey = GlobalKey();
 
   int get _rankScore =>
@@ -1409,6 +1410,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _updatePlayers() {
+    if (_receiveControlAssistFrames > 0) {
+      _receiveControlAssistFrames -= 1;
+    }
     final attackerPace = _attackerPaceScale;
     final defenderPace = _defenderPaceScale;
     final feverMoveBoost = _feverSecondsRemaining > 0 ? 1.06 : 1.0;
@@ -1712,15 +1716,27 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     if (input.distanceSquared <= 0.0001) return;
     final controlX = input.dx.clamp(-1.0, 1.0);
     final controlY = input.dy.clamp(-1.0, 1.0);
-    final boost = (1.0 + (input.distance * 1.35)).clamp(1.0, 2.55);
+    final receiveAssist = _receiveControlAssistFrames > 0;
+    final boost = (1.0 + (input.distance * (receiveAssist ? 1.75 : 1.35)))
+        .clamp(1.0, receiveAssist ? 3.05 : 2.55);
     final controlA =
         _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
     if (controlA) {
       _passerVx += controlX * _joystickAccelX * boost;
       _passerVy += controlY * _joystickAccelY * boost;
+      if (receiveAssist && input.distance >= 0.22) {
+        _passerVx = _passerVx.sign == 0 && controlX != 0
+            ? controlX.sign * 0.11
+            : _passerVx;
+      }
     } else {
       _receiverVx += controlX * _joystickAccelX * boost;
       _receiverVy += controlY * _joystickAccelY * boost;
+      if (receiveAssist && input.distance >= 0.22) {
+        _receiverVx = _receiverVx.sign == 0 && controlX != 0
+            ? controlX.sign * 0.11
+            : _receiverVx;
+      }
     }
   }
 
@@ -2221,6 +2237,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _playGameSound(_GameSoundType.passComplete);
     _setReaction(_PassResult.perfect, controlProbability: controlProbability);
     _relinkAttackerPair();
+    _receiveControlAssistFrames = 10;
     _score += 1;
     _combo += 1;
     final now = DateTime.now();
@@ -2446,6 +2463,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimActive = false;
     _passPointerId = null;
     _passChargeArmed = false;
+    _receiveControlAssistFrames = 0;
     _awaitingFailFinish = true;
     _failEndTimer = Timer(const Duration(milliseconds: 1100), () {
       if (!mounted) return;
@@ -2640,6 +2658,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimActive = false;
     _passPointerId = null;
     _passChargeArmed = false;
+    _receiveControlAssistFrames = 0;
     _gameStarted = false;
     _endedByFail = true;
     _timeUp = true;
@@ -2705,6 +2724,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passAimActive = false;
     _passPointerId = null;
     _passChargeArmed = false;
+    _receiveControlAssistFrames = 0;
     _awaitingShotOutcome = false;
     _awaitingFailFinish = false;
     _failEndTimer?.cancel();
@@ -2799,7 +2819,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   void _onPassMove(int pointer, Offset globalPosition) {
     if (_passPointerId != pointer) return;
-    if (!_passPressed || !_canStartPassGesture()) return;
+    if (!_passPressed) return;
+    if (!_gameStarted ||
+        _timeUp ||
+        _awaitingShotOutcome ||
+        _awaitingFailFinish) {
+      return;
+    }
     _lastInteractionAt = DateTime.now();
     _updatePassAimFromGlobal(globalPosition);
   }
@@ -2816,7 +2842,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final wasArmed = _passChargeArmed;
     _passChargeArmed = false;
     if (!wasPressed) return;
-    if (!wasArmed || !_canStartPassGesture()) {
+    if (!wasArmed ||
+        (!_canStartPassGesture() && !_ballSettling && !_charging)) {
       if (_charging) {
         _cancelCharge();
       }
