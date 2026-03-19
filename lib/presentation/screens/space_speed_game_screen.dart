@@ -2136,6 +2136,19 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
+  void _relinkAttackerPair({double minGap = 0.14}) {
+    final nextReceiverX = (_activePasserX + minGap).clamp(0.22, 0.80);
+    if (_activeReceiverX < nextReceiverX) {
+      if (_attackerAIsPasser) {
+        _receiverX = nextReceiverX;
+        _receiverVx = math.max(_receiverVx, 0.12);
+      } else {
+        _passerXPos = nextReceiverX;
+        _passerVx = math.max(_passerVx, 0.12);
+      }
+    }
+  }
+
   void _trackNearMiss() {
     if (_flightNearMissAwarded) return;
     var nearest = 999.0;
@@ -2166,6 +2179,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _playGameSound(_GameSoundType.passComplete);
     _setReaction(_PassResult.perfect, controlProbability: controlProbability);
     _attackerAIsPasser = !_attackerAIsPasser;
+    _relinkAttackerPair();
     _score += 1;
     _combo += 1;
     final now = DateTime.now();
@@ -2284,6 +2298,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
 
     _attackerAIsPasser = ownerIsA;
+    _relinkAttackerPair(minGap: 0.12);
     _ballFlying = false;
     _ballSettling = false;
     _phase = _PlayPhase.ready;
