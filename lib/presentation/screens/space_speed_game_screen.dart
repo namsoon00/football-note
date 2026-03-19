@@ -12,7 +12,6 @@ import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
-import '../widgets/tab_screen_title.dart';
 import 'game_guide_screen.dart';
 import 'game_ranking_screen.dart';
 import 'skill_quiz_screen.dart';
@@ -483,391 +482,118 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       body: AppBackground(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TabScreenTitle(
-                  title: isKo ? '게임' : 'Game',
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: () => _openGameGuide(context),
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          minimumSize: const Size(1, 40),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                        ),
-                        icon: const Icon(Icons.menu_book_outlined, size: 18),
-                        label: Text(isKo ? '가이드' : 'Guide'),
-                      ),
-                      const SizedBox(width: 6),
-                      OutlinedButton.icon(
-                        onPressed: () => _openSkillQuiz(context),
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          minimumSize: const Size(1, 40),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                        ),
-                        icon: const Icon(Icons.quiz_outlined, size: 18),
-                        label: Text(isKo ? '퀴즈' : 'Quiz'),
-                      ),
-                      const SizedBox(width: 6),
-                      OutlinedButton.icon(
-                        onPressed: () => _openRankingScreen(context),
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          minimumSize: const Size(1, 40),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                        ),
-                        icon: const Icon(Icons.emoji_events_outlined, size: 18),
-                        label: Text(isKo ? '랭킹' : 'Ranking'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.82),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.55),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isKo ? '게임' : 'Game',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w900),
                           ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              isKo ? '성공 패스' : 'Passes',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '$_score',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
+                          const SizedBox(height: 2),
+                          Text(
+                            isKo
+                                ? '핵심 정보만 보고 바로 플레이'
+                                : 'Quick read, full-size play area',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.82),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.55),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              isKo ? '남은 시간' : 'Time Left',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              isKo
-                                  ? '$_remainingSeconds초'
-                                  : '$_remainingSeconds sec',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    _buildHeaderIconButton(
+                      context,
+                      icon: Icons.menu_book_outlined,
+                      label: isKo ? '가이드' : 'Guide',
+                      onPressed: () => _openGameGuide(context),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.82),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.55),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              isKo ? '레벨' : 'Level',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Lv.$_level',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    const SizedBox(width: 6),
+                    _buildHeaderIconButton(
+                      context,
+                      icon: Icons.quiz_outlined,
+                      label: isKo ? '퀴즈' : 'Quiz',
+                      onPressed: () => _openSkillQuiz(context),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest
-                              .withValues(alpha: 0.82),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.55),
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              isKo ? '랭킹' : 'Rank',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${_rankingLabel(_rankScore, isKo)} ($_rankScore)',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    const SizedBox(width: 6),
+                    _buildHeaderIconButton(
+                      context,
+                      icon: Icons.emoji_events_outlined,
+                      label: isKo ? '랭킹' : 'Ranking',
+                      onPressed: () => _openRankingScreen(context),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                if (_goalChanceActive) ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildStatChip(
+                      context,
+                      label: isKo ? '성공 패스' : 'Passes',
+                      value: '$_score',
+                      icon: Icons.sync_alt_rounded,
                     ),
-                    decoration: BoxDecoration(
-                      color: shotHint.color.withAlpha(28),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: shotHint.color.withAlpha(160)),
+                    _buildStatChip(
+                      context,
+                      label: isKo ? '남은 시간' : 'Time',
+                      value: isKo
+                          ? '$_remainingSeconds초'
+                          : '${_remainingSeconds}s',
+                      icon: Icons.timer_outlined,
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.timer_outlined,
-                          color: shotHint.color,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                shotHint.label,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  color: shotHint.color,
-                                ),
-                              ),
-                              Text(
-                                shotHint.detail,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    _buildStatChip(
+                      context,
+                      label: isKo ? '레벨' : 'Level',
+                      value: 'Lv.$_level',
+                      icon: Icons.trending_up_rounded,
+                    ),
+                    _buildStatChip(
+                      context,
+                      label: isKo ? '생명' : 'Lives',
+                      value: '$_lives',
+                      icon: Icons.favorite_border,
+                    ),
+                    _buildStatChip(
+                      context,
+                      label: isKo ? '랭킹' : 'Rank',
+                      value: '${_rankingLabel(_rankScore, isKo)} ($_rankScore)',
+                      icon: Icons.emoji_events_outlined,
+                      emphasize: true,
+                    ),
+                    if (_bonusScore > 0)
+                      _buildStatChip(
+                        context,
+                        label: isKo ? '보너스' : 'Bonus',
+                        value: '+$_bonusScore',
+                        icon: Icons.auto_awesome,
+                      ),
+                  ],
+                ),
+                if (_isAndroidGateEnabled) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    isKo
+                        ? '훈련노트 $_trainingNoteCount개 · 사용 $_playedGameCount판 · 남은 $_remainingGameCount판'
+                        : 'Notes $_trainingNoteCount · Used $_playedGameCount · Left $_remainingGameCount',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: 0.82),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.50),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${isKo ? '패스 타입' : 'Pass type'}: ${_passRiskLabel(isKo, _currentPassRisk)} · ${isKo ? '생명' : 'Lives'} $_lives',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${isKo ? '미션' : 'Mission'}: ${_missionLabel(isKo, _mission)} ${_mission.progress}/${_mission.target}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${isKo ? '이벤트' : 'Event'}: ${_eventLabel(isKo, _activeEvent)}${_eventSecondsRemaining > 0 ? ' (${_eventSecondsRemaining}s)' : ''}${_feverSecondsRemaining > 0 ? ' · ${isKo ? '피버' : 'Fever'} ${_feverSecondsRemaining}s' : ''}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xCC102A43),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFF5DADE2).withValues(alpha: 0.55),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _roundArcStage == _RoundArcStage.chance
-                            ? Icons.flash_on_rounded
-                            : _roundArcStage == _RoundArcStage.rhythm
-                                ? Icons.sync_alt_rounded
-                                : Icons.visibility_outlined,
-                        color: const Color(0xFFB3E5FC),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${_roundArcLabel(isKo)} · ${_pressureCueLabel(isKo)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${_roundArcDetail(isKo)} · ${_openSideLabel(isKo)} · ${_patternLabel(isKo, _defenderPattern)}${_patternSecondsRemaining > 0 ? ' ${_patternSecondsRemaining}s' : ''}',
-                              style: const TextStyle(
-                                color: Color(0xFFE3F2FD),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                height: 1.25,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                SegmentedButton<_GameDifficulty>(
-                  segments: [
-                    ButtonSegment(
-                      value: _GameDifficulty.easy,
-                      label: Text(isKo ? '초급' : 'Easy'),
-                      icon: const Icon(Icons.sentiment_satisfied_alt),
-                    ),
-                    ButtonSegment(
-                      value: _GameDifficulty.medium,
-                      label: Text(isKo ? '중급' : 'Medium'),
-                      icon: const Icon(Icons.sports_soccer),
-                    ),
-                    ButtonSegment(
-                      value: _GameDifficulty.hard,
-                      label: Text(isKo ? '고급' : 'Hard'),
-                      icon: const Icon(Icons.bolt),
-                    ),
-                  ],
-                  selected: {_difficulty},
-                  onSelectionChanged: (selection) {
-                    final next = selection.first;
-                    if (next == _difficulty) return;
-                    setState(() {
-                      _difficulty = next;
-                      _combo = 0;
-                      _level = ((_score ~/ _levelUpEveryPasses) + 1).clamp(
-                        1,
-                        20,
-                      );
-                    });
-                    widget.optionRepository.setValue(_difficultyKey, next.name);
-                    _resetRound(keepScore: true);
-                  },
-                ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -893,11 +619,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                     highlightUpperSide: _openUpperSide,
                                     pressureDefender:
                                         _nearestPressureDefender == null
-                                            ? null
-                                            : Offset(
-                                                _nearestPressureDefender!.x,
-                                                _nearestPressureDefender!.y,
-                                              ),
+                                        ? null
+                                        : Offset(
+                                            _nearestPressureDefender!.x,
+                                            _nearestPressureDefender!.y,
+                                          ),
                                   ),
                                 ),
                               ),
@@ -989,7 +715,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                               ),
                               if (_reactionLabel.isNotEmpty)
                                 Positioned(
-                                  top: 8,
+                                  top: 68,
                                   left: 10,
                                   right: 10,
                                   child: Container(
@@ -1051,6 +777,51 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                     ),
                                   ),
                                 ),
+                              Positioned(
+                                top: 10,
+                                left: 10,
+                                child: _PitchInfoBadge(
+                                  title:
+                                      '${isKo ? '미션' : 'Mission'} ${_mission.progress}/${_mission.target}',
+                                  body: _missionLabel(isKo, _mission),
+                                  icon: Icons.flag_outlined,
+                                ),
+                              ),
+                              Positioned(
+                                top: 10,
+                                right: 10,
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 196,
+                                  ),
+                                  child: _PitchInfoBadge(
+                                    title:
+                                        '${_roundArcLabel(isKo)} · ${_passRiskLabel(isKo, _currentPassRisk)}',
+                                    body:
+                                        '${_eventLabel(isKo, _activeEvent)}${_eventSecondsRemaining > 0 ? ' ${_eventSecondsRemaining}s' : ''}${_feverSecondsRemaining > 0 ? ' · ${isKo ? '피버' : 'Fever'} ${_feverSecondsRemaining}s' : ''}\n${_openSideLabel(isKo)} · ${_patternLabel(isKo, _defenderPattern)}${_patternSecondsRemaining > 0 ? ' ${_patternSecondsRemaining}s' : ''}',
+                                    icon:
+                                        _roundArcStage == _RoundArcStage.chance
+                                        ? Icons.flash_on_rounded
+                                        : _roundArcStage ==
+                                              _RoundArcStage.rhythm
+                                        ? Icons.sync_alt_rounded
+                                        : Icons.visibility_outlined,
+                                    alignEnd: true,
+                                  ),
+                                ),
+                              ),
+                              if (_goalChanceActive)
+                                Positioned(
+                                  left: 10,
+                                  right: 10,
+                                  bottom: 156,
+                                  child: _PitchInfoBadge(
+                                    title: shotHint.label,
+                                    body: shotHint.detail,
+                                    icon: Icons.sports_soccer,
+                                    accent: shotHint.color,
+                                  ),
+                                ),
                               if (_lastShotOutcome != _ShotOutcome.none)
                                 Positioned(
                                   left: 0,
@@ -1065,17 +836,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                       decoration: BoxDecoration(
                                         color: switch (_lastShotOutcome) {
                                           _ShotOutcome.goal => const Color(
-                                              0xCC0FA968,
-                                            ),
+                                            0xCC0FA968,
+                                          ),
                                           _ShotOutcome.saved => const Color(
-                                              0xCC2F80ED,
-                                            ),
+                                            0xCC2F80ED,
+                                          ),
                                           _ShotOutcome.miss => const Color(
-                                              0xCCEB5757,
-                                            ),
+                                            0xCCEB5757,
+                                          ),
                                           _ShotOutcome.none => const Color(
-                                              0xCC607D8B,
-                                            ),
+                                            0xCC607D8B,
+                                          ),
                                         },
                                         borderRadius: BorderRadius.circular(
                                           999,
@@ -1085,13 +856,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                         _lastShotOutcome == _ShotOutcome.goal
                                             ? (isKo ? '골 성공!' : 'Goal!')
                                             : _lastShotOutcome ==
-                                                    _ShotOutcome.saved
-                                                ? (isKo
-                                                    ? '골키퍼 선방'
-                                                    : 'Keeper save')
-                                                : (isKo
-                                                    ? '슛 빗나감'
-                                                    : 'Shot missed'),
+                                                  _ShotOutcome.saved
+                                            ? (isKo ? '골키퍼 선방' : 'Keeper save')
+                                            : (isKo ? '슛 빗나감' : 'Shot missed'),
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w800,
@@ -1227,11 +994,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                 Text(
                                                   isKo
                                                       ? (_endedByFail
-                                                          ? '경기 종료'
-                                                          : '최종 결과')
+                                                            ? '경기 종료'
+                                                            : '최종 결과')
                                                       : (_endedByFail
-                                                          ? 'Match Over'
-                                                          : 'Final Result'),
+                                                            ? 'Match Over'
+                                                            : 'Final Result'),
                                                   style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w800,
@@ -1246,8 +1013,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                       width: double.infinity,
                                                       padding:
                                                           const EdgeInsets.all(
-                                                        10,
-                                                      ),
+                                                            10,
+                                                          ),
                                                       decoration: BoxDecoration(
                                                         color: Theme.of(context)
                                                             .colorScheme
@@ -1256,10 +1023,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                               alpha: 0.75,
                                                             ),
                                                         borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                          10,
-                                                        ),
+                                                            BorderRadius.circular(
+                                                              10,
+                                                            ),
                                                       ),
                                                       child: Column(
                                                         crossAxisAlignment:
@@ -1272,11 +1038,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                                 : 'What worked: ${_bestPointText(isKo)}',
                                                             style:
                                                                 const TextStyle(
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
                                                           ),
                                                           const SizedBox(
                                                             height: 4,
@@ -1287,11 +1053,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                                 : 'What failed: ${_failureReasonText(isKo)}',
                                                             style:
                                                                 const TextStyle(
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
                                                           ),
                                                           const SizedBox(
                                                             height: 4,
@@ -1302,11 +1068,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                                 : 'Next experiment: ${_improvePointText(isKo)}',
                                                             style:
                                                                 const TextStyle(
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
+                                                                  fontSize: 12,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
                                                           ),
                                                         ],
                                                       ),
@@ -1361,8 +1127,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                      14,
-                                                    ),
+                                                          14,
+                                                        ),
                                                   ),
                                                 ),
                                               ),
@@ -1425,10 +1191,146 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                     },
                   ),
                 ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.82),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${isKo ? '상황 읽기' : 'Read'} · ${_pressureCueLabel(isKo)}',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _roundArcDetail(isKo),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 10),
+                      SegmentedButton<_GameDifficulty>(
+                        segments: [
+                          ButtonSegment(
+                            value: _GameDifficulty.easy,
+                            label: Text(isKo ? '초급' : 'Easy'),
+                            icon: const Icon(Icons.sentiment_satisfied_alt),
+                          ),
+                          ButtonSegment(
+                            value: _GameDifficulty.medium,
+                            label: Text(isKo ? '중급' : 'Medium'),
+                            icon: const Icon(Icons.sports_soccer),
+                          ),
+                          ButtonSegment(
+                            value: _GameDifficulty.hard,
+                            label: Text(isKo ? '고급' : 'Hard'),
+                            icon: const Icon(Icons.bolt),
+                          ),
+                        ],
+                        selected: {_difficulty},
+                        onSelectionChanged: (selection) {
+                          final next = selection.first;
+                          if (next == _difficulty) return;
+                          setState(() {
+                            _difficulty = next;
+                            _combo = 0;
+                            _level = ((_score ~/ _levelUpEveryPasses) + 1)
+                                .clamp(1, 20);
+                          });
+                          widget.optionRepository.setValue(
+                            _difficultyKey,
+                            next.name,
+                          );
+                          _resetRound(keepScore: true);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderIconButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return Tooltip(
+      message: label,
+      child: IconButton.outlined(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 20),
+        visualDensity: VisualDensity.compact,
+        style: IconButton.styleFrom(
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surface.withValues(alpha: 0.76),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatChip(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required IconData icon,
+    bool emphasize = false,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: emphasize
+            ? scheme.primaryContainer.withValues(alpha: 0.82)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: emphasize
+              ? scheme.primary.withValues(alpha: 0.72)
+              : scheme.outlineVariant.withValues(alpha: 0.8),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 15,
+            color: emphasize ? scheme.primary : scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 6),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, style: Theme.of(context).textTheme.labelSmall),
+              const SizedBox(height: 1),
+              Text(
+                value,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -1441,12 +1343,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final minForwardX = math.min(_fieldMaxX, _activePasserX + 0.06);
     final leadX = targetX.clamp(minForwardX, _fieldMaxX);
     final leadY = targetY.clamp(_fieldMinY, _fieldMaxY);
-    final predTime = _distance(_activePasserX, _activePasserY, leadX, leadY) /
+    final predTime =
+        _distance(_activePasserX, _activePasserY, leadX, leadY) /
         math.max(ballSpeed, 0.001);
     final receiverTime =
         _distance(_activeReceiverX, _activeReceiverY, leadX, leadY) /
-            _activeReceiverSpeedAbs;
-    final idealSpeed = _distance(_activePasserX, _activePasserY, leadX, leadY) /
+        _activeReceiverSpeedAbs;
+    final idealSpeed =
+        _distance(_activePasserX, _activePasserY, leadX, leadY) /
         math.max(receiverTime, 0.001);
     return _PassPrediction(
       targetX: leadX,
@@ -1598,7 +1502,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final currentIndex = patterns.indexOf(_defenderPattern);
     final nextIndex =
         (currentIndex + 1 + _random.nextInt(patterns.length - 1)) %
-            patterns.length;
+        patterns.length;
     _defenderPattern = patterns[nextIndex];
     _patternSecondsRemaining = _remainingSeconds <= 10 ? 4 : 6;
   }
@@ -1807,7 +1711,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     if (!freezeShotScene) {
       for (final defender in _defenders) {
-        final passBySpeed = defender.speed *
+        final passBySpeed =
+            defender.speed *
             defender.ghostType.speedFactor *
             comboBoost *
             levelBoost *
@@ -1816,17 +1721,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         defender.x -= passBySpeed * _dt * defenderPace * feverDefenderSlow;
         final lanePoint = _lanePointAtX(defender.x);
         final roleTargetY = _roleTargetY(defender, lanePoint.dy);
-        final lanePull = (lanePoint.dy - defender.y) *
+        final lanePull =
+            (lanePoint.dy - defender.y) *
             defender.ghostType.lanePull *
             patternLaneMul *
             _dt *
             defenderPace;
-        final rolePull = (roleTargetY - defender.y) *
+        final rolePull =
+            (roleTargetY - defender.y) *
             defender.ghostType.rolePull *
             patternRoleMul *
             _dt *
             defenderPace;
-        defender.y += (defender.vy *
+        defender.y +=
+            (defender.vy *
                 passBySpeed *
                 defender.ghostType.wobbleFactor *
                 _dt *
@@ -1908,8 +1816,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final controlX = input.dx.clamp(-1.0, 1.0);
     final controlY = input.dy.clamp(-1.0, 1.0);
     final boost = (1.0 + (input.distance * 1.35)).clamp(1.0, 2.55);
-    final controlA =
-        _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
+    final controlA = _isControllingPasser
+        ? _attackerAIsPasser
+        : !_attackerAIsPasser;
     if (controlA) {
       _passerVx += controlX * _joystickAccelX * boost;
       _passerVy += controlY * _joystickAccelY * boost;
@@ -1920,8 +1829,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _stopControlledAttacker() {
-    final controlA =
-        _isControllingPasser ? _attackerAIsPasser : !_attackerAIsPasser;
+    final controlA = _isControllingPasser
+        ? _attackerAIsPasser
+        : !_attackerAIsPasser;
     if (controlA) {
       _passerVx = 0;
       _passerVy = 0;
@@ -1959,9 +1869,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       final distanceByAim = 0.14 + (strength * 0.62);
       final fallbackX =
           (_activeReceiverX + _leadDistance + (_passAimInput.dx * 0.28)).clamp(
-        minForwardX,
-        _fieldMaxX,
-      );
+            minForwardX,
+            _fieldMaxX,
+          );
       final fallbackY = (_activeReceiverY + (_passAimInput.dy * 0.32)).clamp(
         _fieldMinY,
         _fieldMaxY,
@@ -2048,7 +1958,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         return;
       }
 
-      final outShot = _ballX > 1.02 ||
+      final outShot =
+          _ballX > 1.02 ||
           _ballY < 0.05 ||
           _ballY > 0.95 ||
           _flightElapsed > 3.2;
@@ -2060,10 +1971,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     final caughtByCenter =
         _distance(_ballX, _ballY, _activeReceiverX, _activeReceiverY) <=
-            (_forwardWindow ? 0.060 : 0.045);
+        (_forwardWindow ? 0.060 : 0.045);
     final receivingEval = _receivingWindowEvaluation();
     final caughtByWindow = receivingEval.inside;
-    final controllableCenter = caughtByCenter &&
+    final controllableCenter =
+        caughtByCenter &&
         receivingEval.along >= -(receivingEval.backReach * 0.20);
     if (controllableCenter || caughtByWindow) {
       if (caughtByWindow && !caughtByCenter) {
@@ -2081,7 +1993,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     final reachedTarget =
         _distance(_ballX, _ballY, _targetX, _targetY) <= 0.025;
-    final out = _ballX > 1.02 ||
+    final out =
+        _ballX > 1.02 ||
         _ballY < -0.05 ||
         _ballY > 1.05 ||
         _flightElapsed > 3.0;
@@ -2199,9 +2112,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     );
     _effectiveBallSpeed =
         (_chargedBallSpeed * bodyTurnPenalty * _passLengthScale).clamp(
-      _ballMinSpeed,
-      _ballMaxSpeed,
-    );
+          _ballMinSpeed,
+          _ballMaxSpeed,
+        );
     _effectiveBallSpeed = (_effectiveBallSpeed * _eventBallSpeedScale).clamp(
       _ballMinSpeed,
       1.35,
@@ -2548,8 +2461,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final wasShotRound = _goalChanceActive || _finalShotMode;
     if (wasShotRound &&
         (result == _PassResult.saved || result == _PassResult.miss)) {
-      _lastShotOutcome =
-          result == _PassResult.saved ? _ShotOutcome.saved : _ShotOutcome.miss;
+      _lastShotOutcome = result == _PassResult.saved
+          ? _ShotOutcome.saved
+          : _ShotOutcome.miss;
     }
     _setReaction(result);
     if (_mission.type == _MissionType.combo) {
@@ -3024,33 +2938,38 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final along = relX * dirX + relY * dirY;
     final lateral = (relX * perpX + relY * perpY).abs();
 
-    final speedNorm = ((_effectiveBallSpeed - _ballMinSpeed) /
-            (_ballMaxSpeed - _ballMinSpeed))
-        .clamp(0.0, 1.0);
-    final runnerNorm = ((speed - _difficulty.receiverBaseSpeed) /
-            math.max(_difficulty.receiverRange, 0.001))
-        .clamp(0.0, 1.0);
+    final speedNorm =
+        ((_effectiveBallSpeed - _ballMinSpeed) /
+                (_ballMaxSpeed - _ballMinSpeed))
+            .clamp(0.0, 1.0);
+    final runnerNorm =
+        ((speed - _difficulty.receiverBaseSpeed) /
+                math.max(_difficulty.receiverRange, 0.001))
+            .clamp(0.0, 1.0);
 
     // Soccer receive window: more range forward, moderate side tolerance,
     // and smaller room behind the runner.
     final anticipationTime = _predReceiverTime.clamp(0.20, 0.95);
-    final forwardReach = (0.09 +
-            (runnerNorm * 0.02) +
-            (speed * anticipationTime * 0.22) +
-            (_forwardWindow ? 0.012 : 0.0))
-        .clamp(0.09, 0.17);
+    final forwardReach =
+        (0.09 +
+                (runnerNorm * 0.02) +
+                (speed * anticipationTime * 0.22) +
+                (_forwardWindow ? 0.012 : 0.0))
+            .clamp(0.09, 0.17);
     final backReach = (0.008 + ((1 - speedNorm) * 0.006)).clamp(0.006, 0.014);
-    final lateralReach = (0.070 +
-            (runnerNorm * 0.020) +
-            (_forwardWindow ? 0.010 : 0.0) -
-            (speedNorm * 0.010))
-        .clamp(0.055, 0.100);
+    final lateralReach =
+        (0.070 +
+                (runnerNorm * 0.020) +
+                (_forwardWindow ? 0.010 : 0.0) -
+                (speedNorm * 0.010))
+            .clamp(0.055, 0.100);
     final eventScale = _eventReceiveWindowScale;
     final adjustedForwardReach = (forwardReach * eventScale).clamp(0.06, 0.20);
     final adjustedBackReach = (backReach * eventScale).clamp(0.005, 0.025);
     final adjustedLateralReach = (lateralReach * eventScale).clamp(0.045, 0.12);
 
-    final inside = along >= -adjustedBackReach &&
+    final inside =
+        along >= -adjustedBackReach &&
         along <= adjustedForwardReach &&
         lateral <= adjustedLateralReach;
     if (!inside) {
@@ -3083,20 +3002,25 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }) {
     // Data-inspired weighting: pass control quality is strongly driven by
     // pass angle/direction, arrival timing, and relative speed.
-    final speedGapRatio = ((_effectiveBallSpeed - _idealBallSpeed).abs() /
-            math.max(_idealBallSpeed, 0.001))
-        .clamp(0.0, 1.5);
+    final speedGapRatio =
+        ((_effectiveBallSpeed - _idealBallSpeed).abs() /
+                math.max(_idealBallSpeed, 0.001))
+            .clamp(0.0, 1.5);
     final timingScore = (1 - (timingGap / 0.55)).clamp(0.0, 1.0);
     final speedScore = (1 - (speedGapRatio / 1.0)).clamp(0.0, 1.0);
-    final distanceScore =
-        (1 - ((_passDistance - 0.42).abs() / 0.45)).clamp(0.0, 1.0).toDouble();
-    final directionalScore =
-        ((_forwardAlignment + 0.15) / 1.15).clamp(0.0, 1.0).toDouble();
-    final leadScore =
-        (1 - ((_leadAlongMove - 0.08).abs() / 0.28)).clamp(0.0, 1.0).toDouble();
+    final distanceScore = (1 - ((_passDistance - 0.42).abs() / 0.45))
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final directionalScore = ((_forwardAlignment + 0.15) / 1.15)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final leadScore = (1 - ((_leadAlongMove - 0.08).abs() / 0.28))
+        .clamp(0.0, 1.0)
+        .toDouble();
     final fitScore = receivingEval.fit;
 
-    var probability = (fitScore * 0.36) +
+    var probability =
+        (fitScore * 0.36) +
         (directionalScore * 0.19) +
         (leadScore * 0.10) +
         (timingScore * 0.18) +
@@ -3129,9 +3053,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final positionGap = _closestReceiverDistance.isFinite
         ? _closestReceiverDistance
         : _distance(_ballX, _ballY, _receiverX, _receiverY);
-    final speedGapRatio = ((_effectiveBallSpeed - _idealBallSpeed).abs() /
-            math.max(_idealBallSpeed, 0.001))
-        .clamp(0.0, 1.5);
+    final speedGapRatio =
+        ((_effectiveBallSpeed - _idealBallSpeed).abs() /
+                math.max(_idealBallSpeed, 0.001))
+            .clamp(0.0, 1.5);
 
     final timingScore = (1 - (timingGap / 0.35)).clamp(0.0, 1.0);
     final positionScore = (1 - (positionGap / 0.14)).clamp(0.0, 1.0);
@@ -3142,8 +3067,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     switch (result) {
       case _PassResult.perfect:
-        final controlProb =
-            (controlProbability ?? _lastControlProbability).clamp(0.20, 0.99);
+        final controlProb = (controlProbability ?? _lastControlProbability)
+            .clamp(0.20, 0.99);
         final controlPct = controlProb * 100;
         _lastAccuracy = controlPct;
         final tier = _accuracyTier(_lastAccuracy);
@@ -3230,9 +3155,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         _reactionLabel = speedCause
             ? _koText('빠름(속도)  누르는 시간을 줄이세요', 'Too fast (speed)  hold shorter')
             : leadCause
-                ? _koText(
-                    '빠름(리드)  목표를 조금 뒤로', 'Too fast (lead)  aim slightly back')
-                : _koText('빠름  속도/방향을 함께 조절', 'Too fast  tune speed and aim');
+            ? _koText('빠름(리드)  목표를 조금 뒤로', 'Too fast (lead)  aim slightly back')
+            : _koText('빠름  속도/방향을 함께 조절', 'Too fast  tune speed and aim');
         _reactionDetail = _koText(
           '공이 선수보다 일찍 도착해 안정적인 첫 터치가 어려웠어요.',
           'Ball arrived earlier than runner timing, reducing first-touch control.',
@@ -3312,7 +3236,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       final maxX = 1.24 + (index * spawnGap);
       const minY = 0.10;
       const maxY = 0.90;
-      final speed = difficulty.defenderBaseSpeed +
+      final speed =
+          difficulty.defenderBaseSpeed +
           (_random.nextDouble() * difficulty.defenderRange);
       final laneIndex = index % laneCount;
       final laneCenter = minY + ((laneIndex + 0.5) / laneCount) * (maxY - minY);
@@ -3410,16 +3335,18 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       return laneY.clamp(defender.minY, defender.maxY);
     }
     if (_defenderPattern == _DefenderPattern.counterPress) {
-      final pressY =
-          _ballFlying ? _ballY : ((_activePasserY + _activeReceiverY) * 0.5);
+      final pressY = _ballFlying
+          ? _ballY
+          : ((_activePasserY + _activeReceiverY) * 0.5);
       return pressY.clamp(defender.minY, defender.maxY);
     }
     switch (defender.ghostType) {
       case _GhostType.blue:
         return laneY;
       case _GhostType.orange:
-        final pressY =
-            _ballFlying ? _ballY : ((_activePasserY + _activeReceiverY) * 0.5);
+        final pressY = _ballFlying
+            ? _ballY
+            : ((_activePasserY + _activeReceiverY) * 0.5);
         return pressY.clamp(defender.minY, defender.maxY);
       case _GhostType.red:
         final markerY = _activePasserY + (math.sin(_keeperPhase * 1.7) * 0.02);
@@ -3439,13 +3366,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   double get _activeReceiverSpeedAbs => math.max(
-        0.001,
-        math.sqrt(
-              _activeReceiverVx * _activeReceiverVx +
-                  _activeReceiverVy * _activeReceiverVy,
-            ) *
-            (_attackerAIsPasser ? _receiverSpeedMul : _passerSpeedMul),
-      );
+    0.001,
+    math.sqrt(
+          _activeReceiverVx * _activeReceiverVx +
+              _activeReceiverVy * _activeReceiverVy,
+        ) *
+        (_attackerAIsPasser ? _receiverSpeedMul : _passerSpeedMul),
+  );
 
   _AccuracyTier _accuracyTier(double accuracy) {
     if (accuracy >= 90) return _AccuracyTier.perfect;
@@ -3623,7 +3550,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
     _weeklyBest =
         widget.optionRepository.getValue<int>('$_weeklyBestPrefix$_weekKey') ??
-            0;
+        0;
     _rankingHistory = _loadRankingHistory();
   }
 
@@ -3732,17 +3659,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                   size: Size.square(size),
                   painter: switch (kind) {
                     _EntityKind.ball => _BallEntityPainter(
-                        color: color,
-                        emphasize: emphasize,
-                      ),
+                      color: color,
+                      emphasize: emphasize,
+                    ),
                     _EntityKind.attacker => _PacmanEntityPainter(
-                        color: color,
-                        emphasize: emphasize,
-                      ),
+                      color: color,
+                      emphasize: emphasize,
+                    ),
                     _EntityKind.defender => _GhostEntityPainter(
-                        color: color,
-                        emphasize: emphasize,
-                      ),
+                      color: color,
+                      emphasize: emphasize,
+                    ),
                   },
                 ),
               ],
@@ -3994,16 +3921,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const [];
-      final items = decoded
-          .whereType<Map>()
-          .map((e) => GameRankingEntry.fromMap(e.cast<String, dynamic>()))
-          .whereType<GameRankingEntry>()
-          .toList()
-        ..sort((a, b) {
-          final score = b.rankScore.compareTo(a.rankScore);
-          if (score != 0) return score;
-          return b.playedAt.compareTo(a.playedAt);
-        });
+      final items =
+          decoded
+              .whereType<Map>()
+              .map((e) => GameRankingEntry.fromMap(e.cast<String, dynamic>()))
+              .whereType<GameRankingEntry>()
+              .toList()
+            ..sort((a, b) {
+              final score = b.rankScore.compareTo(a.rankScore);
+              if (score != 0) return score;
+              return b.playedAt.compareTo(a.playedAt);
+            });
       if (items.length > _maxRankingEntries) {
         items.removeRange(_maxRankingEntries, items.length);
       }
@@ -4014,8 +3942,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   Future<void> _appendRankingRecord() async {
-    final previousBest =
-        _rankingHistory.isEmpty ? -1 : _rankingHistory.first.rankScore;
+    final previousBest = _rankingHistory.isEmpty
+        ? -1
+        : _rankingHistory.first.rankScore;
     final record = GameRankingEntry(
       playedAt: DateTime.now(),
       score: _score,
@@ -4025,7 +3954,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       rankLabel: _rankingLabel(_rankScore, false),
       difficulty: _difficulty.name,
     );
-    final next = [..._rankingHistory, record]..sort((a, b) {
+    final next = [..._rankingHistory, record]
+      ..sort((a, b) {
         final score = b.rankScore.compareTo(a.rankScore);
         if (score != 0) return score;
         return b.playedAt.compareTo(a.playedAt);
@@ -4096,6 +4026,72 @@ class _PointerGauge extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFF4DD0E1),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PitchInfoBadge extends StatelessWidget {
+  final String title;
+  final String body;
+  final IconData icon;
+  final Color? accent;
+  final bool alignEnd;
+
+  const _PitchInfoBadge({
+    required this.title,
+    required this.body,
+    required this.icon,
+    this.accent,
+    this.alignEnd = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedAccent = accent ?? const Color(0xFF7DD3FC);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xD9132332),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: resolvedAccent.withValues(alpha: 0.65)),
+      ),
+      child: Column(
+        crossAxisAlignment: alignEnd
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: resolvedAccent),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  title,
+                  textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+                  style: TextStyle(
+                    color: resolvedAccent,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            body,
+            textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              height: 1.28,
             ),
           ),
         ],
