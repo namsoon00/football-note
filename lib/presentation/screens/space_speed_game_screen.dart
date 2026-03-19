@@ -152,7 +152,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   bool _attackerAIsPasser = true;
   _PassRiskType _currentPassRisk = _PassRiskType.safe;
   _GameEvent _activeEvent = _GameEvent.none;
+  _DefenderPattern _defenderPattern = _DefenderPattern.laneClosing;
   int _eventSecondsRemaining = 0;
+  int _patternSecondsRemaining = 0;
   int _feverSecondsRemaining = 0;
   DateTime? _lastSuccessAt;
   int _rhythmStreak = 0;
@@ -163,6 +165,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   );
   double _plannedPassOpenSpace = 0;
   List<GameRankingEntry> _rankingHistory = const [];
+  _PassRiskType? _lastSuccessfulPassRisk;
+  int _samePassRiskStreak = 0;
   Offset _joystickInput = Offset.zero;
   bool _joystickActive = false;
   int? _joystickPointerId;
@@ -287,6 +291,38 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
+  _RoundArcStage get _roundArcStage {
+    if (!_gameStarted) return _RoundArcStage.read;
+    if (_remainingSeconds > 17) return _RoundArcStage.read;
+    if (_remainingSeconds > 10) return _RoundArcStage.rhythm;
+    return _RoundArcStage.chance;
+  }
+
+  bool get _openUpperSide => _openUpperSpaceScore >= _openLowerSpaceScore;
+
+  double get _openUpperSpaceScore => _spaceScoreForBand(0.18, 0.42);
+
+  double get _openLowerSpaceScore => _spaceScoreForBand(0.58, 0.82);
+
+  _DefenderState? get _nearestPressureDefender {
+    if (_defenders.isEmpty) return null;
+    _DefenderState? nearest;
+    var nearestDist = double.infinity;
+    for (final defender in _defenders) {
+      final d = _distance(
+        _activePasserX,
+        _activePasserY,
+        defender.x,
+        defender.y,
+      );
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearest = defender;
+      }
+    }
+    return nearest;
+  }
+
   double get _feverScoreScale => _feverSecondsRemaining > 0 ? 2.0 : 1.0;
 
   String _passRiskLabel(bool isKo, _PassRiskType type) {
@@ -313,6 +349,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
+  String _patternLabel(bool isKo, _DefenderPattern pattern) {
+    switch (pattern) {
+      case _DefenderPattern.laneClosing:
+        return isKo ? '라인 닫기' : 'Lane closing';
+      case _DefenderPattern.receiverTracking:
+        return isKo ? '리시버 추적' : 'Receiver tracking';
+      case _DefenderPattern.counterPress:
+        return isKo ? '역압박' : 'Counter-press';
+    }
+  }
+
   String _missionLabel(bool isKo, _MissionState mission) {
     switch (mission.type) {
       case _MissionType.safePasses:
@@ -326,6 +373,70 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       case _MissionType.goals:
         return isKo ? '골 넣기' : 'Goals';
     }
+  }
+
+  String _roundArcLabel(bool isKo) {
+    switch (_roundArcStage) {
+      case _RoundArcStage.read:
+        return isKo ? '오프닝 리드' : 'Opening read';
+      case _RoundArcStage.rhythm:
+        return isKo ? '리듬 축적' : 'Build rhythm';
+      case _RoundArcStage.chance:
+        return isKo ? '찬스 폭발' : 'Chance push';
+    }
+  }
+
+  String _roundArcDetail(bool isKo) {
+    switch (_roundArcStage) {
+      case _RoundArcStage.read:
+        return isKo
+            ? '압박 방향을 읽고 열린 쪽으로 첫 연결을 만드세요.'
+            : 'Read the pressure and open the first passing lane.';
+      case _RoundArcStage.rhythm:
+        return isKo
+            ? '안전 패스로 간격을 벌린 뒤 킬 패스로 전환하세요.'
+            : 'Stretch with safe passes, then switch into a killer pass.';
+      case _RoundArcStage.chance:
+        return isKo
+            ? '지금은 빠르게 전진하고 마무리 각도를 만드세요.'
+            : 'Attack quickly now and create a finishing angle.';
+    }
+  }
+
+  String _openSideLabel(bool isKo) {
+    if (_openUpperSide) {
+      return isKo ? '상단 공간 열림' : 'Upper side open';
+    }
+    return isKo ? '하단 공간 열림' : 'Lower side open';
+  }
+
+  String _pressureCueLabel(bool isKo) {
+    final nearest = _nearestPressureDefender;
+    if (nearest == null) {
+      return isKo ? '압박 여유 있음' : 'Pressure under control';
+    }
+    final dx = nearest.x - _activePasserX;
+    final dy = nearest.y - _activePasserY;
+    final distance = _distance(
+      _activePasserX,
+      _activePasserY,
+      nearest.x,
+      nearest.y,
+    );
+    if (distance <= 0.12 && dx >= -0.03) {
+      return isKo ? '압박 도착' : 'Pressure arriving';
+    }
+    if (dy.abs() <= 0.08 && dx >= 0.0) {
+      return isKo ? '정면 라인 좁음' : 'Front lane tight';
+    }
+    return _openSideLabel(isKo);
+  }
+
+  String _recommendedMissionText(bool isKo) {
+    final missionLine = _missionLabel(isKo, _mission);
+    return isKo
+        ? '오늘의 추천 미션: $missionLine ${_mission.target}회'
+        : 'Recommended mission: $missionLine x${_mission.target}';
   }
 
   double _predictKeeperY(double time) {
@@ -631,8 +742,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                 ],
                 const SizedBox(height: 6),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context)
                         .colorScheme
@@ -640,10 +753,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                         .withValues(alpha: 0.82),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.50),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.50),
                     ),
                   ),
                   child: Column(
@@ -664,6 +776,58 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                       Text(
                         '${isKo ? '이벤트' : 'Event'}: ${_eventLabel(isKo, _activeEvent)}${_eventSecondsRemaining > 0 ? ' (${_eventSecondsRemaining}s)' : ''}${_feverSecondsRemaining > 0 ? ' · ${isKo ? '피버' : 'Fever'} ${_feverSecondsRemaining}s' : ''}',
                         style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xCC102A43),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF5DADE2).withValues(alpha: 0.55),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _roundArcStage == _RoundArcStage.chance
+                            ? Icons.flash_on_rounded
+                            : _roundArcStage == _RoundArcStage.rhythm
+                                ? Icons.sync_alt_rounded
+                                : Icons.visibility_outlined,
+                        color: const Color(0xFFB3E5FC),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${_roundArcLabel(isKo)} · ${_pressureCueLabel(isKo)}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${_roundArcDetail(isKo)} · ${_openSideLabel(isKo)} · ${_patternLabel(isKo, _defenderPattern)}${_patternSecondsRemaining > 0 ? ' ${_patternSecondsRemaining}s' : ''}',
+                              style: const TextStyle(
+                                color: Color(0xFFE3F2FD),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                height: 1.25,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -723,6 +887,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                           ),
                           child: Stack(
                             children: [
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: _SpaceCuePainter(
+                                    highlightUpperSide: _openUpperSide,
+                                    pressureDefender:
+                                        _nearestPressureDefender == null
+                                            ? null
+                                            : Offset(
+                                                _nearestPressureDefender!.x,
+                                                _nearestPressureDefender!.y,
+                                              ),
+                                  ),
+                                ),
+                              ),
                               Positioned.fill(
                                 child: CustomPaint(
                                   painter: _MovingPitchPainter(
@@ -936,8 +1114,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                       color: const Color(0xCC102A43),
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
-                                        color: const Color(0xFF5DADE2)
-                                            .withValues(alpha: 0.55),
+                                        color: const Color(
+                                          0xFF5DADE2,
+                                        ).withValues(alpha: 0.55),
                                       ),
                                     ),
                                     child: Text(
@@ -1063,6 +1242,76 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                               if (_timeUp || _endedByFail)
                                                 Column(
                                                   children: [
+                                                    Container(
+                                                      width: double.infinity,
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                        10,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainerHighest
+                                                            .withValues(
+                                                              alpha: 0.75,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                          10,
+                                                        ),
+                                                      ),
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            isKo
+                                                                ? '무엇이 잘됐나: ${_bestPointText(isKo)}'
+                                                                : 'What worked: ${_bestPointText(isKo)}',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4,
+                                                          ),
+                                                          Text(
+                                                            isKo
+                                                                ? '무엇이 막혔나: ${_failureReasonText(isKo)}'
+                                                                : 'What failed: ${_failureReasonText(isKo)}',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4,
+                                                          ),
+                                                          Text(
+                                                            isKo
+                                                                ? '다음 실험: ${_improvePointText(isKo)}'
+                                                                : 'Next experiment: ${_improvePointText(isKo)}',
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 10),
                                                     Text(
                                                       isKo
                                                           ? '랭킹 ${_finalRanking.isEmpty ? _rankingLabel(_rankScore, isKo) : _finalRanking} ($_rankScore점)'
@@ -1086,59 +1335,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                       style: const TextStyle(
                                                         fontWeight:
                                                             FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Container(
-                                                      width: double.infinity,
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                        10,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .surfaceContainerHighest
-                                                            .withValues(
-                                                              alpha: 0.75,
-                                                            ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                      ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            isKo
-                                                                ? '잘한 점: ${_bestPointText(isKo)}'
-                                                                : 'Strong point: ${_bestPointText(isKo)}',
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 4,
-                                                          ),
-                                                          Text(
-                                                            isKo
-                                                                ? '개선 포인트: ${_improvePointText(isKo)}'
-                                                                : 'Improve next: ${_improvePointText(isKo)}',
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
-                                                          ),
-                                                        ],
                                                       ),
                                                     ),
                                                     const SizedBox(height: 14),
@@ -1167,6 +1363,34 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                                         BorderRadius.circular(
                                                       14,
                                                     ),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Container(
+                                                width: double.infinity,
+                                                padding: const EdgeInsets.all(
+                                                  10,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(
+                                                    0xFF102A43,
+                                                  ).withValues(alpha: 0.92),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  border: Border.all(
+                                                    color: const Color(
+                                                      0xFF5DADE2,
+                                                    ).withValues(alpha: 0.45),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  _recommendedMissionText(isKo),
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
@@ -1277,12 +1501,16 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _level = 1;
       _currentPassRisk = _PassRiskType.safe;
       _activeEvent = _GameEvent.none;
+      _defenderPattern = _DefenderPattern.laneClosing;
       _eventSecondsRemaining = 0;
+      _patternSecondsRemaining = 6;
       _feverSecondsRemaining = 0;
       _lastSuccessAt = null;
       _rhythmStreak = 0;
       _mission = _rollMission();
       _plannedPassOpenSpace = 0;
+      _lastSuccessfulPassRisk = null;
+      _samePassRiskStreak = 0;
       _resetRound(keepScore: false);
       _reactionLabel = '';
       _reactionDetail = '';
@@ -1313,6 +1541,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
           }
         } else if (_remainingSeconds > 3 && _random.nextDouble() < 0.35) {
           _rollRandomEvent();
+        }
+        if (_patternSecondsRemaining > 0) {
+          _patternSecondsRemaining -= 1;
+        }
+        if (_patternSecondsRemaining <= 0) {
+          _rollDefenderPattern();
         }
         if (_feverSecondsRemaining > 0) {
           _feverSecondsRemaining -= 1;
@@ -1355,6 +1589,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _eventSecondsRemaining = 8;
   }
 
+  void _rollDefenderPattern() {
+    const patterns = <_DefenderPattern>[
+      _DefenderPattern.laneClosing,
+      _DefenderPattern.receiverTracking,
+      _DefenderPattern.counterPress,
+    ];
+    final currentIndex = patterns.indexOf(_defenderPattern);
+    final nextIndex =
+        (currentIndex + 1 + _random.nextInt(patterns.length - 1)) %
+            patterns.length;
+    _defenderPattern = patterns[nextIndex];
+    _patternSecondsRemaining = _remainingSeconds <= 10 ? 4 : 6;
+  }
+
   void _updatePlayers() {
     final attackerPace = _attackerPaceScale;
     final defenderPace = _defenderPaceScale;
@@ -1364,6 +1612,21 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     final levelBoost = (1 + ((_level - 1) * 0.04)).clamp(1.0, 1.6);
     final runSpeed = (0.11 + ((_level - 1) * 0.006)).clamp(0.11, 0.22);
     final clutchBoost = _remainingSeconds <= 15 ? 1.12 : 1.0;
+    final patternLaneMul = switch (_defenderPattern) {
+      _DefenderPattern.laneClosing => 1.40,
+      _DefenderPattern.receiverTracking => 0.88,
+      _DefenderPattern.counterPress => 0.95,
+    };
+    final patternRoleMul = switch (_defenderPattern) {
+      _DefenderPattern.laneClosing => 0.95,
+      _DefenderPattern.receiverTracking => 1.45,
+      _DefenderPattern.counterPress => 1.55,
+    };
+    final patternSpeedMul = switch (_defenderPattern) {
+      _DefenderPattern.laneClosing => 1.00,
+      _DefenderPattern.receiverTracking => 1.04,
+      _DefenderPattern.counterPress => 1.12,
+    };
     const avoidRadius = 0.22;
     var passerAvoidX = 0.0;
     var passerAvoidY = 0.0;
@@ -1548,16 +1811,19 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             defender.ghostType.speedFactor *
             comboBoost *
             levelBoost *
-            clutchBoost;
+            clutchBoost *
+            patternSpeedMul;
         defender.x -= passBySpeed * _dt * defenderPace * feverDefenderSlow;
         final lanePoint = _lanePointAtX(defender.x);
         final roleTargetY = _roleTargetY(defender, lanePoint.dy);
         final lanePull = (lanePoint.dy - defender.y) *
             defender.ghostType.lanePull *
+            patternLaneMul *
             _dt *
             defenderPace;
         final rolePull = (roleTargetY - defender.y) *
             defender.ghostType.rolePull *
+            patternRoleMul *
             _dt *
             defenderPace;
         defender.y += (defender.vy *
@@ -1936,8 +2202,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballMinSpeed,
       _ballMaxSpeed,
     );
-    _effectiveBallSpeed =
-        (_effectiveBallSpeed * _eventBallSpeedScale).clamp(_ballMinSpeed, 1.35);
+    _effectiveBallSpeed = (_effectiveBallSpeed * _eventBallSpeedScale).clamp(
+      _ballMinSpeed,
+      1.35,
+    );
     _currentPassRisk = _classifyPassRisk(
       passDistance: dist,
       targetOpenSpace: _minDefenderDistanceToPoint(_targetX, _targetY),
@@ -2090,10 +2358,25 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _PassRiskType.killer => 4,
       _PassRiskType.risky => 6,
     };
-    _awardBonus(passBonus,
-        reason: _passRiskLabel(_isKoLocale, _currentPassRisk));
+    if (_lastSuccessfulPassRisk == _currentPassRisk) {
+      _samePassRiskStreak += 1;
+    } else {
+      _samePassRiskStreak = 1;
+      _lastSuccessfulPassRisk = _currentPassRisk;
+    }
+    final efficiencyMultiplier = _passEfficiencyMultiplier;
+    _awardBonus(
+      (passBonus * efficiencyMultiplier).round(),
+      reason: _passRiskLabel(_isKoLocale, _currentPassRisk),
+    );
     if (_plannedPassOpenSpace >= 0.13) {
       _awardBonus(4, reason: _koText('공간 선택', 'Space found'));
+    }
+    if (_samePassRiskStreak >= 3) {
+      _reactionDetail = _koText(
+        '같은 패스가 $_samePassRiskStreak회째라 효율이 ${((efficiencyMultiplier) * 100).round()}%로 감소합니다. 다음엔 반대 선택을 섞어보세요.',
+        'Same pass repeated $_samePassRiskStreak times, so efficiency dropped to ${((efficiencyMultiplier) * 100).round()}%. Mix a different option next.',
+      );
     }
     if (_combo > _maxComboInRun) {
       _maxComboInRun = _combo;
@@ -2106,6 +2389,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _maybeLevelUp();
     _updateWeeklyBest();
     _continueAfterSuccess();
+  }
+
+  double get _passEfficiencyMultiplier {
+    if (_samePassRiskStreak <= 2) return 1.0;
+    if (_samePassRiskStreak == 3) return 0.75;
+    if (_samePassRiskStreak == 4) return 0.55;
+    return 0.40;
   }
 
   void _onGoalScored() {
@@ -2121,10 +2411,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _setReaction(_PassResult.goal);
     _awardBonus(10, reason: _koText('골 보너스', 'Goal bonus'));
     _updateMissionProgress(goalScored: true);
-    _scheduleShotOutcomeFinish(
-      failed: false,
-      finishAfterOutcome: wasFinalShot,
-    );
+    _scheduleShotOutcomeFinish(failed: false, finishAfterOutcome: wasFinalShot);
   }
 
   bool _recoverLooseBall() {
@@ -2254,6 +2541,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _lastSuccessAt = null;
     _rhythmStreak = 0;
     _lastFailedReason = result;
+    _lastSuccessfulPassRisk = null;
+    _samePassRiskStreak = 0;
     _clearFlightGuide();
     _combo = 0;
     final wasShotRound = _goalChanceActive || _finalShotMode;
@@ -2556,6 +2845,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _feverSecondsRemaining = 0;
       _lastSuccessAt = null;
       _rhythmStreak = 0;
+      _lastSuccessfulPassRisk = null;
+      _samePassRiskStreak = 0;
       _reactionLabel = '';
       _reactionDetail = '';
       _reactionColor = const Color(0xFF8FA3BF);
@@ -3115,6 +3406,14 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   double _roleTargetY(_DefenderState defender, double laneY) {
+    if (_defenderPattern == _DefenderPattern.laneClosing) {
+      return laneY.clamp(defender.minY, defender.maxY);
+    }
+    if (_defenderPattern == _DefenderPattern.counterPress) {
+      final pressY =
+          _ballFlying ? _ballY : ((_activePasserY + _activeReceiverY) * 0.5);
+      return pressY.clamp(defender.minY, defender.maxY);
+    }
     switch (defender.ghostType) {
       case _GhostType.blue:
         return laneY;
@@ -3197,6 +3496,43 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         : 'You maintained stable basic link play.';
   }
 
+  String _failureReasonText(bool isKo) {
+    switch (_lastFailedReason) {
+      case _PassResult.intercepted:
+        return isKo
+            ? '패스 라인이 수비에게 닫혔어요.'
+            : 'The passing lane was closed by defenders.';
+      case _PassResult.saved:
+        return isKo
+            ? '골키퍼 정면으로 슈팅했어요.'
+            : 'The shot went into the keeper’s cover.';
+      case _PassResult.miss:
+        return isKo
+            ? '도착 지점이 컨트롤 범위를 벗어났어요.'
+            : 'The target landed outside the controllable window.';
+      case _PassResult.tooFast:
+        return isKo
+            ? '공이 선수 타이밍보다 빨랐어요.'
+            : 'The ball arrived before the runner timing.';
+      case _PassResult.tooSlow:
+        return isKo
+            ? '공이 늦어 흐름이 끊겼어요.'
+            : 'The ball arrived too late and broke the flow.';
+      case _PassResult.idleTimeout:
+        return isKo
+            ? '템포가 멈춰 압박을 허용했어요.'
+            : 'Tempo stopped and invited pressure.';
+      case _PassResult.passerHit:
+        return isKo
+            ? '패서 주변 공간을 먼저 확보하지 못했어요.'
+            : 'You did not secure space around the passer first.';
+      default:
+        return isKo
+            ? '큰 실패 없이 기본 흐름은 유지했어요.'
+            : 'The base flow stayed intact without a major failure.';
+    }
+  }
+
   String _improvePointText(bool isKo) {
     switch (_lastFailedReason) {
       case _PassResult.intercepted:
@@ -3232,6 +3568,16 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
             ? '받기 전 짧은 스캔으로 다음 선택을 미리 준비해보세요.'
             : 'Use quick pre-scans before receiving.';
     }
+  }
+
+  double _spaceScoreForBand(double minY, double maxY) {
+    var score = 0.0;
+    for (final defender in _defenders) {
+      if (defender.y >= minY && defender.y <= maxY) {
+        score += 1.0 / math.max(0.06, defender.x - _activePasserX + 0.12);
+      }
+    }
+    return -score;
   }
 
   int _difficultyMaxDefenders(_GameDifficulty difficulty) {
@@ -3442,9 +3788,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _openSkillQuiz(BuildContext context) {
-    Navigator.of(
-      context,
-    )
+    Navigator.of(context)
         .push(
           MaterialPageRoute(
             builder: (_) =>
@@ -4137,6 +4481,56 @@ class _ReceiverLanePainter extends CustomPainter {
   }
 }
 
+class _SpaceCuePainter extends CustomPainter {
+  final bool highlightUpperSide;
+  final Offset? pressureDefender;
+
+  const _SpaceCuePainter({
+    required this.highlightUpperSide,
+    required this.pressureDefender,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final highlightRect = Rect.fromLTWH(
+      0,
+      highlightUpperSide ? size.height * 0.08 : size.height * 0.56,
+      size.width,
+      size.height * 0.26,
+    );
+    final highlightPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: highlightUpperSide
+            ? const [Color(0x1032D74B), Color(0x4D32D74B), Color(0x1032D74B)]
+            : const [Color(0x1018A0FB), Color(0x4D18A0FB), Color(0x1018A0FB)],
+      ).createShader(highlightRect);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(highlightRect, const Radius.circular(22)),
+      highlightPaint,
+    );
+
+    if (pressureDefender != null) {
+      final center = Offset(
+        pressureDefender!.dx * size.width,
+        pressureDefender!.dy * size.height,
+      );
+      final pressurePaint = Paint()
+        ..shader = const RadialGradient(
+          colors: [Color(0x66FF6B6B), Color(0x00FF6B6B)],
+        ).createShader(Rect.fromCircle(center: center, radius: 42));
+      canvas.drawCircle(center, 42, pressurePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SpaceCuePainter oldDelegate) {
+    return oldDelegate.highlightUpperSide != highlightUpperSide ||
+        oldDelegate.pressureDefender != pressureDefender;
+  }
+}
+
 class _GuidePainter extends CustomPainter {
   final double fromX;
   final double fromY;
@@ -4212,6 +4606,10 @@ enum _PassRiskType { safe, killer, risky }
 
 enum _GameEvent { none, narrowLanes, wideLanes, tailWind }
 
+enum _DefenderPattern { laneClosing, receiverTracking, counterPress }
+
+enum _RoundArcStage { read, rhythm, chance }
+
 enum _MissionType { safePasses, killerPasses, riskyPasses, combo, goals }
 
 enum _PassResult {
@@ -4243,11 +4641,7 @@ class _MissionState {
     required this.progress,
   });
 
-  _MissionState copyWith({
-    _MissionType? type,
-    int? target,
-    int? progress,
-  }) {
+  _MissionState copyWith({_MissionType? type, int? target, int? progress}) {
     return _MissionState(
       type: type ?? this.type,
       target: target ?? this.target,
