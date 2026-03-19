@@ -77,6 +77,7 @@ Last updated: 2026-03-15
 - Quiz: [`lib/presentation/screens/skill_quiz_screen.dart`](../lib/presentation/screens/skill_quiz_screen.dart)
 - Ranking: [`lib/presentation/screens/game_ranking_screen.dart`](../lib/presentation/screens/game_ranking_screen.dart)
 - Guide: [`lib/presentation/screens/game_guide_screen.dart`](../lib/presentation/screens/game_guide_screen.dart)
+- Workshop notes: [`docs/GAME_FUN_WORKSHOP_ISSUE_98.md`](./GAME_FUN_WORKSHOP_ISSUE_98.md)
 - Current capabilities:
   - playable pass/decision game
   - difficulty and ranking history
