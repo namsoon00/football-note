@@ -10,7 +10,10 @@ void main() {
     );
     expect(heldByA.isControllingPasser, isTrue);
     expect(heldByA.controllableAttackerIsA, isTrue);
+    expect(heldByA.controllableAttackerIsB, isFalse);
     expect(heldByA.activeReceiverIsA, isFalse);
+    expect(heldByA.ballOwnerAttackerIsA, isTrue);
+    expect(heldByA.ballOwnerAttackerIsB, isFalse);
 
     const flyingToB = SpaceSpeedPassState(
       attackerAIsPasser: true,
@@ -19,7 +22,10 @@ void main() {
     );
     expect(flyingToB.isControllingPasser, isFalse);
     expect(flyingToB.controllableAttackerIsA, isFalse);
+    expect(flyingToB.controllableAttackerIsB, isTrue);
     expect(flyingToB.activeReceiverIsA, isFalse);
+    expect(flyingToB.ballOwnerAttackerIsA, isFalse);
+    expect(flyingToB.ballOwnerAttackerIsB, isTrue);
 
     const settlingOnB = SpaceSpeedPassState(
       attackerAIsPasser: false,
@@ -28,7 +34,10 @@ void main() {
     );
     expect(settlingOnB.isControllingPasser, isTrue);
     expect(settlingOnB.controllableAttackerIsA, isFalse);
+    expect(settlingOnB.controllableAttackerIsB, isTrue);
     expect(settlingOnB.activeReceiverIsA, isTrue);
+    expect(settlingOnB.ballOwnerAttackerIsA, isFalse);
+    expect(settlingOnB.ballOwnerAttackerIsB, isTrue);
 
     const heldByB = SpaceSpeedPassState(
       attackerAIsPasser: false,
