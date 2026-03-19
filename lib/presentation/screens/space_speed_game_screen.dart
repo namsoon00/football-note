@@ -5,6 +5,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
@@ -118,11 +119,13 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   double _chargedBallSpeed = _ballMinSpeed;
 
   bool _ballFlying = false;
+  bool _ballSettling = false;
   double _ballX = _passerX;
   double _ballY = _passerY;
   double _ballVx = 0;
   double _ballVy = 0;
   double _flightElapsed = 0;
+  double _settleControlProbability = 0;
 
   double _targetX = 0.60;
   double _targetY = 0.36;
@@ -397,50 +400,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     }
   }
 
-  String _roundArcDetail(bool isKo) {
-    switch (_roundArcStage) {
-      case _RoundArcStage.read:
-        return isKo
-            ? '압박 방향을 읽고 열린 쪽으로 첫 연결을 만드세요.'
-            : 'Read the pressure and open the first passing lane.';
-      case _RoundArcStage.rhythm:
-        return isKo
-            ? '안전 패스로 간격을 벌린 뒤 킬 패스로 전환하세요.'
-            : 'Stretch with safe passes, then switch into a killer pass.';
-      case _RoundArcStage.chance:
-        return isKo
-            ? '지금은 빠르게 전진하고 마무리 각도를 만드세요.'
-            : 'Attack quickly now and create a finishing angle.';
-    }
-  }
-
   String _openSideLabel(bool isKo) {
     if (_openUpperSide) {
       return isKo ? '상단 공간 열림' : 'Upper side open';
     }
     return isKo ? '하단 공간 열림' : 'Lower side open';
-  }
-
-  String _pressureCueLabel(bool isKo) {
-    final nearest = _nearestPressureDefender;
-    if (nearest == null) {
-      return isKo ? '압박 여유 있음' : 'Pressure under control';
-    }
-    final dx = nearest.x - _activePasserX;
-    final dy = nearest.y - _activePasserY;
-    final distance = _distance(
-      _activePasserX,
-      _activePasserY,
-      nearest.x,
-      nearest.y,
-    );
-    if (distance <= 0.12 && dx >= -0.03) {
-      return isKo ? '압박 도착' : 'Pressure arriving';
-    }
-    if (dy.abs() <= 0.08 && dx >= 0.0) {
-      return isKo ? '정면 라인 좁음' : 'Front lane tight';
-    }
-    return _openSideLabel(isKo);
   }
 
   String _recommendedMissionText(bool isKo) {
@@ -553,15 +517,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                         label: isKo ? '생명' : 'Lives',
                         value: '$_lives',
                         icon: Icons.favorite_border,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildStatChip(
-                        context,
-                        label: isKo ? '랭킹' : 'Rank',
-                        value:
-                            '${_rankingLabel(_rankScore, isKo)} ($_rankScore)',
-                        icon: Icons.emoji_events_outlined,
-                        emphasize: true,
                       ),
                       if (_bonusScore > 0) ...[
                         const SizedBox(width: 8),
@@ -1185,36 +1140,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                         ),
                       );
                     },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.82),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        '${isKo ? '상황 읽기' : 'Read'} · ${_pressureCueLabel(isKo)}',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _roundArcDetail(isKo),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -1881,6 +1806,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _ballY = holdPoint.dy;
       return;
     }
+    if (_ballSettling) {
+      _updateBallSettling();
+      return;
+    }
 
     final ballScale = (0.80 + ((_attackerPaceScale - 1.0) * 0.35)).clamp(
       0.80,
@@ -1948,7 +1877,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         timingGap: timingGap,
         byCenter: caughtByCenter,
       );
-      _onSuccess();
+      _beginBallSettling(_lastControlProbability);
       return;
     }
 
@@ -1992,9 +1921,38 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _beginCharge() {
     if (_phase != _PlayPhase.ready || _ballFlying) return;
     _charging = true;
+    _ballSettling = false;
     _chargeStartedAt = DateTime.now();
     _chargedBallSpeed = _ballMinSpeed;
     _effectiveBallSpeed = _ballMinSpeed;
+  }
+
+  void _beginBallSettling(double controlProbability) {
+    _ballSettling = true;
+    _settleControlProbability = controlProbability;
+    _ballVx *= 0.42;
+    _ballVy *= 0.42;
+  }
+
+  void _updateBallSettling() {
+    final holdPoint = _activeReceiverBallHoldPoint();
+    final dx = holdPoint.dx - _ballX;
+    final dy = holdPoint.dy - _ballY;
+    final distance = math.sqrt((dx * dx) + (dy * dy));
+    final blend = (0.28 + ((_effectiveBallSpeed / _ballMaxSpeed) * 0.18)).clamp(
+      0.28,
+      0.48,
+    );
+    _ballX += dx * blend;
+    _ballY += dy * blend;
+    _ballVx *= 0.62;
+    _ballVy *= 0.62;
+    if (distance <= 0.012) {
+      _ballX = holdPoint.dx;
+      _ballY = holdPoint.dy;
+      _ballSettling = false;
+      _onSuccess(controlProbability: _settleControlProbability);
+    }
   }
 
   void _releaseChargeAndPass() {
@@ -2204,10 +2162,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _passChargeArmed = false;
   }
 
-  void _onSuccess() {
+  void _onSuccess({double? controlProbability}) {
     _lastInteractionAt = DateTime.now();
     _clearFlightGuide();
-    _setReaction(_PassResult.perfect);
+    _playGameSound(_GameSoundType.passComplete);
+    _setReaction(_PassResult.perfect, controlProbability: controlProbability);
     _attackerAIsPasser = !_attackerAIsPasser;
     _score += 1;
     _combo += 1;
@@ -2275,6 +2234,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _onGoalScored() {
     _lastInteractionAt = DateTime.now();
     final wasFinalShot = _finalShotMode || _remainingSeconds <= 0;
+    _playGameSound(_GameSoundType.goal);
     _goals += 1;
     _score += 3;
     _lastShotOutcome = _ShotOutcome.goal;
@@ -2282,6 +2242,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _goalChanceActive = false;
     _finalShotMode = false;
     _ballFlying = false;
+    _ballSettling = false;
     _setReaction(_PassResult.goal);
     _awardBonus(10, reason: _koText('골 보너스', 'Goal bonus'));
     _updateMissionProgress(goalScored: true);
@@ -2323,6 +2284,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
     _attackerAIsPasser = ownerIsA;
     _ballFlying = false;
+    _ballSettling = false;
     _phase = _PlayPhase.ready;
     _charging = false;
     _chargeStartedAt = null;
@@ -2357,6 +2319,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _phase = _PlayPhase.ready;
     _attackerAIsPasser = true;
     _ballFlying = false;
+    _ballSettling = false;
     _charging = false;
     _chargeStartedAt = null;
     _ballVx = 0;
@@ -2385,6 +2348,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _shotOutcomeTimer?.cancel();
     _phase = _PlayPhase.roundEnd;
     _ballFlying = false;
+    _ballSettling = false;
     _clearFlightGuide();
     _charging = false;
     _chargeStartedAt = null;
@@ -2412,6 +2376,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   void _onFail([_PassResult result = _PassResult.miss]) {
     _lastInteractionAt = DateTime.now();
+    _playGameSound(_GameSoundType.fail);
     _lastSuccessAt = null;
     _rhythmStreak = 0;
     _lastFailedReason = result;
@@ -2444,6 +2409,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _failEndTimer?.cancel();
     _phase = _PlayPhase.roundEnd;
     _ballFlying = false;
+    _ballSettling = false;
     _clearFlightGuide();
     _charging = false;
     _chargeStartedAt = null;
@@ -2553,6 +2519,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _continueAfterSuccess() {
     _phase = _PlayPhase.ready;
     _ballFlying = false;
+    _ballSettling = false;
     _clearFlightGuide();
     _charging = false;
     _chargeStartedAt = null;
@@ -2622,6 +2589,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   void _endGameOnFail() {
     _phase = _PlayPhase.roundEnd;
     _ballFlying = false;
+    _ballSettling = false;
     _clearFlightGuide();
     _charging = false;
     _chargeStartedAt = null;
@@ -2670,6 +2638,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       );
 
     _ballFlying = false;
+    _ballSettling = false;
     _clearFlightGuide();
     final holdPoint = _activePasserBallHoldPoint();
     _ballX = holdPoint.dx;
@@ -2815,6 +2784,11 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _charging = true;
       _chargedBallSpeed = _ballMinSpeed;
     }
+    _playGameSound(
+      _goalChanceActive
+          ? _GameSoundType.shotRelease
+          : _GameSoundType.passRelease,
+    );
     _releaseChargeAndPass();
     _passAimInput = Offset.zero;
     _passAimActive = false;
@@ -3275,6 +3249,34 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       vx: _receiverVx,
       vy: _receiverVy,
     );
+  }
+
+  Offset _activeReceiverBallHoldPoint() {
+    if (_attackerAIsPasser) {
+      return _ballHoldPointFor(
+        bodyX: _receiverX,
+        bodyY: _receiverY,
+        vx: _receiverVx,
+        vy: _receiverVy,
+      );
+    }
+    return _ballHoldPointFor(
+      bodyX: _passerXPos,
+      bodyY: _passerYPos,
+      vx: _passerVx,
+      vy: _passerVy,
+    );
+  }
+
+  void _playGameSound(_GameSoundType type) {
+    final systemSound = switch (type) {
+      _GameSoundType.passRelease => SystemSoundType.click,
+      _GameSoundType.passComplete => SystemSoundType.click,
+      _GameSoundType.shotRelease => SystemSoundType.click,
+      _GameSoundType.goal => SystemSoundType.alert,
+      _GameSoundType.fail => SystemSoundType.alert,
+    };
+    unawaited(SystemSound.play(systemSound));
   }
 
   Offset _lanePointAtX(double x) {
@@ -4552,6 +4554,8 @@ class _PassPrediction {
 enum _PlayPhase { ready, flying, roundEnd }
 
 enum _EntityKind { attacker, defender, ball }
+
+enum _GameSoundType { passRelease, passComplete, shotRelease, goal, fail }
 
 enum _ShotOutcome { none, goal, saved, miss }
 
