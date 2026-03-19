@@ -1983,6 +1983,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _beginBallSettling(double controlProbability) {
+    _resetPassGestureState();
     _attackerAIsPasser = !_attackerAIsPasser;
     _ballSettling = true;
     _settleControlProbability = controlProbability;
@@ -2233,6 +2234,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _completeSuccessfulPass({double? controlProbability}) {
+    _resetPassGestureState(clearAim: true);
     _lastInteractionAt = DateTime.now();
     _clearFlightGuide();
     _playGameSound(_GameSoundType.passComplete);
@@ -2816,6 +2818,9 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _onPassDown(int pointer, Offset globalPosition) {
+    if (_passPointerId != null && !_passPressed) {
+      _passPointerId = null;
+    }
     if (_passPointerId != null) return;
     if (!_canStartPassGesture()) {
       return;
@@ -2881,6 +2886,20 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     // iOS can emit cancel during gesture arena conflicts; treat it like release
     // so pass doesn't get dropped.
     _onPassUp(pointer);
+  }
+
+  void _resetPassGestureState({bool clearAim = false}) {
+    _passPressed = false;
+    _passPointerId = null;
+    _passChargeArmed = false;
+    _charging = false;
+    _chargeStartedAt = null;
+    _chargedBallSpeed = _ballMinSpeed;
+    _effectiveBallSpeed = _ballMinSpeed;
+    if (clearAim) {
+      _passAimInput = Offset.zero;
+      _passAimActive = false;
+    }
   }
 
   void _updatePassAimFromGlobal(Offset globalPosition) {
