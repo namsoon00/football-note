@@ -222,8 +222,10 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     goalChanceActive: _goalChanceActive,
   );
   bool get _isControllingPasser => _passState.isControllingPasser;
-  bool get _isPasserControllable => _passState.passerControllable;
-  bool get _isReceiverControllable => _passState.receiverControllable;
+  bool get _isAttackerAControllable => _passState.controllableAttackerIsA;
+  bool get _isAttackerBControllable => _passState.controllableAttackerIsB;
+  bool get _isAttackerABallOwner => _passState.ballOwnerAttackerIsA;
+  bool get _isAttackerBBallOwner => _passState.ballOwnerAttackerIsB;
   double get _passAimStrength => _passAimInput.distance.clamp(0.0, 1.0);
   double get _passLengthScale =>
       (0.70 + (_passAimStrength * 1.10)).clamp(0.70, 1.90);
@@ -649,9 +651,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 width: width,
                                 height: height,
                                 emphasize: _attackerAIsPasser,
-                                markBallOwner:
-                                    !_ballFlying && _attackerAIsPasser,
-                                markControllable: _isPasserControllable,
+                                markBallOwner: _isAttackerABallOwner,
+                                markControllable: _isAttackerAControllable,
                               ),
                               _entity(
                                 context,
@@ -664,9 +665,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
                                 width: width,
                                 height: height,
                                 emphasize: !_attackerAIsPasser,
-                                markBallOwner:
-                                    !_ballFlying && !_attackerAIsPasser,
-                                markControllable: _isReceiverControllable,
+                                markBallOwner: _isAttackerBBallOwner,
+                                markControllable: _isAttackerBControllable,
                               ),
                               if (_reactionLabel.isNotEmpty)
                                 Positioned(
@@ -1929,7 +1929,17 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _beginCharge() {
-    if (_phase != _PlayPhase.ready || _ballFlying) return;
+    if (_phase != _PlayPhase.ready || (_ballFlying && !_ballSettling)) return;
+    if (_ballSettling) {
+      final holdPoint = _activePasserBallHoldPoint();
+      _ballX = holdPoint.dx;
+      _ballY = holdPoint.dy;
+      _ballVx = 0;
+      _ballVy = 0;
+      _ballFlying = false;
+      _ballSettling = false;
+      _clearFlightGuide();
+    }
     _charging = true;
     _ballSettling = false;
     _chargeStartedAt = DateTime.now();
@@ -1967,7 +1977,8 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   }
 
   void _releaseChargeAndPass() {
-    if (!_charging || _phase != _PlayPhase.ready || _ballFlying) return;
+    if (!_charging || _phase != _PlayPhase.ready) return;
+    if (_ballFlying && !_ballSettling) return;
     _charging = false;
     _chargeStartedAt = null;
     if (_goalChanceActive) {
@@ -2748,7 +2759,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
         !_timeUp &&
         !_awaitingShotOutcome &&
         _phase == _PlayPhase.ready &&
-        !_ballFlying;
+        (!_ballFlying || _ballSettling);
   }
 
   void _onPassDown(int pointer, Offset globalPosition) {
@@ -2807,7 +2818,6 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   void _onPassCancel(int pointer) {
     if (_passPointerId != pointer) return;
-    _passPointerId = null;
     // iOS can emit cancel during gesture arena conflicts; treat it like release
     // so pass doesn't get dropped.
     _onPassUp(pointer);
