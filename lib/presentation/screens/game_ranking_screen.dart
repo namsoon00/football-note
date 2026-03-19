@@ -7,7 +7,7 @@ class GameRankingEntry {
   final int goals;
   final int rankScore;
   final String rankLabel;
-  final String difficulty;
+  final String? difficulty;
 
   const GameRankingEntry({
     required this.playedAt,
@@ -16,7 +16,7 @@ class GameRankingEntry {
     required this.goals,
     required this.rankScore,
     required this.rankLabel,
-    required this.difficulty,
+    this.difficulty,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,7 +27,7 @@ class GameRankingEntry {
       'goals': goals,
       'rankScore': rankScore,
       'rankLabel': rankLabel,
-      'difficulty': difficulty,
+      if (difficulty != null) 'difficulty': difficulty,
     };
   }
 
@@ -42,7 +42,7 @@ class GameRankingEntry {
       goals: (map['goals'] as num?)?.toInt() ?? 0,
       rankScore: (map['rankScore'] as num?)?.toInt() ?? 0,
       rankLabel: map['rankLabel']?.toString() ?? 'D',
-      difficulty: map['difficulty']?.toString() ?? 'medium',
+      difficulty: map['difficulty']?.toString(),
     );
   }
 }
@@ -77,7 +77,6 @@ class GameRankingScreen extends StatelessWidget {
                 final rankNo = index + 1;
                 final dateText =
                     '${entry.playedAt.year}.${entry.playedAt.month.toString().padLeft(2, '0')}.${entry.playedAt.day.toString().padLeft(2, '0')}';
-                final diffText = _difficultyText(entry.difficulty, isKo);
                 return Card(
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -93,8 +92,8 @@ class GameRankingScreen extends StatelessWidget {
                     ),
                     subtitle: Text(
                       isKo
-                          ? '레벨 Lv.${entry.level} · 골 ${entry.goals} · 난이도 $diffText · $dateText'
-                          : 'Level Lv.${entry.level} · Goals ${entry.goals} · Difficulty $diffText · $dateText',
+                          ? '레벨 Lv.${entry.level} · 골 ${entry.goals} · $dateText'
+                          : 'Level Lv.${entry.level} · Goals ${entry.goals} · $dateText',
                     ),
                     trailing: Text(
                       isKo ? '$rankNo위' : '#$rankNo',
@@ -108,18 +107,6 @@ class GameRankingScreen extends StatelessWidget {
               },
             ),
     );
-  }
-
-  String _difficultyText(String raw, bool isKo) {
-    switch (raw) {
-      case 'easy':
-        return isKo ? '초급' : 'Easy';
-      case 'hard':
-        return isKo ? '고급' : 'Hard';
-      case 'medium':
-      default:
-        return isKo ? '중급' : 'Medium';
-    }
   }
 
   Widget _rankLeading(int rankNo) {
