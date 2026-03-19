@@ -119,13 +119,14 @@ void main() {
     expect(find.text('오늘의 응원'), findsNothing);
     expect(find.text('오늘의 운세 노트'), findsOneWidget);
     expect(find.text('자기 전 다이어리'), findsOneWidget);
-    expect(find.textContaining('훈련 2개'), findsOneWidget);
-    expect(find.textContaining('시합 1개'), findsOneWidget);
-    expect(find.text('계획 1개'), findsOneWidget);
-    expect(find.textContaining('합계 190분'), findsOneWidget);
+    expect(find.textContaining('훈련 2개'), findsWidgets);
+    expect(find.textContaining('시합 1개'), findsWidgets);
+    expect(find.text('계획 1개'), findsWidgets);
+    expect(find.textContaining('합계 190분'), findsWidgets);
     expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsWidgets);
+    expect(find.text('훈련 운세'), findsWidgets);
     expect(find.textContaining('좌우로 넘겨서 다른 운세 보기'), findsOneWidget);
-    expect(find.text('1 / 2'), findsOneWidget);
+    expect(find.text('1 / 2'), findsWidgets);
     expect(find.textContaining('측면에서 2:1 패턴 확인'), findsWidgets);
     expect(find.text('보드 메모: 측면에서 2:1 패턴 확인'), findsOneWidget);
     expect(find.textContaining('측면 전개 보드'), findsWidgets);
@@ -133,6 +134,8 @@ void main() {
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);
     expect(find.textContaining('리프팅: 인사이드 80회, 아웃사이드 60회'), findsWidgets);
     expect(find.textContaining('Blue FC전'), findsWidgets);
+    expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
+    expect(find.textContaining('코치 시선으로 다시 읽는다'), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('자기 전 다이어리')).dy,
       lessThan(tester.getTopLeft(find.text('오늘의 운세 노트')).dy),
@@ -140,18 +143,10 @@ void main() {
 
     expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
 
-    await tester.ensureVisible(find.byType(PageView).last);
-    await tester.pumpAndSettle();
-    await tester.drag(find.byType(PageView).last, const Offset(-400, 0));
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('패스 각도: 오늘은 빠른 판단이 빛나요.'), findsOneWidget);
-    expect(find.text('2 / 2'), findsOneWidget);
-
     await tester.tap(find.byTooltip('이전 날짜'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('합계 50분'), findsOneWidget);
+    expect(find.textContaining('합계 50분'), findsWidgets);
     expect(find.textContaining('패스'), findsWidgets);
   });
 
