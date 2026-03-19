@@ -71,6 +71,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
   int _score = 0;
   int _goals = 0;
   int _combo = 0;
+  int _passChainForShot = 0;
   int _bonusScore = 0;
   int _lives = 3;
   int _weeklyBest = 0;
@@ -2240,6 +2241,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _receiveControlAssistFrames = 10;
     _score += 1;
     _combo += 1;
+    _passChainForShot += 1;
     final now = DateTime.now();
     if (_lastSuccessAt != null) {
       final gap = now.difference(_lastSuccessAt!).inMilliseconds;
@@ -2291,6 +2293,12 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _updateMissionProgress(success: true);
     _maybeLevelUp();
     _updateWeeklyBest();
+    if (!_goalChanceActive && !_finalShotMode && _passChainForShot >= 2) {
+      _setReaction(_PassResult.goalUnlocked);
+      _activateGoalChance();
+      _passChainForShot = 0;
+      return;
+    }
     _continueAfterSuccess();
   }
 
@@ -2307,6 +2315,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _playGameSound(_GameSoundType.goal);
     _goals += 1;
     _score += 3;
+    _passChainForShot = 0;
     _lastShotOutcome = _ShotOutcome.goal;
     _awaitingShotOutcome = true;
     _goalChanceActive = false;
@@ -2389,6 +2398,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
 
   void _activateGoalChance() {
     _goalChanceActive = true;
+    _passChainForShot = 0;
     _setReaction(_PassResult.shotReady);
     _phase = _PlayPhase.ready;
     _ballFlying = false;
@@ -2427,6 +2437,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
     _samePassRiskStreak = 0;
     _clearFlightGuide();
     _combo = 0;
+    _passChainForShot = 0;
     final wasShotRound = _goalChanceActive || _finalShotMode;
     if (wasShotRound &&
         (result == _PassResult.saved || result == _PassResult.miss)) {
@@ -2673,6 +2684,7 @@ class _SpaceSpeedGameScreenState extends State<SpaceSpeedGameScreen> {
       _score = 0;
       _goals = 0;
       _combo = 0;
+      _passChainForShot = 0;
       _finalShotMode = false;
       _goalChanceActive = false;
     }
