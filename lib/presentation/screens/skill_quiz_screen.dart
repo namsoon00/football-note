@@ -970,14 +970,23 @@ class _QuizScenarioCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scenario = question.scenario!;
     final boardPage = scenario.boardPage;
+    final attackerCount = boardPage.items
+        .where((item) => item.type == 'player' && item.colorValue == 0xFFB3E5FC)
+        .length;
+    final defenderCount = boardPage.items
+        .where((item) => item.type == 'player' && item.colorValue == 0xFFFFCCBC)
+        .length;
     final labels = <String>[
       isKo ? '보드 퀴즈' : 'Board quiz',
-      isKo ? '경기 상황 읽기' : 'Read the play',
-      isKo ? '움직이는 화면' : 'Animated board',
+      isKo ? '코치 설명' : 'Coach guide',
+      isKo ? '위치 먼저 보기' : 'Read positions first',
     ];
+    final cueText = isKo
+        ? scenario.koMovementCaption ?? ''
+        : scenario.enMovementCaption ?? '';
     return Card(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1016,16 +1025,127 @@ class _QuizScenarioCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               isKo
-                  ? '공과 러너의 전개를 따라가며 장면을 읽어보세요.'
-                  : 'Track the ball and runner movement to read the play.',
+                  ? '코치가 보드로 설명해준다고 생각하고, 먼저 위치를 본 뒤 가장 좋은 선택을 골라보세요.'
+                  : 'Think like a coach using a board: read the positions first, then pick the best action.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 10),
+            _CoachBoardPanel(
+              page: boardPage,
+              isKo: isKo,
+              sceneTitle: isKo ? scenario.koTitle : scenario.enTitle,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _ScenarioStatChip(
+                  icon: Icons.sports,
+                  label: isKo
+                      ? '우리 팀 $attackerCount명'
+                      : '$attackerCount attackers',
+                ),
+                _ScenarioStatChip(
+                  icon: Icons.shield_outlined,
+                  label: isKo
+                      ? '상대 팀 $defenderCount명'
+                      : '$defenderCount defenders',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _CoachTalkCard(
+              title: isKo ? '코치가 먼저 말해주는 힌트' : 'Coach hint first',
+              body: cueText.trim().isNotEmpty
+                  ? cueText
+                  : (isKo
+                        ? '가까운 선수, 빈 공간, 공이 갈 수 있는 길을 순서대로 보세요.'
+                        : 'Check the nearest player, the open space, and the next ball route in order.'),
+              icon: Icons.record_voice_over_outlined,
+            ),
+            const SizedBox(height: 10),
+            _CoachTalkCard(
+              title: isKo ? '이번 문제' : 'Your question',
+              body: isKo ? question.koQuestion : question.enQuestion,
+              icon: Icons.help_outline,
+              emphasize: true,
+            ),
+            if (isKo) ...[
+              const SizedBox(height: 10),
+              Text(
+                '선은 일부러 뺐어요. 먼저 자리를 읽고 생각하는 힘을 키우기 위해서예요.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CoachBoardPanel extends StatelessWidget {
+  final TrainingMethodPage page;
+  final bool isKo;
+  final String sceneTitle;
+
+  const _CoachBoardPanel({
+    required this.page,
+    required this.isKo,
+    required this.sceneTitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final destination = _resolveDestination(
+      page.ballPath,
+      fallback: page.playerPath,
+    );
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.surfaceContainerHighest,
+            Theme.of(context).colorScheme.surface,
+          ],
+        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _BoardLegendChip(
+                  color: const Color(0xFFB3E5FC),
+                  label: isKo ? '우리 팀' : 'Our team',
+                ),
+                _BoardLegendChip(
+                  color: const Color(0xFFFFCCBC),
+                  label: isKo ? '상대 팀' : 'Opposition',
+                ),
+                _BoardLegendChip(
+                  color: const Color(0xFFFFF8E1),
+                  label: isKo ? '공' : 'Ball',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Container(
-              height: 238,
+              height: 228,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(22),
                 boxShadow: [
@@ -1036,47 +1156,100 @@ class _QuizScenarioCard extends StatelessWidget {
                   ),
                 ],
               ),
-              child: _AnimatedQuizBoard(page: boardPage, isKo: isKo),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _ScenarioStatChip(
-                  icon: Icons.directions_run,
-                  label: isKo
-                      ? '러너 ${math.max(0, boardPage.playerPath.length - 1)}회 전개'
-                      : 'Runner ${math.max(0, boardPage.playerPath.length - 1)} phases',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    TrainingBoardSketch(
+                      page: page,
+                      borderRadius: 22,
+                      showStrokes: false,
+                      showPlayerPath: false,
+                      showBallPath: false,
+                    ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.02),
+                            Colors.black.withValues(alpha: 0.12),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (destination != null)
+                      CustomPaint(
+                        painter: _ScenarioFocusPainter(
+                          point: destination,
+                          pulse: 0.82,
+                        ),
+                      ),
+                    Positioned(
+                      left: 12,
+                      top: 12,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.42),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.18),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            isKo ? '코치 보드' : 'Coach board',
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      bottom: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.42),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          sceneTitle,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                _ScenarioStatChip(
-                  icon: Icons.sports_soccer,
-                  label: isKo
-                      ? '패스 ${math.max(0, boardPage.ballPath.length - 1)}회 연결'
-                      : '${math.max(0, boardPage.ballPath.length - 1)} pass links',
-                ),
-              ],
-            ),
-            if ((isKo ? scenario.koMovementCaption : scenario.enMovementCaption)
-                    ?.trim()
-                    .isNotEmpty ==
-                true) ...[
-              const SizedBox(height: 10),
-              Text(
-                isKo
-                    ? scenario.koMovementCaption ?? ''
-                    : scenario.enMovementCaption ?? '',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
               ),
-            ],
-            const SizedBox(height: 10),
+            ),
+            const SizedBox(height: 12),
             Text(
               isKo
-                  ? '위 훈련 스케치 보드의 움직임을 보고 가장 좋은 판단을 고르세요.'
-                  : 'Read the training-sketch board above and choose the best decision.',
-              style: Theme.of(context).textTheme.bodySmall,
+                  ? '먼저 가까운 선수, 빈 공간, 공의 다음 길을 순서대로 보세요.'
+                  : 'First check the nearest player, the open space, and the next ball route.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -1085,287 +1258,112 @@ class _QuizScenarioCard extends StatelessWidget {
   }
 }
 
-class _AnimatedQuizBoard extends StatefulWidget {
-  final TrainingMethodPage page;
-  final bool isKo;
+class _BoardLegendChip extends StatelessWidget {
+  final Color color;
+  final String label;
 
-  const _AnimatedQuizBoard({required this.page, required this.isKo});
-
-  @override
-  State<_AnimatedQuizBoard> createState() => _AnimatedQuizBoardState();
-}
-
-class _AnimatedQuizBoardState extends State<_AnimatedQuizBoard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 4200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  const _BoardLegendChip({required this.color, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final destination = _resolveDestination(
-      widget.page.ballPath,
-      fallback: widget.page.playerPath,
-    );
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(22),
-      child: Stack(
-        fit: StackFit.expand,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          TrainingBoardSketch(page: widget.page, borderRadius: 22),
-          DecoratedBox(
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoachTalkCard extends StatelessWidget {
+  final String title;
+  final String body;
+  final IconData icon;
+  final bool emphasize;
+
+  const _CoachTalkCard({
+    required this.title,
+    required this.body,
+    required this.icon,
+    this.emphasize = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: emphasize
+            ? Theme.of(context).colorScheme.primaryContainer
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.06),
-                  Colors.black.withValues(alpha: 0.22),
-                ],
-              ),
+              color: Colors.white.withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: Icon(icon, size: 20),
           ),
-          if (destination != null)
-            AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final pulse =
-                    0.74 + (math.sin(_controller.value * math.pi * 2) * 0.12);
-                return CustomPaint(
-                  painter: _ScenarioFocusPainter(
-                    point: destination,
-                    pulse: pulse,
-                  ),
-                );
-              },
-            ),
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) {
-              final phase = Curves.easeInOut.transform(_controller.value);
-              final runner = _positionAlong(widget.page.playerPath, phase);
-              final ball = _positionAlong(widget.page.ballPath, phase * 0.94);
-              return Stack(
-                children: [
-                  if (runner != null)
-                    _MovingBoardMarker(
-                      point: runner,
-                      icon: Icons.directions_run_rounded,
-                      color: const Color(0xFFB3E5FC),
-                      haloColor: const Color(0x8050E6FF),
-                      size: 28,
-                    ),
-                  if (ball != null)
-                    _MovingBoardMarker(
-                      point: ball,
-                      icon: Icons.sports_soccer,
-                      color: const Color(0xFFFFF8E1),
-                      haloColor: const Color(0x80FFE082),
-                      size: 24,
-                    ),
-                ],
-              );
-            },
-          ),
-          Positioned(
-            left: 12,
-            top: 12,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.42),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF63E6BE),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.isKo ? 'LIVE 전개 읽기' : 'LIVE pattern read',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: emphasize ? FontWeight.w700 : FontWeight.w600,
+                  ),
                 ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 12,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final progress = (_controller.value * 100).round().clamp(
-                  0,
-                  100,
-                );
-                return DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.36),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.isKo
-                                ? '전개 진행률 $progress%'
-                                : 'Pattern progress $progress%',
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 90,
-                          child: LinearProgressIndicator(
-                            value: _controller.value,
-                            minHeight: 6,
-                            borderRadius: BorderRadius.circular(999),
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.16,
-                            ),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFFFFD54F),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+              ],
             ),
           ),
         ],
       ),
     );
   }
-
-  TrainingMethodPoint? _resolveDestination(
-    List<TrainingMethodPoint> primary, {
-    required List<TrainingMethodPoint> fallback,
-  }) {
-    if (primary.isNotEmpty) return primary.last;
-    if (fallback.isNotEmpty) return fallback.last;
-    return null;
-  }
-
-  TrainingMethodPoint? _positionAlong(
-    List<TrainingMethodPoint> points,
-    double progress,
-  ) {
-    if (points.isEmpty) return null;
-    if (points.length == 1) return points.first;
-    final clamped = progress.clamp(0.0, 1.0);
-    final segmentCount = points.length - 1;
-    final scaled = clamped * segmentCount;
-    final index = scaled.floor().clamp(0, segmentCount - 1);
-    final localT = scaled - index;
-    final start = points[index];
-    final end = points[index + 1];
-    return TrainingMethodPoint(
-      x: start.x + ((end.x - start.x) * localT),
-      y: start.y + ((end.y - start.y) * localT),
-    );
-  }
 }
 
-class _MovingBoardMarker extends StatelessWidget {
-  final TrainingMethodPoint point;
-  final IconData icon;
-  final Color color;
-  final Color haloColor;
-  final double size;
-
-  const _MovingBoardMarker({
-    required this.point,
-    required this.icon,
-    required this.color,
-    required this.haloColor,
-    required this.size,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final left = (point.x * constraints.maxWidth) - (size / 2);
-          final top = (point.y * constraints.maxHeight) - (size / 2);
-          return Stack(
-            children: [
-              Positioned(
-                left: left - 7,
-                top: top - 7,
-                child: Container(
-                  width: size + 14,
-                  height: size + 14,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: haloColor,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: left,
-                top: top,
-                child: Container(
-                  width: size,
-                  height: size,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black.withValues(alpha: 0.34),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.72),
-                    ),
-                  ),
-                  child: Icon(icon, size: size * 0.6, color: color),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+TrainingMethodPoint? _resolveDestination(
+  List<TrainingMethodPoint> primary, {
+  required List<TrainingMethodPoint> fallback,
+}) {
+  if (primary.isNotEmpty) return primary.last;
+  if (fallback.isNotEmpty) return fallback.last;
+  return null;
 }
 
 class _ScenarioFocusPainter extends CustomPainter {
@@ -2532,7 +2530,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn01',
     scenario: _QuizScenario(
-      koTitle: '중앙 압박 직전, 오른쪽 하프스페이스가 열려 있어요.',
+      koTitle: '중앙 압박이 오기 전, 오른쪽 앞 빈 공간이 열렸어요.',
       enTitle: 'Central pressure is closing, but the right half-space is open.',
       boardPage: _quizBoard(
         name: 'Right Half-space',
@@ -2548,48 +2546,48 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.58, 0.56), _p(0.64, 0.58)],
         ],
       ),
-      koMovementCaption: '움직임을 보면 공과 2선 러너가 오른쪽 하프스페이스로 같이 속도를 냅니다.',
+      koMovementCaption: '공을 가진 친구와 앞쪽 친구가 오른쪽 빈 공간으로 함께 움직일 준비를 하고 있어요.',
       enMovementCaption:
           'The ball and second runner accelerate together into the right half-space.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'decision',
-        koQuestion: '운동장 상황을 보면 가장 좋은 다음 선택은?',
+        koQuestion: '이 장면에서 다음 플레이로 가장 좋은 선택은?',
         enQuestion: 'Looking at the pitch, what is the best next action?',
         correct: _QuizOption(
-          koText: '오른쪽 하프스페이스로 빠른 전진 패스',
+          koText: '오른쪽 앞 빈 공간으로 빠르게 패스',
           enText: 'Quick forward pass into the right half-space',
         ),
         wrongA: _QuizOption(
-          koText: '볼을 멈추고 중앙 압박을 기다린다',
+          koText: '공을 멈추고 상대가 오길 기다린다',
           enText: 'Stop the ball and wait for central pressure',
         ),
         wrongB: _QuizOption(
-          koText: '가장 먼 측면으로 큰 전환만 시도한다',
+          koText: '멀리 있는 측면으로만 크게 보낸다',
           enText: 'Force a long switch to the far wing',
         ),
-        koExplain: '중앙 압박 전, 열린 하프스페이스를 빠르게 쓰는 판단이 좋습니다.',
+        koExplain: '상대가 모이기 전에 오른쪽 앞 빈 공간을 바로 쓰는 선택이 가장 좋아요.',
         enExplain:
             'Before central pressure arrives, the open half-space is the best route.',
       ),
       _BoardQuizPrompt(
         id: 'cue',
-        koQuestion: '이 보드에서 가장 먼저 읽어야 할 핵심 단서는?',
+        koQuestion: '이 보드에서 먼저 봐야 할 가장 중요한 것은?',
         enQuestion: 'What is the key cue to read first from this board?',
         correct: _QuizOption(
-          koText: '오른쪽 하프스페이스의 열린 전진 통로',
+          koText: '오른쪽 앞 빈 공간으로 가는 열린 길',
           enText: 'The open forward lane in the right half-space',
         ),
         wrongA: _QuizOption(
-          koText: '중앙에 수비가 몰려 있으니 무조건 정지',
+          koText: '가운데에 상대가 있으니 무조건 멈추기',
           enText: 'A crowded center means you must stop immediately',
         ),
         wrongB: _QuizOption(
-          koText: '가장 먼 쪽 선수만 보고 큰 전환 준비',
+          koText: '가장 멀리 있는 친구만 보고 길게 차기 준비',
           enText: 'Focus only on the farthest player for a big switch',
         ),
-        koExplain: '이 장면의 정답 단서는 열린 하프스페이스와 그 안으로 들어가는 러너입니다.',
+        koExplain: '이 장면은 오른쪽 앞 빈 공간과 그쪽으로 뛰는 친구를 먼저 보면 쉬워져요.',
         enExplain:
             'The answer cue is the open half-space and the runner entering it.',
       ),
@@ -2598,7 +2596,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn02',
     scenario: _QuizScenario(
-      koTitle: '공을 잃은 직후 상대가 중앙으로 전진하려고 합니다.',
+      koTitle: '공을 뺏긴 바로 뒤에 상대가 가운데로 들어오려 해요.',
       enTitle:
           'Right after losing the ball, the opponent wants to break centrally.',
       boardPage: _quizBoard(
@@ -2618,50 +2616,50 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.7, 0.6), _p(0.7, 0.58)],
         ],
       ),
-      koMovementCaption: '가까운 수비가 중앙 길목을 닫으며 속도를 늦추면 뒤 동료가 복귀할 시간을 벌 수 있어요.',
+      koMovementCaption: '가장 가까운 수비가 가운데 길을 막아주면 뒤 친구들이 돌아올 시간을 벌 수 있어요.',
       enMovementCaption:
           'If the nearest defender slows play through the center, teammates gain recovery time.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'first-action',
-        koQuestion: '이 장면에서 수비 전환 첫 행동으로 맞는 것은?',
+        koQuestion: '이 장면에서 수비가 제일 먼저 해야 할 일은?',
         enQuestion:
             'In this scene, what is the correct first action in defensive transition?',
         correct: _QuizOption(
-          koText: '가장 가까운 패스길을 막으며 지연한다',
+          koText: '가장 가까운 패스길을 막으며 시간을 번다',
           enText: 'Delay while blocking the nearest passing lane',
         ),
         wrongA: _QuizOption(
-          koText: '볼만 향해 정면 태클을 시도한다',
+          koText: '공만 보고 바로 태클하러 달려든다',
           enText: 'Launch a straight tackle at the ball',
         ),
         wrongB: _QuizOption(
-          koText: '즉시 박스까지 전원 후퇴한다',
+          koText: '모두 바로 우리 골문 앞까지 달려간다',
           enText: 'Have everyone sprint back to the box',
         ),
-        koExplain: '전환 수비는 첫 태클보다 지연과 패스길 차단이 우선입니다.',
+        koExplain: '공을 뺏긴 직후에는 바로 덤비기보다 시간을 벌고 길을 막는 게 먼저예요.',
         enExplain:
             'In defensive transition, delaying and blocking the first lane comes before tackling.',
       ),
       _BoardQuizPrompt(
         id: 'team-help',
-        koQuestion: '가장 가까운 수비가 시간을 벌어주면 뒤 동료는 무엇을 해야 할까?',
+        koQuestion: '앞 수비가 시간을 벌어주면 뒤 친구들은 무엇을 해야 할까?',
         enQuestion:
             'If the nearest defender buys time, what should the trailing teammates do?',
         correct: _QuizOption(
-          koText: '안쪽 간격을 좁히며 복귀해 중앙 커버를 만든다',
+          koText: '안쪽으로 모이며 돌아와 가운데를 지킨다',
           enText: 'Recover inside and tighten spacing to protect the center',
         ),
         wrongA: _QuizOption(
-          koText: '각자 바깥쪽만 따라가며 중앙을 비운다',
+          koText: '각자 바깥쪽만 따라가고 가운데는 비운다',
           enText: 'Track only wide runners and leave the middle open',
         ),
         wrongB: _QuizOption(
-          koText: '공만 보며 모두 같은 선으로 붙는다',
+          koText: '공만 보며 모두 한 줄로 선다',
           enText: 'Watch only the ball and stack on one line',
         ),
-        koExplain: '지연이 생기면 뒤 동료는 중앙부터 정리해 다음 패스를 끊어야 합니다.',
+        koExplain: '시간을 벌었으면 뒤 친구들이 먼저 가운데를 채워 다음 패스를 막아야 해요.',
         enExplain:
             'Once play is delayed, teammates must recover the center first and remove the next pass.',
       ),
@@ -2670,7 +2668,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn03',
     scenario: _QuizScenario(
-      koTitle: '측면 돌파 뒤, 박스 안쪽에 컷백 길이 열려 있어요.',
+      koTitle: '측면을 뚫은 뒤, 골문 앞 뒤로 내주는 패스 길이 열렸어요.',
       enTitle:
           'After beating on the wing, a cutback lane opens inside the box.',
       boardPage: _quizBoard(
@@ -2689,48 +2687,48 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.68, 0.54), _p(0.72, 0.56)],
         ],
       ),
-      koMovementCaption: '공과 중앙 침투 선수가 안쪽으로 교차하며 컷백 속도가 살아나는 장면입니다.',
+      koMovementCaption: '공을 가진 친구와 안쪽으로 들어가는 친구가 만나면서 뒤로 내주는 패스가 좋아지는 장면이에요.',
       enMovementCaption:
           'The ball and central runner cut across the box, increasing cutback timing.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'best-decision',
-        koQuestion: '박스 앞에서 가장 좋은 판단은?',
+        koQuestion: '골문 앞에서 가장 좋은 선택은?',
         enQuestion: 'Near the box, what is the best decision?',
         correct: _QuizOption(
-          koText: '컷백 각도를 만들며 한 번 더 연결한다',
+          koText: '뒤로 내주기 좋은 각도를 만들고 한 번 더 패스한다',
           enText: 'Create a cutback angle and connect one more pass',
         ),
         wrongA: _QuizOption(
-          koText: '각도가 닫혀도 바로 슛한다',
+          koText: '각도가 없어도 바로 슛한다',
           enText: 'Shoot immediately even with a closed angle',
         ),
         wrongB: _QuizOption(
-          koText: '볼을 뒤로 끌고 다시 하프라인까지 간다',
+          koText: '공을 끌고 다시 멀리 뒤로 나간다',
           enText: 'Drag the ball back toward midfield',
         ),
-        koExplain: '닫힌 슛보다 컷백 연결이 더 높은 확률의 찬스를 만듭니다.',
+        koExplain: '무리한 슛보다 뒤로 내줘서 슈팅 기회를 만드는 쪽이 더 좋아요.',
         enExplain:
             'A cutback connection creates a higher-probability chance than a closed-angle shot.',
       ),
       _BoardQuizPrompt(
         id: 'runner-target',
-        koQuestion: '이 장면에서 패스를 가장 먼저 노려야 할 공간은?',
+        koQuestion: '이 장면에서 패스를 가장 먼저 보내야 할 곳은?',
         enQuestion: 'Which space should the pass target first in this scene?',
         correct: _QuizOption(
-          koText: '페널티 지점 쪽 컷백 존',
+          koText: '골문 앞 페널티 지점 근처',
           enText: 'The cutback zone near the penalty spot',
         ),
         wrongA: _QuizOption(
-          koText: '터치라인 바로 옆 뒤쪽 공간',
+          koText: '라인 옆 뒤쪽 공간',
           enText: 'The backward space next to the touchline',
         ),
         wrongB: _QuizOption(
-          koText: '골키퍼 정면 높은 크로스 존',
+          koText: '골키퍼 바로 앞 높은 공 자리',
           enText: 'A high cross zone straight at the goalkeeper',
         ),
-        koExplain: '이 보드에서는 안쪽 컷백 존이 가장 높은 기대 득점 구역입니다.',
+        koExplain: '이 그림에서는 골문 앞 중앙 쪽이 가장 좋은 마무리 자리예요.',
         enExplain:
             'In this board scene, the inside cutback zone is the highest-value scoring area.',
       ),
@@ -2739,7 +2737,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn04',
     scenario: _QuizScenario(
-      koTitle: '등 뒤 압박이 오고 있고, 반대편 앞 공간은 비어 있습니다.',
+      koTitle: '등 뒤에서 압박이 오고, 반대쪽 앞 공간은 비어 있어요.',
       enTitle:
           'Blind-side pressure is coming, while the far-side front space is open.',
       boardPage: _quizBoard(
@@ -2759,51 +2757,51 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.34, 0.58), _p(0.38, 0.56)],
         ],
       ),
-      koMovementCaption: '첫 터치가 압박 반대편 앞으로 나가면 다음 패스와 드리블 속도를 이어갈 수 있어요.',
+      koMovementCaption: '첫 터치가 압박 반대쪽 앞으로 나가면 다음 드리블과 패스를 계속 이어갈 수 있어요.',
       enMovementCaption:
           'A first touch into the far-side front space keeps the next pass and dribble alive.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'first-touch',
-        koQuestion: '이 장면에서 스캔 후 첫 터치 방향은 어디가 좋은가?',
+        koQuestion: '이 장면에서 첫 터치는 어디로 두는 게 좋을까?',
         enQuestion:
             'After scanning this scene, where should your first touch go?',
         correct: _QuizOption(
-          koText: '압박 반대편 왼발 앞 공간',
+          koText: '압박 반대쪽 앞 공간',
           enText: 'Into the far-side front space away from pressure',
         ),
         wrongA: _QuizOption(
-          koText: '등 뒤 압박 쪽으로 끌어온다',
+          koText: '등 뒤 압박 쪽으로 공을 끌어온다',
           enText: 'Pull it toward the blind-side pressure',
         ),
         wrongB: _QuizOption(
-          koText: '발밑에 멈춰 세운다',
+          koText: '발밑에 딱 멈춰 세운다',
           enText: 'Dead-stop it under your feet',
         ),
-        koExplain: '블라인드 압박을 피하는 첫 터치가 다음 전진 선택지를 살립니다.',
+        koExplain: '압박 반대쪽으로 첫 터치를 두면 다음 플레이가 훨씬 쉬워져요.',
         enExplain:
             'A first touch away from blind pressure preserves the next progressive option.',
       ),
       _BoardQuizPrompt(
         id: 'scan-cue',
-        koQuestion: '첫 터치 전에 가장 먼저 확인해야 할 정보는?',
+        koQuestion: '첫 터치 전에 제일 먼저 봐야 하는 것은?',
         enQuestion:
             'What information should be checked first before the first touch?',
         correct: _QuizOption(
-          koText: '등 뒤 압박의 방향과 반대편 앞 공간',
+          koText: '등 뒤 압박 방향과 반대쪽 앞 공간',
           enText:
               'The blind-side pressure direction and the far-side front space',
         ),
         wrongA: _QuizOption(
-          koText: '공이 발에 붙는 감각만',
+          koText: '공이 발에 붙는 느낌만',
           enText: 'Only the feel of the ball on your foot',
         ),
         wrongB: _QuizOption(
-          koText: '가장 먼 팀원의 위치만',
+          koText: '가장 멀리 있는 친구 위치만',
           enText: 'Only the position of the farthest teammate',
         ),
-        koExplain: '스캔은 압박 방향과 탈출 공간을 같이 읽어야 다음 선택이 열립니다.',
+        koExplain: '압박이 어디서 오는지와 빠져나갈 공간을 같이 봐야 다음 선택이 보여요.',
         enExplain:
             'Scanning has to combine pressure direction and escape space to unlock the next action.',
       ),
@@ -2812,7 +2810,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn05',
     scenario: _QuizScenario(
-      koTitle: '중앙에서 공을 운반하는 동료가 있고, 오른쪽 채널 수비 간격이 벌어집니다.',
+      koTitle: '가운데로 공을 몰고 가는 친구가 있고, 오른쪽 수비 사이가 벌어졌어요.',
       enTitle:
           'A teammate carries centrally while the right-channel defenders separate.',
       boardPage: _quizBoard(
@@ -2831,48 +2829,48 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.74, 0.58), _p(0.76, 0.56)],
         ],
       ),
-      koMovementCaption: '볼 운반자 속도가 올라갈수록, 앞 채널 침투가 더 큰 공간을 만듭니다.',
+      koMovementCaption: '공을 모는 친구 속도가 빨라질수록 앞쪽으로 뛰는 움직임이 더 큰 공간을 만들어요.',
       enMovementCaption:
           'As the ball carrier accelerates, the front-channel run creates a larger window.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'support-run',
-        koQuestion: '움직임을 보고 가장 좋은 침투 지원은 무엇일까?',
+        koQuestion: '이때 가장 좋은 도와주는 움직임은 무엇일까?',
         enQuestion: 'Watching the movement, what is the best supporting run?',
         correct: _QuizOption(
-          koText: '볼 받은 동료 앞쪽 빈 채널로 사선 침투',
+          koText: '공 가진 친구 앞의 빈 길로 사선으로 뛰기',
           enText: 'Diagonal run into the open channel ahead of the receiver',
         ),
         wrongA: _QuizOption(
-          koText: '공 쪽으로 같은 선에서 붙는다',
+          koText: '공 있는 쪽으로 같은 줄에 붙는다',
           enText: 'Move onto the same line close to the ball',
         ),
         wrongB: _QuizOption(
-          koText: '뒤로만 물러나 패스 길을 줄인다',
+          koText: '뒤로만 물러나 길을 좁힌다',
           enText: 'Drop only backward and shrink the lane',
         ),
-        koExplain: '동료가 전진 중일 때 앞 채널로 비켜 뛰어야 속도와 공간을 함께 살릴 수 있습니다.',
+        koExplain: '친구가 전진할 때 앞 빈 길로 비켜 뛰어야 속도도 살고 공간도 커져요.',
         enExplain:
             'When a teammate drives forward, a run into the front channel preserves both speed and space.',
       ),
       _BoardQuizPrompt(
         id: 'space-read',
-        koQuestion: '이 장면에서 공격이 노려야 할 공간은 어디일까?',
+        koQuestion: '이 장면에서 공격이 노려야 할 빈 공간은 어디일까?',
         enQuestion: 'Which space should the attack exploit in this scene?',
         correct: _QuizOption(
-          koText: '오른쪽 수비 사이가 벌어진 앞 채널',
+          koText: '오른쪽 수비 사이가 벌어진 앞쪽 길',
           enText: 'The front channel where the right defenders are separating',
         ),
         wrongA: _QuizOption(
-          koText: '볼 뒤쪽 안전 구역만',
+          koText: '공 뒤쪽의 안전한 곳만',
           enText: 'Only the safe space behind the ball',
         ),
         wrongB: _QuizOption(
-          koText: '수비가 가장 많은 중앙 정면',
+          koText: '상대가 가장 많은 가운데 정면',
           enText: 'The most crowded straight central lane',
         ),
-        koExplain: '보드가 보여주는 핵심은 수비 사이 간격이 벌어지는 오른쪽 앞 채널입니다.',
+        koExplain: '이 그림에서 중요한 곳은 오른쪽 수비 사이가 벌어진 앞쪽 길이에요.',
         enExplain:
             'The board cue is the right-side front channel opening between defenders.',
       ),
@@ -2881,7 +2879,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn06',
     scenario: _QuizScenario(
-      koTitle: '상대 윙어가 빠르게 전진하고, 안쪽 침투 지원도 따라옵니다.',
+      koTitle: '상대 윙어가 빠르게 오고, 안쪽으로 도와주는 선수도 따라와요.',
       enTitle:
           'The opponent winger drives fast, with an inside support run following.',
       boardPage: _quizBoard(
@@ -2900,18 +2898,18 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.62, 0.62), _p(0.64, 0.6)],
         ],
       ),
-      koMovementCaption: '볼과 안쪽 지원이 동시에 속도를 낼 때는 중앙 문을 먼저 닫아야 해요.',
+      koMovementCaption: '공과 안쪽 도움 선수가 함께 빨라질 때는 가운데 길부터 막아야 해요.',
       enMovementCaption:
           'When the ball and inside support accelerate together, the central door must close first.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'defensive-read',
-        koQuestion: '이 움직임에서 가장 좋은 수비 판단은?',
+        koQuestion: '이 장면에서 가장 좋은 수비 선택은?',
         enQuestion:
             'In this movement pattern, what is the best defensive read?',
         correct: _QuizOption(
-          koText: '안쪽 패스길을 먼저 닫고 측면으로 유도',
+          koText: '안쪽 길을 먼저 막고 바깥으로 보내기',
           enText: 'Shut the inside lane first and guide play outside',
         ),
         wrongA: _QuizOption(
@@ -2919,31 +2917,31 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           enText: 'Sprint straight at the ball only',
         ),
         wrongB: _QuizOption(
-          koText: '박스 안까지 물러나며 기다린다',
+          koText: '골문 앞까지 물러나기만 한다',
           enText: 'Retreat to the box and wait',
         ),
-        koExplain: '빠른 공격수일수록 안쪽 직선 길을 먼저 지워야 속도를 빼앗을 수 있습니다.',
+        koExplain: '빠른 상대일수록 안쪽 길을 먼저 지워야 속도를 줄일 수 있어요.',
         enExplain:
             'Against pace, removing the direct inside lane first is what actually slows the attack.',
       ),
       _BoardQuizPrompt(
         id: 'cover-help',
-        koQuestion: '첫 수비가 바깥으로 유도할 때 커버 수비의 역할은?',
+        koQuestion: '앞 수비가 바깥으로 보내면 뒤 수비는 무엇을 해야 할까?',
         enQuestion:
             'When the first defender shows play outside, what is the cover defender’s role?',
         correct: _QuizOption(
-          koText: '안쪽 침투 러너를 잡고 대각 커버를 준비한다',
+          koText: '안쪽으로 뛰는 선수를 잡고 비스듬히 커버한다',
           enText: 'Track the inside runner and prepare diagonal cover',
         ),
         wrongA: _QuizOption(
-          koText: '볼 쪽으로만 전원 압축한다',
+          koText: '모두 공 쪽으로만 몰린다',
           enText: 'Collapse everyone only toward the ball',
         ),
         wrongB: _QuizOption(
-          koText: '수비 라인과 상관없이 뒤로만 물러난다',
+          koText: '라인 생각 없이 뒤로만 물러난다',
           enText: 'Retreat only backward regardless of the line',
         ),
-        koExplain: '유도 수비 뒤에는 안쪽 러너와 컷인 경로를 지우는 커버가 붙어야 완성됩니다.',
+        koExplain: '바깥으로 보냈다면 뒤 수비가 안쪽으로 파고드는 길도 함께 막아줘야 해요.',
         enExplain:
             'Guiding outside works only when cover removes the inside runner and cut-in lane.',
       ),
@@ -2952,7 +2950,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn07',
     scenario: _QuizScenario(
-      koTitle: '투톱 사이에서 한 명이 뒤로 끌고, 다른 한 명이 뒷공간으로 뛰기 시작합니다.',
+      koTitle: '앞선 둘 중 한 명은 내려오고, 다른 한 명은 뒤 공간으로 뛰기 시작해요.',
       enTitle:
           'One forward checks short while the other begins a run into the back space.',
       boardPage: _quizBoard(
@@ -2971,50 +2969,50 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.58, 0.42), _p(0.6, 0.42)],
         ],
       ),
-      koMovementCaption: '체크 움직임이 수비를 끌어내는 순간, 반대 러너는 더 큰 뒷공간을 얻습니다.',
+      koMovementCaption: '한 명이 내려와 수비를 끌면, 반대쪽 친구가 뛰어갈 뒤 공간이 더 커져요.',
       enMovementCaption:
           'As the check run pulls defenders out, the opposite runner gains a bigger back-space lane.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'timing',
-        koQuestion: '가장 좋은 첫 패스 타이밍은 언제일까?',
+        koQuestion: '첫 패스를 넣기 가장 좋은 타이밍은 언제일까?',
         enQuestion: 'When is the best timing for the first pass?',
         correct: _QuizOption(
-          koText: '동료가 수비 사이 빈 공간으로 속도를 붙이는 순간',
+          koText: '친구가 수비 사이 빈 공간으로 뛰기 시작하는 순간',
           enText:
               'The moment your teammate accelerates into the gap between defenders',
         ),
         wrongA: _QuizOption(
-          koText: '동료가 멈춰 선 뒤',
+          koText: '친구가 이미 멈춘 뒤',
           enText: 'After your teammate has already stopped',
         ),
         wrongB: _QuizOption(
-          koText: '수비 두 명이 완전히 붙은 뒤',
+          koText: '수비 둘이 완전히 붙은 뒤',
           enText: 'After both defenders fully close together',
         ),
-        koExplain: '속도가 붙는 순간에 맞춰 넣어야 동료가 공간으로 받으며 다음 플레이를 이어갑니다.',
+        koExplain: '친구가 뛰기 시작할 때 맞춰 패스해야 공간으로 받으며 이어갈 수 있어요.',
         enExplain:
             'Passing on the teammate acceleration cue lets them receive into space and keep flowing.',
       ),
       _BoardQuizPrompt(
         id: 'decoy',
-        koQuestion: '짧게 내려오는 공격수의 움직임이 만드는 효과는?',
+        koQuestion: '짧게 내려오는 공격수 움직임의 좋은 점은?',
         enQuestion: 'What does the checking striker’s movement create here?',
         correct: _QuizOption(
-          koText: '수비를 끌어내 반대 러너의 뒷공간을 연다',
+          koText: '수비를 끌어내서 반대쪽 친구 뒤 공간을 연다',
           enText:
               'It pulls defenders out and opens back space for the opposite runner',
         ),
         wrongA: _QuizOption(
-          koText: '전방 공간을 더 좁혀 패스를 어렵게 만든다',
+          koText: '앞 공간을 더 좁혀 패스를 어렵게 만든다',
           enText: 'It shrinks the front space and makes the pass harder',
         ),
         wrongB: _QuizOption(
-          koText: '수비가 모두 내려앉도록 시간을 준다',
+          koText: '수비가 다 내려앉을 시간을 준다',
           enText: 'It gives the defense time to drop completely',
         ),
-        koExplain: '체크 움직임은 단독 플레이보다 반대편 러너를 위한 공간 창출 역할이 큽니다.',
+        koExplain: '내려오는 움직임은 자기보다 반대쪽 친구에게 공간을 만들어주는 데 큰 도움이 돼요.',
         enExplain:
             'The check run is valuable because it creates space for the opposite runner, not just itself.',
       ),
@@ -3023,7 +3021,7 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
   _BoardQuizSeed(
     id: 'scn08',
     scenario: _QuizScenario(
-      koTitle: '좌우로 공이 순환되고 있고, 중앙 미드필더 앞 공간이 잠깐 비었습니다.',
+      koTitle: '공이 좌우로 돌고 있고, 가운데 앞 공간이 잠깐 비었어요.',
       enTitle:
           'The ball circulates side to side, and a pocket opens briefly in front of midfield.',
       boardPage: _quizBoard(
@@ -3042,50 +3040,50 @@ final List<_BoardQuizSeed> _boardQuizSeeds = <_BoardQuizSeed>[
           [_p(0.64, 0.52), _p(0.66, 0.52)],
         ],
       ),
-      koMovementCaption: '잠깐 열린 포켓은 오래 남지 않으니, 공이 오기 전에 먼저 들어가야 합니다.',
+      koMovementCaption: '잠깐 열린 공간은 금방 닫히니까 공이 오기 전에 먼저 들어가야 해요.',
       enMovementCaption:
           'The pocket will not stay open, so you need to enter before the ball gets there.',
     ),
     prompts: const <_BoardQuizPrompt>[
       _BoardQuizPrompt(
         id: 'off-ball',
-        koQuestion: '이 장면에서 가장 좋은 오프더볼 선택은?',
+        koQuestion: '이 장면에서 공이 없을 때 가장 좋은 움직임은?',
         enQuestion: 'In this scene, what is the best off-ball choice?',
         correct: _QuizOption(
-          koText: '공보다 한 박자 먼저 빈 공간으로 이동해 패스 각도 만들기',
+          koText: '공보다 먼저 빈 공간에 들어가 패스 길 만들기',
           enText:
               'Arrive in the open space a beat early to create the passing angle',
         ),
         wrongA: _QuizOption(
-          koText: '볼 온 뒤에만 움직인다',
+          koText: '공이 온 뒤에만 움직인다',
           enText: 'Move only after the ball arrives',
         ),
         wrongB: _QuizOption(
-          koText: '동료 뒤에 숨어 서 있다',
+          koText: '친구 뒤에 숨어 서 있다',
           enText: 'Stand hidden behind your teammate',
         ),
-        koExplain: '공보다 먼저 공간을 점유하면 패스 속도에 맞춰 한 번에 연결할 수 있습니다.',
+        koExplain: '공보다 먼저 빈 곳에 들어가면 패스가 왔을 때 바로 이어갈 수 있어요.',
         enExplain:
             'Occupying the space early lets you connect in one touch at game speed.',
       ),
       _BoardQuizPrompt(
         id: 'pocket',
-        koQuestion: '보드에서 가장 빨리 사라질 수 있는 핵심 공간은 어디일까?',
+        koQuestion: '이 그림에서 가장 빨리 사라질 수 있는 공간은 어디일까?',
         enQuestion:
             'Which key space on the board is most likely to disappear first?',
         correct: _QuizOption(
-          koText: '중앙 미드필더 앞의 잠깐 열린 포켓',
+          koText: '가운데 앞에 잠깐 열린 작은 공간',
           enText: 'The briefly opened pocket in front of midfield',
         ),
         wrongA: _QuizOption(
-          koText: '터치라인 바깥 여유 공간',
+          koText: '터치라인 바깥 넓은 공간',
           enText: 'The wide open touchline space',
         ),
         wrongB: _QuizOption(
           koText: '골키퍼 뒤 공간',
           enText: 'The space behind the goalkeeper',
         ),
-        koExplain: '포켓은 짧게만 열리기 때문에 미리 점유해야 퀴즈 장면의 정답이 됩니다.',
+        koExplain: '가운데 앞 작은 공간은 금방 닫히니 미리 들어가야 해요.',
         enExplain:
             'The pocket opens only briefly, so early occupation is the key answer in this scene.',
       ),
