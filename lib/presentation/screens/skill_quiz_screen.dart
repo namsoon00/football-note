@@ -49,10 +49,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _dailyQuestionCount = 20;
 
   late final List<_QuizQuestion> _mixedPool;
+  late final Map<_QuizType, List<_QuizQuestion>> _typedPools;
   late List<_QuizQuestion> _dailyQuestions;
   late List<_QuizQuestion> _questions;
   bool _reviewMode = false;
   String _sessionSource = _QuizSessionSource.today.name;
+  _QuizType? _selectedType;
 
   int _index = 0;
   int _score = 0;
@@ -69,6 +71,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   void initState() {
     super.initState();
+    _typedPools = _buildQuizPoolsByType();
     _mixedPool = _buildMixedQuizPool();
     _dailyQuestions = _loadOrCreateTodayQuestions();
     _restoreOrStartSession();
@@ -93,6 +96,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         questions: pendingWrongQuestions,
         reviewMode: true,
         sessionSource: _QuizSessionSource.review.name,
+        selectedType: _inferQuizType(pendingWrongQuestions),
         clearPendingWrongQuestions: false,
         shouldNotify: false,
       );
@@ -107,6 +111,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _questions = session.questions;
     _reviewMode = session.reviewMode;
     _sessionSource = session.sessionSource;
+    _selectedType = _QuizTypeX.tryParse(session.quizType);
     _index = session.index.clamp(0, session.questions.length);
     _score = session.score;
     _selectedIndex = session.selectedIndex;
@@ -124,6 +129,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       questions: _dailyQuestions,
       reviewMode: false,
       sessionSource: _QuizSessionSource.today.name,
+      selectedType: null,
       clearPendingWrongQuestions: false,
       shouldNotify: shouldNotify,
     );
@@ -141,6 +147,27 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       questions: selected,
       reviewMode: false,
       sessionSource: _QuizSessionSource.random.name,
+      selectedType: null,
+      clearPendingWrongQuestions: false,
+      shouldNotify: shouldNotify,
+    );
+  }
+
+  void _startTypedSession(_QuizType type, {bool shouldNotify = true}) {
+    final sourcePool = _typedPools[type] ?? const <_QuizQuestion>[];
+    if (sourcePool.isEmpty) return;
+    final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final picked = [...sourcePool]..shuffle(random);
+    final selected = picked
+        .take(math.min(_dailyQuestionCount, picked.length))
+        .map((question) => _shuffleQuestionOptions(question, random))
+        .toList(growable: false);
+
+    _startQuestionSession(
+      questions: selected,
+      reviewMode: false,
+      sessionSource: _QuizSessionSource.random.name,
+      selectedType: type,
       clearPendingWrongQuestions: false,
       shouldNotify: shouldNotify,
     );
@@ -150,6 +177,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     required List<_QuizQuestion> questions,
     required bool reviewMode,
     required String sessionSource,
+    required _QuizType? selectedType,
     required bool clearPendingWrongQuestions,
     required bool shouldNotify,
   }) {
@@ -160,6 +188,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _questions = questions;
       _reviewMode = reviewMode;
       _sessionSource = sessionSource;
+      _selectedType = selectedType;
       _index = 0;
       _score = 0;
       _selectedIndex = null;
@@ -268,6 +297,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Widget _buildQuestion(bool isKo) {
     final question = _questions[_index];
     final progress = '${_index + 1} / ${_questions.length}';
+    final poolLabel = _selectedType == null
+        ? (isKo ? '혼합 문제풀' : 'Mixed pool')
+        : (isKo
+            ? '${_selectedType!.label(true)} 문제풀'
+            : '${_selectedType!.label(false)} pool');
+    final setLabel = _selectedType == null
+        ? (isKo ? '이번 세트' : 'this set')
+        : (isKo
+            ? '${_selectedType!.label(true)} 세트'
+            : '${_selectedType!.label(false)} set');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -289,9 +328,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                               ? (isKo
                                   ? '클리어 세트 다시 풀기 · 진행 $progress'
                                   : 'Replay cleared set · $progress')
-                              : (isKo
-                                  ? '추가 랜덤 세트 · 진행 $progress'
-                                  : 'Bonus random set · $progress')),
+                              : _selectedType != null
+                                  ? (isKo
+                                      ? '${_selectedType!.label(true)} 퀴즈 · 진행 $progress'
+                                      : '${_selectedType!.label(false)} quiz · $progress')
+                                  : (isKo
+                                      ? '추가 랜덤 세트 · 진행 $progress'
+                                      : 'Bonus random set · $progress')),
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -299,8 +342,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 const SizedBox(height: 4),
                 Text(
                   isKo
-                      ? '혼합 문제풀 ${_mixedPool.length}개 · 이번 세트 ${_dailyQuestions.length}개'
-                      : 'Mixed pool ${_mixedPool.length} · this set ${_dailyQuestions.length}',
+                      ? '$poolLabel ${_currentPoolLength()}개 · $setLabel ${_questions.length}개'
+                      : '$poolLabel ${_currentPoolLength()} · $setLabel ${_questions.length}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 10),
@@ -366,10 +409,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           if ((_answered || _retryUsed) &&
                               selected &&
                               !isCorrect)
-                            const Icon(
-                              Icons.cancel,
-                              color: Color(0xFFEB5757),
-                            ),
+                            const Icon(Icons.cancel, color: Color(0xFFEB5757)),
                         ],
                       ),
                     ),
@@ -393,8 +433,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                     ),
                     child: Text(
                       isKo ? question.koExplain : question.enExplain,
@@ -440,7 +481,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
                           : _sessionSource == _QuizSessionSource.history.name
                               ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
-                              : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
+                              : _selectedType != null
+                                  ? (isKo
+                                      ? '${_selectedType!.label(true)} 퀴즈 결과'
+                                      : '${_selectedType!.label(false)} Quiz Result')
+                                  : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
@@ -508,9 +553,17 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  onPressed: _startTodaySession,
+                  onPressed: _selectedType == null
+                      ? _startTodaySession
+                      : () => _startTypedSession(_selectedType!),
                   icon: const Icon(Icons.today_outlined),
-                  label: Text(isKo ? '오늘 퀴즈 다시 풀기' : 'Replay today quiz'),
+                  label: Text(
+                    _selectedType == null
+                        ? (isKo ? '오늘 퀴즈 다시 풀기' : 'Replay today quiz')
+                        : (isKo
+                            ? '${_selectedType!.label(true)} 퀴즈 다시 풀기'
+                            : 'Replay ${_selectedType!.label(false)} quiz'),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
@@ -524,6 +577,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                                 .toList(growable: false),
                             reviewMode: true,
                             sessionSource: _QuizSessionSource.review.name,
+                            selectedType: _selectedType,
                             clearPendingWrongQuestions: false,
                             shouldNotify: true,
                           ),
@@ -617,6 +671,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       retryFeedback: _retryFeedback,
       sessionSource: _sessionSource,
       wrongIds: _wrongIds.toList(growable: false),
+      quizType: _selectedType?.name,
     );
     await widget.optionRepository.setValue(
       SkillQuizScreen.sessionKey,
@@ -732,6 +787,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               ),
               onTap: () => Navigator.of(context).pop('random'),
             ),
+            ListTile(
+              leading: const Icon(Icons.category_outlined),
+              title: Text(isKo ? '타입별 퀴즈 선택' : 'Choose quiz type'),
+              subtitle: Text(
+                isKo
+                    ? '패스, 드리블, 볼 컨트롤, 스캔, 경기, 보드 퀴즈를 따로 풉니다.'
+                    : 'Solve pass, dribble, control, scan, match, or board quizzes separately.',
+              ),
+              onTap: () => Navigator.of(context).pop('type'),
+            ),
           ],
         ),
       ),
@@ -745,6 +810,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _startRandomMixedSession();
       return;
     }
+    if (selected == 'type') {
+      await _openQuizTypeMenu();
+      return;
+    }
     final wrongQuestions = _QuizQuestionSnapshot.decodeList(
       widget.optionRepository.getValue<String>(
         SkillQuizScreen.pendingWrongQuestionsKey,
@@ -755,9 +824,42 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       questions: wrongQuestions,
       reviewMode: true,
       sessionSource: _QuizSessionSource.review.name,
+      selectedType: _inferQuizType(wrongQuestions),
       clearPendingWrongQuestions: false,
       shouldNotify: true,
     );
+  }
+
+  Future<void> _openQuizTypeMenu() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final selected = await showModalBottomSheet<_QuizType>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.72,
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            children: _QuizType.values.map((type) {
+              final count =
+                  (_typedPools[type] ?? const <_QuizQuestion>[]).length;
+              return ListTile(
+                leading: Icon(type.icon),
+                title: Text(type.label(isKo)),
+                subtitle: Text(
+                  isKo ? '$count문제 준비됨' : '$count questions ready',
+                ),
+                onTap: () => Navigator.of(context).pop(type),
+              );
+            }).toList(growable: false),
+          ),
+        ),
+      ),
+    );
+    if (!mounted || selected == null) return;
+    _startTypedSession(selected);
   }
 
   Future<void> _openClearedHistory() async {
@@ -809,6 +911,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         questions: set.questions,
                         reviewMode: false,
                         sessionSource: _QuizSessionSource.history.name,
+                        selectedType: _inferQuizType(set.questions),
                         clearPendingWrongQuestions: false,
                         shouldNotify: true,
                       );
@@ -825,14 +928,30 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   String _formatClearedSetLabel(_ClearedQuizSet set, bool isKo) {
     final dateLabel = '${set.completedAt.month}/${set.completedAt.day}';
+    final typeLabel = _inferQuizType(set.questions)?.label(isKo);
+    final suffix = typeLabel == null ? '' : ' · $typeLabel';
     switch (set.source) {
       case 'today':
-        return isKo ? '$dateLabel 오늘 퀴즈 세트' : '$dateLabel daily quiz set';
+        return isKo
+            ? '$dateLabel 오늘 퀴즈 세트$suffix'
+            : '$dateLabel daily quiz set$suffix';
       case 'random':
-        return isKo ? '$dateLabel 추가 랜덤 세트' : '$dateLabel bonus random set';
+        return isKo
+            ? '$dateLabel 추가 랜덤 세트$suffix'
+            : '$dateLabel bonus random set$suffix';
       default:
-        return isKo ? '$dateLabel 저장 세트' : '$dateLabel saved set';
+        return isKo ? '$dateLabel 저장 세트$suffix' : '$dateLabel saved set$suffix';
     }
+  }
+
+  int _currentPoolLength() => _selectedType == null
+      ? _mixedPool.length
+      : (_typedPools[_selectedType] ?? const <_QuizQuestion>[]).length;
+
+  _QuizType? _inferQuizType(List<_QuizQuestion> questions) {
+    if (questions.isEmpty) return null;
+    final detected = questions.map(_quizTypeForQuestion).toSet();
+    return detected.length == 1 ? detected.first : null;
   }
 }
 
@@ -963,6 +1082,7 @@ class _QuizSessionSnapshot {
   final bool retryUsed;
   final String? retryFeedback;
   final List<String> wrongIds;
+  final String? quizType;
 
   const _QuizSessionSnapshot({
     required this.reviewMode,
@@ -976,6 +1096,7 @@ class _QuizSessionSnapshot {
     required this.retryUsed,
     required this.retryFeedback,
     required this.wrongIds,
+    required this.quizType,
   });
 
   String encode() {
@@ -997,6 +1118,7 @@ class _QuizSessionSnapshot {
       'retryUsed': retryUsed,
       'retryFeedback': retryFeedback,
       'wrongIds': wrongIds,
+      'quizType': quizType,
     });
   }
 
@@ -1028,6 +1150,7 @@ class _QuizSessionSnapshot {
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
+        quizType: decoded['quizType']?.toString(),
       );
     } catch (_) {
       return null;
@@ -1162,7 +1285,50 @@ class _QuizQuestionSnapshot {
 
 enum _QuizSessionSource { today, random, history, review }
 
-enum _QuizType { pass, dribble, control, scan, match }
+enum _QuizType { pass, dribble, control, scan, match, board }
+
+extension _QuizTypeX on _QuizType {
+  String label(bool isKo) {
+    switch (this) {
+      case _QuizType.pass:
+        return isKo ? '패스' : 'Pass';
+      case _QuizType.dribble:
+        return isKo ? '드리블' : 'Dribble';
+      case _QuizType.control:
+        return isKo ? '볼 컨트롤' : 'Control';
+      case _QuizType.scan:
+        return isKo ? '스캔' : 'Scan';
+      case _QuizType.match:
+        return isKo ? '경기 이해' : 'Match';
+      case _QuizType.board:
+        return isKo ? '보드' : 'Board';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case _QuizType.pass:
+        return Icons.arrow_forward_outlined;
+      case _QuizType.dribble:
+        return Icons.directions_run_outlined;
+      case _QuizType.control:
+        return Icons.sports_soccer_outlined;
+      case _QuizType.scan:
+        return Icons.visibility_outlined;
+      case _QuizType.match:
+        return Icons.stadium_outlined;
+      case _QuizType.board:
+        return Icons.developer_board_outlined;
+    }
+  }
+
+  static _QuizType? tryParse(String? raw) {
+    for (final type in _QuizType.values) {
+      if (type.name == raw) return type;
+    }
+    return null;
+  }
+}
 
 class _QuizQuestion {
   final String id;
@@ -1404,6 +1570,9 @@ List<_QuizQuestion> _buildTypedQuizPool(_QuizType type) {
   if (type == _QuizType.match) {
     return _buildMatchQuizPool();
   }
+  if (type == _QuizType.board) {
+    return _buildScenarioQuizPool();
+  }
   final concepts = _conceptsByType[type] ?? const <_QuizConcept>[];
   final pool = <_QuizQuestion>[];
   for (final s in _situations) {
@@ -1426,6 +1595,12 @@ List<_QuizQuestion> _buildTypedQuizPool(_QuizType type) {
   return pool;
 }
 
+Map<_QuizType, List<_QuizQuestion>> _buildQuizPoolsByType() {
+  return <_QuizType, List<_QuizQuestion>>{
+    for (final type in _QuizType.values) type: _buildTypedQuizPool(type),
+  };
+}
+
 List<_QuizQuestion> _buildMixedQuizPool() {
   return [
     ..._buildTypedQuizPool(_QuizType.pass),
@@ -1433,7 +1608,7 @@ List<_QuizQuestion> _buildMixedQuizPool() {
     ..._buildTypedQuizPool(_QuizType.control),
     ..._buildTypedQuizPool(_QuizType.scan),
     ..._buildTypedQuizPool(_QuizType.match),
-    ..._buildScenarioQuizPool(),
+    ..._buildTypedQuizPool(_QuizType.board),
   ];
 }
 
@@ -1513,6 +1688,20 @@ _QuizQuestion _shuffleQuestionOptions(
     enExplain: question.enExplain,
     scenario: question.scenario,
   );
+}
+
+_QuizType _quizTypeForQuestion(_QuizQuestion question) {
+  if (question.scenario != null) return _QuizType.board;
+  if (question.id.startsWith('m_')) return _QuizType.match;
+  for (final type in const <_QuizType>[
+    _QuizType.pass,
+    _QuizType.dribble,
+    _QuizType.control,
+    _QuizType.scan,
+  ]) {
+    if (question.id.startsWith('${type.name}_')) return type;
+  }
+  return _QuizType.match;
 }
 
 _OptionPack _buildOptionPack(
