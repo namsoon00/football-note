@@ -64,14 +64,31 @@ class TrainingBoardSketch extends StatelessWidget {
                       'ladder' => Icons.view_week,
                       _ => Icons.circle,
                     };
+                    final iconSize = switch (item.type) {
+                      'ball' => (item.size * 0.86).clamp(22.0, 30.0),
+                      'player' => (item.size * 0.7).clamp(20.0, 30.0),
+                      _ => (item.size * 0.58).clamp(16.0, 24.0),
+                    };
+                    final offsetX = item.type == 'ball'
+                        ? -iconSize * 0.45
+                        : -iconSize * 0.5;
+                    final offsetY = item.type == 'ball'
+                        ? -iconSize * 0.55
+                        : -iconSize * 0.5;
                     return Positioned(
-                      left: (item.x * width).clamp(6.0, width - 22.0),
-                      top: (item.y * height).clamp(4.0, height - 22.0),
+                      left: (item.x * width + offsetX).clamp(
+                        4.0,
+                        width - iconSize - 4,
+                      ),
+                      top: (item.y * height + offsetY).clamp(
+                        4.0,
+                        height - iconSize - 4,
+                      ),
                       child: Transform.rotate(
                         angle: item.rotationDeg * 3.1415926535897932 / 180,
                         child: Icon(
                           icon,
-                          size: (item.size * 0.42).clamp(10.0, 21.0),
+                          size: iconSize,
                           color: Color(item.colorValue).withValues(alpha: 0.96),
                         ),
                       ),
@@ -185,7 +202,7 @@ class _TrainingBoardSketchPainter extends CustomPainter {
       final ballPaint = Paint()
         ..color = const Color(0xFFFFF59D)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6
+        ..strokeWidth = 2.4
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
       final ballPath = Path()
