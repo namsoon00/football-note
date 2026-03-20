@@ -14,6 +14,7 @@ import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../domain/entities/player_profile.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/player_level_visuals.dart';
 
 class ProfileScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -82,6 +83,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final levelState = PlayerLevelService(widget.optionRepository).loadState();
+    final rewardStatuses = PlayerLevelService(
+      widget.optionRepository,
+    ).loadRewardStatuses();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -95,6 +99,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _ProfileLevelHeroCard(
+              levelState: levelState,
+              rewardStatuses: rewardStatuses,
+              isKo: isKo,
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 _ProfileAvatar(
@@ -117,8 +127,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _genderLabel(_gender, isKo),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      const SizedBox(height: 8),
-                      _LevelBadge(levelState: levelState, isKo: isKo),
                     ],
                   ),
                 ),
@@ -981,57 +989,203 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _LevelBadge extends StatelessWidget {
+class _ProfileLevelHeroCard extends StatelessWidget {
   final PlayerLevelState levelState;
+  final List<PlayerLevelRewardStatus> rewardStatuses;
   final bool isKo;
 
-  const _LevelBadge({required this.levelState, required this.isKo});
+  const _ProfileLevelHeroCard({
+    required this.levelState,
+    required this.rewardStatuses,
+    required this.isKo,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final levelName = PlayerLevelService.levelName(levelState.level, isKo);
-    final stageName = PlayerLevelService.stageName(levelState.level, isKo);
+    final spec = PlayerLevelVisualSpec.fromLevel(levelState.level);
+    final claimableRewards = rewardStatuses.where(
+      (item) =>
+          item.isAvailable &&
+          !item.isClaimed &&
+          item.customRewardName.trim().isNotEmpty,
+    );
+    PlayerLevelRewardStatus? nextReward;
+    for (final status in rewardStatuses) {
+      if (status.customRewardName.trim().isEmpty || status.isClaimed) continue;
+      nextReward = status;
+      break;
+    }
+    final rewardSummary = claimableRewards.isNotEmpty
+        ? (isKo
+            ? '지금 받을 선물 ${claimableRewards.length}개'
+            : '${claimableRewards.length} rewards ready')
+        : nextReward == null
+            ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
+            : nextReward.isAvailable
+                ? (isKo
+                    ? '지금 선물: ${nextReward.customRewardName}'
+                    : 'Reward now: ${nextReward.customRewardName}')
+                : (isKo
+                    ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
+                    : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
+
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.66),
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: spec.colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            'Lv.${levelState.level} · $levelName',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: scheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w800,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isKo ? '선수 레벨' : 'Player level',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.86),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            stageName,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
-                  fontWeight: FontWeight.w700,
+                const SizedBox(height: 4),
+                Text(
+                  'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
-          ),
-          const SizedBox(height: 6),
-          LinearProgressIndicator(
-            value: levelState.progress,
-            minHeight: 6,
-            borderRadius: BorderRadius.circular(999),
-            backgroundColor: scheme.onPrimaryContainer.withValues(alpha: 0.20),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            isKo
-                ? '다음 레벨까지 ${levelState.xpToNextLevel}XP'
-                : '${levelState.xpToNextLevel} XP to next level',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onPrimaryContainer.withValues(alpha: 0.82),
+                const SizedBox(height: 2),
+                Text(
+                  PlayerLevelService.stageName(levelState.level, isKo),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: levelState.progress,
+                    minHeight: 8,
+                    backgroundColor: Colors.white.withValues(alpha: 0.22),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isKo
+                      ? '다음 ${levelState.xpToNextLevel} XP · 총 ${levelState.totalXp} XP'
+                      : '${levelState.xpToNextLevel} XP to next level · ${levelState.totalXp} XP total',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  rewardSummary,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.94),
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          _ProfileLevelIllustration(isKo: isKo, level: levelState.level),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileLevelIllustration extends StatelessWidget {
+  final bool isKo;
+  final int level;
+
+  const _ProfileLevelIllustration({required this.isKo, required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 94,
+      height: 102,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            right: 2,
+            top: 2,
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 8,
+            top: 6,
+            child: PlayerLevelIllustration(level: level, size: 68),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    PlayerLevelService.illustrationLabel(level, isKo),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    isKo ? '비주얼 성장 단계' : 'Visual growth tier',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.82),
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

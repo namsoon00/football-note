@@ -212,14 +212,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         'quick_create_quiz',
                         widget.onQuickQuiz,
                       ),
-                      onQuickBoard: _trackedAction(
-                        'quick_open_board',
-                        widget.onQuickBoard,
-                      ),
-                      onOpenWeeklyStats: _trackedAction(
-                        'quick_open_weekly_stats',
-                        () => _openWeeklyStats(context),
-                      )!,
                     ),
                     const SizedBox(height: 12),
                     _ContinueCard(
@@ -329,11 +321,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
     if (!mounted) return;
     setState(() {});
-  }
-
-  Future<void> _openWeeklyStats(BuildContext context) async {
-    widget.onOpenWeeklyStats();
-    await Future<void>.delayed(Duration.zero);
   }
 
   Future<void> _openBoard(BuildContext context, TrainingBoard board) async {
@@ -933,8 +920,6 @@ class _QuickActionGrid extends StatelessWidget {
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickQuiz;
-  final VoidCallback? onQuickBoard;
-  final VoidCallback onOpenWeeklyStats;
 
   const _QuickActionGrid({
     required this.isKo,
@@ -942,8 +927,6 @@ class _QuickActionGrid extends StatelessWidget {
     required this.onQuickMatch,
     required this.onQuickPlan,
     required this.onQuickQuiz,
-    required this.onQuickBoard,
-    required this.onOpenWeeklyStats,
   });
 
   @override
@@ -970,18 +953,6 @@ class _QuickActionGrid extends StatelessWidget {
         onTap: onQuickPlan,
       ),
     ];
-    final secondaryItems = <_QuickActionItem>[
-      _QuickActionItem(
-        icon: Icons.developer_board_outlined,
-        title: isKo ? '훈련보드' : 'Boards',
-        onTap: onQuickBoard,
-      ),
-      _QuickActionItem(
-        icon: Icons.bar_chart_outlined,
-        title: isKo ? '이번 주 통계' : 'This week stats',
-        onTap: onOpenWeeklyStats,
-      ),
-    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1004,16 +975,6 @@ class _QuickActionGrid extends StatelessWidget {
           itemCount: primaryItems.length,
           itemBuilder: (context, index) =>
               _QuickActionButton(item: primaryItems[index]),
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: secondaryItems
-              .map(
-                (item) => _SecondaryQuickActionButton(item: item),
-              )
-              .toList(growable: false),
         ),
       ],
     );
@@ -1392,24 +1353,6 @@ class _QuickActionButton extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SecondaryQuickActionButton extends StatelessWidget {
-  final _QuickActionItem item;
-
-  const _SecondaryQuickActionButton({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton.tonalIcon(
-      onPressed: item.onTap,
-      icon: Icon(item.icon, size: 18),
-      label: Text(item.title),
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       ),
     );
   }
