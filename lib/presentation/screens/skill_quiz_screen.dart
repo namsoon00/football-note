@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -16,6 +17,10 @@ class SkillQuizScreen extends StatefulWidget {
   static const String completionKey = 'skill_quiz_completed_at';
   static const String sessionKey = 'skill_quiz_session_v1';
   static const String pendingWrongQuestionsKey = 'skill_quiz_pending_wrong_v1';
+  static const String pendingWrongScheduleKey =
+      'skill_quiz_pending_wrong_schedule_v2';
+  static const String metricsKey = 'skill_quiz_metrics_v1';
+  static const String recentPerformanceKey = 'skill_quiz_recent_performance_v1';
   static const String dailyQuestionsKey = 'skill_quiz_daily_questions_v2';
   static const String dailyQuestionsDayKey =
       'skill_quiz_daily_questions_day_v2';
@@ -29,15 +34,18 @@ class SkillQuizScreen extends StatefulWidget {
     final session = _QuizSessionSnapshot.tryParse(
       optionRepository.getValue<String>(sessionKey),
     );
-    final pendingWrongQuestions = _QuizQuestionSnapshot.decodeList(
-      optionRepository.getValue<String>(pendingWrongQuestionsKey),
+    final pendingWrongQuestions = _PendingWrongReviewItem.decodeList(
+      optionRepository.getValue<String>(pendingWrongScheduleKey),
     );
+    final now = DateTime.now();
+    final dueWrongCount =
+        pendingWrongQuestions.where((item) => !item.dueAt.isAfter(now)).length;
     return SkillQuizResumeSummary(
       hasActiveSession: session != null,
       reviewMode: session?.reviewMode ?? false,
       currentIndex: session?.index ?? 0,
       totalQuestions: session?.questions.length ?? 0,
-      pendingWrongCount: pendingWrongQuestions.length,
+      pendingWrongCount: dueWrongCount,
     );
   }
 
@@ -47,6 +55,9 @@ class SkillQuizScreen extends StatefulWidget {
 
 class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _dailyQuestionCount = 20;
+  static const int _speedQuestionCount = 10;
+  static const int _practicalQuestionCount = 10;
+  static const int _speedSecondsPerQuestion = 12;
 
   late final List<_QuizQuestion> _mixedPool;
   late final Map<_QuizType, List<_QuizQuestion>> _typedPools;
@@ -55,14 +66,24 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   bool _reviewMode = false;
   String _sessionSource = _QuizSessionSource.today.name;
   _QuizType? _selectedType;
+  _QuizPlayMode _playMode = _QuizPlayMode.standard;
 
   int _index = 0;
   int _score = 0;
+  int _streak = 0;
+  int _bestStreak = 0;
   int? _selectedIndex;
   bool _answered = false;
   bool _retryUsed = false;
   String? _retryFeedback;
   final Set<String> _wrongIds = <String>{};
+  DateTime? _questionShownAt;
+  Timer? _speedTimer;
+  int _speedSecondsLeft = _speedSecondsPerQuestion;
+  int _timeoutCount = 0;
+  int _totalAnsweredCount = 0;
+  int _totalResponseMillis = 0;
+  int _missionTarget = 5;
   bool _completionRecorded = false;
   PlayerLevelAward? _quizAward;
 
@@ -77,6 +98,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _restoreOrStartSession();
   }
 
+  @override
+  void dispose() {
+    _speedTimer?.cancel();
+    super.dispose();
+  }
+
   void _restoreOrStartSession() {
     final restored = _QuizSessionSnapshot.tryParse(
       widget.optionRepository.getValue<String>(SkillQuizScreen.sessionKey),
@@ -86,18 +113,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       return;
     }
 
-    final pendingWrongQuestions = _QuizQuestionSnapshot.decodeList(
-      widget.optionRepository.getValue<String>(
-        SkillQuizScreen.pendingWrongQuestionsKey,
-      ),
-    );
+    final pendingWrongQuestions = _loadDueWrongQuestions();
     if (pendingWrongQuestions.isNotEmpty) {
       _startQuestionSession(
         questions: pendingWrongQuestions,
         reviewMode: true,
         sessionSource: _QuizSessionSource.review.name,
+        playMode: _QuizPlayMode.review,
         selectedType: _inferQuizType(pendingWrongQuestions),
-        clearPendingWrongQuestions: false,
+        clearPendingWrongQuestions: true,
         shouldNotify: false,
       );
       return;
@@ -112,8 +136,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _reviewMode = session.reviewMode;
     _sessionSource = session.sessionSource;
     _selectedType = _QuizTypeX.tryParse(session.quizType);
+    _playMode = _QuizPlayModeX.tryParse(session.playMode) ??
+        (session.reviewMode ? _QuizPlayMode.review : _QuizPlayMode.standard);
     _index = session.index.clamp(0, session.questions.length);
     _score = session.score;
+    _streak = session.streak;
+    _bestStreak = session.bestStreak;
+    _timeoutCount = session.timeoutCount;
+    _totalAnsweredCount = session.totalAnsweredCount;
+    _totalResponseMillis = session.totalResponseMillis;
+    _missionTarget = session.missionTarget <= 0 ? 5 : session.missionTarget;
     _selectedIndex = session.selectedIndex;
     _answered = session.answered;
     _retryUsed = session.retryUsed;
@@ -121,6 +153,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _wrongIds
       ..clear()
       ..addAll(session.wrongIds);
+    _startQuestionClock();
   }
 
   void _startTodaySession({bool shouldNotify = true}) {
@@ -129,6 +162,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       questions: _dailyQuestions,
       reviewMode: false,
       sessionSource: _QuizSessionSource.today.name,
+      playMode: _QuizPlayMode.standard,
       selectedType: null,
       clearPendingWrongQuestions: false,
       shouldNotify: shouldNotify,
@@ -137,16 +171,58 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   void _startRandomMixedSession({bool shouldNotify = true}) {
     final random = math.Random(DateTime.now().microsecondsSinceEpoch);
-    final picked = [..._mixedPool]..shuffle(random);
-    final selected = picked
-        .take(math.min(_dailyQuestionCount, picked.length))
-        .map((question) => _shuffleQuestionOptions(question, random))
-        .toList(growable: false);
+    final selected = _selectAdaptiveQuestions(
+      source: _mixedPool,
+      count: _dailyQuestionCount,
+      random: random,
+    );
 
     _startQuestionSession(
       questions: selected,
       reviewMode: false,
       sessionSource: _QuizSessionSource.random.name,
+      playMode: _QuizPlayMode.standard,
+      selectedType: null,
+      clearPendingWrongQuestions: false,
+      shouldNotify: shouldNotify,
+    );
+  }
+
+  void _startSpeedSession({bool shouldNotify = true}) {
+    final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final selected = _selectAdaptiveQuestions(
+      source: _mixedPool,
+      count: _speedQuestionCount,
+      random: random,
+    );
+    _startQuestionSession(
+      questions: selected,
+      reviewMode: false,
+      sessionSource: _QuizSessionSource.random.name,
+      playMode: _QuizPlayMode.speed,
+      selectedType: null,
+      clearPendingWrongQuestions: false,
+      shouldNotify: shouldNotify,
+    );
+  }
+
+  void _startPracticalSession({bool shouldNotify = true}) {
+    final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final practicalSource = <_QuizQuestion>[
+      ...(_typedPools[_QuizType.match] ?? const <_QuizQuestion>[]),
+      ...(_typedPools[_QuizType.board] ?? const <_QuizQuestion>[]),
+      ...(_typedPools[_QuizType.scan] ?? const <_QuizQuestion>[]),
+    ];
+    final selected = _selectAdaptiveQuestions(
+      source: practicalSource,
+      count: _practicalQuestionCount,
+      random: random,
+    );
+    _startQuestionSession(
+      questions: selected,
+      reviewMode: false,
+      sessionSource: _QuizSessionSource.random.name,
+      playMode: _QuizPlayMode.practical,
       selectedType: null,
       clearPendingWrongQuestions: false,
       shouldNotify: shouldNotify,
@@ -157,16 +233,17 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final sourcePool = _typedPools[type] ?? const <_QuizQuestion>[];
     if (sourcePool.isEmpty) return;
     final random = math.Random(DateTime.now().microsecondsSinceEpoch);
-    final picked = [...sourcePool]..shuffle(random);
-    final selected = picked
-        .take(math.min(_dailyQuestionCount, picked.length))
-        .map((question) => _shuffleQuestionOptions(question, random))
-        .toList(growable: false);
+    final selected = _selectAdaptiveQuestions(
+      source: sourcePool,
+      count: _dailyQuestionCount,
+      random: random,
+    );
 
     _startQuestionSession(
       questions: selected,
       reviewMode: false,
       sessionSource: _QuizSessionSource.random.name,
+      playMode: _QuizPlayMode.standard,
       selectedType: type,
       clearPendingWrongQuestions: false,
       shouldNotify: shouldNotify,
@@ -177,6 +254,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     required List<_QuizQuestion> questions,
     required bool reviewMode,
     required String sessionSource,
+    required _QuizPlayMode playMode,
     required _QuizType? selectedType,
     required bool clearPendingWrongQuestions,
     required bool shouldNotify,
@@ -188,14 +266,23 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _questions = questions;
       _reviewMode = reviewMode;
       _sessionSource = sessionSource;
+      _playMode = playMode;
       _selectedType = selectedType;
       _index = 0;
       _score = 0;
+      _streak = 0;
+      _bestStreak = 0;
       _selectedIndex = null;
       _answered = false;
       _retryUsed = false;
       _retryFeedback = null;
+      _timeoutCount = 0;
+      _totalAnsweredCount = 0;
+      _totalResponseMillis = 0;
+      _missionTarget = _targetMissionForMode(playMode);
       _wrongIds.clear();
+      _completionRecorded = false;
+      _quizAward = null;
     }
 
     if (shouldNotify) {
@@ -204,8 +291,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       apply();
     }
     if (clearPendingWrongQuestions) {
-      unawaited(_persistPendingWrongQuestions(const <_QuizQuestion>[]));
+      unawaited(_removeDueWrongQuestions(questions));
     }
+    _startQuestionClock();
+    unawaited(_trackMetric('started'));
     unawaited(_persistSession());
   }
 
@@ -213,21 +302,38 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     if (_isFinished || _answered) return;
     final question = _questions[_index];
     final isCorrect = choice == question.correctIndex;
+    final responseMs = DateTime.now()
+        .difference(_questionShownAt ?? DateTime.now())
+        .inMilliseconds;
     setState(() {
       _selectedIndex = choice;
       if (isCorrect) {
         _answered = true;
         _score++;
+        _streak += 1;
+        if (_streak > _bestStreak) _bestStreak = _streak;
         _retryFeedback = null;
+        _hapticCorrect();
       } else if (!_retryUsed) {
         _retryUsed = true;
         _retryFeedback = 'incorrect';
+        _streak = 0;
+        _hapticWrong();
       } else {
         _answered = true;
         _wrongIds.add(question.id);
         _retryFeedback = null;
+        _streak = 0;
+        _hapticWrong();
+      }
+      if (_answered) {
+        _totalAnsweredCount += 1;
+        _totalResponseMillis += math.max(0, responseMs);
       }
     });
+    if (_answered) {
+      _speedTimer?.cancel();
+    }
     unawaited(_persistSession());
   }
 
@@ -246,6 +352,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       unawaited(_completeCurrentSession());
       return;
     }
+    _startQuestionClock();
     unawaited(_persistSession());
   }
 
@@ -253,7 +360,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final wrongQuestions = _questions
         .where((question) => _wrongIds.contains(question.id))
         .toList(growable: false);
-    await _persistPendingWrongQuestions(wrongQuestions);
+    await _schedulePendingWrongQuestions(wrongQuestions);
+    await _recordRecentPerformance();
+    await _trackMetric('completed');
+    if (_playMode == _QuizPlayMode.review) {
+      await _trackMetric('review_completed');
+    }
     if (!_reviewMode) {
       await _persistClearedSet(
         _ClearedQuizSet(
@@ -300,13 +412,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final poolLabel = _selectedType == null
         ? (isKo ? '혼합 문제풀' : 'Mixed pool')
         : (isKo
-              ? '${_selectedType!.label(true)} 문제풀'
-              : '${_selectedType!.label(false)} pool');
+            ? '${_selectedType!.label(true)} 문제풀'
+            : '${_selectedType!.label(false)} pool');
     final setLabel = _selectedType == null
         ? (isKo ? '이번 세트' : 'this set')
         : (isKo
-              ? '${_selectedType!.label(true)} 세트'
-              : '${_selectedType!.label(false)} set');
+            ? '${_selectedType!.label(true)} 세트'
+            : '${_selectedType!.label(false)} set');
+    final missionProgress = math.min(_score, _missionTarget);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -318,23 +431,23 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 Text(
                   _reviewMode
                       ? (isKo
-                            ? '오답 복습 · 진행 $progress'
-                            : 'Wrong review · $progress')
+                          ? '오답 복습 · 진행 $progress'
+                          : 'Wrong review · $progress')
                       : (_sessionSource == _QuizSessionSource.today.name
-                            ? (isKo
-                                  ? '오늘의 퀴즈 · 진행 $progress'
-                                  : 'Daily quiz · $progress')
-                            : _sessionSource == _QuizSessionSource.history.name
-                            ? (isKo
+                          ? (isKo
+                              ? '오늘의 퀴즈 · 진행 $progress'
+                              : 'Daily quiz · $progress')
+                          : _sessionSource == _QuizSessionSource.history.name
+                              ? (isKo
                                   ? '클리어 세트 다시 풀기 · 진행 $progress'
                                   : 'Replay cleared set · $progress')
-                            : _selectedType != null
-                            ? (isKo
-                                  ? '${_selectedType!.label(true)} 퀴즈 · 진행 $progress'
-                                  : '${_selectedType!.label(false)} quiz · $progress')
-                            : (isKo
-                                  ? '추가 랜덤 세트 · 진행 $progress'
-                                  : 'Bonus random set · $progress')),
+                              : _selectedType != null
+                                  ? (isKo
+                                      ? '${_selectedType!.label(true)} 퀴즈 · 진행 $progress'
+                                      : '${_selectedType!.label(false)} quiz · $progress')
+                                  : (isKo
+                                      ? '추가 랜덤 세트 · 진행 $progress'
+                                      : 'Bonus random set · $progress')),
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -345,6 +458,60 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       ? '$poolLabel ${_currentPoolLength()}개 · $setLabel ${_questions.length}개'
                       : '$poolLabel ${_currentPoolLength()} · $setLabel ${_questions.length}',
                   style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          isKo
+                              ? '오늘 미션: 정답 $missionProgress/$_missionTarget'
+                              : 'Mission: $missionProgress/$_missionTarget correct',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ),
+                    if (_playMode == _QuizPlayMode.speed) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _speedSecondsLeft <= 3
+                              ? const Color(0x1AEB5757)
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          isKo
+                              ? '⏱ ${_speedSecondsLeft}s'
+                              : '⏱ ${_speedSecondsLeft}s',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 10),
                 if (question.scenario != null) ...[
@@ -357,8 +524,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     child: Text(
                       isKo ? question.koQuestion : question.enQuestion,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ),
@@ -390,8 +557,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           vertical: 12,
                         ),
                         side: BorderSide(
-                          color:
-                              borderColor ??
+                          color: borderColor ??
                               Theme.of(context).colorScheme.outlineVariant,
                           width: borderColor == null ? 1.0 : 1.6,
                         ),
@@ -423,9 +589,21 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         ? '틀렸어요. 다시 한 번 풀어보세요.'
                         : 'Incorrect. Try this question one more time.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFFEB5757),
-                      fontWeight: FontWeight.w700,
-                    ),
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ],
+                if (!_answered && _retryFeedback == 'timeout') ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    isKo
+                        ? '시간 초과! 다음에는 더 빠르게 선택해보세요.'
+                        : 'Time out! Try a faster decision next time.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 ],
                 const SizedBox(height: 10),
@@ -479,14 +657,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   _reviewMode
                       ? (isKo ? '오답 복습 결과' : 'Wrong Review Result')
                       : (_sessionSource == _QuizSessionSource.today.name
-                            ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
-                            : _sessionSource == _QuizSessionSource.history.name
-                            ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
-                            : _selectedType != null
-                            ? (isKo
-                                  ? '${_selectedType!.label(true)} 퀴즈 결과'
-                                  : '${_selectedType!.label(false)} Quiz Result')
-                            : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
+                          ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
+                          : _sessionSource == _QuizSessionSource.history.name
+                              ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
+                              : _selectedType != null
+                                  ? (isKo
+                                      ? '${_selectedType!.label(true)} 퀴즈 결과'
+                                      : '${_selectedType!.label(false)} Quiz Result')
+                                  : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
@@ -499,14 +677,22 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : '$_score / $total correct ($ratio%)',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   isKo ? '오답 $wrongCount개' : '$wrongCount wrong question(s)',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isKo
+                      ? '최고 연속 정답 $_bestStreak회 · 평균 반응 ${_averageResponseText(true)}'
+                      : 'Best streak $_bestStreak · Avg response ${_averageResponseText(false)}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
                 if (wrongCount > 0) ...[
                   const SizedBox(height: 8),
@@ -534,15 +720,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     child: Text(
                       _quizAward!.didLevelUp
                           ? (isKo
-                                ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
-                                : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
+                              ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
+                              : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
                           : (isKo
-                                ? '+${_quizAward!.gainedXp} XP 획득'
-                                : '+${_quizAward!.gainedXp} XP earned'),
+                              ? '+${_quizAward!.gainedXp} XP 획득'
+                              : '+${_quizAward!.gainedXp} XP earned'),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ],
@@ -562,8 +748,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     _selectedType == null
                         ? (isKo ? '오늘 퀴즈 다시 풀기' : 'Replay today quiz')
                         : (isKo
-                              ? '${_selectedType!.label(true)} 퀴즈 다시 풀기'
-                              : 'Replay ${_selectedType!.label(false)} quiz'),
+                            ? '${_selectedType!.label(true)} 퀴즈 다시 풀기'
+                            : 'Replay ${_selectedType!.label(false)} quiz'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -571,17 +757,18 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   onPressed: wrongCount == 0
                       ? null
                       : () => _startQuestionSession(
-                          questions: _questions
-                              .where(
-                                (question) => _wrongIds.contains(question.id),
-                              )
-                              .toList(growable: false),
-                          reviewMode: true,
-                          sessionSource: _QuizSessionSource.review.name,
-                          selectedType: _selectedType,
-                          clearPendingWrongQuestions: false,
-                          shouldNotify: true,
-                        ),
+                            questions: _questions
+                                .where(
+                                  (question) => _wrongIds.contains(question.id),
+                                )
+                                .toList(growable: false),
+                            reviewMode: true,
+                            sessionSource: _QuizSessionSource.review.name,
+                            playMode: _QuizPlayMode.review,
+                            selectedType: _selectedType,
+                            clearPendingWrongQuestions: false,
+                            shouldNotify: true,
+                          ),
                   icon: const Icon(Icons.rule_folder_outlined),
                   label: Text(
                     isKo ? '이번 오답 바로 복습' : 'Review wrong answers now',
@@ -592,6 +779,20 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   onPressed: _startRandomMixedSession,
                   icon: const Icon(Icons.casino_outlined),
                   label: Text(isKo ? '추가 랜덤 세트 받기' : 'Get another random set'),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _startSpeedSession,
+                  icon: const Icon(Icons.speed_outlined),
+                  label: Text(isKo ? '스피드 모드(10문제)' : 'Speed mode (10)'),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _startPracticalSession,
+                  icon: const Icon(Icons.stadium_outlined),
+                  label: Text(
+                    isKo ? '실전 모드(판단 10문제)' : 'Practical mode (10)',
+                  ),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
@@ -624,11 +825,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       context,
       text: award.didLevelUp
           ? (isKo
-                ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
-                : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
+              ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
+              : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
           : (isKo
-                ? '+${award.gainedXp} XP 획득'
-                : '+${award.gainedXp} XP earned'),
+              ? '+${award.gainedXp} XP 획득'
+              : '+${award.gainedXp} XP earned'),
     );
     if (!award.didLevelUp) return;
     final customRewardName = PlayerLevelService(
@@ -673,6 +874,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       sessionSource: _sessionSource,
       wrongIds: _wrongIds.toList(growable: false),
       quizType: _selectedType?.name,
+      playMode: _playMode.name,
+      streak: _streak,
+      bestStreak: _bestStreak,
+      timeoutCount: _timeoutCount,
+      totalAnsweredCount: _totalAnsweredCount,
+      totalResponseMillis: _totalResponseMillis,
+      missionTarget: _missionTarget,
     );
     await widget.optionRepository.setValue(
       SkillQuizScreen.sessionKey,
@@ -680,13 +888,39 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     );
   }
 
-  Future<void> _persistPendingWrongQuestions(
-    List<_QuizQuestion> questions,
-  ) async {
-    await widget.optionRepository.setValue(
-      SkillQuizScreen.pendingWrongQuestionsKey,
-      _QuizQuestionSnapshot.encodeList(questions),
-    );
+  void _startQuestionClock() {
+    _questionShownAt = DateTime.now();
+    _speedTimer?.cancel();
+    if (_playMode != _QuizPlayMode.speed || _answered || _isFinished) return;
+    _speedSecondsLeft = _speedSecondsPerQuestion;
+    _speedTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _answered || _isFinished) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _speedSecondsLeft -= 1;
+        if (_speedSecondsLeft <= 0) {
+          timer.cancel();
+          _onQuestionTimeout();
+        }
+      });
+    });
+  }
+
+  void _onQuestionTimeout() {
+    if (_answered || _isFinished) return;
+    setState(() {
+      _answered = true;
+      _retryUsed = true;
+      _retryFeedback = 'timeout';
+      _wrongIds.add(_questions[_index].id);
+      _streak = 0;
+      _timeoutCount += 1;
+      _totalAnsweredCount += 1;
+      _totalResponseMillis += (_speedSecondsPerQuestion * 1000);
+    });
+    unawaited(_persistSession());
   }
 
   List<_QuizQuestion> _loadOrCreateTodayQuestions() {
@@ -720,11 +954,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   List<_QuizQuestion> _selectDailyQuestions(String token) {
     final random = math.Random(_stableHash(token));
-    final picked = [..._mixedPool]..shuffle(random);
-    return picked
-        .take(math.min(_dailyQuestionCount, picked.length))
-        .map((question) => _shuffleQuestionOptions(question, random))
-        .toList(growable: false);
+    return _selectAdaptiveQuestions(
+      source: _mixedPool,
+      count: _dailyQuestionCount,
+      random: random,
+    );
   }
 
   String _todayToken() {
@@ -742,15 +976,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _persistClearedSet(_ClearedQuizSet set) async {
     final sets = _loadClearedSets();
-    final deduped = sets
-        .where((item) {
-          final sameTime = item.completedAt == set.completedAt;
-          final sameQuestions =
-              item.questions.map((question) => question.id).join(',') ==
+    final deduped = sets.where((item) {
+      final sameTime = item.completedAt == set.completedAt;
+      final sameQuestions =
+          item.questions.map((question) => question.id).join(',') ==
               set.questions.map((question) => question.id).join(',');
-          return !(sameTime || sameQuestions);
-        })
-        .toList(growable: true);
+      return !(sameTime || sameQuestions);
+    }).toList(growable: true);
     deduped.insert(0, set);
     await widget.optionRepository.setValue(
       SkillQuizScreen.clearedSetsKey,
@@ -791,6 +1023,24 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               onTap: () => Navigator.of(context).pop('random'),
             ),
             ListTile(
+              leading: const Icon(Icons.speed_outlined),
+              title: Text(isKo ? '스피드 모드(10문제)' : 'Speed mode (10)'),
+              subtitle: Text(
+                isKo ? '문항마다 제한시간이 있습니다.' : 'Each question has a time limit.',
+              ),
+              onTap: () => Navigator.of(context).pop('speed'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.stadium_outlined),
+              title: Text(isKo ? '실전 모드(10문제)' : 'Practical mode (10)'),
+              subtitle: Text(
+                isKo
+                    ? '경기 판단 중심 문제로 구성됩니다.'
+                    : 'Focus on game decision scenarios.',
+              ),
+              onTap: () => Navigator.of(context).pop('practical'),
+            ),
+            ListTile(
               leading: const Icon(Icons.category_outlined),
               title: Text(isKo ? '타입별 퀴즈 선택' : 'Choose quiz type'),
               subtitle: Text(
@@ -813,22 +1063,28 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _startRandomMixedSession();
       return;
     }
+    if (selected == 'speed') {
+      _startSpeedSession();
+      return;
+    }
+    if (selected == 'practical') {
+      _startPracticalSession();
+      return;
+    }
     if (selected == 'type') {
       await _openQuizTypeMenu();
       return;
     }
-    final wrongQuestions = _QuizQuestionSnapshot.decodeList(
-      widget.optionRepository.getValue<String>(
-        SkillQuizScreen.pendingWrongQuestionsKey,
-      ),
-    );
+    final wrongQuestions = _loadDueWrongQuestions();
     if (wrongQuestions.isEmpty) return;
+    await _trackMetric('review_started');
     _startQuestionSession(
       questions: wrongQuestions,
       reviewMode: true,
       sessionSource: _QuizSessionSource.review.name,
+      playMode: _QuizPlayMode.review,
       selectedType: _inferQuizType(wrongQuestions),
-      clearPendingWrongQuestions: false,
+      clearPendingWrongQuestions: true,
       shouldNotify: true,
     );
   }
@@ -845,20 +1101,18 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           ),
           child: ListView(
             shrinkWrap: true,
-            children: _QuizType.values
-                .map((type) {
-                  final count =
-                      (_typedPools[type] ?? const <_QuizQuestion>[]).length;
-                  return ListTile(
-                    leading: Icon(type.icon),
-                    title: Text(type.label(isKo)),
-                    subtitle: Text(
-                      isKo ? '$count문제 준비됨' : '$count questions ready',
-                    ),
-                    onTap: () => Navigator.of(context).pop(type),
-                  );
-                })
-                .toList(growable: false),
+            children: _QuizType.values.map((type) {
+              final count =
+                  (_typedPools[type] ?? const <_QuizQuestion>[]).length;
+              return ListTile(
+                leading: Icon(type.icon),
+                title: Text(type.label(isKo)),
+                subtitle: Text(
+                  isKo ? '$count문제 준비됨' : '$count questions ready',
+                ),
+                onTap: () => Navigator.of(context).pop(type),
+              );
+            }).toList(growable: false),
           ),
         ),
       ),
@@ -916,6 +1170,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         questions: set.questions,
                         reviewMode: false,
                         sessionSource: _QuizSessionSource.history.name,
+                        playMode: _QuizPlayMode.standard,
                         selectedType: _inferQuizType(set.questions),
                         clearPendingWrongQuestions: false,
                         shouldNotify: true,
@@ -952,6 +1207,205 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   int _currentPoolLength() => _selectedType == null
       ? _mixedPool.length
       : (_typedPools[_selectedType] ?? const <_QuizQuestion>[]).length;
+
+  int _targetMissionForMode(_QuizPlayMode mode) {
+    switch (mode) {
+      case _QuizPlayMode.speed:
+        return 6;
+      case _QuizPlayMode.practical:
+        return 5;
+      case _QuizPlayMode.review:
+        return 4;
+      case _QuizPlayMode.standard:
+        return 8;
+    }
+  }
+
+  String _averageResponseText(bool isKo) {
+    if (_totalAnsweredCount <= 0) return isKo ? '-' : '-';
+    final sec = (_totalResponseMillis / _totalAnsweredCount) / 1000;
+    return '${sec.toStringAsFixed(1)}${isKo ? '초' : 's'}';
+  }
+
+  void _hapticCorrect() {
+    HapticFeedback.selectionClick();
+  }
+
+  void _hapticWrong() {
+    HapticFeedback.mediumImpact();
+  }
+
+  List<_QuizQuestion> _selectAdaptiveQuestions({
+    required List<_QuizQuestion> source,
+    required int count,
+    required math.Random random,
+  }) {
+    if (source.isEmpty) return const <_QuizQuestion>[];
+    final perf = _RecentQuizPerformance.tryParse(
+      widget.optionRepository
+          .getValue<String>(SkillQuizScreen.recentPerformanceKey),
+    );
+    final targetDifficulty = perf?.targetDifficulty ?? 2;
+    final buckets = <int, List<_QuizQuestion>>{1: [], 2: [], 3: []};
+    for (final q in source) {
+      buckets[_difficultyForQuestion(q)]!.add(q);
+    }
+    for (final list in buckets.values) {
+      list.shuffle(random);
+    }
+    final targetCount = math.min(count, source.length);
+    final result = <_QuizQuestion>[];
+    final hardRatio =
+        targetDifficulty >= 3 ? 0.40 : (targetDifficulty <= 1 ? 0.18 : 0.28);
+    final easyRatio =
+        targetDifficulty <= 1 ? 0.42 : (targetDifficulty >= 3 ? 0.15 : 0.25);
+    final mediumRatio = 1 - hardRatio - easyRatio;
+    final needEasy = (targetCount * easyRatio).round();
+    final needMedium = (targetCount * mediumRatio).round();
+    final needHard = targetCount - needEasy - needMedium;
+    void takeFrom(int diff, int n) {
+      final bucket = buckets[diff]!;
+      final take = math.min(n, bucket.length);
+      result.addAll(bucket.take(take));
+      bucket.removeRange(0, take);
+    }
+
+    takeFrom(1, needEasy);
+    takeFrom(2, needMedium);
+    takeFrom(3, needHard);
+    final rest = <_QuizQuestion>[
+      ...buckets[1]!,
+      ...buckets[2]!,
+      ...buckets[3]!,
+    ]..shuffle(random);
+    if (result.length < targetCount) {
+      result.addAll(rest.take(targetCount - result.length));
+    }
+    return result
+        .map((question) => _shuffleQuestionOptions(question, random))
+        .toList(growable: false);
+  }
+
+  int _difficultyForQuestion(_QuizQuestion question) {
+    if (question.scenario != null) return 3;
+    if (question.id.startsWith('m_')) return 3;
+    final type = _quizTypeForQuestion(question);
+    switch (type) {
+      case _QuizType.pass:
+      case _QuizType.control:
+        return 1;
+      case _QuizType.dribble:
+      case _QuizType.scan:
+        return 2;
+      case _QuizType.match:
+      case _QuizType.board:
+        return 3;
+    }
+  }
+
+  Future<void> _recordRecentPerformance() async {
+    if (_questions.isEmpty) return;
+    final accuracy = _score / _questions.length;
+    final avgSec = _totalAnsweredCount <= 0
+        ? 8.0
+        : (_totalResponseMillis / _totalAnsweredCount) / 1000;
+    final perf = _RecentQuizPerformance(accuracy: accuracy, avgSeconds: avgSec);
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.recentPerformanceKey,
+      perf.encode(),
+    );
+  }
+
+  Future<void> _trackMetric(String event) async {
+    final map = _QuizMetricsMap.tryParse(
+          widget.optionRepository.getValue<String>(SkillQuizScreen.metricsKey),
+        ) ??
+        <String, int>{};
+    map[event] = (map[event] ?? 0) + 1;
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.metricsKey,
+      jsonEncode(map),
+    );
+  }
+
+  List<_PendingWrongReviewItem> _loadPendingWrongItems() {
+    final items = _PendingWrongReviewItem.decodeList(
+      widget.optionRepository.getValue<String>(
+        SkillQuizScreen.pendingWrongScheduleKey,
+      ),
+    );
+    if (items.isNotEmpty) return items;
+    final legacy = _QuizQuestionSnapshot.decodeList(
+      widget.optionRepository.getValue<String>(
+        SkillQuizScreen.pendingWrongQuestionsKey,
+      ),
+    );
+    if (legacy.isEmpty) return const <_PendingWrongReviewItem>[];
+    final now = DateTime.now();
+    return legacy
+        .map(
+          (q) => _PendingWrongReviewItem(
+            question: q,
+            dueAt: now,
+            wrongCount: 1,
+            lastWrongAt: now,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  List<_QuizQuestion> _loadDueWrongQuestions() {
+    final now = DateTime.now();
+    return _loadPendingWrongItems()
+        .where((item) => !item.dueAt.isAfter(now))
+        .map((item) => item.question)
+        .toList(growable: false);
+  }
+
+  Future<void> _removeDueWrongQuestions(
+      List<_QuizQuestion> dueQuestions) async {
+    if (dueQuestions.isEmpty) return;
+    final dueIds = dueQuestions.map((q) => q.id).toSet();
+    final remained = _loadPendingWrongItems()
+        .where((item) => !dueIds.contains(item.question.id))
+        .toList(growable: false);
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongScheduleKey,
+      _PendingWrongReviewItem.encodeList(remained),
+    );
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongQuestionsKey,
+      '',
+    );
+  }
+
+  Future<void> _schedulePendingWrongQuestions(
+      List<_QuizQuestion> questions) async {
+    final current = _loadPendingWrongItems();
+    final map = <String, _PendingWrongReviewItem>{
+      for (final item in current) item.question.id: item,
+    };
+    final now = DateTime.now();
+    for (final q in questions) {
+      final prev = map[q.id];
+      map[q.id] = _PendingWrongReviewItem(
+        question: q,
+        dueAt: now.add(const Duration(hours: 24)),
+        wrongCount: (prev?.wrongCount ?? 0) + 1,
+        lastWrongAt: now,
+      );
+    }
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongScheduleKey,
+      _PendingWrongReviewItem.encodeList(
+        map.values.toList(growable: false),
+      ),
+    );
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongQuestionsKey,
+      '',
+    );
+  }
 
   _QuizType? _inferQuizType(List<_QuizQuestion> questions) {
     if (questions.isEmpty) return null;
@@ -1008,7 +1462,9 @@ class _QuizScenarioCard extends StatelessWidget {
                       ),
                       child: Text(
                         label,
-                        style: Theme.of(context).textTheme.labelMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -1028,9 +1484,9 @@ class _QuizScenarioCard extends StatelessWidget {
                   ? '코치가 보드로 설명해준다고 생각하고, 먼저 위치를 본 뒤 가장 좋은 선택을 골라보세요.'
                   : 'Think like a coach using a board: read the positions first, then pick the best action.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
             const SizedBox(height: 10),
             _CoachBoardPanel(
@@ -1063,8 +1519,8 @@ class _QuizScenarioCard extends StatelessWidget {
               body: cueText.trim().isNotEmpty
                   ? cueText
                   : (isKo
-                        ? '가까운 선수, 빈 공간, 공이 갈 수 있는 길을 순서대로 보세요.'
-                        : 'Check the nearest player, the open space, and the next ball route in order.'),
+                      ? '가까운 선수, 빈 공간, 공이 갈 수 있는 길을 순서대로 보세요.'
+                      : 'Check the nearest player, the open space, and the next ball route in order.'),
               icon: Icons.record_voice_over_outlined,
             ),
             const SizedBox(height: 10),
@@ -1079,8 +1535,8 @@ class _QuizScenarioCard extends StatelessWidget {
               Text(
                 '선은 일부러 뺐어요. 먼저 자리를 읽고 생각하는 힘을 키우기 위해서예요.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
             ],
           ],
@@ -1205,7 +1661,9 @@ class _CoachBoardPanel extends StatelessWidget {
                           ),
                           child: Text(
                             isKo ? '코치 보드' : 'Coach board',
-                            style: Theme.of(context).textTheme.labelMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
                                 ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
@@ -1229,11 +1687,11 @@ class _CoachBoardPanel extends StatelessWidget {
                         ),
                         child: Text(
                           sceneTitle,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                         ),
                       ),
                     ),
@@ -1247,9 +1705,9 @@ class _CoachBoardPanel extends StatelessWidget {
                   ? '먼저 가까운 선수, 빈 공간, 공의 다음 길을 순서대로 보세요.'
                   : 'First check the nearest player, the open space, and the next ball route.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ],
         ),
@@ -1345,8 +1803,9 @@ class _CoachTalkCard extends StatelessWidget {
                 Text(
                   body,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: emphasize ? FontWeight.w700 : FontWeight.w600,
-                  ),
+                        fontWeight:
+                            emphasize ? FontWeight.w700 : FontWeight.w600,
+                      ),
                 ),
               ],
             ),
@@ -1452,6 +1911,13 @@ class _QuizSessionSnapshot {
   final String? retryFeedback;
   final List<String> wrongIds;
   final String? quizType;
+  final String playMode;
+  final int streak;
+  final int bestStreak;
+  final int timeoutCount;
+  final int totalAnsweredCount;
+  final int totalResponseMillis;
+  final int missionTarget;
 
   const _QuizSessionSnapshot({
     required this.reviewMode,
@@ -1466,6 +1932,13 @@ class _QuizSessionSnapshot {
     required this.retryFeedback,
     required this.wrongIds,
     required this.quizType,
+    required this.playMode,
+    required this.streak,
+    required this.bestStreak,
+    required this.timeoutCount,
+    required this.totalAnsweredCount,
+    required this.totalResponseMillis,
+    required this.missionTarget,
   });
 
   String encode() {
@@ -1488,6 +1961,13 @@ class _QuizSessionSnapshot {
       'retryFeedback': retryFeedback,
       'wrongIds': wrongIds,
       'quizType': quizType,
+      'playMode': playMode,
+      'streak': streak,
+      'bestStreak': bestStreak,
+      'timeoutCount': timeoutCount,
+      'totalAnsweredCount': totalAnsweredCount,
+      'totalResponseMillis': totalResponseMillis,
+      'missionTarget': missionTarget,
     });
   }
 
@@ -1507,8 +1987,7 @@ class _QuizSessionSnapshot {
         reviewMode: decoded['reviewMode'] == true,
         dailyQuestions: dailyQuestions.isEmpty ? questions : dailyQuestions,
         questions: questions,
-        sessionSource:
-            decoded['sessionSource']?.toString() ??
+        sessionSource: decoded['sessionSource']?.toString() ??
             _QuizSessionSource.today.name,
         index: (decoded['index'] as num?)?.toInt() ?? 0,
         score: (decoded['score'] as num?)?.toInt() ?? 0,
@@ -1516,12 +1995,21 @@ class _QuizSessionSnapshot {
         answered: decoded['answered'] == true,
         retryUsed: decoded['retryUsed'] == true,
         retryFeedback: decoded['retryFeedback']?.toString(),
-        wrongIds:
-            (decoded['wrongIds'] as List?)
+        wrongIds: (decoded['wrongIds'] as List?)
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
         quizType: decoded['quizType']?.toString(),
+        playMode:
+            decoded['playMode']?.toString() ?? _QuizPlayMode.standard.name,
+        streak: (decoded['streak'] as num?)?.toInt() ?? 0,
+        bestStreak: (decoded['bestStreak'] as num?)?.toInt() ?? 0,
+        timeoutCount: (decoded['timeoutCount'] as num?)?.toInt() ?? 0,
+        totalAnsweredCount:
+            (decoded['totalAnsweredCount'] as num?)?.toInt() ?? 0,
+        totalResponseMillis:
+            (decoded['totalResponseMillis'] as num?)?.toInt() ?? 0,
+        missionTarget: (decoded['missionTarget'] as num?)?.toInt() ?? 5,
       );
     } catch (_) {
       return null;
@@ -1656,6 +2144,17 @@ class _QuizQuestionSnapshot {
 
 enum _QuizSessionSource { today, random, history, review }
 
+enum _QuizPlayMode { standard, speed, practical, review }
+
+extension _QuizPlayModeX on _QuizPlayMode {
+  static _QuizPlayMode? tryParse(String? raw) {
+    for (final mode in _QuizPlayMode.values) {
+      if (mode.name == raw) return mode;
+    }
+    return null;
+  }
+}
+
 enum _QuizType { pass, dribble, control, scan, match, board }
 
 extension _QuizTypeX on _QuizType {
@@ -1746,12 +2245,12 @@ class _QuizScenario {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'koTitle': koTitle,
-    'enTitle': enTitle,
-    'boardPage': boardPage.toMap(),
-    'koMovementCaption': koMovementCaption,
-    'enMovementCaption': enMovementCaption,
-  };
+        'koTitle': koTitle,
+        'enTitle': enTitle,
+        'boardPage': boardPage.toMap(),
+        'koMovementCaption': koMovementCaption,
+        'enMovementCaption': enMovementCaption,
+      };
 
   static _QuizScenario? fromDynamic(dynamic raw) {
     if (raw is! Map) return null;
@@ -1780,13 +2279,13 @@ class _ClearedQuizSet {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'completedAt': completedAt.toIso8601String(),
-    'source': source,
-    'questions': questions
-        .map(_QuizQuestionSnapshot.fromQuestion)
-        .map((item) => item.toMap())
-        .toList(growable: false),
-  };
+        'completedAt': completedAt.toIso8601String(),
+        'source': source,
+        'questions': questions
+            .map(_QuizQuestionSnapshot.fromQuestion)
+            .map((item) => item.toMap())
+            .toList(growable: false),
+      };
 
   static String encodeList(List<_ClearedQuizSet> sets) =>
       jsonEncode(sets.map((set) => set.toMap()).toList(growable: false));
@@ -1819,6 +2318,119 @@ class _ClearedQuizSet {
           .toList(growable: false);
     } catch (_) {
       return const <_ClearedQuizSet>[];
+    }
+  }
+}
+
+class _PendingWrongReviewItem {
+  final _QuizQuestion question;
+  final DateTime dueAt;
+  final int wrongCount;
+  final DateTime lastWrongAt;
+
+  const _PendingWrongReviewItem({
+    required this.question,
+    required this.dueAt,
+    required this.wrongCount,
+    required this.lastWrongAt,
+  });
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'question': _QuizQuestionSnapshot.fromQuestion(question).toMap(),
+        'dueAt': dueAt.toIso8601String(),
+        'wrongCount': wrongCount,
+        'lastWrongAt': lastWrongAt.toIso8601String(),
+      };
+
+  static String encodeList(List<_PendingWrongReviewItem> items) =>
+      jsonEncode(items.map((item) => item.toMap()).toList(growable: false));
+
+  static List<_PendingWrongReviewItem> decodeList(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return const <_PendingWrongReviewItem>[];
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const <_PendingWrongReviewItem>[];
+      return decoded
+          .whereType<Map>()
+          .map((item) => item.cast<String, dynamic>())
+          .map((map) {
+            final questions = _QuizQuestionSnapshot.fromDynamicList([
+              map['question'],
+            ]);
+            final question = questions.isEmpty ? null : questions.first;
+            final dueAt = DateTime.tryParse(map['dueAt']?.toString() ?? '');
+            final lastWrongAt = DateTime.tryParse(
+              map['lastWrongAt']?.toString() ?? '',
+            );
+            if (question == null || dueAt == null || lastWrongAt == null) {
+              return null;
+            }
+            return _PendingWrongReviewItem(
+              question: question,
+              dueAt: dueAt,
+              wrongCount: (map['wrongCount'] as num?)?.toInt() ?? 1,
+              lastWrongAt: lastWrongAt,
+            );
+          })
+          .whereType<_PendingWrongReviewItem>()
+          .toList(growable: false);
+    } catch (_) {
+      return const <_PendingWrongReviewItem>[];
+    }
+  }
+}
+
+class _RecentQuizPerformance {
+  final double accuracy;
+  final double avgSeconds;
+
+  const _RecentQuizPerformance({
+    required this.accuracy,
+    required this.avgSeconds,
+  });
+
+  int get targetDifficulty {
+    if (accuracy >= 0.85 && avgSeconds <= 4.5) return 3;
+    if (accuracy <= 0.55 || avgSeconds >= 7.5) return 1;
+    return 2;
+  }
+
+  String encode() => jsonEncode(<String, dynamic>{
+        'accuracy': accuracy,
+        'avgSeconds': avgSeconds,
+      });
+
+  static _RecentQuizPerformance? tryParse(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return null;
+      return _RecentQuizPerformance(
+        accuracy: (decoded['accuracy'] as num?)?.toDouble() ?? 0.0,
+        avgSeconds: (decoded['avgSeconds'] as num?)?.toDouble() ?? 8.0,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class _QuizMetricsMap {
+  static Map<String, int>? tryParse(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return <String, int>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return <String, int>{};
+      return decoded.map(
+        (key, value) => MapEntry(
+          key.toString(),
+          (value as num?)?.toInt() ?? 0,
+        ),
+      );
+    } catch (_) {
+      return <String, int>{};
     }
   }
 }
@@ -1984,29 +2596,27 @@ List<_QuizQuestion> _buildMixedQuizPool() {
 }
 
 List<_QuizQuestion> _buildScenarioQuizPool() {
-  return _boardQuizSeeds
-      .expand((seed) {
-        return seed.prompts.map((prompt) {
-          final questionId = '${seed.id}_${prompt.id}';
-          final pack = _buildOptionPack(
-            questionId,
-            prompt.correct,
-            prompt.wrongA,
-            prompt.wrongB,
-          );
-          return _QuizQuestion(
-            id: questionId,
-            koQuestion: prompt.koQuestion,
-            enQuestion: prompt.enQuestion,
-            options: pack.options,
-            correctIndex: pack.correctIndex,
-            koExplain: prompt.koExplain,
-            enExplain: prompt.enExplain,
-            scenario: seed.scenario,
-          );
-        });
-      })
-      .toList(growable: false);
+  return _boardQuizSeeds.expand((seed) {
+    return seed.prompts.map((prompt) {
+      final questionId = '${seed.id}_${prompt.id}';
+      final pack = _buildOptionPack(
+        questionId,
+        prompt.correct,
+        prompt.wrongA,
+        prompt.wrongB,
+      );
+      return _QuizQuestion(
+        id: questionId,
+        koQuestion: prompt.koQuestion,
+        enQuestion: prompt.enQuestion,
+        options: pack.options,
+        correctIndex: pack.correctIndex,
+        koExplain: prompt.koExplain,
+        enExplain: prompt.enExplain,
+        scenario: seed.scenario,
+      );
+    });
+  }).toList(growable: false);
 }
 
 List<_QuizQuestion> _buildMatchQuizPool() {
@@ -2046,9 +2656,8 @@ _QuizQuestion _shuffleQuestionOptions(
 ) {
   final indexed = question.options.asMap().entries.toList(growable: false)
     ..shuffle(random);
-  final shuffledOptions = indexed
-      .map((entry) => entry.value)
-      .toList(growable: false);
+  final shuffledOptions =
+      indexed.map((entry) => entry.value).toList(growable: false);
   final shuffledCorrectIndex = indexed.indexWhere(
     (entry) => entry.key == question.correctIndex,
   );
@@ -2300,8 +2909,8 @@ const List<_MatchScoreContext> _matchScoreContexts = <_MatchScoreContext>[
   ),
 ];
 
-final List<_MatchKnowledgeTemplate>
-_matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
+final List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
+    <_MatchKnowledgeTemplate>[
   const _MatchKnowledgeTemplate(
     id: 'mk01',
     koPrompt: '빌드업 첫 선택으로 가장 안전한 원칙은?',
@@ -3144,8 +3753,8 @@ const List<_QuizSituation> _situations = <_QuizSituation>[
   ),
 ];
 
-const Map<_QuizType, List<_QuizConcept>>
-_conceptsByType = <_QuizType, List<_QuizConcept>>{
+const Map<_QuizType, List<_QuizConcept>> _conceptsByType =
+    <_QuizType, List<_QuizConcept>>{
   _QuizType.pass: <_QuizConcept>[
     _QuizConcept(
       id: 'p01',
