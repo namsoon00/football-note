@@ -300,13 +300,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final poolLabel = _selectedType == null
         ? (isKo ? '혼합 문제풀' : 'Mixed pool')
         : (isKo
-            ? '${_selectedType!.label(true)} 문제풀'
-            : '${_selectedType!.label(false)} pool');
+              ? '${_selectedType!.label(true)} 문제풀'
+              : '${_selectedType!.label(false)} pool');
     final setLabel = _selectedType == null
         ? (isKo ? '이번 세트' : 'this set')
         : (isKo
-            ? '${_selectedType!.label(true)} 세트'
-            : '${_selectedType!.label(false)} set');
+              ? '${_selectedType!.label(true)} 세트'
+              : '${_selectedType!.label(false)} set');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -318,23 +318,23 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 Text(
                   _reviewMode
                       ? (isKo
-                          ? '오답 복습 · 진행 $progress'
-                          : 'Wrong review · $progress')
+                            ? '오답 복습 · 진행 $progress'
+                            : 'Wrong review · $progress')
                       : (_sessionSource == _QuizSessionSource.today.name
-                          ? (isKo
-                              ? '오늘의 퀴즈 · 진행 $progress'
-                              : 'Daily quiz · $progress')
-                          : _sessionSource == _QuizSessionSource.history.name
-                              ? (isKo
+                            ? (isKo
+                                  ? '오늘의 퀴즈 · 진행 $progress'
+                                  : 'Daily quiz · $progress')
+                            : _sessionSource == _QuizSessionSource.history.name
+                            ? (isKo
                                   ? '클리어 세트 다시 풀기 · 진행 $progress'
                                   : 'Replay cleared set · $progress')
-                              : _selectedType != null
-                                  ? (isKo
-                                      ? '${_selectedType!.label(true)} 퀴즈 · 진행 $progress'
-                                      : '${_selectedType!.label(false)} quiz · $progress')
-                                  : (isKo
-                                      ? '추가 랜덤 세트 · 진행 $progress'
-                                      : 'Bonus random set · $progress')),
+                            : _selectedType != null
+                            ? (isKo
+                                  ? '${_selectedType!.label(true)} 퀴즈 · 진행 $progress'
+                                  : '${_selectedType!.label(false)} quiz · $progress')
+                            : (isKo
+                                  ? '추가 랜덤 세트 · 진행 $progress'
+                                  : 'Bonus random set · $progress')),
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -357,8 +357,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     child: Text(
                       isKo ? question.koQuestion : question.enQuestion,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -390,7 +390,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           vertical: 12,
                         ),
                         side: BorderSide(
-                          color: borderColor ??
+                          color:
+                              borderColor ??
                               Theme.of(context).colorScheme.outlineVariant,
                           width: borderColor == null ? 1.0 : 1.6,
                         ),
@@ -422,9 +423,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         ? '틀렸어요. 다시 한 번 풀어보세요.'
                         : 'Incorrect. Try this question one more time.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: const Color(0xFFEB5757),
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: const Color(0xFFEB5757),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 10),
@@ -478,14 +479,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   _reviewMode
                       ? (isKo ? '오답 복습 결과' : 'Wrong Review Result')
                       : (_sessionSource == _QuizSessionSource.today.name
-                          ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
-                          : _sessionSource == _QuizSessionSource.history.name
-                              ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
-                              : _selectedType != null
-                                  ? (isKo
-                                      ? '${_selectedType!.label(true)} 퀴즈 결과'
-                                      : '${_selectedType!.label(false)} Quiz Result')
-                                  : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
+                            ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
+                            : _sessionSource == _QuizSessionSource.history.name
+                            ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
+                            : _selectedType != null
+                            ? (isKo
+                                  ? '${_selectedType!.label(true)} 퀴즈 결과'
+                                  : '${_selectedType!.label(false)} Quiz Result')
+                            : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
@@ -498,8 +499,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : '$_score / $total correct ($ratio%)',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -533,15 +534,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     child: Text(
                       _quizAward!.didLevelUp
                           ? (isKo
-                              ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
-                              : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
+                                ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
+                                : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
                           : (isKo
-                              ? '+${_quizAward!.gainedXp} XP 획득'
-                              : '+${_quizAward!.gainedXp} XP earned'),
+                                ? '+${_quizAward!.gainedXp} XP 획득'
+                                : '+${_quizAward!.gainedXp} XP earned'),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -561,8 +562,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     _selectedType == null
                         ? (isKo ? '오늘 퀴즈 다시 풀기' : 'Replay today quiz')
                         : (isKo
-                            ? '${_selectedType!.label(true)} 퀴즈 다시 풀기'
-                            : 'Replay ${_selectedType!.label(false)} quiz'),
+                              ? '${_selectedType!.label(true)} 퀴즈 다시 풀기'
+                              : 'Replay ${_selectedType!.label(false)} quiz'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -570,17 +571,17 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   onPressed: wrongCount == 0
                       ? null
                       : () => _startQuestionSession(
-                            questions: _questions
-                                .where(
-                                  (question) => _wrongIds.contains(question.id),
-                                )
-                                .toList(growable: false),
-                            reviewMode: true,
-                            sessionSource: _QuizSessionSource.review.name,
-                            selectedType: _selectedType,
-                            clearPendingWrongQuestions: false,
-                            shouldNotify: true,
-                          ),
+                          questions: _questions
+                              .where(
+                                (question) => _wrongIds.contains(question.id),
+                              )
+                              .toList(growable: false),
+                          reviewMode: true,
+                          sessionSource: _QuizSessionSource.review.name,
+                          selectedType: _selectedType,
+                          clearPendingWrongQuestions: false,
+                          shouldNotify: true,
+                        ),
                   icon: const Icon(Icons.rule_folder_outlined),
                   label: Text(
                     isKo ? '이번 오답 바로 복습' : 'Review wrong answers now',
@@ -623,11 +624,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       context,
       text: award.didLevelUp
           ? (isKo
-              ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
-              : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
+                ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
+                : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
           : (isKo
-              ? '+${award.gainedXp} XP 획득'
-              : '+${award.gainedXp} XP earned'),
+                ? '+${award.gainedXp} XP 획득'
+                : '+${award.gainedXp} XP earned'),
     );
     if (!award.didLevelUp) return;
     final customRewardName = PlayerLevelService(
@@ -741,13 +742,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _persistClearedSet(_ClearedQuizSet set) async {
     final sets = _loadClearedSets();
-    final deduped = sets.where((item) {
-      final sameTime = item.completedAt == set.completedAt;
-      final sameQuestions =
-          item.questions.map((question) => question.id).join(',') ==
+    final deduped = sets
+        .where((item) {
+          final sameTime = item.completedAt == set.completedAt;
+          final sameQuestions =
+              item.questions.map((question) => question.id).join(',') ==
               set.questions.map((question) => question.id).join(',');
-      return !(sameTime || sameQuestions);
-    }).toList(growable: true);
+          return !(sameTime || sameQuestions);
+        })
+        .toList(growable: true);
     deduped.insert(0, set);
     await widget.optionRepository.setValue(
       SkillQuizScreen.clearedSetsKey,
@@ -842,18 +845,20 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           ),
           child: ListView(
             shrinkWrap: true,
-            children: _QuizType.values.map((type) {
-              final count =
-                  (_typedPools[type] ?? const <_QuizQuestion>[]).length;
-              return ListTile(
-                leading: Icon(type.icon),
-                title: Text(type.label(isKo)),
-                subtitle: Text(
-                  isKo ? '$count문제 준비됨' : '$count questions ready',
-                ),
-                onTap: () => Navigator.of(context).pop(type),
-              );
-            }).toList(growable: false),
+            children: _QuizType.values
+                .map((type) {
+                  final count =
+                      (_typedPools[type] ?? const <_QuizQuestion>[]).length;
+                  return ListTile(
+                    leading: Icon(type.icon),
+                    title: Text(type.label(isKo)),
+                    subtitle: Text(
+                      isKo ? '$count문제 준비됨' : '$count questions ready',
+                    ),
+                    onTap: () => Navigator.of(context).pop(type),
+                  );
+                })
+                .toList(growable: false),
           ),
         ),
       ),
@@ -964,13 +969,15 @@ class _QuizScenarioCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scenario = question.scenario!;
+    final boardPage = scenario.boardPage;
     final labels = <String>[
       isKo ? '보드 퀴즈' : 'Board quiz',
       isKo ? '경기 상황 읽기' : 'Read the play',
+      isKo ? '움직이는 화면' : 'Animated board',
     ];
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -992,9 +999,7 @@ class _QuizScenarioCard extends StatelessWidget {
                       ),
                       child: Text(
                         label,
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelMedium
+                        style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -1009,10 +1014,20 @@ class _QuizScenarioCard extends StatelessWidget {
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
+            Text(
+              isKo
+                  ? '공과 러너의 전개를 따라가며 장면을 읽어보세요.'
+                  : 'Track the ball and runner movement to read the play.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
             Container(
-              height: 208,
+              height: 238,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -1021,10 +1036,26 @@ class _QuizScenarioCard extends StatelessWidget {
                   ),
                 ],
               ),
-              child: TrainingBoardSketch(
-                page: scenario.boardPage,
-                borderRadius: 18,
-              ),
+              child: _AnimatedQuizBoard(page: boardPage, isKo: isKo),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _ScenarioStatChip(
+                  icon: Icons.directions_run,
+                  label: isKo
+                      ? '러너 ${math.max(0, boardPage.playerPath.length - 1)}회 전개'
+                      : 'Runner ${math.max(0, boardPage.playerPath.length - 1)} phases',
+                ),
+                _ScenarioStatChip(
+                  icon: Icons.sports_soccer,
+                  label: isKo
+                      ? '패스 ${math.max(0, boardPage.ballPath.length - 1)}회 연결'
+                      : '${math.max(0, boardPage.ballPath.length - 1)} pass links',
+                ),
+              ],
             ),
             if ((isKo ? scenario.koMovementCaption : scenario.enMovementCaption)
                     ?.trim()
@@ -1049,6 +1080,346 @@ class _QuizScenarioCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AnimatedQuizBoard extends StatefulWidget {
+  final TrainingMethodPage page;
+  final bool isKo;
+
+  const _AnimatedQuizBoard({required this.page, required this.isKo});
+
+  @override
+  State<_AnimatedQuizBoard> createState() => _AnimatedQuizBoardState();
+}
+
+class _AnimatedQuizBoardState extends State<_AnimatedQuizBoard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final destination = _resolveDestination(
+      widget.page.ballPath,
+      fallback: widget.page.playerPath,
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          TrainingBoardSketch(page: widget.page, borderRadius: 22),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.06),
+                  Colors.black.withValues(alpha: 0.22),
+                ],
+              ),
+            ),
+          ),
+          if (destination != null)
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final pulse =
+                    0.74 + (math.sin(_controller.value * math.pi * 2) * 0.12);
+                return CustomPaint(
+                  painter: _ScenarioFocusPainter(
+                    point: destination,
+                    pulse: pulse,
+                  ),
+                );
+              },
+            ),
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final phase = Curves.easeInOut.transform(_controller.value);
+              final runner = _positionAlong(widget.page.playerPath, phase);
+              final ball = _positionAlong(widget.page.ballPath, phase * 0.94);
+              return Stack(
+                children: [
+                  if (runner != null)
+                    _MovingBoardMarker(
+                      point: runner,
+                      icon: Icons.directions_run_rounded,
+                      color: const Color(0xFFB3E5FC),
+                      haloColor: const Color(0x8050E6FF),
+                      size: 28,
+                    ),
+                  if (ball != null)
+                    _MovingBoardMarker(
+                      point: ball,
+                      icon: Icons.sports_soccer,
+                      color: const Color(0xFFFFF8E1),
+                      haloColor: const Color(0x80FFE082),
+                      size: 24,
+                    ),
+                ],
+              );
+            },
+          ),
+          Positioned(
+            left: 12,
+            top: 12,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.42),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF63E6BE),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      widget.isKo ? 'LIVE 전개 읽기' : 'LIVE pattern read',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 12,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final progress = (_controller.value * 100).round().clamp(
+                  0,
+                  100,
+                );
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.36),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.isKo
+                                ? '전개 진행률 $progress%'
+                                : 'Pattern progress $progress%',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 90,
+                          child: LinearProgressIndicator(
+                            value: _controller.value,
+                            minHeight: 6,
+                            borderRadius: BorderRadius.circular(999),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.16,
+                            ),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFFFFD54F),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  TrainingMethodPoint? _resolveDestination(
+    List<TrainingMethodPoint> primary, {
+    required List<TrainingMethodPoint> fallback,
+  }) {
+    if (primary.isNotEmpty) return primary.last;
+    if (fallback.isNotEmpty) return fallback.last;
+    return null;
+  }
+
+  TrainingMethodPoint? _positionAlong(
+    List<TrainingMethodPoint> points,
+    double progress,
+  ) {
+    if (points.isEmpty) return null;
+    if (points.length == 1) return points.first;
+    final clamped = progress.clamp(0.0, 1.0);
+    final segmentCount = points.length - 1;
+    final scaled = clamped * segmentCount;
+    final index = scaled.floor().clamp(0, segmentCount - 1);
+    final localT = scaled - index;
+    final start = points[index];
+    final end = points[index + 1];
+    return TrainingMethodPoint(
+      x: start.x + ((end.x - start.x) * localT),
+      y: start.y + ((end.y - start.y) * localT),
+    );
+  }
+}
+
+class _MovingBoardMarker extends StatelessWidget {
+  final TrainingMethodPoint point;
+  final IconData icon;
+  final Color color;
+  final Color haloColor;
+  final double size;
+
+  const _MovingBoardMarker({
+    required this.point,
+    required this.icon,
+    required this.color,
+    required this.haloColor,
+    required this.size,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final left = (point.x * constraints.maxWidth) - (size / 2);
+          final top = (point.y * constraints.maxHeight) - (size / 2);
+          return Stack(
+            children: [
+              Positioned(
+                left: left - 7,
+                top: top - 7,
+                child: Container(
+                  width: size + 14,
+                  height: size + 14,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: haloColor,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: left,
+                top: top,
+                child: Container(
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black.withValues(alpha: 0.34),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.72),
+                    ),
+                  ),
+                  child: Icon(icon, size: size * 0.6, color: color),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ScenarioFocusPainter extends CustomPainter {
+  final TrainingMethodPoint point;
+  final double pulse;
+
+  const _ScenarioFocusPainter({required this.point, required this.pulse});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(point.x * size.width, point.y * size.height);
+    final outerPaint = Paint()
+      ..color = const Color(0x55FFE082)
+      ..style = PaintingStyle.fill;
+    final innerPaint = Paint()
+      ..color = const Color(0xAAFFF59D)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(center, 28 * pulse, outerPaint);
+    canvas.drawCircle(center, 16 * pulse, innerPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ScenarioFocusPainter oldDelegate) {
+    return oldDelegate.point != point || oldDelegate.pulse != pulse;
+  }
+}
+
+class _ScenarioStatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _ScenarioStatChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
       ),
     );
   }
@@ -1138,7 +1509,8 @@ class _QuizSessionSnapshot {
         reviewMode: decoded['reviewMode'] == true,
         dailyQuestions: dailyQuestions.isEmpty ? questions : dailyQuestions,
         questions: questions,
-        sessionSource: decoded['sessionSource']?.toString() ??
+        sessionSource:
+            decoded['sessionSource']?.toString() ??
             _QuizSessionSource.today.name,
         index: (decoded['index'] as num?)?.toInt() ?? 0,
         score: (decoded['score'] as num?)?.toInt() ?? 0,
@@ -1146,7 +1518,8 @@ class _QuizSessionSnapshot {
         answered: decoded['answered'] == true,
         retryUsed: decoded['retryUsed'] == true,
         retryFeedback: decoded['retryFeedback']?.toString(),
-        wrongIds: (decoded['wrongIds'] as List?)
+        wrongIds:
+            (decoded['wrongIds'] as List?)
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
@@ -1375,12 +1748,12 @@ class _QuizScenario {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'koTitle': koTitle,
-        'enTitle': enTitle,
-        'boardPage': boardPage.toMap(),
-        'koMovementCaption': koMovementCaption,
-        'enMovementCaption': enMovementCaption,
-      };
+    'koTitle': koTitle,
+    'enTitle': enTitle,
+    'boardPage': boardPage.toMap(),
+    'koMovementCaption': koMovementCaption,
+    'enMovementCaption': enMovementCaption,
+  };
 
   static _QuizScenario? fromDynamic(dynamic raw) {
     if (raw is! Map) return null;
@@ -1409,13 +1782,13 @@ class _ClearedQuizSet {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'completedAt': completedAt.toIso8601String(),
-        'source': source,
-        'questions': questions
-            .map(_QuizQuestionSnapshot.fromQuestion)
-            .map((item) => item.toMap())
-            .toList(growable: false),
-      };
+    'completedAt': completedAt.toIso8601String(),
+    'source': source,
+    'questions': questions
+        .map(_QuizQuestionSnapshot.fromQuestion)
+        .map((item) => item.toMap())
+        .toList(growable: false),
+  };
 
   static String encodeList(List<_ClearedQuizSet> sets) =>
       jsonEncode(sets.map((set) => set.toMap()).toList(growable: false));
@@ -1613,27 +1986,29 @@ List<_QuizQuestion> _buildMixedQuizPool() {
 }
 
 List<_QuizQuestion> _buildScenarioQuizPool() {
-  return _boardQuizSeeds.expand((seed) {
-    return seed.prompts.map((prompt) {
-      final questionId = '${seed.id}_${prompt.id}';
-      final pack = _buildOptionPack(
-        questionId,
-        prompt.correct,
-        prompt.wrongA,
-        prompt.wrongB,
-      );
-      return _QuizQuestion(
-        id: questionId,
-        koQuestion: prompt.koQuestion,
-        enQuestion: prompt.enQuestion,
-        options: pack.options,
-        correctIndex: pack.correctIndex,
-        koExplain: prompt.koExplain,
-        enExplain: prompt.enExplain,
-        scenario: seed.scenario,
-      );
-    });
-  }).toList(growable: false);
+  return _boardQuizSeeds
+      .expand((seed) {
+        return seed.prompts.map((prompt) {
+          final questionId = '${seed.id}_${prompt.id}';
+          final pack = _buildOptionPack(
+            questionId,
+            prompt.correct,
+            prompt.wrongA,
+            prompt.wrongB,
+          );
+          return _QuizQuestion(
+            id: questionId,
+            koQuestion: prompt.koQuestion,
+            enQuestion: prompt.enQuestion,
+            options: pack.options,
+            correctIndex: pack.correctIndex,
+            koExplain: prompt.koExplain,
+            enExplain: prompt.enExplain,
+            scenario: seed.scenario,
+          );
+        });
+      })
+      .toList(growable: false);
 }
 
 List<_QuizQuestion> _buildMatchQuizPool() {
@@ -1673,8 +2048,9 @@ _QuizQuestion _shuffleQuestionOptions(
 ) {
   final indexed = question.options.asMap().entries.toList(growable: false)
     ..shuffle(random);
-  final shuffledOptions =
-      indexed.map((entry) => entry.value).toList(growable: false);
+  final shuffledOptions = indexed
+      .map((entry) => entry.value)
+      .toList(growable: false);
   final shuffledCorrectIndex = indexed.indexWhere(
     (entry) => entry.key == question.correctIndex,
   );
@@ -1926,8 +2302,8 @@ const List<_MatchScoreContext> _matchScoreContexts = <_MatchScoreContext>[
   ),
 ];
 
-final List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
-    <_MatchKnowledgeTemplate>[
+final List<_MatchKnowledgeTemplate>
+_matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
   const _MatchKnowledgeTemplate(
     id: 'mk01',
     koPrompt: '빌드업 첫 선택으로 가장 안전한 원칙은?',
@@ -2770,8 +3146,8 @@ const List<_QuizSituation> _situations = <_QuizSituation>[
   ),
 ];
 
-const Map<_QuizType, List<_QuizConcept>> _conceptsByType =
-    <_QuizType, List<_QuizConcept>>{
+const Map<_QuizType, List<_QuizConcept>>
+_conceptsByType = <_QuizType, List<_QuizConcept>>{
   _QuizType.pass: <_QuizConcept>[
     _QuizConcept(
       id: 'p01',

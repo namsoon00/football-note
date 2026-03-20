@@ -20,7 +20,7 @@ void main() {
         home: SkillQuizScreen(optionRepository: repository),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     await tester.tap(find.byTooltip('퀴즈 세트 메뉴'));
     await tester.pumpAndSettle();
@@ -28,11 +28,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('보드').last);
     await tester.tap(find.text('보드').last);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.textContaining('보드 문제풀'), findsOneWidget);
     expect(find.textContaining('보드 세트'), findsOneWidget);
     expect(find.text('보드 퀴즈'), findsOneWidget);
+    expect(find.text('움직이는 화면'), findsOneWidget);
   });
 
   testWidgets('skill quiz renders board-based scenario from saved session', (
@@ -64,16 +66,21 @@ void main() {
         home: SkillQuizScreen(optionRepository: repository),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('보드 퀴즈'), findsOneWidget);
     expect(find.text('경기 상황 읽기'), findsOneWidget);
+    expect(find.text('움직이는 화면'), findsOneWidget);
+    expect(find.text('공과 러너의 전개를 따라가며 장면을 읽어보세요.'), findsOneWidget);
+    expect(find.text('LIVE 전개 읽기'), findsOneWidget);
     expect(find.text('중앙 압박 직전, 오른쪽 하프스페이스가 열려 있어요.'), findsOneWidget);
     expect(find.text('오른쪽 하프스페이스로 빠른 전진 패스'), findsOneWidget);
 
     await tester.ensureVisible(find.text('오른쪽 하프스페이스로 빠른 전진 패스'));
     await tester.tap(find.text('오른쪽 하프스페이스로 빠른 전진 패스'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('중앙 압박 전, 열린 하프스페이스를 빠르게 쓰는 판단이 좋습니다.'), findsOneWidget);
   });
