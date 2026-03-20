@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../domain/entities/player_profile.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -80,6 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final levelState = PlayerLevelService(widget.optionRepository).loadState();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -115,6 +117,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _genderLabel(_gender, isKo),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
+                      const SizedBox(height: 8),
+                      _LevelBadge(levelState: levelState, isKo: isKo),
                     ],
                   ),
                 ),
@@ -974,6 +978,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (file.existsSync()) {
       await file.delete();
     }
+  }
+}
+
+class _LevelBadge extends StatelessWidget {
+  final PlayerLevelState levelState;
+  final bool isKo;
+
+  const _LevelBadge({required this.levelState, required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final levelName = PlayerLevelService.levelName(levelState.level, isKo);
+    final stageName = PlayerLevelService.stageName(levelState.level, isKo);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.66),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Lv.${levelState.level} · $levelName',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            stageName,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: scheme.onPrimaryContainer.withValues(alpha: 0.85),
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 6),
+          LinearProgressIndicator(
+            value: levelState.progress,
+            minHeight: 6,
+            borderRadius: BorderRadius.circular(999),
+            backgroundColor: scheme.onPrimaryContainer.withValues(alpha: 0.20),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isKo
+                ? '다음 레벨까지 ${levelState.xpToNextLevel}XP'
+                : '${levelState.xpToNextLevel} XP to next level',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: scheme.onPrimaryContainer.withValues(alpha: 0.82),
+                ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
