@@ -120,7 +120,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                   widget.optionRepository,
                 ),
-                newsCountFuture: _newsCountFuture,
               );
 
               return SingleChildScrollView(
@@ -131,20 +130,28 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Builder(
-                      builder: (context) => SharedTabHeader(
-                        padding: EdgeInsets.zero,
-                        onLeadingTap: () => Scaffold.of(context).openDrawer(),
-                        profilePhotoSource:
-                            widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
-                        onNewsTap: _openNews,
-                        onQuizTap: _openQuizShortcut,
-                        onProfileTap: () => _openProfile(context),
-                        onSettingsTap: () => _openSettings(context),
-                      ),
+                    FutureBuilder<int>(
+                      future: _newsCountFuture,
+                      builder: (context, snapshot) {
+                        final newsCount = snapshot.data ?? 0;
+                        return Builder(
+                          builder: (context) => SharedTabHeader(
+                            padding: EdgeInsets.zero,
+                            onLeadingTap: () =>
+                                Scaffold.of(context).openDrawer(),
+                            profilePhotoSource:
+                                widget.optionRepository.getValue<String>(
+                                      'profile_photo_url',
+                                    ) ??
+                                    '',
+                            onNewsTap: _openNews,
+                            newsBadgeCount: newsCount,
+                            onQuizTap: _openQuizShortcut,
+                            onProfileTap: () => _openProfile(context),
+                            onSettingsTap: () => _openSettings(context),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     _LevelHeroCard(
@@ -188,8 +195,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         widget.onOpenDiary,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _TodayOverviewCard(data: data, isKo: isKo),
                     const SizedBox(height: 12),
                     _QuickActionGrid(
                       isKo: isKo,
@@ -411,7 +416,6 @@ class _HomeHubData {
   final bool reviewedTodayDiary;
   final bool quizCompletedToday;
   final SkillQuizResumeSummary quizResumeSummary;
-  final Future<int> newsCountFuture;
 
   const _HomeHubData({
     required this.weeklyTrainingCount,
@@ -430,7 +434,6 @@ class _HomeHubData {
     required this.reviewedTodayDiary,
     required this.quizCompletedToday,
     required this.quizResumeSummary,
-    required this.newsCountFuture,
   });
 
   factory _HomeHubData.build({
@@ -440,7 +443,6 @@ class _HomeHubData {
     required DateTime? quizCompletedAt,
     required String? viewedDiaryDayToken,
     required SkillQuizResumeSummary quizResumeSummary,
-    required Future<int> newsCountFuture,
   }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -554,7 +556,6 @@ class _HomeHubData {
       reviewedTodayDiary: reviewedTodayDiary,
       quizCompletedToday: quizCompletedToday,
       quizResumeSummary: quizResumeSummary,
-      newsCountFuture: newsCountFuture,
     );
   }
 }
@@ -817,52 +818,6 @@ class _LevelIllustration extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TodayOverviewCard extends StatelessWidget {
-  final _HomeHubData data;
-  final bool isKo;
-
-  const _TodayOverviewCard({required this.data, required this.isKo});
-
-  @override
-  Widget build(BuildContext context) {
-    final latestLabel = data.latestTrainingEntry == null
-        ? (isKo ? '최근 기록 없음' : 'No recent log')
-        : (isKo
-            ? '최근 기록 ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}'
-            : 'Last log ${DateFormat('M/d').format(data.latestTrainingEntry!.date)}');
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FutureBuilder<int>(
-            future: data.newsCountFuture,
-            builder: (context, snapshot) {
-              final newsCount = snapshot.data ?? 0;
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _StatPill(
-                    icon: Icons.newspaper_outlined,
-                    label: isKo ? '소식 $newsCount개' : '$newsCount news',
-                  ),
-                  _StatPill(
-                    icon: Icons.local_fire_department_outlined,
-                    label: isKo
-                        ? '${data.streakDays}일 연속'
-                        : '${data.streakDays}-day streak',
-                  ),
-                  _StatPill(icon: Icons.history, label: latestLabel),
-                ],
-              );
-            },
           ),
         ],
       ),
@@ -1520,37 +1475,6 @@ class _TodoChip extends StatelessWidget {
 
   bool isKo(BuildContext context) =>
       Localizations.localeOf(context).languageCode == 'ko';
-}
-
-class _StatPill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _StatPill({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _SummaryMetric extends StatelessWidget {
