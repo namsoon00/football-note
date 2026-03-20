@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -20,9 +21,11 @@ import '../widgets/shared_tab_header.dart';
 import 'news_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
-import 'space_speed_game_screen.dart';
+import 'skill_quiz_screen.dart';
 
 class CoachLessonScreen extends StatefulWidget {
+  static const String todayViewedDiaryDayKey = 'coach_diary_viewed_day_v1';
+
   final OptionRepository optionRepository;
   final TrainingService? trainingService;
   final LocaleService? localeService;
@@ -40,6 +43,11 @@ class CoachLessonScreen extends StatefulWidget {
     this.embeddedInHomeTab = false,
   });
 
+  static String todayViewedDayToken(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+
   @override
   State<CoachLessonScreen> createState() => _CoachLessonScreenState();
 }
@@ -52,6 +60,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
   final Set<String> _expandedTrainingGroups = <String>{};
+  String? _lastViewedDiaryToken;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   ThemeData get _theme => Theme.of(context);
@@ -127,6 +136,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 });
               }
               final selectedDay = days[selectedIndex];
+              _markDiaryViewedIfNeeded(selectedDay.date);
 
               return Column(
                 children: [
@@ -144,10 +154,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             widget.settingsService != null
                         ? _openNews
                         : null,
-                    onGameTap: widget.trainingService != null &&
+                    onQuizTap: widget.trainingService != null &&
                             widget.localeService != null &&
                             widget.settingsService != null
-                        ? _openGame
+                        ? _openQuiz
                         : null,
                     onProfileTap: _openProfile,
                     onSettingsTap: widget.localeService != null &&
@@ -357,24 +367,25 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Future<void> _openGame() async {
-    final trainingService = widget.trainingService;
-    final localeService = widget.localeService;
-    final settingsService = widget.settingsService;
-    if (trainingService == null ||
-        localeService == null ||
-        settingsService == null) {
-      return;
-    }
+  Future<void> _openQuiz() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SpaceSpeedGameScreen(
-          trainingService: trainingService,
-          localeService: localeService,
-          optionRepository: widget.optionRepository,
-          settingsService: settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
+        builder: (_) =>
+            SkillQuizScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+  }
+
+  void _markDiaryViewedIfNeeded(DateTime date) {
+    final token = CoachLessonScreen.todayViewedDayToken(date);
+    if (_lastViewedDiaryToken == token) return;
+    _lastViewedDiaryToken = token;
+    final todayToken = CoachLessonScreen.todayViewedDayToken(DateTime.now());
+    if (token != todayToken) return;
+    unawaited(
+      widget.optionRepository.setValue(
+        CoachLessonScreen.todayViewedDiaryDayKey,
+        token,
       ),
     );
   }

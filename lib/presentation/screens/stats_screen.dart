@@ -20,7 +20,7 @@ import 'average_benchmark_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'news_screen.dart';
-import 'space_speed_game_screen.dart';
+import 'skill_quiz_screen.dart';
 
 class StatsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -199,7 +199,7 @@ class _StatsScreenState extends State<StatsScreen> {
               padding: EdgeInsets.zero,
               onLeadingTap: () => Scaffold.of(context).openDrawer(),
               onNewsTap: () => _openNews(context),
-              onGameTap: () => _openGame(context),
+              onQuizTap: () => _openQuiz(context),
               profilePhotoSource: widget.optionRepository.getValue<String>(
                     'profile_photo_url',
                   ) ??
@@ -528,16 +528,11 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Future<void> _openGame(BuildContext context) async {
+  Future<void> _openQuiz(BuildContext context) async {
     await _pushPageSafely(
       MaterialPageRoute(
-        builder: (_) => SpaceSpeedGameScreen(
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          optionRepository: widget.optionRepository,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
+        builder: (_) =>
+            SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
   }

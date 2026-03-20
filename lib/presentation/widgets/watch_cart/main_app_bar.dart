@@ -10,7 +10,7 @@ class WatchCartAppBar extends StatelessWidget {
   final IconData leadingIcon;
   final String? leadingTooltip;
   final VoidCallback? onNewsTap;
-  final VoidCallback? onGameTap;
+  final VoidCallback? onQuizTap;
   final VoidCallback? onCoachTap;
   final VoidCallback onProfileTap;
   final VoidCallback onSettingsTap;
@@ -22,7 +22,7 @@ class WatchCartAppBar extends StatelessWidget {
     this.leadingIcon = Icons.menu,
     this.leadingTooltip,
     this.onNewsTap,
-    this.onGameTap,
+    this.onQuizTap,
     this.onCoachTap,
     required this.onProfileTap,
     required this.onSettingsTap,
@@ -47,7 +47,8 @@ class WatchCartAppBar extends StatelessWidget {
                 'assets/watch_cart/svg/menu.svg',
                 width: 18,
                 height: 18,
-                colorFilter: ColorFilter.mode(scheme.onSurface, BlendMode.srcIn),
+                colorFilter:
+                    ColorFilter.mode(scheme.onSurface, BlendMode.srcIn),
               )
             : Icon(leadingIcon, size: 22, color: scheme.onSurface),
       ),
@@ -76,16 +77,16 @@ class WatchCartAppBar extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
                 onPressed: onNewsTap,
               ),
-            if (onGameTap != null)
+            if (onQuizTap != null)
               IconButton(
-                icon: const Icon(Icons.sports_esports_outlined),
+                icon: const Icon(Icons.quiz_outlined),
                 tooltip: Localizations.localeOf(context).languageCode == 'ko'
-                    ? '미니게임'
-                    : 'Mini game',
+                    ? '퀴즈'
+                    : 'Quiz',
                 iconSize: 28,
                 padding: const EdgeInsets.all(10),
                 constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
-                onPressed: onGameTap,
+                onPressed: onQuizTap,
               ),
             if (onCoachTap != null)
               IconButton(

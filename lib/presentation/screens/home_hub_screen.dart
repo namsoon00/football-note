@@ -27,7 +27,7 @@ import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'news_screen.dart';
-import 'space_speed_game_screen.dart';
+import 'coach_lesson_screen.dart';
 import 'training_method_board_screen.dart';
 
 class HomeHubScreen extends StatefulWidget {
@@ -114,6 +114,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 plans: _loadPlans(widget.optionRepository),
                 boards: boards,
                 quizCompletedAt: _loadQuizCompletedAt(widget.optionRepository),
+                viewedDiaryDayToken: widget.optionRepository.getValue<String>(
+                  CoachLessonScreen.todayViewedDiaryDayKey,
+                ),
                 quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                   widget.optionRepository,
                 ),
@@ -138,7 +141,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 ) ??
                                 '',
                         onNewsTap: _openNews,
-                        onGameTap: _openGame,
+                        onQuizTap: _openQuizShortcut,
                         onProfileTap: () => _openProfile(context),
                         onSettingsTap: () => _openSettings(context),
                       ),
@@ -301,16 +304,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     });
   }
 
-  Future<void> _openGame() async {
+  Future<void> _openQuizShortcut() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SpaceSpeedGameScreen(
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          optionRepository: widget.optionRepository,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
+        builder: (_) =>
+            SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
   }
@@ -410,6 +408,7 @@ class _HomeHubData {
   final bool loggedTrainingToday;
   final bool loggedLiftingToday;
   final bool loggedJumpRopeToday;
+  final bool reviewedTodayDiary;
   final bool quizCompletedToday;
   final SkillQuizResumeSummary quizResumeSummary;
   final Future<int> newsCountFuture;
@@ -428,6 +427,7 @@ class _HomeHubData {
     required this.loggedTrainingToday,
     required this.loggedLiftingToday,
     required this.loggedJumpRopeToday,
+    required this.reviewedTodayDiary,
     required this.quizCompletedToday,
     required this.quizResumeSummary,
     required this.newsCountFuture,
@@ -438,6 +438,7 @@ class _HomeHubData {
     required List<_DashboardPlan> plans,
     required List<TrainingBoard> boards,
     required DateTime? quizCompletedAt,
+    required String? viewedDiaryDayToken,
     required SkillQuizResumeSummary quizResumeSummary,
     required Future<int> newsCountFuture,
   }) {
@@ -533,6 +534,8 @@ class _HomeHubData {
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
+    final reviewedTodayDiary =
+        viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
 
     return _HomeHubData(
       weeklyTrainingCount: weeklyEntries.length,
@@ -548,6 +551,7 @@ class _HomeHubData {
       loggedTrainingToday: loggedTrainingToday,
       loggedLiftingToday: loggedLiftingToday,
       loggedJumpRopeToday: loggedJumpRopeToday,
+      reviewedTodayDiary: reviewedTodayDiary,
       quizCompletedToday: quizCompletedToday,
       quizResumeSummary: quizResumeSummary,
       newsCountFuture: newsCountFuture,
@@ -888,7 +892,7 @@ class _DailyFlowCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isKo ? '오늘 할 일 3단계' : 'Today in 3 steps',
+            isKo ? '오늘 할 일 5단계' : 'Today in 5 steps',
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
@@ -904,8 +908,26 @@ class _DailyFlowCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _FlowStepRow(
+            done: data.loggedLiftingToday,
+            label: isKo ? '2) 리프팅 기록' : '2) Log lifting',
+            buttonLabel: data.loggedLiftingToday
+                ? (isKo ? '완료' : 'Done')
+                : (isKo ? '기록에 넣기' : 'Add to log'),
+            onTap: onLog,
+          ),
+          const SizedBox(height: 8),
+          _FlowStepRow(
+            done: data.loggedJumpRopeToday,
+            label: isKo ? '3) 줄넘기 기록' : '3) Log jump rope',
+            buttonLabel: data.loggedJumpRopeToday
+                ? (isKo ? '완료' : 'Done')
+                : (isKo ? '기록에 넣기' : 'Add to log'),
+            onTap: onLog,
+          ),
+          const SizedBox(height: 8),
+          _FlowStepRow(
             done: data.quizCompletedToday,
-            label: isKo ? '2) 퀴즈 풀이' : '2) Solve quiz',
+            label: isKo ? '4) 퀴즈 풀이' : '4) Solve quiz',
             buttonLabel: data.quizCompletedToday
                 ? (isKo ? '완료' : 'Done')
                 : (isKo ? '퀴즈' : 'Open quiz'),
@@ -913,9 +935,11 @@ class _DailyFlowCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _FlowStepRow(
-            done: data.loggedTrainingToday || data.todayPlanCount > 0,
-            label: isKo ? '3) 다이어리 회고' : '3) Diary review',
-            buttonLabel: isKo ? '다이어리' : 'Open diary',
+            done: data.reviewedTodayDiary,
+            label: isKo ? '5) 오늘 다이어리 보기' : '5) Open today diary',
+            buttonLabel: data.reviewedTodayDiary
+                ? (isKo ? '완료' : 'Done')
+                : (isKo ? '다이어리' : 'Open diary'),
             onTap: onReview,
           ),
         ],

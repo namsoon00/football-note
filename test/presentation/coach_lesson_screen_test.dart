@@ -226,6 +226,65 @@ void main() {
     expect(find.textContaining('같은 날 훈련노트에 저장된 운세가 아직 없어요.'), findsNothing);
     expect(find.textContaining('행운'), findsWidgets);
   });
+
+  testWidgets(
+      'coach lesson screen marks today diary only when today page is opened', (
+    WidgetTester tester,
+  ) async {
+    final today = DateTime.now();
+    final optionRepository = _FakeOptionRepository();
+    final trainingService = TrainingService(
+      _FakeTrainingRepository(<TrainingEntry>[
+        TrainingEntry(
+          date: DateTime(today.year, today.month, today.day, 18, 0),
+          durationMinutes: 40,
+          intensity: 3,
+          type: '볼터치',
+          mood: 4,
+          injury: false,
+          notes: '오늘 기록',
+          location: '학교 운동장',
+        ),
+        TrainingEntry(
+          date: DateTime(today.year, today.month, today.day - 1, 18, 0),
+          durationMinutes: 30,
+          intensity: 3,
+          type: '패스',
+          mood: 3,
+          injury: false,
+          notes: '어제 기록',
+          location: '학교 운동장',
+        ),
+      ]),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(
+      optionRepository
+          .getValue<String>(CoachLessonScreen.todayViewedDiaryDayKey),
+      CoachLessonScreen.todayViewedDayToken(today),
+    );
+  });
 }
 
 class _FakeTrainingRepository implements TrainingRepository {
