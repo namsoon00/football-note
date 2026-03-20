@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../models/training_method_layout.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/level_up_dialog.dart';
+import '../widgets/training_board_sketch.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -273,14 +275,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           _reviewMode
               ? (isKo ? '오답 복습 · 진행 $progress' : 'Wrong review · $progress')
               : (_sessionSource == _QuizSessionSource.today.name
-                    ? (isKo
-                          ? '오늘의 퀴즈 · 진행 $progress'
-                          : 'Daily quiz · $progress')
-                    : _sessionSource == _QuizSessionSource.history.name
-                    ? (isKo
+                  ? (isKo ? '오늘의 퀴즈 · 진행 $progress' : 'Daily quiz · $progress')
+                  : _sessionSource == _QuizSessionSource.history.name
+                      ? (isKo
                           ? '클리어 세트 다시 풀기 · 진행 $progress'
                           : 'Replay cleared set · $progress')
-                    : (isKo
+                      : (isKo
                           ? '추가 랜덤 세트 · 진행 $progress'
                           : 'Bonus random set · $progress')),
           style: Theme.of(
@@ -338,8 +338,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   vertical: 12,
                 ),
                 side: BorderSide(
-                  color:
-                      borderColor ??
+                  color: borderColor ??
                       Theme.of(context).colorScheme.outlineVariant,
                   width: borderColor == null ? 1.0 : 1.6,
                 ),
@@ -364,9 +363,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 ? '틀렸어요. 다시 한 번 풀어보세요.'
                 : 'Incorrect. Try this question one more time.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: const Color(0xFFEB5757),
-              fontWeight: FontWeight.w700,
-            ),
+                  color: const Color(0xFFEB5757),
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
         const SizedBox(height: 10),
@@ -414,10 +413,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   _reviewMode
                       ? (isKo ? '오답 복습 결과' : 'Wrong Review Result')
                       : (_sessionSource == _QuizSessionSource.today.name
-                            ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
-                            : _sessionSource == _QuizSessionSource.history.name
-                            ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
-                            : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
+                          ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
+                          : _sessionSource == _QuizSessionSource.history.name
+                              ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
+                              : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
@@ -430,8 +429,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : '$_score / $total correct ($ratio%)',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -465,15 +464,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     child: Text(
                       _quizAward!.didLevelUp
                           ? (isKo
-                                ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
-                                : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
+                              ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
+                              : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
                           : (isKo
-                                ? '+${_quizAward!.gainedXp} XP 획득'
-                                : '+${_quizAward!.gainedXp} XP earned'),
+                              ? '+${_quizAward!.gainedXp} XP 획득'
+                              : '+${_quizAward!.gainedXp} XP earned'),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                 ],
@@ -494,16 +493,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   onPressed: wrongCount == 0
                       ? null
                       : () => _startQuestionSession(
-                          questions: _questions
-                              .where(
-                                (question) => _wrongIds.contains(question.id),
-                              )
-                              .toList(growable: false),
-                          reviewMode: true,
-                          sessionSource: _QuizSessionSource.review.name,
-                          clearPendingWrongQuestions: false,
-                          shouldNotify: true,
-                        ),
+                            questions: _questions
+                                .where(
+                                  (question) => _wrongIds.contains(question.id),
+                                )
+                                .toList(growable: false),
+                            reviewMode: true,
+                            sessionSource: _QuizSessionSource.review.name,
+                            clearPendingWrongQuestions: false,
+                            shouldNotify: true,
+                          ),
                   icon: const Icon(Icons.rule_folder_outlined),
                   label: Text(
                     isKo ? '이번 오답 바로 복습' : 'Review wrong answers now',
@@ -546,11 +545,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       context,
       text: award.didLevelUp
           ? (isKo
-                ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
-                : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
+              ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
+              : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
           : (isKo
-                ? '+${award.gainedXp} XP 획득'
-                : '+${award.gainedXp} XP earned'),
+              ? '+${award.gainedXp} XP 획득'
+              : '+${award.gainedXp} XP earned'),
     );
     if (!award.didLevelUp) return;
     final customRewardName = PlayerLevelService(
@@ -663,15 +662,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _persistClearedSet(_ClearedQuizSet set) async {
     final sets = _loadClearedSets();
-    final deduped = sets
-        .where((item) {
-          final sameTime = item.completedAt == set.completedAt;
-          final sameQuestions =
-              item.questions.map((question) => question.id).join(',') ==
+    final deduped = sets.where((item) {
+      final sameTime = item.completedAt == set.completedAt;
+      final sameQuestions =
+          item.questions.map((question) => question.id).join(',') ==
               set.questions.map((question) => question.id).join(',');
-          return !(sameTime || sameQuestions);
-        })
-        .toList(growable: true);
+      return !(sameTime || sameQuestions);
+    }).toList(growable: true);
     deduped.insert(0, set);
     await widget.optionRepository.setValue(
       SkillQuizScreen.clearedSetsKey,
@@ -815,60 +812,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 }
 
-class _QuizScenarioCard extends StatefulWidget {
+class _QuizScenarioCard extends StatelessWidget {
   final _QuizQuestion question;
   final bool isKo;
 
   const _QuizScenarioCard({required this.question, required this.isKo});
 
   @override
-  State<_QuizScenarioCard> createState() => _QuizScenarioCardState();
-}
-
-class _QuizScenarioCardState extends State<_QuizScenarioCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    );
-    if (widget.question.scenario?.hasMotion == true) {
-      _controller.repeat(reverse: true);
-    } else {
-      _controller.value = 1;
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _QuizScenarioCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final hasMotion = widget.question.scenario?.hasMotion == true;
-    if (hasMotion) {
-      if (!_controller.isAnimating) {
-        _controller
-          ..value = 0
-          ..repeat(reverse: true);
-      }
-    } else {
-      _controller
-        ..stop()
-        ..value = 1;
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final scenario = widget.question.scenario!;
+    final scenario = question.scenario!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -876,29 +828,36 @@ class _QuizScenarioCardState extends State<_QuizScenarioCard>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.isKo ? scenario.koTitle : scenario.enTitle,
+              isKo ? scenario.koTitle : scenario.enTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
-            AspectRatio(
-              aspectRatio: 1.55,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) => CustomPaint(
-                  painter: _PitchScenarioPainter(
-                    scenario: scenario,
-                    motionProgress: _controller.value,
+            Container(
+              height: 208,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
                   ),
-                  child: const SizedBox.expand(),
-                ),
+                ],
+              ),
+              child: TrainingBoardSketch(
+                page: scenario.boardPage,
+                borderRadius: 18,
               ),
             ),
-            if (scenario.hasMotion) ...[
+            if ((isKo ? scenario.koMovementCaption : scenario.enMovementCaption)
+                    ?.trim()
+                    .isNotEmpty ==
+                true) ...[
               const SizedBox(height: 10),
               Text(
-                widget.isKo
+                isKo
                     ? scenario.koMovementCaption ?? ''
                     : scenario.enMovementCaption ?? '',
                 style: Theme.of(
@@ -910,157 +869,6 @@ class _QuizScenarioCardState extends State<_QuizScenarioCard>
         ),
       ),
     );
-  }
-}
-
-class _PitchScenarioPainter extends CustomPainter {
-  final _QuizScenario scenario;
-  final double motionProgress;
-
-  const _PitchScenarioPainter({
-    required this.scenario,
-    required this.motionProgress,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final fieldRect = Offset.zero & size;
-    final fieldPaint = Paint()..color = const Color(0xFF2F7D4E);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(fieldRect, const Radius.circular(18)),
-      fieldPaint,
-    );
-    final linePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.88)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(fieldRect.deflate(8), const Radius.circular(14)),
-      linePaint,
-    );
-    canvas.drawLine(
-      Offset(size.width / 2, 8),
-      Offset(size.width / 2, size.height - 8),
-      linePaint,
-    );
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 24, linePaint);
-    final lanePaint = Paint()
-      ..color = const Color(0x66FFD54F)
-      ..style = PaintingStyle.fill;
-    if (scenario.highlightedLane == 'left-half') {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(
-            size.width * 0.22,
-            8,
-            size.width * 0.16,
-            size.height - 16,
-          ),
-          const Radius.circular(14),
-        ),
-        lanePaint,
-      );
-    } else if (scenario.highlightedLane == 'right-half') {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(
-            size.width * 0.62,
-            8,
-            size.width * 0.16,
-            size.height - 16,
-          ),
-          const Radius.circular(14),
-        ),
-        lanePaint,
-      );
-    } else if (scenario.highlightedLane == 'center') {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(
-            size.width * 0.42,
-            8,
-            size.width * 0.16,
-            size.height - 16,
-          ),
-          const Radius.circular(14),
-        ),
-        lanePaint,
-      );
-    }
-
-    Offset scale(Offset point) =>
-        Offset(point.dx * size.width, point.dy * size.height);
-
-    void drawMovementArrow(Offset from, Offset to, Color color) {
-      final start = scale(from);
-      final end = scale(to);
-      final arrowPaint = Paint()
-        ..color = color.withValues(alpha: 0.55)
-        ..strokeWidth = 3
-        ..strokeCap = StrokeCap.round;
-      canvas.drawLine(start, end, arrowPaint);
-      final direction = end - start;
-      if (direction.distance < 8) return;
-      final unit = direction / direction.distance;
-      final wing = Offset(-unit.dy, unit.dx);
-      final arrowA = end - unit * 12 + wing * 6;
-      final arrowB = end - unit * 12 - wing * 6;
-      canvas.drawLine(end, arrowA, arrowPaint);
-      canvas.drawLine(end, arrowB, arrowPaint);
-    }
-
-    Offset interpolate(Offset base, Offset? target) {
-      if (target == null) return base;
-      return Offset.lerp(base, target, motionProgress) ?? base;
-    }
-
-    void drawPlayer(Offset point, Color color) {
-      final center = scale(point);
-      canvas.drawCircle(center, 11, Paint()..color = color);
-      canvas.drawCircle(center, 11, linePaint);
-    }
-
-    for (var i = 0; i < scenario.attackPoints.length; i++) {
-      final base = scenario.attackPoints[i];
-      final target =
-          scenario.attackMoveTargets != null &&
-              i < scenario.attackMoveTargets!.length
-          ? scenario.attackMoveTargets![i]
-          : null;
-      if (target != null) {
-        drawMovementArrow(base, target, const Color(0xFFB3E5FC));
-      }
-      drawPlayer(interpolate(base, target), const Color(0xFF5EC8FF));
-    }
-    for (var i = 0; i < scenario.defendPoints.length; i++) {
-      final base = scenario.defendPoints[i];
-      final target =
-          scenario.defendMoveTargets != null &&
-              i < scenario.defendMoveTargets!.length
-          ? scenario.defendMoveTargets![i]
-          : null;
-      if (target != null) {
-        drawMovementArrow(base, target, const Color(0xFFFFCCBC));
-      }
-      drawPlayer(interpolate(base, target), const Color(0xFFFF8A65));
-    }
-    if (scenario.ballMoveTarget != null) {
-      drawMovementArrow(
-        scenario.ballPoint,
-        scenario.ballMoveTarget!,
-        const Color(0xFFFFF59D),
-      );
-    }
-    final ballPoint = interpolate(scenario.ballPoint, scenario.ballMoveTarget);
-    final ballCenter = scale(ballPoint);
-    canvas.drawCircle(ballCenter, 7, Paint()..color = const Color(0xFFFFF3E0));
-    canvas.drawCircle(ballCenter, 7, linePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _PitchScenarioPainter oldDelegate) {
-    return oldDelegate.scenario != scenario ||
-        oldDelegate.motionProgress != motionProgress;
   }
 }
 
@@ -1145,8 +953,7 @@ class _QuizSessionSnapshot {
         reviewMode: decoded['reviewMode'] == true,
         dailyQuestions: dailyQuestions.isEmpty ? questions : dailyQuestions,
         questions: questions,
-        sessionSource:
-            decoded['sessionSource']?.toString() ??
+        sessionSource: decoded['sessionSource']?.toString() ??
             _QuizSessionSource.today.name,
         index: (decoded['index'] as num?)?.toInt() ?? 0,
         score: (decoded['score'] as num?)?.toInt() ?? 0,
@@ -1154,8 +961,7 @@ class _QuizSessionSnapshot {
         answered: decoded['answered'] == true,
         retryUsed: decoded['retryUsed'] == true,
         retryFeedback: decoded['retryFeedback']?.toString(),
-        wrongIds:
-            (decoded['wrongIds'] as List?)
+        wrongIds: (decoded['wrongIds'] as List?)
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
@@ -1327,90 +1133,35 @@ class _QuizOption {
 class _QuizScenario {
   final String koTitle;
   final String enTitle;
-  final List<Offset> attackPoints;
-  final List<Offset> defendPoints;
-  final Offset ballPoint;
-  final String? highlightedLane;
-  final List<Offset>? attackMoveTargets;
-  final List<Offset>? defendMoveTargets;
-  final Offset? ballMoveTarget;
+  final TrainingMethodPage boardPage;
   final String? koMovementCaption;
   final String? enMovementCaption;
 
   const _QuizScenario({
     required this.koTitle,
     required this.enTitle,
-    required this.attackPoints,
-    required this.defendPoints,
-    required this.ballPoint,
-    this.highlightedLane,
-    this.attackMoveTargets,
-    this.defendMoveTargets,
-    this.ballMoveTarget,
+    required this.boardPage,
     this.koMovementCaption,
     this.enMovementCaption,
   });
 
-  bool get hasMotion =>
-      attackMoveTargets != null ||
-      defendMoveTargets != null ||
-      ballMoveTarget != null;
-
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'koTitle': koTitle,
-    'enTitle': enTitle,
-    'attackPoints': attackPoints
-        .map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
-        .toList(growable: false),
-    'defendPoints': defendPoints
-        .map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
-        .toList(growable: false),
-    'ballPoint': <String, double>{'dx': ballPoint.dx, 'dy': ballPoint.dy},
-    'highlightedLane': highlightedLane,
-    'attackMoveTargets': attackMoveTargets
-        ?.map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
-        .toList(growable: false),
-    'defendMoveTargets': defendMoveTargets
-        ?.map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
-        .toList(growable: false),
-    'ballMoveTarget': ballMoveTarget == null
-        ? null
-        : <String, double>{'dx': ballMoveTarget!.dx, 'dy': ballMoveTarget!.dy},
-    'koMovementCaption': koMovementCaption,
-    'enMovementCaption': enMovementCaption,
-  };
+        'koTitle': koTitle,
+        'enTitle': enTitle,
+        'boardPage': boardPage.toMap(),
+        'koMovementCaption': koMovementCaption,
+        'enMovementCaption': enMovementCaption,
+      };
 
   static _QuizScenario? fromDynamic(dynamic raw) {
     if (raw is! Map) return null;
     final map = raw.cast<String, dynamic>();
-    final ballMap = map['ballPoint'];
-    if (ballMap is! Map) return null;
-    Offset toOffset(Map<dynamic, dynamic> value) => Offset(
-      (value['dx'] as num?)?.toDouble() ?? 0,
-      (value['dy'] as num?)?.toDouble() ?? 0,
-    );
-    List<Offset>? toOffsetList(dynamic value) {
-      if (value is! List) return null;
-      return value.whereType<Map>().map(toOffset).toList(growable: false);
-    }
-
-    final ballMoveMap = map['ballMoveTarget'];
+    final pageMap = map['boardPage'];
+    if (pageMap is! Map) return null;
     return _QuizScenario(
       koTitle: map['koTitle']?.toString() ?? '',
       enTitle: map['enTitle']?.toString() ?? '',
-      attackPoints: (map['attackPoints'] as List? ?? const <dynamic>[])
-          .whereType<Map>()
-          .map(toOffset)
-          .toList(growable: false),
-      defendPoints: (map['defendPoints'] as List? ?? const <dynamic>[])
-          .whereType<Map>()
-          .map(toOffset)
-          .toList(growable: false),
-      ballPoint: toOffset(ballMap),
-      highlightedLane: map['highlightedLane']?.toString(),
-      attackMoveTargets: toOffsetList(map['attackMoveTargets']),
-      defendMoveTargets: toOffsetList(map['defendMoveTargets']),
-      ballMoveTarget: ballMoveMap is Map ? toOffset(ballMoveMap) : null,
+      boardPage: TrainingMethodPage.fromMap(pageMap.cast<String, dynamic>()),
       koMovementCaption: map['koMovementCaption']?.toString(),
       enMovementCaption: map['enMovementCaption']?.toString(),
     );
@@ -1429,13 +1180,13 @@ class _ClearedQuizSet {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'completedAt': completedAt.toIso8601String(),
-    'source': source,
-    'questions': questions
-        .map(_QuizQuestionSnapshot.fromQuestion)
-        .map((item) => item.toMap())
-        .toList(growable: false),
-  };
+        'completedAt': completedAt.toIso8601String(),
+        'source': source,
+        'questions': questions
+            .map(_QuizQuestionSnapshot.fromQuestion)
+            .map((item) => item.toMap())
+            .toList(growable: false),
+      };
 
   static String encodeList(List<_ClearedQuizSet> sets) =>
       jsonEncode(sets.map((set) => set.toMap()).toList(growable: false));
@@ -1614,26 +1365,24 @@ List<_QuizQuestion> _buildMixedQuizPool() {
 }
 
 List<_QuizQuestion> _buildScenarioQuizPool() {
-  return _scenarioTemplates
-      .map((template) {
-        final pack = _buildOptionPack(
-          template.id,
-          template.correct,
-          template.wrongA,
-          template.wrongB,
-        );
-        return _QuizQuestion(
-          id: template.id,
-          koQuestion: template.koQuestion,
-          enQuestion: template.enQuestion,
-          options: pack.options,
-          correctIndex: pack.correctIndex,
-          koExplain: template.koExplain,
-          enExplain: template.enExplain,
-          scenario: template.scenario,
-        );
-      })
-      .toList(growable: false);
+  return _scenarioTemplates.map((template) {
+    final pack = _buildOptionPack(
+      template.id,
+      template.correct,
+      template.wrongA,
+      template.wrongB,
+    );
+    return _QuizQuestion(
+      id: template.id,
+      koQuestion: template.koQuestion,
+      enQuestion: template.enQuestion,
+      options: pack.options,
+      correctIndex: pack.correctIndex,
+      koExplain: template.koExplain,
+      enExplain: template.enExplain,
+      scenario: template.scenario,
+    );
+  }).toList(growable: false);
 }
 
 List<_QuizQuestion> _buildMatchQuizPool() {
@@ -1673,9 +1422,8 @@ _QuizQuestion _shuffleQuestionOptions(
 ) {
   final indexed = question.options.asMap().entries.toList(growable: false)
     ..shuffle(random);
-  final shuffledOptions = indexed
-      .map((entry) => entry.value)
-      .toList(growable: false);
+  final shuffledOptions =
+      indexed.map((entry) => entry.value).toList(growable: false);
   final shuffledCorrectIndex = indexed.indexWhere(
     (entry) => entry.key == question.correctIndex,
   );
@@ -1708,6 +1456,99 @@ class _OptionPack {
   final int correctIndex;
 
   const _OptionPack(this.options, this.correctIndex);
+}
+
+Offset _p(double x, double y) => Offset(x, y);
+
+TrainingMethodStroke _lineStroke(
+  List<Offset> points, {
+  required int colorValue,
+  double width = 2.6,
+}) {
+  return TrainingMethodStroke(
+    points: points
+        .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
+        .toList(growable: false),
+    colorValue: colorValue,
+    width: width,
+  );
+}
+
+TrainingMethodPage _quizBoard({
+  required String name,
+  required List<Offset> attackers,
+  required List<Offset> defenders,
+  required Offset ball,
+  required List<Offset> playerPath,
+  required List<Offset> ballPath,
+  String? highlightLane,
+  List<List<Offset>> supportRuns = const <List<Offset>>[],
+  List<List<Offset>> defensiveRuns = const <List<Offset>>[],
+}) {
+  final items = <TrainingMethodItem>[
+    ...attackers.map(
+      (point) => TrainingMethodItem(
+        type: 'player',
+        x: point.dx,
+        y: point.dy,
+        size: 32,
+        colorValue: 0xFFB3E5FC,
+      ),
+    ),
+    ...defenders.map(
+      (point) => TrainingMethodItem(
+        type: 'player',
+        x: point.dx,
+        y: point.dy,
+        size: 32,
+        colorValue: 0xFFFFCCBC,
+      ),
+    ),
+    TrainingMethodItem(
+      type: 'ball',
+      x: ball.dx,
+      y: ball.dy,
+      size: 26,
+      colorValue: 0xFFFFF8E1,
+    ),
+  ];
+  final strokes = <TrainingMethodStroke>[
+    if (highlightLane == 'left-half')
+      _lineStroke(
+        [_p(0.3, 0.08), _p(0.3, 0.92)],
+        colorValue: 0x5CFFD54F,
+        width: 22,
+      ),
+    if (highlightLane == 'center')
+      _lineStroke(
+        [_p(0.5, 0.08), _p(0.5, 0.92)],
+        colorValue: 0x5CFFD54F,
+        width: 22,
+      ),
+    if (highlightLane == 'right-half')
+      _lineStroke(
+        [_p(0.7, 0.08), _p(0.7, 0.92)],
+        colorValue: 0x5CFFD54F,
+        width: 22,
+      ),
+    ...supportRuns.map(
+      (points) => _lineStroke(points, colorValue: 0xCCB3E5FC, width: 2.4),
+    ),
+    ...defensiveRuns.map(
+      (points) => _lineStroke(points, colorValue: 0xCCFFCCBC, width: 2.2),
+    ),
+  ];
+  return TrainingMethodPage(
+    name: name,
+    items: items,
+    strokes: strokes,
+    playerPath: playerPath
+        .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
+        .toList(growable: false),
+    ballPath: ballPath
+        .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
+        .toList(growable: false),
+  );
 }
 
 int _stableHash(String text) {
@@ -1820,9 +1661,9 @@ const List<_MatchScoreContext> _matchScoreContexts = <_MatchScoreContext>[
   ),
 ];
 
-const List<_MatchKnowledgeTemplate>
-_matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
-  _MatchKnowledgeTemplate(
+final List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
+    <_MatchKnowledgeTemplate>[
+  const _MatchKnowledgeTemplate(
     id: 'mk01',
     koPrompt: '빌드업 첫 선택으로 가장 안전한 원칙은?',
     enPrompt: 'what is the safest first principle in buildup?',
@@ -1843,7 +1684,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     enExplain:
         'In matches, lowering immediate risk reduces goals conceded and turnovers.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk02',
     koPrompt: '전환 수비에서 가장 먼저 해야 할 행동은?',
     enPrompt: 'what is the first action in defensive transition?',
@@ -1862,7 +1703,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     koExplain: '지연과 패스길 차단이 동료 복귀 시간을 벌어줍니다.',
     enExplain: 'Delay and lane blocking buy recovery time for teammates.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk03',
     koPrompt: '공격 전환에서 우선 확인할 정보는?',
     enPrompt: 'what should be checked first in attacking transition?',
@@ -1870,7 +1711,10 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
       koText: '상대 뒷공간과 전진 런 타이밍',
       enText: 'Back-space and forward-run timing',
     ),
-    wrongA: _QuizOption(koText: '항상 측면으로만 전개', enText: 'Always play wide only'),
+    wrongA: _QuizOption(
+      koText: '항상 측면으로만 전개',
+      enText: 'Always play wide only',
+    ),
     wrongB: _QuizOption(
       koText: '공 점유를 위해 무조건 후퇴',
       enText: 'Always retreat for possession',
@@ -1878,7 +1722,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     koExplain: '전환 순간에는 뒷공간과 런 정보가 득점 기회를 만듭니다.',
     enExplain: 'In transition moments, back-space and run cues create chances.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk04',
     koPrompt: '세트피스 수비에서 기본 원칙으로 맞는 것은?',
     enPrompt: 'which basic principle is correct in set-piece defense?',
@@ -1886,7 +1730,10 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
       koText: '마크 대상과 볼 궤적을 교차 확인',
       enText: 'Alternate checks between mark and ball flight',
     ),
-    wrongA: _QuizOption(koText: '볼만 끝까지 응시', enText: 'Stare at ball only'),
+    wrongA: _QuizOption(
+      koText: '볼만 끝까지 응시',
+      enText: 'Stare at ball only',
+    ),
     wrongB: _QuizOption(
       koText: '상대만 잡고 볼은 포기',
       enText: 'Hold mark only and ignore ball',
@@ -1894,7 +1741,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     koExplain: '마크와 볼을 함께 봐야 세컨드볼 대응이 가능합니다.',
     enExplain: 'Tracking both mark and ball enables second-ball responses.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk05',
     koPrompt: '오프사이드 라인 관리에서 핵심은?',
     enPrompt: 'what is key in offside-line management?',
@@ -1914,7 +1761,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     enExplain:
         'Line defending depends on synchronization and cover communication.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk06',
     koPrompt: '측면 수비에서 크로스 억제의 우선순위는?',
     enPrompt: 'what is the priority to suppress crosses on the flank?',
@@ -1926,12 +1773,15 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
       koText: '거리 두고 기다리기만',
       enText: 'Keep distance and only wait',
     ),
-    wrongB: _QuizOption(koText: '무조건 태클 먼저 시도', enText: 'Always tackle first'),
+    wrongB: _QuizOption(
+      koText: '무조건 태클 먼저 시도',
+      enText: 'Always tackle first',
+    ),
     koExplain: '크로스 발을 막는 각도 수비가 실점 확률을 낮춥니다.',
     enExplain:
         'Angle defending that blocks crossing foot reduces conceding risk.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk07',
     koPrompt: '박스 근처 수비에서 파울을 줄이는 선택은?',
     enPrompt: 'which choice reduces fouls near the box?',
@@ -1939,7 +1789,10 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
       koText: '발보다 몸의 위치 선점',
       enText: 'Win position with body before foot',
     ),
-    wrongA: _QuizOption(koText: '뒤에서 발만 뻗기', enText: 'Stab a foot from behind'),
+    wrongA: _QuizOption(
+      koText: '뒤에서 발만 뻗기',
+      enText: 'Stab a foot from behind',
+    ),
     wrongB: _QuizOption(
       koText: '볼과 상관없이 밀어내기',
       enText: 'Push regardless of ball',
@@ -1948,7 +1801,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     enExplain:
         'Near the box, positional body control is safer than risky foot actions.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk08',
     koPrompt: '경기 운영(게임 매니지먼트)에서 중요한 행동은?',
     enPrompt: 'what matters in game management?',
@@ -1967,7 +1820,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     koExplain: '시합은 상황별 템포 조절 능력이 승부를 좌우합니다.',
     enExplain: 'Match outcomes often depend on contextual tempo control.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk09',
     koPrompt: '역습 상황에서 마지막 패스 성공률을 높이는 법은?',
     enPrompt: 'how do you improve final-pass success in counterattacks?',
@@ -1987,7 +1840,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     enExplain:
         'Matching runner direction and speed increases finishing probability.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk10',
     koPrompt: '의사결정 속도를 높이는 가장 현실적인 루틴은?',
     enPrompt: 'what is the most practical routine for faster decisions?',
@@ -2006,7 +1859,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     koExplain: '프리스캔 루틴은 경기 속도에서 판단 지연을 줄입니다.',
     enExplain: 'Pre-scan routines reduce decision lag at game speed.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk11',
     koPrompt: '멘탈 흔들림(실수 직후)에서 바른 반응은?',
     enPrompt: 'what is the right reaction after a mistake?',
@@ -2025,7 +1878,7 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
     koExplain: '시합 중 회복 탄력성은 다음 행동의 질로 드러납니다.',
     enExplain: 'In-game resilience is shown by quality of the next action.',
   ),
-  _MatchKnowledgeTemplate(
+  const _MatchKnowledgeTemplate(
     id: 'mk12',
     koPrompt: '경고가 있는 상황에서 수비 선택으로 맞는 것은?',
     enPrompt: 'which defensive choice is correct when on a yellow card?',
@@ -2046,20 +1899,20 @@ _matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
   ),
 ];
 
-const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
+final List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
   _ScenarioQuizTemplate(
     id: 'scn01',
     koQuestion: '운동장 상황을 보면 가장 좋은 다음 선택은?',
     enQuestion: 'Looking at the pitch, what is the best next action?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '오른쪽 하프스페이스로 빠른 전진 패스',
       enText: 'Quick forward pass into the right half-space',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '볼을 멈추고 중앙 압박을 기다린다',
       enText: 'Stop the ball and wait for central pressure',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '가장 먼 측면으로 큰 전환만 시도한다',
       enText: 'Force a long switch to the far wing',
     ),
@@ -2069,21 +1922,20 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     scenario: _QuizScenario(
       koTitle: '중앙 압박 직전, 오른쪽 하프스페이스가 열려 있어요.',
       enTitle: 'Central pressure is closing, but the right half-space is open.',
-      attackPoints: [Offset(0.18, 0.52), Offset(0.36, 0.35), Offset(0.7, 0.44)],
-      defendPoints: [Offset(0.3, 0.5), Offset(0.46, 0.5), Offset(0.58, 0.56)],
-      ballPoint: Offset(0.18, 0.52),
-      highlightedLane: 'right-half',
-      attackMoveTargets: [
-        Offset(0.18, 0.52),
-        Offset(0.48, 0.33),
-        Offset(0.78, 0.42),
-      ],
-      defendMoveTargets: [
-        Offset(0.34, 0.5),
-        Offset(0.52, 0.48),
-        Offset(0.64, 0.58),
-      ],
-      ballMoveTarget: Offset(0.48, 0.33),
+      boardPage: _quizBoard(
+        name: 'Right Half-space',
+        attackers: [_p(0.18, 0.52), _p(0.36, 0.35), _p(0.7, 0.44)],
+        defenders: [_p(0.3, 0.5), _p(0.46, 0.5), _p(0.58, 0.56)],
+        ball: _p(0.18, 0.52),
+        playerPath: [_p(0.36, 0.35), _p(0.48, 0.33), _p(0.78, 0.42)],
+        ballPath: [_p(0.18, 0.52), _p(0.48, 0.33)],
+        highlightLane: 'right-half',
+        defensiveRuns: [
+          [_p(0.3, 0.5), _p(0.34, 0.5)],
+          [_p(0.46, 0.5), _p(0.52, 0.48)],
+          [_p(0.58, 0.56), _p(0.64, 0.58)],
+        ],
+      ),
       koMovementCaption: '움직임을 보면 공과 2선 러너가 오른쪽 하프스페이스로 같이 속도를 냅니다.',
       enMovementCaption:
           'The ball and second runner accelerate together into the right half-space.',
@@ -2094,15 +1946,15 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     koQuestion: '이 장면에서 수비 전환 첫 행동으로 맞는 것은?',
     enQuestion:
         'In this scene, what is the correct first action in defensive transition?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '가장 가까운 패스길을 막으며 지연한다',
       enText: 'Delay while blocking the nearest passing lane',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '볼만 향해 정면 태클을 시도한다',
       enText: 'Launch a straight tackle at the ball',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '즉시 박스까지 전원 후퇴한다',
       enText: 'Have everyone sprint back to the box',
     ),
@@ -2113,25 +1965,23 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       koTitle: '공을 잃은 직후 상대가 중앙으로 전진하려고 합니다.',
       enTitle:
           'Right after losing the ball, the opponent wants to break centrally.',
-      attackPoints: [
-        Offset(0.32, 0.42),
-        Offset(0.48, 0.48),
-        Offset(0.66, 0.35),
-      ],
-      defendPoints: [Offset(0.4, 0.58), Offset(0.54, 0.62), Offset(0.7, 0.6)],
-      ballPoint: Offset(0.48, 0.48),
-      highlightedLane: 'center',
-      defendMoveTargets: [
-        Offset(0.44, 0.53),
-        Offset(0.58, 0.57),
-        Offset(0.7, 0.58),
-      ],
-      attackMoveTargets: [
-        Offset(0.36, 0.45),
-        Offset(0.54, 0.46),
-        Offset(0.72, 0.39),
-      ],
-      ballMoveTarget: Offset(0.54, 0.46),
+      boardPage: _quizBoard(
+        name: 'Defensive Transition',
+        attackers: [_p(0.32, 0.42), _p(0.48, 0.48), _p(0.66, 0.35)],
+        defenders: [_p(0.4, 0.58), _p(0.54, 0.62), _p(0.7, 0.6)],
+        ball: _p(0.48, 0.48),
+        playerPath: [_p(0.4, 0.58), _p(0.44, 0.53), _p(0.54, 0.46)],
+        ballPath: [_p(0.48, 0.48), _p(0.54, 0.46)],
+        highlightLane: 'center',
+        supportRuns: [
+          [_p(0.32, 0.42), _p(0.36, 0.45)],
+          [_p(0.66, 0.35), _p(0.72, 0.39)],
+        ],
+        defensiveRuns: [
+          [_p(0.54, 0.62), _p(0.58, 0.57)],
+          [_p(0.7, 0.6), _p(0.7, 0.58)],
+        ],
+      ),
       koMovementCaption: '가까운 수비가 중앙 길목을 닫으며 속도를 늦추면 뒤 동료가 복귀할 시간을 벌 수 있어요.',
       enMovementCaption:
           'If the nearest defender slows play through the center, teammates gain recovery time.',
@@ -2141,15 +1991,15 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     id: 'scn03',
     koQuestion: '박스 앞에서 가장 좋은 판단은?',
     enQuestion: 'Near the box, what is the best decision?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '컷백 각도를 만들며 한 번 더 연결한다',
       enText: 'Create a cutback angle and connect one more pass',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '각도가 닫혀도 바로 슛한다',
       enText: 'Shoot immediately even with a closed angle',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '볼을 뒤로 끌고 다시 하프라인까지 간다',
       enText: 'Drag the ball back toward midfield',
     ),
@@ -2160,29 +2010,22 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       koTitle: '측면 돌파 뒤, 박스 안쪽에 컷백 길이 열려 있어요.',
       enTitle:
           'After beating on the wing, a cutback lane opens inside the box.',
-      attackPoints: [
-        Offset(0.72, 0.24),
-        Offset(0.78, 0.48),
-        Offset(0.56, 0.54),
-      ],
-      defendPoints: [
-        Offset(0.66, 0.36),
-        Offset(0.68, 0.54),
-        Offset(0.84, 0.56),
-      ],
-      ballPoint: Offset(0.78, 0.48),
-      highlightedLane: 'right-half',
-      attackMoveTargets: [
-        Offset(0.76, 0.26),
-        Offset(0.74, 0.52),
-        Offset(0.48, 0.56),
-      ],
-      defendMoveTargets: [
-        Offset(0.68, 0.39),
-        Offset(0.72, 0.56),
-        Offset(0.86, 0.58),
-      ],
-      ballMoveTarget: Offset(0.56, 0.54),
+      boardPage: _quizBoard(
+        name: 'Cutback Chance',
+        attackers: [_p(0.72, 0.24), _p(0.78, 0.48), _p(0.56, 0.54)],
+        defenders: [_p(0.66, 0.36), _p(0.68, 0.54), _p(0.84, 0.56)],
+        ball: _p(0.78, 0.48),
+        playerPath: [_p(0.78, 0.48), _p(0.74, 0.52), _p(0.48, 0.56)],
+        ballPath: [_p(0.78, 0.48), _p(0.56, 0.54)],
+        highlightLane: 'right-half',
+        supportRuns: [
+          [_p(0.72, 0.24), _p(0.76, 0.26)],
+        ],
+        defensiveRuns: [
+          [_p(0.66, 0.36), _p(0.68, 0.39)],
+          [_p(0.68, 0.54), _p(0.72, 0.56)],
+        ],
+      ),
       koMovementCaption: '공과 중앙 침투 선수가 안쪽으로 교차하며 컷백 속도가 살아나는 장면입니다.',
       enMovementCaption:
           'The ball and central runner cut across the box, increasing cutback timing.',
@@ -2192,15 +2035,15 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     id: 'scn04',
     koQuestion: '이 장면에서 스캔 후 첫 터치 방향은 어디가 좋은가?',
     enQuestion: 'After scanning this scene, where should your first touch go?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '압박 반대편 왼발 앞 공간',
       enText: 'Into the far-side front space away from pressure',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '등 뒤 압박 쪽으로 끌어온다',
       enText: 'Pull it toward the blind-side pressure',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '발밑에 멈춰 세운다',
       enText: 'Dead-stop it under your feet',
     ),
@@ -2211,25 +2054,23 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       koTitle: '등 뒤 압박이 오고 있고, 반대편 앞 공간은 비어 있습니다.',
       enTitle:
           'Blind-side pressure is coming, while the far-side front space is open.',
-      attackPoints: [
-        Offset(0.44, 0.58),
-        Offset(0.28, 0.42),
-        Offset(0.62, 0.36),
-      ],
-      defendPoints: [Offset(0.5, 0.62), Offset(0.56, 0.52), Offset(0.34, 0.58)],
-      ballPoint: Offset(0.44, 0.58),
-      highlightedLane: 'left-half',
-      attackMoveTargets: [
-        Offset(0.32, 0.5),
-        Offset(0.22, 0.38),
-        Offset(0.66, 0.32),
-      ],
-      defendMoveTargets: [
-        Offset(0.56, 0.6),
-        Offset(0.6, 0.52),
-        Offset(0.38, 0.56),
-      ],
-      ballMoveTarget: Offset(0.32, 0.5),
+      boardPage: _quizBoard(
+        name: 'First Touch Away',
+        attackers: [_p(0.44, 0.58), _p(0.28, 0.42), _p(0.62, 0.36)],
+        defenders: [_p(0.5, 0.62), _p(0.56, 0.52), _p(0.34, 0.58)],
+        ball: _p(0.44, 0.58),
+        playerPath: [_p(0.44, 0.58), _p(0.32, 0.5)],
+        ballPath: [_p(0.44, 0.58), _p(0.32, 0.5)],
+        highlightLane: 'left-half',
+        supportRuns: [
+          [_p(0.28, 0.42), _p(0.22, 0.38)],
+          [_p(0.62, 0.36), _p(0.66, 0.32)],
+        ],
+        defensiveRuns: [
+          [_p(0.5, 0.62), _p(0.56, 0.6)],
+          [_p(0.34, 0.58), _p(0.38, 0.56)],
+        ],
+      ),
       koMovementCaption: '첫 터치가 압박 반대편 앞으로 나가면 다음 패스와 드리블 속도를 이어갈 수 있어요.',
       enMovementCaption:
           'A first touch into the far-side front space keeps the next pass and dribble alive.',
@@ -2239,15 +2080,15 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     id: 'scn05',
     koQuestion: '움직임을 보고 가장 좋은 침투 지원은 무엇일까?',
     enQuestion: 'Watching the movement, what is the best supporting run?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '볼 받은 동료 앞쪽 빈 채널로 사선 침투',
       enText: 'Diagonal run into the open channel ahead of the receiver',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '공 쪽으로 같은 선에서 붙는다',
       enText: 'Move onto the same line close to the ball',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '뒤로만 물러나 패스 길을 줄인다',
       enText: 'Drop only backward and shrink the lane',
     ),
@@ -2258,21 +2099,22 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       koTitle: '중앙에서 공을 운반하는 동료가 있고, 오른쪽 채널 수비 간격이 벌어집니다.',
       enTitle:
           'A teammate carries centrally while the right-channel defenders separate.',
-      attackPoints: [Offset(0.3, 0.56), Offset(0.42, 0.42), Offset(0.62, 0.38)],
-      defendPoints: [Offset(0.46, 0.5), Offset(0.66, 0.44), Offset(0.74, 0.58)],
-      ballPoint: Offset(0.42, 0.42),
-      highlightedLane: 'right-half',
-      attackMoveTargets: [
-        Offset(0.3, 0.56),
-        Offset(0.5, 0.42),
-        Offset(0.78, 0.3),
-      ],
-      defendMoveTargets: [
-        Offset(0.5, 0.48),
-        Offset(0.68, 0.46),
-        Offset(0.76, 0.56),
-      ],
-      ballMoveTarget: Offset(0.5, 0.42),
+      boardPage: _quizBoard(
+        name: 'Support Run',
+        attackers: [_p(0.3, 0.56), _p(0.42, 0.42), _p(0.62, 0.38)],
+        defenders: [_p(0.46, 0.5), _p(0.66, 0.44), _p(0.74, 0.58)],
+        ball: _p(0.42, 0.42),
+        playerPath: [_p(0.62, 0.38), _p(0.78, 0.3)],
+        ballPath: [_p(0.42, 0.42), _p(0.5, 0.42)],
+        highlightLane: 'right-half',
+        supportRuns: [
+          [_p(0.42, 0.42), _p(0.5, 0.42)],
+        ],
+        defensiveRuns: [
+          [_p(0.46, 0.5), _p(0.5, 0.48)],
+          [_p(0.74, 0.58), _p(0.76, 0.56)],
+        ],
+      ),
       koMovementCaption: '볼 운반자 속도가 올라갈수록, 앞 채널 침투가 더 큰 공간을 만듭니다.',
       enMovementCaption:
           'As the ball carrier accelerates, the front-channel run creates a larger window.',
@@ -2282,15 +2124,15 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     id: 'scn06',
     koQuestion: '이 움직임에서 가장 좋은 수비 판단은?',
     enQuestion: 'In this movement pattern, what is the best defensive read?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '안쪽 패스길을 먼저 닫고 측면으로 유도',
       enText: 'Shut the inside lane first and guide play outside',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '공만 보고 바로 달려든다',
       enText: 'Sprint straight at the ball only',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '박스 안까지 물러나며 기다린다',
       enText: 'Retreat to the box and wait',
     ),
@@ -2301,21 +2143,22 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       koTitle: '상대 윙어가 빠르게 전진하고, 안쪽 침투 지원도 따라옵니다.',
       enTitle:
           'The opponent winger drives fast, with an inside support run following.',
-      attackPoints: [Offset(0.2, 0.3), Offset(0.34, 0.42), Offset(0.54, 0.58)],
-      defendPoints: [Offset(0.38, 0.32), Offset(0.44, 0.5), Offset(0.62, 0.62)],
-      ballPoint: Offset(0.2, 0.3),
-      highlightedLane: 'left-half',
-      attackMoveTargets: [
-        Offset(0.34, 0.36),
-        Offset(0.48, 0.46),
-        Offset(0.62, 0.62),
-      ],
-      defendMoveTargets: [
-        Offset(0.42, 0.34),
-        Offset(0.48, 0.48),
-        Offset(0.64, 0.6),
-      ],
-      ballMoveTarget: Offset(0.34, 0.36),
+      boardPage: _quizBoard(
+        name: 'Show Outside',
+        attackers: [_p(0.2, 0.3), _p(0.34, 0.42), _p(0.54, 0.58)],
+        defenders: [_p(0.38, 0.32), _p(0.44, 0.5), _p(0.62, 0.62)],
+        ball: _p(0.2, 0.3),
+        playerPath: [_p(0.38, 0.32), _p(0.42, 0.34), _p(0.34, 0.36)],
+        ballPath: [_p(0.2, 0.3), _p(0.34, 0.36)],
+        highlightLane: 'left-half',
+        supportRuns: [
+          [_p(0.34, 0.42), _p(0.48, 0.46)],
+        ],
+        defensiveRuns: [
+          [_p(0.44, 0.5), _p(0.48, 0.48)],
+          [_p(0.62, 0.62), _p(0.64, 0.6)],
+        ],
+      ),
       koMovementCaption: '볼과 안쪽 지원이 동시에 속도를 낼 때는 중앙 문을 먼저 닫아야 해요.',
       enMovementCaption:
           'When the ball and inside support accelerate together, the central door must close first.',
@@ -2325,16 +2168,16 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     id: 'scn07',
     koQuestion: '가장 좋은 첫 패스 타이밍은 언제일까?',
     enQuestion: 'When is the best timing for the first pass?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '동료가 수비 사이 빈 공간으로 속도를 붙이는 순간',
       enText:
           'The moment your teammate accelerates into the gap between defenders',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '동료가 멈춰 선 뒤',
       enText: 'After your teammate has already stopped',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '수비 두 명이 완전히 붙은 뒤',
       enText: 'After both defenders fully close together',
     ),
@@ -2345,25 +2188,22 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       koTitle: '투톱 사이에서 한 명이 뒤로 끌고, 다른 한 명이 뒷공간으로 뛰기 시작합니다.',
       enTitle:
           'One forward checks short while the other begins a run into the back space.',
-      attackPoints: [Offset(0.28, 0.5), Offset(0.5, 0.48), Offset(0.7, 0.32)],
-      defendPoints: [
-        Offset(0.46, 0.44),
-        Offset(0.58, 0.42),
-        Offset(0.66, 0.54),
-      ],
-      ballPoint: Offset(0.28, 0.5),
-      highlightedLane: 'center',
-      attackMoveTargets: [
-        Offset(0.28, 0.5),
-        Offset(0.44, 0.52),
-        Offset(0.82, 0.24),
-      ],
-      defendMoveTargets: [
-        Offset(0.48, 0.45),
-        Offset(0.6, 0.42),
-        Offset(0.68, 0.54),
-      ],
-      ballMoveTarget: Offset(0.6, 0.34),
+      boardPage: _quizBoard(
+        name: 'Pass Timing',
+        attackers: [_p(0.28, 0.5), _p(0.5, 0.48), _p(0.7, 0.32)],
+        defenders: [_p(0.46, 0.44), _p(0.58, 0.42), _p(0.66, 0.54)],
+        ball: _p(0.28, 0.5),
+        playerPath: [_p(0.7, 0.32), _p(0.82, 0.24)],
+        ballPath: [_p(0.28, 0.5), _p(0.6, 0.34)],
+        highlightLane: 'center',
+        supportRuns: [
+          [_p(0.5, 0.48), _p(0.44, 0.52)],
+        ],
+        defensiveRuns: [
+          [_p(0.46, 0.44), _p(0.48, 0.45)],
+          [_p(0.58, 0.42), _p(0.6, 0.42)],
+        ],
+      ),
       koMovementCaption: '체크 움직임이 수비를 끌어내는 순간, 반대 러너는 더 큰 뒷공간을 얻습니다.',
       enMovementCaption:
           'As the check run pulls defenders out, the opposite runner gains a bigger back-space lane.',
@@ -2373,16 +2213,16 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
     id: 'scn08',
     koQuestion: '이 장면에서 가장 좋은 오프더볼 선택은?',
     enQuestion: 'In this scene, what is the best off-ball choice?',
-    correct: _QuizOption(
+    correct: const _QuizOption(
       koText: '공보다 한 박자 먼저 빈 공간으로 이동해 패스 각도 만들기',
       enText:
           'Arrive in the open space a beat early to create the passing angle',
     ),
-    wrongA: _QuizOption(
+    wrongA: const _QuizOption(
       koText: '볼 온 뒤에만 움직인다',
       enText: 'Move only after the ball arrives',
     ),
-    wrongB: _QuizOption(
+    wrongB: const _QuizOption(
       koText: '동료 뒤에 숨어 서 있다',
       enText: 'Stand hidden behind your teammate',
     ),
@@ -2393,25 +2233,22 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       koTitle: '좌우로 공이 순환되고 있고, 중앙 미드필더 앞 공간이 잠깐 비었습니다.',
       enTitle:
           'The ball circulates side to side, and a pocket opens briefly in front of midfield.',
-      attackPoints: [Offset(0.18, 0.54), Offset(0.44, 0.46), Offset(0.72, 0.5)],
-      defendPoints: [
-        Offset(0.36, 0.46),
-        Offset(0.52, 0.48),
-        Offset(0.64, 0.52),
-      ],
-      ballPoint: Offset(0.18, 0.54),
-      highlightedLane: 'center',
-      attackMoveTargets: [
-        Offset(0.3, 0.54),
-        Offset(0.5, 0.4),
-        Offset(0.72, 0.5),
-      ],
-      defendMoveTargets: [
-        Offset(0.4, 0.46),
-        Offset(0.54, 0.48),
-        Offset(0.66, 0.52),
-      ],
-      ballMoveTarget: Offset(0.5, 0.4),
+      boardPage: _quizBoard(
+        name: 'Open Pocket',
+        attackers: [_p(0.18, 0.54), _p(0.44, 0.46), _p(0.72, 0.5)],
+        defenders: [_p(0.36, 0.46), _p(0.52, 0.48), _p(0.64, 0.52)],
+        ball: _p(0.18, 0.54),
+        playerPath: [_p(0.44, 0.46), _p(0.5, 0.4)],
+        ballPath: [_p(0.18, 0.54), _p(0.5, 0.4)],
+        highlightLane: 'center',
+        supportRuns: [
+          [_p(0.18, 0.54), _p(0.3, 0.54)],
+        ],
+        defensiveRuns: [
+          [_p(0.36, 0.46), _p(0.4, 0.46)],
+          [_p(0.64, 0.52), _p(0.66, 0.52)],
+        ],
+      ),
       koMovementCaption: '잠깐 열린 포켓은 오래 남지 않으니, 공이 오기 전에 먼저 들어가야 합니다.',
       enMovementCaption:
           'The pocket will not stay open, so you need to enter before the ball gets there.',
@@ -2472,8 +2309,8 @@ const List<_QuizSituation> _situations = <_QuizSituation>[
   ),
 ];
 
-const Map<_QuizType, List<_QuizConcept>>
-_conceptsByType = <_QuizType, List<_QuizConcept>>{
+const Map<_QuizType, List<_QuizConcept>> _conceptsByType =
+    <_QuizType, List<_QuizConcept>>{
   _QuizType.pass: <_QuizConcept>[
     _QuizConcept(
       id: 'p01',
