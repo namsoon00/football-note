@@ -273,12 +273,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           _reviewMode
               ? (isKo ? '오답 복습 · 진행 $progress' : 'Wrong review · $progress')
               : (_sessionSource == _QuizSessionSource.today.name
-                  ? (isKo ? '오늘의 퀴즈 · 진행 $progress' : 'Daily quiz · $progress')
-                  : _sessionSource == _QuizSessionSource.history.name
-                      ? (isKo
+                    ? (isKo
+                          ? '오늘의 퀴즈 · 진행 $progress'
+                          : 'Daily quiz · $progress')
+                    : _sessionSource == _QuizSessionSource.history.name
+                    ? (isKo
                           ? '클리어 세트 다시 풀기 · 진행 $progress'
                           : 'Replay cleared set · $progress')
-                      : (isKo
+                    : (isKo
                           ? '추가 랜덤 세트 · 진행 $progress'
                           : 'Bonus random set · $progress')),
           style: Theme.of(
@@ -336,7 +338,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   vertical: 12,
                 ),
                 side: BorderSide(
-                  color: borderColor ??
+                  color:
+                      borderColor ??
                       Theme.of(context).colorScheme.outlineVariant,
                   width: borderColor == null ? 1.0 : 1.6,
                 ),
@@ -361,9 +364,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 ? '틀렸어요. 다시 한 번 풀어보세요.'
                 : 'Incorrect. Try this question one more time.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFFEB5757),
-                  fontWeight: FontWeight.w700,
-                ),
+              color: const Color(0xFFEB5757),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
         const SizedBox(height: 10),
@@ -411,10 +414,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   _reviewMode
                       ? (isKo ? '오답 복습 결과' : 'Wrong Review Result')
                       : (_sessionSource == _QuizSessionSource.today.name
-                          ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
-                          : _sessionSource == _QuizSessionSource.history.name
-                              ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
-                              : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
+                            ? (isKo ? '오늘의 퀴즈 결과' : 'Daily Quiz Result')
+                            : _sessionSource == _QuizSessionSource.history.name
+                            ? (isKo ? '클리어 세트 재도전 결과' : 'Replay Result')
+                            : (isKo ? '추가 세트 결과' : 'Bonus Set Result')),
                   textAlign: TextAlign.center,
                   style: Theme.of(
                     context,
@@ -427,8 +430,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : '$_score / $total correct ($ratio%)',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -462,15 +465,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     child: Text(
                       _quizAward!.didLevelUp
                           ? (isKo
-                              ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
-                              : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
+                                ? '+${_quizAward!.gainedXp} XP · Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, true)} 달성'
+                                : '+${_quizAward!.gainedXp} XP · Reached Lv.${_quizAward!.after.level} ${PlayerLevelService.levelName(_quizAward!.after.level, false)}')
                           : (isKo
-                              ? '+${_quizAward!.gainedXp} XP 획득'
-                              : '+${_quizAward!.gainedXp} XP earned'),
+                                ? '+${_quizAward!.gainedXp} XP 획득'
+                                : '+${_quizAward!.gainedXp} XP earned'),
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -484,24 +487,23 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 OutlinedButton.icon(
                   onPressed: _startTodaySession,
                   icon: const Icon(Icons.today_outlined),
-                  label: Text(
-                    isKo ? '오늘 퀴즈 다시 풀기' : 'Replay today quiz',
-                  ),
+                  label: Text(isKo ? '오늘 퀴즈 다시 풀기' : 'Replay today quiz'),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: wrongCount == 0
                       ? null
                       : () => _startQuestionSession(
-                            questions: _questions
-                                .where((question) =>
-                                    _wrongIds.contains(question.id))
-                                .toList(growable: false),
-                            reviewMode: true,
-                            sessionSource: _QuizSessionSource.review.name,
-                            clearPendingWrongQuestions: false,
-                            shouldNotify: true,
-                          ),
+                          questions: _questions
+                              .where(
+                                (question) => _wrongIds.contains(question.id),
+                              )
+                              .toList(growable: false),
+                          reviewMode: true,
+                          sessionSource: _QuizSessionSource.review.name,
+                          clearPendingWrongQuestions: false,
+                          shouldNotify: true,
+                        ),
                   icon: const Icon(Icons.rule_folder_outlined),
                   label: Text(
                     isKo ? '이번 오답 바로 복습' : 'Review wrong answers now',
@@ -511,17 +513,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 OutlinedButton.icon(
                   onPressed: _startRandomMixedSession,
                   icon: const Icon(Icons.casino_outlined),
-                  label: Text(
-                    isKo ? '추가 랜덤 세트 받기' : 'Get another random set',
-                  ),
+                  label: Text(isKo ? '추가 랜덤 세트 받기' : 'Get another random set'),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: _openClearedHistory,
                   icon: const Icon(Icons.history_outlined),
-                  label: Text(
-                    isKo ? '클리어 세트 다시 풀기' : 'Replay cleared sets',
-                  ),
+                  label: Text(isKo ? '클리어 세트 다시 풀기' : 'Replay cleared sets'),
                 ),
               ],
             ),
@@ -548,11 +546,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       context,
       text: award.didLevelUp
           ? (isKo
-              ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
-              : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
+                ? '+${award.gainedXp} XP · Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, true)} 달성'
+                : '+${award.gainedXp} XP · Reached Lv.${award.after.level} ${PlayerLevelService.levelName(award.after.level, false)}')
           : (isKo
-              ? '+${award.gainedXp} XP 획득'
-              : '+${award.gainedXp} XP earned'),
+                ? '+${award.gainedXp} XP 획득'
+                : '+${award.gainedXp} XP earned'),
     );
     if (!award.didLevelUp) return;
     final customRewardName = PlayerLevelService(
@@ -619,8 +617,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     );
     if (savedToken == todayToken) {
       final stored = _QuizQuestionSnapshot.decodeList(
-        widget.optionRepository
-            .getValue<String>(SkillQuizScreen.dailyQuestionsKey),
+        widget.optionRepository.getValue<String>(
+          SkillQuizScreen.dailyQuestionsKey,
+        ),
       );
       if (stored.isNotEmpty) return stored;
     }
@@ -664,13 +663,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Future<void> _persistClearedSet(_ClearedQuizSet set) async {
     final sets = _loadClearedSets();
-    final deduped = sets.where((item) {
-      final sameTime = item.completedAt == set.completedAt;
-      final sameQuestions =
-          item.questions.map((question) => question.id).join(',') ==
+    final deduped = sets
+        .where((item) {
+          final sameTime = item.completedAt == set.completedAt;
+          final sameQuestions =
+              item.questions.map((question) => question.id).join(',') ==
               set.questions.map((question) => question.id).join(',');
-      return !(sameTime || sameQuestions);
-    }).toList(growable: true);
+          return !(sameTime || sameQuestions);
+        })
+        .toList(growable: true);
     deduped.insert(0, set);
     await widget.optionRepository.setValue(
       SkillQuizScreen.clearedSetsKey,
@@ -814,15 +815,60 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 }
 
-class _QuizScenarioCard extends StatelessWidget {
+class _QuizScenarioCard extends StatefulWidget {
   final _QuizQuestion question;
   final bool isKo;
 
   const _QuizScenarioCard({required this.question, required this.isKo});
 
   @override
+  State<_QuizScenarioCard> createState() => _QuizScenarioCardState();
+}
+
+class _QuizScenarioCardState extends State<_QuizScenarioCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    );
+    if (widget.question.scenario?.hasMotion == true) {
+      _controller.repeat(reverse: true);
+    } else {
+      _controller.value = 1;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _QuizScenarioCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final hasMotion = widget.question.scenario?.hasMotion == true;
+    if (hasMotion) {
+      if (!_controller.isAnimating) {
+        _controller
+          ..value = 0
+          ..repeat(reverse: true);
+      }
+    } else {
+      _controller
+        ..stop()
+        ..value = 1;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final scenario = question.scenario!;
+    final scenario = widget.question.scenario!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -830,7 +876,7 @@ class _QuizScenarioCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isKo ? scenario.koTitle : scenario.enTitle,
+              widget.isKo ? scenario.koTitle : scenario.enTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
@@ -838,11 +884,28 @@ class _QuizScenarioCard extends StatelessWidget {
             const SizedBox(height: 10),
             AspectRatio(
               aspectRatio: 1.55,
-              child: CustomPaint(
-                painter: _PitchScenarioPainter(scenario: scenario),
-                child: const SizedBox.expand(),
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) => CustomPaint(
+                  painter: _PitchScenarioPainter(
+                    scenario: scenario,
+                    motionProgress: _controller.value,
+                  ),
+                  child: const SizedBox.expand(),
+                ),
               ),
             ),
+            if (scenario.hasMotion) ...[
+              const SizedBox(height: 10),
+              Text(
+                widget.isKo
+                    ? scenario.koMovementCaption ?? ''
+                    : scenario.enMovementCaption ?? '',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
           ],
         ),
       ),
@@ -852,8 +915,12 @@ class _QuizScenarioCard extends StatelessWidget {
 
 class _PitchScenarioPainter extends CustomPainter {
   final _QuizScenario scenario;
+  final double motionProgress;
 
-  const _PitchScenarioPainter({required this.scenario});
+  const _PitchScenarioPainter({
+    required this.scenario,
+    required this.motionProgress,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -868,10 +935,7 @@ class _PitchScenarioPainter extends CustomPainter {
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        fieldRect.deflate(8),
-        const Radius.circular(14),
-      ),
+      RRect.fromRectAndRadius(fieldRect.deflate(8), const Radius.circular(14)),
       linePaint,
     );
     canvas.drawLine(
@@ -879,11 +943,7 @@ class _PitchScenarioPainter extends CustomPainter {
       Offset(size.width / 2, size.height - 8),
       linePaint,
     );
-    canvas.drawCircle(
-      Offset(size.width / 2, size.height / 2),
-      24,
-      linePaint,
-    );
+    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 24, linePaint);
     final lanePaint = Paint()
       ..color = const Color(0x66FFD54F)
       ..style = PaintingStyle.fill;
@@ -891,7 +951,11 @@ class _PitchScenarioPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromLTWH(
-              size.width * 0.22, 8, size.width * 0.16, size.height - 16),
+            size.width * 0.22,
+            8,
+            size.width * 0.16,
+            size.height - 16,
+          ),
           const Radius.circular(14),
         ),
         lanePaint,
@@ -900,7 +964,11 @@ class _PitchScenarioPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromLTWH(
-              size.width * 0.62, 8, size.width * 0.16, size.height - 16),
+            size.width * 0.62,
+            8,
+            size.width * 0.16,
+            size.height - 16,
+          ),
           const Radius.circular(14),
         ),
         lanePaint,
@@ -909,36 +977,90 @@ class _PitchScenarioPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromLTWH(
-              size.width * 0.42, 8, size.width * 0.16, size.height - 16),
+            size.width * 0.42,
+            8,
+            size.width * 0.16,
+            size.height - 16,
+          ),
           const Radius.circular(14),
         ),
         lanePaint,
       );
     }
 
+    Offset scale(Offset point) =>
+        Offset(point.dx * size.width, point.dy * size.height);
+
+    void drawMovementArrow(Offset from, Offset to, Color color) {
+      final start = scale(from);
+      final end = scale(to);
+      final arrowPaint = Paint()
+        ..color = color.withValues(alpha: 0.55)
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(start, end, arrowPaint);
+      final direction = end - start;
+      if (direction.distance < 8) return;
+      final unit = direction / direction.distance;
+      final wing = Offset(-unit.dy, unit.dx);
+      final arrowA = end - unit * 12 + wing * 6;
+      final arrowB = end - unit * 12 - wing * 6;
+      canvas.drawLine(end, arrowA, arrowPaint);
+      canvas.drawLine(end, arrowB, arrowPaint);
+    }
+
+    Offset interpolate(Offset base, Offset? target) {
+      if (target == null) return base;
+      return Offset.lerp(base, target, motionProgress) ?? base;
+    }
+
     void drawPlayer(Offset point, Color color) {
-      final center = Offset(point.dx * size.width, point.dy * size.height);
+      final center = scale(point);
       canvas.drawCircle(center, 11, Paint()..color = color);
       canvas.drawCircle(center, 11, linePaint);
     }
 
-    for (final point in scenario.attackPoints) {
-      drawPlayer(point, const Color(0xFF5EC8FF));
+    for (var i = 0; i < scenario.attackPoints.length; i++) {
+      final base = scenario.attackPoints[i];
+      final target =
+          scenario.attackMoveTargets != null &&
+              i < scenario.attackMoveTargets!.length
+          ? scenario.attackMoveTargets![i]
+          : null;
+      if (target != null) {
+        drawMovementArrow(base, target, const Color(0xFFB3E5FC));
+      }
+      drawPlayer(interpolate(base, target), const Color(0xFF5EC8FF));
     }
-    for (final point in scenario.defendPoints) {
-      drawPlayer(point, const Color(0xFFFF8A65));
+    for (var i = 0; i < scenario.defendPoints.length; i++) {
+      final base = scenario.defendPoints[i];
+      final target =
+          scenario.defendMoveTargets != null &&
+              i < scenario.defendMoveTargets!.length
+          ? scenario.defendMoveTargets![i]
+          : null;
+      if (target != null) {
+        drawMovementArrow(base, target, const Color(0xFFFFCCBC));
+      }
+      drawPlayer(interpolate(base, target), const Color(0xFFFF8A65));
     }
-    final ballCenter = Offset(
-      scenario.ballPoint.dx * size.width,
-      scenario.ballPoint.dy * size.height,
-    );
+    if (scenario.ballMoveTarget != null) {
+      drawMovementArrow(
+        scenario.ballPoint,
+        scenario.ballMoveTarget!,
+        const Color(0xFFFFF59D),
+      );
+    }
+    final ballPoint = interpolate(scenario.ballPoint, scenario.ballMoveTarget);
+    final ballCenter = scale(ballPoint);
     canvas.drawCircle(ballCenter, 7, Paint()..color = const Color(0xFFFFF3E0));
     canvas.drawCircle(ballCenter, 7, linePaint);
   }
 
   @override
   bool shouldRepaint(covariant _PitchScenarioPainter oldDelegate) {
-    return oldDelegate.scenario != scenario;
+    return oldDelegate.scenario != scenario ||
+        oldDelegate.motionProgress != motionProgress;
   }
 }
 
@@ -1023,7 +1145,8 @@ class _QuizSessionSnapshot {
         reviewMode: decoded['reviewMode'] == true,
         dailyQuestions: dailyQuestions.isEmpty ? questions : dailyQuestions,
         questions: questions,
-        sessionSource: decoded['sessionSource']?.toString() ??
+        sessionSource:
+            decoded['sessionSource']?.toString() ??
             _QuizSessionSource.today.name,
         index: (decoded['index'] as num?)?.toInt() ?? 0,
         score: (decoded['score'] as num?)?.toInt() ?? 0,
@@ -1031,7 +1154,8 @@ class _QuizSessionSnapshot {
         answered: decoded['answered'] == true,
         retryUsed: decoded['retryUsed'] == true,
         retryFeedback: decoded['retryFeedback']?.toString(),
-        wrongIds: (decoded['wrongIds'] as List?)
+        wrongIds:
+            (decoded['wrongIds'] as List?)
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
@@ -1207,6 +1331,11 @@ class _QuizScenario {
   final List<Offset> defendPoints;
   final Offset ballPoint;
   final String? highlightedLane;
+  final List<Offset>? attackMoveTargets;
+  final List<Offset>? defendMoveTargets;
+  final Offset? ballMoveTarget;
+  final String? koMovementCaption;
+  final String? enMovementCaption;
 
   const _QuizScenario({
     required this.koTitle,
@@ -1215,20 +1344,41 @@ class _QuizScenario {
     required this.defendPoints,
     required this.ballPoint,
     this.highlightedLane,
+    this.attackMoveTargets,
+    this.defendMoveTargets,
+    this.ballMoveTarget,
+    this.koMovementCaption,
+    this.enMovementCaption,
   });
 
+  bool get hasMotion =>
+      attackMoveTargets != null ||
+      defendMoveTargets != null ||
+      ballMoveTarget != null;
+
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'koTitle': koTitle,
-        'enTitle': enTitle,
-        'attackPoints': attackPoints
-            .map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
-            .toList(growable: false),
-        'defendPoints': defendPoints
-            .map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
-            .toList(growable: false),
-        'ballPoint': <String, double>{'dx': ballPoint.dx, 'dy': ballPoint.dy},
-        'highlightedLane': highlightedLane,
-      };
+    'koTitle': koTitle,
+    'enTitle': enTitle,
+    'attackPoints': attackPoints
+        .map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
+        .toList(growable: false),
+    'defendPoints': defendPoints
+        .map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
+        .toList(growable: false),
+    'ballPoint': <String, double>{'dx': ballPoint.dx, 'dy': ballPoint.dy},
+    'highlightedLane': highlightedLane,
+    'attackMoveTargets': attackMoveTargets
+        ?.map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
+        .toList(growable: false),
+    'defendMoveTargets': defendMoveTargets
+        ?.map((point) => <String, double>{'dx': point.dx, 'dy': point.dy})
+        .toList(growable: false),
+    'ballMoveTarget': ballMoveTarget == null
+        ? null
+        : <String, double>{'dx': ballMoveTarget!.dx, 'dy': ballMoveTarget!.dy},
+    'koMovementCaption': koMovementCaption,
+    'enMovementCaption': enMovementCaption,
+  };
 
   static _QuizScenario? fromDynamic(dynamic raw) {
     if (raw is! Map) return null;
@@ -1236,9 +1386,15 @@ class _QuizScenario {
     final ballMap = map['ballPoint'];
     if (ballMap is! Map) return null;
     Offset toOffset(Map<dynamic, dynamic> value) => Offset(
-          (value['dx'] as num?)?.toDouble() ?? 0,
-          (value['dy'] as num?)?.toDouble() ?? 0,
-        );
+      (value['dx'] as num?)?.toDouble() ?? 0,
+      (value['dy'] as num?)?.toDouble() ?? 0,
+    );
+    List<Offset>? toOffsetList(dynamic value) {
+      if (value is! List) return null;
+      return value.whereType<Map>().map(toOffset).toList(growable: false);
+    }
+
+    final ballMoveMap = map['ballMoveTarget'];
     return _QuizScenario(
       koTitle: map['koTitle']?.toString() ?? '',
       enTitle: map['enTitle']?.toString() ?? '',
@@ -1252,6 +1408,11 @@ class _QuizScenario {
           .toList(growable: false),
       ballPoint: toOffset(ballMap),
       highlightedLane: map['highlightedLane']?.toString(),
+      attackMoveTargets: toOffsetList(map['attackMoveTargets']),
+      defendMoveTargets: toOffsetList(map['defendMoveTargets']),
+      ballMoveTarget: ballMoveMap is Map ? toOffset(ballMoveMap) : null,
+      koMovementCaption: map['koMovementCaption']?.toString(),
+      enMovementCaption: map['enMovementCaption']?.toString(),
     );
   }
 }
@@ -1268,17 +1429,16 @@ class _ClearedQuizSet {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'completedAt': completedAt.toIso8601String(),
-        'source': source,
-        'questions': questions
-            .map(_QuizQuestionSnapshot.fromQuestion)
-            .map((item) => item.toMap())
-            .toList(growable: false),
-      };
+    'completedAt': completedAt.toIso8601String(),
+    'source': source,
+    'questions': questions
+        .map(_QuizQuestionSnapshot.fromQuestion)
+        .map((item) => item.toMap())
+        .toList(growable: false),
+  };
 
-  static String encodeList(List<_ClearedQuizSet> sets) => jsonEncode(
-        sets.map((set) => set.toMap()).toList(growable: false),
-      );
+  static String encodeList(List<_ClearedQuizSet> sets) =>
+      jsonEncode(sets.map((set) => set.toMap()).toList(growable: false));
 
   static List<_ClearedQuizSet> decodeList(String? raw) {
     if (raw == null || raw.trim().isEmpty) return const <_ClearedQuizSet>[];
@@ -1289,8 +1449,9 @@ class _ClearedQuizSet {
           .whereType<Map>()
           .map((item) => item.cast<String, dynamic>())
           .map((map) {
-            final completedAt =
-                DateTime.tryParse(map['completedAt']?.toString() ?? '');
+            final completedAt = DateTime.tryParse(
+              map['completedAt']?.toString() ?? '',
+            );
             if (completedAt == null) return null;
             final questions = _QuizQuestionSnapshot.fromDynamicList(
               map['questions'],
@@ -1453,24 +1614,26 @@ List<_QuizQuestion> _buildMixedQuizPool() {
 }
 
 List<_QuizQuestion> _buildScenarioQuizPool() {
-  return _scenarioTemplates.map((template) {
-    final pack = _buildOptionPack(
-      template.id,
-      template.correct,
-      template.wrongA,
-      template.wrongB,
-    );
-    return _QuizQuestion(
-      id: template.id,
-      koQuestion: template.koQuestion,
-      enQuestion: template.enQuestion,
-      options: pack.options,
-      correctIndex: pack.correctIndex,
-      koExplain: template.koExplain,
-      enExplain: template.enExplain,
-      scenario: template.scenario,
-    );
-  }).toList(growable: false);
+  return _scenarioTemplates
+      .map((template) {
+        final pack = _buildOptionPack(
+          template.id,
+          template.correct,
+          template.wrongA,
+          template.wrongB,
+        );
+        return _QuizQuestion(
+          id: template.id,
+          koQuestion: template.koQuestion,
+          enQuestion: template.enQuestion,
+          options: pack.options,
+          correctIndex: pack.correctIndex,
+          koExplain: template.koExplain,
+          enExplain: template.enExplain,
+          scenario: template.scenario,
+        );
+      })
+      .toList(growable: false);
 }
 
 List<_QuizQuestion> _buildMatchQuizPool() {
@@ -1510,8 +1673,9 @@ _QuizQuestion _shuffleQuestionOptions(
 ) {
   final indexed = question.options.asMap().entries.toList(growable: false)
     ..shuffle(random);
-  final shuffledOptions =
-      indexed.map((entry) => entry.value).toList(growable: false);
+  final shuffledOptions = indexed
+      .map((entry) => entry.value)
+      .toList(growable: false);
   final shuffledCorrectIndex = indexed.indexWhere(
     (entry) => entry.key == question.correctIndex,
   );
@@ -1656,8 +1820,8 @@ const List<_MatchScoreContext> _matchScoreContexts = <_MatchScoreContext>[
   ),
 ];
 
-const List<_MatchKnowledgeTemplate> _matchKnowledgeTemplates =
-    <_MatchKnowledgeTemplate>[
+const List<_MatchKnowledgeTemplate>
+_matchKnowledgeTemplates = <_MatchKnowledgeTemplate>[
   _MatchKnowledgeTemplate(
     id: 'mk01',
     koPrompt: '빌드업 첫 선택으로 가장 안전한 원칙은?',
@@ -1909,6 +2073,20 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       defendPoints: [Offset(0.3, 0.5), Offset(0.46, 0.5), Offset(0.58, 0.56)],
       ballPoint: Offset(0.18, 0.52),
       highlightedLane: 'right-half',
+      attackMoveTargets: [
+        Offset(0.18, 0.52),
+        Offset(0.48, 0.33),
+        Offset(0.78, 0.42),
+      ],
+      defendMoveTargets: [
+        Offset(0.34, 0.5),
+        Offset(0.52, 0.48),
+        Offset(0.64, 0.58),
+      ],
+      ballMoveTarget: Offset(0.48, 0.33),
+      koMovementCaption: '움직임을 보면 공과 2선 러너가 오른쪽 하프스페이스로 같이 속도를 냅니다.',
+      enMovementCaption:
+          'The ball and second runner accelerate together into the right half-space.',
     ),
   ),
   _ScenarioQuizTemplate(
@@ -1938,11 +2116,25 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       attackPoints: [
         Offset(0.32, 0.42),
         Offset(0.48, 0.48),
-        Offset(0.66, 0.35)
+        Offset(0.66, 0.35),
       ],
       defendPoints: [Offset(0.4, 0.58), Offset(0.54, 0.62), Offset(0.7, 0.6)],
       ballPoint: Offset(0.48, 0.48),
       highlightedLane: 'center',
+      defendMoveTargets: [
+        Offset(0.44, 0.53),
+        Offset(0.58, 0.57),
+        Offset(0.7, 0.58),
+      ],
+      attackMoveTargets: [
+        Offset(0.36, 0.45),
+        Offset(0.54, 0.46),
+        Offset(0.72, 0.39),
+      ],
+      ballMoveTarget: Offset(0.54, 0.46),
+      koMovementCaption: '가까운 수비가 중앙 길목을 닫으며 속도를 늦추면 뒤 동료가 복귀할 시간을 벌 수 있어요.',
+      enMovementCaption:
+          'If the nearest defender slows play through the center, teammates gain recovery time.',
     ),
   ),
   _ScenarioQuizTemplate(
@@ -1971,15 +2163,29 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       attackPoints: [
         Offset(0.72, 0.24),
         Offset(0.78, 0.48),
-        Offset(0.56, 0.54)
+        Offset(0.56, 0.54),
       ],
       defendPoints: [
         Offset(0.66, 0.36),
         Offset(0.68, 0.54),
-        Offset(0.84, 0.56)
+        Offset(0.84, 0.56),
       ],
       ballPoint: Offset(0.78, 0.48),
       highlightedLane: 'right-half',
+      attackMoveTargets: [
+        Offset(0.76, 0.26),
+        Offset(0.74, 0.52),
+        Offset(0.48, 0.56),
+      ],
+      defendMoveTargets: [
+        Offset(0.68, 0.39),
+        Offset(0.72, 0.56),
+        Offset(0.86, 0.58),
+      ],
+      ballMoveTarget: Offset(0.56, 0.54),
+      koMovementCaption: '공과 중앙 침투 선수가 안쪽으로 교차하며 컷백 속도가 살아나는 장면입니다.',
+      enMovementCaption:
+          'The ball and central runner cut across the box, increasing cutback timing.',
     ),
   ),
   _ScenarioQuizTemplate(
@@ -2008,11 +2214,207 @@ const List<_ScenarioQuizTemplate> _scenarioTemplates = <_ScenarioQuizTemplate>[
       attackPoints: [
         Offset(0.44, 0.58),
         Offset(0.28, 0.42),
-        Offset(0.62, 0.36)
+        Offset(0.62, 0.36),
       ],
       defendPoints: [Offset(0.5, 0.62), Offset(0.56, 0.52), Offset(0.34, 0.58)],
       ballPoint: Offset(0.44, 0.58),
       highlightedLane: 'left-half',
+      attackMoveTargets: [
+        Offset(0.32, 0.5),
+        Offset(0.22, 0.38),
+        Offset(0.66, 0.32),
+      ],
+      defendMoveTargets: [
+        Offset(0.56, 0.6),
+        Offset(0.6, 0.52),
+        Offset(0.38, 0.56),
+      ],
+      ballMoveTarget: Offset(0.32, 0.5),
+      koMovementCaption: '첫 터치가 압박 반대편 앞으로 나가면 다음 패스와 드리블 속도를 이어갈 수 있어요.',
+      enMovementCaption:
+          'A first touch into the far-side front space keeps the next pass and dribble alive.',
+    ),
+  ),
+  _ScenarioQuizTemplate(
+    id: 'scn05',
+    koQuestion: '움직임을 보고 가장 좋은 침투 지원은 무엇일까?',
+    enQuestion: 'Watching the movement, what is the best supporting run?',
+    correct: _QuizOption(
+      koText: '볼 받은 동료 앞쪽 빈 채널로 사선 침투',
+      enText: 'Diagonal run into the open channel ahead of the receiver',
+    ),
+    wrongA: _QuizOption(
+      koText: '공 쪽으로 같은 선에서 붙는다',
+      enText: 'Move onto the same line close to the ball',
+    ),
+    wrongB: _QuizOption(
+      koText: '뒤로만 물러나 패스 길을 줄인다',
+      enText: 'Drop only backward and shrink the lane',
+    ),
+    koExplain: '동료가 전진 중일 때 앞 채널로 비켜 뛰어야 속도와 공간을 함께 살릴 수 있습니다.',
+    enExplain:
+        'When a teammate drives forward, a run into the front channel preserves both speed and space.',
+    scenario: _QuizScenario(
+      koTitle: '중앙에서 공을 운반하는 동료가 있고, 오른쪽 채널 수비 간격이 벌어집니다.',
+      enTitle:
+          'A teammate carries centrally while the right-channel defenders separate.',
+      attackPoints: [Offset(0.3, 0.56), Offset(0.42, 0.42), Offset(0.62, 0.38)],
+      defendPoints: [Offset(0.46, 0.5), Offset(0.66, 0.44), Offset(0.74, 0.58)],
+      ballPoint: Offset(0.42, 0.42),
+      highlightedLane: 'right-half',
+      attackMoveTargets: [
+        Offset(0.3, 0.56),
+        Offset(0.5, 0.42),
+        Offset(0.78, 0.3),
+      ],
+      defendMoveTargets: [
+        Offset(0.5, 0.48),
+        Offset(0.68, 0.46),
+        Offset(0.76, 0.56),
+      ],
+      ballMoveTarget: Offset(0.5, 0.42),
+      koMovementCaption: '볼 운반자 속도가 올라갈수록, 앞 채널 침투가 더 큰 공간을 만듭니다.',
+      enMovementCaption:
+          'As the ball carrier accelerates, the front-channel run creates a larger window.',
+    ),
+  ),
+  _ScenarioQuizTemplate(
+    id: 'scn06',
+    koQuestion: '이 움직임에서 가장 좋은 수비 판단은?',
+    enQuestion: 'In this movement pattern, what is the best defensive read?',
+    correct: _QuizOption(
+      koText: '안쪽 패스길을 먼저 닫고 측면으로 유도',
+      enText: 'Shut the inside lane first and guide play outside',
+    ),
+    wrongA: _QuizOption(
+      koText: '공만 보고 바로 달려든다',
+      enText: 'Sprint straight at the ball only',
+    ),
+    wrongB: _QuizOption(
+      koText: '박스 안까지 물러나며 기다린다',
+      enText: 'Retreat to the box and wait',
+    ),
+    koExplain: '빠른 공격수일수록 안쪽 직선 길을 먼저 지워야 속도를 빼앗을 수 있습니다.',
+    enExplain:
+        'Against pace, removing the direct inside lane first is what actually slows the attack.',
+    scenario: _QuizScenario(
+      koTitle: '상대 윙어가 빠르게 전진하고, 안쪽 침투 지원도 따라옵니다.',
+      enTitle:
+          'The opponent winger drives fast, with an inside support run following.',
+      attackPoints: [Offset(0.2, 0.3), Offset(0.34, 0.42), Offset(0.54, 0.58)],
+      defendPoints: [Offset(0.38, 0.32), Offset(0.44, 0.5), Offset(0.62, 0.62)],
+      ballPoint: Offset(0.2, 0.3),
+      highlightedLane: 'left-half',
+      attackMoveTargets: [
+        Offset(0.34, 0.36),
+        Offset(0.48, 0.46),
+        Offset(0.62, 0.62),
+      ],
+      defendMoveTargets: [
+        Offset(0.42, 0.34),
+        Offset(0.48, 0.48),
+        Offset(0.64, 0.6),
+      ],
+      ballMoveTarget: Offset(0.34, 0.36),
+      koMovementCaption: '볼과 안쪽 지원이 동시에 속도를 낼 때는 중앙 문을 먼저 닫아야 해요.',
+      enMovementCaption:
+          'When the ball and inside support accelerate together, the central door must close first.',
+    ),
+  ),
+  _ScenarioQuizTemplate(
+    id: 'scn07',
+    koQuestion: '가장 좋은 첫 패스 타이밍은 언제일까?',
+    enQuestion: 'When is the best timing for the first pass?',
+    correct: _QuizOption(
+      koText: '동료가 수비 사이 빈 공간으로 속도를 붙이는 순간',
+      enText:
+          'The moment your teammate accelerates into the gap between defenders',
+    ),
+    wrongA: _QuizOption(
+      koText: '동료가 멈춰 선 뒤',
+      enText: 'After your teammate has already stopped',
+    ),
+    wrongB: _QuizOption(
+      koText: '수비 두 명이 완전히 붙은 뒤',
+      enText: 'After both defenders fully close together',
+    ),
+    koExplain: '속도가 붙는 순간에 맞춰 넣어야 동료가 공간으로 받으며 다음 플레이를 이어갑니다.',
+    enExplain:
+        'Passing on the teammate acceleration cue lets them receive into space and keep flowing.',
+    scenario: _QuizScenario(
+      koTitle: '투톱 사이에서 한 명이 뒤로 끌고, 다른 한 명이 뒷공간으로 뛰기 시작합니다.',
+      enTitle:
+          'One forward checks short while the other begins a run into the back space.',
+      attackPoints: [Offset(0.28, 0.5), Offset(0.5, 0.48), Offset(0.7, 0.32)],
+      defendPoints: [
+        Offset(0.46, 0.44),
+        Offset(0.58, 0.42),
+        Offset(0.66, 0.54),
+      ],
+      ballPoint: Offset(0.28, 0.5),
+      highlightedLane: 'center',
+      attackMoveTargets: [
+        Offset(0.28, 0.5),
+        Offset(0.44, 0.52),
+        Offset(0.82, 0.24),
+      ],
+      defendMoveTargets: [
+        Offset(0.48, 0.45),
+        Offset(0.6, 0.42),
+        Offset(0.68, 0.54),
+      ],
+      ballMoveTarget: Offset(0.6, 0.34),
+      koMovementCaption: '체크 움직임이 수비를 끌어내는 순간, 반대 러너는 더 큰 뒷공간을 얻습니다.',
+      enMovementCaption:
+          'As the check run pulls defenders out, the opposite runner gains a bigger back-space lane.',
+    ),
+  ),
+  _ScenarioQuizTemplate(
+    id: 'scn08',
+    koQuestion: '이 장면에서 가장 좋은 오프더볼 선택은?',
+    enQuestion: 'In this scene, what is the best off-ball choice?',
+    correct: _QuizOption(
+      koText: '공보다 한 박자 먼저 빈 공간으로 이동해 패스 각도 만들기',
+      enText:
+          'Arrive in the open space a beat early to create the passing angle',
+    ),
+    wrongA: _QuizOption(
+      koText: '볼 온 뒤에만 움직인다',
+      enText: 'Move only after the ball arrives',
+    ),
+    wrongB: _QuizOption(
+      koText: '동료 뒤에 숨어 서 있다',
+      enText: 'Stand hidden behind your teammate',
+    ),
+    koExplain: '공보다 먼저 공간을 점유하면 패스 속도에 맞춰 한 번에 연결할 수 있습니다.',
+    enExplain:
+        'Occupying the space early lets you connect in one touch at game speed.',
+    scenario: _QuizScenario(
+      koTitle: '좌우로 공이 순환되고 있고, 중앙 미드필더 앞 공간이 잠깐 비었습니다.',
+      enTitle:
+          'The ball circulates side to side, and a pocket opens briefly in front of midfield.',
+      attackPoints: [Offset(0.18, 0.54), Offset(0.44, 0.46), Offset(0.72, 0.5)],
+      defendPoints: [
+        Offset(0.36, 0.46),
+        Offset(0.52, 0.48),
+        Offset(0.64, 0.52),
+      ],
+      ballPoint: Offset(0.18, 0.54),
+      highlightedLane: 'center',
+      attackMoveTargets: [
+        Offset(0.3, 0.54),
+        Offset(0.5, 0.4),
+        Offset(0.72, 0.5),
+      ],
+      defendMoveTargets: [
+        Offset(0.4, 0.46),
+        Offset(0.54, 0.48),
+        Offset(0.66, 0.52),
+      ],
+      ballMoveTarget: Offset(0.5, 0.4),
+      koMovementCaption: '잠깐 열린 포켓은 오래 남지 않으니, 공이 오기 전에 먼저 들어가야 합니다.',
+      enMovementCaption:
+          'The pocket will not stay open, so you need to enter before the ball gets there.',
     ),
   ),
 ];
@@ -2070,8 +2472,8 @@ const List<_QuizSituation> _situations = <_QuizSituation>[
   ),
 ];
 
-const Map<_QuizType, List<_QuizConcept>> _conceptsByType =
-    <_QuizType, List<_QuizConcept>>{
+const Map<_QuizType, List<_QuizConcept>>
+_conceptsByType = <_QuizType, List<_QuizConcept>>{
   _QuizType.pass: <_QuizConcept>[
     _QuizConcept(
       id: 'p01',
