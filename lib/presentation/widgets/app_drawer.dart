@@ -10,7 +10,7 @@ import '../screens/settings_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/training_method_board_screen.dart';
 import '../screens/news_screen.dart';
-import '../screens/space_speed_game_screen.dart';
+import '../screens/skill_quiz_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -156,19 +156,16 @@ class AppDrawer extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.sports_esports_outlined),
-              title: Text(l10n.tabGame),
+              leading: const Icon(Icons.quiz_outlined),
+              title: Text(Localizations.localeOf(context).languageCode == 'ko'
+                  ? '퀴즈'
+                  : 'Quiz'),
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => SpaceSpeedGameScreen(
-                      trainingService: trainingService,
-                      localeService: localeService,
-                      optionRepository: optionRepository,
-                      settingsService: settingsService,
-                      driveBackupService: driveBackupService,
-                    ),
+                    builder: (_) =>
+                        SkillQuizScreen(optionRepository: optionRepository),
                   ),
                 );
               },

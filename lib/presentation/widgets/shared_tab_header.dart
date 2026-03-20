@@ -8,7 +8,7 @@ class SharedTabHeader extends StatelessWidget {
   final IconData leadingIcon;
   final String? leadingTooltip;
   final VoidCallback? onNewsTap;
-  final VoidCallback? onGameTap;
+  final VoidCallback? onQuizTap;
   final VoidCallback? onCoachTap;
   final VoidCallback onProfileTap;
   final VoidCallback onSettingsTap;
@@ -23,7 +23,7 @@ class SharedTabHeader extends StatelessWidget {
     this.leadingIcon = Icons.menu,
     this.leadingTooltip,
     this.onNewsTap,
-    this.onGameTap,
+    this.onQuizTap,
     this.onCoachTap,
     required this.onProfileTap,
     required this.onSettingsTap,
@@ -45,7 +45,7 @@ class SharedTabHeader extends StatelessWidget {
             leadingIcon: leadingIcon,
             leadingTooltip: leadingTooltip,
             onNewsTap: onNewsTap,
-            onGameTap: onGameTap,
+            onQuizTap: onQuizTap,
             onCoachTap: onCoachTap,
             onProfileTap: onProfileTap,
             onSettingsTap: onSettingsTap,

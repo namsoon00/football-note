@@ -26,7 +26,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'news_screen.dart';
-import 'space_speed_game_screen.dart';
+import 'skill_quiz_screen.dart';
 
 enum _CalendarCreateAction { entry, plan, match }
 
@@ -206,7 +206,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                       onLeadingTap: () => Scaffold.of(context).openDrawer(),
                       onNewsTap: () => _openNews(context),
-                      onGameTap: () => _openGame(context),
+                      onQuizTap: () => _openQuiz(context),
                       profilePhotoSource:
                           widget.optionRepository.getValue<String>(
                                 'profile_photo_url',
@@ -1306,16 +1306,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _openGame(BuildContext context) async {
+  Future<void> _openQuiz(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SpaceSpeedGameScreen(
-          trainingService: widget.trainingService,
-          localeService: widget.localeService,
-          optionRepository: widget.optionRepository,
-          settingsService: widget.settingsService,
-          driveBackupService: widget.driveBackupService,
-        ),
+        builder: (_) =>
+            SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
     if (mounted) setState(() {});
