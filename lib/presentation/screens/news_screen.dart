@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../application/news_read_state.dart';
 import '../../application/news_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
@@ -95,12 +97,10 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         .toSet();
     _scrappedItemsByLink = _loadScrappedItems();
     if (_scrappedItemsByLink.isNotEmpty) {
-      _scrappedLinks = {
-        ..._scrappedLinks,
-        ..._scrappedItemsByLink.keys,
-      };
+      _scrappedLinks = {..._scrappedLinks, ..._scrappedItemsByLink.keys};
     }
     _applyCacheIfValid();
+    unawaited(_markVisibleArticlesRead());
     _loadProgressive();
   }
 
@@ -232,17 +232,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       ),
                       if (isKo)
                         IconButton(
-                          tooltip:
-                              _titleTranslateEnabled ? '제목 번역 켜짐' : '제목 번역 꺼짐',
+                          tooltip: _titleTranslateEnabled
+                              ? '제목 번역 켜짐'
+                              : '제목 번역 꺼짐',
                           onPressed: _toggleTitleTranslate,
                           icon: Icon(
                             Icons.translate_rounded,
                             color: _titleTranslateEnabled
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.55),
+                                : Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.55),
                           ),
                         ),
                     ],
@@ -436,15 +435,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         ? scrappedBase.map((item) => item.article).toList(growable: false)
         : List<NewsArticle>.unmodifiable(_articles);
     if (query.isEmpty) return base;
-    return base.where((article) {
-      final title = article.title.toLowerCase();
-      final sourceText = article.source.toLowerCase();
-      final translated =
-          _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
-      return title.contains(query) ||
-          sourceText.contains(query) ||
-          translated.contains(query);
-    }).toList(growable: false);
+    return base
+        .where((article) {
+          final title = article.title.toLowerCase();
+          final sourceText = article.source.toLowerCase();
+          final translated =
+              _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
+          return title.contains(query) ||
+              sourceText.contains(query) ||
+              translated.contains(query);
+        })
+        .toList(growable: false);
   }
 
   String _scrapKeyForArticle(NewsArticle article) {
@@ -549,23 +550,26 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     SizedBox(
                       height: 320,
                       child: ListView(
-                        children: _channels.map((channel) {
-                          return CheckboxListTile(
-                            dense: true,
-                            value: temp.contains(channel.id),
-                            title: Text(channel.name),
-                            controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (checked) {
-                              setSheetState(() {
-                                if (checked == true) {
-                                  temp.add(channel.id);
-                                } else {
-                                  temp.remove(channel.id);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(growable: false),
+                        children: _channels
+                            .map((channel) {
+                              return CheckboxListTile(
+                                dense: true,
+                                value: temp.contains(channel.id),
+                                title: Text(channel.name),
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                onChanged: (checked) {
+                                  setSheetState(() {
+                                    if (checked == true) {
+                                      temp.add(channel.id);
+                                    } else {
+                                      temp.remove(channel.id);
+                                    }
+                                  });
+                                },
+                              );
+                            })
+                            .toList(growable: false),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -611,23 +615,26 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
 
-    final tasks = channelIds.map((id) async {
-      try {
-        final chunk = await _newsService.latest(id);
-        if (!mounted || token != _loadToken) return;
-        if (chunk.isEmpty) return;
-        setState(() {
-          _mergeChunk(chunk);
-        });
-      } catch (_) {
-        if (!mounted || token != _loadToken) return;
-        setState(() {
-          _hadError = true;
-        });
-      }
-    }).toList(growable: false);
+    final tasks = channelIds
+        .map((id) async {
+          try {
+            final chunk = await _newsService.latest(id);
+            if (!mounted || token != _loadToken) return;
+            if (chunk.isEmpty) return;
+            setState(() {
+              _mergeChunk(chunk);
+            });
+          } catch (_) {
+            if (!mounted || token != _loadToken) return;
+            setState(() {
+              _hadError = true;
+            });
+          }
+        })
+        .toList(growable: false);
 
     await Future.wait(tasks);
+    await _markVisibleArticlesRead();
     if (!mounted || token != _loadToken) return;
     setState(() {
       _isLoading = false;
@@ -667,6 +674,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             .where((v) => v.isNotEmpty),
       );
     _lastLoadedAt = cachedAt;
+  }
+
+  Future<void> _markVisibleArticlesRead() async {
+    if (_articles.isEmpty) return;
+    await NewsReadState.markRead(widget.optionRepository, _articles);
   }
 
   bool _hasSameChannels(Set<String> a, Set<String> b) =>
@@ -800,17 +812,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle).then((translated) {
-      if (!mounted) return;
-      final value = translated.trim();
-      if (value.isNotEmpty && value != originalTitle) {
-        setState(() {
-          _translatedTitlesByLink[key] = value;
+    _translateToKorean(originalTitle)
+        .then((translated) {
+          if (!mounted) return;
+          final value = translated.trim();
+          if (value.isNotEmpty && value != originalTitle) {
+            setState(() {
+              _translatedTitlesByLink[key] = value;
+            });
+          }
+        })
+        .whenComplete(() {
+          _translatingLinks.remove(key);
         });
-      }
-    }).whenComplete(() {
-      _translatingLinks.remove(key);
-    });
   }
 
   Future<void> _toggleTitleTranslate() async {
@@ -902,10 +916,7 @@ class _ScrappedNewsItem {
     required this.scrappedAt,
   });
 
-  _ScrappedNewsItem copyWith({
-    NewsArticle? article,
-    DateTime? scrappedAt,
-  }) {
+  _ScrappedNewsItem copyWith({NewsArticle? article, DateTime? scrappedAt}) {
     return _ScrappedNewsItem(
       link: link,
       article: article ?? this.article,

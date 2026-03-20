@@ -15,6 +15,7 @@ import '../../application/player_profile_service.dart';
 import '../../domain/entities/player_profile.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/player_level_visuals.dart';
+import 'player_level_guide_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -103,6 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               levelState: levelState,
               rewardStatuses: rewardStatuses,
               isKo: isKo,
+              onTap: _openLevelGuide,
             ),
             const SizedBox(height: 12),
             Row(
@@ -440,9 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Text(
                             result,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           if (resultDetail != null &&
@@ -609,9 +609,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   List<_SavedAnswerEntry> _savedPositionAnswerEntries(bool isKo) {
     final entries = <_SavedAnswerEntry>[];
-    for (var i = 0;
-        i < _positionQuestions.length && i < _positionTestAnswers.length;
-        i++) {
+    for (
+      var i = 0;
+      i < _positionQuestions.length && i < _positionTestAnswers.length;
+      i++
+    ) {
       final answerIndex = _positionTestAnswers[i];
       if (answerIndex < 0 ||
           answerIndex >= _positionQuestions[i].options.length) {
@@ -758,54 +760,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String? _mbtiTypeDescription(String code, bool isKo) {
     return switch (code) {
-      'ISTJ' => isKo
-          ? '루틴과 기준을 지키며 안정적으로 훈련을 쌓는 성향입니다.'
-          : 'Builds training consistency through routines and clear standards.',
-      'ISFJ' => isKo
-          ? '팀을 세심하게 챙기며 맡은 역할을 꾸준히 수행하는 성향입니다.'
-          : 'Supports the team carefully and executes responsibilities consistently.',
-      'INFJ' => isKo
-          ? '흐름을 읽고 팀에 필요한 방향을 조용히 제시하는 성향입니다.'
-          : 'Reads the flow and quietly suggests the direction the team needs.',
-      'INTJ' => isKo
-          ? '장기 그림과 전술 구조를 먼저 설계하는 성향입니다.'
-          : 'Prefers designing long-term plans and tactical structure first.',
-      'ISTP' => isKo
-          ? '실전 상황에서 빠르게 판단하고 해결책을 찾는 성향입니다.'
-          : 'Adapts quickly in real situations and finds practical solutions.',
-      'ISFP' => isKo
-          ? '몸 상태와 리듬을 살피며 균형 있게 플레이하는 성향입니다.'
-          : 'Plays with balance by tracking body condition and rhythm.',
-      'INFP' => isKo
-          ? '자신의 기준과 의미를 느낄 때 몰입도가 커지는 성향입니다.'
-          : 'Engages deeply when training aligns with personal values and meaning.',
-      'INTP' => isKo
-          ? '패턴을 분석하고 새로운 해법을 탐색하는 성향입니다.'
-          : 'Enjoys analyzing patterns and exploring new solutions.',
-      'ESTP' => isKo
-          ? '순간 판단과 과감한 실행으로 흐름을 바꾸는 성향입니다.'
-          : 'Changes momentum through decisive instincts and bold execution.',
-      'ESFP' => isKo
-          ? '현장 에너지를 끌어올리고 팀 분위기를 밝히는 성향입니다.'
-          : 'Lifts team energy and brightens the environment in the moment.',
-      'ENFP' => isKo
-          ? '새로운 자극과 가능성에서 동기를 얻는 성향입니다.'
-          : 'Finds motivation in new stimuli and emerging possibilities.',
-      'ENTP' => isKo
-          ? '변화를 두려워하지 않고 다양한 시도를 즐기는 성향입니다.'
-          : 'Experiments freely and is comfortable with change.',
-      'ESTJ' => isKo
-          ? '목표를 분명히 세우고 실행을 끝까지 끌고 가는 성향입니다.'
-          : 'Sets clear goals and drives execution through to the end.',
-      'ESFJ' => isKo
-          ? '팀 컨디션과 호흡을 챙기며 조직력을 높이는 성향입니다.'
-          : 'Improves cohesion by caring about team condition and chemistry.',
-      'ENFJ' => isKo
-          ? '동료를 북돋우며 팀의 집중력을 함께 끌어올리는 성향입니다.'
-          : 'Raises team focus by encouraging and aligning teammates.',
-      'ENTJ' => isKo
-          ? '전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'
-          : 'Clarifies tactical direction and leads the push toward goals.',
+      'ISTJ' =>
+        isKo
+            ? '루틴과 기준을 지키며 안정적으로 훈련을 쌓는 성향입니다.'
+            : 'Builds training consistency through routines and clear standards.',
+      'ISFJ' =>
+        isKo
+            ? '팀을 세심하게 챙기며 맡은 역할을 꾸준히 수행하는 성향입니다.'
+            : 'Supports the team carefully and executes responsibilities consistently.',
+      'INFJ' =>
+        isKo
+            ? '흐름을 읽고 팀에 필요한 방향을 조용히 제시하는 성향입니다.'
+            : 'Reads the flow and quietly suggests the direction the team needs.',
+      'INTJ' =>
+        isKo
+            ? '장기 그림과 전술 구조를 먼저 설계하는 성향입니다.'
+            : 'Prefers designing long-term plans and tactical structure first.',
+      'ISTP' =>
+        isKo
+            ? '실전 상황에서 빠르게 판단하고 해결책을 찾는 성향입니다.'
+            : 'Adapts quickly in real situations and finds practical solutions.',
+      'ISFP' =>
+        isKo
+            ? '몸 상태와 리듬을 살피며 균형 있게 플레이하는 성향입니다.'
+            : 'Plays with balance by tracking body condition and rhythm.',
+      'INFP' =>
+        isKo
+            ? '자신의 기준과 의미를 느낄 때 몰입도가 커지는 성향입니다.'
+            : 'Engages deeply when training aligns with personal values and meaning.',
+      'INTP' =>
+        isKo
+            ? '패턴을 분석하고 새로운 해법을 탐색하는 성향입니다.'
+            : 'Enjoys analyzing patterns and exploring new solutions.',
+      'ESTP' =>
+        isKo
+            ? '순간 판단과 과감한 실행으로 흐름을 바꾸는 성향입니다.'
+            : 'Changes momentum through decisive instincts and bold execution.',
+      'ESFP' =>
+        isKo
+            ? '현장 에너지를 끌어올리고 팀 분위기를 밝히는 성향입니다.'
+            : 'Lifts team energy and brightens the environment in the moment.',
+      'ENFP' =>
+        isKo
+            ? '새로운 자극과 가능성에서 동기를 얻는 성향입니다.'
+            : 'Finds motivation in new stimuli and emerging possibilities.',
+      'ENTP' =>
+        isKo
+            ? '변화를 두려워하지 않고 다양한 시도를 즐기는 성향입니다.'
+            : 'Experiments freely and is comfortable with change.',
+      'ESTJ' =>
+        isKo
+            ? '목표를 분명히 세우고 실행을 끝까지 끌고 가는 성향입니다.'
+            : 'Sets clear goals and drives execution through to the end.',
+      'ESFJ' =>
+        isKo
+            ? '팀 컨디션과 호흡을 챙기며 조직력을 높이는 성향입니다.'
+            : 'Improves cohesion by caring about team condition and chemistry.',
+      'ENFJ' =>
+        isKo
+            ? '동료를 북돋우며 팀의 집중력을 함께 끌어올리는 성향입니다.'
+            : 'Raises team focus by encouraging and aligning teammates.',
+      'ENTJ' =>
+        isKo
+            ? '전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'
+            : 'Clarifies tactical direction and leads the push toward goals.',
       _ => null,
     };
   }
@@ -874,14 +892,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   static final TextInputFormatter _decimalInputFormatter =
       TextInputFormatter.withFunction((oldValue, newValue) {
-    final text = newValue.text;
-    if (text.isEmpty) return newValue;
-    final normalized = text.replaceAll(',', '.');
-    if (!RegExp(r'^\d*(?:\.\d{0,2})?$').hasMatch(normalized)) {
-      return oldValue;
-    }
-    return newValue;
-  });
+        final text = newValue.text;
+        if (text.isEmpty) return newValue;
+        final normalized = text.replaceAll(',', '.');
+        if (!RegExp(r'^\d*(?:\.\d{0,2})?$').hasMatch(normalized)) {
+          return oldValue;
+        }
+        return newValue;
+      });
 
   Future<void> _pickProfilePhoto() async {
     try {
@@ -987,17 +1005,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await file.delete();
     }
   }
+
+  Future<void> _openLevelGuide() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PlayerLevelGuideScreen(
+          currentLevel: PlayerLevelService(
+            widget.optionRepository,
+          ).loadState().level,
+          optionRepository: widget.optionRepository,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {});
+  }
 }
 
 class _ProfileLevelHeroCard extends StatelessWidget {
   final PlayerLevelState levelState;
   final List<PlayerLevelRewardStatus> rewardStatuses;
   final bool isKo;
+  final VoidCallback onTap;
 
   const _ProfileLevelHeroCard({
     required this.levelState,
     required this.rewardStatuses,
     required this.isKo,
+    required this.onTap,
   });
 
   @override
@@ -1017,108 +1052,115 @@ class _ProfileLevelHeroCard extends StatelessWidget {
     }
     final rewardSummary = claimableRewards.isNotEmpty
         ? (isKo
-            ? '지금 받을 선물 ${claimableRewards.length}개'
-            : '${claimableRewards.length} rewards ready')
+              ? '지금 받을 선물 ${claimableRewards.length}개'
+              : '${claimableRewards.length} rewards ready')
         : nextReward == null
-            ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
-            : nextReward.isAvailable
-                ? (isKo
-                    ? '지금 선물: ${nextReward.customRewardName}'
-                    : 'Reward now: ${nextReward.customRewardName}')
-                : (isKo
-                    ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
-                    : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
+        ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
+        : nextReward.isAvailable
+        ? (isKo
+              ? '지금 선물: ${nextReward.customRewardName}'
+              : 'Reward now: ${nextReward.customRewardName}')
+        : (isKo
+              ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
+              : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: spec.colors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 18,
-            offset: Offset(0, 6),
+        child: Ink(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: spec.colors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 18,
+                offset: Offset(0, 6),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isKo ? '선수 레벨' : 'Player level',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isKo ? '선수 레벨' : 'Player level',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: Colors.white.withValues(alpha: 0.86),
                         fontWeight: FontWeight.w700,
                       ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
                       ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  PlayerLevelService.stageName(levelState.level, isKo),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      PlayerLevelService.stageName(levelState.level, isKo),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w700,
                       ),
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: levelState.progress,
-                    minHeight: 8,
-                    backgroundColor: Colors.white.withValues(alpha: 0.22),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.white,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  isKo
-                      ? '다음 ${levelState.xpToNextLevel} XP · 총 ${levelState.totalXp} XP'
-                      : '${levelState.xpToNextLevel} XP to next level · ${levelState.totalXp} XP total',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        value: levelState.progress,
+                        minHeight: 8,
+                        backgroundColor: Colors.white.withValues(alpha: 0.22),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isKo
+                          ? '다음 ${levelState.xpToNextLevel} XP · 총 ${levelState.totalXp} XP'
+                          : '${levelState.xpToNextLevel} XP to next level · ${levelState.totalXp} XP total',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                       ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  rewardSummary,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      rewardSummary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.94),
                         fontWeight: FontWeight.w800,
                       ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              _ProfileLevelIllustration(isKo: isKo, level: levelState.level),
+            ],
           ),
-          const SizedBox(width: 12),
-          _ProfileLevelIllustration(isKo: isKo, level: levelState.level),
-        ],
+        ),
       ),
     );
   }
@@ -1171,17 +1213,17 @@ class _ProfileLevelIllustration extends StatelessWidget {
                   Text(
                     PlayerLevelService.illustrationLabel(level, isKo),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 1),
                   Text(
                     isKo ? '비주얼 성장 단계' : 'Visual growth tier',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.82),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -1346,9 +1388,7 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
                         children: [
                           Text(
                             result,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           if (resultDetail != null &&
@@ -1452,8 +1492,9 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
       MaterialPageRoute(
         builder: (_) => _ProfileTestScreen(
           title: isKo ? 'MBTI 테스트' : 'MBTI test',
-          description:
-              isKo ? '내 성향을 찾는 간단 테스트예요.' : 'A simple test to find your style.',
+          description: isKo
+              ? '내 성향을 찾는 간단 테스트예요.'
+              : 'A simple test to find your style.',
           questions: _mbtiQuestions
               .map(
                 (question) => _ProfileTestQuestionData(
@@ -1541,9 +1582,11 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
 
   List<_SavedAnswerEntry> _savedPositionAnswerEntries(bool isKo) {
     final entries = <_SavedAnswerEntry>[];
-    for (var i = 0;
-        i < _positionQuestions.length && i < _positionTestAnswers.length;
-        i++) {
+    for (
+      var i = 0;
+      i < _positionQuestions.length && i < _positionTestAnswers.length;
+      i++
+    ) {
       final answerIndex = _positionTestAnswers[i];
       if (answerIndex < 0 ||
           answerIndex >= _positionQuestions[i].options.length) {
@@ -1690,54 +1733,70 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
 
   String? _mbtiTypeDescription(String code, bool isKo) {
     return switch (code) {
-      'ISTJ' => isKo
-          ? '루틴과 기준을 지키며 안정적으로 훈련을 쌓는 성향입니다.'
-          : 'Builds training consistency through routines and clear standards.',
-      'ISFJ' => isKo
-          ? '팀을 세심하게 챙기며 맡은 역할을 꾸준히 수행하는 성향입니다.'
-          : 'Supports the team carefully and executes responsibilities consistently.',
-      'INFJ' => isKo
-          ? '흐름을 읽고 팀에 필요한 방향을 조용히 제시하는 성향입니다.'
-          : 'Reads the flow and quietly suggests the direction the team needs.',
-      'INTJ' => isKo
-          ? '장기 그림과 전술 구조를 먼저 설계하는 성향입니다.'
-          : 'Prefers designing long-term plans and tactical structure first.',
-      'ISTP' => isKo
-          ? '실전 상황에서 빠르게 판단하고 해결책을 찾는 성향입니다.'
-          : 'Adapts quickly in real situations and finds practical solutions.',
-      'ISFP' => isKo
-          ? '몸 상태와 리듬을 살피며 균형 있게 플레이하는 성향입니다.'
-          : 'Plays with balance by tracking body condition and rhythm.',
-      'INFP' => isKo
-          ? '자신의 기준과 의미를 느낄 때 몰입도가 커지는 성향입니다.'
-          : 'Engages deeply when training aligns with personal values and meaning.',
-      'INTP' => isKo
-          ? '패턴을 분석하고 새로운 해법을 탐색하는 성향입니다.'
-          : 'Enjoys analyzing patterns and exploring new solutions.',
-      'ESTP' => isKo
-          ? '순간 판단과 과감한 실행으로 흐름을 바꾸는 성향입니다.'
-          : 'Changes momentum through decisive instincts and bold execution.',
-      'ESFP' => isKo
-          ? '현장 에너지를 끌어올리고 팀 분위기를 밝히는 성향입니다.'
-          : 'Lifts team energy and brightens the environment in the moment.',
-      'ENFP' => isKo
-          ? '새로운 자극과 가능성에서 동기를 얻는 성향입니다.'
-          : 'Finds motivation in new stimuli and emerging possibilities.',
-      'ENTP' => isKo
-          ? '변화를 두려워하지 않고 다양한 시도를 즐기는 성향입니다.'
-          : 'Experiments freely and is comfortable with change.',
-      'ESTJ' => isKo
-          ? '목표를 분명히 세우고 실행을 끝까지 끌고 가는 성향입니다.'
-          : 'Sets clear goals and drives execution through to the end.',
-      'ESFJ' => isKo
-          ? '팀 컨디션과 호흡을 챙기며 조직력을 높이는 성향입니다.'
-          : 'Improves cohesion by caring about team condition and chemistry.',
-      'ENFJ' => isKo
-          ? '동료를 북돋우며 팀의 집중력을 함께 끌어올리는 성향입니다.'
-          : 'Raises team focus by encouraging and aligning teammates.',
-      'ENTJ' => isKo
-          ? '전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'
-          : 'Clarifies tactical direction and leads the push toward goals.',
+      'ISTJ' =>
+        isKo
+            ? '루틴과 기준을 지키며 안정적으로 훈련을 쌓는 성향입니다.'
+            : 'Builds training consistency through routines and clear standards.',
+      'ISFJ' =>
+        isKo
+            ? '팀을 세심하게 챙기며 맡은 역할을 꾸준히 수행하는 성향입니다.'
+            : 'Supports the team carefully and executes responsibilities consistently.',
+      'INFJ' =>
+        isKo
+            ? '흐름을 읽고 팀에 필요한 방향을 조용히 제시하는 성향입니다.'
+            : 'Reads the flow and quietly suggests the direction the team needs.',
+      'INTJ' =>
+        isKo
+            ? '장기 그림과 전술 구조를 먼저 설계하는 성향입니다.'
+            : 'Prefers designing long-term plans and tactical structure first.',
+      'ISTP' =>
+        isKo
+            ? '실전 상황에서 빠르게 판단하고 해결책을 찾는 성향입니다.'
+            : 'Adapts quickly in real situations and finds practical solutions.',
+      'ISFP' =>
+        isKo
+            ? '몸 상태와 리듬을 살피며 균형 있게 플레이하는 성향입니다.'
+            : 'Plays with balance by tracking body condition and rhythm.',
+      'INFP' =>
+        isKo
+            ? '자신의 기준과 의미를 느낄 때 몰입도가 커지는 성향입니다.'
+            : 'Engages deeply when training aligns with personal values and meaning.',
+      'INTP' =>
+        isKo
+            ? '패턴을 분석하고 새로운 해법을 탐색하는 성향입니다.'
+            : 'Enjoys analyzing patterns and exploring new solutions.',
+      'ESTP' =>
+        isKo
+            ? '순간 판단과 과감한 실행으로 흐름을 바꾸는 성향입니다.'
+            : 'Changes momentum through decisive instincts and bold execution.',
+      'ESFP' =>
+        isKo
+            ? '현장 에너지를 끌어올리고 팀 분위기를 밝히는 성향입니다.'
+            : 'Lifts team energy and brightens the environment in the moment.',
+      'ENFP' =>
+        isKo
+            ? '새로운 자극과 가능성에서 동기를 얻는 성향입니다.'
+            : 'Finds motivation in new stimuli and emerging possibilities.',
+      'ENTP' =>
+        isKo
+            ? '변화를 두려워하지 않고 다양한 시도를 즐기는 성향입니다.'
+            : 'Experiments freely and is comfortable with change.',
+      'ESTJ' =>
+        isKo
+            ? '목표를 분명히 세우고 실행을 끝까지 끌고 가는 성향입니다.'
+            : 'Sets clear goals and drives execution through to the end.',
+      'ESFJ' =>
+        isKo
+            ? '팀 컨디션과 호흡을 챙기며 조직력을 높이는 성향입니다.'
+            : 'Improves cohesion by caring about team condition and chemistry.',
+      'ENFJ' =>
+        isKo
+            ? '동료를 북돋우며 팀의 집중력을 함께 끌어올리는 성향입니다.'
+            : 'Raises team focus by encouraging and aligning teammates.',
+      'ENTJ' =>
+        isKo
+            ? '전술 방향을 정리하고 목표 달성을 주도하는 성향입니다.'
+            : 'Clarifies tactical direction and leads the push toward goals.',
       _ => null,
     };
   }
@@ -1870,17 +1929,16 @@ class _ProfileTestScreenState extends State<_ProfileTestScreen> {
     final random = Random();
     _questionOrder = List<int>.generate(widget.questions.length, (i) => i)
       ..shuffle(random);
-    _optionOrderByQuestion = List<List<int>>.generate(
-      widget.questions.length,
-      (questionIndex) {
-        final order = List<int>.generate(
-          widget.questions[questionIndex].options.length,
-          (i) => i,
-        );
-        order.shuffle(random);
-        return order;
-      },
-    );
+    _optionOrderByQuestion = List<List<int>>.generate(widget.questions.length, (
+      questionIndex,
+    ) {
+      final order = List<int>.generate(
+        widget.questions[questionIndex].options.length,
+        (i) => i,
+      );
+      order.shuffle(random);
+      return order;
+    });
   }
 
   @override
@@ -2047,13 +2105,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'Before a game, I usually...',
     options: [
       _MbtiOption(
-          letter: 'E',
-          koLabel: '친구와 같이 몸을 푼다',
-          enLabel: 'Warm up with teammates'),
+        letter: 'E',
+        koLabel: '친구와 같이 몸을 푼다',
+        enLabel: 'Warm up with teammates',
+      ),
       _MbtiOption(
-          letter: 'I',
-          koLabel: '혼자 조용히 준비한다',
-          enLabel: 'Prepare quietly alone'),
+        letter: 'I',
+        koLabel: '혼자 조용히 준비한다',
+        enLabel: 'Prepare quietly alone',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2061,11 +2121,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'When coach explains, I focus on...',
     options: [
       _MbtiOption(
-          letter: 'S', koLabel: '지금 해야 할 동작', enLabel: 'Exact moves to do now'),
+        letter: 'S',
+        koLabel: '지금 해야 할 동작',
+        enLabel: 'Exact moves to do now',
+      ),
       _MbtiOption(
-          letter: 'N',
-          koLabel: '왜 하는지 큰 그림',
-          enLabel: 'The big reason behind it'),
+        letter: 'N',
+        koLabel: '왜 하는지 큰 그림',
+        enLabel: 'The big reason behind it',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2073,11 +2137,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'If a teammate makes a mistake, I...',
     options: [
       _MbtiOption(
-          letter: 'T',
-          koLabel: '어떻게 고칠지 먼저 말한다',
-          enLabel: 'Talk about how to fix it'),
+        letter: 'T',
+        koLabel: '어떻게 고칠지 먼저 말한다',
+        enLabel: 'Talk about how to fix it',
+      ),
       _MbtiOption(
-          letter: 'F', koLabel: '먼저 괜찮다고 말해준다', enLabel: 'Encourage first'),
+        letter: 'F',
+        koLabel: '먼저 괜찮다고 말해준다',
+        enLabel: 'Encourage first',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2086,7 +2154,10 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     options: [
       _MbtiOption(letter: 'J', koLabel: '미리 정해서 지킨다', enLabel: 'Planned ahead'),
       _MbtiOption(
-          letter: 'P', koLabel: '그날 컨디션에 맞춘다', enLabel: 'Adjusted on the day'),
+        letter: 'P',
+        koLabel: '그날 컨디션에 맞춘다',
+        enLabel: 'Adjusted on the day',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2094,7 +2165,10 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'After training, I recharge by...',
     options: [
       _MbtiOption(
-          letter: 'E', koLabel: '같이 이야기한다', enLabel: 'Talking together'),
+        letter: 'E',
+        koLabel: '같이 이야기한다',
+        enLabel: 'Talking together',
+      ),
       _MbtiOption(letter: 'I', koLabel: '혼자 정리한다', enLabel: 'Reflecting alone'),
     ],
   ),
@@ -2103,13 +2177,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'When watching game clips, I notice...',
     options: [
       _MbtiOption(
-          letter: 'S',
-          koLabel: '패스, 위치 같은 디테일',
-          enLabel: 'Details like pass and position'),
+        letter: 'S',
+        koLabel: '패스, 위치 같은 디테일',
+        enLabel: 'Details like pass and position',
+      ),
       _MbtiOption(
-          letter: 'N',
-          koLabel: '전체 흐름과 다음 장면',
-          enLabel: 'Flow and what comes next'),
+        letter: 'N',
+        koLabel: '전체 흐름과 다음 장면',
+        enLabel: 'Flow and what comes next',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2117,11 +2193,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'When I must choose fast, I use...',
     options: [
       _MbtiOption(
-          letter: 'T', koLabel: '가장 좋은 확률', enLabel: 'Best probability'),
+        letter: 'T',
+        koLabel: '가장 좋은 확률',
+        enLabel: 'Best probability',
+      ),
       _MbtiOption(
-          letter: 'F',
-          koLabel: '팀 분위기와 자신감',
-          enLabel: 'Team feeling and confidence'),
+        letter: 'F',
+        koLabel: '팀 분위기와 자신감',
+        enLabel: 'Team feeling and confidence',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2129,7 +2209,10 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'When packing my bag, I...',
     options: [
       _MbtiOption(
-          letter: 'J', koLabel: '전날 미리 챙긴다', enLabel: 'Pack the day before'),
+        letter: 'J',
+        koLabel: '전날 미리 챙긴다',
+        enLabel: 'Pack the day before',
+      ),
       _MbtiOption(letter: 'P', koLabel: '당일에 챙긴다', enLabel: 'Pack on the day'),
     ],
   ),
@@ -2138,13 +2221,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'In a new team, I...',
     options: [
       _MbtiOption(
-          letter: 'E',
-          koLabel: '먼저 인사하고 말 건다',
-          enLabel: 'Say hi and start talking'),
+        letter: 'E',
+        koLabel: '먼저 인사하고 말 건다',
+        enLabel: 'Say hi and start talking',
+      ),
       _MbtiOption(
-          letter: 'I',
-          koLabel: '먼저 보고 천천히 친해진다',
-          enLabel: 'Observe first, then open up'),
+        letter: 'I',
+        koLabel: '먼저 보고 천천히 친해진다',
+        enLabel: 'Observe first, then open up',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2152,9 +2237,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'When learning new tactics, I want...',
     options: [
       _MbtiOption(
-          letter: 'S', koLabel: '한 단계씩 정확하게', enLabel: 'Step-by-step details'),
+        letter: 'S',
+        koLabel: '한 단계씩 정확하게',
+        enLabel: 'Step-by-step details',
+      ),
       _MbtiOption(
-          letter: 'N', koLabel: '어디에 쓰는지 먼저', enLabel: 'Where it will be used'),
+        letter: 'N',
+        koLabel: '어디에 쓰는지 먼저',
+        enLabel: 'Where it will be used',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2162,11 +2253,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'For feedback, I prefer...',
     options: [
       _MbtiOption(
-          letter: 'T', koLabel: '고칠 점을 딱 알려주기', enLabel: 'Clear fix points'),
+        letter: 'T',
+        koLabel: '고칠 점을 딱 알려주기',
+        enLabel: 'Clear fix points',
+      ),
       _MbtiOption(
-          letter: 'F',
-          koLabel: '잘한 점도 같이 듣기',
-          enLabel: 'Strengths with fix points'),
+        letter: 'F',
+        koLabel: '잘한 점도 같이 듣기',
+        enLabel: 'Strengths with fix points',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2174,9 +2269,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'If plans suddenly change, I...',
     options: [
       _MbtiOption(
-          letter: 'J', koLabel: '다시 정리해서 맞춘다', enLabel: 'Re-plan quickly'),
+        letter: 'J',
+        koLabel: '다시 정리해서 맞춘다',
+        enLabel: 'Re-plan quickly',
+      ),
       _MbtiOption(
-          letter: 'P', koLabel: '그 상황에 맞게 움직인다', enLabel: 'Go with the moment'),
+        letter: 'P',
+        koLabel: '그 상황에 맞게 움직인다',
+        enLabel: 'Go with the moment',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2184,13 +2285,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'During breaks, I usually...',
     options: [
       _MbtiOption(
-          letter: 'E',
-          koLabel: '친구랑 같이 웃고 이야기한다',
-          enLabel: 'Chat and laugh with teammates'),
+        letter: 'E',
+        koLabel: '친구랑 같이 웃고 이야기한다',
+        enLabel: 'Chat and laugh with teammates',
+      ),
       _MbtiOption(
-          letter: 'I',
-          koLabel: '조용히 숨 고르며 쉰다',
-          enLabel: 'Rest quietly by myself'),
+        letter: 'I',
+        koLabel: '조용히 숨 고르며 쉰다',
+        enLabel: 'Rest quietly by myself',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2198,13 +2301,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'What is easier when learning drills?',
     options: [
       _MbtiOption(
-          letter: 'S',
-          koLabel: '동작을 따라 해보는 것',
-          enLabel: 'Copying the movement'),
+        letter: 'S',
+        koLabel: '동작을 따라 해보는 것',
+        enLabel: 'Copying the movement',
+      ),
       _MbtiOption(
-          letter: 'N',
-          koLabel: '이유를 먼저 듣는 것',
-          enLabel: 'Hearing the reason first'),
+        letter: 'N',
+        koLabel: '이유를 먼저 듣는 것',
+        enLabel: 'Hearing the reason first',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2212,9 +2317,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'In clutch moments, I trust...',
     options: [
       _MbtiOption(
-          letter: 'T', koLabel: '냉정한 선택', enLabel: 'Calm and logical choices'),
+        letter: 'T',
+        koLabel: '냉정한 선택',
+        enLabel: 'Calm and logical choices',
+      ),
       _MbtiOption(
-          letter: 'F', koLabel: '팀의 기운', enLabel: 'Team spirit and feeling'),
+        letter: 'F',
+        koLabel: '팀의 기운',
+        enLabel: 'Team spirit and feeling',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2222,11 +2333,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'For homework practice, I...',
     options: [
       _MbtiOption(
-          letter: 'J', koLabel: '정해둔 시간에 딱 한다', enLabel: 'Do it at fixed time'),
+        letter: 'J',
+        koLabel: '정해둔 시간에 딱 한다',
+        enLabel: 'Do it at fixed time',
+      ),
       _MbtiOption(
-          letter: 'P',
-          koLabel: '가능한 시간에 유연하게 한다',
-          enLabel: 'Do it flexibly when I can'),
+        letter: 'P',
+        koLabel: '가능한 시간에 유연하게 한다',
+        enLabel: 'Do it flexibly when I can',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2234,11 +2349,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'When I meet new friends, I...',
     options: [
       _MbtiOption(
-          letter: 'E', koLabel: '먼저 말을 건다', enLabel: 'Start talking first'),
+        letter: 'E',
+        koLabel: '먼저 말을 건다',
+        enLabel: 'Start talking first',
+      ),
       _MbtiOption(
-          letter: 'I',
-          koLabel: '조금 보고 나서 말한다',
-          enLabel: 'Talk after observing first'),
+        letter: 'I',
+        koLabel: '조금 보고 나서 말한다',
+        enLabel: 'Talk after observing first',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2246,13 +2365,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'On tactics board, I first look at...',
     options: [
       _MbtiOption(
-          letter: 'S',
-          koLabel: '내 위치와 이동선',
-          enLabel: 'My spot and movement line'),
+        letter: 'S',
+        koLabel: '내 위치와 이동선',
+        enLabel: 'My spot and movement line',
+      ),
       _MbtiOption(
-          letter: 'N',
-          koLabel: '전체 흐름과 전략',
-          enLabel: 'Overall flow and strategy'),
+        letter: 'N',
+        koLabel: '전체 흐름과 전략',
+        enLabel: 'Overall flow and strategy',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2260,13 +2381,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'When giving advice, I...',
     options: [
       _MbtiOption(
-          letter: 'T',
-          koLabel: '바로 고칠 방법을 말한다',
-          enLabel: 'Give direct fix tips'),
+        letter: 'T',
+        koLabel: '바로 고칠 방법을 말한다',
+        enLabel: 'Give direct fix tips',
+      ),
       _MbtiOption(
-          letter: 'F',
-          koLabel: '먼저 마음을 다독인다',
-          enLabel: 'Comfort first, then guide'),
+        letter: 'F',
+        koLabel: '먼저 마음을 다독인다',
+        enLabel: 'Comfort first, then guide',
+      ),
     ],
   ),
   _MbtiQuestion(
@@ -2274,11 +2397,15 @@ const List<_MbtiQuestion> _mbtiQuestions = [
     enPrompt: 'Game-day preparation is...',
     options: [
       _MbtiOption(
-          letter: 'J', koLabel: '체크리스트로 준비', enLabel: 'Checklist preparation'),
+        letter: 'J',
+        koLabel: '체크리스트로 준비',
+        enLabel: 'Checklist preparation',
+      ),
       _MbtiOption(
-          letter: 'P',
-          koLabel: '상황 보며 바로 준비',
-          enLabel: 'Prepare as things happen'),
+        letter: 'P',
+        koLabel: '상황 보며 바로 준비',
+        enLabel: 'Prepare as things happen',
+      ),
     ],
   ),
 ];
@@ -2289,17 +2416,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'What moment is most fun for you?',
     options: [
       _PositionOption(
-          koLabel: '골 넣기', enLabel: 'Scoring', scores: {'FW': 3, 'MF': 1}),
+        koLabel: '골 넣기',
+        enLabel: 'Scoring',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '패스로 연결하기',
-          enLabel: 'Connecting passes',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '패스로 연결하기',
+        enLabel: 'Connecting passes',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '상대 공 뺏기',
-          enLabel: 'Winning the ball',
-          scores: {'DF': 3, 'GK': 1}),
+        koLabel: '상대 공 뺏기',
+        enLabel: 'Winning the ball',
+        scores: {'DF': 3, 'GK': 1},
+      ),
       _PositionOption(
-          koLabel: '골 막기', enLabel: 'Making saves', scores: {'GK': 3, 'DF': 1}),
+        koLabel: '골 막기',
+        enLabel: 'Making saves',
+        scores: {'GK': 3, 'DF': 1},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2307,21 +2442,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'When team is struggling, what do you do first?',
     options: [
       _PositionOption(
-          koLabel: '한 번에 골 기회 만들기',
-          enLabel: 'Create a scoring chance',
-          scores: {'FW': 3}),
+        koLabel: '한 번에 골 기회 만들기',
+        enLabel: 'Create a scoring chance',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '공을 잡고 리듬 만들기',
-          enLabel: 'Hold ball and set rhythm',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '공을 잡고 리듬 만들기',
+        enLabel: 'Hold ball and set rhythm',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '뒤에서 막아주기',
-          enLabel: 'Stop attacks from behind',
-          scores: {'DF': 3, 'GK': 1}),
+        koLabel: '뒤에서 막아주기',
+        enLabel: 'Stop attacks from behind',
+        scores: {'DF': 3, 'GK': 1},
+      ),
       _PositionOption(
-          koLabel: '크게 소리쳐 정리하기',
-          enLabel: 'Organize with loud calls',
-          scores: {'GK': 3, 'DF': 1}),
+        koLabel: '크게 소리쳐 정리하기',
+        enLabel: 'Organize with loud calls',
+        scores: {'GK': 3, 'DF': 1},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2330,15 +2469,20 @@ const List<_PositionQuestion> _positionQuestions = [
     options: [
       _PositionOption(koLabel: '슈팅', enLabel: 'Shooting', scores: {'FW': 3}),
       _PositionOption(
-          koLabel: '패스와 턴',
-          enLabel: 'Passing and turns',
-          scores: {'MF': 3, 'FW': 1}),
+        koLabel: '패스와 턴',
+        enLabel: 'Passing and turns',
+        scores: {'MF': 3, 'FW': 1},
+      ),
       _PositionOption(
-          koLabel: '태클과 몸싸움', enLabel: 'Tackles and duels', scores: {'DF': 3}),
+        koLabel: '태클과 몸싸움',
+        enLabel: 'Tackles and duels',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '다이빙과 캐칭',
-          enLabel: 'Diving and catching',
-          scores: {'GK': 3}),
+        koLabel: '다이빙과 캐칭',
+        enLabel: 'Diving and catching',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2346,15 +2490,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'Where do you often stand in mini games?',
     options: [
       _PositionOption(
-          koLabel: '상대 골문 근처',
-          enLabel: 'Near opponent goal',
-          scores: {'FW': 3}),
+        koLabel: '상대 골문 근처',
+        enLabel: 'Near opponent goal',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '가운데', enLabel: 'Middle area', scores: {'MF': 3}),
+        koLabel: '가운데',
+        enLabel: 'Middle area',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '우리 진영 뒤쪽', enLabel: 'Our back line', scores: {'DF': 3}),
+        koLabel: '우리 진영 뒤쪽',
+        enLabel: 'Our back line',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '골문 앞', enLabel: 'In front of our goal', scores: {'GK': 3}),
+        koLabel: '골문 앞',
+        enLabel: 'In front of our goal',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2362,17 +2516,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'What is your biggest strength?',
     options: [
       _PositionOption(
-          koLabel: '빠른 침투', enLabel: 'Fast runs', scores: {'FW': 3, 'MF': 1}),
+        koLabel: '빠른 침투',
+        enLabel: 'Fast runs',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '게임 읽기',
-          enLabel: 'Reading the game',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '게임 읽기',
+        enLabel: 'Reading the game',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '상대 막기',
-          enLabel: 'Stopping opponents',
-          scores: {'DF': 3, 'GK': 1}),
+        koLabel: '상대 막기',
+        enLabel: 'Stopping opponents',
+        scores: {'DF': 3, 'GK': 1},
+      ),
       _PositionOption(
-          koLabel: '반응 속도', enLabel: 'Quick reactions', scores: {'GK': 3}),
+        koLabel: '반응 속도',
+        enLabel: 'Quick reactions',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2380,19 +2542,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'If coach gives one mission, you choose...',
     options: [
       _PositionOption(
-          koLabel: '골로 마무리', enLabel: 'Finish with goals', scores: {'FW': 3}),
+        koLabel: '골로 마무리',
+        enLabel: 'Finish with goals',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '공을 계속 연결',
-          enLabel: 'Keep ball moving',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '공을 계속 연결',
+        enLabel: 'Keep ball moving',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '상대 에이스 막기',
-          enLabel: 'Mark the star player',
-          scores: {'DF': 3}),
+        koLabel: '상대 에이스 막기',
+        enLabel: 'Mark the star player',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '마지막 실점 막기',
-          enLabel: 'Protect the final line',
-          scores: {'GK': 3}),
+        koLabel: '마지막 실점 막기',
+        enLabel: 'Protect the final line',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2400,19 +2568,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'On rainy days, you are most confident in...',
     options: [
       _PositionOption(
-          koLabel: '문전 슈팅', enLabel: 'Close-range finishes', scores: {'FW': 3}),
+        koLabel: '문전 슈팅',
+        enLabel: 'Close-range finishes',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '짧은 패스 유지',
-          enLabel: 'Keeping short passes',
-          scores: {'MF': 3}),
+        koLabel: '짧은 패스 유지',
+        enLabel: 'Keeping short passes',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '몸으로 막아내기',
-          enLabel: 'Physical defending',
-          scores: {'DF': 3}),
+        koLabel: '몸으로 막아내기',
+        enLabel: 'Physical defending',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '미끄러운 공 잡기',
-          enLabel: 'Handling slippery balls',
-          scores: {'GK': 3}),
+        koLabel: '미끄러운 공 잡기',
+        enLabel: 'Handling slippery balls',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2420,21 +2594,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'After a mistake, your first action is...',
     options: [
       _PositionOption(
-          koLabel: '다음 공격에 바로 도전',
-          enLabel: 'Try next attack right away',
-          scores: {'FW': 3}),
+        koLabel: '다음 공격에 바로 도전',
+        enLabel: 'Try next attack right away',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '공을 받아 흐름 되찾기',
-          enLabel: 'Get on the ball again',
-          scores: {'MF': 3}),
+        koLabel: '공을 받아 흐름 되찾기',
+        enLabel: 'Get on the ball again',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '수비 위치 다시 맞추기',
-          enLabel: 'Reset defensive position',
-          scores: {'DF': 3}),
+        koLabel: '수비 위치 다시 맞추기',
+        enLabel: 'Reset defensive position',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '전체 라인 정리하기',
-          enLabel: 'Reorganize whole line',
-          scores: {'GK': 3, 'DF': 1}),
+        koLabel: '전체 라인 정리하기',
+        enLabel: 'Reorganize whole line',
+        scores: {'GK': 3, 'DF': 1},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2442,21 +2620,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'Last 5 minutes with a lead, you prefer...',
     options: [
       _PositionOption(
-          koLabel: '추가 골 노리기',
-          enLabel: 'Push for one more goal',
-          scores: {'FW': 3}),
+        koLabel: '추가 골 노리기',
+        enLabel: 'Push for one more goal',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '공 소유하며 시간 쓰기',
-          enLabel: 'Keep possession and time',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '공 소유하며 시간 쓰기',
+        enLabel: 'Keep possession and time',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '위험 지역 닫기',
-          enLabel: 'Close dangerous spaces',
-          scores: {'DF': 3, 'GK': 1}),
+        koLabel: '위험 지역 닫기',
+        enLabel: 'Close dangerous spaces',
+        scores: {'DF': 3, 'GK': 1},
+      ),
       _PositionOption(
-          koLabel: '뒤에서 모두 지휘',
-          enLabel: 'Command everyone from back',
-          scores: {'GK': 3, 'DF': 1}),
+        koLabel: '뒤에서 모두 지휘',
+        enLabel: 'Command everyone from back',
+        scores: {'GK': 3, 'DF': 1},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2464,17 +2646,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'During set-piece defense, you like...',
     options: [
       _PositionOption(
-          koLabel: '클리어 후 역습 시작',
-          enLabel: 'Start counter after clearance',
-          scores: {'FW': 3, 'MF': 1}),
+        koLabel: '클리어 후 역습 시작',
+        enLabel: 'Start counter after clearance',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '세컨드볼 회수',
-          enLabel: 'Collect second balls',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '세컨드볼 회수',
+        enLabel: 'Collect second balls',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '강하게 마크', enLabel: 'Strong marking', scores: {'DF': 3}),
+        koLabel: '강하게 마크',
+        enLabel: 'Strong marking',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '캐칭과 콜', enLabel: 'Catching and calls', scores: {'GK': 3}),
+        koLabel: '캐칭과 콜',
+        enLabel: 'Catching and calls',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2482,21 +2672,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'A good game for you is when...',
     options: [
       _PositionOption(
-          koLabel: '골이나 도움을 했다',
-          enLabel: 'I scored or assisted',
-          scores: {'FW': 3}),
+        koLabel: '골이나 도움을 했다',
+        enLabel: 'I scored or assisted',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '패스가 잘 풀렸다',
-          enLabel: 'Pass flow was great',
-          scores: {'MF': 3}),
+        koLabel: '패스가 잘 풀렸다',
+        enLabel: 'Pass flow was great',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '상대를 잘 막았다',
-          enLabel: 'I stopped opponents well',
-          scores: {'DF': 3}),
+        koLabel: '상대를 잘 막았다',
+        enLabel: 'I stopped opponents well',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '실점 위기를 막았다',
-          enLabel: 'I made key saves',
-          scores: {'GK': 3}),
+        koLabel: '실점 위기를 막았다',
+        enLabel: 'I made key saves',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2504,21 +2698,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'For the team, I can sacrifice by...',
     options: [
       _PositionOption(
-          koLabel: '많이 뛰며 공간 만들기',
-          enLabel: 'Running to create space',
-          scores: {'FW': 3, 'MF': 1}),
+        koLabel: '많이 뛰며 공간 만들기',
+        enLabel: 'Running to create space',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '받고 주는 연결 계속하기',
-          enLabel: 'Keep passing connections',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '받고 주는 연결 계속하기',
+        enLabel: 'Keep passing connections',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '몸 던져 막아내기',
-          enLabel: 'Blocking with my body',
-          scores: {'DF': 3}),
+        koLabel: '몸 던져 막아내기',
+        enLabel: 'Blocking with my body',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '뒤에서 안정감 주기',
-          enLabel: 'Giving stability from back',
-          scores: {'GK': 3}),
+        koLabel: '뒤에서 안정감 주기',
+        enLabel: 'Giving stability from back',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2526,21 +2724,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'Before receiving the ball, I first...',
     options: [
       _PositionOption(
-          koLabel: '골문 쪽 공간을 본다',
-          enLabel: 'Check scoring space',
-          scores: {'FW': 3, 'MF': 1}),
+        koLabel: '골문 쪽 공간을 본다',
+        enLabel: 'Check scoring space',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '패스 줄을 본다',
-          enLabel: 'Check passing lanes',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '패스 줄을 본다',
+        enLabel: 'Check passing lanes',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '뒤 커버를 먼저 본다',
-          enLabel: 'Check defensive cover first',
-          scores: {'DF': 3, 'GK': 1}),
+        koLabel: '뒤 커버를 먼저 본다',
+        enLabel: 'Check defensive cover first',
+        scores: {'DF': 3, 'GK': 1},
+      ),
       _PositionOption(
-          koLabel: '전체 라인을 살핀다',
-          enLabel: 'Scan whole defensive line',
-          scores: {'GK': 3, 'DF': 1}),
+        koLabel: '전체 라인을 살핀다',
+        enLabel: 'Scan whole defensive line',
+        scores: {'GK': 3, 'DF': 1},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2548,21 +2750,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'Which pass are you most confident with?',
     options: [
       _PositionOption(
-          koLabel: '마무리로 가는 침투 패스',
-          enLabel: 'Final through pass',
-          scores: {'FW': 3, 'MF': 1}),
+        koLabel: '마무리로 가는 침투 패스',
+        enLabel: 'Final through pass',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '짧고 빠른 연결 패스',
-          enLabel: 'Quick short connection pass',
-          scores: {'MF': 3}),
+        koLabel: '짧고 빠른 연결 패스',
+        enLabel: 'Quick short connection pass',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '안전한 빌드업 패스',
-          enLabel: 'Safe build-up pass',
-          scores: {'DF': 3, 'MF': 1}),
+        koLabel: '안전한 빌드업 패스',
+        enLabel: 'Safe build-up pass',
+        scores: {'DF': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '뒤에서 길게 전환 패스',
-          enLabel: 'Long switch from the back',
-          scores: {'GK': 3, 'DF': 1}),
+        koLabel: '뒤에서 길게 전환 패스',
+        enLabel: 'Long switch from the back',
+        scores: {'GK': 3, 'DF': 1},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2570,19 +2776,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'What are you best at in defense?',
     options: [
       _PositionOption(
-          koLabel: '앞에서 압박 시작',
-          enLabel: 'Start pressing from front',
-          scores: {'FW': 3, 'MF': 1}),
+        koLabel: '앞에서 압박 시작',
+        enLabel: 'Start pressing from front',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '중앙에서 길목 차단',
-          enLabel: 'Block central lanes',
-          scores: {'MF': 3, 'DF': 1}),
+        koLabel: '중앙에서 길목 차단',
+        enLabel: 'Block central lanes',
+        scores: {'MF': 3, 'DF': 1},
+      ),
       _PositionOption(
-          koLabel: '1대1 막기', enLabel: '1v1 defending', scores: {'DF': 3}),
+        koLabel: '1대1 막기',
+        enLabel: '1v1 defending',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '마지막 슈팅 막기',
-          enLabel: 'Stopping final shots',
-          scores: {'GK': 3}),
+        koLabel: '마지막 슈팅 막기',
+        enLabel: 'Stopping final shots',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2590,19 +2802,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'In attack, where am I most often?',
     options: [
       _PositionOption(
-          koLabel: '골대 가까운 곳', enLabel: 'Near the goal', scores: {'FW': 3}),
+        koLabel: '골대 가까운 곳',
+        enLabel: 'Near the goal',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '중앙 연결 지점',
-          enLabel: 'Center connection point',
-          scores: {'MF': 3}),
+        koLabel: '중앙 연결 지점',
+        enLabel: 'Center connection point',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '뒤에서 밸런스 지키는 곳',
-          enLabel: 'Back line for balance',
-          scores: {'DF': 3}),
+        koLabel: '뒤에서 밸런스 지키는 곳',
+        enLabel: 'Back line for balance',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '골문 앞 지휘 위치',
-          enLabel: 'Goal-front command spot',
-          scores: {'GK': 3}),
+        koLabel: '골문 앞 지휘 위치',
+        enLabel: 'Goal-front command spot',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2610,17 +2828,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'What does your coach praise most?',
     options: [
       _PositionOption(
-          koLabel: '결정적인 마무리',
-          enLabel: 'Decisive finishing',
-          scores: {'FW': 3}),
+        koLabel: '결정적인 마무리',
+        enLabel: 'Decisive finishing',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '게임 조율 능력',
-          enLabel: 'Game control and tempo',
-          scores: {'MF': 3}),
+        koLabel: '게임 조율 능력',
+        enLabel: 'Game control and tempo',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '안정적인 수비', enLabel: 'Reliable defending', scores: {'DF': 3}),
+        koLabel: '안정적인 수비',
+        enLabel: 'Reliable defending',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '위기 선방', enLabel: 'Crisis saves', scores: {'GK': 3}),
+        koLabel: '위기 선방',
+        enLabel: 'Crisis saves',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2628,13 +2854,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'What role do teammates often ask you to do?',
     options: [
       _PositionOption(
-          koLabel: '골 넣는 역할', enLabel: 'Goal scorer', scores: {'FW': 3}),
+        koLabel: '골 넣는 역할',
+        enLabel: 'Goal scorer',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '패스 연결 역할', enLabel: 'Pass connector', scores: {'MF': 3}),
+        koLabel: '패스 연결 역할',
+        enLabel: 'Pass connector',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '상대 막는 역할', enLabel: 'Main stopper', scores: {'DF': 3}),
+        koLabel: '상대 막는 역할',
+        enLabel: 'Main stopper',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '골문 지키는 역할', enLabel: 'Goal protector', scores: {'GK': 3}),
+        koLabel: '골문 지키는 역할',
+        enLabel: 'Goal protector',
+        scores: {'GK': 3},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2642,21 +2880,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'At kick-off in practice game, I first...',
     options: [
       _PositionOption(
-          koLabel: '앞으로 침투한다',
-          enLabel: 'Make a forward run',
-          scores: {'FW': 3, 'MF': 1}),
+        koLabel: '앞으로 침투한다',
+        enLabel: 'Make a forward run',
+        scores: {'FW': 3, 'MF': 1},
+      ),
       _PositionOption(
-          koLabel: '공 받아 방향 전환한다',
-          enLabel: 'Receive and switch play',
-          scores: {'MF': 3}),
+        koLabel: '공 받아 방향 전환한다',
+        enLabel: 'Receive and switch play',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '뒤 정렬부터 맞춘다',
-          enLabel: 'Set defensive shape first',
-          scores: {'DF': 3}),
+        koLabel: '뒤 정렬부터 맞춘다',
+        enLabel: 'Set defensive shape first',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '수비 라인에 콜을 준다',
-          enLabel: 'Give calls to back line',
-          scores: {'GK': 3, 'DF': 1}),
+        koLabel: '수비 라인에 콜을 준다',
+        enLabel: 'Give calls to back line',
+        scores: {'GK': 3, 'DF': 1},
+      ),
     ],
   ),
   _PositionQuestion(
@@ -2664,21 +2906,25 @@ const List<_PositionQuestion> _positionQuestions = [
     enPrompt: 'After winning, what feels best?',
     options: [
       _PositionOption(
-          koLabel: '내 골로 이긴 순간',
-          enLabel: 'Winning with my goal',
-          scores: {'FW': 3}),
+        koLabel: '내 골로 이긴 순간',
+        enLabel: 'Winning with my goal',
+        scores: {'FW': 3},
+      ),
       _PositionOption(
-          koLabel: '팀 플레이가 잘 맞은 순간',
-          enLabel: 'Team play clicked perfectly',
-          scores: {'MF': 3}),
+        koLabel: '팀 플레이가 잘 맞은 순간',
+        enLabel: 'Team play clicked perfectly',
+        scores: {'MF': 3},
+      ),
       _PositionOption(
-          koLabel: '실점 없이 막아낸 순간',
-          enLabel: 'Stopping goals together',
-          scores: {'DF': 3}),
+        koLabel: '실점 없이 막아낸 순간',
+        enLabel: 'Stopping goals together',
+        scores: {'DF': 3},
+      ),
       _PositionOption(
-          koLabel: '결정적 선방으로 지킨 순간',
-          enLabel: 'Saving the key last chance',
-          scores: {'GK': 3}),
+        koLabel: '결정적 선방으로 지킨 순간',
+        enLabel: 'Saving the key last chance',
+        scores: {'GK': 3},
+      ),
     ],
   ),
 ];

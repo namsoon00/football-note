@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/news_read_state.dart';
 import '../../application/locale_service.dart';
 import '../../application/news_service.dart';
 import '../../application/player_level_service.dart';
@@ -22,7 +23,6 @@ import '../widgets/app_page_route.dart';
 import '../widgets/player_level_visuals.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
-import 'player_level_guide_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'skill_quiz_screen.dart';
@@ -93,10 +93,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
-                  .where((entry) => !entry.isMatch)
-                  .toList()
-                ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries =
+                  (snapshot.data ?? const <TrainingEntry>[])
+                      .where((entry) => !entry.isMatch)
+                      .toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardsById = TrainingBoardService(
                 widget.optionRepository,
@@ -106,9 +107,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
               final levelState = PlayerLevelService(
                 widget.optionRepository,
               ).loadState();
-              final rewardStatuses = PlayerLevelService(
-                widget.optionRepository,
-              ).loadRewardStatuses();
               final data = _HomeHubData.build(
                 entries: allEntries,
                 plans: _loadPlans(widget.optionRepository),
@@ -141,9 +139,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 Scaffold.of(context).openDrawer(),
                             profilePhotoSource:
                                 widget.optionRepository.getValue<String>(
-                                      'profile_photo_url',
-                                    ) ??
-                                    '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                             onNewsTap: _openNews,
                             newsBadgeCount: newsCount,
                             onQuizTap: _openQuizShortcut,
@@ -154,21 +152,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    _LevelHeroCard(
-                      levelState: levelState,
-                      rewardStatuses: rewardStatuses,
-                      isKo: isKo,
-                      onTap: () => _openLevelGuide(context, levelState.level),
-                    ),
+                    _LevelHeroCard(levelState: levelState, isKo: isKo),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: Text(
                             isKo ? '오늘의 홈' : 'Today Home',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -198,8 +189,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     const SizedBox(height: 12),
                     _QuickActionGrid(
                       isKo: isKo,
-                      onCreate:
-                          _trackedAction('quick_create_log', widget.onCreate)!,
+                      onCreate: _trackedAction(
+                        'quick_create_log',
+                        widget.onCreate,
+                      )!,
                       onQuickMatch: _trackedAction(
                         'quick_create_match',
                         widget.onQuickMatch,
@@ -310,19 +303,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
   }
 
-  Future<void> _openLevelGuide(BuildContext context, int currentLevel) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PlayerLevelGuideScreen(
-          currentLevel: currentLevel,
-          optionRepository: widget.optionRepository,
-        ),
-      ),
-    );
-    if (!mounted) return;
-    setState(() {});
-  }
-
   Future<void> _openBoard(BuildContext context, TrainingBoard board) async {
     await Navigator.of(context).push<void>(
       AppPageRoute(
@@ -340,17 +320,17 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Future<int> _loadNewsCount() async {
     final service = NewsService(RssNewsRepository(widget.optionRepository));
     final channels = service.channels();
+    final articles = <NewsArticle>[];
     final seenKeys = <String>{};
-    var count = 0;
 
     await Future.wait(
       channels.map((channel) async {
         try {
-          final articles = await service.latest(channel.id);
-          for (final article in articles) {
+          final channelArticles = await service.latest(channel.id);
+          for (final article in channelArticles) {
             final key = _newsArticleKey(article);
             if (!seenKeys.add(key)) continue;
-            count += 1;
+            articles.add(article);
           }
         } catch (_) {
           // Ignore per-channel failures and show the count from successful feeds.
@@ -358,7 +338,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       }),
     );
 
-    return count;
+    return NewsReadState.unreadCount(widget.optionRepository, articles);
   }
 
   VoidCallback? _trackedAction(String key, VoidCallback? action) {
@@ -447,14 +427,16 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final todayEntries = entries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).toList(growable: false);
+    final todayEntries = entries
+        .where((entry) {
+          final day = DateTime(
+            entry.date.year,
+            entry.date.month,
+            entry.date.day,
+          );
+          return day == today;
+        })
+        .toList(growable: false);
     final loggedTrainingToday = todayEntries.isNotEmpty;
     final loggedLiftingToday = todayEntries.any(
       (entry) => entry.liftingByPart.values.any((value) => value > 0),
@@ -492,8 +474,9 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.mood,
     );
-    final averageMood =
-        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
+    final averageMood = weeklyEntries.isEmpty
+        ? 0
+        : totalMood / weeklyEntries.length;
 
     String strongest;
     String focus;
@@ -519,7 +502,8 @@ class _HomeHubData {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedToday = quizCompletedAt != null &&
+    final quizCompletedToday =
+        quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
@@ -554,7 +538,8 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -589,9 +574,9 @@ class _WeeklyBadge extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
       ),
@@ -601,143 +586,178 @@ class _WeeklyBadge extends StatelessWidget {
 
 class _LevelHeroCard extends StatelessWidget {
   final PlayerLevelState levelState;
-  final List<PlayerLevelRewardStatus> rewardStatuses;
   final bool isKo;
-  final VoidCallback onTap;
 
-  const _LevelHeroCard({
-    required this.levelState,
-    required this.rewardStatuses,
-    required this.isKo,
-    required this.onTap,
-  });
+  const _LevelHeroCard({required this.levelState, required this.isKo});
 
   @override
   Widget build(BuildContext context) {
     final spec = PlayerLevelVisualSpec.fromLevel(levelState.level);
-    final claimableRewards = rewardStatuses.where(
-      (item) =>
-          item.isAvailable &&
-          !item.isClaimed &&
-          item.customRewardName.trim().isNotEmpty,
-    );
-    PlayerLevelRewardStatus? nextReward;
-    for (final status in rewardStatuses) {
-      if (status.customRewardName.trim().isEmpty || status.isClaimed) continue;
-      nextReward = status;
-      break;
-    }
-    final rewardSummary = claimableRewards.isNotEmpty
-        ? (isKo
-            ? '지금 받을 선물 ${claimableRewards.length}개'
-            : '${claimableRewards.length} rewards ready')
-        : nextReward == null
-            ? (isKo ? '다음 선물이 아직 없어요' : 'No next reward yet')
-            : nextReward.isAvailable
-                ? (isKo
-                    ? '지금 선물: ${nextReward.customRewardName}'
-                    : 'Reward now: ${nextReward.customRewardName}')
-                : (isKo
-                    ? '다음 선물 Lv.${nextReward.reward.level} ${nextReward.customRewardName}'
-                    : 'Next reward Lv.${nextReward.reward.level} ${nextReward.customRewardName}');
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        key: const ValueKey('level-hero-card'),
-        onTap: onTap,
+    return Container(
+      key: const ValueKey('level-hero-card'),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: spec.colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
-        child: Ink(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: spec.colors,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 18,
-                offset: Offset(0, 6),
-              ),
-            ],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 18,
+            offset: Offset(0, 6),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Row(
+        children: [
+          _LevelIllustration(isKo: isKo, level: levelState.level),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isKo ? '오늘의 레벨' : 'Today level',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.86),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Lv.${levelState.level}',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Text(
-                      isKo ? '선수 레벨' : 'Player level',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.86),
-                            fontWeight: FontWeight.w700,
-                          ),
+                    _LevelMetaChip(
+                      icon: Icons.palette_outlined,
+                      label: isKo
+                          ? '컬러 ${_levelColorLabel(levelState.level)}'
+                          : _levelColorLabel(levelState.level),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Lv.${levelState.level} ${PlayerLevelService.levelName(levelState.level, isKo)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      PlayerLevelService.stageName(levelState.level, isKo),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: LinearProgressIndicator(
-                        value: levelState.progress,
-                        minHeight: 8,
-                        backgroundColor: Colors.white.withValues(alpha: 0.22),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.white,
-                        ),
+                    _LevelMetaChip(
+                      icon: _stageIcon(levelState.level),
+                      label: PlayerLevelService.levelName(
+                        levelState.level,
+                        isKo,
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isKo
-                          ? '다음 ${levelState.xpToNextLevel} XP · 총 ${levelState.totalXp} XP'
-                          : '${levelState.xpToNextLevel} XP to next level · ${levelState.totalXp} XP total',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      rewardSummary,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.94),
-                            fontWeight: FontWeight.w800,
-                          ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              _LevelIllustration(isKo: isKo, level: levelState.level),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+
+  String _levelColorLabel(int level) {
+    switch (level.clamp(1, 20)) {
+      case 1:
+      case 2:
+        return isKo ? '그린/블루' : 'Green/Blue';
+      case 3:
+      case 4:
+        return isKo ? '옐로/오렌지' : 'Yellow/Orange';
+      case 5:
+      case 6:
+        return isKo ? '바이올렛' : 'Violet';
+      case 7:
+      case 8:
+        return isKo ? '핑크/코발트' : 'Pink/Cobalt';
+      case 9:
+      case 10:
+        return isKo ? '에메랄드/골드' : 'Emerald/Gold';
+      default:
+        return isKo ? '프리미엄 그라데이션' : 'Premium gradient';
+    }
+  }
+
+  IconData _stageIcon(int level) {
+    switch (PlayerLevelVisualSpec.fromLevel(level).stage) {
+      case PlayerLevelIllustrationStage.whistle:
+        return Icons.sports;
+      case PlayerLevelIllustrationStage.ball:
+        return Icons.sports_soccer;
+      case PlayerLevelIllustrationStage.cone:
+        return Icons.change_history;
+      case PlayerLevelIllustrationStage.boot:
+        return Icons.directions_run;
+      case PlayerLevelIllustrationStage.jumpRope:
+        return Icons.sports_gymnastics;
+      case PlayerLevelIllustrationStage.dumbbell:
+        return Icons.fitness_center;
+      case PlayerLevelIllustrationStage.tactics:
+        return Icons.route;
+      case PlayerLevelIllustrationStage.crown:
+        return Icons.workspace_premium;
+      case PlayerLevelIllustrationStage.trophy:
+        return Icons.emoji_events;
+      case PlayerLevelIllustrationStage.fireworks:
+        return Icons.auto_awesome;
+      case PlayerLevelIllustrationStage.shield:
+        return Icons.shield_outlined;
+      case PlayerLevelIllustrationStage.gloves:
+        return Icons.back_hand_outlined;
+      case PlayerLevelIllustrationStage.radar:
+        return Icons.radar;
+      case PlayerLevelIllustrationStage.lightning:
+        return Icons.bolt;
+      case PlayerLevelIllustrationStage.medal:
+        return Icons.military_tech;
+      case PlayerLevelIllustrationStage.stadium:
+        return Icons.stadium;
+      case PlayerLevelIllustrationStage.rocket:
+        return Icons.rocket_launch;
+      case PlayerLevelIllustrationStage.star:
+        return Icons.star_outline;
+      case PlayerLevelIllustrationStage.gift:
+        return Icons.redeem_outlined;
+      case PlayerLevelIllustrationStage.galaxy:
+        return Icons.public;
+    }
+  }
+}
+
+class _LevelMetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _LevelMetaChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -790,17 +810,17 @@ class _LevelIllustration extends StatelessWidget {
                   Text(
                     PlayerLevelService.illustrationLabel(level, isKo),
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 1),
                   Text(
                     isKo ? '비주얼 성장 단계' : 'Visual growth tier',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.82),
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -854,9 +874,9 @@ class _DailyFlowCard extends StatelessWidget {
               Text(
                 isKo ? '$completedCount/5 완료' : '$completedCount/5 done',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ],
           ),
@@ -1032,17 +1052,11 @@ class _WeeklySummaryCard extends StatelessWidget {
                 ? '다음 포커스: ${_focusLabel(data.focusSignal, true)}'
                 : 'Next focus: ${_focusLabel(data.focusSignal, false)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
-          Text(
-            data.quizCompletedToday
-                ? (isKo ? '오늘 퀴즈 완료' : 'Today quiz completed')
-                : (isKo ? '오늘 퀴즈 미완료' : 'Today quiz not completed'),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
         ],
       ),
     );
@@ -1112,7 +1126,8 @@ class _ContinueCard extends StatelessWidget {
     final hasQuizSession = quizSummary.hasActiveSession;
     final hasWrongReview = !hasQuizSession && quizSummary.pendingWrongCount > 0;
     final latestTrainingEntry = data.latestTrainingEntry;
-    final latestTrainingIsToday = latestTrainingEntry != null &&
+    final latestTrainingIsToday =
+        latestTrainingEntry != null &&
         DateTime(
               latestTrainingEntry.date.year,
               latestTrainingEntry.date.month,
@@ -1127,20 +1142,20 @@ class _ContinueCard extends StatelessWidget {
             );
     final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-            ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
-            : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
+              ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
+              : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
         : hasWrongReview
-            ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
-            : (isKo ? '새 퀴즈 시작' : 'Start quiz');
+        ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
+        : (isKo ? '새 퀴즈 시작' : 'Start quiz');
     final quizSubtitle = hasQuizSession
         ? (isKo
-            ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
-            : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
+              ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
+              : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
         : hasWrongReview
-            ? (isKo
-                ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
-                : '${quizSummary.pendingWrongCount} saved wrong answers')
-            : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
+        ? (isKo
+              ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
+              : '${quizSummary.pendingWrongCount} saved wrong answers')
+        : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
     final items = <_ContinueItemData>[
       if (latestTrainingIsToday)
         _ContinueItemData(
@@ -1176,15 +1191,15 @@ class _ContinueCard extends StatelessWidget {
           title: isKo ? '최근 훈련보드' : 'Recent training board',
           subtitle: data.latestBoard == null
               ? (isKo
-                  ? '스케치 ${data.boardCount}개'
-                  : '${data.boardCount} sketches')
+                    ? '스케치 ${data.boardCount}개'
+                    : '${data.boardCount} sketches')
               : data.latestBoardUpdatedAt == null
-                  ? (isKo
-                      ? '스케치 ${data.boardCount}개'
-                      : '${data.boardCount} sketches')
-                  : (isKo
-                      ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
-                      : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
+              ? (isKo
+                    ? '스케치 ${data.boardCount}개'
+                    : '${data.boardCount} sketches')
+              : (isKo
+                    ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
+                    : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
           buttonLabel: isKo ? '바로 수정' : 'Edit now',
           onPressed: onContinueBoard,
         ),
@@ -1243,56 +1258,72 @@ class _ContinueItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              item.icon,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: Theme.of(
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: item.onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: Theme.of(
                     context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                  ).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  item.subtitle,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                child: Icon(
+                  item.icon,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(height: 10),
-                FilledButton.tonalIcon(
-                  onPressed: item.onPressed,
-                  icon: Icon(item.icon),
-                  label: Text(item.buttonLabel),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                item.buttonLabel,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1404,9 +1435,9 @@ class _TodoChip extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800),
                 ),
               ),
             ],
