@@ -887,60 +887,84 @@ class _DailyFlowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final completedCount = <bool>[
+      data.loggedTrainingToday,
+      data.loggedLiftingToday,
+      data.loggedJumpRopeToday,
+      data.quizCompletedToday,
+      data.reviewedTodayDiary,
+    ].where((done) => done).length;
+    final progress = completedCount / 5;
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            isKo ? '오늘 할 일 5단계' : 'Today in 5 steps',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  isKo ? '오늘 할 일' : 'Today tasks',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ),
+              Text(
+                isKo ? '$completedCount/5 완료' : '$completedCount/5 done',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: progress,
+            minHeight: 7,
+            borderRadius: BorderRadius.circular(999),
           ),
           const SizedBox(height: 10),
-          _FlowStepRow(
-            done: data.loggedTrainingToday,
-            label: isKo ? '1) 훈련 기록' : '1) Log training',
-            buttonLabel: data.loggedTrainingToday
-                ? (isKo ? '완료' : 'Done')
-                : (isKo ? '기록하기' : 'Log now'),
-            onTap: onLog,
-          ),
-          const SizedBox(height: 8),
-          _FlowStepRow(
-            done: data.loggedLiftingToday,
-            label: isKo ? '2) 리프팅 기록' : '2) Log lifting',
-            buttonLabel: data.loggedLiftingToday
-                ? (isKo ? '완료' : 'Done')
-                : (isKo ? '기록에 넣기' : 'Add to log'),
-            onTap: onLog,
-          ),
-          const SizedBox(height: 8),
-          _FlowStepRow(
-            done: data.loggedJumpRopeToday,
-            label: isKo ? '3) 줄넘기 기록' : '3) Log jump rope',
-            buttonLabel: data.loggedJumpRopeToday
-                ? (isKo ? '완료' : 'Done')
-                : (isKo ? '기록에 넣기' : 'Add to log'),
-            onTap: onLog,
-          ),
-          const SizedBox(height: 8),
-          _FlowStepRow(
-            done: data.quizCompletedToday,
-            label: isKo ? '4) 퀴즈 풀이' : '4) Solve quiz',
-            buttonLabel: data.quizCompletedToday
-                ? (isKo ? '완료' : 'Done')
-                : (isKo ? '퀴즈' : 'Open quiz'),
-            onTap: onQuiz,
-          ),
-          const SizedBox(height: 8),
-          _FlowStepRow(
-            done: data.reviewedTodayDiary,
-            label: isKo ? '5) 오늘 다이어리 보기' : '5) Open today diary',
-            buttonLabel: data.reviewedTodayDiary
-                ? (isKo ? '완료' : 'Done')
-                : (isKo ? '다이어리' : 'Open diary'),
-            onTap: onReview,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _TodoChip(
+                  done: data.loggedTrainingToday,
+                  icon: Icons.edit_note_rounded,
+                  label: isKo ? '훈련 기록' : 'Log',
+                  onTap: onLog,
+                ),
+                const SizedBox(width: 8),
+                _TodoChip(
+                  done: data.loggedLiftingToday,
+                  icon: Icons.fitness_center_rounded,
+                  label: isKo ? '리프팅' : 'Lifting',
+                  onTap: onLog,
+                ),
+                const SizedBox(width: 8),
+                _TodoChip(
+                  done: data.loggedJumpRopeToday,
+                  icon: Icons.sports_gymnastics_rounded,
+                  label: isKo ? '줄넘기' : 'Jump rope',
+                  onTap: onLog,
+                ),
+                const SizedBox(width: 8),
+                _TodoChip(
+                  done: data.quizCompletedToday,
+                  icon: Icons.quiz_rounded,
+                  label: isKo ? '퀴즈' : 'Quiz',
+                  onTap: onQuiz,
+                ),
+                const SizedBox(width: 8),
+                _TodoChip(
+                  done: data.reviewedTodayDiary,
+                  icon: Icons.auto_stories_rounded,
+                  label: isKo ? '다이어리' : 'Diary',
+                  onTap: onReview,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1436,16 +1460,16 @@ class _SecondaryQuickActionButton extends StatelessWidget {
   }
 }
 
-class _FlowStepRow extends StatelessWidget {
+class _TodoChip extends StatelessWidget {
   final bool done;
+  final IconData icon;
   final String label;
-  final String buttonLabel;
   final VoidCallback? onTap;
 
-  const _FlowStepRow({
+  const _TodoChip({
     required this.done,
+    required this.icon,
     required this.label,
-    required this.buttonLabel,
     required this.onTap,
   });
 
@@ -1456,36 +1480,46 @@ class _FlowStepRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: done
+              ? const Color(0xFF0FA968).withValues(alpha: 0.40)
+              : scheme.outlineVariant.withValues(alpha: 0.55),
+        ),
       ),
       child: Row(
         children: [
           Icon(
-            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            done ? Icons.check_circle : icon,
             size: 18,
             color: done ? const Color(0xFF0FA968) : scheme.primary,
           ),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
+          const SizedBox(width: 8),
           FilledButton.tonal(
             onPressed: onTap,
             style: FilledButton.styleFrom(
-              minimumSize: const Size(88, 36),
+              minimumSize: const Size(60, 34),
               visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
             ),
-            child: Text(buttonLabel),
+            child: Text(done
+                ? (isKo(context) ? '완료' : 'Done')
+                : (isKo(context) ? '열기' : 'Open')),
           ),
         ],
       ),
     );
   }
+
+  bool isKo(BuildContext context) =>
+      Localizations.localeOf(context).languageCode == 'ko';
 }
 
 class _StatPill extends StatelessWidget {
