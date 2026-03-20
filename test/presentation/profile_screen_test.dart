@@ -115,6 +115,28 @@ void main() {
     expect(find.text('1. 훈련을 시작하기 전, 에너지를 채우는 방식은 무엇에 가깝나요?'), findsOneWidget);
     expect(find.text('팀원과 바로 이야기하며 분위기를 끌어올린다'), findsOneWidget);
   });
+
+  testWidgets('Profile level card opens level guide on tap', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed('player_level_total_xp_v2', 60);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ProfileScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('선수 레벨'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('레벨 가이드'), findsOneWidget);
+  });
 }
 
 Finder _findTestStartButton(String title) {
