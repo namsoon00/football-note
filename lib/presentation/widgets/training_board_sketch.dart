@@ -1,0 +1,186 @@
+import 'package:flutter/material.dart';
+
+import '../models/training_method_layout.dart';
+
+class TrainingBoardSketch extends StatelessWidget {
+  final TrainingMethodPage page;
+  final double borderRadius;
+  final EdgeInsetsGeometry padding;
+  final bool showItemCountBadge;
+  final int maxVisibleItems;
+
+  const TrainingBoardSketch({
+    super.key,
+    required this.page,
+    this.borderRadius = 18,
+    this.padding = EdgeInsets.zero,
+    this.showItemCountBadge = false,
+    this.maxVisibleItems = 18,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final itemCount = page.items.length;
+    return Padding(
+      padding: padding,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(borderRadius),
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final height = constraints.maxHeight;
+              return Stack(
+                children: [
+                  CustomPaint(
+                    size: Size(width, height),
+                    painter: _TrainingBoardSketchPainter(page: page),
+                  ),
+                  ...page.items.take(maxVisibleItems).map((item) {
+                    final icon = switch (item.type) {
+                      'cone' => Icons.change_history,
+                      'player' => Icons.person,
+                      'ball' => Icons.sports_soccer,
+                      'ladder' => Icons.view_week,
+                      _ => Icons.circle,
+                    };
+                    return Positioned(
+                      left: (item.x * width).clamp(6.0, width - 22.0),
+                      top: (item.y * height).clamp(4.0, height - 22.0),
+                      child: Transform.rotate(
+                        angle: item.rotationDeg * 3.1415926535897932 / 180,
+                        child: Icon(
+                          icon,
+                          size: (item.size * 0.42).clamp(10.0, 21.0),
+                          color: Color(item.colorValue).withValues(alpha: 0.96),
+                        ),
+                      ),
+                    );
+                  }),
+                  if (showItemCountBadge)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '$itemCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TrainingBoardSketchPainter extends CustomPainter {
+  final TrainingMethodPage page;
+
+  const _TrainingBoardSketchPainter({required this.page});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    final playerPathPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(2, 2, size.width - 4, size.height - 4),
+        const Radius.circular(14),
+      ),
+      line,
+    );
+    canvas.drawLine(Offset(centerX, 2), Offset(centerX, size.height - 2), line);
+    canvas.drawCircle(Offset(centerX, centerY), 16, line);
+
+    for (final stroke in page.strokes) {
+      if (stroke.points.length < 2) continue;
+      final strokePaint = Paint()
+        ..color = Color(stroke.colorValue).withValues(alpha: 0.92)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke.width.clamp(1.0, 4.0)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final path = Path()
+        ..moveTo(
+          stroke.points.first.x * size.width,
+          stroke.points.first.y * size.height,
+        );
+      for (final point in stroke.points.skip(1)) {
+        path.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(path, strokePaint);
+    }
+
+    if (page.playerPath.length >= 2) {
+      final playerPath = Path()
+        ..moveTo(
+          page.playerPath.first.x * size.width,
+          page.playerPath.first.y * size.height,
+        );
+      for (final point in page.playerPath.skip(1)) {
+        playerPath.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(playerPath, playerPathPaint);
+    }
+
+    if (page.ballPath.length >= 2) {
+      final ballPaint = Paint()
+        ..color = const Color(0xFFFFF59D)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final ballPath = Path()
+        ..moveTo(
+          page.ballPath.first.x * size.width,
+          page.ballPath.first.y * size.height,
+        );
+      for (final point in page.ballPath.skip(1)) {
+        ballPath.lineTo(point.x * size.width, point.y * size.height);
+      }
+      canvas.drawPath(ballPath, ballPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TrainingBoardSketchPainter oldDelegate) {
+    return oldDelegate.page != page;
+  }
+}
