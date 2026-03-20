@@ -10,6 +10,7 @@ class WatchCartAppBar extends StatelessWidget {
   final IconData leadingIcon;
   final String? leadingTooltip;
   final VoidCallback? onNewsTap;
+  final int newsBadgeCount;
   final VoidCallback? onQuizTap;
   final VoidCallback? onCoachTap;
   final VoidCallback onProfileTap;
@@ -22,6 +23,7 @@ class WatchCartAppBar extends StatelessWidget {
     this.leadingIcon = Icons.menu,
     this.leadingTooltip,
     this.onNewsTap,
+    this.newsBadgeCount = 0,
     this.onQuizTap,
     this.onCoachTap,
     required this.onProfileTap,
@@ -68,7 +70,39 @@ class WatchCartAppBar extends StatelessWidget {
           children: [
             if (onNewsTap != null)
               IconButton(
-                icon: const Icon(Icons.newspaper_outlined),
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.newspaper_outlined),
+                    if (newsBadgeCount > 0)
+                      Positioned(
+                        right: -6,
+                        top: -4,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Center(
+                            child: Text(
+                              newsBadgeCount > 99 ? '99+' : '$newsBadgeCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                height: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
                 tooltip: Localizations.localeOf(context).languageCode == 'ko'
                     ? '오늘의 소식'
                     : 'Today news',
