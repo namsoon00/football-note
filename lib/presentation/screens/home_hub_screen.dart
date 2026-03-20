@@ -879,47 +879,47 @@ class _DailyFlowCard extends StatelessWidget {
             minHeight: 7,
             borderRadius: BorderRadius.circular(999),
           ),
-          const SizedBox(height: 10),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _TodoChip(
-                  done: data.loggedTrainingToday,
-                  icon: Icons.edit_note_rounded,
-                  label: isKo ? '훈련 기록' : 'Log',
-                  onTap: onLog,
-                ),
-                const SizedBox(width: 8),
-                _TodoChip(
-                  done: data.loggedLiftingToday,
-                  icon: Icons.fitness_center_rounded,
-                  label: isKo ? '리프팅' : 'Lifting',
-                  onTap: onLog,
-                ),
-                const SizedBox(width: 8),
-                _TodoChip(
-                  done: data.loggedJumpRopeToday,
-                  icon: Icons.sports_gymnastics_rounded,
-                  label: isKo ? '줄넘기' : 'Jump rope',
-                  onTap: onLog,
-                ),
-                const SizedBox(width: 8),
-                _TodoChip(
-                  done: data.quizCompletedToday,
-                  icon: Icons.quiz_rounded,
-                  label: isKo ? '퀴즈' : 'Quiz',
-                  onTap: onQuiz,
-                ),
-                const SizedBox(width: 8),
-                _TodoChip(
-                  done: data.reviewedTodayDiary,
-                  icon: Icons.auto_stories_rounded,
-                  label: isKo ? '다이어리' : 'Diary',
-                  onTap: onReview,
-                ),
-              ],
-            ),
+          const SizedBox(height: 8),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 3,
+            mainAxisSpacing: 6,
+            crossAxisSpacing: 6,
+            childAspectRatio: 2.8,
+            children: [
+              _TodoChip(
+                done: data.loggedTrainingToday,
+                icon: Icons.edit_note_rounded,
+                label: isKo ? '훈련' : 'Log',
+                onTap: onLog,
+              ),
+              _TodoChip(
+                done: data.loggedLiftingToday,
+                icon: Icons.fitness_center_rounded,
+                label: isKo ? '리프팅' : 'Lifting',
+                onTap: onLog,
+              ),
+              _TodoChip(
+                done: data.loggedJumpRopeToday,
+                icon: Icons.sports_gymnastics_rounded,
+                label: isKo ? '줄넘기' : 'Jump',
+                onTap: onLog,
+              ),
+              _TodoChip(
+                done: data.quizCompletedToday,
+                icon: Icons.quiz_rounded,
+                label: isKo ? '퀴즈' : 'Quiz',
+                onTap: onQuiz,
+              ),
+              _TodoChip(
+                done: data.reviewedTodayDiary,
+                icon: Icons.auto_stories_rounded,
+                label: isKo ? '다이어리' : 'Diary',
+                onTap: onReview,
+              ),
+              const SizedBox.shrink(),
+            ],
           ),
         ],
       ),
@@ -1431,50 +1431,47 @@ class _TodoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: done
-              ? const Color(0xFF0FA968).withValues(alpha: 0.40)
-              : scheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            done ? Icons.check_circle : icon,
-            size: 18,
-            color: done ? const Color(0xFF0FA968) : scheme.primary,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonal(
-            onPressed: onTap,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(60, 34),
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: done
+                  ? const Color(0xFF0FA968).withValues(alpha: 0.40)
+                  : scheme.outlineVariant.withValues(alpha: 0.55),
             ),
-            child: Text(done
-                ? (isKo(context) ? '완료' : 'Done')
-                : (isKo(context) ? '열기' : 'Open')),
           ),
-        ],
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                done ? Icons.check_circle : icon,
+                size: 15,
+                color: done ? const Color(0xFF0FA968) : scheme.primary,
+              ),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
-
-  bool isKo(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'ko';
 }
 
 class _SummaryMetric extends StatelessWidget {
