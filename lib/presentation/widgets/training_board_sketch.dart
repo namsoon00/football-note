@@ -8,6 +8,9 @@ class TrainingBoardSketch extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final bool showItemCountBadge;
   final int maxVisibleItems;
+  final bool showStrokes;
+  final bool showPlayerPath;
+  final bool showBallPath;
 
   const TrainingBoardSketch({
     super.key,
@@ -16,6 +19,9 @@ class TrainingBoardSketch extends StatelessWidget {
     this.padding = EdgeInsets.zero,
     this.showItemCountBadge = false,
     this.maxVisibleItems = 18,
+    this.showStrokes = true,
+    this.showPlayerPath = true,
+    this.showBallPath = true,
   });
 
   @override
@@ -43,7 +49,12 @@ class TrainingBoardSketch extends StatelessWidget {
                 children: [
                   CustomPaint(
                     size: Size(width, height),
-                    painter: _TrainingBoardSketchPainter(page: page),
+                    painter: _TrainingBoardSketchPainter(
+                      page: page,
+                      showStrokes: showStrokes,
+                      showPlayerPath: showPlayerPath,
+                      showBallPath: showBallPath,
+                    ),
                   ),
                   ...page.items.take(maxVisibleItems).map((item) {
                     final icon = switch (item.type) {
@@ -101,8 +112,16 @@ class TrainingBoardSketch extends StatelessWidget {
 
 class _TrainingBoardSketchPainter extends CustomPainter {
   final TrainingMethodPage page;
+  final bool showStrokes;
+  final bool showPlayerPath;
+  final bool showBallPath;
 
-  const _TrainingBoardSketchPainter({required this.page});
+  const _TrainingBoardSketchPainter({
+    required this.page,
+    required this.showStrokes,
+    required this.showPlayerPath,
+    required this.showBallPath,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -129,26 +148,28 @@ class _TrainingBoardSketchPainter extends CustomPainter {
     canvas.drawLine(Offset(centerX, 2), Offset(centerX, size.height - 2), line);
     canvas.drawCircle(Offset(centerX, centerY), 16, line);
 
-    for (final stroke in page.strokes) {
-      if (stroke.points.length < 2) continue;
-      final strokePaint = Paint()
-        ..color = Color(stroke.colorValue).withValues(alpha: 0.92)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = stroke.width.clamp(1.0, 4.0)
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-      final path = Path()
-        ..moveTo(
-          stroke.points.first.x * size.width,
-          stroke.points.first.y * size.height,
-        );
-      for (final point in stroke.points.skip(1)) {
-        path.lineTo(point.x * size.width, point.y * size.height);
+    if (showStrokes) {
+      for (final stroke in page.strokes) {
+        if (stroke.points.length < 2) continue;
+        final strokePaint = Paint()
+          ..color = Color(stroke.colorValue).withValues(alpha: 0.92)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke.width.clamp(1.0, 4.0)
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round;
+        final path = Path()
+          ..moveTo(
+            stroke.points.first.x * size.width,
+            stroke.points.first.y * size.height,
+          );
+        for (final point in stroke.points.skip(1)) {
+          path.lineTo(point.x * size.width, point.y * size.height);
+        }
+        canvas.drawPath(path, strokePaint);
       }
-      canvas.drawPath(path, strokePaint);
     }
 
-    if (page.playerPath.length >= 2) {
+    if (showPlayerPath && page.playerPath.length >= 2) {
       final playerPath = Path()
         ..moveTo(
           page.playerPath.first.x * size.width,
@@ -160,7 +181,7 @@ class _TrainingBoardSketchPainter extends CustomPainter {
       canvas.drawPath(playerPath, playerPathPaint);
     }
 
-    if (page.ballPath.length >= 2) {
+    if (showBallPath && page.ballPath.length >= 2) {
       final ballPaint = Paint()
         ..color = const Color(0xFFFFF59D)
         ..style = PaintingStyle.stroke
@@ -181,6 +202,9 @@ class _TrainingBoardSketchPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TrainingBoardSketchPainter oldDelegate) {
-    return oldDelegate.page != page;
+    return oldDelegate.page != page ||
+        oldDelegate.showStrokes != showStrokes ||
+        oldDelegate.showPlayerPath != showPlayerPath ||
+        oldDelegate.showBallPath != showBallPath;
   }
 }

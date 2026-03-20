@@ -34,7 +34,7 @@ void main() {
     expect(find.textContaining('보드 문제풀'), findsOneWidget);
     expect(find.textContaining('보드 세트'), findsOneWidget);
     expect(find.text('보드 퀴즈'), findsOneWidget);
-    expect(find.text('움직이는 화면'), findsOneWidget);
+    expect(find.text('코치 설명'), findsOneWidget);
   });
 
   testWidgets('skill quiz renders board-based scenario from saved session', (
@@ -70,50 +70,52 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('보드 퀴즈'), findsOneWidget);
-    expect(find.text('경기 상황 읽기'), findsOneWidget);
-    expect(find.text('움직이는 화면'), findsOneWidget);
-    expect(find.text('공과 러너의 전개를 따라가며 장면을 읽어보세요.'), findsOneWidget);
-    expect(find.text('LIVE 전개 읽기'), findsOneWidget);
-    expect(find.text('중앙 압박 직전, 오른쪽 하프스페이스가 열려 있어요.'), findsOneWidget);
-    expect(find.text('오른쪽 하프스페이스로 빠른 전진 패스'), findsOneWidget);
+    expect(find.text('위치 먼저 보기'), findsOneWidget);
+    expect(find.text('코치가 먼저 말해주는 힌트'), findsOneWidget);
+    expect(find.text('코치 보드'), findsOneWidget);
+    expect(find.text('중앙 압박이 오기 전, 오른쪽 앞 빈 공간이 열렸어요.'), findsWidgets);
+    expect(find.text('오른쪽 앞 빈 공간으로 빠르게 패스'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('오른쪽 하프스페이스로 빠른 전진 패스'));
-    await tester.tap(find.text('오른쪽 하프스페이스로 빠른 전진 패스'));
+    await tester.ensureVisible(find.text('오른쪽 앞 빈 공간으로 빠르게 패스'));
+    await tester.tap(find.text('오른쪽 앞 빈 공간으로 빠르게 패스'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('중앙 압박 전, 열린 하프스페이스를 빠르게 쓰는 판단이 좋습니다.'), findsOneWidget);
+    expect(
+      find.text('상대가 모이기 전에 오른쪽 앞 빈 공간을 바로 쓰는 선택이 가장 좋아요.'),
+      findsOneWidget,
+    );
   });
 }
 
 Map<String, dynamic> _boardQuestion() {
   return <String, dynamic>{
     'id': 'scn01_decision',
-    'koQuestion': '운동장 상황을 보면 가장 좋은 다음 선택은?',
+    'koQuestion': '이 장면에서 다음 플레이로 가장 좋은 선택은?',
     'enQuestion': 'Looking at the pitch, what is the best next action?',
     'options': <Map<String, String>>[
       <String, String>{
-        'koText': '오른쪽 하프스페이스로 빠른 전진 패스',
+        'koText': '오른쪽 앞 빈 공간으로 빠르게 패스',
         'enText': 'Quick forward pass into the right half-space',
       },
       <String, String>{
-        'koText': '볼을 멈추고 중앙 압박을 기다린다',
+        'koText': '공을 멈추고 상대가 오길 기다린다',
         'enText': 'Stop the ball and wait for central pressure',
       },
       <String, String>{
-        'koText': '가장 먼 측면으로 큰 전환만 시도한다',
+        'koText': '멀리 있는 측면으로만 크게 보낸다',
         'enText': 'Force a long switch to the far wing',
       },
     ],
     'correctIndex': 0,
-    'koExplain': '중앙 압박 전, 열린 하프스페이스를 빠르게 쓰는 판단이 좋습니다.',
+    'koExplain': '상대가 모이기 전에 오른쪽 앞 빈 공간을 바로 쓰는 선택이 가장 좋아요.',
     'enExplain':
         'Before central pressure arrives, the open half-space is the best route.',
     'scenario': <String, dynamic>{
-      'koTitle': '중앙 압박 직전, 오른쪽 하프스페이스가 열려 있어요.',
+      'koTitle': '중앙 압박이 오기 전, 오른쪽 앞 빈 공간이 열렸어요.',
       'enTitle':
           'Central pressure is closing, but the right half-space is open.',
-      'koMovementCaption': '움직임을 보면 공과 2선 러너가 오른쪽 하프스페이스로 같이 속도를 냅니다.',
+      'koMovementCaption': '공을 가진 친구와 앞쪽 친구가 오른쪽 빈 공간으로 함께 움직일 준비를 하고 있어요.',
       'enMovementCaption':
           'The ball and second runner accelerate together into the right half-space.',
       'boardPage': <String, dynamic>{
