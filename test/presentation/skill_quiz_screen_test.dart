@@ -7,6 +7,34 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/skill_quiz_screen.dart';
 
 void main() {
+  testWidgets('skill quiz lets user start board quiz from type menu', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('퀴즈 세트 메뉴'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('타입별 퀴즈 선택'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('보드').last);
+    await tester.tap(find.text('보드').last);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('보드 문제풀'), findsOneWidget);
+    expect(find.textContaining('보드 세트'), findsOneWidget);
+    expect(find.text('보드 퀴즈'), findsOneWidget);
+  });
+
   testWidgets('skill quiz renders board-based scenario from saved session', (
     WidgetTester tester,
   ) async {
