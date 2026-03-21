@@ -20,6 +20,7 @@ class SettingsService extends ChangeNotifier {
   int _wakeAlarmRepeatCount = 4;
   int _wakeAlarmRepeatIntervalMinutes = 5;
   bool _levelUpAlertEnabled = true;
+  bool _xpAlertEnabled = true;
   bool _inactivityAlertEnabled = true;
   int _inactivityAlertDays = 3;
 
@@ -35,6 +36,7 @@ class SettingsService extends ChangeNotifier {
   int get wakeAlarmRepeatCount => _wakeAlarmRepeatCount;
   int get wakeAlarmRepeatIntervalMinutes => _wakeAlarmRepeatIntervalMinutes;
   bool get levelUpAlertEnabled => _levelUpAlertEnabled;
+  bool get xpAlertEnabled => _xpAlertEnabled;
   bool get inactivityAlertEnabled => _inactivityAlertEnabled;
   int get inactivityAlertDays => _inactivityAlertDays;
 
@@ -70,6 +72,8 @@ class SettingsService extends ChangeNotifier {
     _levelUpAlertEnabled =
         _repository.getValue<bool>('level_up_alert_enabled') ??
         _levelUpAlertEnabled;
+    _xpAlertEnabled =
+        _repository.getValue<bool>('xp_alert_enabled') ?? _xpAlertEnabled;
     _inactivityAlertEnabled =
         _repository.getValue<bool>('inactivity_alert_enabled') ??
         _inactivityAlertEnabled;
@@ -148,6 +152,12 @@ class SettingsService extends ChangeNotifier {
   Future<void> setLevelUpAlertEnabled(bool enabled) async {
     _levelUpAlertEnabled = enabled;
     await _repository.setValue('level_up_alert_enabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> setXpAlertEnabled(bool enabled) async {
+    _xpAlertEnabled = enabled;
+    await _repository.setValue('xp_alert_enabled', enabled);
     notifyListeners();
   }
 

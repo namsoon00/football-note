@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../../application/player_level_service.dart';
+import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
+import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
@@ -356,6 +358,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           savedAt: created.updatedAt,
           created: true,
         );
+    await TrainingPlanReminderService(
+      widget.optionRepository!,
+      SettingsService(widget.optionRepository!)..load(),
+    ).showXpGainAlert(
+      gainedXp: award.gainedXp,
+      totalXp: award.after.totalXp,
+      isKo: isKo,
+      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
+    );
     if (!mounted || award.gainedXp <= 0) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -535,6 +546,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       boardAward = await PlayerLevelService(
         widget.optionRepository!,
       ).awardForBoardSaved(boardId: updated.id, boardTitle: title);
+      await TrainingPlanReminderService(
+        widget.optionRepository!,
+        SettingsService(widget.optionRepository!)..load(),
+      ).showXpGainAlert(
+        gainedXp: boardAward.gainedXp,
+        totalXp: boardAward.after.totalXp,
+        isKo: isKo,
+        sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
+      );
     } else {
       widget.onSaved?.call(serialized);
     }
@@ -933,6 +953,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           savedAt: created.updatedAt,
           created: true,
         );
+    await TrainingPlanReminderService(
+      widget.optionRepository!,
+      SettingsService(widget.optionRepository!)..load(),
+    ).showXpGainAlert(
+      gainedXp: award.gainedXp,
+      totalXp: award.after.totalXp,
+      isKo: isKo,
+      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

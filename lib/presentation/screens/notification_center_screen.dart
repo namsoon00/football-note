@@ -79,12 +79,13 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const [];
-      final rows = decoded
-          .whereType<Map>()
-          .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
-          .where((e) => e.scheduledAt.isAfter(DateTime.now()))
-          .toList(growable: false)
-        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+      final rows =
+          decoded
+              .whereType<Map>()
+              .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
+              .where((e) => e.scheduledAt.isAfter(DateTime.now()))
+              .toList(growable: false)
+            ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
       return rows;
     } catch (_) {
       return const [];
@@ -114,6 +115,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         title: Text(isKo ? '알림' : 'Notifications'),
         actions: [
           IconButton(
+            onPressed: _openNotificationSettingsSheet,
+            icon: const Icon(Icons.tune),
+            tooltip: isKo ? '알림 설정' : 'Alert settings',
+          ),
+          IconButton(
             onPressed: _load,
             icon: const Icon(Icons.refresh),
             tooltip: isKo ? '새로고침' : 'Refresh',
@@ -135,20 +141,20 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     title: Text(
                       _permissionGranted
                           ? (isKo
-                              ? '알림 권한 허용됨'
-                              : 'Notification permission granted')
+                                ? '알림 권한 허용됨'
+                                : 'Notification permission granted')
                           : (isKo
-                              ? '알림 권한 꺼짐'
-                              : 'Notification permission is off'),
+                                ? '알림 권한 꺼짐'
+                                : 'Notification permission is off'),
                     ),
                     subtitle: Text(
                       _permissionGranted
                           ? (isKo
-                              ? '훈련 계획 알림을 받을 수 있어요.'
-                              : 'You can receive training plan reminders.')
+                                ? '훈련 계획 알림을 받을 수 있어요.'
+                                : 'You can receive training plan reminders.')
                           : (isKo
-                              ? '설정 > 알림에서 권한을 켜 주세요.'
-                              : 'Enable permission in Settings > Notifications.'),
+                                ? '설정 > 알림에서 권한을 켜 주세요.'
+                                : 'Enable permission in Settings > Notifications.'),
                     ),
                   ),
                 ),
@@ -166,9 +172,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           _mutedNow
                               ? (isKo ? '알림 일시중지됨' : 'Alerts are paused')
                               : (isKo ? '반복 알림 제어' : 'Repeating alert control'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
+                          style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 8),
@@ -176,8 +180,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed:
-                                    _mutedNow ? null : () => _muteForHours(8),
+                                onPressed: _mutedNow
+                                    ? null
+                                    : () => _muteForHours(8),
                                 icon: const Icon(
                                   Icons.notifications_off_outlined,
                                 ),
@@ -212,11 +217,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     subtitle: Text(
                       widget.settingsService.wakeAlarmEnabled
                           ? (isKo
-                              ? '${widget.settingsService.wakeAlarmTime.format(context)} · 주 ${widget.settingsService.wakeAlarmWeekdays.length}일 · ${widget.settingsService.wakeAlarmRepeatCount}회 반복'
-                              : '${widget.settingsService.wakeAlarmTime.format(context)} · ${widget.settingsService.wakeAlarmWeekdays.length} days/week · ${widget.settingsService.wakeAlarmRepeatCount} repeats')
+                                ? '${widget.settingsService.wakeAlarmTime.format(context)} · 주 ${widget.settingsService.wakeAlarmWeekdays.length}일 · ${widget.settingsService.wakeAlarmRepeatCount}회 반복'
+                                : '${widget.settingsService.wakeAlarmTime.format(context)} · ${widget.settingsService.wakeAlarmWeekdays.length} days/week · ${widget.settingsService.wakeAlarmRepeatCount} repeats')
                           : (isKo
-                              ? '설정에서 켜면 새벽 훈련용 반복 알람을 예약합니다.'
-                              : 'Enable it in Settings to schedule repeated morning alarms.'),
+                                ? '설정에서 켜면 새벽 훈련용 반복 알람을 예약합니다.'
+                                : 'Enable it in Settings to schedule repeated morning alarms.'),
                     ),
                   ),
                 ),
@@ -227,11 +232,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     title: Text(
                       widget.settingsService.inactivityAlertEnabled
                           ? (isKo
-                              ? '기록 공백 리마인드 사용 중'
-                              : 'Inactivity reminder is on')
+                                ? '기록 공백 리마인드 사용 중'
+                                : 'Inactivity reminder is on')
                           : (isKo
-                              ? '기록 공백 리마인드 꺼짐'
-                              : 'Inactivity reminder is off'),
+                                ? '기록 공백 리마인드 꺼짐'
+                                : 'Inactivity reminder is off'),
                     ),
                     subtitle: Text(_buildInactivitySubtitle(isKo)),
                   ),
@@ -242,8 +247,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ? '훈련 알림 ${_planRows.length}개'
                       : '${_planRows.length} training alerts',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 if (_planRows.isEmpty)
@@ -306,16 +311,209 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final parsed = raw == null ? null : DateTime.tryParse(raw);
     final base = widget.settingsService.inactivityAlertEnabled
         ? (isKo
-            ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
-            : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
+              ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
+              : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
         : (isKo
-            ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
-            : 'Enable it in Settings to get nudges after quiet periods.');
+              ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
+              : 'Enable it in Settings to get nudges after quiet periods.');
     if (parsed == null) return base;
     final formatted = DateFormat(
       isKo ? 'M/d HH:mm' : 'MMM d HH:mm',
     ).format(parsed);
     return isKo ? '$base\n마지막 기록: $formatted' : '$base\nLast log: $formatted';
+  }
+
+  Future<void> _syncNotificationSettings() async {
+    await _reminderService.syncSettingsDrivenReminders();
+    if (!mounted) return;
+    await _load();
+  }
+
+  Future<void> _openNotificationSettingsSheet() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            Future<void> refreshSheet() async {
+              await _syncNotificationSettings();
+              if (mounted) {
+                setSheetState(() {});
+              }
+            }
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  8,
+                  16,
+                  16 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        isKo ? '알림 설정' : 'Alert settings',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(isKo ? '전체 알림' : 'All notifications'),
+                        value: widget.settingsService.reminderEnabled,
+                        onChanged: (value) async {
+                          await widget.settingsService.setReminderEnabled(
+                            value,
+                          );
+                          await refreshSheet();
+                        },
+                      ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          isKo ? '훈련 계획 진동 알림' : 'Training plan vibration',
+                        ),
+                        value: widget.settingsService.reminderVibrationEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setReminderVibrationEnabled(value);
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(isKo ? '경험치 알림' : 'XP alerts'),
+                        subtitle: Text(
+                          isKo
+                              ? '경험치를 얻으면 바로 알림을 보냅니다.'
+                              : 'Show an alert whenever XP is earned.',
+                        ),
+                        value: widget.settingsService.xpAlertEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService.setXpAlertEnabled(
+                                  value,
+                                );
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          isKo ? '레벨 업 알림' : 'Level-up notifications',
+                        ),
+                        value: widget.settingsService.levelUpAlertEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setLevelUpAlertEnabled(value);
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          isKo ? '기록 공백 리마인드' : 'Inactivity reminders',
+                        ),
+                        value: widget.settingsService.inactivityAlertEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setInactivityAlertEnabled(value);
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                      if (widget.settingsService.inactivityAlertEnabled)
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            isKo ? '기록 리마인드 시간' : 'Training reminder time',
+                          ),
+                          subtitle: Text(
+                            '${widget.settingsService.reminderTime.format(context)} · '
+                            '${isKo ? '${widget.settingsService.inactivityAlertDays}일 기준' : '${widget.settingsService.inactivityAlertDays} day threshold'}',
+                          ),
+                          trailing: OutlinedButton(
+                            onPressed: widget.settingsService.reminderEnabled
+                                ? () async {
+                                    final picked = await showTimePicker(
+                                      context: context,
+                                      initialTime:
+                                          widget.settingsService.reminderTime,
+                                    );
+                                    if (picked == null) return;
+                                    await widget.settingsService
+                                        .setReminderTime(picked);
+                                    await refreshSheet();
+                                  }
+                                : null,
+                            child: Text(isKo ? '시간 변경' : 'Change'),
+                          ),
+                        ),
+                      if (widget.settingsService.inactivityAlertEnabled)
+                        DropdownButtonFormField<int>(
+                          initialValue:
+                              widget.settingsService.inactivityAlertDays,
+                          decoration: InputDecoration(
+                            labelText: isKo
+                                ? '기록 공백 기준'
+                                : 'Inactivity threshold',
+                          ),
+                          items: const [1, 2, 3, 5, 7, 10, 14]
+                              .map(
+                                (value) => DropdownMenuItem<int>(
+                                  value: value,
+                                  child: Text(
+                                    isKo
+                                        ? '$value일'
+                                        : '$value day${value == 1 ? '' : 's'}',
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
+                          onChanged: widget.settingsService.reminderEnabled
+                              ? (value) async {
+                                  if (value == null) return;
+                                  await widget.settingsService
+                                      .setInactivityAlertDays(value);
+                                  await refreshSheet();
+                                }
+                              : null,
+                        ),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(isKo ? '새벽 기상 알람' : 'Wake alarm'),
+                        value: widget.settingsService.wakeAlarmEnabled,
+                        onChanged: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                await widget.settingsService
+                                    .setWakeAlarmEnabled(value);
+                                await refreshSheet();
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (!mounted) return;
+    await _load();
   }
 }
 
@@ -347,7 +545,8 @@ class _PlanAlarmRow {
         ? ''
         : '${DateFormat('M/d').format(seriesStart)}-${DateFormat('M/d').format(seriesEnd)}';
     return _PlanAlarmRow(
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       scheduleSummary: [
