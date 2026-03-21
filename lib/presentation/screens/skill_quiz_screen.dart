@@ -1150,6 +1150,25 @@ class _BoardSceneCard extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _LegendDot(
+                color: const Color(0xFFB3E5FC),
+                label: isKo ? '우리 팀' : 'Our team',
+              ),
+              const SizedBox(width: 10),
+              _LegendDot(
+                color: const Color(0xFFFFCCBC),
+                label: isKo ? '상대' : 'Opponent',
+              ),
+              const SizedBox(width: 10),
+              _LegendDot(
+                color: const Color(0xFFFFF8E1),
+                label: isKo ? '볼' : 'Ball',
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -1159,6 +1178,38 @@ class _BoardSceneCard extends StatelessWidget {
     if (page.ballPath.isNotEmpty) return page.ballPath.last;
     if (page.playerPath.isNotEmpty) return page.playerPath.last;
     return null;
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.black12),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ],
+    );
   }
 }
 
@@ -1543,8 +1594,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 1,
       type: _BoardQuestionType.basic,
       scene: scenes[0],
-      koQuestion: '첫 선택으로 가장 안전한 것은?',
-      enQuestion: 'What is the safest first action?',
+      koCaption: '좌하단 볼 소유자가 중앙 지원에게 연결할 수 있는 장면',
+      enCaption: 'Bottom-left ball holder can connect to central support',
+      koQuestion: '이 장면에서 첫 패스로 가장 안전한 선택은?',
+      enQuestion: 'In this scene, what is the safest first pass?',
       options: const [
         _BoardQuizOption(
           koText: '가까운 지원에게 짧게 연결',
@@ -1569,8 +1622,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 2,
       type: _BoardQuestionType.basic,
       scene: scenes[1],
-      koQuestion: '상대 압박이 강할 때 우선 보는 정보는?',
-      enQuestion: 'Under heavy press, what do you check first?',
+      koCaption: '중앙 보유, 오른쪽 하단 지원이 비어 있는 장면',
+      enCaption: 'Central possession with open right-lower support lane',
+      koQuestion: '이 장면에서 압박 탈출을 위해 먼저 확인할 정보는?',
+      enQuestion: 'In this scene, what should be checked first to escape press?',
       options: const [
         _BoardQuizOption(
           koText: '빈 반대측 공간과 지원 각도',
@@ -1595,8 +1650,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 2,
       type: _BoardQuestionType.basic,
       scene: scenes[2],
-      koQuestion: '역습 전환에서 우선 선택은?',
-      enQuestion: 'In transition attack, what comes first?',
+      koCaption: '중앙에서 우측 전방 러너가 침투하는 전환 장면',
+      enCaption: 'Transition scene with right-front runner making a run',
+      koQuestion: '이 장면에서 찬스를 만들 우선 선택은?',
+      enQuestion: 'In this scene, what is the first choice to create chance?',
       options: const [
         _BoardQuizOption(
           koText: '러너 앞 공간으로 타이밍 패스',
@@ -1621,8 +1678,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 3,
       type: _BoardQuestionType.practical,
       scene: scenes[3],
-      koQuestion: '후반 막판 1점 리드 상황, 올바른 운영 선택은?',
-      enQuestion: 'Late game one-goal lead: best game-management choice?',
+      koCaption: '좌하단 볼 소유, 근거리 패스 옵션 2개가 보이는 리드 상황',
+      enCaption: 'Lead situation with two short passing options from bottom-left',
+      koQuestion: '이 장면에서 1점 리드를 지키기 위한 운영 선택은?',
+      enQuestion: 'In this scene, what is best game management with one-goal lead?',
       options: const [
         _BoardQuizOption(
           koText: '무리한 전진보다 짧은 연결로 템포 조절',
@@ -1647,8 +1706,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 3,
       type: _BoardQuestionType.practical,
       scene: scenes[4],
-      koQuestion: '수비 전환에서 가장 먼저 할 행동은?',
-      enQuestion: 'What is the first action in defensive transition?',
+      koCaption: '우상단 볼 보유 상대를 향해 수비 전환이 시작되는 장면',
+      enCaption: 'Defensive transition starts against top-right ball holder',
+      koQuestion: '이 장면에서 수비 전환 직후 가장 먼저 할 행동은?',
+      enQuestion: 'In this scene, what is the first defensive transition action?',
       options: const [
         _BoardQuizOption(
           koText: '가장 가까운 패스길 차단 + 지연',
@@ -1672,8 +1733,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 1,
       type: _BoardQuestionType.basic,
       scene: scenes[5],
-      koQuestion: '받기 전 스캔의 목적은?',
-      enQuestion: 'What is the goal of scanning before receiving?',
+      koCaption: '좌상단에서 중앙 지원으로 연결될 수 있는 빌드업 장면',
+      enCaption: 'Build-up scene from top-left into central support',
+      koQuestion: '이 장면에서 받기 전 스캔의 핵심 목적은?',
+      enQuestion: 'In this scene, what is the key goal of pre-receive scanning?',
       options: const [
         _BoardQuizOption(
           koText: '다음 1~2선택을 미리 정하기',
@@ -1698,8 +1761,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 2,
       type: _BoardQuestionType.basic,
       scene: scenes[6],
-      koQuestion: '측면에서 크로스 억제를 위해 우선할 것은?',
-      enQuestion: 'On the flank, what best suppresses crosses?',
+      koCaption: '좌측 측면에서 크로스가 가능한 압박 장면',
+      enCaption: 'Left-flank pressure scene where cross is possible',
+      koQuestion: '이 장면에서 크로스를 막기 위한 최우선 수비는?',
+      enQuestion: 'In this scene, what is top defensive priority to block cross?',
       options: const [
         _BoardQuizOption(
           koText: '크로스 발 각도 차단',
@@ -1724,8 +1789,10 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       difficulty: 3,
       type: _BoardQuestionType.practical,
       scene: scenes[7],
-      koQuestion: '실수 직후 멘탈 회복의 올바른 반응은?',
-      enQuestion: 'After a mistake, what is the best reset response?',
+      koCaption: '좌하단에서 실수 후 다시 중앙으로 복귀해야 하는 장면',
+      enCaption: 'After-mistake scene requiring quick recovery to central shape',
+      koQuestion: '이 장면에서 실수 직후 가장 좋은 회복 반응은?',
+      enQuestion: 'In this scene, what is the best immediate reset response?',
       options: const [
         _BoardQuizOption(
           koText: '즉시 다음 수비/지원 역할로 재집중',
@@ -1753,6 +1820,8 @@ _BoardQuizQuestion _question({
   required int difficulty,
   required _BoardQuestionType type,
   required TrainingMethodPage scene,
+  required String koCaption,
+  required String enCaption,
   required String koQuestion,
   required String enQuestion,
   required List<_BoardQuizOption> options,
@@ -1765,8 +1834,8 @@ _BoardQuizQuestion _question({
     difficulty: difficulty,
     type: type,
     page: scene,
-    koCaption: '보드 장면을 먼저 읽고 선택하세요',
-    enCaption: 'Read the board scene first, then choose',
+    koCaption: koCaption,
+    enCaption: enCaption,
     koQuestion: koQuestion,
     enQuestion: enQuestion,
     options: options,
