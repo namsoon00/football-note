@@ -478,24 +478,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       }
                     : null,
               ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.reminderTime),
-                subtitle: Text(
-                  widget.settingsService.reminderTime.format(context),
-                ),
-                trailing: const Icon(Icons.access_time),
-                onTap: () async {
-                  final picked = await showTimePicker(
-                    context: context,
-                    initialTime: widget.settingsService.reminderTime,
-                  );
-                  if (picked != null) {
-                    await widget.settingsService.setReminderTime(picked);
-                    if (mounted) setState(() {});
-                  }
-                },
-              ),
             ],
           ),
         ],
