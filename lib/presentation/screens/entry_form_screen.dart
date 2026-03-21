@@ -38,6 +38,7 @@ class EntryFormScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final TrainingEntry? entry;
   final DateTime? initialDate;
+  final bool initialOpenTrainingBoardEditor;
 
   const EntryFormScreen({
     super.key,
@@ -48,6 +49,7 @@ class EntryFormScreen extends StatefulWidget {
     this.driveBackupService,
     this.entry,
     this.initialDate,
+    this.initialOpenTrainingBoardEditor = false,
   });
 
   @override
@@ -100,6 +102,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   int? _editingKey;
   final Set<String> _linkedBoardIds = <String>{};
   String _initialSnapshot = '';
+  bool _didHandleInitialBoardOpen = false;
 
   DateTime _date = DateTime.now();
   int _durationMinutes = 60;
@@ -187,15 +190,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _durationOptions,
         entry.durationMinutes,
       );
-      _goodPointsController.text = entry.goodPoints.isNotEmpty
-          ? entry.goodPoints
-          : entry.feedback;
+      _goodPointsController.text =
+          entry.goodPoints.isNotEmpty ? entry.goodPoints : entry.feedback;
       _improvementsController.text = entry.improvements.isNotEmpty
           ? entry.improvements
           : _stripWeatherFromNotes(entry.notes);
-      _nextGoalController.text = entry.nextGoal.isNotEmpty
-          ? entry.nextGoal
-          : entry.goal;
+      _nextGoalController.text =
+          entry.nextGoal.isNotEmpty ? entry.nextGoal : entry.goal;
       _linkedBoardIds
         ..clear()
         ..addAll(TrainingBoardLinkCodec.decodeBoardIds(entry.drills));
@@ -245,12 +246,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       _liftArmsController.text = _liftingText(entry.liftingByPart, 'head');
       _liftCoreController.text = _liftingText(entry.liftingByPart, 'chest');
-      _jumpRopeController.text = entry.jumpRopeCount > 0
-          ? entry.jumpRopeCount.toString()
-          : '';
-      _jumpRopeMinutesController.text = entry.jumpRopeMinutes > 0
-          ? entry.jumpRopeMinutes.toString()
-          : '';
+      _jumpRopeController.text =
+          entry.jumpRopeCount > 0 ? entry.jumpRopeCount.toString() : '';
+      _jumpRopeMinutesController.text =
+          entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
       _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
@@ -284,6 +283,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       unawaited(_applyLatestEntryDefaults());
     }
     _initialSnapshot = _formSnapshot();
+    if (widget.initialOpenTrainingBoardEditor && !_didHandleInitialBoardOpen) {
+      _didHandleInitialBoardOpen = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_openTrainingBoardEditor());
+      });
+    }
     if (widget.entry == null &&
         _weatherAutoEnabled &&
         _weatherSummary.trim().isEmpty) {
@@ -518,9 +524,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                 builder: (context) {
                   final selected = _status == option.value;
                   final statusColor = trainingStatusColor(option.value);
-                  final iconColor = selected
-                      ? statusColor
-                      : statusColor.withAlpha(170);
+                  final iconColor =
+                      selected ? statusColor : statusColor.withAlpha(170);
                   return ChoiceChip(
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -531,9 +536,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           option.label,
                           style: TextStyle(
                             color: iconColor,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
                           ),
                         ),
                       ],
@@ -749,10 +753,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final weatherStatusText = _weatherLoading
         ? (isKo ? '날씨 불러오는 중...' : 'Loading weather...')
         : _weatherSummary.trim().isNotEmpty
-        ? _weatherSummary.trim()
-        : _weatherAutoEnabled
-        ? (isKo ? '자동으로 날씨 불러오기 대기' : 'Auto weather ready')
-        : (isKo ? '위치 버튼으로 날씨 불러오기' : 'Tap location to load weather');
+            ? _weatherSummary.trim()
+            : _weatherAutoEnabled
+                ? (isKo ? '자동으로 날씨 불러오기 대기' : 'Auto weather ready')
+                : (isKo ? '위치 버튼으로 날씨 불러오기' : 'Tap location to load weather');
     final weatherHasValue = _weatherSummary.trim().isNotEmpty;
     final isMatchEntry = widget.entry?.isMatch ?? false;
     if (isMatchEntry) {
@@ -839,8 +843,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                               TextButton.icon(
                                 onPressed:
                                     (_saveInProgress || _deleteInProgress)
-                                    ? null
-                                    : (isEdit ? _confirmAndDelete : _save),
+                                        ? null
+                                        : (isEdit ? _confirmAndDelete : _save),
                                 icon: Icon(
                                   isEdit
                                       ? Icons.delete_outline
@@ -977,12 +981,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                           ),
                                           color: weatherHasValue
                                               ? theme
-                                                    .colorScheme
-                                                    .primaryContainer
-                                                    .withValues(alpha: 0.9)
-                                              : theme
-                                                    .colorScheme
-                                                    .surfaceContainerHighest,
+                                                  .colorScheme.primaryContainer
+                                                  .withValues(alpha: 0.9)
+                                              : theme.colorScheme
+                                                  .surfaceContainerHighest,
                                         ),
                                         child: Text(
                                           weatherStatusText,
@@ -990,15 +992,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                           overflow: TextOverflow.ellipsis,
                                           style: theme.textTheme.labelSmall
                                               ?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                                color: weatherHasValue
-                                                    ? theme
-                                                          .colorScheme
-                                                          .onPrimaryContainer
-                                                    : theme
-                                                          .colorScheme
-                                                          .onSurfaceVariant,
-                                              ),
+                                            fontWeight: FontWeight.w700,
+                                            color: weatherHasValue
+                                                ? theme.colorScheme
+                                                    .onPrimaryContainer
+                                                : theme.colorScheme
+                                                    .onSurfaceVariant,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 6),
@@ -1021,8 +1021,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                                 height: 16,
                                                 child:
                                                     CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
+                                                  strokeWidth: 2,
+                                                ),
                                               )
                                             : Icon(
                                                 Icons.my_location,
@@ -1436,17 +1436,17 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                             child: Text(
                               _autoSaving
                                   ? (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '자동 저장 중...'
-                                        : 'Autosaving...')
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '자동 저장 중...'
+                                      : 'Autosaving...')
                                   : (Localizations.localeOf(
-                                              context,
-                                            ).languageCode ==
-                                            'ko'
-                                        ? '수정 내용이 자동 저장됩니다.'
-                                        : 'Changes are saved automatically.'),
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '수정 내용이 자동 저장됩니다.'
+                                      : 'Changes are saved automatically.'),
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
@@ -1498,13 +1498,13 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fg = active ? activeFg : theme.colorScheme.onSurfaceVariant;
     final bg = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withValues(alpha: 0.12))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primary.withValues(alpha: 0.12))
         : theme.colorScheme.surfaceContainerHighest;
     final border = active
         ? (emphasizePrimary
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withValues(alpha: 0.36))
+            ? theme.colorScheme.primary
+            : theme.colorScheme.primary.withValues(alpha: 0.36))
         : theme.colorScheme.outline.withValues(alpha: 0.28);
 
     return AppPressableScale(
@@ -1552,8 +1552,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final fillColor = enabled
         ? theme.colorScheme.surfaceContainerHighest
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.56);
-    final showMic =
-        controller == _goodPointsController ||
+    final showMic = controller == _goodPointsController ||
         controller == _improvementsController ||
         controller == _nextGoalController ||
         controller == _jumpRopeNoteController;
@@ -1741,8 +1740,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       return;
     }
 
-    final needsSpacing =
-        !isKoreanLocale &&
+    final needsSpacing = !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -2146,8 +2144,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           initialBoardId: _linkedBoardIds.isNotEmpty
               ? _linkedBoardIds.first
               : (hasRecentBoard
-                    ? recentBoardId
-                    : (allBoards.isNotEmpty ? allBoards.first.id : null)),
+                  ? recentBoardId
+                  : (allBoards.isNotEmpty ? allBoards.first.id : null)),
         ),
       ),
     );
@@ -2221,13 +2219,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0;
       final jumpRopeMinutes = _jumpRopeEnabled
           ? (_parseInt(
-                  _jumpRopeMinutesController.text.trim(),
-                )?.clamp(0, 1000000) ??
-                0)
+                _jumpRopeMinutesController.text.trim(),
+              )?.clamp(0, 1000000) ??
+              0)
           : 0;
-      final jumpRopeNote = _jumpRopeEnabled
-          ? _jumpRopeNoteController.text.trim()
-          : '';
+      final jumpRopeNote =
+          _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '';
 
       final draftEntry = TrainingEntry(
         date: DateTime(_date.year, _date.month, _date.day),
@@ -2270,15 +2267,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       );
       final shouldShowFortuneOnSave = popAfterSave && widget.entry == null;
       final shouldPersistFortune = _fortuneEnabled || shouldShowFortuneOnSave;
-      final fortuneComment = shouldPersistFortune
-          ? generatedFortune.fortuneText
-          : '';
-      final fortuneRecommendation = shouldPersistFortune
-          ? generatedFortune.recommendationText
-          : '';
-      final fortuneRecommendedProgram = shouldPersistFortune
-          ? generatedFortune.recommendedProgram
-          : '';
+      final fortuneComment =
+          shouldPersistFortune ? generatedFortune.fortuneText : '';
+      final fortuneRecommendation =
+          shouldPersistFortune ? generatedFortune.recommendationText : '';
+      final fortuneRecommendedProgram =
+          shouldPersistFortune ? generatedFortune.recommendedProgram : '';
 
       final entry = TrainingEntry(
         date: draftEntry.date,
@@ -2430,11 +2424,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (levelAward.gainedXp == 0) return base;
     final xpText = levelAward.gainedXp > 0
         ? (isKo
-              ? '+${levelAward.gainedXp} XP 획득'
-              : '+${levelAward.gainedXp} XP earned')
+            ? '+${levelAward.gainedXp} XP 획득'
+            : '+${levelAward.gainedXp} XP earned')
         : (isKo
-              ? '${levelAward.gainedXp} XP 차감'
-              : '${levelAward.gainedXp} XP deducted');
+            ? '${levelAward.gainedXp} XP 차감'
+            : '${levelAward.gainedXp} XP deducted');
     if (!levelAward.didLevelUp) {
       return '$base $xpText';
     }
@@ -2464,9 +2458,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final contentBg = isDark
         ? theme.colorScheme.surface.withValues(alpha: 0.84)
         : Colors.white.withValues(alpha: 0.78);
-    final titleColor = isDark
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurface;
+    final titleColor =
+        isDark ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
     final lines = fortuneComment
         .split('\n')
         .map((line) => line.trim())
@@ -2564,9 +2557,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                   Text(
                     isKo ? '오늘의 운세' : 'Today fortune',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: titleColor,
-                    ),
+                          fontWeight: FontWeight.w800,
+                          color: titleColor,
+                        ),
                   ),
                 ],
               ),
@@ -2592,8 +2585,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           ? '오늘도 멋진 플레이를 응원할게요.'
                           : 'Cheering for your best play today.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                   ],
                 ),

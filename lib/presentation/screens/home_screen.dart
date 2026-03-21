@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../../application/training_service.dart';
+import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
@@ -75,10 +76,13 @@ class _HomeScreenState extends State<HomeScreen> {
             _openCalendarQuickCreate(CalendarQuickCreateAction.match),
         onQuickQuiz: _openQuiz,
         onQuickBoard: _openTrainingBoards,
+        onOpenPlans: _openPlans,
         onOpenLogs: () => _onDestinationSelected(1),
         onOpenDiary: () => _onDestinationSelected(4),
         onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
         onEdit: _openEdit,
+        onEditTrainingBoard: _openEditTrainingBoard,
+        onCreateTrainingBoard: _openCreateTrainingBoard,
       ),
       LogsScreen(
         trainingService: widget.trainingService,
@@ -244,8 +248,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return (
           isKo ? '홈 가이드' : 'Home Guide',
           isKo
-              ? '오늘 해야 할 일, 빠른 실행, 이번 주 요약을 한 번에 확인할 수 있어요.'
-              : 'See today’s priorities, quick actions, and weekly summary in one place.',
+              ? '오늘 해야 할 일, 빠른 실행, 오늘의 훈련 계획과 주간 훈련 현황을 한 번에 확인할 수 있어요.'
+              : 'See today’s priorities, quick actions, training plans, and weekly activity in one place.',
         );
       case 1:
         return (
@@ -280,7 +284,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _openCreate({DateTime? initialDate}) async {
+  Future<void> _openCreate({
+    DateTime? initialDate,
+    bool initialOpenTrainingBoardEditor = false,
+  }) async {
     await _pushPageSafely(
       AppPageRoute(
         builder: (_) => EntryFormScreen(
@@ -290,6 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
           settingsService: widget.settingsService,
           driveBackupService: widget.driveBackupService,
           initialDate: initialDate,
+          initialOpenTrainingBoardEditor: initialOpenTrainingBoardEditor,
         ),
       ),
     );
@@ -314,6 +322,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openPlans() {
+    setState(() => _index = 2);
+    unawaited(_showTabGuideIfNeeded(2));
+  }
+
   void _clearCalendarQuickCreateAction() {
     if (_pendingCalendarQuickCreateAction == null) return;
     setState(() => _pendingCalendarQuickCreateAction = null);
@@ -328,7 +341,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _openEdit(entry) async {
+  Future<void> _openEdit(
+    entry, {
+    bool initialOpenTrainingBoardEditor = false,
+  }) async {
     await _pushPageSafely(
       AppPageRoute(
         builder: (_) => EntryFormScreen(
@@ -338,8 +354,20 @@ class _HomeScreenState extends State<HomeScreen> {
           localeService: widget.localeService,
           settingsService: widget.settingsService,
           driveBackupService: widget.driveBackupService,
+          initialOpenTrainingBoardEditor: initialOpenTrainingBoardEditor,
         ),
       ),
+    );
+  }
+
+  Future<void> _openEditTrainingBoard(TrainingEntry entry) async {
+    await _openEdit(entry, initialOpenTrainingBoardEditor: true);
+  }
+
+  Future<void> _openCreateTrainingBoard({DateTime? initialDate}) async {
+    await _openCreate(
+      initialDate: initialDate,
+      initialOpenTrainingBoardEditor: true,
     );
   }
 }
