@@ -187,6 +187,26 @@ class TrainingPlanReminderService {
     }
   }
 
+  Future<bool> requestNotificationPermission() async {
+    await initialize();
+    if (kIsWeb) return true;
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+        await androidImpl?.requestNotificationsPermission();
+        return await androidImpl?.areNotificationsEnabled() ?? true;
+      case TargetPlatform.iOS:
+        final iosImpl = _plugin.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+        await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
+        final permissions = await iosImpl?.checkPermissions();
+        return permissions?.isEnabled ?? false;
+      default:
+        return true;
+    }
+  }
+
   Future<void> clearAllPlanReminders() async {
     await initialize();
     if (kIsWeb) return;

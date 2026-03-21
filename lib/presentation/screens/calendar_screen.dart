@@ -596,6 +596,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Future<void> _requestReminderPermissionIfNeeded() async {
+    if (!widget.settingsService.reminderEnabled) return;
+    final granted = await _reminderService.hasNotificationPermission();
+    if (!mounted || granted) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final shouldRequest = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '알림 권한 필요' : 'Notification permission needed'),
+        content: Text(
+          isKo
+              ? '훈련 계획 알림을 받으려면 알림 권한을 허용해야 해요. 지금 허용할까요?'
+              : 'To receive training plan reminders, notification permission is required. Allow now?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '나중에' : 'Later'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '허용하기' : 'Allow'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || shouldRequest != true) return;
+    await _reminderService.requestNotificationPermission();
+  }
+
   Future<void> _openPlanSheet({
     required DateTime day,
     _TrainingPlan? editingPlan,
@@ -831,6 +861,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     });
     await _savePlans();
+    await _requestReminderPermissionIfNeeded();
     await _syncPlanReminders();
     await _showReminderPermissionNoticeIfNeeded();
     if (editingPlan == null) {
