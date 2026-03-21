@@ -735,9 +735,9 @@ class _DailyFlowCard extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 3,
-            mainAxisSpacing: 6,
-            crossAxisSpacing: 6,
-            childAspectRatio: 2.3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 2.0,
             children: [
               _TodoChip(
                 done: data.loggedTrainingToday,
@@ -1255,7 +1255,7 @@ class _TodoChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 10),
           decoration: BoxDecoration(
             color: scheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(12),
@@ -1270,10 +1270,10 @@ class _TodoChip extends StatelessWidget {
             children: [
               Icon(
                 done ? Icons.check_circle : icon,
-                size: 16,
+                size: 18,
                 color: done ? const Color(0xFF0FA968) : scheme.primary,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               Flexible(
                 child: Text(
                   label,
@@ -1281,7 +1281,9 @@ class _TodoChip extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
-                  ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w900),
+                  ).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
             ],
