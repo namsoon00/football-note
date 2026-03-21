@@ -67,6 +67,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   late final Map<String, _FootballQuizQuestion> _questionMap;
   late final List<_FootballQuizQuestion> _allQuestions;
+  _QuizSessionSnapshot? _pendingResumeSnapshot;
+  late SkillQuizResumeSummary _resumeSummary;
 
   List<_FootballQuizQuestion> _questions = const <_FootballQuizQuestion>[];
   _QuizMode _mode = _QuizMode.daily;
@@ -101,7 +103,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _questionMap = {
       for (final question in _allQuestions) question.id: question,
     };
-    _restoreOrStart();
+    _resumeSummary = SkillQuizScreen.loadResumeSummary(widget.optionRepository);
+    _pendingResumeSnapshot = _QuizSessionSnapshot.tryParse(
+      widget.optionRepository.getValue<String>(SkillQuizScreen.sessionKey),
+    );
   }
 
   @override
@@ -110,27 +115,31 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     super.dispose();
   }
 
-  void _restoreOrStart() {
-    final restored = _QuizSessionSnapshot.tryParse(
-      widget.optionRepository.getValue<String>(SkillQuizScreen.sessionKey),
-    );
-    if (restored != null) {
-      _applySnapshot(restored);
-      return;
-    }
+  void _refreshResumeSummary() {
+    _resumeSummary = SkillQuizScreen.loadResumeSummary(widget.optionRepository);
+  }
 
-    final dueReviewQuestions = _loadDueReviewQuestions();
-    if (dueReviewQuestions.isNotEmpty) {
-      _startSession(
-        questions:
-            dueReviewQuestions.take(_reviewCount).toList(growable: false),
-        mode: _QuizMode.review,
-        clearDueReview: true,
-      );
-      return;
+  Future<void> _selectEntryMode(_QuizEntryAction action) async {
+    switch (action) {
+      case _QuizEntryAction.resume:
+        final snapshot = _pendingResumeSnapshot;
+        if (snapshot != null) {
+          _applySnapshot(snapshot);
+        }
+        return;
+      case _QuizEntryAction.daily:
+        _startDailySession();
+        return;
+      case _QuizEntryAction.review:
+        _startReviewSessionFromQueue();
+        return;
+      case _QuizEntryAction.challenge:
+        _startChallengeSession();
+        return;
+      case _QuizEntryAction.speed:
+        _startSpeedSession();
+        return;
     }
-
-    _startDailySession();
   }
 
   void _applySnapshot(_QuizSessionSnapshot snapshot) {
@@ -167,6 +176,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _speedLeft = snapshot.speedLeft.clamp(0, _speedLimitSec);
       _answerFx = _AnswerFx.none;
     });
+    _pendingResumeSnapshot = snapshot;
 
     if (!_finished) {
       _startQuestionClock();
@@ -284,6 +294,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _speedLeft = _speedLimitSec;
       _answerFx = _AnswerFx.none;
     });
+    _pendingResumeSnapshot = null;
 
     if (clearDueReview) {
       unawaited(_removeDueReviewQuestions(questions));
@@ -467,11 +478,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       DateTime.now().toIso8601String(),
     );
     await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
+    _refreshResumeSummary();
 
     if (!mounted) return;
     setState(() {
       _finished = true;
       _speedTimer?.cancel();
+      _pendingResumeSnapshot = null;
     });
   }
 
@@ -543,6 +556,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       appBar: AppBar(
         title: Text(isKo ? '축구 퀴즈' : 'Football Quiz'),
         actions: [
+          if (_questions.isNotEmpty || _finished)
+            IconButton(
+              onPressed: _openEntryHub,
+              tooltip: isKo ? '퀴즈 시작 화면' : 'Quiz start hub',
+              icon: const Icon(Icons.home_filled),
+            ),
           IconButton(
             onPressed: _openModeMenu,
             tooltip: isKo ? '퀴즈 모드 선택' : 'Choose quiz mode',
@@ -553,7 +572,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: _finished ? _buildResult(isKo) : _buildQuestion(isKo),
+          child: _questions.isEmpty && !_finished
+              ? _buildEntryHub(isKo)
+              : (_finished ? _buildResult(isKo) : _buildQuestion(isKo)),
         ),
       ),
     );
@@ -573,6 +594,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final progressText = '${_index + 1}/${_questions.length}';
     final missionTarget = _mode == _QuizMode.review ? 4 : 6;
     final canGoNext = _answered || _retryUsed;
+    final heroOverlay = _buildHeroOverlay(question, isKo);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -587,9 +609,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   runSpacing: 8,
                   children: [
                     _InfoChip(label: _mode.label(isKo)),
-                    _InfoChip(label: question.category.label(isKo)),
-                    _InfoChip(label: question.style.label(isKo)),
-                    _InfoChip(label: question.difficultyLabel(isKo)),
                     _InfoChip(
                       label:
                           isKo ? '진행 $progressText' : 'Progress $progressText',
@@ -598,14 +617,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       label: isKo
                           ? '미션 ${math.min(_score, missionTarget)}/$missionTarget'
                           : 'Mission ${math.min(_score, missionTarget)}/$missionTarget',
-                    ),
-                    _InfoChip(
-                      label: isKo ? '콤보 x$_combo' : 'Combo x$_combo',
-                      success: _combo >= 2,
-                    ),
-                    _InfoChip(
-                      label: isKo ? '모멘텀 $_momentum' : 'Momentum $_momentum',
-                      success: _momentum >= 60,
                     ),
                     if (_mode == _QuizMode.speed)
                       _InfoChip(
@@ -622,7 +633,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   ),
                 ],
                 const SizedBox(height: 12),
-                _QuestionHeroCard(question: question, isKo: isKo),
+                _QuestionHeroCard(
+                  question: question,
+                  isKo: isKo,
+                  overlay: heroOverlay,
+                ),
                 const SizedBox(height: 12),
                 ...question.options.asMap().entries.map((entry) {
                   final optionIndex = entry.key;
@@ -845,9 +860,227 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     );
   }
 
+  Future<void> _openEntryHub() async {
+    _speedTimer?.cancel();
+    if (_questions.isNotEmpty && !_finished) {
+      final snapshot = _QuizSessionSnapshot(
+        mode: _mode.name,
+        questionIds: _questions.map((q) => q.id).toList(growable: false),
+        index: _index,
+        score: _score,
+        streak: _streak,
+        bestStreak: _bestStreak,
+        timeouts: _timeouts,
+        answerCount: _answerCount,
+        responseMillisSum: _responseMillisSum,
+        selectedIndex: _selectedIndex,
+        answered: _answered,
+        retryUsed: _retryUsed,
+        retryFeedback: _retryFeedback,
+        wrongIds: _wrongIds.toList(growable: false),
+        finished: _finished,
+        speedLeft: _speedLeft,
+      );
+      _pendingResumeSnapshot = snapshot;
+      await widget.optionRepository.setValue(
+        SkillQuizScreen.sessionKey,
+        snapshot.encode(),
+      );
+    }
+    _refreshResumeSummary();
+    if (!mounted) return;
+    setState(() {
+      _questions = const <_FootballQuizQuestion>[];
+      _finished = false;
+      _selectedIndex = null;
+      _answered = false;
+      _retryUsed = false;
+      _retryFeedback = null;
+      _answerFx = _AnswerFx.none;
+      _index = 0;
+      _score = 0;
+      _streak = 0;
+      _combo = 0;
+      _momentum = 0;
+      _speedLeft = _speedLimitSec;
+    });
+  }
+
+  _QuizHeroOverlayData _buildHeroOverlay(
+    _FootballQuizQuestion question,
+    bool isKo,
+  ) {
+    final accent = switch (question.category) {
+      _QuizCategory.rules => const Color(0xFF1565C0),
+      _QuizCategory.tactics => const Color(0xFF2E7D32),
+      _QuizCategory.technique => const Color(0xFF6A1B9A),
+      _QuizCategory.positions => const Color(0xFFE65100),
+      _QuizCategory.training => const Color(0xFF00838F),
+      _QuizCategory.mindset => const Color(0xFFAD1457),
+      _QuizCategory.nutrition => const Color(0xFF558B2F),
+      _QuizCategory.fun => const Color(0xFF5D4037),
+    };
+
+    if (_mode == _QuizMode.speed && !_answered) {
+      if (_speedLeft <= 3) {
+        return _QuizHeroOverlayData(
+          title: isKo ? '지금 판단' : 'Decide now',
+          subtitle: isKo ? '$_speedLeft초 남았어요' : '$_speedLeft seconds left',
+          accent: const Color(0xFFD9480F),
+        );
+      }
+      return _QuizHeroOverlayData(
+        title: isKo ? '순간 판단' : 'Quick read',
+        subtitle: isKo ? '스피드 모드 진행 중' : 'Speed mode is active',
+        accent: const Color(0xFF0B7285),
+      );
+    }
+    if (_retryFeedback == 'incorrect' && !_answered) {
+      return _QuizHeroOverlayData(
+        title: isKo ? '한 번 더' : 'One more try',
+        subtitle: isKo ? '이번에는 핵심 단어를 보세요' : 'Focus on the key cue this time',
+        accent: const Color(0xFFC92A2A),
+      );
+    }
+    if (_mode == _QuizMode.review) {
+      return _QuizHeroOverlayData(
+        title: isKo ? '복습 집중' : 'Review focus',
+        subtitle: isKo ? '24시간 지난 오답을 다시 잡아요' : 'Clean up your delayed misses',
+        accent: const Color(0xFF5F3DC4),
+      );
+    }
+    if (_answerFx == _AnswerFx.success && _combo >= 2) {
+      return _QuizHeroOverlayData(
+        title: isKo ? '콤보 x$_combo' : 'Combo x$_combo',
+        subtitle: isKo ? '좋은 흐름을 유지 중이에요' : 'You are holding a good rhythm',
+        accent: const Color(0xFF099268),
+      );
+    }
+    if (_momentum >= 60) {
+      return _QuizHeroOverlayData(
+        title: isKo ? '모멘텀 상승' : 'Momentum up',
+        subtitle: isKo
+            ? '판단 속도와 정확도가 같이 올라가고 있어요'
+            : 'Speed and accuracy are rising together',
+        accent: const Color(0xFF1971C2),
+      );
+    }
+    return _QuizHeroOverlayData(
+      title: question.category.label(isKo),
+      subtitle: question.difficultyLabel(isKo),
+      accent: accent,
+    );
+  }
+
+  Widget _buildEntryHub(bool isKo) {
+    final dueReviewCount = _resumeSummary.pendingWrongCount;
+    final actions = <_QuizEntryCardData>[
+      if (_resumeSummary.hasActiveSession && _pendingResumeSnapshot != null)
+        _QuizEntryCardData(
+          action: _QuizEntryAction.resume,
+          icon: Icons.play_circle_fill_outlined,
+          title: isKo ? '이어하기' : 'Resume',
+          subtitle: isKo
+              ? '${_resumeSummary.currentIndex + 1}/${_resumeSummary.totalQuestions} 진행 중'
+              : 'Continue ${_resumeSummary.currentIndex + 1}/${_resumeSummary.totalQuestions}',
+          badge: _resumeSummary.reviewMode
+              ? (isKo ? '복습 세션' : 'Review session')
+              : (isKo ? '진행 중' : 'In progress'),
+        ),
+      _QuizEntryCardData(
+        action: _QuizEntryAction.daily,
+        icon: Icons.today_outlined,
+        title: isKo ? '오늘의 문제' : 'Today set',
+        subtitle: _resumeSummary.completedToday
+            ? (isKo ? '오늘 세트를 다시 풀어요' : 'Replay today’s set')
+            : (isKo ? '오늘 고정 8문제를 풀어요' : 'Play today’s fixed 8 questions'),
+        badge: isKo ? '기본 추천' : 'Recommended',
+      ),
+      _QuizEntryCardData(
+        action: _QuizEntryAction.review,
+        icon: Icons.rule_folder_outlined,
+        title: isKo ? '복습하기' : 'Review',
+        subtitle: dueReviewCount > 0
+            ? (isKo
+                ? '지금 풀 수 있는 오답 $dueReviewCount개'
+                : '$dueReviewCount wrong answers ready now')
+            : (isKo ? '복습 대기 중인 오답이 없어요' : 'No wrong answers are due yet'),
+        badge: dueReviewCount > 0
+            ? (isKo ? '지금 가능' : 'Ready')
+            : (isKo ? '대기 중' : 'Waiting'),
+        enabled: dueReviewCount > 0,
+      ),
+      _QuizEntryCardData(
+        action: _QuizEntryAction.challenge,
+        icon: Icons.sports_soccer_outlined,
+        title: isKo ? '다른 스타일 풀기' : 'Challenge mix',
+        subtitle: isKo ? '분야를 섞은 적응형 8문제' : 'Adaptive mixed set of 8',
+        badge: isKo ? '새 문제 흐름' : 'Fresh mix',
+      ),
+      _QuizEntryCardData(
+        action: _QuizEntryAction.speed,
+        icon: Icons.speed_outlined,
+        title: isKo ? '스피드 모드' : 'Speed mode',
+        subtitle: isKo
+            ? '문항당 $_speedLimitSec초 안에 답하기'
+            : 'Answer within $_speedLimitSec seconds each',
+        badge: isKo ? '빠른 판단' : 'Fast decisions',
+      ),
+    ];
+
+    return ListView(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0F766E), Color(0xFF1D4ED8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isKo ? '오늘의 퀴즈 시작' : 'Start today’s quiz',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isKo
+                    ? '오늘 문제를 다시 풀지, 오답을 복습할지, 다른 스타일로 새 세트를 시작할지 고르세요.'
+                    : 'Choose whether to replay today, review mistakes, or start a different style.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      height: 1.5,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        ...actions.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _QuizEntryCard(
+              data: item,
+              onTap: item.enabled ? () => _selectEntryMode(item.action) : null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _persistSession() async {
     if (_finished || _questions.isEmpty) {
       await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
+      _refreshResumeSummary();
       return;
     }
     final snapshot = _QuizSessionSnapshot(
@@ -872,6 +1105,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       SkillQuizScreen.sessionKey,
       snapshot.encode(),
     );
+    _pendingResumeSnapshot = snapshot;
+    _refreshResumeSummary();
   }
 
   Future<void> _trackMetric(String key) async {
@@ -1083,6 +1318,8 @@ class SkillQuizResumeSummary {
   });
 }
 
+enum _QuizEntryAction { resume, daily, review, challenge, speed }
+
 enum _QuizMode { daily, review, challenge, speed }
 
 extension _QuizModeX on _QuizMode {
@@ -1208,11 +1445,28 @@ class _FootballQuizOption {
   String text(bool isKo) => isKo ? koText : enText;
 }
 
+class _QuizHeroOverlayData {
+  final String title;
+  final String subtitle;
+  final Color accent;
+
+  const _QuizHeroOverlayData({
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+  });
+}
+
 class _QuestionHeroCard extends StatelessWidget {
   final _FootballQuizQuestion question;
   final bool isKo;
+  final _QuizHeroOverlayData overlay;
 
-  const _QuestionHeroCard({required this.question, required this.isKo});
+  const _QuestionHeroCard({
+    required this.question,
+    required this.isKo,
+    required this.overlay,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1242,21 +1496,67 @@ class _QuestionHeroCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              isKo
-                  ? '${question.category.label(true)} ${question.style.label(true)}'
-                  : '${question.category.label(false)} ${question.style.label(false)}',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w900,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  isKo
+                      ? '${question.category.label(true)} ${question.style.label(true)}'
+                      : '${question.category.label(false)} ${question.style.label(false)}',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+              ),
+              const Spacer(),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
                   ),
-            ),
+                  decoration: BoxDecoration(
+                    color: overlay.accent.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: overlay.accent.withValues(alpha: 0.28),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        overlay.title,
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: overlay.accent,
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        overlay.subtitle,
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.72),
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
           Text(
@@ -1328,6 +1628,139 @@ class _OptionBadge extends StatelessWidget {
   }
 }
 
+class _QuizEntryCardData {
+  final _QuizEntryAction action;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String badge;
+  final bool enabled;
+
+  const _QuizEntryCardData({
+    required this.action,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    this.enabled = true,
+  });
+}
+
+class _QuizEntryCard extends StatelessWidget {
+  final _QuizEntryCardData data;
+  final VoidCallback? onTap;
+
+  const _QuizEntryCard({required this.data, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: data.enabled
+          ? scheme.surfaceContainerLow
+          : scheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: scheme.outlineVariant.withValues(
+                alpha: data.enabled ? 1 : 0.6,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(
+                    alpha: data.enabled ? 0.12 : 0.06,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  data.icon,
+                  color: data.enabled
+                      ? scheme.primary
+                      : scheme.onSurface.withValues(alpha: 0.45),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: data.enabled
+                                ? null
+                                : scheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      data.subtitle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(
+                              alpha: data.enabled ? 0.74 : 0.5,
+                            ),
+                            height: 1.4,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: scheme.primary.withValues(
+                        alpha: data.enabled ? 0.12 : 0.06,
+                      ),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      data.badge,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: data.enabled
+                                ? scheme.primary
+                                : scheme.onSurface.withValues(alpha: 0.45),
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: scheme.onSurface.withValues(
+                      alpha: data.enabled ? 0.5 : 0.28,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 String _optionLabel(int index) {
   switch (index) {
     case 0:
@@ -1344,22 +1777,17 @@ String _optionLabel(int index) {
 class _InfoChip extends StatelessWidget {
   final String label;
   final bool danger;
-  final bool success;
 
   const _InfoChip({
     required this.label,
     this.danger = false,
-    this.success = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final bgColor = danger
-        ? const Color(0x1AEB5757)
-        : success
-            ? const Color(0x1A0FA968)
-            : scheme.surfaceContainerHighest;
+    final bgColor =
+        danger ? const Color(0x1AEB5757) : scheme.surfaceContainerHighest;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -1370,11 +1798,7 @@ class _InfoChip extends StatelessWidget {
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w800,
-              color: danger
-                  ? const Color(0xFFC62828)
-                  : success
-                      ? const Color(0xFF1B5E20)
-                      : null,
+              color: danger ? const Color(0xFFC62828) : null,
             ),
       ),
     );

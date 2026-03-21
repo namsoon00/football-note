@@ -793,12 +793,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ),
       );
     }
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
-        await _attemptExit();
-      },
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      onWillPop: _confirmExitWithoutSave,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
@@ -1204,7 +1201,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                     title: l10n.injuryPart,
                                     options: _injuryPartOptions,
                                     onUpdated: (list) => setState(
-                                        () => _injuryPartOptions = list),
+                                      () => _injuryPartOptions = list,
+                                    ),
                                     onSelected: (value) => setState(
                                       () => _injuryPartController.text = value,
                                     ),
@@ -1827,9 +1825,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     } catch (_) {
       if (!mounted || _disposing) return;
       if (!fromAuto) {
-        _showWeatherSnack(
-          isKo ? '날씨를 불러오지 못했어요.' : 'Failed to load weather.',
-        );
+        _showWeatherSnack(isKo ? '날씨를 불러오지 못했어요.' : 'Failed to load weather.');
       }
     } finally {
       if (mounted && !_disposing) {
@@ -2037,10 +2033,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             ? const [Color(0xFF1A2030), Color(0xFF121826)]
             : const [Color(0xFF3C4A68), Color(0xFF232D42)];
       default:
-        return [
-          theme.scaffoldBackgroundColor,
-          theme.scaffoldBackgroundColor,
-        ];
+        return [theme.scaffoldBackgroundColor, theme.scaffoldBackgroundColor];
     }
   }
 
