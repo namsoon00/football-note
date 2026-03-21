@@ -172,6 +172,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         ),
                       ],
                     ),
+                    if (data.upcomingPlanDays.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _PlanDaysCard(
+                        isKo: isKo,
+                        days: data.upcomingPlanDays,
+                        onTap: widget.onQuickPlan,
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     _DailyFlowCard(
                       data: data,
@@ -390,6 +398,7 @@ class _HomeHubData {
   final DateTime? latestBoardUpdatedAt;
   final TrainingBoard? latestBoard;
   final int todayPlanCount;
+  final List<_PlanDaySummary> upcomingPlanDays;
   final String strongestSignal;
   final String focusSignal;
   final TrainingEntry? latestTrainingEntry;
@@ -408,6 +417,7 @@ class _HomeHubData {
     required this.latestBoardUpdatedAt,
     required this.latestBoard,
     required this.todayPlanCount,
+    required this.upcomingPlanDays,
     required this.strongestSignal,
     required this.focusSignal,
     required this.latestTrainingEntry,
@@ -486,6 +496,22 @@ class _HomeHubData {
       );
       return day == today;
     }).length;
+    final planDayCount = <DateTime, int>{};
+    for (final plan in plans) {
+      final day = DateTime(
+        plan.scheduledAt.year,
+        plan.scheduledAt.month,
+        plan.scheduledAt.day,
+      );
+      if (day.isBefore(today)) continue;
+      planDayCount[day] = (planDayCount[day] ?? 0) + 1;
+    }
+    final upcomingPlanDays = planDayCount.entries.toList(growable: false)
+      ..sort((a, b) => a.key.compareTo(b.key));
+    final upcomingPlanDaySummaries = upcomingPlanDays
+        .take(7)
+        .map((entry) => _PlanDaySummary(day: entry.key, count: entry.value))
+        .toList(growable: false);
     final totalMood = weeklyEntries.fold<int>(
       0,
       (sum, entry) => sum + entry.mood,
@@ -534,6 +560,7 @@ class _HomeHubData {
       latestBoardUpdatedAt: boards.isEmpty ? null : boards.first.updatedAt,
       latestBoard: boards.isEmpty ? null : boards.first,
       todayPlanCount: todayPlanCount,
+      upcomingPlanDays: upcomingPlanDaySummaries,
       strongestSignal: strongest,
       focusSignal: focus,
       latestTrainingEntry: latestTrainingEntry,
@@ -559,6 +586,13 @@ class _DashboardPlan {
           DateTime.now(),
     );
   }
+}
+
+class _PlanDaySummary {
+  final DateTime day;
+  final int count;
+
+  const _PlanDaySummary({required this.day, required this.count});
 }
 
 bool _hasCompletedJumpRope(TrainingEntry entry) {
@@ -791,6 +825,80 @@ class _DailyFlowCard extends StatelessWidget {
               ),
               const SizedBox.shrink(),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanDaysCard extends StatelessWidget {
+  final bool isKo;
+  final List<_PlanDaySummary> days;
+  final VoidCallback? onTap;
+
+  const _PlanDaysCard({
+    required this.isKo,
+    required this.days,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  isKo ? '훈련 계획 있는 날' : 'Planned training days',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              if (onTap != null)
+                TextButton(
+                  onPressed: onTap,
+                  child: Text(isKo ? '열기' : 'Open'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: days
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${DateFormat(isKo ? 'M/d(E)' : 'EEE M/d').format(item.day)} · ${item.count}${isKo ? '개' : ''}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
           ),
         ],
       ),
