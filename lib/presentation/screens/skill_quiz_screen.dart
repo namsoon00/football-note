@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
+import '../widgets/training_board_sketch.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -26,11 +28,19 @@ class SkillQuizScreen extends StatefulWidget {
   static SkillQuizResumeSummary loadResumeSummary(
     OptionRepository optionRepository,
   ) {
-    final completedAtRaw = optionRepository.getValue<String>(completionKey);
-    final completedAt =
-        completedAtRaw == null ? null : DateTime.tryParse(completedAtRaw);
-    final session = _QuizSessionState.load(optionRepository);
+    final session = _QuizSessionSnapshot.tryParse(
+      optionRepository.getValue<String>(sessionKey),
+    );
+    final pending = _ScheduledWrongItem.decodeList(
+      optionRepository.getValue<String>(pendingWrongScheduleKey),
+    );
     final now = DateTime.now();
+    final pendingDueCount =
+        pending.where((item) => !item.dueAt.isAfter(now)).length;
+
+    final rawCompletedAt = optionRepository.getValue<String>(completionKey);
+    final completedAt =
+        rawCompletedAt == null ? null : DateTime.tryParse(rawCompletedAt);
     final completedToday = completedAt != null &&
         completedAt.year == now.year &&
         completedAt.month == now.month &&
@@ -38,10 +48,10 @@ class SkillQuizScreen extends StatefulWidget {
 
     return SkillQuizResumeSummary(
       hasActiveSession: session != null,
-      reviewMode: session?.reviewMode ?? false,
-      currentIndex: session?.currentIndex ?? 0,
-      totalQuestions: session?.questions.length ?? _boardQuizQuestions.length,
-      pendingWrongCount: 0,
+      reviewMode: session?.mode == _QuizMode.review.name,
+      currentIndex: session?.index ?? 0,
+      totalQuestions: session?.questionIds.length ?? 0,
+      pendingWrongCount: pendingDueCount,
       completedToday: completedToday,
     );
   }
@@ -50,102 +60,422 @@ class SkillQuizScreen extends StatefulWidget {
   State<SkillQuizScreen> createState() => _SkillQuizScreenState();
 }
 
-class _SkillQuizScreenState extends State<SkillQuizScreen> {
-  late final List<_SimpleQuizQuestion> _questions;
-  int _currentIndex = 0;
+class _SkillQuizScreenState extends State<SkillQuizScreen>
+    with SingleTickerProviderStateMixin {
+  static const int _dailyCount = 8;
+  static const int _reviewCount = 8;
+  static const int _practicalCount = 8;
+  static const int _speedCount = 8;
+  static const int _speedLimitSec = 12;
+
+  late final AnimationController _pulseController;
+  late final Map<String, _BoardQuizQuestion> _questionMap;
+  late final List<_BoardQuizQuestion> _allQuestions;
+
+  List<_BoardQuizQuestion> _questions = const <_BoardQuizQuestion>[];
+  _QuizMode _mode = _QuizMode.daily;
+
+  int _index = 0;
+  int _score = 0;
+  int _streak = 0;
+  int _bestStreak = 0;
+  int _timeouts = 0;
+  int _answerCount = 0;
+  int _responseMillisSum = 0;
+
   int? _selectedIndex;
   bool _answered = false;
+  bool _retryUsed = false;
+  String? _retryFeedback;
   bool _finished = false;
-  int _score = 0;
-  bool _selectionOpen = false;
+  final Set<String> _wrongIds = <String>{};
 
-  _SimpleQuizQuestion get _question => _questions[_currentIndex];
+  DateTime? _questionStartedAt;
+  Timer? _speedTimer;
+  int _speedLeft = _speedLimitSec;
 
   @override
   void initState() {
     super.initState();
-    final savedSession = _QuizSessionState.load(widget.optionRepository);
-    if (savedSession != null) {
-      _questions = savedSession.questions;
-      _currentIndex = savedSession.currentIndex.clamp(0, _questions.length - 1);
-      _selectedIndex = savedSession.selectedIndex;
-      _answered = savedSession.answered;
-      _score = savedSession.score.clamp(0, _questions.length);
-      _selectionOpen = false;
-    } else {
-      _questions = _boardQuizQuestions;
-      _selectionOpen = true;
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat(reverse: true);
+    _allQuestions = _buildBoardQuizPool();
+    _questionMap = {
+      for (final question in _allQuestions) question.id: question
+    };
+    _restoreOrStart();
+  }
+
+  @override
+  void dispose() {
+    _speedTimer?.cancel();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  void _restoreOrStart() {
+    final restored = _QuizSessionSnapshot.tryParse(
+      widget.optionRepository.getValue<String>(SkillQuizScreen.sessionKey),
+    );
+    if (restored != null) {
+      _applySnapshot(restored);
+      return;
+    }
+
+    final dueReviewQuestions = _loadDueReviewQuestions();
+    if (dueReviewQuestions.isNotEmpty) {
+      _startSession(
+        questions:
+            dueReviewQuestions.take(_reviewCount).toList(growable: false),
+        mode: _QuizMode.review,
+        clearDueReview: true,
+      );
+      return;
+    }
+
+    _startDailySession();
+  }
+
+  void _applySnapshot(_QuizSessionSnapshot snapshot) {
+    final questions = snapshot.questionIds
+        .map((id) => _questionMap[id])
+        .whereType<_BoardQuizQuestion>()
+        .toList(growable: false);
+    if (questions.isEmpty) {
+      _startDailySession();
+      return;
+    }
+
+    setState(() {
+      _questions = questions;
+      _mode = _QuizModeX.tryParse(snapshot.mode) ?? _QuizMode.daily;
+      _index = snapshot.index.clamp(0, questions.length);
+      _score = snapshot.score;
+      _streak = snapshot.streak;
+      _bestStreak = snapshot.bestStreak;
+      _timeouts = snapshot.timeouts;
+      _answerCount = snapshot.answerCount;
+      _responseMillisSum = snapshot.responseMillisSum;
+      _selectedIndex = snapshot.selectedIndex;
+      _answered = snapshot.answered;
+      _retryUsed = snapshot.retryUsed;
+      _retryFeedback = snapshot.retryFeedback;
+      _finished = snapshot.finished || _index >= questions.length;
+      _wrongIds
+        ..clear()
+        ..addAll(snapshot.wrongIds);
+      _speedLeft = snapshot.speedLeft.clamp(0, _speedLimitSec);
+    });
+
+    if (!_finished) {
+      _startQuestionClock();
     }
   }
 
-  Future<void> _persistSession() {
-    return widget.optionRepository.setValue(
-      SkillQuizScreen.sessionKey,
-      jsonEncode(
-        _QuizSessionState(
-          reviewMode: false,
-          currentIndex: _currentIndex,
-          score: _score,
-          selectedIndex: _selectedIndex,
-          answered: _answered,
-          questions: _questions,
-        ).toMap(),
-      ),
+  void _startDailySession() {
+    final token = _todayToken();
+    final savedToken = widget.optionRepository
+        .getValue<String>(SkillQuizScreen.dailyQuestionsDayKey);
+    if (savedToken == token) {
+      final savedIds = _decodeStringList(
+        widget.optionRepository
+            .getValue<String>(SkillQuizScreen.dailyQuestionsKey),
+      );
+      final savedQuestions = savedIds
+          .map((id) => _questionMap[id])
+          .whereType<_BoardQuizQuestion>()
+          .toList(growable: false);
+      if (savedQuestions.isNotEmpty) {
+        _startSession(questions: savedQuestions, mode: _QuizMode.daily);
+        return;
+      }
+    }
+
+    final random = math.Random(_stableHash(token));
+    final picked = _pickAdaptiveQuestions(
+      source: _allQuestions,
+      count: _dailyCount,
+      random: random,
+    );
+    unawaited(widget.optionRepository
+        .setValue(SkillQuizScreen.dailyQuestionsDayKey, token));
+    unawaited(widget.optionRepository.setValue(
+      SkillQuizScreen.dailyQuestionsKey,
+      jsonEncode(picked.map((q) => q.id).toList(growable: false)),
+    ));
+    _startSession(questions: picked, mode: _QuizMode.daily);
+  }
+
+  void _startPracticalSession() {
+    final source = _allQuestions
+        .where((question) => question.type == _BoardQuestionType.practical)
+        .toList(growable: false);
+    final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final picked = _pickAdaptiveQuestions(
+      source: source,
+      count: _practicalCount,
+      random: random,
+    );
+    _startSession(questions: picked, mode: _QuizMode.practical);
+  }
+
+  void _startSpeedSession() {
+    final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final picked = _pickAdaptiveQuestions(
+      source: _allQuestions,
+      count: _speedCount,
+      random: random,
+    );
+    _startSession(questions: picked, mode: _QuizMode.speed);
+  }
+
+  void _startReviewSessionFromQueue() {
+    final due = _loadDueReviewQuestions();
+    if (due.isEmpty) return;
+    _startSession(
+      questions: due.take(_reviewCount).toList(growable: false),
+      mode: _QuizMode.review,
+      clearDueReview: true,
     );
   }
 
-  void _openBoardQuiz() {
-    setState(() => _selectionOpen = false);
-    _persistSession();
-  }
-
-  void _selectAnswer(int index) {
-    if (_answered || _finished || _selectionOpen) return;
-    final correct = index == _question.correctIndex;
+  void _startSession({
+    required List<_BoardQuizQuestion> questions,
+    required _QuizMode mode,
+    bool clearDueReview = false,
+  }) {
+    if (questions.isEmpty) return;
     setState(() {
-      _selectedIndex = index;
-      _answered = true;
-      if (correct) {
-        _score += 1;
-      }
-    });
-    _persistSession();
-  }
-
-  Future<void> _advance() async {
-    if (!_answered || _finished) return;
-    if (_currentIndex >= _questions.length - 1) {
-      await _finish();
-      return;
-    }
-    setState(() {
-      _currentIndex += 1;
+      _questions = questions;
+      _mode = mode;
+      _index = 0;
+      _score = 0;
+      _streak = 0;
+      _bestStreak = 0;
+      _timeouts = 0;
+      _answerCount = 0;
+      _responseMillisSum = 0;
       _selectedIndex = null;
       _answered = false;
+      _retryUsed = false;
+      _retryFeedback = null;
+      _finished = false;
+      _wrongIds.clear();
+      _speedLeft = _speedLimitSec;
     });
+
+    if (clearDueReview) {
+      unawaited(_removeDueReviewQuestions(questions));
+    }
+
+    unawaited(_trackMetric('board_quiz_session_started'));
+    _startQuestionClock();
+    unawaited(_persistSession());
+  }
+
+  void _startQuestionClock() {
+    _questionStartedAt = DateTime.now();
+    _speedTimer?.cancel();
+    if (_mode != _QuizMode.speed || _finished || _answered) {
+      _speedLeft = _speedLimitSec;
+      return;
+    }
+
+    _speedLeft = _speedLimitSec;
+    _speedTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _answered || _finished) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _speedLeft -= 1;
+        if (_speedLeft <= 0) {
+          timer.cancel();
+          _timeoutCurrentQuestion();
+        }
+      });
+    });
+  }
+
+  void _timeoutCurrentQuestion() {
+    if (_answered || _finished) return;
+    final question = _questions[_index];
+    setState(() {
+      _selectedIndex = null;
+      _answered = true;
+      _retryUsed = true;
+      _retryFeedback = 'timeout';
+      _wrongIds.add(question.id);
+      _timeouts += 1;
+      _streak = 0;
+      _answerCount += 1;
+      _responseMillisSum += (_speedLimitSec * 1000);
+    });
+    unawaited(_trackMetric('board_question_timeout'));
+    unawaited(_persistSession());
+  }
+
+  void _selectAnswer(int choice) {
+    if (_finished || _answered) return;
+    final question = _questions[_index];
+    final isCorrect = choice == question.correctIndex;
+
+    if (isCorrect) {
+      _onAnswerResolved(choice: choice, correct: true);
+      return;
+    }
+
+    if (!_retryUsed) {
+      setState(() {
+        _selectedIndex = choice;
+        _retryUsed = true;
+        _retryFeedback = 'incorrect';
+      });
+      unawaited(_trackMetric('board_option_selected'));
+      unawaited(_persistSession());
+      return;
+    }
+
+    _onAnswerResolved(
+        choice: choice, correct: false, wrongQuestionId: question.id);
+  }
+
+  void _onAnswerResolved({
+    required int choice,
+    required bool correct,
+    String? wrongQuestionId,
+  }) {
+    _speedTimer?.cancel();
+    final responseMs = DateTime.now()
+        .difference(_questionStartedAt ?? DateTime.now())
+        .inMilliseconds;
+
+    setState(() {
+      _selectedIndex = choice;
+      _answered = true;
+      _retryFeedback = null;
+      _answerCount += 1;
+      _responseMillisSum += math.max(0, responseMs);
+      if (correct) {
+        _score += 1;
+        _streak += 1;
+        if (_streak > _bestStreak) {
+          _bestStreak = _streak;
+        }
+      } else {
+        _streak = 0;
+        if (wrongQuestionId != null) {
+          _wrongIds.add(wrongQuestionId);
+        }
+      }
+    });
+
+    unawaited(_trackMetric('board_option_selected'));
+    unawaited(_trackMetric('board_answer_evaluated'));
+    unawaited(_persistSession());
+  }
+
+  Future<void> _goNext() async {
+    if (!_answered || _finished) return;
+
+    final nextIndex = _index + 1;
+    if (nextIndex >= _questions.length) {
+      await _completeSession();
+      return;
+    }
+
+    setState(() {
+      _index = nextIndex;
+      _selectedIndex = null;
+      _answered = false;
+      _retryUsed = false;
+      _retryFeedback = null;
+    });
+
+    _startQuestionClock();
     await _persistSession();
   }
 
-  Future<void> _finish() async {
-    if (!_answered || _finished) return;
-    setState(() => _finished = true);
+  Future<void> _completeSession() async {
+    final wrongQuestions = _questions
+        .where((question) => _wrongIds.contains(question.id))
+        .toList(growable: false);
+
+    await _scheduleReviewQuestions(wrongQuestions);
+    await _recordRecentPerformance();
+    await _trackMetric('board_quiz_session_completed');
+
     await widget.optionRepository.setValue(
       SkillQuizScreen.completionKey,
       DateTime.now().toIso8601String(),
     );
-    await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, null);
+    await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
+
+    if (!mounted) return;
+    setState(() {
+      _finished = true;
+      _speedTimer?.cancel();
+    });
   }
 
-  void _restart() {
-    setState(() {
-      _currentIndex = 0;
-      _selectedIndex = null;
-      _answered = false;
-      _finished = false;
-      _score = 0;
-      _selectionOpen = true;
-    });
-    widget.optionRepository.setValue(SkillQuizScreen.sessionKey, null);
+  Future<void> _openModeMenu() async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final selected = await showModalBottomSheet<_QuizMode>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.today_outlined),
+              title: Text(isKo ? '오늘의 보드 퀴즈' : 'Daily board quiz'),
+              subtitle: Text(isKo ? '오늘 고정 세트' : 'Fixed set for today'),
+              onTap: () => Navigator.of(context).pop(_QuizMode.daily),
+            ),
+            ListTile(
+              leading: const Icon(Icons.rule_folder_outlined),
+              title: Text(isKo ? '복습 모드' : 'Review mode'),
+              subtitle:
+                  Text(isKo ? '24시간 지난 오답 복습' : 'Review due wrong answers'),
+              onTap: () => Navigator.of(context).pop(_QuizMode.review),
+            ),
+            ListTile(
+              leading: const Icon(Icons.stadium_outlined),
+              title: Text(isKo ? '실전 모드' : 'Practical mode'),
+              subtitle: Text(isKo ? '상황 판단 중심' : 'Decision-heavy scenarios'),
+              onTap: () => Navigator.of(context).pop(_QuizMode.practical),
+            ),
+            ListTile(
+              leading: const Icon(Icons.speed_outlined),
+              title: Text(isKo ? '스피드 모드' : 'Speed mode'),
+              subtitle: Text(isKo
+                  ? '문항당 $_speedLimitSec초 제한'
+                  : '$_speedLimitSec s per question'),
+              onTap: () => Navigator.of(context).pop(_QuizMode.speed),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || selected == null) return;
+
+    switch (selected) {
+      case _QuizMode.daily:
+        _startDailySession();
+        return;
+      case _QuizMode.review:
+        _startReviewSessionFromQueue();
+        return;
+      case _QuizMode.practical:
+        _startPracticalSession();
+        return;
+      case _QuizMode.speed:
+        _startSpeedSession();
+        return;
+    }
   }
 
   @override
@@ -155,258 +485,174 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       appBar: AppBar(
         title: Text(isKo ? '보드 퀴즈' : 'Board Quiz'),
         actions: [
-          PopupMenuButton<String>(
-            tooltip: isKo ? '퀴즈 세트 메뉴' : 'Quiz set menu',
-            onSelected: (value) {
-              if (value == 'types') {
-                setState(() => _selectionOpen = true);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem<String>(
-                value: 'types',
-                child: Text(isKo ? '타입별 퀴즈 선택' : 'Choose quiz type'),
-              ),
-            ],
+          IconButton(
+            onPressed: _openModeMenu,
+            tooltip: isKo ? '모드 선택' : 'Choose mode',
+            icon: const Icon(Icons.tune_outlined),
           ),
         ],
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: _finished
-              ? _buildResult(isKo)
-              : _selectionOpen
-                  ? _buildSelection(isKo)
-                  : _buildQuestion(isKo),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSelection(bool isKo) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  isKo ? '보드 문제풀기' : 'Board Problem Solving',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  isKo
-                      ? '보드 세트 ${_boardQuizQuestions.length}개'
-                      : '${_boardQuizQuestions.length} board scenarios ready',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  isKo
-                      ? '타입별 퀴즈 선택에서 보드를 고르면 위치와 움직임만 보고 가장 좋은 선택을 고를 수 있어요.'
-                      : 'Choose board mode to read positions, movement, and the best next action.',
-                ),
-                const SizedBox(height: 16),
-                FilledButton.tonalIcon(
-                  onPressed: _openBoardQuiz,
-                  icon: const Icon(Icons.view_quilt_outlined),
-                  label: Text(isKo ? '보드' : 'Board'),
-                ),
-              ],
-            ),
-          ),
+          child: _finished ? _buildResult(isKo) : _buildQuestion(isKo),
         ),
       ),
     );
   }
 
   Widget _buildQuestion(bool isKo) {
-    final correct = _selectedIndex == _question.correctIndex;
+    if (_questions.isEmpty) {
+      return Center(
+        child: Text(
+          isKo ? '문제가 준비되지 않았어요.' : 'No questions are ready.',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      );
+    }
+
+    final question = _questions[_index];
+    final progressText = '${_index + 1}/${_questions.length}';
+    final missionTarget = _mode == _QuizMode.review ? 4 : 6;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final maxWidth = math.min(constraints.maxWidth, 920.0);
-                    return Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: maxWidth),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              isKo ? '보드 문제풀기' : 'Board Problem Solving',
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                            const SizedBox(height: 4),
-                            Wrap(
-                              spacing: 12,
-                              runSpacing: 8,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Text(
-                                  isKo
-                                      ? '보드 세트 ${_questions.length}개'
-                                      : '${_questions.length} board scenarios',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                Text(
-                                  isKo
-                                      ? '보드 퀴즈 ${_currentIndex + 1}/${_questions.length}'
-                                      : 'Board Quiz ${_currentIndex + 1}/${_questions.length}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w900),
-                                ),
-                                Text(
-                                  isKo ? '위치 먼저 보기' : 'Read the picture first',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            _SimpleBoardCard(
-                              page: _question.boardPage,
-                              caption: isKo ? '코치 보드' : 'Coach Board',
-                              title: _question.title(isKo),
-                              subtitle: _question.movementCaption(isKo),
-                              hintTitle: isKo ? '코치 설명' : 'Coach Hint',
-                              hintLabel: isKo
-                                  ? '코치가 먼저 말해주는 힌트'
-                                  : 'Coach gives the first hint',
-                            ),
-                            const SizedBox(height: 12),
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  _question.question(isKo),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w800),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                ..._question.options.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final option = entry.value;
-                  final selected = _selectedIndex == idx;
-                  final isCorrect = idx == _question.correctIndex;
-
-                  Color? borderColor;
-                  Color? bgColor;
-                  if (_answered) {
-                    if (isCorrect) {
-                      borderColor = const Color(0xFF0FA968);
-                      bgColor = const Color(0x1A0FA968);
-                    } else if (selected) {
-                      borderColor = const Color(0xFFEB5757);
-                      bgColor = const Color(0x1AEB5757);
-                    }
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: OutlinedButton(
-                      onPressed: () => _selectAnswer(idx),
-                      style: OutlinedButton.styleFrom(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        side: BorderSide(
-                          color: borderColor ??
-                              Theme.of(context).colorScheme.outlineVariant,
-                          width: borderColor == null ? 1.0 : 1.6,
-                        ),
-                        backgroundColor: bgColor,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(child: Text(option.label(isKo))),
-                          if (_answered && isCorrect)
-                            const Icon(
-                              Icons.check_circle,
-                              color: Color(0xFF0FA968),
-                            ),
-                          if (_answered && selected && !isCorrect)
-                            const Icon(Icons.cancel, color: Color(0xFFEB5757)),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-                if (_answered) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ),
-                    child: Text(
-                      correct
-                          ? _question.explain(isKo)
-                          : (isKo
-                              ? '틀렸어요. 정답은 "${_question.options[_question.correctIndex].label(true)}" 입니다.\n\n${_question.explain(true)}'
-                              : 'Not quite. Correct answer: "${_question.options[_question.correctIndex].label(false)}".\n\n${_question.explain(false)}'),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _InfoChip(label: _mode.label(isKo)),
+            _InfoChip(
+                label: isKo ? '진행 $progressText' : 'Progress $progressText'),
+            _InfoChip(
+              label: isKo
+                  ? '미션 ${math.min(_score, missionTarget)}/$missionTarget'
+                  : 'Mission ${math.min(_score, missionTarget)}/$missionTarget',
+            ),
+            if (_mode == _QuizMode.speed)
+              _InfoChip(
+                label: isKo ? '⏱ ${_speedLeft}s' : '⏱ ${_speedLeft}s',
+                danger: _speedLeft <= 3,
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _BoardSceneCard(
+          question: question,
+          pulse: _pulseController,
+          isKo: isKo,
+        ),
+        const SizedBox(height: 10),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Text(
+              question.questionText(isKo),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
-                ],
-              ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
+        ...question.options.asMap().entries.map((entry) {
+          final optionIndex = entry.key;
+          final option = entry.value;
+          final selected = _selectedIndex == optionIndex;
+          final isCorrect = optionIndex == question.correctIndex;
+
+          Color? borderColor;
+          Color? bgColor;
+          if (_answered || (_retryUsed && selected)) {
+            if (isCorrect) {
+              borderColor = const Color(0xFF0FA968);
+              bgColor = const Color(0x1A0FA968);
+            } else if (selected) {
+              borderColor = const Color(0xFFEB5757);
+              bgColor = const Color(0x1AEB5757);
+            }
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: OutlinedButton(
+              onPressed: () => _selectAnswer(optionIndex),
+              style: OutlinedButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                side: BorderSide(
+                  color: borderColor ??
+                      Theme.of(context).colorScheme.outlineVariant,
+                  width: borderColor == null ? 1.0 : 1.6,
+                ),
+                backgroundColor: bgColor,
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Text(option.text(isKo))),
+                  if (_answered && isCorrect)
+                    const Icon(Icons.check_circle, color: Color(0xFF0FA968)),
+                  if ((_answered || _retryUsed) && selected && !isCorrect)
+                    const Icon(Icons.cancel, color: Color(0xFFEB5757)),
+                ],
+              ),
+            ),
+          );
+        }),
+        if (!_answered && _retryFeedback == 'incorrect')
+          Text(
+            isKo ? '틀렸어요. 한 번 더 고를 수 있어요.' : 'Incorrect. One more try.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFFEB5757),
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        if (!_answered && _retryFeedback == 'timeout')
+          Text(
+            isKo
+                ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
+                : 'Time out! Try a faster decision.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFFEB5757),
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        if (_answered) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+            child: Text(
+              question.explainText(isKo),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
+        const Spacer(),
         FilledButton.icon(
-          onPressed: _answered ? _advance : null,
-          icon: Icon(
-            _currentIndex == _questions.length - 1
-                ? Icons.check_circle_outline
-                : Icons.arrow_forward,
-          ),
-          label: Text(
-            _currentIndex == _questions.length - 1
-                ? (isKo ? '완료' : 'Finish')
-                : (isKo ? '다음 문제' : 'Next'),
-          ),
+          onPressed: _answered ? _goNext : null,
+          icon: const Icon(Icons.navigate_next),
+          label: Text(isKo ? '다음' : 'Next'),
         ),
       ],
     );
   }
 
   Widget _buildResult(bool isKo) {
+    final total = _questions.length;
+    final accuracy = total == 0 ? 0 : ((_score / total) * 100).round();
+    final avgResponse = _answerCount == 0
+        ? 0
+        : ((_responseMillisSum / _answerCount) / 1000).toStringAsFixed(1);
+
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 360),
+        constraints: const BoxConstraints(maxWidth: 380),
         child: Card(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
@@ -415,33 +661,53 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  isKo ? '퀴즈 완료' : 'Quiz Completed',
+                  isKo ? '보드 퀴즈 결과' : 'Board Quiz Result',
                   textAlign: TextAlign.center,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   isKo
-                      ? '정답 $_score / ${_questions.length}'
-                      : 'Score $_score / ${_questions.length}',
+                      ? '$_score / $total 정답 ($accuracy%)'
+                      : '$_score / $total correct ($accuracy%)',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
+                Text(
+                  isKo
+                      ? '최고 연속 $_bestStreak회 · 평균 ${avgResponse}s · 타임아웃 $_timeouts회'
+                      : 'Best streak $_bestStreak · Avg ${avgResponse}s · Timeouts $_timeouts',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 14),
                 OutlinedButton.icon(
-                  onPressed: _restart,
-                  icon: const Icon(Icons.refresh),
-                  label: Text(isKo ? '다시 풀기' : 'Retry'),
+                  onPressed: _startDailySession,
+                  icon: const Icon(Icons.today_outlined),
+                  label: Text(isKo ? '오늘 세트 다시' : 'Replay daily set'),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context).maybePop(),
-                  icon: const Icon(Icons.arrow_back),
-                  label: Text(isKo ? '뒤로가기' : 'Back'),
+                  onPressed: _startReviewSessionFromQueue,
+                  icon: const Icon(Icons.rule_folder_outlined),
+                  label: Text(isKo ? '복습 모드' : 'Review mode'),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _startPracticalSession,
+                  icon: const Icon(Icons.stadium_outlined),
+                  label: Text(isKo ? '실전 모드' : 'Practical mode'),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _startSpeedSession,
+                  icon: const Icon(Icons.speed_outlined),
+                  label: Text(isKo ? '스피드 모드' : 'Speed mode'),
                 ),
               ],
             ),
@@ -449,6 +715,194 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _persistSession() async {
+    if (_finished || _questions.isEmpty) {
+      await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
+      return;
+    }
+    final snapshot = _QuizSessionSnapshot(
+      mode: _mode.name,
+      questionIds: _questions.map((q) => q.id).toList(growable: false),
+      index: _index,
+      score: _score,
+      streak: _streak,
+      bestStreak: _bestStreak,
+      timeouts: _timeouts,
+      answerCount: _answerCount,
+      responseMillisSum: _responseMillisSum,
+      selectedIndex: _selectedIndex,
+      answered: _answered,
+      retryUsed: _retryUsed,
+      retryFeedback: _retryFeedback,
+      wrongIds: _wrongIds.toList(growable: false),
+      finished: _finished,
+      speedLeft: _speedLeft,
+    );
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.sessionKey,
+      snapshot.encode(),
+    );
+  }
+
+  Future<void> _trackMetric(String key) async {
+    final current = _QuizMetrics.parse(
+      widget.optionRepository.getValue<String>(SkillQuizScreen.metricsKey),
+    );
+    current[key] = (current[key] ?? 0) + 1;
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.metricsKey,
+      jsonEncode(current),
+    );
+  }
+
+  Future<void> _recordRecentPerformance() async {
+    if (_questions.isEmpty) return;
+    final accuracy = _score / _questions.length;
+    final avgSec =
+        _answerCount == 0 ? 8.0 : (_responseMillisSum / _answerCount) / 1000;
+    final perf = _RecentPerformance(accuracy: accuracy, avgSeconds: avgSec);
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.recentPerformanceKey,
+      perf.encode(),
+    );
+  }
+
+  List<_BoardQuizQuestion> _pickAdaptiveQuestions({
+    required List<_BoardQuizQuestion> source,
+    required int count,
+    required math.Random random,
+  }) {
+    if (source.isEmpty) return const <_BoardQuizQuestion>[];
+
+    final perf = _RecentPerformance.tryParse(
+      widget.optionRepository
+          .getValue<String>(SkillQuizScreen.recentPerformanceKey),
+    );
+    final targetDifficulty = perf?.targetDifficulty ?? 2;
+
+    final easy = source.where((q) => q.difficulty == 1).toList(growable: false);
+    final mid = source.where((q) => q.difficulty == 2).toList(growable: false);
+    final hard = source.where((q) => q.difficulty == 3).toList(growable: false);
+
+    final easyPool = [...easy]..shuffle(random);
+    final midPool = [...mid]..shuffle(random);
+    final hardPool = [...hard]..shuffle(random);
+
+    final total = math.min(count, source.length);
+    final hardRatio =
+        targetDifficulty >= 3 ? 0.45 : (targetDifficulty <= 1 ? 0.15 : 0.30);
+    final easyRatio =
+        targetDifficulty <= 1 ? 0.45 : (targetDifficulty >= 3 ? 0.18 : 0.25);
+    final midRatio = 1 - easyRatio - hardRatio;
+
+    var needEasy = (total * easyRatio).round();
+    var needMid = (total * midRatio).round();
+    var needHard = total - needEasy - needMid;
+
+    final picked = <_BoardQuizQuestion>[];
+    void take(List<_BoardQuizQuestion> from, int need) {
+      if (need <= 0) return;
+      final takeCount = math.min(need, from.length);
+      picked.addAll(from.take(takeCount));
+      from.removeRange(0, takeCount);
+    }
+
+    take(easyPool, needEasy);
+    take(midPool, needMid);
+    take(hardPool, needHard);
+
+    final remaining = <_BoardQuizQuestion>[...easyPool, ...midPool, ...hardPool]
+      ..shuffle(random);
+    if (picked.length < total) {
+      picked.addAll(remaining.take(total - picked.length));
+    }
+
+    // keep deterministic but slightly mixed ordering
+    return picked..shuffle(random);
+  }
+
+  List<_BoardQuizQuestion> _loadDueReviewQuestions() {
+    final scheduled = _ScheduledWrongItem.decodeList(
+      widget.optionRepository
+          .getValue<String>(SkillQuizScreen.pendingWrongScheduleKey),
+    );
+    final now = DateTime.now();
+    final dueIds = scheduled
+        .where((item) => !item.dueAt.isAfter(now))
+        .map((item) => item.questionId)
+        .toList(growable: false);
+    return dueIds
+        .map((id) => _questionMap[id])
+        .whereType<_BoardQuizQuestion>()
+        .toList(growable: false);
+  }
+
+  Future<void> _removeDueReviewQuestions(
+      List<_BoardQuizQuestion> questions) async {
+    if (questions.isEmpty) return;
+    final ids = questions.map((q) => q.id).toSet();
+    final current = _ScheduledWrongItem.decodeList(
+      widget.optionRepository
+          .getValue<String>(SkillQuizScreen.pendingWrongScheduleKey),
+    );
+    final next = current
+        .where((item) => !ids.contains(item.questionId))
+        .toList(growable: false);
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongScheduleKey,
+      _ScheduledWrongItem.encodeList(next),
+    );
+    await widget.optionRepository
+        .setValue(SkillQuizScreen.pendingWrongQuestionsKey, '');
+  }
+
+  Future<void> _scheduleReviewQuestions(
+      List<_BoardQuizQuestion> wrongQuestions) async {
+    final current = _ScheduledWrongItem.decodeList(
+      widget.optionRepository
+          .getValue<String>(SkillQuizScreen.pendingWrongScheduleKey),
+    );
+    final map = <String, _ScheduledWrongItem>{
+      for (final item in current) item.questionId: item,
+    };
+
+    final now = DateTime.now();
+    for (final question in wrongQuestions) {
+      final prev = map[question.id];
+      map[question.id] = _ScheduledWrongItem(
+        questionId: question.id,
+        dueAt: now.add(const Duration(hours: 24)),
+        wrongCount: (prev?.wrongCount ?? 0) + 1,
+        lastWrongAt: now,
+      );
+    }
+
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongScheduleKey,
+      _ScheduledWrongItem.encodeList(map.values.toList(growable: false)),
+    );
+    await widget.optionRepository
+        .setValue(SkillQuizScreen.pendingWrongQuestionsKey, '');
+  }
+
+  String _todayToken() {
+    final now = DateTime.now();
+    return '${now.year.toString().padLeft(4, '0')}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+  }
+
+  static List<String> _decodeStringList(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return const <String>[];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const <String>[];
+      return decoded.map((e) => e.toString()).toList(growable: false);
+    } catch (_) {
+      return const <String>[];
+    }
   }
 }
 
@@ -470,892 +924,853 @@ class SkillQuizResumeSummary {
   });
 }
 
-class _SimpleBoardCard extends StatelessWidget {
-  final TrainingMethodPage page;
-  final String caption;
-  final String title;
-  final String subtitle;
-  final String hintTitle;
-  final String hintLabel;
+enum _QuizMode { daily, review, practical, speed }
 
-  const _SimpleBoardCard({
-    required this.page,
-    required this.caption,
-    required this.title,
-    required this.subtitle,
-    required this.hintTitle,
-    required this.hintLabel,
-  });
+extension _QuizModeX on _QuizMode {
+  static _QuizMode? tryParse(String? raw) {
+    for (final mode in _QuizMode.values) {
+      if (mode.name == raw) return mode;
+    }
+    return null;
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: scheme.outlineVariant),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            scheme.surface,
-            scheme.surfaceContainerHighest.withValues(alpha: 0.9),
-          ],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  color: const Color(0x140B5FFF),
-                ),
-                child: Text(
-                  caption,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-              ),
-              Text(
-                '11v11 decision view',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: AspectRatio(
-              aspectRatio: 1.05,
-              child: _AnimatedBoardScene(page: page),
-            ),
-          ),
-          const SizedBox(height: 16),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: scheme.surface.withValues(alpha: 0.72),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    hintTitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(hintLabel, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(subtitle),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  String label(bool isKo) {
+    switch (this) {
+      case _QuizMode.daily:
+        return isKo ? '오늘 세트' : 'Daily set';
+      case _QuizMode.review:
+        return isKo ? '복습' : 'Review';
+      case _QuizMode.practical:
+        return isKo ? '실전' : 'Practical';
+      case _QuizMode.speed:
+        return isKo ? '스피드' : 'Speed';
+    }
   }
 }
 
-class _AnimatedBoardScene extends StatefulWidget {
-  final TrainingMethodPage page;
-
-  const _AnimatedBoardScene({required this.page});
-
-  @override
-  State<_AnimatedBoardScene> createState() => _AnimatedBoardSceneState();
-}
-
-class _AnimatedBoardSceneState extends State<_AnimatedBoardScene>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2600),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: _BoardScenePainter(
-            page: widget.page,
-            progress: Curves.easeInOut.transform(_controller.value),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _BoardScenePainter extends CustomPainter {
-  final TrainingMethodPage page;
-  final double progress;
-
-  const _BoardScenePainter({required this.page, required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final fieldRect = Offset.zero & size;
-    final outer = RRect.fromRectAndRadius(fieldRect, const Radius.circular(22));
-    final grass = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFF49A74B), Color(0xFF2D7A34), Color(0xFF1E5C29)],
-      ).createShader(fieldRect);
-    canvas.drawRRect(outer, grass);
-
-    final stripePaint = Paint()..color = Colors.white.withValues(alpha: 0.05);
-    final stripeHeight = size.height / 7;
-    for (var i = 0; i < 7; i += 1) {
-      if (i.isEven) {
-        canvas.drawRect(
-          Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight),
-          stripePaint,
-        );
-      }
-    }
-
-    final line = Paint()
-      ..color = Colors.white.withValues(alpha: 0.72)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(2.0, size.shortestSide * 0.006);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(10, 10, size.width - 20, size.height - 20),
-        const Radius.circular(16),
-      ),
-      line,
-    );
-    canvas.drawLine(
-      Offset(size.width / 2, 10),
-      Offset(size.width / 2, size.height - 10),
-      line,
-    );
-    canvas.drawCircle(
-      Offset(size.width / 2, size.height / 2),
-      size.shortestSide * 0.11,
-      line,
-    );
-
-    _paintPenaltyAreas(canvas, size, line);
-    _paintHighlightStrokes(canvas, size);
-    _paintPaths(canvas, size);
-    _paintItems(canvas, size);
-    _paintOverlayLabels(canvas, size);
-  }
-
-  void _paintPenaltyAreas(Canvas canvas, Size size, Paint line) {
-    final boxWidth = size.width * 0.16;
-    final boxHeight = size.height * 0.36;
-    final smallWidth = size.width * 0.07;
-    final smallHeight = size.height * 0.18;
-    final top = size.height / 2 - boxHeight / 2;
-    final smallTop = size.height / 2 - smallHeight / 2;
-    canvas.drawRect(Rect.fromLTWH(10, top, boxWidth, boxHeight), line);
-    canvas.drawRect(
-      Rect.fromLTWH(size.width - 10 - boxWidth, top, boxWidth, boxHeight),
-      line,
-    );
-    canvas.drawRect(Rect.fromLTWH(10, smallTop, smallWidth, smallHeight), line);
-    canvas.drawRect(
-      Rect.fromLTWH(
-        size.width - 10 - smallWidth,
-        smallTop,
-        smallWidth,
-        smallHeight,
-      ),
-      line,
-    );
-  }
-
-  void _paintHighlightStrokes(Canvas canvas, Size size) {
-    for (final stroke in page.strokes) {
-      if (stroke.points.length < 2) continue;
-      final path = Path()
-        ..moveTo(
-          stroke.points.first.x * size.width,
-          stroke.points.first.y * size.height,
-        );
-      for (final point in stroke.points.skip(1)) {
-        path.lineTo(point.x * size.width, point.y * size.height);
-      }
-      final glowPaint = Paint()
-        ..color = Color(stroke.colorValue).withValues(alpha: 0.38)
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = math.max(18, stroke.width * 1.8);
-      final corePaint = Paint()
-        ..color = Color(stroke.colorValue).withValues(alpha: 0.84)
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..strokeWidth = math.max(7, stroke.width * 0.85);
-      canvas.drawPath(path, glowPaint);
-      canvas.drawPath(path, corePaint);
-    }
-  }
-
-  void _paintPaths(Canvas canvas, Size size) {
-    if (page.playerPath.length >= 2) {
-      final playerPath = _buildPath(page.playerPath, size);
-      final trail = Paint()
-        ..color = const Color(0xFFB7F4D6).withValues(alpha: 0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(5.0, size.shortestSide * 0.012)
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-      canvas.drawPath(playerPath, trail);
-    }
-    if (page.ballPath.length >= 2) {
-      final ballPath = _buildPath(page.ballPath, size);
-      final trail = Paint()
-        ..color = const Color(0xFFFFF3A8).withValues(alpha: 0.96)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = math.max(4.0, size.shortestSide * 0.01)
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-      canvas.drawPath(ballPath, trail);
-      _paintBallDashes(canvas, size, ballPath);
-    }
-  }
-
-  void _paintBallDashes(Canvas canvas, Size size, Path ballPath) {
-    final metric = ballPath.computeMetrics().firstOrNull;
-    if (metric == null) return;
-    final dashPaint = Paint()..color = Colors.white.withValues(alpha: 0.5);
-    for (var i = 0; i < 4; i += 1) {
-      final t = (progress * 0.7 + i * 0.08).clamp(0.0, 1.0);
-      final tangent = metric.getTangentForOffset(metric.length * t);
-      if (tangent == null) continue;
-      canvas.drawCircle(tangent.position, size.shortestSide * 0.008, dashPaint);
-    }
-  }
-
-  void _paintItems(Canvas canvas, Size size) {
-    final animatedPlayer = page.playerPath.length >= 2
-        ? _interpolate(page.playerPath, progress)
-        : null;
-    final animatedBall = page.ballPath.length >= 2
-        ? _interpolate(page.ballPath, progress)
-        : null;
-
-    for (final item in page.items) {
-      if (item.type == 'ball' && animatedBall != null) {
-        _drawBall(canvas, size, animatedBall, item.size);
-        continue;
-      }
-      if (_isAnimatedPlayer(item) && animatedPlayer != null) {
-        _drawPlayer(
-          canvas,
-          size,
-          animatedPlayer,
-          item.size + 10,
-          const Color(0xFF73D4FF),
-          active: true,
-        );
-        continue;
-      }
-
-      if (item.type == 'player') {
-        _drawPlayer(
-          canvas,
-          size,
-          Offset(item.x * size.width, item.y * size.height),
-          item.size + 6,
-          Color(item.colorValue),
-          active: false,
-        );
-      }
-    }
-  }
-
-  bool _isAnimatedPlayer(TrainingMethodItem item) {
-    if (item.type != 'player' || page.playerPath.isEmpty) return false;
-    final first = page.playerPath.first;
-    return (item.x - first.x).abs() < 0.001 && (item.y - first.y).abs() < 0.001;
-  }
-
-  void _drawPlayer(
-    Canvas canvas,
-    Size size,
-    Offset center,
-    double rawSize,
-    Color color, {
-    required bool active,
-  }) {
-    final radius = math.max(18.0, rawSize * 0.42);
-    final glowPaint = Paint()
-      ..color = (active ? color : color.withValues(alpha: 0.7))
-          .withValues(alpha: active ? 0.34 : 0.18)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(center, radius + 8, glowPaint);
-
-    final body = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          color.withValues(alpha: 0.98),
-          Color.lerp(color, Colors.black, 0.28) ?? color,
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-    canvas.drawCircle(center, radius, body);
-
-    final outline = Paint()
-      ..color = Colors.white.withValues(alpha: 0.88)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = active ? 3.0 : 2.0;
-    canvas.drawCircle(center, radius, outline);
-
-    final headPaint = Paint()..color = Colors.white.withValues(alpha: 0.95);
-    canvas.drawCircle(
-      center.translate(0, -radius * 0.18),
-      radius * 0.22,
-      headPaint,
-    );
-    final torso = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: center.translate(0, radius * 0.14),
-        width: radius * 0.58,
-        height: radius * 0.72,
-      ),
-      Radius.circular(radius * 0.22),
-    );
-    canvas.drawRRect(torso, headPaint);
-  }
-
-  void _drawBall(Canvas canvas, Size size, Offset center, double rawSize) {
-    final radius = math.max(12.0, rawSize * 0.36);
-    final glowPaint = Paint()
-      ..color = const Color(0xFFFFF2A6).withValues(alpha: 0.45)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
-    canvas.drawCircle(center, radius + 8, glowPaint);
-
-    final ball = Paint()
-      ..shader = const RadialGradient(
-        colors: [Color(0xFFFFFFFF), Color(0xFFF0F0F0)],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-    canvas.drawCircle(center, radius, ball);
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = const Color(0xFF1A1A1A)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4,
-    );
-    final patchPaint = Paint()..color = const Color(0xFF222222);
-    for (final angle in [0.0, 2.1, 4.2]) {
-      final patchCenter = center.translate(
-        math.cos(angle) * radius * 0.42,
-        math.sin(angle) * radius * 0.42,
-      );
-      canvas.drawCircle(patchCenter, radius * 0.16, patchPaint);
-    }
-  }
-
-  void _paintOverlayLabels(Canvas canvas, Size size) {
-    final painter = TextPainter(
-      textDirection: TextDirection.ltr,
-      text: TextSpan(
-        text: 'MOVE',
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.84),
-          fontSize: math.max(12.0, size.shortestSide * 0.03),
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.6,
-        ),
-      ),
-    )..layout();
-    painter.paint(canvas, const Offset(20, 18));
-  }
-
-  Path _buildPath(List<TrainingMethodPoint> points, Size size) {
-    final path = Path()
-      ..moveTo(points.first.x * size.width, points.first.y * size.height);
-    for (final point in points.skip(1)) {
-      path.lineTo(point.x * size.width, point.y * size.height);
-    }
-    return path;
-  }
-
-  Offset _interpolate(List<TrainingMethodPoint> points, double t) {
-    if (points.isEmpty) return Offset.zero;
-    if (points.length == 1) return Offset(points.first.x, points.first.y);
-    final clamped = t.clamp(0.0, 1.0);
-    final scaled = clamped * (points.length - 1);
-    final index = scaled.floor().clamp(0, points.length - 2);
-    final localT = scaled - index;
-    final a = points[index];
-    final b = points[index + 1];
-    return Offset(
-      _lerp(a.x, b.x, localT),
-      _lerp(a.y, b.y, localT),
-    );
-  }
-
-  double _lerp(double a, double b, double t) => a + (b - a) * t;
-
-  @override
-  bool shouldRepaint(covariant _BoardScenePainter oldDelegate) {
-    return oldDelegate.page != page || oldDelegate.progress != progress;
-  }
-}
-
-class _SimpleQuizQuestion {
+class _BoardQuizQuestion {
   final String id;
+  final int difficulty;
+  final _BoardQuestionType type;
+  final TrainingMethodPage page;
+  final String koCaption;
+  final String enCaption;
   final String koQuestion;
   final String enQuestion;
-  final List<_SimpleQuizOption> options;
+  final List<_BoardQuizOption> options;
   final int correctIndex;
   final String koExplain;
   final String enExplain;
-  final String koTitle;
-  final String enTitle;
-  final String koMovementCaption;
-  final String enMovementCaption;
-  final TrainingMethodPage boardPage;
 
-  const _SimpleQuizQuestion({
+  const _BoardQuizQuestion({
     required this.id,
+    required this.difficulty,
+    required this.type,
+    required this.page,
+    required this.koCaption,
+    required this.enCaption,
     required this.koQuestion,
     required this.enQuestion,
     required this.options,
     required this.correctIndex,
     required this.koExplain,
     required this.enExplain,
-    required this.koTitle,
-    required this.enTitle,
-    required this.koMovementCaption,
-    required this.enMovementCaption,
-    required this.boardPage,
   });
 
-  factory _SimpleQuizQuestion.fromMap(Map<String, dynamic> map) {
-    final scenario = map['scenario'] is Map<String, dynamic>
-        ? map['scenario'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    return _SimpleQuizQuestion(
-      id: (map['id'] as String?) ?? 'board_quiz',
-      koQuestion: (map['koQuestion'] as String?) ?? '',
-      enQuestion: (map['enQuestion'] as String?) ?? '',
-      options: (map['options'] as List? ?? const <dynamic>[])
-          .whereType<Map>()
-          .map(
-            (option) =>
-                _SimpleQuizOption.fromMap(option.cast<String, dynamic>()),
-          )
-          .toList(growable: false),
-      correctIndex: (map['correctIndex'] as num?)?.toInt() ?? 0,
-      koExplain: (map['koExplain'] as String?) ?? '',
-      enExplain: (map['enExplain'] as String?) ?? '',
-      koTitle: (scenario['koTitle'] as String?) ?? '',
-      enTitle: (scenario['enTitle'] as String?) ?? '',
-      koMovementCaption: (scenario['koMovementCaption'] as String?) ?? '',
-      enMovementCaption: (scenario['enMovementCaption'] as String?) ?? '',
-      boardPage: TrainingMethodPage.fromMap(
-        (scenario['boardPage'] as Map?)?.cast<String, dynamic>() ??
-            const <String, dynamic>{},
-      ),
-    );
-  }
-
-  Map<String, dynamic> toMap() => {
-        'id': id,
-        'koQuestion': koQuestion,
-        'enQuestion': enQuestion,
-        'options':
-            options.map((option) => option.toMap()).toList(growable: false),
-        'correctIndex': correctIndex,
-        'koExplain': koExplain,
-        'enExplain': enExplain,
-        'scenario': {
-          'koTitle': koTitle,
-          'enTitle': enTitle,
-          'koMovementCaption': koMovementCaption,
-          'enMovementCaption': enMovementCaption,
-          'boardPage': boardPage.toMap(),
-        },
-      };
-
-  String question(bool isKo) => isKo ? koQuestion : enQuestion;
-  String explain(bool isKo) => isKo ? koExplain : enExplain;
-  String title(bool isKo) => isKo ? koTitle : enTitle;
-  String movementCaption(bool isKo) =>
-      isKo ? koMovementCaption : enMovementCaption;
+  String caption(bool isKo) => isKo ? koCaption : enCaption;
+  String questionText(bool isKo) => isKo ? koQuestion : enQuestion;
+  String explainText(bool isKo) => isKo ? koExplain : enExplain;
 }
 
-class _SimpleQuizOption {
+enum _BoardQuestionType { basic, practical }
+
+class _BoardQuizOption {
   final String koText;
   final String enText;
 
-  const _SimpleQuizOption({required this.koText, required this.enText});
+  const _BoardQuizOption({required this.koText, required this.enText});
 
-  factory _SimpleQuizOption.fromMap(Map<String, dynamic> map) {
-    return _SimpleQuizOption(
-      koText: (map['koText'] as String?) ?? '',
-      enText: (map['enText'] as String?) ?? '',
-    );
-  }
-
-  Map<String, dynamic> toMap() => {'koText': koText, 'enText': enText};
-
-  String label(bool isKo) => isKo ? koText : enText;
+  String text(bool isKo) => isKo ? koText : enText;
 }
 
-class _QuizSessionState {
-  final bool reviewMode;
-  final int currentIndex;
-  final int score;
-  final int? selectedIndex;
-  final bool answered;
-  final List<_SimpleQuizQuestion> questions;
+class _BoardSceneCard extends StatelessWidget {
+  final _BoardQuizQuestion question;
+  final AnimationController pulse;
+  final bool isKo;
 
-  const _QuizSessionState({
-    required this.reviewMode,
-    required this.currentIndex,
-    required this.score,
-    required this.selectedIndex,
-    required this.answered,
-    required this.questions,
+  const _BoardSceneCard({
+    required this.question,
+    required this.pulse,
+    required this.isKo,
   });
 
-  factory _QuizSessionState.fromMap(Map<String, dynamic> map) {
-    final rawQuestions = map['questions'] ?? map['dailyQuestions'];
-    final parsedQuestions = rawQuestions is List
-        ? rawQuestions
-            .whereType<Map>()
-            .map(
-              (question) => _SimpleQuizQuestion.fromMap(
-                question.cast<String, dynamic>(),
+  @override
+  Widget build(BuildContext context) {
+    final focus = _resolveFocus(question.page);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        color: Theme.of(context).colorScheme.surface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            question.caption(isKo),
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              height: 340,
+              width: double.infinity,
+              child: AnimatedBuilder(
+                animation: pulse,
+                builder: (context, child) => Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    child!,
+                    if (focus != null)
+                      CustomPaint(
+                        painter: _PulseFocusPainter(
+                          point: focus,
+                          t: pulse.value,
+                        ),
+                      ),
+                  ],
+                ),
+                child: TrainingBoardSketch(
+                  page: question.page,
+                  borderRadius: 14,
+                  showStrokes: true,
+                  showPlayerPath: true,
+                  showBallPath: true,
+                ),
               ),
-            )
-            .where((question) => question.options.isNotEmpty)
-            .toList(growable: false)
-        : const <_SimpleQuizQuestion>[];
-    return _QuizSessionState(
-      reviewMode: map['reviewMode'] == true,
-      currentIndex: (map['index'] as num?)?.toInt() ?? 0,
-      score: (map['score'] as num?)?.toInt() ?? 0,
-      selectedIndex: (map['selectedIndex'] as num?)?.toInt(),
-      answered: map['answered'] == true,
-      questions:
-          parsedQuestions.isEmpty ? _boardQuizQuestions : parsedQuestions,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  static _QuizSessionState? load(OptionRepository optionRepository) {
-    final raw = optionRepository.getValue<dynamic>(SkillQuizScreen.sessionKey);
-    if (raw is! String || raw.trim().isEmpty) {
-      return null;
-    }
+  TrainingMethodPoint? _resolveFocus(TrainingMethodPage page) {
+    if (page.ballPath.isNotEmpty) return page.ballPath.last;
+    if (page.playerPath.isNotEmpty) return page.playerPath.last;
+    return null;
+  }
+}
+
+class _PulseFocusPainter extends CustomPainter {
+  final TrainingMethodPoint point;
+  final double t;
+
+  const _PulseFocusPainter({required this.point, required this.t});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(point.x * size.width, point.y * size.height);
+    final outerRadius = 18 + (16 * t);
+    final innerRadius = 10 + (7 * t);
+
+    final outerPaint = Paint()
+      ..color = const Color(0x55FFD54F)
+      ..style = PaintingStyle.fill;
+    final innerPaint = Paint()
+      ..color = const Color(0xCCFFE082)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2;
+
+    canvas.drawCircle(center, outerRadius, outerPaint);
+    canvas.drawCircle(center, innerRadius, innerPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PulseFocusPainter oldDelegate) {
+    return oldDelegate.point != point || oldDelegate.t != t;
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final String label;
+  final bool danger;
+
+  const _InfoChip({required this.label, this.danger = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color:
+            danger ? const Color(0x1AEB5757) : scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+      ),
+    );
+  }
+}
+
+class _QuizSessionSnapshot {
+  final String mode;
+  final List<String> questionIds;
+  final int index;
+  final int score;
+  final int streak;
+  final int bestStreak;
+  final int timeouts;
+  final int answerCount;
+  final int responseMillisSum;
+  final int? selectedIndex;
+  final bool answered;
+  final bool retryUsed;
+  final String? retryFeedback;
+  final List<String> wrongIds;
+  final bool finished;
+  final int speedLeft;
+
+  const _QuizSessionSnapshot({
+    required this.mode,
+    required this.questionIds,
+    required this.index,
+    required this.score,
+    required this.streak,
+    required this.bestStreak,
+    required this.timeouts,
+    required this.answerCount,
+    required this.responseMillisSum,
+    required this.selectedIndex,
+    required this.answered,
+    required this.retryUsed,
+    required this.retryFeedback,
+    required this.wrongIds,
+    required this.finished,
+    required this.speedLeft,
+  });
+
+  String encode() => jsonEncode(<String, dynamic>{
+        'mode': mode,
+        'questionIds': questionIds,
+        'index': index,
+        'score': score,
+        'streak': streak,
+        'bestStreak': bestStreak,
+        'timeouts': timeouts,
+        'answerCount': answerCount,
+        'responseMillisSum': responseMillisSum,
+        'selectedIndex': selectedIndex,
+        'answered': answered,
+        'retryUsed': retryUsed,
+        'retryFeedback': retryFeedback,
+        'wrongIds': wrongIds,
+        'finished': finished,
+        'speedLeft': speedLeft,
+      });
+
+  static _QuizSessionSnapshot? tryParse(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
     try {
       final decoded = jsonDecode(raw);
-      if (decoded is Map<String, dynamic>) {
-        return _QuizSessionState.fromMap(decoded);
-      }
+      if (decoded is! Map<String, dynamic>) return null;
+      final ids = (decoded['questionIds'] as List?)
+              ?.map((item) => item.toString())
+              .toList(growable: false) ??
+          const <String>[];
+      if (ids.isEmpty) return null;
+      return _QuizSessionSnapshot(
+        mode: decoded['mode']?.toString() ?? _QuizMode.daily.name,
+        questionIds: ids,
+        index: (decoded['index'] as num?)?.toInt() ?? 0,
+        score: (decoded['score'] as num?)?.toInt() ?? 0,
+        streak: (decoded['streak'] as num?)?.toInt() ?? 0,
+        bestStreak: (decoded['bestStreak'] as num?)?.toInt() ?? 0,
+        timeouts: (decoded['timeouts'] as num?)?.toInt() ?? 0,
+        answerCount: (decoded['answerCount'] as num?)?.toInt() ?? 0,
+        responseMillisSum: (decoded['responseMillisSum'] as num?)?.toInt() ?? 0,
+        selectedIndex: (decoded['selectedIndex'] as num?)?.toInt(),
+        answered: decoded['answered'] == true,
+        retryUsed: decoded['retryUsed'] == true,
+        retryFeedback: decoded['retryFeedback']?.toString(),
+        wrongIds: (decoded['wrongIds'] as List?)
+                ?.map((item) => item.toString())
+                .toList(growable: false) ??
+            const <String>[],
+        finished: decoded['finished'] == true,
+        speedLeft: (decoded['speedLeft'] as num?)?.toInt() ?? 12,
+      );
     } catch (_) {
       return null;
     }
-    return null;
+  }
+}
+
+class _ScheduledWrongItem {
+  final String questionId;
+  final DateTime dueAt;
+  final int wrongCount;
+  final DateTime lastWrongAt;
+
+  const _ScheduledWrongItem({
+    required this.questionId,
+    required this.dueAt,
+    required this.wrongCount,
+    required this.lastWrongAt,
+  });
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'questionId': questionId,
+        'dueAt': dueAt.toIso8601String(),
+        'wrongCount': wrongCount,
+        'lastWrongAt': lastWrongAt.toIso8601String(),
+      };
+
+  static String encodeList(List<_ScheduledWrongItem> list) =>
+      jsonEncode(list.map((item) => item.toMap()).toList(growable: false));
+
+  static List<_ScheduledWrongItem> decodeList(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return const <_ScheduledWrongItem>[];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const <_ScheduledWrongItem>[];
+      return decoded
+          .whereType<Map>()
+          .map((item) => item.cast<String, dynamic>())
+          .map((map) {
+            final dueAt = DateTime.tryParse(map['dueAt']?.toString() ?? '');
+            final lastWrongAt =
+                DateTime.tryParse(map['lastWrongAt']?.toString() ?? '');
+            if (dueAt == null || lastWrongAt == null) return null;
+            return _ScheduledWrongItem(
+              questionId: map['questionId']?.toString() ?? '',
+              dueAt: dueAt,
+              wrongCount: (map['wrongCount'] as num?)?.toInt() ?? 1,
+              lastWrongAt: lastWrongAt,
+            );
+          })
+          .whereType<_ScheduledWrongItem>()
+          .toList(growable: false);
+    } catch (_) {
+      return const <_ScheduledWrongItem>[];
+    }
+  }
+}
+
+class _RecentPerformance {
+  final double accuracy;
+  final double avgSeconds;
+
+  const _RecentPerformance({required this.accuracy, required this.avgSeconds});
+
+  int get targetDifficulty {
+    if (accuracy >= 0.82 && avgSeconds <= 4.6) return 3;
+    if (accuracy <= 0.58 || avgSeconds >= 7.6) return 1;
+    return 2;
   }
 
-  Map<String, dynamic> toMap() => {
-        'reviewMode': reviewMode,
-        'index': currentIndex,
-        'score': score,
-        'selectedIndex': selectedIndex,
-        'answered': answered,
-        'questions': questions
-            .map((question) => question.toMap())
-            .toList(growable: false),
-        'dailyQuestions': questions
-            .map((question) => question.toMap())
-            .toList(growable: false),
-      };
+  String encode() => jsonEncode(<String, dynamic>{
+        'accuracy': accuracy,
+        'avgSeconds': avgSeconds,
+      });
+
+  static _RecentPerformance? tryParse(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return null;
+      return _RecentPerformance(
+        accuracy: (decoded['accuracy'] as num?)?.toDouble() ?? 0,
+        avgSeconds: (decoded['avgSeconds'] as num?)?.toDouble() ?? 8,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
-const List<_ScenarioPattern> _scenarioPatterns = [
-  _ScenarioPattern(
-    id: 'half_space',
-    koTitle: '중앙 압박이 오기 전, 오른쪽 앞 빈 공간이 열렸어요.',
-    enTitle: 'Central pressure is closing, but the right half-space is open.',
-    koMovement: '공을 가진 친구와 앞쪽 친구가 오른쪽 빈 공간으로 함께 움직일 준비를 하고 있어요.',
-    enMovement:
-        'The ball carrier and next runner are ready to break into the right half-space.',
-    koCorrect: '오른쪽 앞 빈 공간으로 빠르게 패스',
-    enCorrect: 'Quick forward pass into the right half-space',
-    koWrong1: '공을 멈추고 상대가 오길 기다린다',
-    enWrong1: 'Stop the ball and wait for central pressure',
-    koWrong2: '멀리 있는 측면으로만 크게 보낸다',
-    enWrong2: 'Force a long switch to the far wing',
-    koExplain: '상대가 모이기 전에 오른쪽 앞 빈 공간을 바로 쓰는 선택이 가장 좋아요.',
-    enExplain:
-        'Before central pressure arrives, the open half-space is the best route.',
-  ),
-  _ScenarioPattern(
-    id: 'third_man',
-    koTitle: '첫 패스를 넣으면 3번째 선수가 전진할 수 있어요.',
-    enTitle: 'A quick first pass opens the third-man run.',
-    koMovement: '앞선 두 선수가 한 번에 받지 않고 이어주면 더 좋은 전진 각도가 나와요.',
-    enMovement:
-        'If the first two players connect quickly, the third runner gets the cleanest lane.',
-    koCorrect: '가까운 선수에게 짧게 주고 다시 앞으로 받는다',
-    enCorrect: 'Play short, then receive forward again',
-    koWrong1: '첫 터치부터 혼자 오래 끈다',
-    enWrong1: 'Hold the first touch for too long',
-    koWrong2: '압박 안쪽으로 바로 드리블한다',
-    enWrong2: 'Dribble directly into the pressure',
-    koExplain: '짧은 연결로 상대를 끌고, 3번째 선수의 전진 루트를 여는 흐름이 가장 효율적이에요.',
-    enExplain:
-        'The short connection attracts pressure and creates the best third-man route.',
-  ),
-  _ScenarioPattern(
-    id: 'switch',
-    koTitle: '한쪽에 상대가 몰려 반대 전환이 준비됐어요.',
-    enTitle: 'The defense has shifted, so the far-side switch is on.',
-    koMovement: '가까운 쪽은 막혔지만 반대편 바깥 선수가 넓게 서 있어요.',
-    enMovement:
-        'The near side is crowded, but the weak-side player is staying wide.',
-    koCorrect: '반대쪽 넓은 쪽으로 방향 전환 패스',
-    enCorrect: 'Switch play toward the far-side width',
-    koWrong1: '막힌 쪽으로 다시 무리하게 찌른다',
-    enWrong1: 'Force another pass into the crowded side',
-    koWrong2: '뒤로 돌려놓고 가만히 선다',
-    enWrong2: 'Reset backward and stop moving',
-    koExplain: '상대가 한쪽으로 몰린 순간 반대 전환이 가장 큰 공간을 만들어요.',
-    enExplain:
-        'When the defense collapses to one side, the switch creates the largest space.',
-  ),
-  _ScenarioPattern(
-    id: 'wall_pass',
-    koTitle: '수비 한 명을 등지고 원투패스 길이 생겼어요.',
-    enTitle: 'A wall pass is available around the defender.',
-    koMovement: '첫 패스를 짧게 넣고 바로 빈 옆으로 빠져나가면 수비를 벗어날 수 있어요.',
-    enMovement:
-        'A short set pass followed by an outside run breaks past the defender.',
-    koCorrect: '짧게 주고 옆으로 빠져 원투패스를 만든다',
-    enCorrect: 'Set it short and spin out for a wall pass',
-    koWrong1: '수비 정면으로 계속 몰고 간다',
-    enWrong1: 'Keep dribbling straight into the defender',
-    koWrong2: '공을 발밑에 두고 멈춘다',
-    enWrong2: 'Stop with the ball under your feet',
-    koExplain: '등진 상황에서는 원투패스로 각도를 바꾸는 것이 가장 빠른 탈압박이에요.',
-    enExplain:
-        'In a back-to-goal situation, the wall pass changes the angle fastest.',
-  ),
-  _ScenarioPattern(
-    id: 'cutback',
-    koTitle: '측면 돌파 뒤 컷백 공간이 비어 있어요.',
-    enTitle: 'After the wide break, the cutback zone is open.',
-    koMovement: '골문 앞은 막혔지만 뒤따라오는 동료가 페널티 지점 근처로 들어와요.',
-    enMovement:
-        'The front post is crowded, but the trailing runner is arriving near the penalty spot.',
-    koCorrect: '뒤에서 들어오는 동료에게 컷백한다',
-    enCorrect: 'Cut the ball back to the trailing teammate',
-    koWrong1: '각도 없는 곳에서 바로 슛한다',
-    enWrong1: 'Shoot immediately from a poor angle',
-    koWrong2: '라인 밖으로 더 끌고 간다',
-    enWrong2: 'Carry the ball farther toward the end line',
-    koExplain: '골문 앞이 막히면 컷백이 더 높은 확률의 마무리를 만들어줘요.',
-    enExplain:
-        'When the near goal line is blocked, the cutback gives the cleaner finish.',
-  ),
-];
+class _QuizMetrics {
+  static Map<String, int> parse(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return <String, int>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return <String, int>{};
+      return decoded.map(
+        (key, value) => MapEntry(key.toString(), (value as num?)?.toInt() ?? 0),
+      );
+    } catch (_) {
+      return <String, int>{};
+    }
+  }
+}
 
-final List<_SimpleQuizQuestion> _boardQuizQuestions =
-    List<_SimpleQuizQuestion>.generate(
-  30,
-  _buildBoardQuestion,
-  growable: false,
-);
+List<_BoardQuizQuestion> _buildBoardQuizPool() {
+  final scenes = _sceneTemplates();
+  return <_BoardQuizQuestion>[
+    _question(
+      id: 'bq_01',
+      difficulty: 1,
+      type: _BoardQuestionType.basic,
+      scene: scenes[0],
+      koQuestion: '첫 선택으로 가장 안전한 것은?',
+      enQuestion: 'What is the safest first action?',
+      options: const [
+        _BoardQuizOption(
+          koText: '가까운 지원에게 짧게 연결',
+          enText: 'Play short to nearest support',
+        ),
+        _BoardQuizOption(
+          koText: '수비 2명 사이로 롱패스',
+          enText: 'Long pass between two defenders',
+        ),
+        _BoardQuizOption(
+          koText: '볼을 멈추고 뒤로만 이동',
+          enText: 'Stop and move backward only',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '가까운 연결로 압박을 먼저 끊고 다음 전진 선택을 준비하는 것이 안전합니다.',
+      enExplain:
+          'Breaking pressure with a short support pass is the safest setup for next progression.',
+    ),
+    _question(
+      id: 'bq_02',
+      difficulty: 2,
+      type: _BoardQuestionType.basic,
+      scene: scenes[1],
+      koQuestion: '상대 압박이 강할 때 우선 보는 정보는?',
+      enQuestion: 'Under heavy press, what do you check first?',
+      options: const [
+        _BoardQuizOption(
+          koText: '빈 반대측 공간과 지원 각도',
+          enText: 'Far-side space and support angle',
+        ),
+        _BoardQuizOption(
+          koText: '공만 보며 드리블 시작',
+          enText: 'Start dribbling while staring at ball',
+        ),
+        _BoardQuizOption(
+          koText: '항상 중앙 고정 패스',
+          enText: 'Always force central pass',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '압박 상황일수록 반대측 공간과 지원 각도를 먼저 확인해야 탈압박이 쉽습니다.',
+      enExplain:
+          'Against pressure, far-side space and support angle are key to escaping safely.',
+    ),
+    _question(
+      id: 'bq_03',
+      difficulty: 2,
+      type: _BoardQuestionType.basic,
+      scene: scenes[2],
+      koQuestion: '역습 전환에서 우선 선택은?',
+      enQuestion: 'In transition attack, what comes first?',
+      options: const [
+        _BoardQuizOption(
+          koText: '러너 앞 공간으로 타이밍 패스',
+          enText: 'Timing pass into runner front-space',
+        ),
+        _BoardQuizOption(
+          koText: '멈춰서 모든 선수 대기',
+          enText: 'Stop and wait for all players',
+        ),
+        _BoardQuizOption(
+          koText: '뒤로 돌아 안전패스만',
+          enText: 'Turn back and only play safe backward',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '전환 순간에는 앞공간과 타이밍을 맞춘 빠른 연결이 찬스를 만듭니다.',
+      enExplain:
+          'In transition moments, timing into front-space creates the best chance.',
+    ),
+    _question(
+      id: 'bq_04',
+      difficulty: 3,
+      type: _BoardQuestionType.practical,
+      scene: scenes[3],
+      koQuestion: '후반 막판 1점 리드 상황, 올바른 운영 선택은?',
+      enQuestion: 'Late game one-goal lead: best game-management choice?',
+      options: const [
+        _BoardQuizOption(
+          koText: '무리한 전진보다 짧은 연결로 템포 조절',
+          enText: 'Control tempo with short connections over risky pushes',
+        ),
+        _BoardQuizOption(
+          koText: '항상 가장 먼 공간으로 전진',
+          enText: 'Always force longest forward ball',
+        ),
+        _BoardQuizOption(
+          koText: '공만 지키며 전원 정지',
+          enText: 'Everyone freezes while only shielding the ball',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '리드 상황에서는 템포 조절과 안정 연결이 실수 확률을 줄입니다.',
+      enExplain:
+          'With a lead, controlled tempo and stable links reduce costly mistakes.',
+    ),
+    _question(
+      id: 'bq_05',
+      difficulty: 3,
+      type: _BoardQuestionType.practical,
+      scene: scenes[4],
+      koQuestion: '수비 전환에서 가장 먼저 할 행동은?',
+      enQuestion: 'What is the first action in defensive transition?',
+      options: const [
+        _BoardQuizOption(
+          koText: '가장 가까운 패스길 차단 + 지연',
+          enText: 'Block nearest lane and delay',
+        ),
+        _BoardQuizOption(
+          koText: '공 쪽으로 전원 돌진',
+          enText: 'Everyone sprints directly to ball',
+        ),
+        _BoardQuizOption(
+          koText: '즉시 박스 안으로 후퇴만',
+          enText: 'Only retreat deep immediately',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '지연과 패스길 차단이 동료 복귀 시간을 벌어줍니다.',
+      enExplain: 'Delay plus lane blocking buys recovery time for teammates.',
+    ),
+    _question(
+      id: 'bq_06',
+      difficulty: 1,
+      type: _BoardQuestionType.basic,
+      scene: scenes[5],
+      koQuestion: '받기 전 스캔의 목적은?',
+      enQuestion: 'What is the goal of scanning before receiving?',
+      options: const [
+        _BoardQuizOption(
+          koText: '다음 1~2선택을 미리 정하기',
+          enText: 'Pre-plan next 1-2 options',
+        ),
+        _BoardQuizOption(
+          koText: '공만 더 오래 보기',
+          enText: 'Stare longer at the ball only',
+        ),
+        _BoardQuizOption(
+          koText: '터치 수를 늘리기',
+          enText: 'Increase number of touches',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '프리스캔은 공을 받자마자 빠른 판단을 가능하게 만듭니다.',
+      enExplain:
+          'Pre-scanning enables immediate faster decisions after receiving.',
+    ),
+    _question(
+      id: 'bq_07',
+      difficulty: 2,
+      type: _BoardQuestionType.basic,
+      scene: scenes[6],
+      koQuestion: '측면에서 크로스 억제를 위해 우선할 것은?',
+      enQuestion: 'On the flank, what best suppresses crosses?',
+      options: const [
+        _BoardQuizOption(
+          koText: '크로스 발 각도 차단',
+          enText: 'Block crossing-foot angle',
+        ),
+        _BoardQuizOption(
+          koText: '거리만 두고 기다리기',
+          enText: 'Only keep distance and wait',
+        ),
+        _BoardQuizOption(
+          koText: '무조건 태클부터',
+          enText: 'Always tackle first',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '크로스 발 각도를 먼저 막아야 실점 확률이 낮아집니다.',
+      enExplain:
+          'Blocking crossing-foot angle first lowers conceding probability.',
+    ),
+    _question(
+      id: 'bq_08',
+      difficulty: 3,
+      type: _BoardQuestionType.practical,
+      scene: scenes[7],
+      koQuestion: '실수 직후 멘탈 회복의 올바른 반응은?',
+      enQuestion: 'After a mistake, what is the best reset response?',
+      options: const [
+        _BoardQuizOption(
+          koText: '즉시 다음 수비/지원 역할로 재집중',
+          enText: 'Refocus on next defensive/support task immediately',
+        ),
+        _BoardQuizOption(
+          koText: '이전 실수 장면만 계속 생각',
+          enText: 'Keep replaying the mistake mentally',
+        ),
+        _BoardQuizOption(
+          koText: '한 플레이 쉬면서 멈추기',
+          enText: 'Take one play off and pause',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '회복 탄력성은 다음 행동의 질로 나타납니다. 바로 역할 복귀가 핵심입니다.',
+      enExplain:
+          'Resilience appears in next-action quality. Immediate role recovery is key.',
+    ),
+  ];
+}
 
-_SimpleQuizQuestion _buildBoardQuestion(int index) {
-  final pattern = _scenarioPatterns[index % _scenarioPatterns.length];
-  final lane = index % 3;
-  final baseX = 0.16 + (lane * 0.04);
-  final baseY = 0.30 + ((index ~/ 3) % 4) * 0.08;
-  final runnerY = (baseY + 0.12).clamp(0.18, 0.74);
-  final targetX = (0.68 + lane * 0.04).clamp(0.58, 0.84);
-  final targetY = (runnerY - 0.08 + (lane * 0.03)).clamp(0.14, 0.82);
-  final defenderX = (baseX + 0.18).clamp(0.28, 0.54);
-  final highlightX = (targetX + 0.02).clamp(0.08, 0.92);
-  final page = TrainingMethodPage(
-    name: 'board_quiz_${index + 1}',
-    items: [
-      TrainingMethodItem(
-        type: 'player',
-        x: baseX,
-        y: runnerY,
-        size: 42,
-        colorValue: 0xFFB3E5FC,
-      ),
-      TrainingMethodItem(
-        type: 'player',
-        x: (baseX + 0.18).clamp(0.08, 0.92),
-        y: baseY,
-        size: 42,
-        colorValue: 0xFFB3E5FC,
-      ),
-      TrainingMethodItem(
-        type: 'player',
-        x: targetX,
-        y: targetY,
-        size: 42,
-        colorValue: 0xFFB3E5FC,
-      ),
-      TrainingMethodItem(
-        type: 'player',
-        x: defenderX,
-        y: (runnerY - 0.03).clamp(0.12, 0.88),
-        size: 40,
-        colorValue: 0xFFFFCCBC,
-      ),
-      TrainingMethodItem(
-        type: 'player',
-        x: (defenderX + 0.16).clamp(0.08, 0.92),
-        y: (runnerY + 0.01).clamp(0.12, 0.88),
-        size: 40,
-        colorValue: 0xFFFFCCBC,
-      ),
-      TrainingMethodItem(
-        type: 'player',
-        x: (targetX - 0.12).clamp(0.08, 0.92),
-        y: (targetY + 0.12).clamp(0.12, 0.88),
-        size: 40,
-        colorValue: 0xFFFFCCBC,
-      ),
-      TrainingMethodItem(
-        type: 'ball',
-        x: (baseX - 0.038).clamp(0.06, 0.9),
-        y: (runnerY - 0.055).clamp(0.06, 0.9),
-        size: 30,
-        colorValue: 0xFFFFF8E1,
-      ),
-    ],
-    strokes: [
-      TrainingMethodStroke(
-        points: [
-          TrainingMethodPoint(
-            x: highlightX,
-            y: (targetY - 0.15).clamp(0.04, 0.9),
-          ),
-          TrainingMethodPoint(
-            x: highlightX,
-            y: (targetY + 0.15).clamp(0.1, 0.96),
-          ),
-        ],
-        colorValue: 0x66FFD54F,
-        width: 10,
-      ),
-    ],
-    playerPath: [
-      TrainingMethodPoint(x: (baseX + 0.18).clamp(0.08, 0.92), y: baseY),
-      TrainingMethodPoint(
-        x: ((baseX + targetX) / 2).clamp(0.08, 0.92),
-        y: (baseY - 0.03).clamp(0.08, 0.92),
-      ),
-      TrainingMethodPoint(x: targetX, y: targetY),
-    ],
-    ballPath: [
-      TrainingMethodPoint(x: baseX, y: runnerY),
-      TrainingMethodPoint(
-        x: ((baseX + targetX) / 2).clamp(0.08, 0.92),
-        y: ((runnerY + targetY) / 2 - 0.08).clamp(0.06, 0.9),
-      ),
-      TrainingMethodPoint(x: targetX, y: targetY),
-    ],
-  );
-
-  return _SimpleQuizQuestion(
-    id: '${pattern.id}_${index + 1}',
-    koQuestion: '이 장면에서 다음 플레이로 가장 좋은 선택은?',
-    enQuestion: 'Looking at the pitch, what is the best next action?',
-    options: [
-      _SimpleQuizOption(koText: pattern.koCorrect, enText: pattern.enCorrect),
-      _SimpleQuizOption(koText: pattern.koWrong1, enText: pattern.enWrong1),
-      _SimpleQuizOption(koText: pattern.koWrong2, enText: pattern.enWrong2),
-    ],
-    correctIndex: 0,
-    koExplain: pattern.koExplain,
-    enExplain: pattern.enExplain,
-    koTitle: pattern.koTitle,
-    enTitle: pattern.enTitle,
-    koMovementCaption: pattern.koMovement,
-    enMovementCaption: pattern.enMovement,
-    boardPage: page,
+_BoardQuizQuestion _question({
+  required String id,
+  required int difficulty,
+  required _BoardQuestionType type,
+  required TrainingMethodPage scene,
+  required String koQuestion,
+  required String enQuestion,
+  required List<_BoardQuizOption> options,
+  required int correctIndex,
+  required String koExplain,
+  required String enExplain,
+}) {
+  return _BoardQuizQuestion(
+    id: id,
+    difficulty: difficulty,
+    type: type,
+    page: scene,
+    koCaption: '보드 장면을 먼저 읽고 선택하세요',
+    enCaption: 'Read the board scene first, then choose',
+    koQuestion: koQuestion,
+    enQuestion: enQuestion,
+    options: options,
+    correctIndex: correctIndex,
+    koExplain: koExplain,
+    enExplain: enExplain,
   );
 }
 
-class _ScenarioPattern {
-  final String id;
-  final String koTitle;
-  final String enTitle;
-  final String koMovement;
-  final String enMovement;
-  final String koCorrect;
-  final String enCorrect;
-  final String koWrong1;
-  final String enWrong1;
-  final String koWrong2;
-  final String enWrong2;
-  final String koExplain;
-  final String enExplain;
+List<TrainingMethodPage> _sceneTemplates() {
+  return <TrainingMethodPage>[
+    _scene(
+      name: 's1',
+      attackers: const [
+        Offset(0.18, 0.74),
+        Offset(0.40, 0.62),
+        Offset(0.66, 0.45),
+      ],
+      defenders: const [
+        Offset(0.34, 0.56),
+        Offset(0.56, 0.50),
+      ],
+      ball: const Offset(0.18, 0.74),
+      playerPath: const [
+        Offset(0.40, 0.62),
+        Offset(0.56, 0.50),
+        Offset(0.66, 0.45)
+      ],
+      ballPath: const [Offset(0.18, 0.74), Offset(0.40, 0.62)],
+    ),
+    _scene(
+      name: 's2',
+      attackers: const [
+        Offset(0.16, 0.24),
+        Offset(0.30, 0.46),
+        Offset(0.60, 0.62),
+      ],
+      defenders: const [
+        Offset(0.28, 0.30),
+        Offset(0.46, 0.54),
+      ],
+      ball: const Offset(0.30, 0.46),
+      playerPath: const [
+        Offset(0.30, 0.46),
+        Offset(0.46, 0.40),
+        Offset(0.60, 0.62)
+      ],
+      ballPath: const [Offset(0.30, 0.46), Offset(0.60, 0.62)],
+    ),
+    _scene(
+      name: 's3',
+      attackers: const [
+        Offset(0.20, 0.70),
+        Offset(0.42, 0.58),
+        Offset(0.74, 0.44),
+      ],
+      defenders: const [
+        Offset(0.38, 0.62),
+        Offset(0.58, 0.50),
+      ],
+      ball: const Offset(0.42, 0.58),
+      playerPath: const [
+        Offset(0.42, 0.58),
+        Offset(0.58, 0.52),
+        Offset(0.74, 0.44)
+      ],
+      ballPath: const [Offset(0.42, 0.58), Offset(0.74, 0.44)],
+    ),
+    _scene(
+      name: 's4',
+      attackers: const [
+        Offset(0.22, 0.68),
+        Offset(0.40, 0.64),
+        Offset(0.58, 0.56),
+      ],
+      defenders: const [
+        Offset(0.46, 0.64),
+        Offset(0.64, 0.58),
+      ],
+      ball: const Offset(0.22, 0.68),
+      playerPath: const [Offset(0.40, 0.64), Offset(0.58, 0.56)],
+      ballPath: const [Offset(0.22, 0.68), Offset(0.40, 0.64)],
+    ),
+    _scene(
+      name: 's5',
+      attackers: const [
+        Offset(0.72, 0.42),
+        Offset(0.54, 0.52),
+        Offset(0.30, 0.64),
+      ],
+      defenders: const [
+        Offset(0.62, 0.44),
+        Offset(0.44, 0.56),
+      ],
+      ball: const Offset(0.72, 0.42),
+      playerPath: const [Offset(0.54, 0.52), Offset(0.38, 0.62)],
+      ballPath: const [Offset(0.72, 0.42), Offset(0.54, 0.52)],
+    ),
+    _scene(
+      name: 's6',
+      attackers: const [
+        Offset(0.18, 0.30),
+        Offset(0.38, 0.44),
+        Offset(0.64, 0.56),
+      ],
+      defenders: const [
+        Offset(0.34, 0.36),
+        Offset(0.52, 0.50),
+      ],
+      ball: const Offset(0.18, 0.30),
+      playerPath: const [
+        Offset(0.38, 0.44),
+        Offset(0.52, 0.50),
+        Offset(0.64, 0.56)
+      ],
+      ballPath: const [Offset(0.18, 0.30), Offset(0.38, 0.44)],
+    ),
+    _scene(
+      name: 's7',
+      attackers: const [
+        Offset(0.14, 0.64),
+        Offset(0.28, 0.50),
+        Offset(0.52, 0.38),
+      ],
+      defenders: const [
+        Offset(0.34, 0.50),
+        Offset(0.48, 0.42),
+      ],
+      ball: const Offset(0.14, 0.64),
+      playerPath: const [Offset(0.28, 0.50), Offset(0.52, 0.38)],
+      ballPath: const [Offset(0.14, 0.64), Offset(0.28, 0.50)],
+    ),
+    _scene(
+      name: 's8',
+      attackers: const [
+        Offset(0.24, 0.72),
+        Offset(0.40, 0.62),
+        Offset(0.60, 0.48),
+      ],
+      defenders: const [
+        Offset(0.46, 0.58),
+        Offset(0.64, 0.50),
+      ],
+      ball: const Offset(0.24, 0.72),
+      playerPath: const [
+        Offset(0.40, 0.62),
+        Offset(0.52, 0.56),
+        Offset(0.60, 0.48)
+      ],
+      ballPath: const [Offset(0.24, 0.72), Offset(0.40, 0.62)],
+    ),
+  ];
+}
 
-  const _ScenarioPattern({
-    required this.id,
-    required this.koTitle,
-    required this.enTitle,
-    required this.koMovement,
-    required this.enMovement,
-    required this.koCorrect,
-    required this.enCorrect,
-    required this.koWrong1,
-    required this.enWrong1,
-    required this.koWrong2,
-    required this.enWrong2,
-    required this.koExplain,
-    required this.enExplain,
-  });
+TrainingMethodPage _scene({
+  required String name,
+  required List<Offset> attackers,
+  required List<Offset> defenders,
+  required Offset ball,
+  required List<Offset> playerPath,
+  required List<Offset> ballPath,
+}) {
+  final items = <TrainingMethodItem>[
+    ...attackers.map(
+      (point) => TrainingMethodItem(
+        type: 'player',
+        x: point.dx,
+        y: point.dy,
+        size: 34,
+        colorValue: 0xFFB3E5FC,
+      ),
+    ),
+    ...defenders.map(
+      (point) => TrainingMethodItem(
+        type: 'player',
+        x: point.dx,
+        y: point.dy,
+        size: 34,
+        colorValue: 0xFFFFCCBC,
+      ),
+    ),
+    TrainingMethodItem(
+      type: 'ball',
+      x: ball.dx,
+      y: ball.dy,
+      size: 28,
+      colorValue: 0xFFFFF8E1,
+    ),
+  ];
+
+  final strokes = <TrainingMethodStroke>[
+    TrainingMethodStroke(
+      points: [
+        ...playerPath
+            .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy)),
+      ],
+      colorValue: 0xFF43A047,
+      width: 3.4,
+    ),
+    TrainingMethodStroke(
+      points: [
+        ...ballPath
+            .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy)),
+      ],
+      colorValue: 0xFF1E88E5,
+      width: 3.0,
+    ),
+  ];
+
+  return TrainingMethodPage(
+    name: name,
+    items: items,
+    strokes: strokes,
+    playerPath: playerPath
+        .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
+        .toList(growable: false),
+    ballPath: ballPath
+        .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
+        .toList(growable: false),
+  );
+}
+
+int _stableHash(String text) {
+  var hash = 0;
+  for (final code in text.codeUnits) {
+    hash = (hash * 31 + code) & 0x7fffffff;
+  }
+  return hash;
 }

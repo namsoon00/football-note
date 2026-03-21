@@ -173,6 +173,15 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
+                    _BoardQuizHeroCard(
+                      data: data,
+                      isKo: isKo,
+                      onOpenQuiz: _trackedAction(
+                        'board_quiz_hero_open',
+                        widget.onQuickQuiz,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     _DailyFlowCard(
                       data: data,
                       isKo: isKo,
@@ -926,6 +935,68 @@ class _DailyFlowCard extends StatelessWidget {
                 onTap: onReview,
               ),
               const SizedBox.shrink(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BoardQuizHeroCard extends StatelessWidget {
+  final _HomeHubData data;
+  final bool isKo;
+  final VoidCallback? onOpenQuiz;
+
+  const _BoardQuizHeroCard({
+    required this.data,
+    required this.isKo,
+    required this.onOpenQuiz,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final quizSummary = data.quizResumeSummary;
+    final hasReview = quizSummary.pendingWrongCount > 0;
+    final status = quizSummary.hasActiveSession
+        ? (isKo
+            ? '이어하기 ${quizSummary.currentIndex + 1}/${quizSummary.totalQuestions}'
+            : 'Continue ${quizSummary.currentIndex + 1}/${quizSummary.totalQuestions}')
+        : hasReview
+            ? (isKo
+                ? '복습 ${quizSummary.pendingWrongCount}문제 대기'
+                : '${quizSummary.pendingWrongCount} review questions due')
+            : (data.quizCompletedToday
+                ? (isKo ? '오늘 세트 완료' : 'Daily set completed')
+                : (isKo ? '오늘 세트 시작' : 'Start daily set'));
+    final cta = quizSummary.hasActiveSession
+        ? (isKo ? '이어서 풀기' : 'Continue')
+        : hasReview
+            ? (isKo ? '복습 시작' : 'Start review')
+            : (isKo ? '보드 퀴즈 시작' : 'Start board quiz');
+
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '오늘의 보드 퀴즈' : 'Today board quiz',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(status, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onOpenQuiz,
+                  icon: const Icon(Icons.developer_board_outlined),
+                  label: Text(cta),
+                ),
+              ),
             ],
           ),
         ],
