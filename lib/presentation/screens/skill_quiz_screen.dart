@@ -208,11 +208,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     }
 
     final random = math.Random(_stableHash(token));
-    final picked = _pickAdaptiveQuestions(
-      source: _allQuestions,
-      count: _dailyCount,
-      random: random,
-    );
+    final picked = _pickDailyTemplateQuestions(random);
     unawaited(widget.optionRepository
         .setValue(SkillQuizScreen.dailyQuestionsDayKey, token));
     unawaited(widget.optionRepository.setValue(
@@ -224,7 +220,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
 
   void _startPracticalSession() {
     final source = _allQuestions
-        .where((question) => question.type == _BoardQuestionType.practical)
+        .where((question) =>
+            question.template != _BoardQuizTemplate.findTarget &&
+            question.type == _BoardQuestionType.practical)
         .toList(growable: false);
     final random = math.Random(DateTime.now().microsecondsSinceEpoch);
     final picked = _pickAdaptiveQuestions(
@@ -601,6 +599,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                       runSpacing: 8,
                       children: [
                         _InfoChip(label: _mode.label(isKo)),
+                        _InfoChip(label: question.templateLabel(isKo)),
                         _InfoChip(label: isKo
                             ? '진행 $progressText'
                             : 'Progress $progressText'),
@@ -741,9 +740,23 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                               .colorScheme
                               .surfaceContainerHighest,
                         ),
-                        child: Text(
-                          question.explainText(isKo),
-                          style: Theme.of(context).textTheme.bodyMedium,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              question.explainText(isKo),
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              isKo
+                                  ? '다음에 볼 포인트: ${question.nextPoint(true)}'
+                                  : 'Next focus: ${question.nextPoint(false)}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -943,6 +956,34 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     return picked..shuffle(random);
   }
 
+  List<_BoardQuizQuestion> _pickDailyTemplateQuestions(math.Random random) {
+    final findTarget = _allQuestions
+        .where((q) => q.template == _BoardQuizTemplate.findTarget)
+        .toList(growable: false)
+      ..shuffle(random);
+    final oneStep = _allQuestions
+        .where((q) => q.template == _BoardQuizTemplate.oneStep)
+        .toList(growable: false)
+      ..shuffle(random);
+    final twoStep = _allQuestions
+        .where((q) => q.template == _BoardQuizTemplate.twoStep)
+        .toList(growable: false)
+      ..shuffle(random);
+
+    final picked = <_BoardQuizQuestion>[
+      ...findTarget.take(3),
+      ...oneStep.take(3),
+      ...twoStep.take(2),
+    ];
+    if (picked.length < _dailyCount) {
+      final rest = <_BoardQuizQuestion>[
+        ..._allQuestions.where((q) => !picked.contains(q)),
+      ]..shuffle(random);
+      picked.addAll(rest.take(_dailyCount - picked.length));
+    }
+    return picked.take(_dailyCount).toList(growable: false);
+  }
+
   List<_BoardQuizQuestion> _loadDueReviewQuestions() {
     final scheduled = _ScheduledWrongItem.decodeList(
       widget.optionRepository
@@ -1072,6 +1113,7 @@ class _BoardQuizQuestion {
   final String id;
   final int difficulty;
   final _BoardQuestionType type;
+  final _BoardQuizTemplate template;
   final TrainingMethodPage page;
   final String koCaption;
   final String enCaption;
@@ -1081,11 +1123,14 @@ class _BoardQuizQuestion {
   final int correctIndex;
   final String koExplain;
   final String enExplain;
+  final String koNextPoint;
+  final String enNextPoint;
 
   const _BoardQuizQuestion({
     required this.id,
     required this.difficulty,
     required this.type,
+    required this.template,
     required this.page,
     required this.koCaption,
     required this.enCaption,
@@ -1095,14 +1140,33 @@ class _BoardQuizQuestion {
     required this.correctIndex,
     required this.koExplain,
     required this.enExplain,
+    required this.koNextPoint,
+    required this.enNextPoint,
   });
 
   String caption(bool isKo) => isKo ? koCaption : enCaption;
   String questionText(bool isKo) => isKo ? koQuestion : enQuestion;
   String explainText(bool isKo) => isKo ? koExplain : enExplain;
+  String nextPoint(bool isKo) => isKo ? koNextPoint : enNextPoint;
+  String templateLabel(bool isKo) => template.label(isKo);
 }
 
 enum _BoardQuestionType { basic, practical }
+
+enum _BoardQuizTemplate { findTarget, oneStep, twoStep }
+
+extension _BoardQuizTemplateX on _BoardQuizTemplate {
+  String label(bool isKo) {
+    switch (this) {
+      case _BoardQuizTemplate.findTarget:
+        return isKo ? '대상 찾기' : 'Find target';
+      case _BoardQuizTemplate.oneStep:
+        return isKo ? '1수 판단' : '1-step choice';
+      case _BoardQuizTemplate.twoStep:
+        return isKo ? '2수 판단' : '2-step plan';
+    }
+  }
+}
 
 class _BoardQuizOption {
   final String koText;
@@ -1860,6 +1924,7 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       id: 'bq_01',
       difficulty: 1,
       type: _BoardQuestionType.basic,
+      template: _BoardQuizTemplate.findTarget,
       scene: scenes[0],
       koCaption: '좌하단 볼 소유자가 중앙 지원에게 연결할 수 있는 장면',
       enCaption: 'Bottom-left ball holder can connect to central support',
@@ -1883,11 +1948,14 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '보드에서 우리2가 우리1과 가장 가깝고 패스 라인도 짧아 첫 선택으로 가장 안전합니다.',
       enExplain:
           'A2 is the nearest visible support from A1 with the shortest passing lane.',
+      koNextPoint: '볼소유자에서 가장 가까운 우리 팀 1명을 먼저 찾기',
+      enNextPoint: 'Find the nearest teammate from ball owner first',
     ),
     _question(
       id: 'bq_02',
       difficulty: 2,
       type: _BoardQuestionType.basic,
+      template: _BoardQuizTemplate.findTarget,
       scene: scenes[1],
       koCaption: '중앙 보유, 오른쪽 하단 지원이 비어 있는 장면',
       enCaption: 'Central possession with open right-lower support lane',
@@ -1911,11 +1979,14 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '장면에서 우리3 방향이 수비 간격이 넓어 가장 열려 있습니다.',
       enExplain:
           'The lane to A3 is visibly wider than central forced options in this frame.',
+      koNextPoint: '패스 전에 수비 사이 간격이 넓은 쪽 찾기',
+      enNextPoint: 'Before passing, find the widest defender gap',
     ),
     _question(
       id: 'bq_03',
       difficulty: 2,
       type: _BoardQuestionType.basic,
+      template: _BoardQuizTemplate.oneStep,
       scene: scenes[2],
       koCaption: '중앙에서 우측 전방 러너가 침투하는 전환 장면',
       enCaption: 'Transition scene with right-front runner making a run',
@@ -1939,11 +2010,14 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '보드에서 우리3의 진행 방향 앞이 비어 있어 타이밍 패스가 가장 위협적입니다.',
       enExplain:
           'A3 has open front-space in this frame, making the timing pass most dangerous.',
+      koNextPoint: '러너의 앞공간이 비었는지 먼저 보기',
+      enNextPoint: 'Check if runner front-space is open first',
     ),
     _question(
       id: 'bq_04',
       difficulty: 3,
       type: _BoardQuestionType.practical,
+      template: _BoardQuizTemplate.oneStep,
       scene: scenes[3],
       koCaption: '좌하단 볼 소유, 근거리 패스 옵션 2개가 보이는 리드 상황',
       enCaption: 'Lead situation with two short passing options from bottom-left',
@@ -1967,11 +2041,14 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '이 장면은 근거리 지원(우리2)이 보여 짧은 연결이 실수 위험을 가장 낮춥니다.',
       enExplain:
           'A2 is the clear close outlet here, minimizing turnover risk while leading.',
+      koNextPoint: '리드 상황일수록 짧은 연결 우선',
+      enNextPoint: 'When leading, prioritize short stable links',
     ),
     _question(
       id: 'bq_05',
       difficulty: 3,
       type: _BoardQuestionType.practical,
+      template: _BoardQuizTemplate.oneStep,
       scene: scenes[4],
       koCaption: '우상단 볼 보유 상대를 향해 수비 전환이 시작되는 장면',
       enCaption: 'Defensive transition starts against top-right ball holder',
@@ -1995,11 +2072,14 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '보드에서 중앙 연결길이 가장 위험하므로 먼저 차단하고 시간(지연)을 벌어야 합니다.',
       enExplain:
           'The central outlet is the key danger lane in this frame, so delay + lane block comes first.',
+      koNextPoint: '수비 전환 첫 동작은 지연 + 중앙 라인 차단',
+      enNextPoint: 'First defensive action: delay + block central lane',
     ),
     _question(
       id: 'bq_06',
       difficulty: 1,
       type: _BoardQuestionType.basic,
+      template: _BoardQuizTemplate.twoStep,
       scene: scenes[5],
       koCaption: '좌상단에서 중앙 지원으로 연결될 수 있는 빌드업 장면',
       enCaption: 'Build-up scene from top-left into central support',
@@ -2023,11 +2103,14 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '이 장면처럼 지원 옵션이 2개일 때, 받기 전에 다음 선택을 정해두면 판단 속도가 빨라집니다.',
       enExplain:
           'With two visible supports, pre-checking options enables immediate decisions.',
+      koNextPoint: '받기 전에 다음 2개 선택을 미리 정하기',
+      enNextPoint: 'Set next two options before first touch',
     ),
     _question(
       id: 'bq_07',
       difficulty: 2,
       type: _BoardQuestionType.basic,
+      template: _BoardQuizTemplate.twoStep,
       scene: scenes[6],
       koCaption: '좌측 측면에서 크로스가 가능한 압박 장면',
       enCaption: 'Left-flank pressure scene where cross is possible',
@@ -2051,11 +2134,14 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '보드에서 측면 각이 살아 있으므로 발 각도를 먼저 닫아야 크로스 확률이 줄어듭니다.',
       enExplain:
           'The flank angle is open here, so closing crossing-foot angle is the first priority.',
+      koNextPoint: '측면 수비는 각도 차단 후 거리 조절',
+      enNextPoint: 'On flank defense: close angle, then control distance',
     ),
     _question(
       id: 'bq_08',
       difficulty: 3,
       type: _BoardQuestionType.practical,
+      template: _BoardQuizTemplate.twoStep,
       scene: scenes[7],
       koCaption: '좌하단에서 실수 후 다시 중앙으로 복귀해야 하는 장면',
       enCaption: 'After-mistake scene requiring quick recovery to central shape',
@@ -2079,6 +2165,8 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       koExplain: '이 화면은 전환 속도가 중요해 즉시 역할 복귀가 가장 큰 회복 효과를 냅니다.',
       enExplain:
           'In this transition frame, immediate role recovery gives the highest reset value.',
+      koNextPoint: '실수 직후에는 다음 역할 복귀를 2초 안에 실행',
+      enNextPoint: 'After mistakes, execute next-role recovery within 2 seconds',
     ),
   ];
 }
@@ -2087,6 +2175,7 @@ _BoardQuizQuestion _question({
   required String id,
   required int difficulty,
   required _BoardQuestionType type,
+  _BoardQuizTemplate template = _BoardQuizTemplate.oneStep,
   required TrainingMethodPage scene,
   required String koCaption,
   required String enCaption,
@@ -2096,11 +2185,14 @@ _BoardQuizQuestion _question({
   required int correctIndex,
   required String koExplain,
   required String enExplain,
+  String koNextPoint = '',
+  String enNextPoint = '',
 }) {
   return _BoardQuizQuestion(
     id: id,
     difficulty: difficulty,
     type: type,
+    template: template,
     page: scene,
     koCaption: koCaption,
     enCaption: enCaption,
@@ -2110,6 +2202,8 @@ _BoardQuizQuestion _question({
     correctIndex: correctIndex,
     koExplain: koExplain,
     enExplain: enExplain,
+    koNextPoint: koNextPoint,
+    enNextPoint: enNextPoint,
   );
 }
 
