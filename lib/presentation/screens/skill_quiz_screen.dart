@@ -188,7 +188,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           .map((id) => _questionMap[id])
           .whereType<_FootballQuizQuestion>()
           .toList(growable: false);
-      if (savedQuestions.isNotEmpty) {
+      final hasImage = savedQuestions.any(
+        (q) => q.style == _QuestionStyle.imageChoice,
+      );
+      if (savedQuestions.isNotEmpty && hasImage) {
         _startSession(questions: savedQuestions, mode: _QuizMode.daily);
         return;
       }
@@ -973,6 +976,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       ...mcq.take(3),
       ...image.take(2),
     ];
+    if (picked.where((q) => q.style == _QuestionStyle.imageChoice).isEmpty &&
+        image.isNotEmpty) {
+      if (picked.isEmpty) {
+        picked.add(image.first);
+      } else {
+        picked[picked.length - 1] = image.first;
+      }
+    }
     if (picked.length < _dailyCount) {
       final rest = <_FootballQuizQuestion>[
         ..._allQuestions.where((q) => !picked.contains(q)),
@@ -3555,6 +3566,215 @@ List<_ImageQuizSeed> _imageQuizSeeds() {
           'Cover plus lane blocking protects space behind first pressure effectively.',
       koNextPoint: '1차 압박 뒤 공간을 항상 함께 본다.',
       enNextPoint: 'Always protect the space behind first pressure.',
+    ),
+    _ImageQuizSeed(
+      id: 'build_up_switch_side',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      scene: _ImageQuizScene.buildUpTriangle,
+      koStem: '빌드업 장면에서 압박 반대편으로 전환할 최적 대상은?',
+      enStem: 'In build-up, who is best target to switch away from pressure?',
+      options: [
+        _FootballQuizOption(koText: 'A3 측 전환 패스', enText: 'Switch pass to A3 side'),
+        _FootballQuizOption(koText: '압박 쪽 짧은 재패스', enText: 'Short pass into pressure'),
+        _FootballQuizOption(koText: '무리한 개인 드리블', enText: 'Forced solo dribble'),
+        _FootballQuizOption(koText: '수비에게 직접 전달', enText: 'Pass directly to defender'),
+      ],
+      correctIndex: 0,
+      koExplain: '압박 반대편 전환은 볼 소유 안정성을 높여줍니다.',
+      enExplain: 'Switching to weak side improves ball security.',
+      koNextPoint: '압박 강도 높은 쪽을 먼저 식별',
+      enNextPoint: 'Identify high-pressure side first',
+    ),
+    _ImageQuizSeed(
+      id: 'build_up_first_touch_open',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      scene: _ImageQuizScene.buildUpTriangle,
+      koStem: 'A1의 첫 터치 방향으로 가장 좋은 것은?',
+      enStem: 'What is the best first-touch direction for A1?',
+      options: [
+        _FootballQuizOption(koText: '열린 공간 쪽으로 터치', enText: 'Touch into open space'),
+        _FootballQuizOption(koText: '압박 쪽으로 닫기', enText: 'Close touch into pressure'),
+        _FootballQuizOption(koText: '터치 없이 멈춤', enText: 'No touch and freeze'),
+        _FootballQuizOption(koText: '과하게 길게 터치', enText: 'Over-hit long touch'),
+      ],
+      correctIndex: 0,
+      koExplain: '첫 터치는 열린 공간으로 가져가야 다음 선택지가 생깁니다.',
+      enExplain: 'First touch into space keeps next options alive.',
+      koNextPoint: '터치 전 어깨 스캔 실시',
+      enNextPoint: 'Do shoulder scan before touch',
+    ),
+    _ImageQuizSeed(
+      id: 'wing_cross_target_zone',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      scene: _ImageQuizScene.wingCross,
+      koStem: '측면에서 가장 효율적인 크로스 목표 구역은?',
+      enStem: 'From wing, what is most efficient cross target zone?',
+      options: [
+        _FootballQuizOption(koText: '수비-골키퍼 사이 공간', enText: 'Between defenders and keeper'),
+        _FootballQuizOption(koText: '가장 멀리 바깥쪽', enText: 'Farthest outside area'),
+        _FootballQuizOption(koText: '하프라인 뒤쪽', enText: 'Behind halfway line'),
+        _FootballQuizOption(koText: '코너플래그 방향', enText: 'Toward corner flag'),
+      ],
+      correctIndex: 0,
+      koExplain: '수비-골키퍼 사이 공간은 득점 연결 확률이 높습니다.',
+      enExplain: 'The space between defenders and keeper gives high conversion chance.',
+      koNextPoint: '크로스 전 공격수 위치 확인',
+      enNextPoint: 'Check runner positions before crossing',
+    ),
+    _ImageQuizSeed(
+      id: 'wing_delay_decision',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      scene: _ImageQuizScene.wingCross,
+      koStem: '측면 1대1에서 가장 좋은 판단 루틴은?',
+      enStem: 'In wing 1v1, what is the best decision routine?',
+      options: [
+        _FootballQuizOption(koText: '페인트 후 타이밍 보고 선택', enText: 'Feint then decide by timing'),
+        _FootballQuizOption(koText: '바로 무조건 크로스', enText: 'Always instant cross'),
+        _FootballQuizOption(koText: '볼 멈추고 뒤로 걷기', enText: 'Stop and walk backward'),
+        _FootballQuizOption(koText: '눈감고 터치', enText: 'Touch blindly'),
+      ],
+      correctIndex: 0,
+      koExplain: '루틴 기반 판단이 성공률을 높입니다.',
+      enExplain: 'Routine-based decision making improves consistency.',
+      koNextPoint: '페인트 후 수비 반응 체크',
+      enNextPoint: 'Read defender reaction after feint',
+    ),
+    _ImageQuizSeed(
+      id: 'pressing_escape_thirdman',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      scene: _ImageQuizScene.pressingTrap,
+      koStem: '압박 함정에서 3자 연계의 핵심 효과는?',
+      enStem: 'In pressing trap, what is key effect of third-man combo?',
+      options: [
+        _FootballQuizOption(koText: '압박선 한 번에 이탈', enText: 'Bypass pressure line in one chain'),
+        _FootballQuizOption(koText: '볼 속도 완전 정지', enText: 'Completely stop ball speed'),
+        _FootballQuizOption(koText: '라인 안으로 재진입', enText: 'Re-enter pressure line'),
+        _FootballQuizOption(koText: '볼 포기', enText: 'Give up the ball'),
+      ],
+      correctIndex: 0,
+      koExplain: '3자 연계는 압박 라인을 넘는 효율적인 방법입니다.',
+      enExplain: 'Third-man combination efficiently bypasses pressure lines.',
+      koNextPoint: '첫 패스 이후 2번째 수신자까지 보기',
+      enNextPoint: 'Read second receiver after first pass',
+    ),
+    _ImageQuizSeed(
+      id: 'pressing_body_orientation',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      scene: _ImageQuizScene.pressingTrap,
+      koStem: '압박 회피를 위한 바디 오리엔테이션의 핵심은?',
+      enStem: 'What is key body orientation to escape pressure?',
+      options: [
+        _FootballQuizOption(koText: '열린 측면을 향해 반몸', enText: 'Half-open body to free side'),
+        _FootballQuizOption(koText: '수비 정면 완전 고정', enText: 'Fully square to defender'),
+        _FootballQuizOption(koText: '골문 등지고 정지', enText: 'Static with back to goal'),
+        _FootballQuizOption(koText: '고개 숙인 자세', enText: 'Head-down posture'),
+      ],
+      correctIndex: 0,
+      koExplain: '반몸 자세가 탈압박 전환 속도를 높입니다.',
+      enExplain: 'Half-open stance speeds up pressure escape transitions.',
+      koNextPoint: '받기 전 몸 방향 세팅',
+      enNextPoint: 'Set body orientation before receive',
+    ),
+    _ImageQuizSeed(
+      id: 'transition_lane_priority',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      scene: _ImageQuizScene.transitionRun,
+      koStem: '전환 상황에서 최우선으로 열어야 할 패스 레인은?',
+      enStem: 'In transition, which passing lane should be opened first?',
+      options: [
+        _FootballQuizOption(koText: '전진 대각선 레인', enText: 'Forward diagonal lane'),
+        _FootballQuizOption(koText: '수평 횡패스 레인만', enText: 'Only horizontal lane'),
+        _FootballQuizOption(koText: '골키퍼 백패스', enText: 'Back pass to keeper'),
+        _FootballQuizOption(koText: '라인 밖 롱킥', enText: 'Long kick out'),
+      ],
+      correctIndex: 0,
+      koExplain: '전진 대각선은 속도와 안정성을 동시에 확보합니다.',
+      enExplain: 'Forward diagonal lanes preserve both speed and control.',
+      koNextPoint: '러너 발앞이 아닌 앞공간 보기',
+      enNextPoint: 'Play into front-space, not at runner feet only',
+    ),
+    _ImageQuizSeed(
+      id: 'transition_final_decision',
+      difficulty: 3,
+      category: _QuizCategory.positions,
+      scene: _ImageQuizScene.transitionRun,
+      koStem: '마지막 3선택 중 가장 실점 위험이 낮은 것은?',
+      enStem: 'Among final 3 choices, which minimizes turnover risk?',
+      options: [
+        _FootballQuizOption(koText: '각 살아있는 지원에게 연결', enText: 'Link to open-angle support'),
+        _FootballQuizOption(koText: '1대3 돌파 강행', enText: 'Force 1v3 dribble'),
+        _FootballQuizOption(koText: '시야 없는 즉시 슛', enText: 'Blind instant shot'),
+        _FootballQuizOption(koText: '정지 후 볼 소유 잃기', enText: 'Freeze and lose possession'),
+      ],
+      correctIndex: 0,
+      koExplain: '열린 각 지원 연결이 턴오버를 가장 줄입니다.',
+      enExplain: 'Linking to open-angle support minimizes turnovers best.',
+      koNextPoint: '결정 전 지원 각도 체크',
+      enNextPoint: 'Check support angles before final action',
+    ),
+    _ImageQuizSeed(
+      id: 'defense_cover_line',
+      difficulty: 1,
+      category: _QuizCategory.positions,
+      scene: _ImageQuizScene.defensiveCover,
+      koStem: '커버 수비에서 가장 먼저 맞춰야 하는 것은?',
+      enStem: 'What must be aligned first in cover defense?',
+      options: [
+        _FootballQuizOption(koText: '볼-골문 사이 커버 라인', enText: 'Cover line between ball and goal'),
+        _FootballQuizOption(koText: '무작정 전진 압박', enText: 'Blind forward pressing'),
+        _FootballQuizOption(koText: '라인 이탈 후 추격', enText: 'Chase while leaving line'),
+        _FootballQuizOption(koText: '시야 포기', enText: 'Ignore visual reference'),
+      ],
+      correctIndex: 0,
+      koExplain: '커버의 기본은 볼-골문 사이 라인 정렬입니다.',
+      enExplain: 'Cover defense starts with ball-goal line alignment.',
+      koNextPoint: '커버 위치는 골문 기준으로 잡기',
+      enNextPoint: 'Anchor cover position from goal reference',
+    ),
+    _ImageQuizSeed(
+      id: 'defense_second_defender_role',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      scene: _ImageQuizScene.defensiveCover,
+      koStem: '2차 수비자(세컨드 디펜더)의 핵심 역할은?',
+      enStem: 'What is core role of second defender?',
+      options: [
+        _FootballQuizOption(koText: '커버 + 패스길 차단', enText: 'Cover + block passing lane'),
+        _FootballQuizOption(koText: '동시에 같은 공 압박', enText: 'Press same ball at once'),
+        _FootballQuizOption(koText: '완전 반대편 이탈', enText: 'Drift to far opposite side'),
+        _FootballQuizOption(koText: '공과 반대 방향 보기', enText: 'Look away from ball'),
+      ],
+      correctIndex: 0,
+      koExplain: '세컨드 디펜더는 1차 압박 뒤를 보호해야 합니다.',
+      enExplain: 'Second defender protects space behind first pressure.',
+      koNextPoint: '1차-2차 수비 역할 분리',
+      enNextPoint: 'Separate first and second defender roles',
+    ),
+    _ImageQuizSeed(
+      id: 'defense_recovery_speed',
+      difficulty: 3,
+      category: _QuizCategory.training,
+      scene: _ImageQuizScene.defensiveCover,
+      koStem: '수비 복귀 속도를 높이는 가장 효과적인 습관은?',
+      enStem: 'What habit most improves defensive recovery speed?',
+      options: [
+        _FootballQuizOption(koText: '잃은 직후 즉시 전환 스프린트', enText: 'Immediate transition sprint after loss'),
+        _FootballQuizOption(koText: '판정 항의 후 복귀', enText: 'Recover after complaining'),
+        _FootballQuizOption(koText: '걷기 복귀', enText: 'Walk-back recovery'),
+        _FootballQuizOption(koText: '공격 대기', enText: 'Stay high and wait'),
+      ],
+      correctIndex: 0,
+      koExplain: '볼을 잃은 직후 2~3초 전환 속도가 수비 안정성을 좌우합니다.',
+      enExplain: 'First 2-3 seconds after loss decide defensive stability.',
+      koNextPoint: '볼 상실 직후 첫 3초 집중',
+      enNextPoint: 'Focus on first 3 seconds after turnover',
     ),
   ];
 }
