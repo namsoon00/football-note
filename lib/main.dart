@@ -17,6 +17,7 @@ import 'application/locale_service.dart';
 import 'application/settings_service.dart';
 import 'application/backup_service.dart';
 import 'application/drive_backup_service.dart';
+import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/theme/app_theme.dart';
@@ -61,8 +62,10 @@ Future<void> main() async {
   await backupService.autoBackupDaily();
   final reminderService =
       TrainingPlanReminderService(optionRepository, settingsService);
+  final badgeService = TrainingPlanBadgeService(optionRepository);
   await reminderService.initialize();
   await reminderService.syncFromStorage();
+  await badgeService.syncFromStorage();
   settingsService.addListener(() {
     unawaited(reminderService.syncFromStorage());
   });
