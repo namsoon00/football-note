@@ -17,6 +17,7 @@ import '../../gen/app_localizations.dart';
 import '../models/training_board_link_codec.dart';
 import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/shared_tab_header.dart';
 import 'news_screen.dart';
 import 'profile_screen.dart';
@@ -103,10 +104,24 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final stream = widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     final showBack = !widget.embeddedInHomeTab;
+    final canOpenDrawer = !showBack &&
+        widget.trainingService != null &&
+        widget.localeService != null &&
+        widget.settingsService != null;
     final profilePhotoSource =
         widget.optionRepository.getValue<String>('profile_photo_url') ?? '';
 
     return Scaffold(
+      drawer: canOpenDrawer
+          ? AppDrawer(
+              trainingService: widget.trainingService!,
+              optionRepository: widget.optionRepository,
+              localeService: widget.localeService!,
+              settingsService: widget.settingsService!,
+              driveBackupService: widget.driveBackupService,
+              currentIndex: 0,
+            )
+          : null,
       body: AppBackground(
         child: SafeArea(
           child: StreamBuilder<List<TrainingEntry>>(
@@ -140,36 +155,40 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
               return Column(
                 children: [
-                  SharedTabHeader(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    onLeadingTap: showBack
-                        ? () => Navigator.of(context).maybePop()
-                        : null,
-                    leadingIcon: showBack ? Icons.arrow_back : Icons.menu,
-                    leadingTooltip: _isKo
-                        ? (showBack ? '뒤로가기' : '메뉴')
-                        : (showBack ? 'Back' : 'Menu'),
-                    onNewsTap: widget.trainingService != null &&
-                            widget.localeService != null &&
-                            widget.settingsService != null
-                        ? _openNews
-                        : null,
-                    onQuizTap: widget.trainingService != null &&
-                            widget.localeService != null &&
-                            widget.settingsService != null
-                        ? _openQuiz
-                        : null,
-                    onProfileTap: _openProfile,
-                    onSettingsTap: widget.localeService != null &&
-                            widget.settingsService != null
-                        ? _openSettings
-                        : _openProfile,
-                    profilePhotoSource: profilePhotoSource,
-                    title: _isKo ? '다이어리' : 'Diary',
-                    titleTrailing: OutlinedButton.icon(
-                      onPressed: _showThemePicker,
-                      icon: const Icon(Icons.palette_outlined, size: 18),
-                      label: Text(_isKo ? '테마' : 'Theme'),
+                  Builder(
+                    builder: (headerContext) => SharedTabHeader(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      onLeadingTap: showBack
+                          ? () => Navigator.of(context).maybePop()
+                          : canOpenDrawer
+                              ? () => Scaffold.of(headerContext).openDrawer()
+                              : null,
+                      leadingIcon: showBack ? Icons.arrow_back : Icons.menu,
+                      leadingTooltip: _isKo
+                          ? (showBack ? '뒤로가기' : '메뉴')
+                          : (showBack ? 'Back' : 'Menu'),
+                      onNewsTap: widget.trainingService != null &&
+                              widget.localeService != null &&
+                              widget.settingsService != null
+                          ? _openNews
+                          : null,
+                      onQuizTap: widget.trainingService != null &&
+                              widget.localeService != null &&
+                              widget.settingsService != null
+                          ? _openQuiz
+                          : null,
+                      onProfileTap: _openProfile,
+                      onSettingsTap: widget.localeService != null &&
+                              widget.settingsService != null
+                          ? _openSettings
+                          : _openProfile,
+                      profilePhotoSource: profilePhotoSource,
+                      title: _isKo ? '다이어리' : 'Diary',
+                      titleTrailing: OutlinedButton.icon(
+                        onPressed: _showThemePicker,
+                        icon: const Icon(Icons.palette_outlined, size: 18),
+                        label: Text(_isKo ? '테마' : 'Theme'),
+                      ),
                     ),
                   ),
                   Padding(

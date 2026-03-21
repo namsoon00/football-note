@@ -769,8 +769,8 @@ class _DailyFlowCard extends StatelessWidget {
             children: [
               _TodoChip(
                 done: data.loggedTrainingToday,
-                icon: Icons.edit_note_rounded,
-                label: isKo ? '훈련' : 'Log',
+                icon: Icons.menu_book_rounded,
+                label: isKo ? '훈련기록' : 'Training',
                 onTap: onLog,
               ),
               _TodoChip(
@@ -1242,7 +1242,7 @@ class _QuickActionButton extends StatelessWidget {
               children: [
                 Icon(
                   item.icon,
-                  size: 20,
+                  size: 18,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 const Spacer(),
@@ -1255,10 +1255,10 @@ class _QuickActionButton extends StatelessWidget {
                   ),
                   style: Theme.of(
                     context,
-                  ).textTheme.labelLarge?.copyWith(
+                  ).textTheme.titleSmall?.copyWith(
                         fontSize: 14,
                         height: 1.05,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900,
                       ),
                 ),
               ],
