@@ -177,6 +177,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       data: data,
                       isKo: isKo,
                       onLog: _trackedAction('daily_flow_log', widget.onCreate),
+                      onLifting: _trackedAction(
+                        'daily_flow_lifting',
+                        () => _openTodayEntryOrCreate(data),
+                      ),
+                      onJumpRope: _trackedAction(
+                        'daily_flow_jump_rope',
+                        () => _openTodayEntryOrCreate(data),
+                      ),
                       onQuiz: _trackedAction(
                         'daily_flow_quiz',
                         widget.onQuickQuiz,
@@ -357,6 +365,22 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       'home_action_last_tap_at_v1',
       DateTime.now().toIso8601String(),
     );
+  }
+
+  void _openTodayEntryOrCreate(_HomeHubData data) {
+    final entry = data.latestTrainingEntry;
+    if (entry == null) {
+      widget.onCreate();
+      return;
+    }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final entryDay = DateTime(entry.date.year, entry.date.month, entry.date.day);
+    if (entryDay == today) {
+      widget.onEdit(entry);
+      return;
+    }
+    widget.onCreate();
   }
 
   String _newsArticleKey(NewsArticle article) {
@@ -678,6 +702,8 @@ class _DailyFlowCard extends StatelessWidget {
   final _HomeHubData data;
   final bool isKo;
   final VoidCallback? onLog;
+  final VoidCallback? onLifting;
+  final VoidCallback? onJumpRope;
   final VoidCallback? onQuiz;
   final VoidCallback? onReview;
 
@@ -685,6 +711,8 @@ class _DailyFlowCard extends StatelessWidget {
     required this.data,
     required this.isKo,
     required this.onLog,
+    required this.onLifting,
+    required this.onJumpRope,
     required this.onQuiz,
     required this.onReview,
   });
@@ -749,13 +777,13 @@ class _DailyFlowCard extends StatelessWidget {
                 done: data.loggedLiftingToday,
                 icon: Icons.fitness_center_rounded,
                 label: isKo ? '리프팅' : 'Lifting',
-                onTap: onLog,
+                onTap: onLifting,
               ),
               _TodoChip(
                 done: data.loggedJumpRopeToday,
                 icon: Icons.sports_gymnastics_rounded,
                 label: isKo ? '줄넘기' : 'Jump',
-                onTap: onLog,
+                onTap: onJumpRope,
               ),
               _TodoChip(
                 done: data.quizCompletedToday,
