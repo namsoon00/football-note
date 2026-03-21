@@ -1,13 +1,13 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/skill_quiz_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('skill quiz lets user start board quiz from type menu', (
+  testWidgets('skill quiz shows football quiz mode menu', (
     WidgetTester tester,
   ) async {
     final repository = _MemoryOptionRepository();
@@ -22,39 +22,41 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byTooltip('퀴즈 세트 메뉴'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('타입별 퀴즈 선택'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('보드').last);
-    await tester.tap(find.text('보드').last);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.text('축구 퀴즈'), findsOneWidget);
+    expect(find.textContaining('진행 1/8'), findsOneWidget);
 
-    expect(find.textContaining('보드 문제풀'), findsOneWidget);
-    expect(find.textContaining('보드 세트'), findsOneWidget);
-    expect(find.text('보드 퀴즈'), findsOneWidget);
-    expect(find.text('코치 설명'), findsOneWidget);
+    await tester.tap(find.byTooltip('퀴즈 모드 선택'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('오늘의 축구 퀴즈'), findsOneWidget);
+    expect(find.text('복습 모드'), findsOneWidget);
+    expect(find.text('챌린지 모드'), findsOneWidget);
+    expect(find.text('스피드 모드'), findsOneWidget);
   });
 
-  testWidgets('skill quiz renders board-based scenario from saved session', (
+  testWidgets('skill quiz restores saved general football question session', (
     WidgetTester tester,
   ) async {
     final repository = _MemoryOptionRepository()
       ..seed(
         SkillQuizScreen.sessionKey,
         jsonEncode(<String, dynamic>{
-          'reviewMode': false,
-          'sessionSource': 'today',
+          'mode': 'daily',
+          'questionIds': <String>['ox_offside_own_half_0_0_t'],
           'index': 0,
           'score': 0,
+          'streak': 0,
+          'bestStreak': 0,
+          'timeouts': 0,
+          'answerCount': 0,
+          'responseMillisSum': 0,
           'selectedIndex': null,
           'answered': false,
           'retryUsed': false,
           'retryFeedback': null,
           'wrongIds': <String>[],
-          'dailyQuestions': <Map<String, dynamic>>[_boardQuestion()],
-          'questions': <Map<String, dynamic>>[_boardQuestion()],
+          'finished': false,
+          'speedLeft': 12,
         }),
       );
 
@@ -67,140 +69,23 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('보드 퀴즈'), findsOneWidget);
-    expect(find.text('위치 먼저 보기'), findsOneWidget);
-    expect(find.text('코치가 먼저 말해주는 힌트'), findsOneWidget);
-    expect(find.text('코치 보드'), findsOneWidget);
-    expect(find.text('중앙 압박이 오기 전, 오른쪽 앞 빈 공간이 열렸어요.'), findsWidgets);
-    expect(find.text('오른쪽 앞 빈 공간으로 빠르게 패스'), findsOneWidget);
+    expect(find.text('축구 퀴즈'), findsOneWidget);
+    expect(
+      find.textContaining('자기 진영에 있는 공격수는 오프사이드 반칙 대상이 아니다.'),
+      findsOneWidget,
+    );
+    expect(find.text('O'), findsWidgets);
+    expect(find.text('X'), findsWidgets);
 
-    await tester.ensureVisible(find.text('오른쪽 앞 빈 공간으로 빠르게 패스'));
-    await tester.tap(find.text('오른쪽 앞 빈 공간으로 빠르게 패스'));
+    await tester.tap(find.text('O').first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(
-      find.text('상대가 모이기 전에 오른쪽 앞 빈 공간을 바로 쓰는 선택이 가장 좋아요.'),
-      findsOneWidget,
-    );
+    expect(find.text('정답 포인트'), findsOneWidget);
+    expect(find.textContaining('오프사이드는 상대 진영에서만 성립합니다.'), findsOneWidget);
+    expect(find.textContaining('정답은 O예요.'), findsOneWidget);
   });
-}
-
-Map<String, dynamic> _boardQuestion() {
-  return <String, dynamic>{
-    'id': 'scn01_decision',
-    'koQuestion': '이 장면에서 다음 플레이로 가장 좋은 선택은?',
-    'enQuestion': 'Looking at the pitch, what is the best next action?',
-    'options': <Map<String, String>>[
-      <String, String>{
-        'koText': '오른쪽 앞 빈 공간으로 빠르게 패스',
-        'enText': 'Quick forward pass into the right half-space',
-      },
-      <String, String>{
-        'koText': '공을 멈추고 상대가 오길 기다린다',
-        'enText': 'Stop the ball and wait for central pressure',
-      },
-      <String, String>{
-        'koText': '멀리 있는 측면으로만 크게 보낸다',
-        'enText': 'Force a long switch to the far wing',
-      },
-    ],
-    'correctIndex': 0,
-    'koExplain': '상대가 모이기 전에 오른쪽 앞 빈 공간을 바로 쓰는 선택이 가장 좋아요.',
-    'enExplain':
-        'Before central pressure arrives, the open half-space is the best route.',
-    'scenario': <String, dynamic>{
-      'koTitle': '중앙 압박이 오기 전, 오른쪽 앞 빈 공간이 열렸어요.',
-      'enTitle':
-          'Central pressure is closing, but the right half-space is open.',
-      'koMovementCaption': '공을 가진 친구와 앞쪽 친구가 오른쪽 빈 공간으로 함께 움직일 준비를 하고 있어요.',
-      'enMovementCaption':
-          'The ball and second runner accelerate together into the right half-space.',
-      'boardPage': <String, dynamic>{
-        'name': 'Right Half-space',
-        'methodText': '',
-        'items': <Map<String, dynamic>>[
-          <String, dynamic>{
-            'type': 'player',
-            'x': 0.18,
-            'y': 0.52,
-            'size': 32,
-            'rotationDeg': 0,
-            'colorValue': 0xFFB3E5FC,
-          },
-          <String, dynamic>{
-            'type': 'player',
-            'x': 0.36,
-            'y': 0.35,
-            'size': 32,
-            'rotationDeg': 0,
-            'colorValue': 0xFFB3E5FC,
-          },
-          <String, dynamic>{
-            'type': 'player',
-            'x': 0.7,
-            'y': 0.44,
-            'size': 32,
-            'rotationDeg': 0,
-            'colorValue': 0xFFB3E5FC,
-          },
-          <String, dynamic>{
-            'type': 'player',
-            'x': 0.3,
-            'y': 0.5,
-            'size': 32,
-            'rotationDeg': 0,
-            'colorValue': 0xFFFFCCBC,
-          },
-          <String, dynamic>{
-            'type': 'player',
-            'x': 0.46,
-            'y': 0.5,
-            'size': 32,
-            'rotationDeg': 0,
-            'colorValue': 0xFFFFCCBC,
-          },
-          <String, dynamic>{
-            'type': 'player',
-            'x': 0.58,
-            'y': 0.56,
-            'size': 32,
-            'rotationDeg': 0,
-            'colorValue': 0xFFFFCCBC,
-          },
-          <String, dynamic>{
-            'type': 'ball',
-            'x': 0.18,
-            'y': 0.52,
-            'size': 26,
-            'rotationDeg': 0,
-            'colorValue': 0xFFFFF8E1,
-          },
-        ],
-        'strokes': <Map<String, dynamic>>[
-          <String, dynamic>{
-            'points': <Map<String, double>>[
-              <String, double>{'x': 0.7, 'y': 0.08},
-              <String, double>{'x': 0.7, 'y': 0.92},
-            ],
-            'colorValue': 0x5CFFD54F,
-            'width': 22,
-          },
-        ],
-        'playerPath': <Map<String, double>>[
-          <String, double>{'x': 0.36, 'y': 0.35},
-          <String, double>{'x': 0.48, 'y': 0.33},
-          <String, double>{'x': 0.78, 'y': 0.42},
-        ],
-        'ballPath': <Map<String, double>>[
-          <String, double>{'x': 0.18, 'y': 0.52},
-          <String, double>{'x': 0.48, 'y': 0.33},
-        ],
-      },
-    },
-  };
 }
 
 class _MemoryOptionRepository implements OptionRepository {
