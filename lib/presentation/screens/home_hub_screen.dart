@@ -197,10 +197,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     const SizedBox(height: 12),
                     _QuickActionGrid(
                       isKo: isKo,
-                      onCreate: _trackedAction(
-                        'quick_create_log',
-                        widget.onCreate,
-                      )!,
                       onQuickMatch: _trackedAction(
                         'quick_create_match',
                         widget.onQuickMatch,
@@ -208,10 +204,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       onQuickPlan: _trackedAction(
                         'quick_create_plan',
                         widget.onQuickPlan,
-                      ),
-                      onQuickQuiz: _trackedAction(
-                        'quick_create_quiz',
-                        widget.onQuickQuiz,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -808,32 +800,18 @@ class _DailyFlowCard extends StatelessWidget {
 
 class _QuickActionGrid extends StatelessWidget {
   final bool isKo;
-  final VoidCallback onCreate;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
-  final VoidCallback? onQuickQuiz;
 
   const _QuickActionGrid({
     required this.isKo,
-    required this.onCreate,
     required this.onQuickMatch,
     required this.onQuickPlan,
-    required this.onQuickQuiz,
   });
 
   @override
   Widget build(BuildContext context) {
     final primaryItems = <_QuickActionItem>[
-      _QuickActionItem(
-        icon: Icons.add_circle_outline,
-        title: isKo ? '훈련 기록' : 'Add log',
-        onTap: onCreate,
-      ),
-      _QuickActionItem(
-        icon: Icons.quiz_outlined,
-        title: isKo ? '퀴즈' : 'Quiz',
-        onTap: onQuickQuiz,
-      ),
       _QuickActionItem(
         icon: Icons.sports_soccer_outlined,
         title: isKo ? '시합 기록' : 'Add match',
