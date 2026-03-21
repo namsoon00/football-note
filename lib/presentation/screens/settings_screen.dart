@@ -9,7 +9,9 @@ import '../../application/benchmark_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/settings_service.dart';
+import '../../application/training_plan_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/app_feedback.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
@@ -39,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _signedIn = false;
   bool _autoDaily = true;
   bool _autoOnSave = true;
+  late final TrainingPlanReminderService _reminderService;
 
   late List<int> _durationOptions;
   late List<int> _ratingOptions;
@@ -57,6 +60,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _reminderService = TrainingPlanReminderService(
+      widget.optionRepository,
+      widget.settingsService,
+    );
     _refreshSignInState();
   }
 
@@ -456,6 +463,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: widget.settingsService.reminderEnabled,
                 onChanged: (value) async {
                   await widget.settingsService.setReminderEnabled(value);
+                  if (value) {
+                    final granted =
+                        await _reminderService.hasNotificationPermission();
+                    if (context.mounted && !granted) {
+                      AppFeedback.showMessage(
+                        context,
+                        text: isKo
+                            ? '알림 권한이 꺼져 있어 훈련 계획 알림이 오지 않을 수 있어요. 설정 > 알림에서 허용해 주세요.'
+                            : 'Notification permission is off, so training plan alerts may not arrive. Enable it in Settings > Notifications.',
+                      );
+                    }
+                  }
                   if (mounted) setState(() {});
                 },
               ),
