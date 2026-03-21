@@ -9,6 +9,9 @@ class PlayerLevelService {
   static const String quizRewardDayKey = 'player_quiz_reward_day_v1';
   static const String awardedPlanIdsKey = 'player_awarded_plan_ids_v1';
   static const String awardedStreaksKey = 'player_awarded_streaks_v1';
+  static const String awardedBoardSaveTokensKey =
+      'player_awarded_board_save_tokens_v1';
+  static const String diaryReviewDayKey = 'player_diary_review_day_v1';
   static const String claimedRewardLevelsKey =
       'player_claimed_reward_levels_v1';
   static const String customRewardNamesKey = 'player_custom_reward_names_v1';
@@ -232,6 +235,92 @@ class PlayerLevelService {
       before: before,
       after: after,
       reasons: const <String>['plan_created'],
+    );
+  }
+
+  Future<PlayerLevelAward> awardForBoardSaved({
+    required String boardId,
+    required String boardTitle,
+    DateTime? savedAt,
+    bool created = false,
+  }) async {
+    final before = loadState();
+    final awardedTokens = _getStringSet(awardedBoardSaveTokensKey);
+    final now = savedAt ?? DateTime.now();
+    final token = '$boardId:${_dayKey(now)}';
+    if (!awardedTokens.add(token)) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+
+    final gainedXp = created ? 12 : 8;
+    final reasons = <String>[created ? 'board_created' : 'board_saved'];
+    final nextTotal = before.totalXp + gainedXp;
+    await _options.setValue(totalXpKey, nextTotal);
+    await _options.setValue(
+      awardedBoardSaveTokensKey,
+      awardedTokens.toList()..sort(),
+    );
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: now,
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.board,
+        label: boardTitle.trim(),
+        reasons: reasons,
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: reasons,
+    );
+  }
+
+  Future<PlayerLevelAward> awardForDiaryReview({DateTime? reviewedAt}) async {
+    final before = loadState();
+    final day = _normalizeDay(reviewedAt ?? DateTime.now());
+    final token = _dayKey(day);
+    if ((_options.getValue<String>(diaryReviewDayKey) ?? '') == token) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+
+    const gainedXp = 5;
+    final nextTotal = before.totalXp + gainedXp;
+    await _options.setValue(totalXpKey, nextTotal);
+    await _options.setValue(diaryReviewDayKey, token);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: reviewedAt ?? DateTime.now(),
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.diary,
+        label: '',
+        reasons: const <String>['diary_reviewed'],
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: const <String>['diary_reviewed'],
     );
   }
 
@@ -630,7 +719,7 @@ class PlayerLevelRewardClaim {
   });
 }
 
-enum PlayerXpHistoryCategory { training, quiz, plan }
+enum PlayerXpHistoryCategory { training, quiz, plan, board, diary }
 
 class PlayerXpHistoryEntry {
   final DateTime awardedAt;

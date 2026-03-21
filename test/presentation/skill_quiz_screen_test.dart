@@ -23,7 +23,12 @@ void main() {
     await tester.pump();
 
     expect(find.text('축구 퀴즈'), findsOneWidget);
-    expect(find.textContaining('진행 1/8'), findsOneWidget);
+    expect(find.text('오늘의 문제'), findsOneWidget);
+
+    await tester.tap(find.text('오늘의 문제'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('진행 1/10'), findsOneWidget);
 
     await tester.tap(find.byTooltip('퀴즈 모드 선택'));
     await tester.pumpAndSettle();
@@ -71,6 +76,11 @@ void main() {
     await tester.pump();
 
     expect(find.text('축구 퀴즈'), findsOneWidget);
+    expect(find.text('이어하기'), findsOneWidget);
+
+    await tester.tap(find.text('이어하기'));
+    await tester.pumpAndSettle();
+
     expect(
       find.textContaining('자기 진영에 있는 공격수는 오프사이드 반칙 대상이 아니다.'),
       findsOneWidget,
@@ -83,8 +93,52 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('정답 포인트'), findsOneWidget);
-    expect(find.textContaining('오프사이드는 상대 진영에서만 성립합니다.'), findsOneWidget);
-    expect(find.textContaining('정답은 O예요.'), findsOneWidget);
+    expect(find.textContaining('오프사이드는 상대 진영에서만 성립합니다.'), findsWidgets);
+    expect(find.textContaining('정답은 O예요.'), findsWidgets);
+  });
+
+  testWidgets('daily quiz mixes in due wrong-answer questions', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime.now();
+    final repository = _MemoryOptionRepository()
+      ..seed(
+        SkillQuizScreen.pendingWrongScheduleKey,
+        jsonEncode(<Map<String, dynamic>>[
+          <String, dynamic>{
+            'questionId': 'ox_offside_own_half_0_0_t',
+            'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
+            'wrongCount': 1,
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
+          },
+        ]),
+      );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('오늘의 문제'));
+    await tester.pumpAndSettle();
+
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
+    expect(savedIds, hasLength(10));
+    expect(savedIds, contains('ox_offside_own_half_0_0_t'));
   });
 }
 

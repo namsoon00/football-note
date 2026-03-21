@@ -149,6 +149,12 @@ class _XpHistoryCard extends StatelessWidget {
         return isKo ? '퀴즈 완료' : 'Quiz completion';
       case PlayerXpHistoryCategory.plan:
         return isKo ? '훈련 계획 생성' : 'Training plan created';
+      case PlayerXpHistoryCategory.board:
+        final label = item.label.trim();
+        if (label.isEmpty) return isKo ? '훈련 스케치 저장' : 'Training sketch saved';
+        return isKo ? '훈련 스케치 · $label' : 'Training sketch · $label';
+      case PlayerXpHistoryCategory.diary:
+        return isKo ? '오늘 다이어리 확인' : 'Today diary reviewed';
     }
   }
 
@@ -182,6 +188,12 @@ class _XpHistoryCard extends StatelessWidget {
         return isKo ? '퀴즈 완료' : 'quiz complete';
       case 'plan_created':
         return isKo ? '계획 생성' : 'plan created';
+      case 'board_created':
+        return isKo ? '보드 생성' : 'board created';
+      case 'board_saved':
+        return isKo ? '보드 저장' : 'board saved';
+      case 'diary_reviewed':
+        return isKo ? '다이어리 확인' : 'diary reviewed';
       default:
         return reason;
     }
