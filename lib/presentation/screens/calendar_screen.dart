@@ -659,6 +659,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     var duration = editingPlan?.durationMinutes ?? 60;
     var reminderBefore = editingPlan?.reminderMinutesBefore ?? 30;
+    var repeatWeekdays =
+        editingPlan?.repeatWeekdays.toSet() ?? <int>{planDay.weekday};
+    var alarmLoopEnabled = editingPlan?.alarmLoopEnabled ?? true;
     var noteText = editingPlan?.note ?? '';
     if (!mounted) return;
     final saved = await showModalBottomSheet<_TrainingPlan>(
@@ -807,6 +810,68 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         },
                       ),
                       const SizedBox(height: 8),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          isKo
+                              ? '훈련 시간 반복 알림 (끄기 전까지)'
+                              : 'Training-time repeating alert (until turned off)',
+                        ),
+                        value: alarmLoopEnabled,
+                        onChanged: (value) {
+                          setSheetState(() => alarmLoopEnabled = value);
+                        },
+                      ),
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          isKo ? '반복 요일' : 'Repeat weekdays',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: List<Widget>.generate(7, (index) {
+                          final weekday = index + 1;
+                          final selected = repeatWeekdays.contains(weekday);
+                          const koLabels = [
+                            '월',
+                            '화',
+                            '수',
+                            '목',
+                            '금',
+                            '토',
+                            '일'
+                          ];
+                          const enLabels = [
+                            'Mon',
+                            'Tue',
+                            'Wed',
+                            'Thu',
+                            'Fri',
+                            'Sat',
+                            'Sun'
+                          ];
+                          return ChoiceChip(
+                            label:
+                                Text(isKo ? koLabels[index] : enLabels[index]),
+                            selected: selected,
+                            onSelected: (value) {
+                              setSheetState(() {
+                                if (value) {
+                                  repeatWeekdays.add(weekday);
+                                } else if (repeatWeekdays.length > 1) {
+                                  repeatWeekdays.remove(weekday);
+                                }
+                              });
+                            },
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 8),
                       TextFormField(
                         initialValue: noteText,
                         onChanged: (value) => noteText = value,
@@ -835,6 +900,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               category: category,
                               durationMinutes: duration,
                               reminderMinutesBefore: reminderBefore,
+                              repeatWeekdays:
+                                  repeatWeekdays.toList(growable: false)
+                                    ..sort(),
+                              alarmLoopEnabled: alarmLoopEnabled,
                               note: noteText.trim(),
                             ),
                           );
@@ -1681,6 +1750,12 @@ class _PlanTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final timeText = DateFormat('HH:mm').format(plan.scheduledAt);
+    final repeatText = _weekdayText(plan.repeatWeekdays, isKo: isKo);
+    final reminderText = plan.alarmLoopEnabled
+        ? (isKo ? '훈련 시간 반복 알림' : 'repeating at training time')
+        : (isKo
+            ? '${plan.reminderMinutesBefore}분 전 알림'
+            : 'alert ${plan.reminderMinutesBefore} min before');
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
@@ -1700,8 +1775,7 @@ class _PlanTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '${_formatDurationText(plan.durationMinutes, isKo: isKo)} · '
-          '${isKo ? '${plan.reminderMinutesBefore}분 전 알림' : 'alert ${plan.reminderMinutesBefore} min before'}'
+          '$repeatText · ${_formatDurationText(plan.durationMinutes, isKo: isKo)} · $reminderText'
           '${plan.note.isEmpty ? '' : ' · ${plan.note}'}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -1714,6 +1788,17 @@ class _PlanTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _weekdayText(List<int> weekdays, {required bool isKo}) {
+  const ko = ['월', '화', '수', '목', '금', '토', '일'];
+  const en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  final labels = weekdays
+      .where((d) => d >= 1 && d <= 7)
+      .map((d) => isKo ? ko[d - 1] : en[d - 1])
+      .toList(growable: false);
+  if (labels.isEmpty) return isKo ? '요일 미지정' : 'No weekdays';
+  return labels.join(isKo ? '·' : ', ');
 }
 
 class _EntryTile extends StatelessWidget {
@@ -2074,6 +2159,8 @@ class _TrainingPlan {
   final String category;
   final int durationMinutes;
   final int reminderMinutesBefore;
+  final List<int> repeatWeekdays;
+  final bool alarmLoopEnabled;
   final String note;
 
   const _TrainingPlan({
@@ -2082,6 +2169,8 @@ class _TrainingPlan {
     required this.category,
     required this.durationMinutes,
     required this.reminderMinutesBefore,
+    required this.repeatWeekdays,
+    required this.alarmLoopEnabled,
     required this.note,
   });
 
@@ -2092,6 +2181,8 @@ class _TrainingPlan {
       'category': category,
       'durationMinutes': durationMinutes,
       'reminderMinutesBefore': reminderMinutesBefore,
+      'repeatWeekdays': repeatWeekdays,
+      'alarmLoopEnabled': alarmLoopEnabled,
       'note': note,
     };
   }
@@ -2106,6 +2197,13 @@ class _TrainingPlan {
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
       reminderMinutesBefore:
           (map['reminderMinutesBefore'] as num?)?.toInt() ?? 30,
+      repeatWeekdays: ((map['repeatWeekdays'] as List?) ?? const [])
+          .map((e) => (e as num?)?.toInt() ?? 0)
+          .where((v) => v >= DateTime.monday && v <= DateTime.sunday)
+          .toSet()
+          .toList(growable: false)
+        ..sort(),
+      alarmLoopEnabled: (map['alarmLoopEnabled'] as bool?) ?? true,
       note: map['note']?.toString() ?? '',
     );
   }

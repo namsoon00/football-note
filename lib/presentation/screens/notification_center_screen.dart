@@ -24,6 +24,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   late final TrainingPlanReminderService _reminderService;
   bool _permissionGranted = true;
   bool _loading = true;
+  bool _mutedNow = false;
   List<PendingNotificationRequest> _pending = const [];
 
   @override
@@ -38,13 +39,30 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _load() async {
     final permission = await _reminderService.hasNotificationPermission();
+    final muted = await _reminderService.isAlarmMutedNow();
     final pending = await _reminderService.pendingReminders();
     if (!mounted) return;
     setState(() {
       _permissionGranted = permission;
+      _mutedNow = muted;
       _pending = pending..sort((a, b) => a.id.compareTo(b.id));
       _loading = false;
     });
+  }
+
+  Future<void> _muteForHours(int hours) async {
+    await _reminderService.muteAlarmsUntil(
+      DateTime.now().add(Duration(hours: hours)),
+    );
+    if (!mounted) return;
+    await _load();
+  }
+
+  Future<void> _resumeAlerts() async {
+    await _reminderService.clearAlarmMute();
+    await _reminderService.syncFromStorage();
+    if (!mounted) return;
+    await _load();
   }
 
   @override
@@ -90,6 +108,52 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           : (isKo
                               ? '설정 > 알림에서 권한을 켜 주세요.'
                               : 'Enable permission in Settings > Notifications.'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          _mutedNow
+                              ? (isKo ? '알림 일시중지됨' : 'Alerts are paused')
+                              : (isKo ? '반복 알림 제어' : 'Repeating alert control'),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed:
+                                    _mutedNow ? null : () => _muteForHours(8),
+                                icon: const Icon(
+                                    Icons.notifications_off_outlined),
+                                label: Text(isKo ? '8시간 끄기' : 'Mute 8h'),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed: _mutedNow ? _resumeAlerts : null,
+                                icon: const Icon(
+                                    Icons.notifications_active_outlined),
+                                label: Text(isKo ? '다시 켜기' : 'Resume'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),

@@ -12,6 +12,7 @@ import 'settings_service.dart';
 class TrainingPlanReminderService {
   static const String plansStorageKey = 'training_plans_v1';
   static const String reminderIdsKey = 'training_plan_reminder_ids_v1';
+  static const String alarmMutedUntilKey = 'training_plan_alarm_muted_until_v1';
 
   static const String _androidChannelId = 'training_plan_reminders';
   static const String _androidChannelIdVibrate =
@@ -120,53 +121,124 @@ class TrainingPlanReminderService {
     if (kIsWeb) return;
     await clearAllPlanReminders();
     if (!_settings.reminderEnabled) return;
+    if (await isAlarmMutedNow()) return;
 
     final now = DateTime.now();
     final scheduledIds = <int>[];
 
     for (final raw in plans) {
       final plan = _PlanLite.fromMap(raw);
-      final reminderAt = plan.scheduledAt
-          .subtract(Duration(minutes: plan.reminderMinutesBefore));
-      if (!reminderAt.isAfter(now)) continue;
+      final baseTimes = _buildBaseTimes(plan, now);
+      if (baseTimes.isEmpty) continue;
 
-      final id = _notificationIdForPlan(plan.id);
-      const title = 'SoccerNote';
-      final body = kIsWeb
-          ? 'Training starts soon: ${plan.category}'
-          : 'Training in ${plan.reminderMinutesBefore} min: ${plan.category}';
-
-      try {
-        final vibrationEnabled = _settings.reminderVibrationEnabled;
-        await _plugin.zonedSchedule(
-          id,
-          title,
-          body,
-          tz.TZDateTime.from(reminderAt, tz.local),
-          NotificationDetails(
-            android: AndroidNotificationDetails(
-              vibrationEnabled ? _androidChannelIdVibrate : _androidChannelId,
-              _androidChannelName,
-              channelDescription: _androidChannelDescription,
-              importance: Importance.high,
-              priority: Priority.high,
-              enableVibration: vibrationEnabled,
-              vibrationPattern: vibrationEnabled ? _vibrationPattern : null,
-            ),
-            iOS: const DarwinNotificationDetails(),
-          ),
-          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
-          payload: plan.id,
-        );
-        scheduledIds.add(id);
-      } catch (_) {
-        // Keep syncing the rest of reminders even if one schedule fails.
+      for (final baseAt in baseTimes) {
+        final ringTimes = plan.alarmLoopEnabled
+            ? List<tz.TZDateTime>.generate(
+                16,
+                (index) => baseAt.add(Duration(minutes: index * 2)),
+              )
+            : <tz.TZDateTime>[baseAt];
+        for (var i = 0; i < ringTimes.length; i++) {
+          final at = ringTimes[i];
+          if (plan.repeatWeekdays.isEmpty &&
+              !at.isAfter(tz.TZDateTime.now(tz.local))) {
+            continue;
+          }
+          final id = _notificationIdForPlan(plan.id,
+              slot: at.millisecondsSinceEpoch ^ i);
+          const title = 'SoccerNote';
+          final body = plan.alarmLoopEnabled
+              ? 'Training time: ${plan.category}'
+              : (plan.reminderMinutesBefore <= 0
+                  ? 'Training starts now: ${plan.category}'
+                  : 'Training in ${plan.reminderMinutesBefore} min: ${plan.category}');
+          try {
+            final vibrationEnabled = _settings.reminderVibrationEnabled;
+            await _plugin.zonedSchedule(
+              id,
+              title,
+              body,
+              at,
+              NotificationDetails(
+                android: AndroidNotificationDetails(
+                  vibrationEnabled
+                      ? _androidChannelIdVibrate
+                      : _androidChannelId,
+                  _androidChannelName,
+                  channelDescription: _androidChannelDescription,
+                  importance: Importance.high,
+                  priority: Priority.high,
+                  enableVibration: vibrationEnabled,
+                  vibrationPattern: vibrationEnabled ? _vibrationPattern : null,
+                ),
+                iOS: const DarwinNotificationDetails(),
+              ),
+              androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+              uiLocalNotificationDateInterpretation:
+                  UILocalNotificationDateInterpretation.absoluteTime,
+              payload: plan.id,
+              matchDateTimeComponents: plan.repeatWeekdays.isNotEmpty
+                  ? DateTimeComponents.dayOfWeekAndTime
+                  : null,
+            );
+            scheduledIds.add(id);
+          } catch (_) {
+            // Keep syncing the rest of reminders even if one schedule fails.
+          }
+        }
       }
     }
 
     await _options.setValue(reminderIdsKey, scheduledIds);
+  }
+
+  List<tz.TZDateTime> _buildBaseTimes(_PlanLite plan, DateTime now) {
+    final tzNow = tz.TZDateTime.from(now, tz.local);
+    final reminderOffset = plan.alarmLoopEnabled
+        ? Duration.zero
+        : Duration(minutes: plan.reminderMinutesBefore);
+    if (plan.repeatWeekdays.isEmpty) {
+      final single = tz.TZDateTime.from(
+        plan.scheduledAt.subtract(reminderOffset),
+        tz.local,
+      );
+      return single.isAfter(tzNow) ? <tz.TZDateTime>[single] : const [];
+    }
+    final result = <tz.TZDateTime>[];
+    for (final weekday in plan.repeatWeekdays) {
+      final next = _nextWeekdayTime(
+        tzNow,
+        weekday: weekday,
+        hour: plan.scheduledAt.hour,
+        minute: plan.scheduledAt.minute,
+      ).subtract(reminderOffset);
+      if (next.isAfter(tzNow)) {
+        result.add(next);
+      } else {
+        result.add(next.add(const Duration(days: 7)));
+      }
+    }
+    return result;
+  }
+
+  tz.TZDateTime _nextWeekdayTime(
+    tz.TZDateTime now, {
+    required int weekday,
+    required int hour,
+    required int minute,
+  }) {
+    final todayTarget = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
+    final delta = (weekday - now.weekday + 7) % 7;
+    final candidate = todayTarget.add(Duration(days: delta));
+    if (candidate.isAfter(now)) return candidate;
+    return candidate.add(const Duration(days: 7));
   }
 
   Future<bool> hasNotificationPermission() async {
@@ -214,6 +286,23 @@ class TrainingPlanReminderService {
     return _plugin.pendingNotificationRequests();
   }
 
+  Future<bool> isAlarmMutedNow() async {
+    final raw = _options.getValue<String>(alarmMutedUntilKey);
+    if (raw == null || raw.isEmpty) return false;
+    final until = DateTime.tryParse(raw);
+    if (until == null) return false;
+    return until.isAfter(DateTime.now());
+  }
+
+  Future<void> muteAlarmsUntil(DateTime until) async {
+    await _options.setValue(alarmMutedUntilKey, until.toIso8601String());
+    await clearAllPlanReminders();
+  }
+
+  Future<void> clearAlarmMute() async {
+    await _options.setValue(alarmMutedUntilKey, '');
+  }
+
   Future<void> clearAllPlanReminders() async {
     await initialize();
     if (kIsWeb) return;
@@ -226,11 +315,12 @@ class TrainingPlanReminderService {
     await _options.setValue(reminderIdsKey, <int>[]);
   }
 
-  int _notificationIdForPlan(String planId) {
+  int _notificationIdForPlan(String planId, {required int slot}) {
     var hash = 17;
     for (final code in planId.codeUnits) {
       hash = 37 * hash + code;
     }
+    hash = 37 * hash + slot;
     return hash & 0x7fffffff;
   }
 }
@@ -240,15 +330,25 @@ class _PlanLite {
   final DateTime scheduledAt;
   final String category;
   final int reminderMinutesBefore;
+  final List<int> repeatWeekdays;
+  final bool alarmLoopEnabled;
 
   const _PlanLite({
     required this.id,
     required this.scheduledAt,
     required this.category,
     required this.reminderMinutesBefore,
+    required this.repeatWeekdays,
+    required this.alarmLoopEnabled,
   });
 
   factory _PlanLite.fromMap(Map<String, dynamic> map) {
+    final repeatWeekdays = ((map['repeatWeekdays'] as List?) ?? const [])
+        .map((e) => (e as num?)?.toInt() ?? 0)
+        .where((v) => v >= DateTime.monday && v <= DateTime.sunday)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
     return _PlanLite(
       id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
@@ -257,6 +357,8 @@ class _PlanLite {
       category: map['category']?.toString() ?? '',
       reminderMinutesBefore:
           (map['reminderMinutesBefore'] as num?)?.toInt() ?? 30,
+      repeatWeekdays: repeatWeekdays,
+      alarmLoopEnabled: (map['alarmLoopEnabled'] as bool?) ?? true,
     );
   }
 }
