@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/player_level_service.dart';
+import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../application/training_board_service.dart';
+import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
@@ -194,6 +196,15 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           savedAt: created.updatedAt,
           created: true,
         );
+    await TrainingPlanReminderService(
+      widget.optionRepository,
+      SettingsService(widget.optionRepository)..load(),
+    ).showXpGainAlert(
+      gainedXp: award.gainedXp,
+      totalXp: award.after.totalXp,
+      isKo: isKo,
+      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
+    );
     if (!mounted) return;
     AppFeedback.showSuccess(
       context,
@@ -546,6 +557,15 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           savedAt: created.updatedAt,
           created: true,
         );
+    await TrainingPlanReminderService(
+      widget.optionRepository,
+      SettingsService(widget.optionRepository)..load(),
+    ).showXpGainAlert(
+      gainedXp: award.gainedXp,
+      totalXp: award.after.totalXp,
+      isKo: isKo,
+      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
+    );
     if (!mounted) return;
     AppFeedback.showSuccess(
       context,
@@ -942,6 +962,15 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
           savedAt: created.updatedAt,
           created: true,
         );
+    await TrainingPlanReminderService(
+      widget.optionRepository,
+      SettingsService(widget.optionRepository)..load(),
+    ).showXpGainAlert(
+      gainedXp: award.gainedXp,
+      totalXp: award.after.totalXp,
+      isKo: isKo,
+      sourceLabel: isKo ? '훈련 스케치' : 'Training sketch',
+    );
     if (!mounted) return;
     AppFeedback.showSuccess(
       context,

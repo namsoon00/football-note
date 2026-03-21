@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -178,5 +179,63 @@ void main() {
     await pumpCalendar(tester);
 
     expect(find.byTooltip('다이어리'), findsNothing);
+  });
+
+  testWidgets('계획이 있는 날짜는 기록과 다른 색 마커를 날짜 아래에 표시한다', (tester) async {
+    final today = DateTime.now();
+    await trainingService.add(
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 7),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '',
+      ),
+    );
+    await optionRepository.setValue(
+      'training_plans_v1',
+      jsonEncode([
+        {
+          'id': 'series_1',
+          'scheduledAt': DateTime(
+            today.year,
+            today.month,
+            today.day,
+            18,
+          ).toIso8601String(),
+          'category': '슛',
+          'durationMinutes': 60,
+          'reminderMinutesBefore': 30,
+          'repeatWeekdays': [today.weekday],
+          'alarmLoopEnabled': false,
+          'note': '',
+          'seriesId': 'series',
+          'seriesStartDate': DateTime(
+            today.year,
+            today.month,
+            today.day,
+          ).toIso8601String(),
+          'seriesEndDate': DateTime(
+            today.year,
+            today.month,
+            today.day,
+          ).toIso8601String(),
+        },
+      ]),
+    );
+
+    await pumpCalendar(tester);
+
+    expect(
+      find.byKey(ValueKey('calendar_day_entry_marker_${today.day}')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey('calendar_day_plan_marker_${today.day}')),
+      findsOneWidget,
+    );
   });
 }

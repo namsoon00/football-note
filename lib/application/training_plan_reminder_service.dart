@@ -454,6 +454,52 @@ class TrainingPlanReminderService {
     }
   }
 
+  Future<void> showXpGainAlert({
+    required int gainedXp,
+    required int totalXp,
+    required bool isKo,
+    String? sourceLabel,
+  }) async {
+    await initialize();
+    if (kIsWeb) return;
+    if (gainedXp <= 0) return;
+    if (!_settings.reminderEnabled || !_settings.xpAlertEnabled) return;
+    if (!await hasNotificationPermission()) return;
+
+    final label = sourceLabel?.trim() ?? '';
+    final body = isKo
+        ? '${label.isEmpty ? '경험치' : label} +$gainedXp XP · 누적 $totalXp XP'
+        : '${label.isEmpty ? 'XP' : label} +$gainedXp XP · total $totalXp XP';
+    final id = _notificationIdForScope(
+      'xp',
+      '$totalXp:${DateTime.now().millisecondsSinceEpoch}',
+    );
+    try {
+      await _plugin.show(
+        id,
+        'SoccerNote',
+        body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _androidRoutineChannelId,
+            _androidRoutineChannelName,
+            channelDescription: _androidRoutineChannelDescription,
+            importance: Importance.high,
+            priority: Priority.high,
+            enableVibration: _settings.reminderVibrationEnabled,
+            vibrationPattern: _settings.reminderVibrationEnabled
+                ? _vibrationPattern
+                : null,
+          ),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        payload: 'xp:$totalXp',
+      );
+    } catch (_) {
+      // Ignore immediate notification failures.
+    }
+  }
+
   List<_PendingPlanNotification> _buildNotifications(
     _PlanLite plan,
     DateTime now,
