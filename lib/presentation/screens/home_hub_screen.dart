@@ -710,14 +710,16 @@ class _DailyFlowCard extends StatelessWidget {
                   isKo ? '오늘 할 일' : 'Today tasks',
                   style: Theme.of(
                     context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                  ).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
               Text(
                 isKo ? '$completedCount/5 완료' : '$completedCount/5 done',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
@@ -735,7 +737,7 @@ class _DailyFlowCard extends StatelessWidget {
             crossAxisCount: 3,
             mainAxisSpacing: 6,
             crossAxisSpacing: 6,
-            childAspectRatio: 2.8,
+            childAspectRatio: 2.3,
             children: [
               _TodoChip(
                 done: data.loggedTrainingToday,
@@ -1253,7 +1255,7 @@ class _TodoChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
             color: scheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(12),
@@ -1268,7 +1270,7 @@ class _TodoChip extends StatelessWidget {
             children: [
               Icon(
                 done ? Icons.check_circle : icon,
-                size: 15,
+                size: 16,
                 color: done ? const Color(0xFF0FA968) : scheme.primary,
               ),
               const SizedBox(width: 4),
@@ -1279,7 +1281,7 @@ class _TodoChip extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
-                  ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800),
+                  ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w900),
                 ),
               ),
             ],
