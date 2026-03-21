@@ -604,236 +604,78 @@ class _LevelHeroCard extends StatelessWidget {
     final spec = PlayerLevelVisualSpec.fromLevel(levelState.level);
     return Container(
       key: const ValueKey('level-hero-card'),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: spec.colors,
+          colors: [
+            spec.colors.first.withValues(alpha: 0.92),
+            spec.colors.last.withValues(alpha: 0.92),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: const [
           BoxShadow(
             color: Color(0x14000000),
-            blurRadius: 18,
-            offset: Offset(0, 6),
+            blurRadius: 10,
+            offset: Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _LevelIllustration(isKo: isKo, level: levelState.level),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isKo ? '오늘의 레벨' : 'Today level',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.86),
-                    fontWeight: FontWeight.w800,
-                  ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 5,
                 ),
-                const SizedBox(height: 6),
-                Text(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.20),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
                   'Lv.${levelState.level}',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _LevelMetaChip(
-                      icon: Icons.palette_outlined,
-                      label: isKo
-                          ? '컬러 ${_levelColorLabel(levelState.level)}'
-                          : _levelColorLabel(levelState.level),
-                    ),
-                    _LevelMetaChip(
-                      icon: _stageIcon(levelState.level),
-                      label: PlayerLevelService.levelName(
-                        levelState.level,
-                        isKo,
-                      ),
-                    ),
-                  ],
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  PlayerLevelService.levelName(levelState.level, isKo),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _levelColorLabel(int level) {
-    switch (level.clamp(1, 20)) {
-      case 1:
-      case 2:
-        return isKo ? '그린/블루' : 'Green/Blue';
-      case 3:
-      case 4:
-        return isKo ? '옐로/오렌지' : 'Yellow/Orange';
-      case 5:
-      case 6:
-        return isKo ? '바이올렛' : 'Violet';
-      case 7:
-      case 8:
-        return isKo ? '핑크/코발트' : 'Pink/Cobalt';
-      case 9:
-      case 10:
-        return isKo ? '에메랄드/골드' : 'Emerald/Gold';
-      default:
-        return isKo ? '프리미엄 그라데이션' : 'Premium gradient';
-    }
-  }
-
-  IconData _stageIcon(int level) {
-    switch (PlayerLevelVisualSpec.fromLevel(level).stage) {
-      case PlayerLevelIllustrationStage.whistle:
-        return Icons.sports;
-      case PlayerLevelIllustrationStage.ball:
-        return Icons.sports_soccer;
-      case PlayerLevelIllustrationStage.cone:
-        return Icons.change_history;
-      case PlayerLevelIllustrationStage.boot:
-        return Icons.directions_run;
-      case PlayerLevelIllustrationStage.jumpRope:
-        return Icons.sports_gymnastics;
-      case PlayerLevelIllustrationStage.dumbbell:
-        return Icons.fitness_center;
-      case PlayerLevelIllustrationStage.tactics:
-        return Icons.route;
-      case PlayerLevelIllustrationStage.crown:
-        return Icons.workspace_premium;
-      case PlayerLevelIllustrationStage.trophy:
-        return Icons.emoji_events;
-      case PlayerLevelIllustrationStage.fireworks:
-        return Icons.auto_awesome;
-      case PlayerLevelIllustrationStage.shield:
-        return Icons.shield_outlined;
-      case PlayerLevelIllustrationStage.gloves:
-        return Icons.back_hand_outlined;
-      case PlayerLevelIllustrationStage.radar:
-        return Icons.radar;
-      case PlayerLevelIllustrationStage.lightning:
-        return Icons.bolt;
-      case PlayerLevelIllustrationStage.medal:
-        return Icons.military_tech;
-      case PlayerLevelIllustrationStage.stadium:
-        return Icons.stadium;
-      case PlayerLevelIllustrationStage.rocket:
-        return Icons.rocket_launch;
-      case PlayerLevelIllustrationStage.star:
-        return Icons.star_outline;
-      case PlayerLevelIllustrationStage.gift:
-        return Icons.redeem_outlined;
-      case PlayerLevelIllustrationStage.galaxy:
-        return Icons.public;
-    }
-  }
-}
-
-class _LevelMetaChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _LevelMetaChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.white),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LevelIllustration extends StatelessWidget {
-  final bool isKo;
-  final int level;
-
-  const _LevelIllustration({required this.isKo, required this.level});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 94,
-      height: 102,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            right: 2,
-            top: 2,
-            child: Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.14),
-                shape: BoxShape.circle,
               ),
-            ),
-          ),
-          Positioned(
-            right: 8,
-            top: 6,
-            child: PlayerLevelIllustration(level: level, size: 68),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+              const SizedBox(width: 8),
+              Text(
+                isKo
+                    ? '다음까지 ${levelState.xpToNextLevel}XP'
+                    : '${levelState.xpToNextLevel} XP left',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    PlayerLevelService.illustrationLabel(level, isKo),
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    isKo ? '비주얼 성장 단계' : 'Visual growth tier',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.82),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: levelState.progress,
+            minHeight: 5,
+            borderRadius: BorderRadius.circular(999),
+            backgroundColor: Colors.white.withValues(alpha: 0.18),
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
           ),
         ],
       ),
