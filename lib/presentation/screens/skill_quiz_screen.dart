@@ -1,10 +1,10 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_method_layout.dart';
-import '../widgets/training_board_sketch.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -240,86 +240,78 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  isKo ? '보드 문제풀기' : 'Board Problem Solving',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isKo
-                      ? '보드 세트 ${_questions.length}개'
-                      : '${_questions.length} board scenarios',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  isKo
-                      ? '보드 퀴즈 ${_currentIndex + 1}/${_questions.length}'
-                      : 'Board Quiz ${_currentIndex + 1}/${_questions.length}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final maxWidth = math.min(constraints.maxWidth, 920.0);
+                    return Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              isKo ? '보드 문제풀기' : 'Board Problem Solving',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 4),
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 8,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  isKo
+                                      ? '보드 세트 ${_questions.length}개'
+                                      : '${_questions.length} board scenarios',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                Text(
+                                  isKo
+                                      ? '보드 퀴즈 ${_currentIndex + 1}/${_questions.length}'
+                                      : 'Board Quiz ${_currentIndex + 1}/${_questions.length}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w900),
+                                ),
+                                Text(
+                                  isKo ? '위치 먼저 보기' : 'Read the picture first',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _SimpleBoardCard(
+                              page: _question.boardPage,
+                              caption: isKo ? '코치 보드' : 'Coach Board',
+                              title: _question.title(isKo),
+                              subtitle: _question.movementCaption(isKo),
+                              hintTitle: isKo ? '코치 설명' : 'Coach Hint',
+                              hintLabel: isKo
+                                  ? '코치가 먼저 말해주는 힌트'
+                                  : 'Coach gives the first hint',
+                            ),
+                            const SizedBox(height: 12),
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  _question.question(isKo),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  isKo ? '위치 먼저 보기' : 'Read the picture first',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 10),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isKo ? '코치 설명' : 'Coach Hint',
-                          style:
-                              Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          isKo
-                              ? '코치가 먼저 말해주는 힌트'
-                              : 'Coach gives the first hint',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          _question.title(isKo),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(_question.movementCaption(isKo)),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _SimpleBoardCard(
-                  page: _question.boardPage,
-                  caption: isKo ? '코치 보드' : 'Coach Board',
-                ),
-                const SizedBox(height: 10),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Text(
-                      _question.question(isKo),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 ..._question.options.asMap().entries.map((entry) {
                   final idx = entry.key;
                   final option = entry.value;
@@ -481,45 +473,473 @@ class SkillQuizResumeSummary {
 class _SimpleBoardCard extends StatelessWidget {
   final TrainingMethodPage page;
   final String caption;
+  final String title;
+  final String subtitle;
+  final String hintTitle;
+  final String hintLabel;
 
-  const _SimpleBoardCard({required this.page, required this.caption});
+  const _SimpleBoardCard({
+    required this.page,
+    required this.caption,
+    required this.title,
+    required this.subtitle,
+    required this.hintTitle,
+    required this.hintLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: scheme.outlineVariant),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            scheme.surface,
+            scheme.surfaceContainerHighest.withValues(alpha: 0.9),
+          ],
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            caption,
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  color: const Color(0x140B5FFF),
+                ),
+                child: Text(
+                  caption,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+              Text(
+                '11v11 decision view',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: SizedBox(
-              height: 220,
-              width: double.infinity,
-              child: TrainingBoardSketch(
-                page: page,
-                borderRadius: 14,
-                showStrokes: true,
-                showPlayerPath: true,
-                showBallPath: true,
+            borderRadius: BorderRadius.circular(22),
+            child: AspectRatio(
+              aspectRatio: 1.05,
+              child: _AnimatedBoardScene(page: page),
+            ),
+          ),
+          const SizedBox(height: 16),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: scheme.surface.withValues(alpha: 0.72),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hintTitle,
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelLarge
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(hintLabel, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(subtitle),
+                ],
               ),
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _AnimatedBoardScene extends StatefulWidget {
+  final TrainingMethodPage page;
+
+  const _AnimatedBoardScene({required this.page});
+
+  @override
+  State<_AnimatedBoardScene> createState() => _AnimatedBoardSceneState();
+}
+
+class _AnimatedBoardSceneState extends State<_AnimatedBoardScene>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: _BoardScenePainter(
+            page: widget.page,
+            progress: Curves.easeInOut.transform(_controller.value),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BoardScenePainter extends CustomPainter {
+  final TrainingMethodPage page;
+  final double progress;
+
+  const _BoardScenePainter({required this.page, required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fieldRect = Offset.zero & size;
+    final outer = RRect.fromRectAndRadius(fieldRect, const Radius.circular(22));
+    final grass = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF49A74B), Color(0xFF2D7A34), Color(0xFF1E5C29)],
+      ).createShader(fieldRect);
+    canvas.drawRRect(outer, grass);
+
+    final stripePaint = Paint()..color = Colors.white.withValues(alpha: 0.05);
+    final stripeHeight = size.height / 7;
+    for (var i = 0; i < 7; i += 1) {
+      if (i.isEven) {
+        canvas.drawRect(
+          Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight),
+          stripePaint,
+        );
+      }
+    }
+
+    final line = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(2.0, size.shortestSide * 0.006);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(10, 10, size.width - 20, size.height - 20),
+        const Radius.circular(16),
+      ),
+      line,
+    );
+    canvas.drawLine(
+      Offset(size.width / 2, 10),
+      Offset(size.width / 2, size.height - 10),
+      line,
+    );
+    canvas.drawCircle(
+      Offset(size.width / 2, size.height / 2),
+      size.shortestSide * 0.11,
+      line,
+    );
+
+    _paintPenaltyAreas(canvas, size, line);
+    _paintHighlightStrokes(canvas, size);
+    _paintPaths(canvas, size);
+    _paintItems(canvas, size);
+    _paintOverlayLabels(canvas, size);
+  }
+
+  void _paintPenaltyAreas(Canvas canvas, Size size, Paint line) {
+    final boxWidth = size.width * 0.16;
+    final boxHeight = size.height * 0.36;
+    final smallWidth = size.width * 0.07;
+    final smallHeight = size.height * 0.18;
+    final top = size.height / 2 - boxHeight / 2;
+    final smallTop = size.height / 2 - smallHeight / 2;
+    canvas.drawRect(Rect.fromLTWH(10, top, boxWidth, boxHeight), line);
+    canvas.drawRect(
+      Rect.fromLTWH(size.width - 10 - boxWidth, top, boxWidth, boxHeight),
+      line,
+    );
+    canvas.drawRect(Rect.fromLTWH(10, smallTop, smallWidth, smallHeight), line);
+    canvas.drawRect(
+      Rect.fromLTWH(
+        size.width - 10 - smallWidth,
+        smallTop,
+        smallWidth,
+        smallHeight,
+      ),
+      line,
+    );
+  }
+
+  void _paintHighlightStrokes(Canvas canvas, Size size) {
+    for (final stroke in page.strokes) {
+      if (stroke.points.length < 2) continue;
+      final path = Path()
+        ..moveTo(
+          stroke.points.first.x * size.width,
+          stroke.points.first.y * size.height,
+        );
+      for (final point in stroke.points.skip(1)) {
+        path.lineTo(point.x * size.width, point.y * size.height);
+      }
+      final glowPaint = Paint()
+        ..color = Color(stroke.colorValue).withValues(alpha: 0.38)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = math.max(18, stroke.width * 1.8);
+      final corePaint = Paint()
+        ..color = Color(stroke.colorValue).withValues(alpha: 0.84)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = math.max(7, stroke.width * 0.85);
+      canvas.drawPath(path, glowPaint);
+      canvas.drawPath(path, corePaint);
+    }
+  }
+
+  void _paintPaths(Canvas canvas, Size size) {
+    if (page.playerPath.length >= 2) {
+      final playerPath = _buildPath(page.playerPath, size);
+      final trail = Paint()
+        ..color = const Color(0xFFB7F4D6).withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(5.0, size.shortestSide * 0.012)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(playerPath, trail);
+    }
+    if (page.ballPath.length >= 2) {
+      final ballPath = _buildPath(page.ballPath, size);
+      final trail = Paint()
+        ..color = const Color(0xFFFFF3A8).withValues(alpha: 0.96)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(4.0, size.shortestSide * 0.01)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(ballPath, trail);
+      _paintBallDashes(canvas, size, ballPath);
+    }
+  }
+
+  void _paintBallDashes(Canvas canvas, Size size, Path ballPath) {
+    final metric = ballPath.computeMetrics().firstOrNull;
+    if (metric == null) return;
+    final dashPaint = Paint()..color = Colors.white.withValues(alpha: 0.5);
+    for (var i = 0; i < 4; i += 1) {
+      final t = (progress * 0.7 + i * 0.08).clamp(0.0, 1.0);
+      final tangent = metric.getTangentForOffset(metric.length * t);
+      if (tangent == null) continue;
+      canvas.drawCircle(tangent.position, size.shortestSide * 0.008, dashPaint);
+    }
+  }
+
+  void _paintItems(Canvas canvas, Size size) {
+    final animatedPlayer = page.playerPath.length >= 2
+        ? _interpolate(page.playerPath, progress)
+        : null;
+    final animatedBall = page.ballPath.length >= 2
+        ? _interpolate(page.ballPath, progress)
+        : null;
+
+    for (final item in page.items) {
+      if (item.type == 'ball' && animatedBall != null) {
+        _drawBall(canvas, size, animatedBall, item.size);
+        continue;
+      }
+      if (_isAnimatedPlayer(item) && animatedPlayer != null) {
+        _drawPlayer(
+          canvas,
+          size,
+          animatedPlayer,
+          item.size + 10,
+          const Color(0xFF73D4FF),
+          active: true,
+        );
+        continue;
+      }
+
+      if (item.type == 'player') {
+        _drawPlayer(
+          canvas,
+          size,
+          Offset(item.x * size.width, item.y * size.height),
+          item.size + 6,
+          Color(item.colorValue),
+          active: false,
+        );
+      }
+    }
+  }
+
+  bool _isAnimatedPlayer(TrainingMethodItem item) {
+    if (item.type != 'player' || page.playerPath.isEmpty) return false;
+    final first = page.playerPath.first;
+    return (item.x - first.x).abs() < 0.001 && (item.y - first.y).abs() < 0.001;
+  }
+
+  void _drawPlayer(
+    Canvas canvas,
+    Size size,
+    Offset center,
+    double rawSize,
+    Color color, {
+    required bool active,
+  }) {
+    final radius = math.max(18.0, rawSize * 0.42);
+    final glowPaint = Paint()
+      ..color = (active ? color : color.withValues(alpha: 0.7))
+          .withValues(alpha: active ? 0.34 : 0.18)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawCircle(center, radius + 8, glowPaint);
+
+    final body = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withValues(alpha: 0.98),
+          Color.lerp(color, Colors.black, 0.28) ?? color,
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+    canvas.drawCircle(center, radius, body);
+
+    final outline = Paint()
+      ..color = Colors.white.withValues(alpha: 0.88)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = active ? 3.0 : 2.0;
+    canvas.drawCircle(center, radius, outline);
+
+    final headPaint = Paint()..color = Colors.white.withValues(alpha: 0.95);
+    canvas.drawCircle(
+      center.translate(0, -radius * 0.18),
+      radius * 0.22,
+      headPaint,
+    );
+    final torso = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: center.translate(0, radius * 0.14),
+        width: radius * 0.58,
+        height: radius * 0.72,
+      ),
+      Radius.circular(radius * 0.22),
+    );
+    canvas.drawRRect(torso, headPaint);
+  }
+
+  void _drawBall(Canvas canvas, Size size, Offset center, double rawSize) {
+    final radius = math.max(12.0, rawSize * 0.36);
+    final glowPaint = Paint()
+      ..color = const Color(0xFFFFF2A6).withValues(alpha: 0.45)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
+    canvas.drawCircle(center, radius + 8, glowPaint);
+
+    final ball = Paint()
+      ..shader = const RadialGradient(
+        colors: [Color(0xFFFFFFFF), Color(0xFFF0F0F0)],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+    canvas.drawCircle(center, radius, ball);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = const Color(0xFF1A1A1A)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4,
+    );
+    final patchPaint = Paint()..color = const Color(0xFF222222);
+    for (final angle in [0.0, 2.1, 4.2]) {
+      final patchCenter = center.translate(
+        math.cos(angle) * radius * 0.42,
+        math.sin(angle) * radius * 0.42,
+      );
+      canvas.drawCircle(patchCenter, radius * 0.16, patchPaint);
+    }
+  }
+
+  void _paintOverlayLabels(Canvas canvas, Size size) {
+    final painter = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: 'MOVE',
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.84),
+          fontSize: math.max(12.0, size.shortestSide * 0.03),
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.6,
+        ),
+      ),
+    )..layout();
+    painter.paint(canvas, const Offset(20, 18));
+  }
+
+  Path _buildPath(List<TrainingMethodPoint> points, Size size) {
+    final path = Path()
+      ..moveTo(points.first.x * size.width, points.first.y * size.height);
+    for (final point in points.skip(1)) {
+      path.lineTo(point.x * size.width, point.y * size.height);
+    }
+    return path;
+  }
+
+  Offset _interpolate(List<TrainingMethodPoint> points, double t) {
+    if (points.isEmpty) return Offset.zero;
+    if (points.length == 1) return Offset(points.first.x, points.first.y);
+    final clamped = t.clamp(0.0, 1.0);
+    final scaled = clamped * (points.length - 1);
+    final index = scaled.floor().clamp(0, points.length - 2);
+    final localT = scaled - index;
+    final a = points[index];
+    final b = points[index + 1];
+    return Offset(
+      _lerp(a.x, b.x, localT),
+      _lerp(a.y, b.y, localT),
+    );
+  }
+
+  double _lerp(double a, double b, double t) => a + (b - a) * t;
+
+  @override
+  bool shouldRepaint(covariant _BoardScenePainter oldDelegate) {
+    return oldDelegate.page != page || oldDelegate.progress != progress;
   }
 }
 
