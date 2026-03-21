@@ -624,6 +624,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                       ],
                     ),
                     const SizedBox(height: 10),
+                    _ScenarioPromptCard(question: question, isKo: isKo),
+                    const SizedBox(height: 10),
                     Stack(
                       children: [
                         _BoardSceneCard(
@@ -631,7 +633,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                           pulse: _pulseController,
                           motion: _sceneMotionController,
                           isKo: isKo,
-                          height: boardHeight,
+                          height: boardHeight * 0.58,
                         ),
                         if (_answerFx != _AnswerFx.none)
                           Positioned(
@@ -640,19 +642,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                             child: _AnswerFxBadge(fx: _answerFx, isKo: isKo),
                           ),
                       ],
-                    ),
-                    const SizedBox(height: 10),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Text(
-                          question.questionText(isKo),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                      ),
                     ),
                     const SizedBox(height: 10),
                     ...question.options.asMap().entries.map((entry) {
@@ -675,37 +664,67 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: OutlinedButton(
-                          onPressed: () => _selectAnswer(optionIndex),
-                          style: OutlinedButton.styleFrom(
-                            alignment: Alignment.centerLeft,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                            side: BorderSide(
-                              color: borderColor ??
-                                  Theme.of(context).colorScheme.outlineVariant,
-                              width: borderColor == null ? 1.0 : 1.6,
-                            ),
-                            backgroundColor: bgColor,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text(option.text(isKo))),
-                              if (_answered && isCorrect)
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Color(0xFF0FA968),
+                        child: Material(
+                          color: bgColor ??
+                              Theme.of(context).colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () => _selectAnswer(optionIndex),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: borderColor ??
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .outlineVariant,
+                                  width: borderColor == null ? 1.0 : 1.6,
                                 ),
-                              if ((_answered || _retryUsed) &&
-                                  selected &&
-                                  !isCorrect)
-                                const Icon(
-                                  Icons.cancel,
-                                  color: Color(0xFFEB5757),
-                                ),
-                            ],
+                              ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 13,
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withValues(alpha: 0.12),
+                                    child: Icon(
+                                      _optionIconForIndex(optionIndex),
+                                      size: 15,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      option.text(isKo),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(fontWeight: FontWeight.w800),
+                                    ),
+                                  ),
+                                  if (_answered && isCorrect)
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: Color(0xFF0FA968),
+                                    ),
+                                  if ((_answered || _retryUsed) &&
+                                      selected &&
+                                      !isCorrect)
+                                    const Icon(
+                                      Icons.cancel,
+                                      color: Color(0xFFEB5757),
+                                    ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       );
@@ -1358,6 +1377,61 @@ class _BoardSceneCard extends StatelessWidget {
       return isOur ? '우리$sameTeamIndex' : '상대$sameTeamIndex';
     }
     return isOur ? 'A$sameTeamIndex' : 'D$sameTeamIndex';
+  }
+}
+
+IconData _optionIconForIndex(int index) {
+  switch (index) {
+    case 0:
+      return Icons.looks_one_rounded;
+    case 1:
+      return Icons.looks_two_rounded;
+    default:
+      return Icons.looks_3_rounded;
+  }
+}
+
+class _ScenarioPromptCard extends StatelessWidget {
+  final _BoardQuizQuestion question;
+  final bool isKo;
+
+  const _ScenarioPromptCard({required this.question, required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              question.caption(isKo),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              question.questionText(isKo),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isKo
+                  ? '아래 행동 카드 1개를 골라요.'
+                  : 'Pick one action card below.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
