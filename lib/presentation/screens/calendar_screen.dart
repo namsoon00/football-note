@@ -13,6 +13,7 @@ import '../../application/locale_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
+import '../../application/training_plan_badge_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -82,6 +83,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _calendarExpanded = true;
 
   late final TrainingPlanReminderService _reminderService;
+  late final TrainingPlanBadgeService _badgeService;
   List<_TrainingPlan> _plans = const <_TrainingPlan>[];
   bool _quickCreateHandled = false;
   bool _overlayOpenInFlight = false;
@@ -93,6 +95,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       widget.optionRepository,
       widget.settingsService,
     );
+    _badgeService = TrainingPlanBadgeService(widget.optionRepository);
     _plans = _loadPlans();
     _calendarExpanded =
         widget.optionRepository.getValue<bool>(_calendarExpandedKey) ?? true;
@@ -1198,6 +1201,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _savePlans() async {
     final raw = jsonEncode(_plans.map((plan) => plan.toMap()).toList());
     await widget.optionRepository.setValue(_plansStorageKey, raw);
+    await _badgeService.syncFromStorage();
   }
 
   Map<DateTime, List<TrainingEntry>> _groupByDay(List<TrainingEntry> entries) {
