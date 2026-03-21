@@ -199,12 +199,19 @@ class TrainingPlanReminderService {
       case TargetPlatform.iOS:
         final iosImpl = _plugin.resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
-        await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
+        await iosImpl?.requestPermissions(
+            alert: true, badge: true, sound: true);
         final permissions = await iosImpl?.checkPermissions();
         return permissions?.isEnabled ?? false;
       default:
         return true;
     }
+  }
+
+  Future<List<PendingNotificationRequest>> pendingReminders() async {
+    await initialize();
+    if (kIsWeb) return const <PendingNotificationRequest>[];
+    return _plugin.pendingNotificationRequests();
   }
 
   Future<void> clearAllPlanReminders() async {

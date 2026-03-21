@@ -10,6 +10,7 @@ import '../screens/settings_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/training_method_board_screen.dart';
 import '../screens/news_screen.dart';
+import '../screens/notification_center_screen.dart';
 import '../screens/skill_quiz_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
@@ -150,6 +151,23 @@ class AppDrawer extends StatelessWidget {
                       settingsService: settingsService,
                       driveBackupService: driveBackupService,
                       isActive: true,
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications_outlined),
+              title: Text(Localizations.localeOf(context).languageCode == 'ko'
+                  ? '알림'
+                  : 'Notifications'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => NotificationCenterScreen(
+                      optionRepository: optionRepository,
+                      settingsService: settingsService,
                     ),
                   ),
                 );
