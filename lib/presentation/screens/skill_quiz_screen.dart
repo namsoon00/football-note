@@ -1124,7 +1124,20 @@ class _BoardSceneCard extends StatelessWidget {
                 builder: (context, child) => Stack(
                   fit: StackFit.expand,
                   children: [
-                    child!,
+                    Positioned.fill(
+                      child: InteractiveViewer(
+                        minScale: 1,
+                        maxScale: 2.6,
+                        boundaryMargin: const EdgeInsets.all(28),
+                        child: child!,
+                      ),
+                    ),
+                    CustomPaint(
+                      painter: _TacticalDetailPainter(
+                        page: question.page,
+                        isKo: isKo,
+                      ),
+                    ),
                     CustomPaint(
                       painter: _PlayMotionPainter(
                         page: question.page,
@@ -1169,6 +1182,13 @@ class _BoardSceneCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            _sceneReadText(question.page, isKo),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
         ],
       ),
     );
@@ -1178,6 +1198,39 @@ class _BoardSceneCard extends StatelessWidget {
     if (page.ballPath.isNotEmpty) return page.ballPath.last;
     if (page.playerPath.isNotEmpty) return page.playerPath.last;
     return null;
+  }
+
+  String _sceneReadText(TrainingMethodPage page, bool isKo) {
+    final ball = page.items.where((item) => item.type == 'ball').toList();
+    final players = page.items.where((item) => item.type == 'player').toList();
+    final ourTeam = players.where((item) => item.colorValue == 0xFFB3E5FC);
+    final oppTeam = players.where((item) => item.colorValue == 0xFFFFCCBC);
+
+    final ballPos = ball.isEmpty ? null : _zoneLabel(ball.first.x, ball.first.y);
+    final passTo = page.ballPath.isEmpty ? null : page.ballPath.last;
+    final supportPos = passTo == null ? null : _zoneLabel(passTo.x, passTo.y);
+    final runTo = page.playerPath.isEmpty ? null : page.playerPath.last;
+    final runPos = runTo == null ? null : _zoneLabel(runTo.x, runTo.y);
+    if (isKo) {
+      return '장면 읽기: 볼 ${ballPos ?? '중앙'} · 패스 목표 ${supportPos ?? '없음'} · '
+          '러너 방향 ${runPos ?? '없음'} · 우리 ${ourTeam.length}명 / 상대 ${oppTeam.length}명';
+    }
+    return 'Scene read: Ball ${ballPos ?? 'center'} · Pass target ${supportPos ?? 'none'} · '
+        'Runner path ${runPos ?? 'none'} · Us ${ourTeam.length} / Opp ${oppTeam.length}';
+  }
+
+  String _zoneLabel(double x, double y) {
+    final h = x < 0.33
+        ? 'left'
+        : x > 0.67
+            ? 'right'
+            : 'center';
+    final v = y < 0.33
+        ? 'top'
+        : y > 0.67
+            ? 'bottom'
+            : 'middle';
+    return '$v-$h';
   }
 }
 
@@ -1210,6 +1263,114 @@ class _LegendDot extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _TacticalDetailPainter extends CustomPainter {
+  final TrainingMethodPage page;
+  final bool isKo;
+
+  const _TacticalDetailPainter({required this.page, required this.isKo});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final guidePaint = Paint()
+      ..color = const Color(0x558FA0C6)
+      ..strokeWidth = 1;
+    canvas.drawLine(
+      Offset(size.width * 0.33, 0),
+      Offset(size.width * 0.33, size.height),
+      guidePaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.67, 0),
+      Offset(size.width * 0.67, size.height),
+      guidePaint,
+    );
+    canvas.drawLine(
+      Offset(0, size.height * 0.33),
+      Offset(size.width, size.height * 0.33),
+      guidePaint,
+    );
+    canvas.drawLine(
+      Offset(0, size.height * 0.67),
+      Offset(size.width, size.height * 0.67),
+      guidePaint,
+    );
+
+    final ballPath = page.ballPath;
+    if (ballPath.length >= 2) {
+      final start = Offset(
+        ballPath.first.x * size.width,
+        ballPath.first.y * size.height,
+      );
+      final end = Offset(
+        ballPath.last.x * size.width,
+        ballPath.last.y * size.height,
+      );
+      final lanePaint = Paint()
+        ..color = const Color(0x4D1E88E5)
+        ..strokeWidth = 26
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(start, end, lanePaint);
+    }
+
+    final players = page.items.where((item) => item.type == 'player').toList();
+    var ourIndex = 1;
+    var oppIndex = 1;
+    for (final player in players) {
+      final center = Offset(player.x * size.width, player.y * size.height);
+      final ours = player.colorValue == 0xFFB3E5FC;
+      final label = ours
+          ? (isKo ? '우리$ourIndex' : 'A$ourIndex')
+          : (isKo ? '상대$oppIndex' : 'D$oppIndex');
+      if (ours) {
+        ourIndex += 1;
+      } else {
+        oppIndex += 1;
+      }
+      _drawLabel(
+        canvas,
+        center.translate(0, -18),
+        label,
+        ours ? const Color(0xFF0D47A1) : const Color(0xFFBF360C),
+      );
+    }
+
+    final ball = page.items.where((item) => item.type == 'ball').toList();
+    if (ball.isNotEmpty) {
+      final center = Offset(ball.first.x * size.width, ball.first.y * size.height);
+      _drawLabel(
+        canvas,
+        center.translate(0, -18),
+        isKo ? '볼' : 'Ball',
+        const Color(0xFF5D4037),
+      );
+    }
+  }
+
+  void _drawLabel(Canvas canvas, Offset center, String text, Color color) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          backgroundColor: Colors.white70,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    textPainter.paint(
+      canvas,
+      Offset(center.dx - (textPainter.width / 2), center.dy - textPainter.height),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _TacticalDetailPainter oldDelegate) {
+    return oldDelegate.page != page || oldDelegate.isKo != isKo;
   }
 }
 
