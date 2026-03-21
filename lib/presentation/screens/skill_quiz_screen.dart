@@ -69,6 +69,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   static const int _speedLimitSec = 12;
 
   late final AnimationController _pulseController;
+  late final AnimationController _sceneMotionController;
   late final Map<String, _BoardQuizQuestion> _questionMap;
   late final List<_BoardQuizQuestion> _allQuestions;
 
@@ -82,6 +83,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   int _timeouts = 0;
   int _answerCount = 0;
   int _responseMillisSum = 0;
+  int _combo = 0;
+  int _bestComboRun = 0;
+  int _momentum = 0;
 
   int? _selectedIndex;
   bool _answered = false;
@@ -93,6 +97,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   DateTime? _questionStartedAt;
   Timer? _speedTimer;
   int _speedLeft = _speedLimitSec;
+  _AnswerFx _answerFx = _AnswerFx.none;
 
   @override
   void initState() {
@@ -101,6 +106,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     )..repeat(reverse: true);
+    _sceneMotionController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
     _allQuestions = _buildBoardQuizPool();
     _questionMap = {
       for (final question in _allQuestions) question.id: question
@@ -111,6 +120,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   @override
   void dispose() {
     _speedTimer?.cancel();
+    _sceneMotionController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -158,6 +168,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       _timeouts = snapshot.timeouts;
       _answerCount = snapshot.answerCount;
       _responseMillisSum = snapshot.responseMillisSum;
+      _combo = 0;
+      _bestComboRun = 0;
+      _momentum = 0;
       _selectedIndex = snapshot.selectedIndex;
       _answered = snapshot.answered;
       _retryUsed = snapshot.retryUsed;
@@ -167,6 +180,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
         ..clear()
         ..addAll(snapshot.wrongIds);
       _speedLeft = snapshot.speedLeft.clamp(0, _speedLimitSec);
+      _answerFx = _AnswerFx.none;
     });
 
     if (!_finished) {
@@ -257,6 +271,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       _timeouts = 0;
       _answerCount = 0;
       _responseMillisSum = 0;
+      _combo = 0;
+      _bestComboRun = 0;
+      _momentum = 0;
       _selectedIndex = null;
       _answered = false;
       _retryUsed = false;
@@ -264,6 +281,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       _finished = false;
       _wrongIds.clear();
       _speedLeft = _speedLimitSec;
+      _answerFx = _AnswerFx.none;
     });
 
     if (clearDueReview) {
@@ -277,6 +295,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
 
   void _startQuestionClock() {
     _questionStartedAt = DateTime.now();
+    if (_answered || _finished) {
+      _sceneMotionController.stop();
+    } else {
+      _startSceneMotion();
+    }
     _speedTimer?.cancel();
     if (_mode != _QuizMode.speed || _finished || _answered) {
       _speedLeft = _speedLimitSec;
@@ -299,6 +322,17 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     });
   }
 
+  void _startSceneMotion() {
+    final duration = _mode == _QuizMode.speed
+        ? const Duration(milliseconds: 1300)
+        : const Duration(milliseconds: 2100);
+    _sceneMotionController
+      ..stop()
+      ..duration = duration
+      ..value = 0
+      ..repeat();
+  }
+
   void _timeoutCurrentQuestion() {
     if (_answered || _finished) return;
     final question = _questions[_index];
@@ -310,9 +344,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       _wrongIds.add(question.id);
       _timeouts += 1;
       _streak = 0;
+      _combo = 0;
+      _momentum = (_momentum - 20).clamp(0, 100);
       _answerCount += 1;
       _responseMillisSum += (_speedLimitSec * 1000);
+      _answerFx = _AnswerFx.timeout;
     });
+    _sceneMotionController.stop();
     unawaited(_trackMetric('board_question_timeout'));
     unawaited(_persistSession());
   }
@@ -348,6 +386,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     String? wrongQuestionId,
   }) {
     _speedTimer?.cancel();
+    _sceneMotionController.stop();
     final responseMs = DateTime.now()
         .difference(_questionStartedAt ?? DateTime.now())
         .inMilliseconds;
@@ -361,11 +400,20 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       if (correct) {
         _score += 1;
         _streak += 1;
+        _combo += 1;
+        if (_combo > _bestComboRun) {
+          _bestComboRun = _combo;
+        }
+        _momentum = (_momentum + 12).clamp(0, 100);
+        _answerFx = _AnswerFx.success;
         if (_streak > _bestStreak) {
           _bestStreak = _streak;
         }
       } else {
         _streak = 0;
+        _combo = 0;
+        _momentum = (_momentum - 18).clamp(0, 100);
+        _answerFx = _AnswerFx.fail;
         if (wrongQuestionId != null) {
           _wrongIds.add(wrongQuestionId);
         }
@@ -392,6 +440,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       _answered = false;
       _retryUsed = false;
       _retryFeedback = null;
+      _answerFx = _AnswerFx.none;
     });
 
     _startQuestionClock();
@@ -530,6 +579,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                   ? '미션 ${math.min(_score, missionTarget)}/$missionTarget'
                   : 'Mission ${math.min(_score, missionTarget)}/$missionTarget',
             ),
+            _InfoChip(
+              label: isKo ? '콤보 x$_combo' : 'Combo x$_combo',
+              success: _combo >= 2,
+            ),
+            _InfoChip(
+              label: isKo ? '모멘텀 $_momentum' : 'Momentum $_momentum',
+              success: _momentum >= 60,
+            ),
             if (_mode == _QuizMode.speed)
               _InfoChip(
                 label: isKo ? '⏱ ${_speedLeft}s' : '⏱ ${_speedLeft}s',
@@ -538,10 +595,21 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
           ],
         ),
         const SizedBox(height: 10),
-        _BoardSceneCard(
-          question: question,
-          pulse: _pulseController,
-          isKo: isKo,
+        Stack(
+          children: [
+            _BoardSceneCard(
+              question: question,
+              pulse: _pulseController,
+              motion: _sceneMotionController,
+              isKo: isKo,
+            ),
+            if (_answerFx != _AnswerFx.none)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: _AnswerFxBadge(fx: _answerFx, isKo: isKo),
+              ),
+          ],
         ),
         const SizedBox(height: 10),
         Card(
@@ -680,8 +748,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                 const SizedBox(height: 6),
                 Text(
                   isKo
-                      ? '최고 연속 $_bestStreak회 · 평균 ${avgResponse}s · 타임아웃 $_timeouts회'
-                      : 'Best streak $_bestStreak · Avg ${avgResponse}s · Timeouts $_timeouts',
+                      ? '최고 연속 $_bestStreak회 · 최고 콤보 $_bestComboRun · 평균 ${avgResponse}s · 타임아웃 $_timeouts회'
+                      : 'Best streak $_bestStreak · Best combo $_bestComboRun · Avg ${avgResponse}s · Timeouts $_timeouts',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -995,12 +1063,14 @@ class _BoardQuizOption {
 
 class _BoardSceneCard extends StatelessWidget {
   final _BoardQuizQuestion question;
-  final AnimationController pulse;
+  final Animation<double> pulse;
+  final Animation<double> motion;
   final bool isKo;
 
   const _BoardSceneCard({
     required this.question,
     required this.pulse,
+    required this.motion,
     required this.isKo,
   });
 
@@ -1030,11 +1100,17 @@ class _BoardSceneCard extends StatelessWidget {
               height: 340,
               width: double.infinity,
               child: AnimatedBuilder(
-                animation: pulse,
+                animation: Listenable.merge([pulse, motion]),
                 builder: (context, child) => Stack(
                   fit: StackFit.expand,
                   children: [
                     child!,
+                    CustomPaint(
+                      painter: _PlayMotionPainter(
+                        page: question.page,
+                        t: motion.value,
+                      ),
+                    ),
                     if (focus != null)
                       CustomPaint(
                         painter: _PulseFocusPainter(
@@ -1063,6 +1139,63 @@ class _BoardSceneCard extends StatelessWidget {
     if (page.ballPath.isNotEmpty) return page.ballPath.last;
     if (page.playerPath.isNotEmpty) return page.playerPath.last;
     return null;
+  }
+}
+
+class _PlayMotionPainter extends CustomPainter {
+  final TrainingMethodPage page;
+  final double t;
+
+  const _PlayMotionPainter({required this.page, required this.t});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final ball = _samplePoint(page.ballPath, t);
+    final runner = _samplePoint(page.playerPath, (t + 0.18) % 1.0);
+
+    if (ball != null) {
+      final c = Offset(ball.x * size.width, ball.y * size.height);
+      final glow = Paint()
+        ..color = const Color(0x80FFD54F)
+        ..style = PaintingStyle.fill;
+      final dot = Paint()
+        ..color = const Color(0xFFFFC107)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(c, 14, glow);
+      canvas.drawCircle(c, 6.5, dot);
+    }
+
+    if (runner != null) {
+      final c = Offset(runner.x * size.width, runner.y * size.height);
+      final glow = Paint()
+        ..color = const Color(0x8042A5F5)
+        ..style = PaintingStyle.fill;
+      final dot = Paint()
+        ..color = const Color(0xFF1E88E5)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(c, 13, glow);
+      canvas.drawCircle(c, 6, dot);
+    }
+  }
+
+  TrainingMethodPoint? _samplePoint(List<TrainingMethodPoint> path, double t) {
+    if (path.isEmpty) return null;
+    if (path.length == 1) return path.first;
+    final segments = path.length - 1;
+    final scaled = (t.clamp(0.0, 0.999999)) * segments;
+    final index = scaled.floor().clamp(0, segments - 1);
+    final local = scaled - index;
+    final start = path[index];
+    final end = path[index + 1];
+    return TrainingMethodPoint(
+      x: start.x + (end.x - start.x) * local,
+      y: start.y + (end.y - start.y) * local,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PlayMotionPainter oldDelegate) {
+    return oldDelegate.page != page || oldDelegate.t != t;
   }
 }
 
@@ -1099,24 +1232,93 @@ class _PulseFocusPainter extends CustomPainter {
 class _InfoChip extends StatelessWidget {
   final String label;
   final bool danger;
+  final bool success;
 
-  const _InfoChip({required this.label, this.danger = false});
+  const _InfoChip({
+    required this.label,
+    this.danger = false,
+    this.success = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final bgColor = danger
+        ? const Color(0x1AEB5757)
+        : success
+            ? const Color(0x1A0FA968)
+            : scheme.surfaceContainerHighest;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color:
-            danger ? const Color(0x1AEB5757) : scheme.surfaceContainerHighest,
+        color: bgColor,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w800,
+              color: danger
+                  ? const Color(0xFFC62828)
+                  : success
+                      ? const Color(0xFF1B5E20)
+                      : null,
             ),
+      ),
+    );
+  }
+}
+
+enum _AnswerFx { none, success, fail, timeout }
+
+class _AnswerFxBadge extends StatelessWidget {
+  final _AnswerFx fx;
+  final bool isKo;
+
+  const _AnswerFxBadge({required this.fx, required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, text, color) = switch (fx) {
+      _AnswerFx.success => (
+          Icons.check_circle,
+          isKo ? '성공 패스!' : 'Perfect pass!',
+          const Color(0xFF0FA968),
+        ),
+      _AnswerFx.fail => (
+          Icons.cancel,
+          isKo ? '실패! 다시 읽어보자' : 'Miss! Re-read board',
+          const Color(0xFFEB5757),
+        ),
+      _AnswerFx.timeout => (
+          Icons.timer_off,
+          isKo ? '시간 초과' : 'Time out',
+          const Color(0xFFF57C00),
+        ),
+      _AnswerFx.none => (Icons.circle, '', Colors.transparent),
+    };
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.38)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ],
       ),
     );
   }
