@@ -164,65 +164,51 @@ class TrainingPlanReminderService {
 
     for (final raw in plans) {
       final plan = _PlanLite.fromMap(raw);
-      final baseTimes = _buildBaseTimes(plan, now);
-      if (baseTimes.isEmpty) continue;
+      final notifications = _buildNotifications(plan, now);
+      if (notifications.isEmpty) continue;
 
-      for (final baseAt in baseTimes) {
-        final ringTimes = plan.alarmLoopEnabled
-            ? List<tz.TZDateTime>.generate(
-                16,
-                (index) => baseAt.add(Duration(minutes: index * 2)),
-              )
-            : <tz.TZDateTime>[baseAt];
-        for (var i = 0; i < ringTimes.length; i++) {
-          final at = ringTimes[i];
-          if (plan.repeatWeekdays.isEmpty &&
-              !at.isAfter(tz.TZDateTime.now(tz.local))) {
-            continue;
-          }
-          final id = _notificationIdForPlan(
-            plan.id,
-            slot: at.millisecondsSinceEpoch ^ i,
-          );
-          const title = 'SoccerNote';
-          final body = plan.alarmLoopEnabled
-              ? 'Training time: ${plan.category}'
-              : (plan.reminderMinutesBefore <= 0
-                    ? 'Training starts now: ${plan.category}'
-                    : 'Training in ${plan.reminderMinutesBefore} min: ${plan.category}');
-          try {
-            final vibrationEnabled = _settings.reminderVibrationEnabled;
-            await _plugin.zonedSchedule(
-              id,
-              title,
-              body,
-              at,
-              NotificationDetails(
-                android: AndroidNotificationDetails(
-                  vibrationEnabled
-                      ? _androidChannelIdVibrate
-                      : _androidChannelId,
-                  _androidChannelName,
-                  channelDescription: _androidChannelDescription,
-                  importance: Importance.high,
-                  priority: Priority.high,
-                  enableVibration: vibrationEnabled,
-                  vibrationPattern: vibrationEnabled ? _vibrationPattern : null,
-                ),
-                iOS: const DarwinNotificationDetails(),
+      for (var i = 0; i < notifications.length; i++) {
+        final item = notifications[i];
+        final id = _notificationIdForPlan(
+          plan.id,
+          slot: item.at.millisecondsSinceEpoch ^ i,
+        );
+        const title = 'SoccerNote';
+        final body = item.atStartTime
+            ? 'Training starts now: ${plan.category}'
+            : (plan.reminderMinutesBefore <= 0
+                  ? 'Training starts now: ${plan.category}'
+                  : 'Training in ${plan.reminderMinutesBefore} min: ${plan.category}');
+        try {
+          final vibrationEnabled = _settings.reminderVibrationEnabled;
+          await _plugin.zonedSchedule(
+            id,
+            title,
+            body,
+            item.at,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                vibrationEnabled ? _androidChannelIdVibrate : _androidChannelId,
+                _androidChannelName,
+                channelDescription: _androidChannelDescription,
+                importance: Importance.high,
+                priority: Priority.high,
+                enableVibration: vibrationEnabled,
+                vibrationPattern: vibrationEnabled ? _vibrationPattern : null,
               ),
-              androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-              uiLocalNotificationDateInterpretation:
-                  UILocalNotificationDateInterpretation.absoluteTime,
-              payload: plan.id,
-              matchDateTimeComponents: plan.repeatWeekdays.isNotEmpty
-                  ? DateTimeComponents.dayOfWeekAndTime
-                  : null,
-            );
-            scheduledIds.add(id);
-          } catch (_) {
-            // Keep syncing the rest of reminders even if one schedule fails.
-          }
+              iOS: const DarwinNotificationDetails(),
+            ),
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+            payload: plan.id,
+            matchDateTimeComponents: item.repeatsWeekly
+                ? DateTimeComponents.dayOfWeekAndTime
+                : null,
+          );
+          scheduledIds.add(id);
+        } catch (_) {
+          // Keep syncing the rest of reminders even if one schedule fails.
         }
       }
     }
@@ -468,31 +454,63 @@ class TrainingPlanReminderService {
     }
   }
 
-  List<tz.TZDateTime> _buildBaseTimes(_PlanLite plan, DateTime now) {
+  List<_PendingPlanNotification> _buildNotifications(
+    _PlanLite plan,
+    DateTime now,
+  ) {
     final tzNow = tz.TZDateTime.from(now, tz.local);
-    final reminderOffset = plan.alarmLoopEnabled
-        ? Duration.zero
-        : Duration(minutes: plan.reminderMinutesBefore);
-    if (plan.repeatWeekdays.isEmpty) {
-      final single = tz.TZDateTime.from(
+    final reminderOffset = Duration(minutes: plan.reminderMinutesBefore);
+    if (plan.isConcreteOccurrence) {
+      final result = <_PendingPlanNotification>[];
+      final reminderAt = tz.TZDateTime.from(
         plan.scheduledAt.subtract(reminderOffset),
         tz.local,
       );
-      return single.isAfter(tzNow) ? <tz.TZDateTime>[single] : const [];
+      if (reminderAt.isAfter(tzNow)) {
+        result.add(
+          _PendingPlanNotification(at: reminderAt, atStartTime: false),
+        );
+      }
+      final startAt = tz.TZDateTime.from(plan.scheduledAt, tz.local);
+      if (plan.alarmLoopEnabled && startAt.isAfter(tzNow)) {
+        result.add(_PendingPlanNotification(at: startAt, atStartTime: true));
+      }
+      return result;
     }
-    final result = <tz.TZDateTime>[];
+
+    final result = <_PendingPlanNotification>[];
     for (final weekday in plan.repeatWeekdays) {
-      final next = _nextWeekdayTime(
+      final nextReminderAt = _nextWeekdayTime(
         tzNow,
         weekday: weekday,
         hour: plan.scheduledAt.hour,
         minute: plan.scheduledAt.minute,
       ).subtract(reminderOffset);
-      if (next.isAfter(tzNow)) {
-        result.add(next);
-      } else {
-        result.add(next.add(const Duration(days: 7)));
-      }
+      result.add(
+        _PendingPlanNotification(
+          at: nextReminderAt.isAfter(tzNow)
+              ? nextReminderAt
+              : nextReminderAt.add(const Duration(days: 7)),
+          repeatsWeekly: true,
+          atStartTime: false,
+        ),
+      );
+      if (!plan.alarmLoopEnabled) continue;
+      final nextStartAt = _nextWeekdayTime(
+        tzNow,
+        weekday: weekday,
+        hour: plan.scheduledAt.hour,
+        minute: plan.scheduledAt.minute,
+      );
+      result.add(
+        _PendingPlanNotification(
+          at: nextStartAt.isAfter(tzNow)
+              ? nextStartAt
+              : nextStartAt.add(const Duration(days: 7)),
+          repeatsWeekly: true,
+          atStartTime: true,
+        ),
+      );
     }
     return result;
   }
@@ -648,6 +666,18 @@ class TrainingPlanReminderService {
   }
 }
 
+class _PendingPlanNotification {
+  final tz.TZDateTime at;
+  final bool repeatsWeekly;
+  final bool atStartTime;
+
+  const _PendingPlanNotification({
+    required this.at,
+    this.repeatsWeekly = false,
+    required this.atStartTime,
+  });
+}
+
 class _PlanLite {
   final String id;
   final DateTime scheduledAt;
@@ -655,6 +685,7 @@ class _PlanLite {
   final int reminderMinutesBefore;
   final List<int> repeatWeekdays;
   final bool alarmLoopEnabled;
+  final String? seriesId;
 
   const _PlanLite({
     required this.id,
@@ -663,7 +694,11 @@ class _PlanLite {
     required this.reminderMinutesBefore,
     required this.repeatWeekdays,
     required this.alarmLoopEnabled,
+    this.seriesId,
   });
+
+  bool get isConcreteOccurrence =>
+      repeatWeekdays.isEmpty || (seriesId?.trim().isNotEmpty ?? false);
 
   factory _PlanLite.fromMap(Map<String, dynamic> map) {
     final repeatWeekdays =
@@ -685,6 +720,7 @@ class _PlanLite {
           (map['reminderMinutesBefore'] as num?)?.toInt() ?? 30,
       repeatWeekdays: repeatWeekdays,
       alarmLoopEnabled: (map['alarmLoopEnabled'] as bool?) ?? true,
+      seriesId: map['seriesId']?.toString(),
     );
   }
 }

@@ -43,23 +43,32 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   }
 
   Future<void> _load() async {
-    await _reminderService.markAllRemindersRead();
-    final permission = await _reminderService.hasNotificationPermission();
-    final muted = await _reminderService.isAlarmMutedNow();
-    final pending = await _reminderService.pendingReminders();
-    final planRows = _loadPlanRows();
-    final lastTrainingLogAt = widget.optionRepository.getValue<String>(
-      TrainingPlanReminderService.lastTrainingLogAtKey,
-    );
-    if (!mounted) return;
-    setState(() {
-      _permissionGranted = permission;
-      _mutedNow = muted;
-      _pending = pending..sort((a, b) => a.id.compareTo(b.id));
-      _planRows = planRows;
-      _lastTrainingLogAt = lastTrainingLogAt;
-      _loading = false;
-    });
+    try {
+      await _reminderService.markAllRemindersRead();
+      final permission = await _reminderService.hasNotificationPermission();
+      final muted = await _reminderService.isAlarmMutedNow();
+      final pending = await _reminderService.pendingReminders();
+      final planRows = _loadPlanRows();
+      final lastTrainingLogAt = widget.optionRepository.getValue<String>(
+        TrainingPlanReminderService.lastTrainingLogAtKey,
+      );
+      if (!mounted) return;
+      setState(() {
+        _permissionGranted = permission;
+        _mutedNow = muted;
+        _pending = [...pending]..sort((a, b) => a.id.compareTo(b.id));
+        _planRows = planRows;
+        _lastTrainingLogAt = lastTrainingLogAt;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _pending = const [];
+        _planRows = _loadPlanRows();
+        _loading = false;
+      });
+    }
   }
 
   List<_PlanAlarmRow> _loadPlanRows() {
@@ -70,13 +79,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const [];
-      final rows =
-          decoded
-              .whereType<Map>()
-              .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
-              .where((e) => e.scheduledAt.isAfter(DateTime.now()))
-              .toList(growable: false)
-            ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+      final rows = decoded
+          .whereType<Map>()
+          .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
+          .where((e) => e.scheduledAt.isAfter(DateTime.now()))
+          .toList(growable: false)
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
       return rows;
     } catch (_) {
       return const [];
@@ -127,20 +135,20 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     title: Text(
                       _permissionGranted
                           ? (isKo
-                                ? '알림 권한 허용됨'
-                                : 'Notification permission granted')
+                              ? '알림 권한 허용됨'
+                              : 'Notification permission granted')
                           : (isKo
-                                ? '알림 권한 꺼짐'
-                                : 'Notification permission is off'),
+                              ? '알림 권한 꺼짐'
+                              : 'Notification permission is off'),
                     ),
                     subtitle: Text(
                       _permissionGranted
                           ? (isKo
-                                ? '훈련 계획 알림을 받을 수 있어요.'
-                                : 'You can receive training plan reminders.')
+                              ? '훈련 계획 알림을 받을 수 있어요.'
+                              : 'You can receive training plan reminders.')
                           : (isKo
-                                ? '설정 > 알림에서 권한을 켜 주세요.'
-                                : 'Enable permission in Settings > Notifications.'),
+                              ? '설정 > 알림에서 권한을 켜 주세요.'
+                              : 'Enable permission in Settings > Notifications.'),
                     ),
                   ),
                 ),
@@ -158,7 +166,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           _mutedNow
                               ? (isKo ? '알림 일시중지됨' : 'Alerts are paused')
                               : (isKo ? '반복 알림 제어' : 'Repeating alert control'),
-                          style: Theme.of(context).textTheme.titleSmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 8),
@@ -166,9 +176,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: _mutedNow
-                                    ? null
-                                    : () => _muteForHours(8),
+                                onPressed:
+                                    _mutedNow ? null : () => _muteForHours(8),
                                 icon: const Icon(
                                   Icons.notifications_off_outlined,
                                 ),
@@ -203,11 +212,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     subtitle: Text(
                       widget.settingsService.wakeAlarmEnabled
                           ? (isKo
-                                ? '${widget.settingsService.wakeAlarmTime.format(context)} · 주 ${widget.settingsService.wakeAlarmWeekdays.length}일 · ${widget.settingsService.wakeAlarmRepeatCount}회 반복'
-                                : '${widget.settingsService.wakeAlarmTime.format(context)} · ${widget.settingsService.wakeAlarmWeekdays.length} days/week · ${widget.settingsService.wakeAlarmRepeatCount} repeats')
+                              ? '${widget.settingsService.wakeAlarmTime.format(context)} · 주 ${widget.settingsService.wakeAlarmWeekdays.length}일 · ${widget.settingsService.wakeAlarmRepeatCount}회 반복'
+                              : '${widget.settingsService.wakeAlarmTime.format(context)} · ${widget.settingsService.wakeAlarmWeekdays.length} days/week · ${widget.settingsService.wakeAlarmRepeatCount} repeats')
                           : (isKo
-                                ? '설정에서 켜면 새벽 훈련용 반복 알람을 예약합니다.'
-                                : 'Enable it in Settings to schedule repeated morning alarms.'),
+                              ? '설정에서 켜면 새벽 훈련용 반복 알람을 예약합니다.'
+                              : 'Enable it in Settings to schedule repeated morning alarms.'),
                     ),
                   ),
                 ),
@@ -218,11 +227,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     title: Text(
                       widget.settingsService.inactivityAlertEnabled
                           ? (isKo
-                                ? '기록 공백 리마인드 사용 중'
-                                : 'Inactivity reminder is on')
+                              ? '기록 공백 리마인드 사용 중'
+                              : 'Inactivity reminder is on')
                           : (isKo
-                                ? '기록 공백 리마인드 꺼짐'
-                                : 'Inactivity reminder is off'),
+                              ? '기록 공백 리마인드 꺼짐'
+                              : 'Inactivity reminder is off'),
                     ),
                     subtitle: Text(_buildInactivitySubtitle(isKo)),
                   ),
@@ -233,8 +242,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ? '훈련 알림 ${_planRows.length}개'
                       : '${_planRows.length} training alerts',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 if (_planRows.isEmpty)
@@ -272,9 +281,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           ],
                         ),
                         subtitle: Text(
-                          DateFormat(
-                            isKo ? 'M/d(E)' : 'EEE, M/d',
-                          ).format(item.scheduledAt),
+                          '${DateFormat(isKo ? 'M/d(E)' : 'EEE, M/d').format(item.scheduledAt)}'
+                          '${item.scheduleSummary.isEmpty ? '' : '\n${item.scheduleSummary}'}',
                         ),
                       ),
                     ),
@@ -298,11 +306,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final parsed = raw == null ? null : DateTime.tryParse(raw);
     final base = widget.settingsService.inactivityAlertEnabled
         ? (isKo
-              ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
-              : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
+            ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
+            : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
         : (isKo
-              ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
-              : 'Enable it in Settings to get nudges after quiet periods.');
+            ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
+            : 'Enable it in Settings to get nudges after quiet periods.');
     if (parsed == null) return base;
     final formatted = DateFormat(
       isKo ? 'M/d HH:mm' : 'MMM d HH:mm',
@@ -314,15 +322,38 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 class _PlanAlarmRow {
   final DateTime scheduledAt;
   final String category;
+  final String scheduleSummary;
 
-  const _PlanAlarmRow({required this.scheduledAt, required this.category});
+  const _PlanAlarmRow({
+    required this.scheduledAt,
+    required this.category,
+    required this.scheduleSummary,
+  });
 
   factory _PlanAlarmRow.fromMap(Map<String, dynamic> map) {
+    final weekdays = ((map['repeatWeekdays'] as List?) ?? const [])
+        .map((e) => (e as num?)?.toInt() ?? 0)
+        .where((value) => value >= DateTime.monday && value <= DateTime.sunday)
+        .toList(growable: false);
+    final seriesStart = DateTime.tryParse(
+      map['seriesStartDate']?.toString() ?? '',
+    );
+    final seriesEnd = DateTime.tryParse(map['seriesEndDate']?.toString() ?? '');
+    const labels = ['월', '화', '수', '목', '금', '토', '일'];
+    final weekdayText = weekdays.isEmpty
+        ? ''
+        : weekdays.map((value) => labels[value - 1]).join('·');
+    final rangeText = (seriesStart == null || seriesEnd == null)
+        ? ''
+        : '${DateFormat('M/d').format(seriesStart)}-${DateFormat('M/d').format(seriesEnd)}';
     return _PlanAlarmRow(
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
+      scheduleSummary: [
+        weekdayText,
+        rangeText,
+      ].where((value) => value.trim().isNotEmpty).join(' · '),
     );
   }
 }
