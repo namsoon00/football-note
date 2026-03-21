@@ -426,7 +426,27 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   }
 
   Future<void> _goNext() async {
-    if (!_answered || _finished) return;
+    if (_finished) return;
+
+    if (!_answered) {
+      if (!_retryUsed || _questions.isEmpty) return;
+      final question = _questions[_index];
+      final responseMs = DateTime.now()
+          .difference(_questionStartedAt ?? DateTime.now())
+          .inMilliseconds;
+      setState(() {
+        _answered = true;
+        _retryFeedback = null;
+        _streak = 0;
+        _combo = 0;
+        _momentum = (_momentum - 12).clamp(0, 100);
+        _wrongIds.add(question.id);
+        _answerCount += 1;
+        _responseMillisSum += math.max(0, responseMs);
+        _answerFx = _AnswerFx.fail;
+      });
+      unawaited(_trackMetric('board_next_without_second_try'));
+    }
 
     final nextIndex = _index + 1;
     if (nextIndex >= _questions.length) {
@@ -703,7 +723,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
         ],
         const Spacer(),
         FilledButton.icon(
-          onPressed: _answered ? _goNext : null,
+          onPressed: (_answered || _retryUsed) ? _goNext : null,
           icon: const Icon(Icons.navigate_next),
           label: Text(isKo ? '다음' : 'Next'),
         ),
