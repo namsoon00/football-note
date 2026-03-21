@@ -188,10 +188,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           .map((id) => _questionMap[id])
           .whereType<_FootballQuizQuestion>()
           .toList(growable: false);
-      final hasImage = savedQuestions.any(
-        (q) => q.style == _QuestionStyle.imageChoice,
-      );
-      if (savedQuestions.isNotEmpty && hasImage) {
+      if (savedQuestions.isNotEmpty) {
         _startSession(questions: savedQuestions, mode: _QuizMode.daily);
         return;
       }
@@ -966,24 +963,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         .where((q) => q.style == _QuestionStyle.multipleChoice)
         .toList(growable: false)
       ..shuffle(random);
-    final image = _allQuestions
-        .where((q) => q.style == _QuestionStyle.imageChoice)
-        .toList(growable: false)
-      ..shuffle(random);
-
-    final picked = <_FootballQuizQuestion>[
-      ...ox.take(3),
-      ...mcq.take(3),
-      ...image.take(2),
-    ];
-    if (picked.where((q) => q.style == _QuestionStyle.imageChoice).isEmpty &&
-        image.isNotEmpty) {
-      if (picked.isEmpty) {
-        picked.add(image.first);
-      } else {
-        picked[picked.length - 1] = image.first;
-      }
-    }
+    final picked = <_FootballQuizQuestion>[...ox.take(4), ...mcq.take(4)];
     if (picked.length < _dailyCount) {
       final rest = <_FootballQuizQuestion>[
         ..._allQuestions.where((q) => !picked.contains(q)),
@@ -1127,7 +1107,7 @@ extension _QuizModeX on _QuizMode {
   }
 }
 
-enum _QuestionStyle { ox, multipleChoice, imageChoice }
+enum _QuestionStyle { ox, multipleChoice }
 
 extension _QuestionStyleX on _QuestionStyle {
   String label(bool isKo) {
@@ -1136,8 +1116,6 @@ extension _QuestionStyleX on _QuestionStyle {
         return isKo ? 'OX' : 'True/False';
       case _QuestionStyle.multipleChoice:
         return isKo ? '4지선다' : 'Multiple choice';
-      case _QuestionStyle.imageChoice:
-        return isKo ? '이미지 선택' : 'Image choice';
     }
   }
 }
@@ -1189,7 +1167,6 @@ class _FootballQuizQuestion {
   final String enExplain;
   final String koNextPoint;
   final String enNextPoint;
-  final _ImageQuizScene? imageScene;
 
   const _FootballQuizQuestion({
     required this.id,
@@ -1204,7 +1181,6 @@ class _FootballQuizQuestion {
     required this.enExplain,
     required this.koNextPoint,
     required this.enNextPoint,
-    this.imageScene,
   });
 
   String prompt(bool isKo) => isKo ? koPrompt : enPrompt;
@@ -1291,22 +1267,6 @@ class _QuestionHeroCard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 12),
-          if (question.imageScene != null) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SizedBox(
-                height: 220,
-                width: double.infinity,
-                child: CustomPaint(
-                  painter: _ImageQuizScenePainter(
-                    scene: question.imageScene!,
-                    accent: accent,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1319,9 +1279,7 @@ class _QuestionHeroCard extends StatelessWidget {
                 Icon(
                   question.style == _QuestionStyle.ox
                       ? Icons.toggle_on_outlined
-                      : question.style == _QuestionStyle.imageChoice
-                          ? Icons.image_outlined
-                          : Icons.list_alt_outlined,
+                      : Icons.list_alt_outlined,
                   color: accent,
                 ),
                 const SizedBox(width: 10),
@@ -1367,116 +1325,6 @@ class _OptionBadge extends StatelessWidget {
             ),
       ),
     );
-  }
-}
-
-class _ImageQuizScenePainter extends CustomPainter {
-  final _ImageQuizScene scene;
-  final Color accent;
-
-  const _ImageQuizScenePainter({required this.scene, required this.accent});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final pitch = Paint()..color = const Color(0xFF1B5E20);
-    canvas.drawRect(Offset.zero & size, pitch);
-    final line = Paint()
-      ..color = Colors.white70
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawRect(
-      Rect.fromLTWH(8, 8, size.width - 16, size.height - 16),
-      line,
-    );
-    canvas.drawLine(
-      Offset(size.width / 2, 8),
-      Offset(size.width / 2, size.height - 8),
-      line,
-    );
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 26, line);
-
-    void player(Offset p, Color color, String label) {
-      final dot = Paint()..color = color;
-      canvas.drawCircle(p, 11, dot);
-      final tp = TextPainter(
-        text: TextSpan(
-          text: label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(p.dx - (tp.width / 2), p.dy - 5));
-    }
-
-    const ours = Color(0xFF4FC3F7);
-    const opp = Color(0xFFFF8A65);
-    switch (scene) {
-      case _ImageQuizScene.buildUpTriangle:
-        player(Offset(size.width * 0.22, size.height * 0.78), ours, 'A1');
-        player(Offset(size.width * 0.42, size.height * 0.58), ours, 'A2');
-        player(Offset(size.width * 0.64, size.height * 0.42), ours, 'A3');
-        player(Offset(size.width * 0.38, size.height * 0.66), opp, 'D1');
-        player(Offset(size.width * 0.56, size.height * 0.52), opp, 'D2');
-      case _ImageQuizScene.wingCross:
-        player(Offset(size.width * 0.16, size.height * 0.52), ours, 'A1');
-        player(Offset(size.width * 0.34, size.height * 0.42), ours, 'A2');
-        player(Offset(size.width * 0.68, size.height * 0.34), ours, 'A3');
-        player(Offset(size.width * 0.36, size.height * 0.50), opp, 'D1');
-        player(Offset(size.width * 0.56, size.height * 0.42), opp, 'D2');
-      case _ImageQuizScene.pressingTrap:
-        player(Offset(size.width * 0.54, size.height * 0.58), ours, 'A1');
-        player(Offset(size.width * 0.35, size.height * 0.48), ours, 'A2');
-        player(Offset(size.width * 0.66, size.height * 0.46), ours, 'A3');
-        player(Offset(size.width * 0.50, size.height * 0.46), opp, 'D1');
-        player(Offset(size.width * 0.62, size.height * 0.58), opp, 'D2');
-      case _ImageQuizScene.transitionRun:
-        player(Offset(size.width * 0.34, size.height * 0.62), ours, 'A1');
-        player(Offset(size.width * 0.50, size.height * 0.54), ours, 'A2');
-        player(Offset(size.width * 0.74, size.height * 0.40), ours, 'A3');
-        player(Offset(size.width * 0.52, size.height * 0.46), opp, 'D1');
-        player(Offset(size.width * 0.64, size.height * 0.36), opp, 'D2');
-      case _ImageQuizScene.defensiveCover:
-        player(Offset(size.width * 0.68, size.height * 0.44), ours, 'A1');
-        player(Offset(size.width * 0.52, size.height * 0.54), ours, 'A2');
-        player(Offset(size.width * 0.34, size.height * 0.64), ours, 'A3');
-        player(Offset(size.width * 0.58, size.height * 0.44), opp, 'D1');
-        player(Offset(size.width * 0.46, size.height * 0.54), opp, 'D2');
-    }
-
-    final ballPaint = Paint()..color = const Color(0xFFFFF59D);
-    final ballPos = switch (scene) {
-      _ImageQuizScene.buildUpTriangle => Offset(size.width * 0.22, size.height * 0.78),
-      _ImageQuizScene.wingCross => Offset(size.width * 0.16, size.height * 0.52),
-      _ImageQuizScene.pressingTrap => Offset(size.width * 0.54, size.height * 0.58),
-      _ImageQuizScene.transitionRun => Offset(size.width * 0.34, size.height * 0.62),
-      _ImageQuizScene.defensiveCover => Offset(size.width * 0.68, size.height * 0.44),
-    };
-    canvas.drawCircle(ballPos, 6, ballPaint);
-    final arc = Paint()
-      ..color = accent.withValues(alpha: 0.48)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-      Rect.fromCenter(
-        center: Offset(size.width * 0.52, size.height * 0.50),
-        width: size.width * 0.58,
-        height: size.height * 0.52,
-      ),
-      -0.4,
-      1.4,
-      false,
-      arc,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ImageQuizScenePainter oldDelegate) {
-    return oldDelegate.scene != scene || oldDelegate.accent != accent;
   }
 }
 
@@ -1835,48 +1683,9 @@ class _McqSeed {
   });
 }
 
-enum _ImageQuizScene {
-  buildUpTriangle,
-  wingCross,
-  pressingTrap,
-  transitionRun,
-  defensiveCover,
-}
-
-class _ImageQuizSeed {
-  final String id;
-  final int difficulty;
-  final _QuizCategory category;
-  final _ImageQuizScene scene;
-  final String koStem;
-  final String enStem;
-  final List<_FootballQuizOption> options;
-  final int correctIndex;
-  final String koExplain;
-  final String enExplain;
-  final String koNextPoint;
-  final String enNextPoint;
-
-  const _ImageQuizSeed({
-    required this.id,
-    required this.difficulty,
-    required this.category,
-    required this.scene,
-    required this.koStem,
-    required this.enStem,
-    required this.options,
-    required this.correctIndex,
-    required this.koExplain,
-    required this.enExplain,
-    required this.koNextPoint,
-    required this.enNextPoint,
-  });
-}
-
 List<_FootballQuizQuestion> _buildFootballQuizPool() {
   final oxFacts = _oxFacts();
   final mcqSeeds = _mcqSeeds();
-  final imageSeeds = _imageQuizSeeds();
   final oxPrefixesKo = [
     'OX 워밍업:',
     '경기 이해 체크:',
@@ -2013,30 +1822,6 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
           ),
         );
       }
-    }
-  }
-
-  final imagePrefixesKo = ['이미지 판단:', '장면 읽기:', '그림 퀴즈:'];
-  final imagePrefixesEn = ['Image read:', 'Scene check:', 'Picture quiz:'];
-  for (final seed in imageSeeds) {
-    for (var prefixIndex = 0; prefixIndex < imagePrefixesKo.length; prefixIndex++) {
-      questions.add(
-        _FootballQuizQuestion(
-          id: 'img_${seed.id}_$prefixIndex',
-          difficulty: seed.difficulty,
-          style: _QuestionStyle.imageChoice,
-          category: seed.category,
-          koPrompt: '${imagePrefixesKo[prefixIndex]} ${seed.koStem}',
-          enPrompt: '${imagePrefixesEn[prefixIndex]} ${seed.enStem}',
-          options: seed.options,
-          correctIndex: seed.correctIndex,
-          koExplain: seed.koExplain,
-          enExplain: seed.enExplain,
-          koNextPoint: seed.koNextPoint,
-          enNextPoint: seed.enNextPoint,
-          imageScene: seed.scene,
-        ),
-      );
     }
   }
 
@@ -3462,319 +3247,6 @@ List<_McqSeed> _mcqSeeds() {
           'A third-man run is about building the next connection beyond the immediate pass.',
       koNextPoint: '바로 앞 선택뿐 아니라 다음 선택도 함께 본다.',
       enNextPoint: 'Read not only the next option but the option after that.',
-    ),
-  ];
-}
-
-List<_ImageQuizSeed> _imageQuizSeeds() {
-  return const [
-    _ImageQuizSeed(
-      id: 'build_up_short_link',
-      difficulty: 1,
-      category: _QuizCategory.tactics,
-      scene: _ImageQuizScene.buildUpTriangle,
-      koStem: '그림에서 A1(볼)이 첫 선택으로 가장 안전하게 연결할 대상은?',
-      enStem: 'In the image, who is the safest first link target for A1 (ball)?',
-      options: [
-        _FootballQuizOption(koText: '가까운 A2', enText: 'Nearest A2'),
-        _FootballQuizOption(koText: '먼 A3 강한 패스', enText: 'Long force pass to A3'),
-        _FootballQuizOption(koText: '패스 없이 정지', enText: 'No pass and stop'),
-        _FootballQuizOption(koText: '아웃라인 바깥으로 킥', enText: 'Kick outside touchline'),
-      ],
-      correctIndex: 0,
-      koExplain: '짧은 연결이 압박 리스크를 가장 낮추고 다음 선택을 열어줍니다.',
-      enExplain:
-          'A short link lowers pressure risk and opens the next decision best.',
-      koNextPoint: '첫 패스는 성공 확률이 높은 연결부터 본다.',
-      enNextPoint: 'Start with the highest-probability first pass.',
-    ),
-    _ImageQuizSeed(
-      id: 'wing_cross_block',
-      difficulty: 2,
-      category: _QuizCategory.positions,
-      scene: _ImageQuizScene.wingCross,
-      koStem: '측면 크로스 장면에서 수비의 첫 우선순위는?',
-      enStem: 'In this wing-cross scene, what is the first defensive priority?',
-      options: [
-        _FootballQuizOption(koText: '크로스 각도 차단', enText: 'Block crossing angle'),
-        _FootballQuizOption(koText: '바로 슬라이딩 태클', enText: 'Immediate slide tackle'),
-        _FootballQuizOption(koText: '문전으로만 후퇴', enText: 'Retreat only to box'),
-        _FootballQuizOption(koText: '아무도 압박하지 않기', enText: 'No pressure at all'),
-      ],
-      correctIndex: 0,
-      koExplain: '측면에서는 먼저 각도를 닫아 크로스 확률을 줄여야 합니다.',
-      enExplain:
-          'On the flank, closing the crossing angle first reduces threat fastest.',
-      koNextPoint: '측면 수비는 각도-거리 순서로 본다.',
-      enNextPoint: 'Defend flanks by angle first, then distance.',
-    ),
-    _ImageQuizSeed(
-      id: 'pressing_trap_entry',
-      difficulty: 2,
-      category: _QuizCategory.tactics,
-      scene: _ImageQuizScene.pressingTrap,
-      koStem: '그림처럼 중앙이 혼잡할 때 A1의 최선 선택은?',
-      enStem: 'With this central congestion, what is A1 best next action?',
-      options: [
-        _FootballQuizOption(koText: '가까운 지원 A2로 탈압박', enText: 'Escape via near support A2'),
-        _FootballQuizOption(koText: '중앙으로 강하게 밀어넣기', enText: 'Force through center'),
-        _FootballQuizOption(koText: '볼 정지 후 3초 대기', enText: 'Stop ball and wait 3 seconds'),
-        _FootballQuizOption(koText: '바로 로빙슛', enText: 'Immediate lob shot'),
-      ],
-      correctIndex: 0,
-      koExplain: '혼잡 구역은 근거리 탈압박 연결이 안정적입니다.',
-      enExplain: 'In congestion, near support links are the safest pressure escape.',
-      koNextPoint: '수비 밀집도 먼저 보고 통로를 선택한다.',
-      enNextPoint: 'Read congestion first, then choose the lane.',
-    ),
-    _ImageQuizSeed(
-      id: 'transition_runner_timing',
-      difficulty: 3,
-      category: _QuizCategory.technique,
-      scene: _ImageQuizScene.transitionRun,
-      koStem: 'A3 러너를 살리기 위한 가장 좋은 패스 타이밍은?',
-      enStem: 'What is the best pass timing to release runner A3?',
-      options: [
-        _FootballQuizOption(koText: '러너 앞공간으로 즉시', enText: 'Immediately into front-space'),
-        _FootballQuizOption(koText: '러너가 멈출 때까지 대기', enText: 'Wait until runner stops'),
-        _FootballQuizOption(koText: '뒤로만 패스', enText: 'Pass only backward'),
-        _FootballQuizOption(koText: '터치 4번 후 전달', enText: 'Pass after four touches'),
-      ],
-      correctIndex: 0,
-      koExplain: '전환 장면은 타이밍이 핵심이라 앞공간 즉시 투입이 효과적입니다.',
-      enExplain:
-          'In transition, timing is key; immediate front-space feed is strongest.',
-      koNextPoint: '러너의 속도와 앞공간이 동시에 열릴 때 넣는다.',
-      enNextPoint: 'Pass when runner speed and front-space open together.',
-    ),
-    _ImageQuizSeed(
-      id: 'defensive_cover_shape',
-      difficulty: 2,
-      category: _QuizCategory.positions,
-      scene: _ImageQuizScene.defensiveCover,
-      koStem: '이 수비 그림에서 A2의 역할로 가장 적절한 것은?',
-      enStem: 'In this defensive image, what is A2 most proper role?',
-      options: [
-        _FootballQuizOption(koText: 'A1 뒤 커버 + 패스길 차단', enText: 'Cover behind A1 + block lane'),
-        _FootballQuizOption(koText: '공 쪽으로 무작정 돌진', enText: 'Charge ball recklessly'),
-        _FootballQuizOption(koText: '반대편으로 멀리 이탈', enText: 'Drift far away opposite side'),
-        _FootballQuizOption(koText: '자리에 멈춰 관전', enText: 'Stand still and watch'),
-      ],
-      correctIndex: 0,
-      koExplain: '커버와 라인 차단을 함께 해야 1차 압박 뒤 공간을 보호할 수 있습니다.',
-      enExplain:
-          'Cover plus lane blocking protects space behind first pressure effectively.',
-      koNextPoint: '1차 압박 뒤 공간을 항상 함께 본다.',
-      enNextPoint: 'Always protect the space behind first pressure.',
-    ),
-    _ImageQuizSeed(
-      id: 'build_up_switch_side',
-      difficulty: 2,
-      category: _QuizCategory.tactics,
-      scene: _ImageQuizScene.buildUpTriangle,
-      koStem: '빌드업 장면에서 압박 반대편으로 전환할 최적 대상은?',
-      enStem: 'In build-up, who is best target to switch away from pressure?',
-      options: [
-        _FootballQuizOption(koText: 'A3 측 전환 패스', enText: 'Switch pass to A3 side'),
-        _FootballQuizOption(koText: '압박 쪽 짧은 재패스', enText: 'Short pass into pressure'),
-        _FootballQuizOption(koText: '무리한 개인 드리블', enText: 'Forced solo dribble'),
-        _FootballQuizOption(koText: '수비에게 직접 전달', enText: 'Pass directly to defender'),
-      ],
-      correctIndex: 0,
-      koExplain: '압박 반대편 전환은 볼 소유 안정성을 높여줍니다.',
-      enExplain: 'Switching to weak side improves ball security.',
-      koNextPoint: '압박 강도 높은 쪽을 먼저 식별',
-      enNextPoint: 'Identify high-pressure side first',
-    ),
-    _ImageQuizSeed(
-      id: 'build_up_first_touch_open',
-      difficulty: 1,
-      category: _QuizCategory.technique,
-      scene: _ImageQuizScene.buildUpTriangle,
-      koStem: 'A1의 첫 터치 방향으로 가장 좋은 것은?',
-      enStem: 'What is the best first-touch direction for A1?',
-      options: [
-        _FootballQuizOption(koText: '열린 공간 쪽으로 터치', enText: 'Touch into open space'),
-        _FootballQuizOption(koText: '압박 쪽으로 닫기', enText: 'Close touch into pressure'),
-        _FootballQuizOption(koText: '터치 없이 멈춤', enText: 'No touch and freeze'),
-        _FootballQuizOption(koText: '과하게 길게 터치', enText: 'Over-hit long touch'),
-      ],
-      correctIndex: 0,
-      koExplain: '첫 터치는 열린 공간으로 가져가야 다음 선택지가 생깁니다.',
-      enExplain: 'First touch into space keeps next options alive.',
-      koNextPoint: '터치 전 어깨 스캔 실시',
-      enNextPoint: 'Do shoulder scan before touch',
-    ),
-    _ImageQuizSeed(
-      id: 'wing_cross_target_zone',
-      difficulty: 2,
-      category: _QuizCategory.positions,
-      scene: _ImageQuizScene.wingCross,
-      koStem: '측면에서 가장 효율적인 크로스 목표 구역은?',
-      enStem: 'From wing, what is most efficient cross target zone?',
-      options: [
-        _FootballQuizOption(koText: '수비-골키퍼 사이 공간', enText: 'Between defenders and keeper'),
-        _FootballQuizOption(koText: '가장 멀리 바깥쪽', enText: 'Farthest outside area'),
-        _FootballQuizOption(koText: '하프라인 뒤쪽', enText: 'Behind halfway line'),
-        _FootballQuizOption(koText: '코너플래그 방향', enText: 'Toward corner flag'),
-      ],
-      correctIndex: 0,
-      koExplain: '수비-골키퍼 사이 공간은 득점 연결 확률이 높습니다.',
-      enExplain: 'The space between defenders and keeper gives high conversion chance.',
-      koNextPoint: '크로스 전 공격수 위치 확인',
-      enNextPoint: 'Check runner positions before crossing',
-    ),
-    _ImageQuizSeed(
-      id: 'wing_delay_decision',
-      difficulty: 1,
-      category: _QuizCategory.mindset,
-      scene: _ImageQuizScene.wingCross,
-      koStem: '측면 1대1에서 가장 좋은 판단 루틴은?',
-      enStem: 'In wing 1v1, what is the best decision routine?',
-      options: [
-        _FootballQuizOption(koText: '페인트 후 타이밍 보고 선택', enText: 'Feint then decide by timing'),
-        _FootballQuizOption(koText: '바로 무조건 크로스', enText: 'Always instant cross'),
-        _FootballQuizOption(koText: '볼 멈추고 뒤로 걷기', enText: 'Stop and walk backward'),
-        _FootballQuizOption(koText: '눈감고 터치', enText: 'Touch blindly'),
-      ],
-      correctIndex: 0,
-      koExplain: '루틴 기반 판단이 성공률을 높입니다.',
-      enExplain: 'Routine-based decision making improves consistency.',
-      koNextPoint: '페인트 후 수비 반응 체크',
-      enNextPoint: 'Read defender reaction after feint',
-    ),
-    _ImageQuizSeed(
-      id: 'pressing_escape_thirdman',
-      difficulty: 3,
-      category: _QuizCategory.tactics,
-      scene: _ImageQuizScene.pressingTrap,
-      koStem: '압박 함정에서 3자 연계의 핵심 효과는?',
-      enStem: 'In pressing trap, what is key effect of third-man combo?',
-      options: [
-        _FootballQuizOption(koText: '압박선 한 번에 이탈', enText: 'Bypass pressure line in one chain'),
-        _FootballQuizOption(koText: '볼 속도 완전 정지', enText: 'Completely stop ball speed'),
-        _FootballQuizOption(koText: '라인 안으로 재진입', enText: 'Re-enter pressure line'),
-        _FootballQuizOption(koText: '볼 포기', enText: 'Give up the ball'),
-      ],
-      correctIndex: 0,
-      koExplain: '3자 연계는 압박 라인을 넘는 효율적인 방법입니다.',
-      enExplain: 'Third-man combination efficiently bypasses pressure lines.',
-      koNextPoint: '첫 패스 이후 2번째 수신자까지 보기',
-      enNextPoint: 'Read second receiver after first pass',
-    ),
-    _ImageQuizSeed(
-      id: 'pressing_body_orientation',
-      difficulty: 2,
-      category: _QuizCategory.technique,
-      scene: _ImageQuizScene.pressingTrap,
-      koStem: '압박 회피를 위한 바디 오리엔테이션의 핵심은?',
-      enStem: 'What is key body orientation to escape pressure?',
-      options: [
-        _FootballQuizOption(koText: '열린 측면을 향해 반몸', enText: 'Half-open body to free side'),
-        _FootballQuizOption(koText: '수비 정면 완전 고정', enText: 'Fully square to defender'),
-        _FootballQuizOption(koText: '골문 등지고 정지', enText: 'Static with back to goal'),
-        _FootballQuizOption(koText: '고개 숙인 자세', enText: 'Head-down posture'),
-      ],
-      correctIndex: 0,
-      koExplain: '반몸 자세가 탈압박 전환 속도를 높입니다.',
-      enExplain: 'Half-open stance speeds up pressure escape transitions.',
-      koNextPoint: '받기 전 몸 방향 세팅',
-      enNextPoint: 'Set body orientation before receive',
-    ),
-    _ImageQuizSeed(
-      id: 'transition_lane_priority',
-      difficulty: 2,
-      category: _QuizCategory.tactics,
-      scene: _ImageQuizScene.transitionRun,
-      koStem: '전환 상황에서 최우선으로 열어야 할 패스 레인은?',
-      enStem: 'In transition, which passing lane should be opened first?',
-      options: [
-        _FootballQuizOption(koText: '전진 대각선 레인', enText: 'Forward diagonal lane'),
-        _FootballQuizOption(koText: '수평 횡패스 레인만', enText: 'Only horizontal lane'),
-        _FootballQuizOption(koText: '골키퍼 백패스', enText: 'Back pass to keeper'),
-        _FootballQuizOption(koText: '라인 밖 롱킥', enText: 'Long kick out'),
-      ],
-      correctIndex: 0,
-      koExplain: '전진 대각선은 속도와 안정성을 동시에 확보합니다.',
-      enExplain: 'Forward diagonal lanes preserve both speed and control.',
-      koNextPoint: '러너 발앞이 아닌 앞공간 보기',
-      enNextPoint: 'Play into front-space, not at runner feet only',
-    ),
-    _ImageQuizSeed(
-      id: 'transition_final_decision',
-      difficulty: 3,
-      category: _QuizCategory.positions,
-      scene: _ImageQuizScene.transitionRun,
-      koStem: '마지막 3선택 중 가장 실점 위험이 낮은 것은?',
-      enStem: 'Among final 3 choices, which minimizes turnover risk?',
-      options: [
-        _FootballQuizOption(koText: '각 살아있는 지원에게 연결', enText: 'Link to open-angle support'),
-        _FootballQuizOption(koText: '1대3 돌파 강행', enText: 'Force 1v3 dribble'),
-        _FootballQuizOption(koText: '시야 없는 즉시 슛', enText: 'Blind instant shot'),
-        _FootballQuizOption(koText: '정지 후 볼 소유 잃기', enText: 'Freeze and lose possession'),
-      ],
-      correctIndex: 0,
-      koExplain: '열린 각 지원 연결이 턴오버를 가장 줄입니다.',
-      enExplain: 'Linking to open-angle support minimizes turnovers best.',
-      koNextPoint: '결정 전 지원 각도 체크',
-      enNextPoint: 'Check support angles before final action',
-    ),
-    _ImageQuizSeed(
-      id: 'defense_cover_line',
-      difficulty: 1,
-      category: _QuizCategory.positions,
-      scene: _ImageQuizScene.defensiveCover,
-      koStem: '커버 수비에서 가장 먼저 맞춰야 하는 것은?',
-      enStem: 'What must be aligned first in cover defense?',
-      options: [
-        _FootballQuizOption(koText: '볼-골문 사이 커버 라인', enText: 'Cover line between ball and goal'),
-        _FootballQuizOption(koText: '무작정 전진 압박', enText: 'Blind forward pressing'),
-        _FootballQuizOption(koText: '라인 이탈 후 추격', enText: 'Chase while leaving line'),
-        _FootballQuizOption(koText: '시야 포기', enText: 'Ignore visual reference'),
-      ],
-      correctIndex: 0,
-      koExplain: '커버의 기본은 볼-골문 사이 라인 정렬입니다.',
-      enExplain: 'Cover defense starts with ball-goal line alignment.',
-      koNextPoint: '커버 위치는 골문 기준으로 잡기',
-      enNextPoint: 'Anchor cover position from goal reference',
-    ),
-    _ImageQuizSeed(
-      id: 'defense_second_defender_role',
-      difficulty: 2,
-      category: _QuizCategory.tactics,
-      scene: _ImageQuizScene.defensiveCover,
-      koStem: '2차 수비자(세컨드 디펜더)의 핵심 역할은?',
-      enStem: 'What is core role of second defender?',
-      options: [
-        _FootballQuizOption(koText: '커버 + 패스길 차단', enText: 'Cover + block passing lane'),
-        _FootballQuizOption(koText: '동시에 같은 공 압박', enText: 'Press same ball at once'),
-        _FootballQuizOption(koText: '완전 반대편 이탈', enText: 'Drift to far opposite side'),
-        _FootballQuizOption(koText: '공과 반대 방향 보기', enText: 'Look away from ball'),
-      ],
-      correctIndex: 0,
-      koExplain: '세컨드 디펜더는 1차 압박 뒤를 보호해야 합니다.',
-      enExplain: 'Second defender protects space behind first pressure.',
-      koNextPoint: '1차-2차 수비 역할 분리',
-      enNextPoint: 'Separate first and second defender roles',
-    ),
-    _ImageQuizSeed(
-      id: 'defense_recovery_speed',
-      difficulty: 3,
-      category: _QuizCategory.training,
-      scene: _ImageQuizScene.defensiveCover,
-      koStem: '수비 복귀 속도를 높이는 가장 효과적인 습관은?',
-      enStem: 'What habit most improves defensive recovery speed?',
-      options: [
-        _FootballQuizOption(koText: '잃은 직후 즉시 전환 스프린트', enText: 'Immediate transition sprint after loss'),
-        _FootballQuizOption(koText: '판정 항의 후 복귀', enText: 'Recover after complaining'),
-        _FootballQuizOption(koText: '걷기 복귀', enText: 'Walk-back recovery'),
-        _FootballQuizOption(koText: '공격 대기', enText: 'Stay high and wait'),
-      ],
-      correctIndex: 0,
-      koExplain: '볼을 잃은 직후 2~3초 전환 속도가 수비 안정성을 좌우합니다.',
-      enExplain: 'First 2-3 seconds after loss decide defensive stability.',
-      koNextPoint: '볼 상실 직후 첫 3초 집중',
-      enNextPoint: 'Focus on first 3 seconds after turnover',
     ),
   ];
 }
