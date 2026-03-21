@@ -134,6 +134,40 @@ void main() {
     expect(history.first.totalXp, 130);
     expect(history.first.reasons, contains('log'));
   });
+
+  test('board save and diary review awards are tracked once per day', () async {
+    final repository = _MemoryOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    final boardAward = await service.awardForBoardSaved(
+      boardId: 'board-1',
+      boardTitle: '측면 전개',
+      savedAt: DateTime(2026, 3, 22, 10),
+      created: true,
+    );
+    final boardAwardDuplicate = await service.awardForBoardSaved(
+      boardId: 'board-1',
+      boardTitle: '측면 전개',
+      savedAt: DateTime(2026, 3, 22, 18),
+    );
+    final diaryAward = await service.awardForDiaryReview(
+      reviewedAt: DateTime(2026, 3, 22, 21),
+    );
+    final diaryAwardDuplicate = await service.awardForDiaryReview(
+      reviewedAt: DateTime(2026, 3, 22, 22),
+    );
+
+    expect(boardAward.gainedXp, 12);
+    expect(boardAwardDuplicate.gainedXp, 0);
+    expect(diaryAward.gainedXp, 5);
+    expect(diaryAwardDuplicate.gainedXp, 0);
+    expect(service.loadState().totalXp, 17);
+
+    final history = service.loadXpHistory();
+    expect(history, hasLength(2));
+    expect(history.first.category, PlayerXpHistoryCategory.diary);
+    expect(history.last.category, PlayerXpHistoryCategory.board);
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

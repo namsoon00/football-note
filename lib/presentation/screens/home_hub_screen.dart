@@ -209,6 +209,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         'daily_flow_review',
                         widget.onOpenDiary,
                       ),
+                      onBoard: _trackedAction(
+                        'daily_flow_board',
+                        widget.onQuickBoard,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     _QuickActionGrid(
@@ -220,6 +224,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       onQuickPlan: _trackedAction(
                         'quick_create_plan',
                         widget.onQuickPlan,
+                      ),
+                      onQuickBoard: _trackedAction(
+                        'quick_create_board',
+                        widget.onQuickBoard,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -432,6 +440,7 @@ class _HomeHubData {
   final bool loggedJumpRopeToday;
   final bool reviewedTodayDiary;
   final bool quizCompletedToday;
+  final bool loggedBoardToday;
   final SkillQuizResumeSummary quizResumeSummary;
 
   const _HomeHubData({
@@ -451,6 +460,7 @@ class _HomeHubData {
     required this.loggedJumpRopeToday,
     required this.reviewedTodayDiary,
     required this.quizCompletedToday,
+    required this.loggedBoardToday,
     required this.quizResumeSummary,
   });
 
@@ -576,6 +586,11 @@ class _HomeHubData {
         quizCompletedAt.day == now.day;
     final reviewedTodayDiary =
         viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
+    final loggedBoardToday =
+        boards.isNotEmpty &&
+        boards.first.updatedAt.year == now.year &&
+        boards.first.updatedAt.month == now.month &&
+        boards.first.updatedAt.day == now.day;
 
     return _HomeHubData(
       weeklyTrainingCount: weeklyEntries.length,
@@ -594,6 +609,7 @@ class _HomeHubData {
       loggedJumpRopeToday: loggedJumpRopeToday,
       reviewedTodayDiary: reviewedTodayDiary,
       quizCompletedToday: quizCompletedToday,
+      loggedBoardToday: loggedBoardToday,
       quizResumeSummary: quizResumeSummary,
     );
   }
@@ -693,57 +709,65 @@ class _LevelHeroCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: PlayerLevelIllustration(
-                  level: levelState.level,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.20),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  'Lv.${levelState.level}',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  PlayerLevelService.levelName(levelState.level, isKo),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.20),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            'Lv.${levelState.level}',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            PlayerLevelService.levelName(
+                              levelState.level,
+                              isKo,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isKo
+                          ? '다음까지 ${levelState.xpToNextLevel}XP'
+                          : '${levelState.xpToNextLevel} XP left',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                isKo
-                    ? '다음까지 ${levelState.xpToNextLevel}XP'
-                    : '${levelState.xpToNextLevel} XP left',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              const SizedBox(width: 12),
+              _HomeLevelIllustration(isKo: isKo, level: levelState.level),
             ],
           ),
           const SizedBox(height: 8),
@@ -768,6 +792,7 @@ class _DailyFlowCard extends StatelessWidget {
   final VoidCallback? onJumpRope;
   final VoidCallback? onQuiz;
   final VoidCallback? onReview;
+  final VoidCallback? onBoard;
 
   const _DailyFlowCard({
     required this.data,
@@ -777,6 +802,7 @@ class _DailyFlowCard extends StatelessWidget {
     required this.onJumpRope,
     required this.onQuiz,
     required this.onReview,
+    required this.onBoard,
   });
 
   @override
@@ -787,8 +813,9 @@ class _DailyFlowCard extends StatelessWidget {
       data.loggedJumpRopeToday,
       data.quizCompletedToday,
       data.reviewedTodayDiary,
+      data.loggedBoardToday,
     ].where((done) => done).length;
-    final progress = completedCount / 5;
+    final progress = completedCount / 6;
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -804,7 +831,7 @@ class _DailyFlowCard extends StatelessWidget {
                 ),
               ),
               Text(
-                isKo ? '$completedCount/5 완료' : '$completedCount/5 done',
+                isKo ? '$completedCount/6 완료' : '$completedCount/6 done',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w900,
@@ -857,7 +884,12 @@ class _DailyFlowCard extends StatelessWidget {
                 label: isKo ? '다이어리' : 'Diary',
                 onTap: onReview,
               ),
-              const SizedBox.shrink(),
+              _TodoChip(
+                done: data.loggedBoardToday,
+                icon: Icons.developer_board_outlined,
+                label: isKo ? '훈련스케치' : 'Sketch',
+                onTap: onBoard,
+              ),
             ],
           ),
         ],
@@ -940,11 +972,13 @@ class _QuickActionGrid extends StatelessWidget {
   final bool isKo;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
+  final VoidCallback? onQuickBoard;
 
   const _QuickActionGrid({
     required this.isKo,
     required this.onQuickMatch,
     required this.onQuickPlan,
+    required this.onQuickBoard,
   });
 
   @override
@@ -959,6 +993,11 @@ class _QuickActionGrid extends StatelessWidget {
         icon: Icons.event_note_outlined,
         title: isKo ? '훈련 계획' : 'Add plan',
         onTap: onQuickPlan,
+      ),
+      _QuickActionItem(
+        icon: Icons.developer_board_outlined,
+        title: isKo ? '훈련 스케치' : 'Sketch board',
+        onTap: onQuickBoard,
       ),
     ];
     return Column(
@@ -1353,32 +1392,96 @@ class _QuickActionButton extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
                 Icon(
                   item.icon,
                   size: 18,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                const Spacer(),
-                Text(
-                  item.title,
-                  strutStyle: const StrutStyle(
-                    fontSize: 14,
-                    height: 1.05,
-                    forceStrutHeight: true,
-                  ),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize: 14,
-                    height: 1.05,
-                    fontWeight: FontWeight.w900,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    item.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    strutStyle: const StrutStyle(
+                      fontSize: 14,
+                      height: 1.05,
+                      forceStrutHeight: true,
+                    ),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize: 14,
+                      height: 1.05,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HomeLevelIllustration extends StatelessWidget {
+  final bool isKo;
+  final int level;
+
+  const _HomeLevelIllustration({required this.isKo, required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 64,
+      height: 64,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 2,
+            top: 0,
+            child: PlayerLevelIllustration(level: level, size: 46),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+              ),
+              child: Text(
+                PlayerLevelService.illustrationLabel(level, isKo),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

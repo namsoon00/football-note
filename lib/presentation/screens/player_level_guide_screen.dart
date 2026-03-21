@@ -431,6 +431,9 @@ class _XpGuideCard extends StatelessWidget {
       isKo ? '계획한 날 훈련 완료: +25 XP' : 'Train on a planned day: +25 XP',
       isKo ? '퀴즈 완료: +15 XP' : 'Quiz completion: +15 XP',
       isKo ? '훈련 계획 생성: +10 XP' : 'Training plan created: +10 XP',
+      isKo ? '훈련 스케치 저장: +8 XP' : 'Training sketch saved: +8 XP',
+      isKo ? '새 훈련 스케치 생성: +12 XP' : 'Training sketch created: +12 XP',
+      isKo ? '오늘 다이어리 확인: +5 XP' : 'Today diary reviewed: +5 XP',
       isKo
           ? '3일 연속 기록: +25 XP / 7일 연속 기록: +60 XP'
           : '3-day streak: +25 XP / 7-day streak: +60 XP',
