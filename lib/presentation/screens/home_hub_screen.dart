@@ -173,7 +173,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       ],
                     ),
                     if (data.upcomingPlanDays.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       _PlanDaysCard(
                         isKo: isKo,
                         days: data.upcomingPlanDays,
@@ -845,62 +845,54 @@ class _PlanDaysCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WatchCartCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final totalPlans = days.fold<int>(0, (sum, item) => sum + item.count);
+    final next = days.first;
+    final nextLabel = DateFormat(isKo ? 'M/d(E)' : 'EEE M/d').format(next.day);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.22),
+            ),
+          ),
+          child: Row(
             children: [
+              Icon(
+                Icons.event_note_outlined,
+                size: 16,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  isKo ? '훈련 계획 있는 날' : 'Planned training days',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+                  isKo
+                      ? '훈련 계획: 다음 $nextLabel · 총 $totalPlans개'
+                      : 'Training plans: next $nextLabel · total $totalPlans',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
               if (onTap != null)
-                TextButton(
-                  onPressed: onTap,
-                  child: Text(isKo ? '열기' : 'Open'),
+                Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
             ],
           ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: days
-                  .map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          '${DateFormat(isKo ? 'M/d(E)' : 'EEE M/d').format(item.day)} · ${item.count}${isKo ? '개' : ''}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.w800,
-                              ),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

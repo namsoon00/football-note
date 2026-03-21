@@ -583,6 +583,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Future<void> _showReminderPermissionNoticeIfNeeded() async {
+    if (!widget.settingsService.reminderEnabled) return;
+    final granted = await _reminderService.hasNotificationPermission();
+    if (!mounted || granted) return;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    AppFeedback.showMessage(
+      context,
+      text: isKo
+          ? '알림 권한이 꺼져 있어 훈련 계획 알림이 오지 않을 수 있어요. 설정 > 알림에서 허용해 주세요.'
+          : 'Notification permission is off, so training plan alerts may not arrive. Enable it in Settings > Notifications.',
+    );
+  }
+
   Future<void> _openPlanSheet({
     required DateTime day,
     _TrainingPlan? editingPlan,
@@ -819,6 +832,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
     await _savePlans();
     await _syncPlanReminders();
+    await _showReminderPermissionNoticeIfNeeded();
     if (editingPlan == null) {
       final award = await PlayerLevelService(
         widget.optionRepository,
