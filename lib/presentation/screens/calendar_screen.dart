@@ -630,6 +630,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     required DateTime day,
     _TrainingPlan? editingPlan,
   }) async {
+    await _showReminderPermissionNoticeIfNeeded();
+    if (!mounted) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final rawCategories = widget.optionRepository.getOptions('programs', [
@@ -658,6 +660,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var duration = editingPlan?.durationMinutes ?? 60;
     var reminderBefore = editingPlan?.reminderMinutesBefore ?? 30;
     var noteText = editingPlan?.note ?? '';
+    if (!mounted) return;
     final saved = await showModalBottomSheet<_TrainingPlan>(
       context: context,
       isScrollControlled: true,
