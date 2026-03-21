@@ -1220,9 +1220,18 @@ class _QuickActionButton extends StatelessWidget {
                 const Spacer(),
                 Text(
                   item.title,
+                  strutStyle: const StrutStyle(
+                    fontSize: 14,
+                    height: 1.05,
+                    forceStrutHeight: true,
+                  ),
                   style: Theme.of(
                     context,
-                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+                  ).textTheme.labelLarge?.copyWith(
+                        fontSize: 14,
+                        height: 1.05,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ],
             ),
@@ -1279,9 +1288,16 @@ class _TodoChip extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  strutStyle: const StrutStyle(
+                    fontSize: 14,
+                    height: 1.05,
+                    forceStrutHeight: true,
+                  ),
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(
+                        fontSize: 14,
+                        height: 1.05,
                         fontWeight: FontWeight.w900,
                       ),
                 ),
