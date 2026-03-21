@@ -14,6 +14,8 @@ class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onQuizTap;
   final VoidCallback? onCoachTap;
   final VoidCallback onProfileTap;
+  final VoidCallback? onNotificationTap;
+  final int notificationBadgeCount;
   final VoidCallback onSettingsTap;
   final String profilePhotoSource;
 
@@ -27,6 +29,8 @@ class WatchCartAppBar extends StatelessWidget {
     this.onQuizTap,
     this.onCoachTap,
     required this.onProfileTap,
+    this.onNotificationTap,
+    this.notificationBadgeCount = 0,
     required this.onSettingsTap,
     this.profilePhotoSource = '',
   });
@@ -140,6 +144,51 @@ class WatchCartAppBar extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
               onPressed: onProfileTap,
             ),
+            if (onNotificationTap != null)
+              IconButton(
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications_outlined),
+                    if (notificationBadgeCount > 0)
+                      Positioned(
+                        right: -6,
+                        top: -4,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Center(
+                            child: Text(
+                              notificationBadgeCount > 99
+                                  ? '99+'
+                                  : '$notificationBadgeCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                height: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                tooltip: Localizations.localeOf(context).languageCode == 'ko'
+                    ? '알림'
+                    : 'Notifications',
+                iconSize: 30,
+                padding: const EdgeInsets.all(10),
+                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
+                onPressed: onNotificationTap,
+              ),
             IconButton(
               icon: const Icon(Icons.settings),
               iconSize: 30,

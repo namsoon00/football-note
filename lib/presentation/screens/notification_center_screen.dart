@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 
 import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -26,6 +29,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   bool _loading = true;
   bool _mutedNow = false;
   List<PendingNotificationRequest> _pending = const [];
+  List<_PlanAlarmRow> _planRows = const [];
 
   @override
   void initState() {
@@ -38,16 +42,39 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   }
 
   Future<void> _load() async {
+    await _reminderService.markAllRemindersRead();
     final permission = await _reminderService.hasNotificationPermission();
     final muted = await _reminderService.isAlarmMutedNow();
     final pending = await _reminderService.pendingReminders();
+    final planRows = _loadPlanRows();
     if (!mounted) return;
     setState(() {
       _permissionGranted = permission;
       _mutedNow = muted;
       _pending = pending..sort((a, b) => a.id.compareTo(b.id));
+      _planRows = planRows;
       _loading = false;
     });
+  }
+
+  List<_PlanAlarmRow> _loadPlanRows() {
+    final raw = widget.optionRepository.getValue<String>(
+      TrainingPlanReminderService.plansStorageKey,
+    );
+    if (raw == null || raw.trim().isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      final rows = decoded
+          .whereType<Map>()
+          .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
+          .where((e) => e.scheduledAt.isAfter(DateTime.now()))
+          .toList(growable: false)
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+      return rows;
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<void> _muteForHours(int hours) async {
@@ -160,14 +187,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 const SizedBox(height: 8),
                 Text(
                   isKo
-                      ? '예약된 알림 ${_pending.length}개'
-                      : '${_pending.length} scheduled alerts',
+                      ? '훈련 알림 ${_planRows.length}개'
+                      : '${_planRows.length} training alerts',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                 ),
                 const SizedBox(height: 8),
-                if (_pending.isEmpty)
+                if (_planRows.isEmpty)
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.inbox_outlined),
@@ -181,23 +208,61 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     ),
                   )
                 else
-                  ..._pending.map(
+                  ..._planRows.map(
                     (item) => Card(
                       child: ListTile(
                         leading: const Icon(Icons.alarm_outlined),
-                        title: Text(item.title?.trim().isNotEmpty == true
-                            ? item.title!
-                            : (isKo ? '훈련 계획 알림' : 'Training plan reminder')),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.category.isEmpty
+                                    ? (isKo ? '훈련 계획' : 'Training plan')
+                                    : item.category,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(DateFormat('HH:mm').format(item.scheduledAt)),
+                          ],
+                        ),
                         subtitle: Text(
-                          item.body?.trim().isNotEmpty == true
-                              ? item.body!
-                              : (isKo ? '알림 내용 없음' : 'No alert body'),
+                          DateFormat(isKo ? 'M/d(E)' : 'EEE, M/d')
+                              .format(item.scheduledAt),
                         ),
                       ),
                     ),
                   ),
+                if (_pending.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    isKo
+                        ? '시스템 예약 알림 ${_pending.length}개'
+                        : '${_pending.length} system-scheduled alerts',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ],
             ),
+    );
+  }
+}
+
+class _PlanAlarmRow {
+  final DateTime scheduledAt;
+  final String category;
+
+  const _PlanAlarmRow({
+    required this.scheduledAt,
+    required this.category,
+  });
+
+  factory _PlanAlarmRow.fromMap(Map<String, dynamic> map) {
+    return _PlanAlarmRow(
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+          DateTime.now(),
+      category: map['category']?.toString() ?? '',
     );
   }
 }

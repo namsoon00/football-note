@@ -28,6 +28,7 @@ import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'news_screen.dart';
 import 'skill_quiz_screen.dart';
+import 'notification_center_screen.dart';
 
 enum _CalendarCreateAction { entry, plan, match }
 
@@ -201,6 +202,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final isCalendarExpanded =
                   hasDaySchedule ? _calendarExpanded : true;
               final selectedHolidayName = holidayMap[selected];
+              final reminderUnreadCount = TrainingPlanReminderService(
+                widget.optionRepository,
+                widget.settingsService,
+              ).unreadReminderCountSync();
 
               return Column(
                 children: [
@@ -210,6 +215,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       onLeadingTap: () => Scaffold.of(context).openDrawer(),
                       onNewsTap: () => _openNews(context),
                       onQuizTap: () => _openQuiz(context),
+                      onNotificationTap: () => _openNotifications(context),
+                      notificationBadgeCount: reminderUnreadCount,
                       profilePhotoSource:
                           widget.optionRepository.getValue<String>(
                                 'profile_photo_url',
@@ -837,15 +844,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         children: List<Widget>.generate(7, (index) {
                           final weekday = index + 1;
                           final selected = repeatWeekdays.contains(weekday);
-                          const koLabels = [
-                            '월',
-                            '화',
-                            '수',
-                            '목',
-                            '금',
-                            '토',
-                            '일'
-                          ];
+                          const koLabels = ['월', '화', '수', '목', '금', '토', '일'];
                           const enLabels = [
                             'Mon',
                             'Tue',
@@ -1432,6 +1431,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
       MaterialPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openNotifications(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NotificationCenterScreen(
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+        ),
       ),
     );
     if (mounted) setState(() {});
