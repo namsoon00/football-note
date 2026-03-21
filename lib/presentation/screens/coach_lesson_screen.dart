@@ -94,7 +94,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     super.initState();
     _selectedThemeId =
         widget.optionRepository.getValue<String>(_diaryThemeKey) ??
-        _DiaryThemePalette.notebook.id;
+            _DiaryThemePalette.notebook.id;
   }
 
   @override
@@ -105,12 +105,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stream =
-        widget.trainingService?.watchEntries() ??
+    final stream = widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     final showBack = !widget.embeddedInHomeTab;
-    final canOpenDrawer =
-        !showBack &&
+    final canOpenDrawer = !showBack &&
         widget.trainingService != null &&
         widget.localeService != null &&
         widget.settingsService != null;
@@ -163,7 +161,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 });
               }
               final selectedDay = days[selectedIndex];
-              _markDiaryViewedIfNeeded(selectedDay.date);
 
               return Column(
                 children: [
@@ -173,20 +170,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       onLeadingTap: showBack
                           ? () => Navigator.of(context).maybePop()
                           : canOpenDrawer
-                          ? () => Scaffold.of(headerContext).openDrawer()
-                          : null,
+                              ? () => Scaffold.of(headerContext).openDrawer()
+                              : null,
                       leadingIcon: showBack ? Icons.arrow_back : Icons.menu,
                       leadingTooltip: _isKo
                           ? (showBack ? '뒤로가기' : '메뉴')
                           : (showBack ? 'Back' : 'Menu'),
-                      onNewsTap:
-                          widget.trainingService != null &&
+                      onNewsTap: widget.trainingService != null &&
                               widget.localeService != null &&
                               widget.settingsService != null
                           ? _openNews
                           : null,
-                      onQuizTap:
-                          widget.trainingService != null &&
+                      onQuizTap: widget.trainingService != null &&
                               widget.localeService != null &&
                               widget.settingsService != null
                           ? _openQuiz
@@ -196,8 +191,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           ? _openNotifications
                           : null,
                       notificationBadgeCount: reminderUnreadCount,
-                      onSettingsTap:
-                          widget.localeService != null &&
+                      onSettingsTap: widget.localeService != null &&
                               widget.settingsService != null
                           ? _openSettings
                           : _openProfile,
@@ -279,11 +273,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           textAlign: TextAlign.center,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: _headlineInk,
-                                fontWeight: FontWeight.w900,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: _headlineInk,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -300,11 +294,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                               : 'Page ${selectedIndex + 1}/$dayCount',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: _bodyInk,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: _bodyInk,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ),
                     ],
@@ -429,12 +423,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (mounted) setState(() {});
   }
 
-  void _markDiaryViewedIfNeeded(DateTime date) {
+  void _markDiaryCompletedIfNeeded(DateTime date) {
     final token = CoachLessonScreen.todayViewedDayToken(date);
     if (_lastViewedDiaryToken == token) return;
-    _lastViewedDiaryToken = token;
     final todayToken = CoachLessonScreen.todayViewedDayToken(DateTime.now());
     if (token != todayToken) return;
+    _lastViewedDiaryToken = token;
     unawaited(
       widget.optionRepository.setValue(
         CoachLessonScreen.todayViewedDiaryDayKey,
@@ -467,40 +461,43 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildDiaryPage(_DiaryDayData day) {
     final diary = _buildDiary(day);
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-      child: _buildNotebookSheet(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildDayHeadlineCard(day),
-            const SizedBox(height: 12),
-            _buildTrainingOverviewCard(day),
-            const SizedBox(height: 12),
-            _buildNightReviewCard(day, diary),
-            const SizedBox(height: 12),
-            _buildFortuneCard(day),
-            if (day.plans.isNotEmpty) ...[
+    return _DiaryScrollPage(
+      onReachedEnd: () => _markDiaryCompletedIfNeeded(day.date),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+        child: _buildNotebookSheet(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildDayHeadlineCard(day),
               const SizedBox(height: 12),
-              _buildPlanCard(day.plans),
-            ],
-            if (day.matchEntries.isNotEmpty) ...[
+              _buildTrainingOverviewCard(day),
               const SizedBox(height: 12),
-              _buildMatchCard(day.matchEntries),
-            ],
-            if (day.trainingEntries.isNotEmpty) ...[
+              _buildNightReviewCard(day, diary),
               const SizedBox(height: 12),
-              _buildTrainingSection(day),
+              _buildFortuneCard(day),
+              if (day.plans.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _buildPlanCard(day.plans),
+              ],
+              if (day.matchEntries.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _buildMatchCard(day.matchEntries),
+              ],
+              if (day.trainingEntries.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _buildTrainingSection(day),
+              ],
+              if (_hasRecoveryRecord(day)) ...[
+                const SizedBox(height: 12),
+                _buildRecoveryCard(day),
+              ],
+              if (day.boards.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _buildBoardCard(day),
+              ],
             ],
-            if (_hasRecoveryRecord(day)) ...[
-              const SizedBox(height: 12),
-              _buildRecoveryCard(day),
-            ],
-            if (day.boards.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildBoardCard(day),
-            ],
-          ],
+          ),
         ),
       ),
     );
@@ -528,9 +525,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   child: Text(
                     _formatDiaryDate(day.date),
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: _headlineInk,
-                      fontWeight: FontWeight.w900,
-                    ),
+                          color: _headlineInk,
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
                 ),
                 if (weatherIcon != null)
@@ -589,9 +586,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: _accentInk,
-          fontWeight: FontWeight.w800,
-        ),
+              color: _accentInk,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
@@ -902,87 +899,85 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ? '훈련이 많아 유형별로 묶어 보여줍니다. 탭해서 펼치세요.'
           : 'Many logs are grouped by type. Tap to expand.',
       child: Column(
-        children: grouped.entries
-            .map((group) {
-              final groupKey = _trainingGroupKey(day.date, group.key);
-              final expanded = _expandedTrainingGroups.contains(groupKey);
-              final items = group.value;
-              final totalMinutes = items.fold<int>(
-                0,
-                (sum, entry) => sum + entry.durationMinutes,
-              );
-              final preview = _trainingSummaryShort(items.first);
-              return Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                  color: _tileSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _paperEdge),
-                ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    setState(() {
-                      if (expanded) {
-                        _expandedTrainingGroups.remove(groupKey);
-                      } else {
-                        _expandedTrainingGroups.add(groupKey);
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        children: grouped.entries.map((group) {
+          final groupKey = _trainingGroupKey(day.date, group.key);
+          final expanded = _expandedTrainingGroups.contains(groupKey);
+          final items = group.value;
+          final totalMinutes = items.fold<int>(
+            0,
+            (sum, entry) => sum + entry.durationMinutes,
+          );
+          final preview = _trainingSummaryShort(items.first);
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: _tileSurface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _paperEdge),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                setState(() {
+                  if (expanded) {
+                    _expandedTrainingGroups.remove(groupKey);
+                  } else {
+                    _expandedTrainingGroups.add(groupKey);
+                  }
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '${group.key} · ${items.length}${_isKo ? '회' : 'x'} · $totalMinutes${_isKo ? '분' : ' min'}',
-                                style: _theme.textTheme.labelLarge?.copyWith(
-                                  color: _headlineInk,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              expanded ? Icons.expand_less : Icons.expand_more,
-                              color: _accentInk,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          preview,
-                          maxLines: expanded ? null : 2,
-                          overflow: expanded
-                              ? TextOverflow.visible
-                              : TextOverflow.ellipsis,
-                          style: _theme.textTheme.bodySmall?.copyWith(
-                            color: _bodyInk,
-                            height: 1.4,
-                          ),
-                        ),
-                        if (expanded) ...[
-                          const SizedBox(height: 8),
-                          ...items.map(
-                            (entry) => Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
-                              child: _buildSummaryLine(
-                                '${_formatTime(entry.date)} · ${_trainingSummaryShort(entry)}',
-                              ),
+                        Expanded(
+                          child: Text(
+                            '${group.key} · ${items.length}${_isKo ? '회' : 'x'} · $totalMinutes${_isKo ? '분' : ' min'}',
+                            style: _theme.textTheme.labelLarge?.copyWith(
+                              color: _headlineInk,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                        ],
+                        ),
+                        Icon(
+                          expanded ? Icons.expand_less : Icons.expand_more,
+                          color: _accentInk,
+                        ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    Text(
+                      preview,
+                      maxLines: expanded ? null : 2,
+                      overflow: expanded
+                          ? TextOverflow.visible
+                          : TextOverflow.ellipsis,
+                      style: _theme.textTheme.bodySmall?.copyWith(
+                        color: _bodyInk,
+                        height: 1.4,
+                      ),
+                    ),
+                    if (expanded) ...[
+                      const SizedBox(height: 8),
+                      ...items.map(
+                        (entry) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: _buildSummaryLine(
+                            '${_formatTime(entry.date)} · ${_trainingSummaryShort(entry)}',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              );
-            })
-            .toList(growable: false),
+              ),
+            ),
+          );
+        }).toList(growable: false),
       ),
     );
   }
@@ -1159,17 +1154,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     children: [
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: _headlineInk,
-                              fontWeight: FontWeight.w900,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: _headlineInk,
+                                  fontWeight: FontWeight.w900,
+                                ),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(color: _bodyInk, height: 1.45),
                         ),
                       ],
@@ -1203,9 +1200,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: _headlineInk,
-              fontWeight: FontWeight.w800,
-            ),
+                  color: _headlineInk,
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -1266,31 +1263,27 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
     }
 
-    final days =
-        dayKeys
-            .map((day) {
-              final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
-              final linkedBoards = <String, TrainingBoard>{};
-              for (final entry in dayEntries) {
-                for (final id in TrainingBoardLinkCodec.decodeBoardIds(
-                  entry.drills,
-                )) {
-                  final board = boardMap[id];
-                  if (board != null) linkedBoards[id] = board;
-                }
-              }
-              return _DiaryDayData(
-                date: day,
-                entries: [...dayEntries]
-                  ..sort((a, b) => a.date.compareTo(b.date)),
-                plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
-                  ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
-                boards: linkedBoards.values.toList(growable: false)
-                  ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
-              );
-            })
-            .toList(growable: false)
-          ..sort((a, b) => b.date.compareTo(a.date));
+    final days = dayKeys.map((day) {
+      final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
+      final linkedBoards = <String, TrainingBoard>{};
+      for (final entry in dayEntries) {
+        for (final id in TrainingBoardLinkCodec.decodeBoardIds(
+          entry.drills,
+        )) {
+          final board = boardMap[id];
+          if (board != null) linkedBoards[id] = board;
+        }
+      }
+      return _DiaryDayData(
+        date: day,
+        entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
+        plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
+          ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
+        boards: linkedBoards.values.toList(growable: false)
+          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+      );
+    }).toList(growable: false)
+      ..sort((a, b) => b.date.compareTo(a.date));
     return days;
   }
 
@@ -1734,18 +1727,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _buildBoardDiaryParagraph(_DiaryDayData day) {
     if (day.boards.isEmpty) return '';
-    final boardNotes = day.boards
-        .map((board) {
-          final layout = TrainingMethodLayout.decode(board.layoutJson);
-          final memo = layout.pages.isNotEmpty
-              ? layout.pages.first.methodText.trim()
-              : '';
-          if (_isKo) {
-            return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
-          }
-          return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
-        })
-        .join(' / ');
+    final boardNotes = day.boards.map((board) {
+      final layout = TrainingMethodLayout.decode(board.layoutJson);
+      final memo =
+          layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
+      if (_isKo) {
+        return memo.isEmpty ? board.title : '${board.title} 메모는 "$memo"';
+      }
+      return memo.isEmpty ? board.title : '${board.title} memo was "$memo"';
+    }).join(' / ');
     return _isKo
         ? '훈련보드에는 $boardNotes 같은 그림과 메모가 남아 있다. 말로 다 적지 못한 움직임은 이런 도식 안에서 다시 또렷해진다.'
         : 'The training boards kept sketches and notes such as $boardNotes. The movements that were difficult to explain in plain sentences become clear again inside those diagrams.';
@@ -1776,9 +1766,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 child: Text(
                   board.title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: _headlineInk,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -2228,6 +2218,65 @@ class _DiaryThemePalette {
   }
 }
 
+class _DiaryScrollPage extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onReachedEnd;
+
+  const _DiaryScrollPage({
+    required this.child,
+    required this.onReachedEnd,
+  });
+
+  @override
+  State<_DiaryScrollPage> createState() => _DiaryScrollPageState();
+}
+
+class _DiaryScrollPageState extends State<_DiaryScrollPage> {
+  final ScrollController _controller = ScrollController();
+  bool _didReachEnd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_handleScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkIfAtEnd());
+  }
+
+  @override
+  void didUpdateWidget(covariant _DiaryScrollPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _didReachEnd = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkIfAtEnd());
+  }
+
+  @override
+  void dispose() {
+    _controller
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    _checkIfAtEnd();
+  }
+
+  void _checkIfAtEnd() {
+    if (!mounted || _didReachEnd || !_controller.hasClients) return;
+    if (_controller.position.extentAfter > 24) return;
+    _didReachEnd = true;
+    widget.onReachedEnd();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PrimaryScrollController(
+      controller: _controller,
+      child: widget.child,
+    );
+  }
+}
+
 class _DiaryDayData {
   final DateTime date;
   final List<TrainingEntry> entries;
@@ -2271,9 +2320,8 @@ class _DiaryFortune {
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
         .toList(growable: false);
-    final luckyInfoLines = allLines
-        .where(_isLuckyInfoLine)
-        .toList(growable: false);
+    final luckyInfoLines =
+        allLines.where(_isLuckyInfoLine).toList(growable: false);
     final bodyLines = allLines
         .where((line) => !_isLuckyInfoLine(line))
         .toList(growable: false);
@@ -2329,10 +2377,10 @@ class _GeneratedDiaryFortuneText {
     final jumpMetric = entry.jumpRopeCount > 0
         ? (isKo ? '${entry.jumpRopeCount}회' : '${entry.jumpRopeCount} reps')
         : (entry.jumpRopeMinutes > 0
-              ? (isKo
-                    ? '${entry.jumpRopeMinutes}분'
-                    : '${entry.jumpRopeMinutes} min')
-              : (isKo ? '기록 준비' : 'prep'));
+            ? (isKo
+                ? '${entry.jumpRopeMinutes}분'
+                : '${entry.jumpRopeMinutes} min')
+            : (isKo ? '기록 준비' : 'prep'));
     final focus = entry.type.trim().isNotEmpty
         ? entry.type.trim()
         : (isKo ? '훈련' : 'training');
@@ -2471,22 +2519,22 @@ class _GeneratedDiaryFortuneText {
 
   static List<String> _conditionTemplates(String conditionBand, bool isKo) =>
       isKo
-      ? <String>[
-          '$conditionBand 신호가 보여서 몸의 반응을 읽으며 움직이기 좋았어요.',
-          '$conditionBand 단계여서 판단과 터치의 간격을 차분히 맞출 수 있었어요.',
-          '$conditionBand 기준으로 보아도 오늘은 감각을 잃지 않고 이어 간 편이에요.',
-          '$conditionBand 상태라서 작은 흔들림도 빨리 알아차릴 수 있었어요.',
-          '$conditionBand 흐름을 유지한 덕분에 기록 전체가 무너지지 않았어요.',
-          '$conditionBand 날에는 무리보다 정리가 중요했는데, 오늘 메모가 그 균형을 보여줘요.',
-        ]
-      : <String>[
-          'With $conditionBand signals, it was easier to read the body and move with it.',
-          'At $conditionBand, the spacing between decisions and touches stayed calm.',
-          'Even by a $conditionBand standard, the day held onto its feel without falling apart.',
-          'Being in $conditionBand made it easier to notice small slips early.',
-          'Keeping a $conditionBand flow helped the full log stay intact.',
-          'On a $conditionBand day, clean organization mattered more than forcing it, and the note shows that balance.',
-        ];
+          ? <String>[
+              '$conditionBand 신호가 보여서 몸의 반응을 읽으며 움직이기 좋았어요.',
+              '$conditionBand 단계여서 판단과 터치의 간격을 차분히 맞출 수 있었어요.',
+              '$conditionBand 기준으로 보아도 오늘은 감각을 잃지 않고 이어 간 편이에요.',
+              '$conditionBand 상태라서 작은 흔들림도 빨리 알아차릴 수 있었어요.',
+              '$conditionBand 흐름을 유지한 덕분에 기록 전체가 무너지지 않았어요.',
+              '$conditionBand 날에는 무리보다 정리가 중요했는데, 오늘 메모가 그 균형을 보여줘요.',
+            ]
+          : <String>[
+              'With $conditionBand signals, it was easier to read the body and move with it.',
+              'At $conditionBand, the spacing between decisions and touches stayed calm.',
+              'Even by a $conditionBand standard, the day held onto its feel without falling apart.',
+              'Being in $conditionBand made it easier to notice small slips early.',
+              'Keeping a $conditionBand flow helped the full log stay intact.',
+              'On a $conditionBand day, clean organization mattered more than forcing it, and the note shows that balance.',
+            ];
 
   static List<String> _effortTemplates(String intensityBand, bool isKo) => isKo
       ? <String>[
@@ -2584,23 +2632,24 @@ class _GeneratedDiaryFortuneText {
     String liftingState,
     String jumpState,
     bool isKo,
-  ) => isKo
-      ? <String>[
-          '행운 루틴: $focus 전에 $jumpState로 발 리듬을 먼저 깨워 보세요.',
-          '행운 포인트: $liftingState처럼 반복 횟수가 보이는 루틴이 오늘 감각을 오래 붙잡아 줘요.',
-          '행운 타이밍: $focus 시작 전 5분은 호흡을 고르고 박자를 맞추는 시간이 좋아요.',
-          '행운 키워드: 첫 터치, 시선 정리, 그리고 $jumpState.',
-          '행운 메모: $focus 장면은 짧은 준비 루틴과 함께할 때 더 선명해져요.',
-          '행운 연결: $liftingState 뒤에 메인 훈련을 이어가면 감각이 더 또렷해질 수 있어요.',
-        ]
-      : <String>[
-          'Lucky routine: wake the feet up with $jumpState before $focus.',
-          'Lucky point: routines with visible counts like $liftingState help the feel last longer today.',
-          'Lucky timing: the five minutes before $focus are good for settling breath and rhythm.',
-          'Lucky keywords: first touch, scanning, and $jumpState.',
-          'Lucky note: $focus becomes clearer when it starts with a short prep routine.',
-          'Lucky link: the feel may sharpen if the main session follows $liftingState.',
-        ];
+  ) =>
+      isKo
+          ? <String>[
+              '행운 루틴: $focus 전에 $jumpState로 발 리듬을 먼저 깨워 보세요.',
+              '행운 포인트: $liftingState처럼 반복 횟수가 보이는 루틴이 오늘 감각을 오래 붙잡아 줘요.',
+              '행운 타이밍: $focus 시작 전 5분은 호흡을 고르고 박자를 맞추는 시간이 좋아요.',
+              '행운 키워드: 첫 터치, 시선 정리, 그리고 $jumpState.',
+              '행운 메모: $focus 장면은 짧은 준비 루틴과 함께할 때 더 선명해져요.',
+              '행운 연결: $liftingState 뒤에 메인 훈련을 이어가면 감각이 더 또렷해질 수 있어요.',
+            ]
+          : <String>[
+              'Lucky routine: wake the feet up with $jumpState before $focus.',
+              'Lucky point: routines with visible counts like $liftingState help the feel last longer today.',
+              'Lucky timing: the five minutes before $focus are good for settling breath and rhythm.',
+              'Lucky keywords: first touch, scanning, and $jumpState.',
+              'Lucky note: $focus becomes clearer when it starts with a short prep routine.',
+              'Lucky link: the feel may sharpen if the main session follows $liftingState.',
+            ];
 
   static List<String> _recommendationTemplates({
     required bool isKo,
@@ -2661,11 +2710,9 @@ class _DiaryPlan {
 
   factory _DiaryPlan.fromMap(Map<String, dynamic> map) {
     return _DiaryPlan(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
