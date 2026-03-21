@@ -5,8 +5,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../domain/repositories/option_repository.dart';
-import '../models/training_method_layout.dart';
-import '../widgets/training_board_sketch.dart';
 
 class SkillQuizScreen extends StatefulWidget {
   final OptionRepository optionRepository;
@@ -60,20 +58,17 @@ class SkillQuizScreen extends StatefulWidget {
   State<SkillQuizScreen> createState() => _SkillQuizScreenState();
 }
 
-class _SkillQuizScreenState extends State<SkillQuizScreen>
-    with SingleTickerProviderStateMixin {
+class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _dailyCount = 8;
   static const int _reviewCount = 8;
-  static const int _practicalCount = 8;
+  static const int _challengeCount = 8;
   static const int _speedCount = 8;
   static const int _speedLimitSec = 12;
 
-  late final AnimationController _pulseController;
-  late final AnimationController _sceneMotionController;
-  late final Map<String, _BoardQuizQuestion> _questionMap;
-  late final List<_BoardQuizQuestion> _allQuestions;
+  late final Map<String, _FootballQuizQuestion> _questionMap;
+  late final List<_FootballQuizQuestion> _allQuestions;
 
-  List<_BoardQuizQuestion> _questions = const <_BoardQuizQuestion>[];
+  List<_FootballQuizQuestion> _questions = const <_FootballQuizQuestion>[];
   _QuizMode _mode = _QuizMode.daily;
 
   int _index = 0;
@@ -102,17 +97,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
-    _sceneMotionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat();
-    _allQuestions = _buildBoardQuizPool();
+    _allQuestions = _buildFootballQuizPool();
     _questionMap = {
-      for (final question in _allQuestions) question.id: question
+      for (final question in _allQuestions) question.id: question,
     };
     _restoreOrStart();
   }
@@ -120,8 +107,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   @override
   void dispose() {
     _speedTimer?.cancel();
-    _sceneMotionController.dispose();
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -151,7 +136,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   void _applySnapshot(_QuizSessionSnapshot snapshot) {
     final questions = snapshot.questionIds
         .map((id) => _questionMap[id])
-        .whereType<_BoardQuizQuestion>()
+        .whereType<_FootballQuizQuestion>()
         .toList(growable: false);
     if (questions.isEmpty) {
       _startDailySession();
@@ -190,16 +175,18 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
 
   void _startDailySession() {
     final token = _todayToken();
-    final savedToken = widget.optionRepository
-        .getValue<String>(SkillQuizScreen.dailyQuestionsDayKey);
+    final savedToken = widget.optionRepository.getValue<String>(
+      SkillQuizScreen.dailyQuestionsDayKey,
+    );
     if (savedToken == token) {
       final savedIds = _decodeStringList(
-        widget.optionRepository
-            .getValue<String>(SkillQuizScreen.dailyQuestionsKey),
+        widget.optionRepository.getValue<String>(
+          SkillQuizScreen.dailyQuestionsKey,
+        ),
       );
       final savedQuestions = savedIds
           .map((id) => _questionMap[id])
-          .whereType<_BoardQuizQuestion>()
+          .whereType<_FootballQuizQuestion>()
           .toList(growable: false);
       if (savedQuestions.isNotEmpty) {
         _startSession(questions: savedQuestions, mode: _QuizMode.daily);
@@ -208,35 +195,39 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     }
 
     final random = math.Random(_stableHash(token));
-    final picked = _pickDailyTemplateQuestions(random);
-    unawaited(widget.optionRepository
-        .setValue(SkillQuizScreen.dailyQuestionsDayKey, token));
-    unawaited(widget.optionRepository.setValue(
-      SkillQuizScreen.dailyQuestionsKey,
-      jsonEncode(picked.map((q) => q.id).toList(growable: false)),
-    ));
+    final picked = _pickDailyQuestions(random);
+    unawaited(
+      widget.optionRepository.setValue(
+        SkillQuizScreen.dailyQuestionsDayKey,
+        token,
+      ),
+    );
+    unawaited(
+      widget.optionRepository.setValue(
+        SkillQuizScreen.dailyQuestionsKey,
+        jsonEncode(picked.map((q) => q.id).toList(growable: false)),
+      ),
+    );
     _startSession(questions: picked, mode: _QuizMode.daily);
   }
 
-  void _startPracticalSession() {
-    final source = _allQuestions
-        .where((question) =>
-            question.template != _BoardQuizTemplate.findTarget &&
-            question.type == _BoardQuestionType.practical)
-        .toList(growable: false);
+  void _startChallengeSession() {
     final random = math.Random(DateTime.now().microsecondsSinceEpoch);
     final picked = _pickAdaptiveQuestions(
-      source: source,
-      count: _practicalCount,
+      source: _allQuestions,
+      count: _challengeCount,
       random: random,
     );
-    _startSession(questions: picked, mode: _QuizMode.practical);
+    _startSession(questions: picked, mode: _QuizMode.challenge);
   }
 
   void _startSpeedSession() {
     final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final source = _allQuestions
+        .where((question) => question.style != _QuestionStyle.ox)
+        .toList(growable: false);
     final picked = _pickAdaptiveQuestions(
-      source: _allQuestions,
+      source: source.isEmpty ? _allQuestions : source,
       count: _speedCount,
       random: random,
     );
@@ -245,7 +236,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
 
   void _startReviewSessionFromQueue() {
     final due = _loadDueReviewQuestions();
-    if (due.isEmpty) return;
+    if (due.isEmpty) {
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isKo
+                ? '지금 바로 복습할 오답이 없어요.'
+                : 'There are no due wrong answers right now.',
+          ),
+        ),
+      );
+      return;
+    }
     _startSession(
       questions: due.take(_reviewCount).toList(growable: false),
       mode: _QuizMode.review,
@@ -254,7 +257,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
   }
 
   void _startSession({
-    required List<_BoardQuizQuestion> questions,
+    required List<_FootballQuizQuestion> questions,
     required _QuizMode mode,
     bool clearDueReview = false,
   }) {
@@ -286,18 +289,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       unawaited(_removeDueReviewQuestions(questions));
     }
 
-    unawaited(_trackMetric('board_quiz_session_started'));
+    unawaited(_trackMetric('football_quiz_session_started'));
     _startQuestionClock();
     unawaited(_persistSession());
   }
 
   void _startQuestionClock() {
     _questionStartedAt = DateTime.now();
-    if (_answered || _finished) {
-      _sceneMotionController.stop();
-    } else {
-      _startSceneMotion();
-    }
     _speedTimer?.cancel();
     if (_mode != _QuizMode.speed || _finished || _answered) {
       _speedLeft = _speedLimitSec;
@@ -320,17 +318,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     });
   }
 
-  void _startSceneMotion() {
-    final duration = _mode == _QuizMode.speed
-        ? const Duration(milliseconds: 1300)
-        : const Duration(milliseconds: 2100);
-    _sceneMotionController
-      ..stop()
-      ..duration = duration
-      ..value = 0
-      ..repeat();
-  }
-
   void _timeoutCurrentQuestion() {
     if (_answered || _finished) return;
     final question = _questions[_index];
@@ -348,8 +335,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       _responseMillisSum += (_speedLimitSec * 1000);
       _answerFx = _AnswerFx.timeout;
     });
-    _sceneMotionController.stop();
-    unawaited(_trackMetric('board_question_timeout'));
+    unawaited(_trackMetric('football_question_timeout'));
     unawaited(_persistSession());
   }
 
@@ -369,13 +355,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
         _retryUsed = true;
         _retryFeedback = 'incorrect';
       });
-      unawaited(_trackMetric('board_option_selected'));
+      unawaited(_trackMetric('football_option_selected'));
       unawaited(_persistSession());
       return;
     }
 
     _onAnswerResolved(
-        choice: choice, correct: false, wrongQuestionId: question.id);
+      choice: choice,
+      correct: false,
+      wrongQuestionId: question.id,
+    );
   }
 
   void _onAnswerResolved({
@@ -384,7 +373,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     String? wrongQuestionId,
   }) {
     _speedTimer?.cancel();
-    _sceneMotionController.stop();
     final responseMs = DateTime.now()
         .difference(_questionStartedAt ?? DateTime.now())
         .inMilliseconds;
@@ -418,8 +406,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       }
     });
 
-    unawaited(_trackMetric('board_option_selected'));
-    unawaited(_trackMetric('board_answer_evaluated'));
+    unawaited(_trackMetric('football_option_selected'));
+    unawaited(_trackMetric('football_answer_evaluated'));
     unawaited(_persistSession());
   }
 
@@ -443,7 +431,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
         _responseMillisSum += math.max(0, responseMs);
         _answerFx = _AnswerFx.fail;
       });
-      unawaited(_trackMetric('board_next_without_second_try'));
+      unawaited(_trackMetric('football_next_without_second_try'));
     }
 
     final nextIndex = _index + 1;
@@ -472,7 +460,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
 
     await _scheduleReviewQuestions(wrongQuestions);
     await _recordRecentPerformance();
-    await _trackMetric('board_quiz_session_completed');
+    await _trackMetric('football_quiz_session_completed');
 
     await widget.optionRepository.setValue(
       SkillQuizScreen.completionKey,
@@ -497,29 +485,32 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
           children: [
             ListTile(
               leading: const Icon(Icons.today_outlined),
-              title: Text(isKo ? '오늘의 보드 퀴즈' : 'Daily board quiz'),
+              title: Text(isKo ? '오늘의 축구 퀴즈' : 'Daily football quiz'),
               subtitle: Text(isKo ? '오늘 고정 세트' : 'Fixed set for today'),
               onTap: () => Navigator.of(context).pop(_QuizMode.daily),
             ),
             ListTile(
               leading: const Icon(Icons.rule_folder_outlined),
               title: Text(isKo ? '복습 모드' : 'Review mode'),
-              subtitle:
-                  Text(isKo ? '24시간 지난 오답 복습' : 'Review due wrong answers'),
+              subtitle: Text(
+                isKo ? '24시간 지난 오답 복습' : 'Review due wrong answers',
+              ),
               onTap: () => Navigator.of(context).pop(_QuizMode.review),
             ),
             ListTile(
-              leading: const Icon(Icons.stadium_outlined),
-              title: Text(isKo ? '실전 모드' : 'Practical mode'),
-              subtitle: Text(isKo ? '상황 판단 중심' : 'Decision-heavy scenarios'),
-              onTap: () => Navigator.of(context).pop(_QuizMode.practical),
+              leading: const Icon(Icons.sports_soccer_outlined),
+              title: Text(isKo ? '챌린지 모드' : 'Challenge mode'),
+              subtitle: Text(isKo ? '분야 섞인 8문제' : 'Mixed set of 8 questions'),
+              onTap: () => Navigator.of(context).pop(_QuizMode.challenge),
             ),
             ListTile(
               leading: const Icon(Icons.speed_outlined),
               title: Text(isKo ? '스피드 모드' : 'Speed mode'),
-              subtitle: Text(isKo
-                  ? '문항당 $_speedLimitSec초 제한'
-                  : '$_speedLimitSec s per question'),
+              subtitle: Text(
+                isKo
+                    ? '문항당 $_speedLimitSec초 제한'
+                    : '$_speedLimitSec s per question',
+              ),
               onTap: () => Navigator.of(context).pop(_QuizMode.speed),
             ),
           ],
@@ -536,8 +527,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       case _QuizMode.review:
         _startReviewSessionFromQueue();
         return;
-      case _QuizMode.practical:
-        _startPracticalSession();
+      case _QuizMode.challenge:
+        _startChallengeSession();
         return;
       case _QuizMode.speed:
         _startSpeedSession();
@@ -550,11 +541,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
       appBar: AppBar(
-        title: Text(isKo ? '보드 퀴즈' : 'Board Quiz'),
+        title: Text(isKo ? '축구 퀴즈' : 'Football Quiz'),
         actions: [
           IconButton(
             onPressed: _openModeMenu,
-            tooltip: isKo ? '모드 선택' : 'Choose mode',
+            tooltip: isKo ? '퀴즈 모드 선택' : 'Choose quiz mode',
             icon: const Icon(Icons.tune_outlined),
           ),
         ],
@@ -581,217 +572,202 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     final question = _questions[_index];
     final progressText = '${_index + 1}/${_questions.length}';
     final missionTarget = _mode == _QuizMode.review ? 4 : 6;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final boardHeight =
-            (constraints.maxHeight * 0.48).clamp(320.0, 560.0).toDouble();
-        final canGoNext = _answered || _retryUsed;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+    final canGoNext = _answered || _retryUsed;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _InfoChip(label: _mode.label(isKo)),
-                        _InfoChip(label: question.templateLabel(isKo)),
-                        _InfoChip(label: isKo
-                            ? '진행 $progressText'
-                            : 'Progress $progressText'),
-                        _InfoChip(
-                          label: isKo
-                              ? '미션 ${math.min(_score, missionTarget)}/$missionTarget'
-                              : 'Mission ${math.min(_score, missionTarget)}/$missionTarget',
-                        ),
-                        _InfoChip(
-                          label: isKo ? '콤보 x$_combo' : 'Combo x$_combo',
-                          success: _combo >= 2,
-                        ),
-                        _InfoChip(
-                          label: isKo ? '모멘텀 $_momentum' : 'Momentum $_momentum',
-                          success: _momentum >= 60,
-                        ),
-                        if (_mode == _QuizMode.speed)
-                          _InfoChip(
-                            label: isKo ? '⏱ ${_speedLeft}s' : '⏱ ${_speedLeft}s',
-                            danger: _speedLeft <= 3,
-                          ),
-                      ],
+                    _InfoChip(label: _mode.label(isKo)),
+                    _InfoChip(label: question.category.label(isKo)),
+                    _InfoChip(label: question.style.label(isKo)),
+                    _InfoChip(label: question.difficultyLabel(isKo)),
+                    _InfoChip(
+                      label:
+                          isKo ? '진행 $progressText' : 'Progress $progressText',
                     ),
-                    const SizedBox(height: 10),
-                    _ScenarioPromptCard(question: question, isKo: isKo),
-                    const SizedBox(height: 10),
-                    Stack(
-                      children: [
-                        _BoardSceneCard(
-                          question: question,
-                          pulse: _pulseController,
-                          motion: _sceneMotionController,
-                          isKo: isKo,
-                          height: boardHeight * 0.58,
-                        ),
-                        if (_answerFx != _AnswerFx.none)
-                          Positioned(
-                            top: 10,
-                            right: 10,
-                            child: _AnswerFxBadge(fx: _answerFx, isKo: isKo),
-                          ),
-                      ],
+                    _InfoChip(
+                      label: isKo
+                          ? '미션 ${math.min(_score, missionTarget)}/$missionTarget'
+                          : 'Mission ${math.min(_score, missionTarget)}/$missionTarget',
                     ),
-                    const SizedBox(height: 10),
-                    ...question.options.asMap().entries.map((entry) {
-                      final optionIndex = entry.key;
-                      final option = entry.value;
-                      final selected = _selectedIndex == optionIndex;
-                      final isCorrect = optionIndex == question.correctIndex;
-
-                      Color? borderColor;
-                      Color? bgColor;
-                      if (_answered || (_retryUsed && selected)) {
-                        if (isCorrect) {
-                          borderColor = const Color(0xFF0FA968);
-                          bgColor = const Color(0x1A0FA968);
-                        } else if (selected) {
-                          borderColor = const Color(0xFFEB5757);
-                          bgColor = const Color(0x1AEB5757);
-                        }
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Material(
-                          color: bgColor ??
-                              Theme.of(context).colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap: () => _selectAnswer(optionIndex),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: borderColor ??
-                                      Theme.of(context)
-                                          .colorScheme
-                                          .outlineVariant,
-                                  width: borderColor == null ? 1.0 : 1.6,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 13,
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .primary
-                                        .withValues(alpha: 0.12),
-                                    child: Icon(
-                                      _optionIconForIndex(optionIndex),
-                                      size: 15,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      option.text(isKo),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.copyWith(fontWeight: FontWeight.w800),
-                                    ),
-                                  ),
-                                  if (_answered && isCorrect)
-                                    const Icon(
-                                      Icons.check_circle,
-                                      color: Color(0xFF0FA968),
-                                    ),
-                                  if ((_answered || _retryUsed) &&
-                                      selected &&
-                                      !isCorrect)
-                                    const Icon(
-                                      Icons.cancel,
-                                      color: Color(0xFFEB5757),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                    if (!_answered && _retryFeedback == 'incorrect')
-                      Text(
-                        isKo
-                            ? '틀렸어요. 한 번 더 고를 수 있어요.'
-                            : 'Incorrect. One more try.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: const Color(0xFFEB5757),
-                              fontWeight: FontWeight.w700,
-                            ),
+                    _InfoChip(
+                      label: isKo ? '콤보 x$_combo' : 'Combo x$_combo',
+                      success: _combo >= 2,
+                    ),
+                    _InfoChip(
+                      label: isKo ? '모멘텀 $_momentum' : 'Momentum $_momentum',
+                      success: _momentum >= 60,
+                    ),
+                    if (_mode == _QuizMode.speed)
+                      _InfoChip(
+                        label: isKo ? '⏱ ${_speedLeft}s' : '⏱ ${_speedLeft}s',
+                        danger: _speedLeft <= 3,
                       ),
-                    if (!_answered && _retryFeedback == 'timeout')
-                      Text(
-                        isKo
-                            ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
-                            : 'Time out! Try a faster decision.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: const Color(0xFFEB5757),
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    if (_answered) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              question.explainText(isKo),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              isKo
-                                  ? '다음에 볼 포인트: ${question.nextPoint(true)}'
-                                  : 'Next focus: ${question.nextPoint(false)}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ],
                 ),
-              ),
+                if (_answerFx != _AnswerFx.none) ...[
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: _AnswerFxBadge(fx: _answerFx, isKo: isKo),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                _QuestionHeroCard(question: question, isKo: isKo),
+                const SizedBox(height: 12),
+                ...question.options.asMap().entries.map((entry) {
+                  final optionIndex = entry.key;
+                  final option = entry.value;
+                  final selected = _selectedIndex == optionIndex;
+                  final isCorrect = optionIndex == question.correctIndex;
+
+                  Color? borderColor;
+                  Color? bgColor;
+                  if (_answered || (_retryUsed && selected)) {
+                    if (isCorrect) {
+                      borderColor = const Color(0xFF0FA968);
+                      bgColor = const Color(0x1A0FA968);
+                    } else if (selected) {
+                      borderColor = const Color(0xFFEB5757);
+                      bgColor = const Color(0x1AEB5757);
+                    }
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Material(
+                      color: bgColor ??
+                          Theme.of(context).colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _selectAnswer(optionIndex),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: borderColor ??
+                                  Theme.of(context).colorScheme.outlineVariant,
+                              width: borderColor == null ? 1.0 : 1.6,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              _OptionBadge(
+                                label: question.style == _QuestionStyle.ox
+                                    ? option.text(isKo)
+                                    : _optionLabel(optionIndex),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  option.text(isKo),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                              if (_answered && isCorrect)
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Color(0xFF0FA968),
+                                ),
+                              if ((_answered || _retryUsed) &&
+                                  selected &&
+                                  !isCorrect)
+                                const Icon(
+                                  Icons.cancel,
+                                  color: Color(0xFFEB5757),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+                if (!_answered && _retryFeedback == 'incorrect')
+                  Text(
+                    isKo ? '틀렸어요. 한 번 더 고를 수 있어요.' : 'Incorrect. One more try.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                if (!_answered && _retryFeedback == 'timeout')
+                  Text(
+                    isKo
+                        ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
+                        : 'Time out! Try a faster decision.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                if (_answered) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isKo ? '정답 포인트' : 'Answer insight',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          question.explainText(isKo),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          isKo
+                              ? '다음에 볼 포인트: ${question.nextPoint(true)}'
+                              : 'Next focus: ${question.nextPoint(false)}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 10),
-            FilledButton.icon(
-              onPressed: canGoNext ? _goNext : null,
-              icon: const Icon(Icons.navigate_next),
-              label: Text(isKo ? '다음' : 'Next'),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          onPressed: canGoNext ? _goNext : null,
+          icon: const Icon(Icons.navigate_next),
+          label: Text(isKo ? '다음' : 'Next'),
+        ),
+      ],
     );
   }
 
@@ -813,11 +789,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  isKo ? '보드 퀴즈 결과' : 'Board Quiz Result',
+                  isKo ? '축구 퀴즈 결과' : 'Football Quiz Result',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -851,9 +827,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _startPracticalSession,
-                  icon: const Icon(Icons.stadium_outlined),
-                  label: Text(isKo ? '실전 모드' : 'Practical mode'),
+                  onPressed: _startChallengeSession,
+                  icon: const Icon(Icons.sports_soccer_outlined),
+                  label: Text(isKo ? '챌린지 모드' : 'Challenge mode'),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
@@ -921,16 +897,17 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     );
   }
 
-  List<_BoardQuizQuestion> _pickAdaptiveQuestions({
-    required List<_BoardQuizQuestion> source,
+  List<_FootballQuizQuestion> _pickAdaptiveQuestions({
+    required List<_FootballQuizQuestion> source,
     required int count,
     required math.Random random,
   }) {
-    if (source.isEmpty) return const <_BoardQuizQuestion>[];
+    if (source.isEmpty) return const <_FootballQuizQuestion>[];
 
     final perf = _RecentPerformance.tryParse(
-      widget.optionRepository
-          .getValue<String>(SkillQuizScreen.recentPerformanceKey),
+      widget.optionRepository.getValue<String>(
+        SkillQuizScreen.recentPerformanceKey,
+      ),
     );
     final targetDifficulty = perf?.targetDifficulty ?? 2;
 
@@ -949,12 +926,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
         targetDifficulty <= 1 ? 0.45 : (targetDifficulty >= 3 ? 0.18 : 0.25);
     final midRatio = 1 - easyRatio - hardRatio;
 
-    var needEasy = (total * easyRatio).round();
-    var needMid = (total * midRatio).round();
-    var needHard = total - needEasy - needMid;
+    final needEasy = (total * easyRatio).round();
+    final needMid = (total * midRatio).round();
+    final needHard = total - needEasy - needMid;
 
-    final picked = <_BoardQuizQuestion>[];
-    void take(List<_BoardQuizQuestion> from, int need) {
+    final picked = <_FootballQuizQuestion>[];
+    void take(List<_FootballQuizQuestion> from, int need) {
       if (need <= 0) return;
       final takeCount = math.min(need, from.length);
       picked.addAll(from.take(takeCount));
@@ -965,37 +942,31 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     take(midPool, needMid);
     take(hardPool, needHard);
 
-    final remaining = <_BoardQuizQuestion>[...easyPool, ...midPool, ...hardPool]
-      ..shuffle(random);
+    final remaining = <_FootballQuizQuestion>[
+      ...easyPool,
+      ...midPool,
+      ...hardPool,
+    ]..shuffle(random);
     if (picked.length < total) {
       picked.addAll(remaining.take(total - picked.length));
     }
 
-    // keep deterministic but slightly mixed ordering
     return picked..shuffle(random);
   }
 
-  List<_BoardQuizQuestion> _pickDailyTemplateQuestions(math.Random random) {
-    final findTarget = _allQuestions
-        .where((q) => q.template == _BoardQuizTemplate.findTarget)
+  List<_FootballQuizQuestion> _pickDailyQuestions(math.Random random) {
+    final ox = _allQuestions
+        .where((q) => q.style == _QuestionStyle.ox)
         .toList(growable: false)
       ..shuffle(random);
-    final oneStep = _allQuestions
-        .where((q) => q.template == _BoardQuizTemplate.oneStep)
-        .toList(growable: false)
-      ..shuffle(random);
-    final twoStep = _allQuestions
-        .where((q) => q.template == _BoardQuizTemplate.twoStep)
+    final mcq = _allQuestions
+        .where((q) => q.style == _QuestionStyle.multipleChoice)
         .toList(growable: false)
       ..shuffle(random);
 
-    final picked = <_BoardQuizQuestion>[
-      ...findTarget.take(3),
-      ...oneStep.take(3),
-      ...twoStep.take(2),
-    ];
+    final picked = <_FootballQuizQuestion>[...ox.take(4), ...mcq.take(4)];
     if (picked.length < _dailyCount) {
-      final rest = <_BoardQuizQuestion>[
+      final rest = <_FootballQuizQuestion>[
         ..._allQuestions.where((q) => !picked.contains(q)),
       ]..shuffle(random);
       picked.addAll(rest.take(_dailyCount - picked.length));
@@ -1003,10 +974,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     return picked.take(_dailyCount).toList(growable: false);
   }
 
-  List<_BoardQuizQuestion> _loadDueReviewQuestions() {
+  List<_FootballQuizQuestion> _loadDueReviewQuestions() {
     final scheduled = _ScheduledWrongItem.decodeList(
-      widget.optionRepository
-          .getValue<String>(SkillQuizScreen.pendingWrongScheduleKey),
+      widget.optionRepository.getValue<String>(
+        SkillQuizScreen.pendingWrongScheduleKey,
+      ),
     );
     final now = DateTime.now();
     final dueIds = scheduled
@@ -1015,17 +987,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
         .toList(growable: false);
     return dueIds
         .map((id) => _questionMap[id])
-        .whereType<_BoardQuizQuestion>()
+        .whereType<_FootballQuizQuestion>()
         .toList(growable: false);
   }
 
   Future<void> _removeDueReviewQuestions(
-      List<_BoardQuizQuestion> questions) async {
+    List<_FootballQuizQuestion> questions,
+  ) async {
     if (questions.isEmpty) return;
     final ids = questions.map((q) => q.id).toSet();
     final current = _ScheduledWrongItem.decodeList(
-      widget.optionRepository
-          .getValue<String>(SkillQuizScreen.pendingWrongScheduleKey),
+      widget.optionRepository.getValue<String>(
+        SkillQuizScreen.pendingWrongScheduleKey,
+      ),
     );
     final next = current
         .where((item) => !ids.contains(item.questionId))
@@ -1034,15 +1008,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       SkillQuizScreen.pendingWrongScheduleKey,
       _ScheduledWrongItem.encodeList(next),
     );
-    await widget.optionRepository
-        .setValue(SkillQuizScreen.pendingWrongQuestionsKey, '');
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongQuestionsKey,
+      '',
+    );
   }
 
   Future<void> _scheduleReviewQuestions(
-      List<_BoardQuizQuestion> wrongQuestions) async {
+    List<_FootballQuizQuestion> wrongQuestions,
+  ) async {
     final current = _ScheduledWrongItem.decodeList(
-      widget.optionRepository
-          .getValue<String>(SkillQuizScreen.pendingWrongScheduleKey),
+      widget.optionRepository.getValue<String>(
+        SkillQuizScreen.pendingWrongScheduleKey,
+      ),
     );
     final map = <String, _ScheduledWrongItem>{
       for (final item in current) item.questionId: item,
@@ -1063,8 +1041,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
       SkillQuizScreen.pendingWrongScheduleKey,
       _ScheduledWrongItem.encodeList(map.values.toList(growable: false)),
     );
-    await widget.optionRepository
-        .setValue(SkillQuizScreen.pendingWrongQuestionsKey, '');
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.pendingWrongQuestionsKey,
+      '',
+    );
   }
 
   String _todayToken() {
@@ -1104,7 +1084,7 @@ class SkillQuizResumeSummary {
   });
 }
 
-enum _QuizMode { daily, review, practical, speed }
+enum _QuizMode { daily, review, challenge, speed }
 
 extension _QuizModeX on _QuizMode {
   static _QuizMode? tryParse(String? raw) {
@@ -1120,41 +1100,82 @@ extension _QuizModeX on _QuizMode {
         return isKo ? '오늘 세트' : 'Daily set';
       case _QuizMode.review:
         return isKo ? '복습' : 'Review';
-      case _QuizMode.practical:
-        return isKo ? '실전' : 'Practical';
+      case _QuizMode.challenge:
+        return isKo ? '챌린지' : 'Challenge';
       case _QuizMode.speed:
         return isKo ? '스피드' : 'Speed';
     }
   }
 }
 
-class _BoardQuizQuestion {
+enum _QuestionStyle { ox, multipleChoice }
+
+extension _QuestionStyleX on _QuestionStyle {
+  String label(bool isKo) {
+    switch (this) {
+      case _QuestionStyle.ox:
+        return isKo ? 'OX' : 'True/False';
+      case _QuestionStyle.multipleChoice:
+        return isKo ? '4지선다' : 'Multiple choice';
+    }
+  }
+}
+
+enum _QuizCategory {
+  rules,
+  tactics,
+  technique,
+  positions,
+  training,
+  mindset,
+  nutrition,
+  fun,
+}
+
+extension _QuizCategoryX on _QuizCategory {
+  String label(bool isKo) {
+    switch (this) {
+      case _QuizCategory.rules:
+        return isKo ? '규칙' : 'Rules';
+      case _QuizCategory.tactics:
+        return isKo ? '전술' : 'Tactics';
+      case _QuizCategory.technique:
+        return isKo ? '기술' : 'Technique';
+      case _QuizCategory.positions:
+        return isKo ? '포지션' : 'Positions';
+      case _QuizCategory.training:
+        return isKo ? '훈련' : 'Training';
+      case _QuizCategory.mindset:
+        return isKo ? '마인드' : 'Mindset';
+      case _QuizCategory.nutrition:
+        return isKo ? '영양/회복' : 'Nutrition';
+      case _QuizCategory.fun:
+        return isKo ? '재미 상식' : 'Fun facts';
+    }
+  }
+}
+
+class _FootballQuizQuestion {
   final String id;
   final int difficulty;
-  final _BoardQuestionType type;
-  final _BoardQuizTemplate template;
-  final TrainingMethodPage page;
-  final String koCaption;
-  final String enCaption;
-  final String koQuestion;
-  final String enQuestion;
-  final List<_BoardQuizOption> options;
+  final _QuestionStyle style;
+  final _QuizCategory category;
+  final String koPrompt;
+  final String enPrompt;
+  final List<_FootballQuizOption> options;
   final int correctIndex;
   final String koExplain;
   final String enExplain;
   final String koNextPoint;
   final String enNextPoint;
 
-  const _BoardQuizQuestion({
+  const _FootballQuizQuestion({
     required this.id,
     required this.difficulty,
-    required this.type,
-    required this.template,
-    required this.page,
-    required this.koCaption,
-    required this.enCaption,
-    required this.koQuestion,
-    required this.enQuestion,
+    required this.style,
+    required this.category,
+    required this.koPrompt,
+    required this.enPrompt,
     required this.options,
     required this.correctIndex,
     required this.koExplain,
@@ -1163,545 +1184,161 @@ class _BoardQuizQuestion {
     required this.enNextPoint,
   });
 
-  String caption(bool isKo) => isKo ? koCaption : enCaption;
-  String questionText(bool isKo) => isKo ? koQuestion : enQuestion;
+  String prompt(bool isKo) => isKo ? koPrompt : enPrompt;
   String explainText(bool isKo) => isKo ? koExplain : enExplain;
   String nextPoint(bool isKo) => isKo ? koNextPoint : enNextPoint;
-  String templateLabel(bool isKo) => template.label(isKo);
-}
 
-enum _BoardQuestionType { basic, practical }
-
-enum _BoardQuizTemplate { findTarget, oneStep, twoStep }
-
-extension _BoardQuizTemplateX on _BoardQuizTemplate {
-  String label(bool isKo) {
-    switch (this) {
-      case _BoardQuizTemplate.findTarget:
-        return isKo ? '대상 찾기' : 'Find target';
-      case _BoardQuizTemplate.oneStep:
-        return isKo ? '1수 판단' : '1-step choice';
-      case _BoardQuizTemplate.twoStep:
-        return isKo ? '2수 판단' : '2-step plan';
+  String difficultyLabel(bool isKo) {
+    switch (difficulty) {
+      case 1:
+        return isKo ? '난이도 쉬움' : 'Easy';
+      case 2:
+        return isKo ? '난이도 보통' : 'Normal';
+      default:
+        return isKo ? '난이도 도전' : 'Hard';
     }
   }
 }
 
-class _BoardQuizOption {
+class _FootballQuizOption {
   final String koText;
   final String enText;
 
-  const _BoardQuizOption({required this.koText, required this.enText});
+  const _FootballQuizOption({required this.koText, required this.enText});
 
   String text(bool isKo) => isKo ? koText : enText;
 }
 
-class _BoardSceneCard extends StatelessWidget {
-  final _BoardQuizQuestion question;
-  final Animation<double> pulse;
-  final Animation<double> motion;
+class _QuestionHeroCard extends StatelessWidget {
+  final _FootballQuizQuestion question;
   final bool isKo;
-  final double height;
 
-  const _BoardSceneCard({
-    required this.question,
-    required this.pulse,
-    required this.motion,
-    required this.isKo,
-    required this.height,
-  });
+  const _QuestionHeroCard({required this.question, required this.isKo});
 
   @override
   Widget build(BuildContext context) {
-    final focus = _resolveFocus(question.page);
+    final scheme = Theme.of(context).colorScheme;
+    final accent = switch (question.category) {
+      _QuizCategory.rules => const Color(0xFF1565C0),
+      _QuizCategory.tactics => const Color(0xFF2E7D32),
+      _QuizCategory.technique => const Color(0xFF6A1B9A),
+      _QuizCategory.positions => const Color(0xFFE65100),
+      _QuizCategory.training => const Color(0xFF00838F),
+      _QuizCategory.mindset => const Color(0xFFAD1457),
+      _QuizCategory.nutrition => const Color(0xFF558B2F),
+      _QuizCategory.fun => const Color(0xFF5D4037),
+    };
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          colors: [accent.withValues(alpha: 0.16), scheme.surface],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: accent.withValues(alpha: 0.28)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            question.caption(isKo),
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: SizedBox(
-              height: height,
-              width: double.infinity,
-              child: AnimatedBuilder(
-                animation: Listenable.merge([pulse, motion]),
-                builder: (context, child) => Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned.fill(
-                      child: InteractiveViewer(
-                        minScale: 1,
-                        maxScale: 2.6,
-                        boundaryMargin: const EdgeInsets.all(28),
-                        child: child!,
-                      ),
-                    ),
-                    CustomPaint(
-                      painter: _TacticalDetailPainter(
-                        page: question.page,
-                        isKo: isKo,
-                      ),
-                    ),
-                    CustomPaint(
-                      painter: _PlayMotionPainter(
-                        page: question.page,
-                        t: motion.value,
-                      ),
-                    ),
-                    if (focus != null)
-                      CustomPaint(
-                        painter: _PulseFocusPainter(
-                          point: focus,
-                          t: pulse.value,
-                        ),
-                      ),
-                  ],
-                ),
-                child: TrainingBoardSketch(
-                  page: question.page,
-                  borderRadius: 14,
-                  showStrokes: true,
-                  showPlayerPath: true,
-                  showBallPath: true,
-                ),
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              isKo
+                  ? '${question.category.label(true)} ${question.style.label(true)}'
+                  : '${question.category.label(false)} ${question.style.label(false)}',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                  ),
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _LegendDot(
-                color: const Color(0xFFB3E5FC),
-                label: isKo ? '우리 팀' : 'Our team',
-              ),
-              const SizedBox(width: 10),
-              _LegendDot(
-                color: const Color(0xFFFFCCBC),
-                label: isKo ? '상대' : 'Opponent',
-              ),
-              const SizedBox(width: 10),
-              _LegendDot(
-                color: const Color(0xFFFFF8E1),
-                label: isKo ? '볼' : 'Ball',
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 14),
           Text(
-            _sceneReadText(question.page, isKo),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+            question.prompt(isKo),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  height: 1.35,
                 ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: scheme.surface.withValues(alpha: 0.82),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  question.style == _QuestionStyle.ox
+                      ? Icons.toggle_on_outlined
+                      : Icons.list_alt_outlined,
+                  color: accent,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    isKo
+                        ? '한 번 틀려도 다시 1번 더 고를 수 있어요. 설명까지 읽고 다음 문제로 넘어가세요.'
+                        : 'You get one retry before the question is marked wrong. Read the explanation before moving on.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-
-  TrainingMethodPoint? _resolveFocus(TrainingMethodPage page) {
-    if (page.ballPath.isNotEmpty) return page.ballPath.last;
-    if (page.playerPath.isNotEmpty) return page.playerPath.last;
-    return null;
-  }
-
-  String _sceneReadText(TrainingMethodPage page, bool isKo) {
-    final ball = page.items.where((item) => item.type == 'ball').toList();
-    final players = page.items.where((item) => item.type == 'player').toList();
-    final ourTeam = players.where((item) => item.colorValue == 0xFFB3E5FC);
-    final oppTeam = players.where((item) => item.colorValue == 0xFFFFCCBC);
-    final ownerLabel = _nearestPlayerLabel(
-      ball: ball.isEmpty ? null : ball.first,
-      players: players,
-      isKo: isKo,
-    );
-
-    final ballPos = ball.isEmpty ? null : _zoneLabel(ball.first.x, ball.first.y);
-    final passTo = page.ballPath.isEmpty ? null : page.ballPath.last;
-    final supportPos = passTo == null ? null : _zoneLabel(passTo.x, passTo.y);
-    final runTo = page.playerPath.isEmpty ? null : page.playerPath.last;
-    final runPos = runTo == null ? null : _zoneLabel(runTo.x, runTo.y);
-    if (isKo) {
-      return '장면 읽기: 볼소유 ${ownerLabel ?? '미확인'} · 볼 ${ballPos ?? '중앙'} · 패스 목표 ${supportPos ?? '없음'} · '
-          '러너 방향 ${runPos ?? '없음'} · 우리 ${ourTeam.length}명 / 상대 ${oppTeam.length}명';
-    }
-    return 'Scene read: Owner ${ownerLabel ?? 'unknown'} · Ball ${ballPos ?? 'center'} · Pass target ${supportPos ?? 'none'} · '
-        'Runner path ${runPos ?? 'none'} · Us ${ourTeam.length} / Opp ${oppTeam.length}';
-  }
-
-  String _zoneLabel(double x, double y) {
-    final h = x < 0.33 ? 'left' : x > 0.67 ? 'right' : 'center';
-    final v = y < 0.33 ? 'top' : y > 0.67 ? 'bottom' : 'middle';
-    return '$v-$h';
-  }
-
-  String? _nearestPlayerLabel({
-    required TrainingMethodItem? ball,
-    required Iterable<TrainingMethodItem> players,
-    required bool isKo,
-  }) {
-    if (ball == null) return null;
-    final list = players.toList(growable: false);
-    if (list.isEmpty) return null;
-    var bestIndex = 0;
-    var bestDistance = double.infinity;
-    for (var i = 0; i < list.length; i++) {
-      final item = list[i];
-      final dx = item.x - ball.x;
-      final dy = item.y - ball.y;
-      final dist = (dx * dx) + (dy * dy);
-      if (dist < bestDistance) {
-        bestDistance = dist;
-        bestIndex = i;
-      }
-    }
-    final owner = list[bestIndex];
-    final sameTeamIndex = list
-            .take(bestIndex + 1)
-            .where((item) => item.colorValue == owner.colorValue)
-            .length;
-    final isOur = owner.colorValue == 0xFFB3E5FC;
-    if (isKo) {
-      return isOur ? '우리$sameTeamIndex' : '상대$sameTeamIndex';
-    }
-    return isOur ? 'A$sameTeamIndex' : 'D$sameTeamIndex';
-  }
 }
 
-IconData _optionIconForIndex(int index) {
-  switch (index) {
-    case 0:
-      return Icons.looks_one_rounded;
-    case 1:
-      return Icons.looks_two_rounded;
-    default:
-      return Icons.looks_3_rounded;
-  }
-}
-
-class _ScenarioPromptCard extends StatelessWidget {
-  final _BoardQuizQuestion question;
-  final bool isKo;
-
-  const _ScenarioPromptCard({required this.question, required this.isKo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              question.caption(isKo),
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              question.questionText(isKo),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              isKo
-                  ? '아래 행동 카드 1개를 골라요.'
-                  : 'Pick one action card below.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LegendDot extends StatelessWidget {
-  final Color color;
+class _OptionBadge extends StatelessWidget {
   final String label;
 
-  const _LegendDot({required this.color, required this.label});
+  const _OptionBadge({required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.black12),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TacticalDetailPainter extends CustomPainter {
-  final TrainingMethodPage page;
-  final bool isKo;
-
-  const _TacticalDetailPainter({required this.page, required this.isKo});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final guidePaint = Paint()
-      ..color = const Color(0x558FA0C6)
-      ..strokeWidth = 1;
-    canvas.drawLine(
-      Offset(size.width * 0.33, 0),
-      Offset(size.width * 0.33, size.height),
-      guidePaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.67, 0),
-      Offset(size.width * 0.67, size.height),
-      guidePaint,
-    );
-    canvas.drawLine(
-      Offset(0, size.height * 0.33),
-      Offset(size.width, size.height * 0.33),
-      guidePaint,
-    );
-    canvas.drawLine(
-      Offset(0, size.height * 0.67),
-      Offset(size.width, size.height * 0.67),
-      guidePaint,
-    );
-
-    final ballPath = page.ballPath;
-    if (ballPath.length >= 2) {
-      final start = Offset(
-        ballPath.first.x * size.width,
-        ballPath.first.y * size.height,
-      );
-      final end = Offset(
-        ballPath.last.x * size.width,
-        ballPath.last.y * size.height,
-      );
-      final lanePaint = Paint()
-        ..color = const Color(0x4D1E88E5)
-        ..strokeWidth = 26
-        ..strokeCap = StrokeCap.round;
-      canvas.drawLine(start, end, lanePaint);
-    }
-
-    final players = page.items.where((item) => item.type == 'player').toList();
-    var ourIndex = 1;
-    var oppIndex = 1;
-    for (final player in players) {
-      final center = Offset(player.x * size.width, player.y * size.height);
-      final ours = player.colorValue == 0xFFB3E5FC;
-      final label = ours
-          ? (isKo ? '우리$ourIndex' : 'A$ourIndex')
-          : (isKo ? '상대$oppIndex' : 'D$oppIndex');
-      if (ours) {
-        ourIndex += 1;
-      } else {
-        oppIndex += 1;
-      }
-      _drawLabel(
-        canvas,
-        center.translate(0, -18),
-        label,
-        ours ? const Color(0xFF0D47A1) : const Color(0xFFBF360C),
-      );
-    }
-
-    final ball = page.items.where((item) => item.type == 'ball').toList();
-    if (ball.isNotEmpty) {
-      final center = Offset(ball.first.x * size.width, ball.first.y * size.height);
-      _drawLabel(
-        canvas,
-        center.translate(0, -18),
-        isKo ? '볼' : 'Ball',
-        const Color(0xFF5D4037),
-      );
-    }
-  }
-
-  void _drawLabel(Canvas canvas, Offset center, String text, Color color) {
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          backgroundColor: Colors.white70,
-        ),
+    return Container(
+      width: 34,
+      height: 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
       ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    textPainter.paint(
-      canvas,
-      Offset(center.dx - (textPainter.width / 2), center.dy - textPainter.height),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+      ),
     );
-  }
-
-  @override
-  bool shouldRepaint(covariant _TacticalDetailPainter oldDelegate) {
-    return oldDelegate.page != page || oldDelegate.isKo != isKo;
   }
 }
 
-class _PlayMotionPainter extends CustomPainter {
-  final TrainingMethodPage page;
-  final double t;
-
-  const _PlayMotionPainter({required this.page, required this.t});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final pulseAlpha = (0.25 + (0.55 * (0.5 + 0.5 * math.sin(t * math.pi * 2))))
-        .clamp(0.0, 1.0);
-    final lanePath = _lanePath(page.ballPath, size);
-    if (lanePath != null) {
-      final lanePaint = Paint()
-        ..color = const Color(0xFF4FC3F7).withValues(alpha: pulseAlpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 8
-        ..strokeCap = StrokeCap.round;
-      canvas.drawPath(lanePath, lanePaint);
-    }
-
-    final ball = _samplePoint(page.ballPath, t);
-    final runner = _samplePoint(page.playerPath, (t + 0.18) % 1.0);
-
-    if (ball != null) {
-      for (var i = 1; i <= 4; i++) {
-        final trailPoint = _samplePoint(page.ballPath, _wrap01(t - (i * 0.07)));
-        if (trailPoint == null) continue;
-        final trail = Offset(trailPoint.x * size.width, trailPoint.y * size.height);
-        final a = (0.12 * (5 - i)).clamp(0.0, 0.45);
-        final trailPaint = Paint()
-          ..color = const Color(0xFFFFD54F).withValues(alpha: a)
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(trail, 5.5 - i, trailPaint);
-      }
-      final c = Offset(ball.x * size.width, ball.y * size.height);
-      final glow = Paint()
-        ..color = const Color(0x80FFD54F)
-        ..style = PaintingStyle.fill;
-      final dot = Paint()
-        ..color = const Color(0xFFFFC107)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(c, 17, glow);
-      canvas.drawCircle(c, 8, dot);
-    }
-
-    if (runner != null) {
-      final c = Offset(runner.x * size.width, runner.y * size.height);
-      final glow = Paint()
-        ..color = const Color(0x8042A5F5)
-        ..style = PaintingStyle.fill;
-      final dot = Paint()
-        ..color = const Color(0xFF1E88E5)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(c, 15, glow);
-      canvas.drawCircle(c, 7, dot);
-    }
-  }
-
-  Path? _lanePath(List<TrainingMethodPoint> path, Size size) {
-    if (path.length < 2) return null;
-    final lane = Path()
-      ..moveTo(path.first.x * size.width, path.first.y * size.height);
-    for (var i = 1; i < path.length; i++) {
-      lane.lineTo(path[i].x * size.width, path[i].y * size.height);
-    }
-    return lane;
-  }
-
-  TrainingMethodPoint? _samplePoint(List<TrainingMethodPoint> path, double t) {
-    if (path.isEmpty) return null;
-    if (path.length == 1) return path.first;
-    final segments = path.length - 1;
-    final scaled = (t.clamp(0.0, 0.999999)) * segments;
-    final index = scaled.floor().clamp(0, segments - 1);
-    final local = scaled - index;
-    final start = path[index];
-    final end = path[index + 1];
-    return TrainingMethodPoint(
-      x: start.x + (end.x - start.x) * local,
-      y: start.y + (end.y - start.y) * local,
-    );
-  }
-
-  double _wrap01(double value) {
-    var v = value;
-    while (v < 0) {
-      v += 1;
-    }
-    while (v >= 1) {
-      v -= 1;
-    }
-    return v;
-  }
-
-  @override
-  bool shouldRepaint(covariant _PlayMotionPainter oldDelegate) {
-    return oldDelegate.page != page || oldDelegate.t != t;
-  }
-}
-
-class _PulseFocusPainter extends CustomPainter {
-  final TrainingMethodPoint point;
-  final double t;
-
-  const _PulseFocusPainter({required this.point, required this.t});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(point.x * size.width, point.y * size.height);
-    final outerRadius = 18 + (16 * t);
-    final innerRadius = 10 + (7 * t);
-
-    final outerPaint = Paint()
-      ..color = const Color(0x55FFD54F)
-      ..style = PaintingStyle.fill;
-    final innerPaint = Paint()
-      ..color = const Color(0xCCFFE082)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2;
-
-    canvas.drawCircle(center, outerRadius, outerPaint);
-    canvas.drawCircle(center, innerRadius, innerPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _PulseFocusPainter oldDelegate) {
-    return oldDelegate.point != point || oldDelegate.t != t;
+String _optionLabel(int index) {
+  switch (index) {
+    case 0:
+      return 'A';
+    case 1:
+      return 'B';
+    case 2:
+      return 'C';
+    default:
+      return 'D';
   }
 }
 
@@ -1758,12 +1395,12 @@ class _AnswerFxBadge extends StatelessWidget {
     final (icon, text, color) = switch (fx) {
       _AnswerFx.success => (
           Icons.check_circle,
-          isKo ? '성공 패스!' : 'Perfect pass!',
+          isKo ? '정답!' : 'Correct!',
           const Color(0xFF0FA968),
         ),
       _AnswerFx.fail => (
           Icons.cancel,
-          isKo ? '실패! 다시 읽어보자' : 'Miss! Re-read board',
+          isKo ? '오답' : 'Incorrect',
           const Color(0xFFEB5757),
         ),
       _AnswerFx.timeout => (
@@ -1773,9 +1410,8 @@ class _AnswerFxBadge extends StatelessWidget {
         ),
       _AnswerFx.none => (Icons.circle, '', Colors.transparent),
     };
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
+
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.16),
@@ -1926,8 +1562,9 @@ class _ScheduledWrongItem {
           .map((item) => item.cast<String, dynamic>())
           .map((map) {
             final dueAt = DateTime.tryParse(map['dueAt']?.toString() ?? '');
-            final lastWrongAt =
-                DateTime.tryParse(map['lastWrongAt']?.toString() ?? '');
+            final lastWrongAt = DateTime.tryParse(
+              map['lastWrongAt']?.toString() ?? '',
+            );
             if (dueAt == null || lastWrongAt == null) return null;
             return _ScheduledWrongItem(
               questionId: map['questionId']?.toString() ?? '',
@@ -1991,507 +1628,1628 @@ class _QuizMetrics {
   }
 }
 
-List<_BoardQuizQuestion> _buildBoardQuizPool() {
-  final scenes = _sceneTemplates();
-  return <_BoardQuizQuestion>[
-    _question(
-      id: 'bq_01',
+class _OxFactSeed {
+  final String id;
+  final int difficulty;
+  final _QuizCategory category;
+  final String koTrueStatement;
+  final String enTrueStatement;
+  final String koFalseStatement;
+  final String enFalseStatement;
+  final String koExplain;
+  final String enExplain;
+  final String koNextPoint;
+  final String enNextPoint;
+
+  const _OxFactSeed({
+    required this.id,
+    required this.difficulty,
+    required this.category,
+    required this.koTrueStatement,
+    required this.enTrueStatement,
+    required this.koFalseStatement,
+    required this.enFalseStatement,
+    required this.koExplain,
+    required this.enExplain,
+    required this.koNextPoint,
+    required this.enNextPoint,
+  });
+}
+
+class _McqSeed {
+  final String id;
+  final int difficulty;
+  final _QuizCategory category;
+  final String koStem;
+  final String enStem;
+  final List<_FootballQuizOption> options;
+  final int correctIndex;
+  final String koExplain;
+  final String enExplain;
+  final String koNextPoint;
+  final String enNextPoint;
+
+  const _McqSeed({
+    required this.id,
+    required this.difficulty,
+    required this.category,
+    required this.koStem,
+    required this.enStem,
+    required this.options,
+    required this.correctIndex,
+    required this.koExplain,
+    required this.enExplain,
+    required this.koNextPoint,
+    required this.enNextPoint,
+  });
+}
+
+List<_FootballQuizQuestion> _buildFootballQuizPool() {
+  final oxFacts = _oxFacts();
+  final mcqSeeds = _mcqSeeds();
+  final oxPrefixesKo = [
+    'OX 워밍업:',
+    '경기 이해 체크:',
+    '코치 퀵질문:',
+    '축구 상식 라운드:',
+    '집중 퀴즈:',
+    '현장 포인트:',
+  ];
+  final oxPrefixesEn = [
+    'True/False warm-up:',
+    'Game understanding check:',
+    'Coach quick question:',
+    'Football knowledge round:',
+    'Focus quiz:',
+    'On-pitch point:',
+  ];
+  final oxSuffixesKo = [
+    '맞으면 O, 틀리면 X.',
+    '정답이면 O를, 아니면 X를 고르세요.',
+    '판단만 빠르게 해보세요. O 또는 X.',
+    '사실이면 O, 아니라면 X입니다.',
+  ];
+  final oxSuffixesEn = [
+    'Choose O if it is true, X if it is false.',
+    'Pick O for correct, X for incorrect.',
+    'Decide quickly: O or X.',
+    'Mark O for fact, X for non-fact.',
+  ];
+
+  final mcqPrefixesKo = ['개념 체크:', '실전 선택:', '코치 질문:', '축구 기본기:', '퀴즈 카드:'];
+  final mcqPrefixesEn = [
+    'Concept check:',
+    'Match choice:',
+    'Coach asks:',
+    'Football basics:',
+    'Quiz card:',
+  ];
+  final mcqSuffixesKo = [
+    '가장 알맞은 답을 고르세요.',
+    '보기 중 하나만 선택하세요.',
+    '교육 포인트에 가장 가까운 답은?',
+    '실수 줄이는 선택을 골라보세요.',
+    '핵심 개념에 맞는 답을 선택하세요.',
+    '한 문제 한 답입니다.',
+  ];
+  final mcqSuffixesEn = [
+    'Choose the best answer.',
+    'Select one option only.',
+    'Which answer matches the learning point?',
+    'Pick the choice that reduces mistakes.',
+    'Choose the answer that fits the core concept.',
+    'One question, one answer.',
+  ];
+
+  final questions = <_FootballQuizQuestion>[];
+
+  for (final fact in oxFacts) {
+    for (var prefixIndex = 0;
+        prefixIndex < oxPrefixesKo.length;
+        prefixIndex++) {
+      for (var suffixIndex = 0;
+          suffixIndex < oxSuffixesKo.length;
+          suffixIndex++) {
+        questions.add(
+          _FootballQuizQuestion(
+            id: 'ox_${fact.id}_${prefixIndex}_${suffixIndex}_t',
+            difficulty: fact.difficulty,
+            style: _QuestionStyle.ox,
+            category: fact.category,
+            koPrompt:
+                '${oxPrefixesKo[prefixIndex]} ${fact.koTrueStatement} ${oxSuffixesKo[suffixIndex]}',
+            enPrompt:
+                '${oxPrefixesEn[prefixIndex]} ${fact.enTrueStatement} ${oxSuffixesEn[suffixIndex]}',
+            options: const [
+              _FootballQuizOption(koText: 'O', enText: 'O'),
+              _FootballQuizOption(koText: 'X', enText: 'X'),
+            ],
+            correctIndex: 0,
+            koExplain: '${fact.koExplain} 그래서 정답은 O예요.',
+            enExplain: '${fact.enExplain} So the correct answer is O.',
+            koNextPoint: fact.koNextPoint,
+            enNextPoint: fact.enNextPoint,
+          ),
+        );
+        questions.add(
+          _FootballQuizQuestion(
+            id: 'ox_${fact.id}_${prefixIndex}_${suffixIndex}_f',
+            difficulty: fact.difficulty,
+            style: _QuestionStyle.ox,
+            category: fact.category,
+            koPrompt:
+                '${oxPrefixesKo[prefixIndex]} ${fact.koFalseStatement} ${oxSuffixesKo[suffixIndex]}',
+            enPrompt:
+                '${oxPrefixesEn[prefixIndex]} ${fact.enFalseStatement} ${oxSuffixesEn[suffixIndex]}',
+            options: const [
+              _FootballQuizOption(koText: 'O', enText: 'O'),
+              _FootballQuizOption(koText: 'X', enText: 'X'),
+            ],
+            correctIndex: 1,
+            koExplain: '${fact.koExplain} 제시문은 일부가 틀렸기 때문에 정답은 X예요.',
+            enExplain:
+                '${fact.enExplain} The statement is intentionally wrong, so the correct answer is X.',
+            koNextPoint: fact.koNextPoint,
+            enNextPoint: fact.enNextPoint,
+          ),
+        );
+      }
+    }
+  }
+
+  for (final seed in mcqSeeds) {
+    for (var prefixIndex = 0;
+        prefixIndex < mcqPrefixesKo.length;
+        prefixIndex++) {
+      for (var suffixIndex = 0;
+          suffixIndex < mcqSuffixesKo.length;
+          suffixIndex++) {
+        questions.add(
+          _FootballQuizQuestion(
+            id: 'mcq_${seed.id}_${prefixIndex}_$suffixIndex',
+            difficulty: seed.difficulty,
+            style: _QuestionStyle.multipleChoice,
+            category: seed.category,
+            koPrompt:
+                '${mcqPrefixesKo[prefixIndex]} ${seed.koStem} ${mcqSuffixesKo[suffixIndex]}',
+            enPrompt:
+                '${mcqPrefixesEn[prefixIndex]} ${seed.enStem} ${mcqSuffixesEn[suffixIndex]}',
+            options: seed.options,
+            correctIndex: seed.correctIndex,
+            koExplain: seed.koExplain,
+            enExplain: seed.enExplain,
+            koNextPoint: seed.koNextPoint,
+            enNextPoint: seed.enNextPoint,
+          ),
+        );
+      }
+    }
+  }
+
+  if (questions.length < 2000) {
+    throw StateError(
+      'Football quiz pool must contain at least 2000 questions.',
+    );
+  }
+  return questions;
+}
+
+List<_OxFactSeed> _oxFacts() {
+  return const [
+    _OxFactSeed(
+      id: 'offside_own_half',
       difficulty: 1,
-      type: _BoardQuestionType.basic,
-      template: _BoardQuizTemplate.findTarget,
-      scene: scenes[0],
-      koCaption: '좌하단 볼 소유자가 중앙 지원에게 연결할 수 있는 장면',
-      enCaption: 'Bottom-left ball holder can connect to central support',
-      koQuestion: '화면에서 우리1(볼) 기준, 가장 짧고 안전한 패스 대상은?',
-      enQuestion: 'From A1 (ball), which visible target is the shortest safe pass?',
-      options: const [
-        _BoardQuizOption(
-          koText: '우리2(중앙)로 짧게 연결',
-          enText: 'Short pass to A2 (center)',
-        ),
-        _BoardQuizOption(
-          koText: '수비 사이로 우리3(우상단) 롱패스',
-          enText: 'Long pass to A3 through defenders',
-        ),
-        _BoardQuizOption(
-          koText: '패스 없이 멈춰서 대기',
-          enText: 'No pass, just hold the ball',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '보드에서 우리2가 우리1과 가장 가깝고 패스 라인도 짧아 첫 선택으로 가장 안전합니다.',
-      enExplain:
-          'A2 is the nearest visible support from A1 with the shortest passing lane.',
-      koNextPoint: '볼소유자에서 가장 가까운 우리 팀 1명을 먼저 찾기',
-      enNextPoint: 'Find the nearest teammate from ball owner first',
+      category: _QuizCategory.rules,
+      koTrueStatement: '자기 진영에 있는 공격수는 오프사이드 반칙 대상이 아니다.',
+      enTrueStatement:
+          'An attacker in their own half cannot be penalized for offside.',
+      koFalseStatement: '자기 진영에 있어도 수비수보다 앞서면 오프사이드다.',
+      enFalseStatement:
+          'An attacker can be offside even when standing in their own half.',
+      koExplain: '오프사이드는 상대 진영에서만 성립합니다.',
+      enExplain: 'Offside can only occur in the opponents’ half.',
+      koNextPoint: '오프사이드 판단은 위치와 공이 나가는 순간을 함께 본다.',
+      enNextPoint:
+          'Read offside with both player position and the kick moment.',
     ),
-    _question(
-      id: 'bq_02',
-      difficulty: 2,
-      type: _BoardQuestionType.basic,
-      template: _BoardQuizTemplate.findTarget,
-      scene: scenes[1],
-      koCaption: '중앙 보유, 오른쪽 하단 지원이 비어 있는 장면',
-      enCaption: 'Central possession with open right-lower support lane',
-      koQuestion: '우리2(볼) 기준, 화면에서 가장 열린 다음 연결 지점은?',
-      enQuestion: 'From A2 (ball), which visible next lane is most open?',
-      options: const [
-        _BoardQuizOption(
-          koText: '우리3(우하단) 쪽 열린 라인',
-          enText: 'Open lane toward A3 (right-lower)',
-        ),
-        _BoardQuizOption(
-          koText: '공만 보고 전진 드리블',
-          enText: 'Dribble forward staring at ball',
-        ),
-        _BoardQuizOption(
-          koText: '항상 중앙으로만 강제 패스',
-          enText: 'Force center-only pass every time',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '장면에서 우리3 방향이 수비 간격이 넓어 가장 열려 있습니다.',
-      enExplain:
-          'The lane to A3 is visibly wider than central forced options in this frame.',
-      koNextPoint: '패스 전에 수비 사이 간격이 넓은 쪽 찾기',
-      enNextPoint: 'Before passing, find the widest defender gap',
-    ),
-    _question(
-      id: 'bq_03',
-      difficulty: 2,
-      type: _BoardQuestionType.basic,
-      template: _BoardQuizTemplate.oneStep,
-      scene: scenes[2],
-      koCaption: '중앙에서 우측 전방 러너가 침투하는 전환 장면',
-      enCaption: 'Transition scene with right-front runner making a run',
-      koQuestion: '우리2(볼)에서 찬스를 만들려면 누구 앞공간으로 넣어야 하나?',
-      enQuestion: 'From A2 (ball), whose front-space pass creates a chance?',
-      options: const [
-        _BoardQuizOption(
-          koText: '우리3(우측 러너) 전방 공간',
-          enText: 'Into A3 (right runner) front space',
-        ),
-        _BoardQuizOption(
-          koText: '멈춰서 전원 올라올 때까지 대기',
-          enText: 'Stop and wait for full team push-up',
-        ),
-        _BoardQuizOption(
-          koText: '뒤로만 안전 패스 반복',
-          enText: 'Repeat only backward safe passes',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '보드에서 우리3의 진행 방향 앞이 비어 있어 타이밍 패스가 가장 위협적입니다.',
-      enExplain:
-          'A3 has open front-space in this frame, making the timing pass most dangerous.',
-      koNextPoint: '러너의 앞공간이 비었는지 먼저 보기',
-      enNextPoint: 'Check if runner front-space is open first',
-    ),
-    _question(
-      id: 'bq_04',
-      difficulty: 3,
-      type: _BoardQuestionType.practical,
-      template: _BoardQuizTemplate.oneStep,
-      scene: scenes[3],
-      koCaption: '좌하단 볼 소유, 근거리 패스 옵션 2개가 보이는 리드 상황',
-      enCaption: 'Lead situation with two short passing options from bottom-left',
-      koQuestion: '우리1(볼), 1점 리드 상황에서 화면 기준 가장 안정적인 운영은?',
-      enQuestion: 'A1 on the ball, one-goal lead: which visible choice is most stable?',
-      options: const [
-        _BoardQuizOption(
-          koText: '우리2로 짧게 연결하며 템포 조절',
-          enText: 'Short link to A2 to control tempo',
-        ),
-        _BoardQuizOption(
-          koText: '가장 먼 전방으로 즉시 전진 패스',
-          enText: 'Force the longest immediate forward pass',
-        ),
-        _BoardQuizOption(
-          koText: '볼만 보호하고 움직임 정지',
-          enText: 'Freeze movement and shield only',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '이 장면은 근거리 지원(우리2)이 보여 짧은 연결이 실수 위험을 가장 낮춥니다.',
-      enExplain:
-          'A2 is the clear close outlet here, minimizing turnover risk while leading.',
-      koNextPoint: '리드 상황일수록 짧은 연결 우선',
-      enNextPoint: 'When leading, prioritize short stable links',
-    ),
-    _question(
-      id: 'bq_05',
-      difficulty: 3,
-      type: _BoardQuestionType.practical,
-      template: _BoardQuizTemplate.oneStep,
-      scene: scenes[4],
-      koCaption: '우상단 볼 보유 상대를 향해 수비 전환이 시작되는 장면',
-      enCaption: 'Defensive transition starts against top-right ball holder',
-      koQuestion: '수비 전환 직후, 화면에서 상대 볼(우상단) 대응의 첫 행동은?',
-      enQuestion: 'Right after transition, what is the first action vs top-right ball?',
-      options: const [
-        _BoardQuizOption(
-          koText: '가까운 패스길(중앙) 차단하며 지연',
-          enText: 'Block nearest central lane and delay',
-        ),
-        _BoardQuizOption(
-          koText: '전원 공 쪽으로 동시 돌진',
-          enText: 'All players rush ball at once',
-        ),
-        _BoardQuizOption(
-          koText: '무조건 깊게 물러서기만',
-          enText: 'Only retreat deep immediately',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '보드에서 중앙 연결길이 가장 위험하므로 먼저 차단하고 시간(지연)을 벌어야 합니다.',
-      enExplain:
-          'The central outlet is the key danger lane in this frame, so delay + lane block comes first.',
-      koNextPoint: '수비 전환 첫 동작은 지연 + 중앙 라인 차단',
-      enNextPoint: 'First defensive action: delay + block central lane',
-    ),
-    _question(
-      id: 'bq_06',
+    _OxFactSeed(
+      id: 'throw_in_feet',
       difficulty: 1,
-      type: _BoardQuestionType.basic,
-      template: _BoardQuizTemplate.twoStep,
-      scene: scenes[5],
-      koCaption: '좌상단에서 중앙 지원으로 연결될 수 있는 빌드업 장면',
-      enCaption: 'Build-up scene from top-left into central support',
-      koQuestion: '우리1(좌상단)이 받을 때, 화면 기반 프리스캔 목표는?',
-      enQuestion: 'When A1 receives (top-left), what is the pre-scan goal here?',
-      options: const [
-        _BoardQuizOption(
-          koText: '우리2/우리3 다음 선택 2개 미리 확인',
-          enText: 'Pre-check two next options: A2/A3',
-        ),
-        _BoardQuizOption(
-          koText: '공만 오래 보며 터치 준비',
-          enText: 'Stare only at ball before touch',
-        ),
-        _BoardQuizOption(
-          koText: '터치를 늘려 시간 벌기',
-          enText: 'Increase touches to buy time',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '이 장면처럼 지원 옵션이 2개일 때, 받기 전에 다음 선택을 정해두면 판단 속도가 빨라집니다.',
+      category: _QuizCategory.rules,
+      koTrueStatement: '스로인은 두 발이 터치라인 위나 바깥 지면에 닿은 상태에서 던져야 한다.',
+      enTrueStatement:
+          'A throw-in is taken with both feet on or outside the touchline.',
+      koFalseStatement: '스로인은 발 한쪽만 닿아 있어도 되고, 머리 뒤를 거치지 않아도 된다.',
+      enFalseStatement:
+          'A throw-in is fine with only one foot down and no motion from behind the head.',
+      koExplain: '스로인은 정해진 자세를 지켜야 정상 재개로 인정됩니다.',
       enExplain:
-          'With two visible supports, pre-checking options enables immediate decisions.',
-      koNextPoint: '받기 전에 다음 2개 선택을 미리 정하기',
-      enNextPoint: 'Set next two options before first touch',
+          'A legal throw-in requires the proper body position and action.',
+      koNextPoint: '재개 규칙은 자세와 시작 위치까지 같이 익힌다.',
+      enNextPoint:
+          'Study restart laws with both posture and starting position.',
     ),
-    _question(
-      id: 'bq_07',
+    _OxFactSeed(
+      id: 'goal_kick_move',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koTrueStatement: '골킥은 공이 차여서 명확하게 움직이면 인플레이다.',
+      enTrueStatement:
+          'A goal kick is in play once the ball is kicked and clearly moves.',
+      koFalseStatement: '골킥은 공이 페널티 지역을 완전히 벗어나야 인플레이다.',
+      enFalseStatement:
+          'A goal kick is only in play after the ball fully leaves the penalty area.',
+      koExplain: '현재 규칙에서는 공이 차여 명확히 움직이는 시점이 중요합니다.',
+      enExplain:
+          'Under the current law, the ball is in play once it is kicked and clearly moves.',
+      koNextPoint: '예전 규칙과 현재 규칙 차이도 같이 기억한다.',
+      enNextPoint: 'Remember the difference between old and current laws.',
+    ),
+    _OxFactSeed(
+      id: 'direct_free_kick',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koTrueStatement: '직접 프리킥은 다른 선수 터치 없이 바로 득점할 수 있다.',
+      enTrueStatement:
+          'A direct free kick can score without another player touching the ball.',
+      koFalseStatement: '직접 프리킥은 반드시 누군가 한 번 더 건드려야 득점이다.',
+      enFalseStatement:
+          'A direct free kick must touch another player before it can count as a goal.',
+      koExplain: '직접 프리킥은 이름 그대로 직접 득점이 가능합니다.',
+      enExplain:
+          'A direct free kick can score directly, exactly as the name suggests.',
+      koNextPoint: '직접과 간접 프리킥 차이를 묶어서 외운다.',
+      enNextPoint:
+          'Learn the difference between direct and indirect free kicks together.',
+    ),
+    _OxFactSeed(
+      id: 'indirect_free_kick',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koTrueStatement: '간접 프리킥은 다른 선수의 터치가 있어야 득점이 된다.',
+      enTrueStatement:
+          'An indirect free kick needs another touch before a goal can count.',
+      koFalseStatement: '간접 프리킥도 바로 차 넣으면 그대로 득점이 인정된다.',
+      enFalseStatement:
+          'An indirect free kick can score directly without any other touch.',
+      koExplain: '간접 프리킥은 두 번째 터치가 있어야 골이 됩니다.',
+      enExplain:
+          'An indirect free kick only becomes a goal after a second touch.',
+      koNextPoint: '심판의 손 신호와 함께 간접 프리킥을 기억한다.',
+      enNextPoint:
+          'Connect indirect free kicks with the referee’s raised-arm signal.',
+    ),
+    _OxFactSeed(
+      id: 'yellow_red',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koTrueStatement: '같은 경기에서 경고 두 장을 받으면 퇴장이다.',
+      enTrueStatement:
+          'Two cautions in the same match result in a sending-off.',
+      koFalseStatement: '같은 경기에서 경고 두 장은 단순 누적이고 퇴장은 아니다.',
+      enFalseStatement:
+          'Two cautions in the same match are only counted, not punished by a sending-off.',
+      koExplain: '경고 두 장은 결국 퇴장으로 이어집니다.',
+      enExplain: 'Two cautions in one match lead to a red card dismissal.',
+      koNextPoint: '카드 규칙은 누적과 즉시 퇴장을 구분해 기억한다.',
+      enNextPoint: 'Separate caution accumulation from immediate send-offs.',
+    ),
+    _OxFactSeed(
+      id: 'back_pass_keeper',
       difficulty: 2,
-      type: _BoardQuestionType.basic,
-      template: _BoardQuizTemplate.twoStep,
-      scene: scenes[6],
-      koCaption: '좌측 측면에서 크로스가 가능한 압박 장면',
-      enCaption: 'Left-flank pressure scene where cross is possible',
-      koQuestion: '좌측 측면 볼 상황에서, 화면상 크로스 억제 1순위는?',
-      enQuestion: 'Left-flank ball situation: what is priority #1 to stop cross?',
-      options: const [
-        _BoardQuizOption(
-          koText: '크로스 발(오른발) 각도 먼저 차단',
-          enText: 'Block crossing-foot angle first',
+      category: _QuizCategory.rules,
+      koTrueStatement: '골키퍼는 팀 동료가 발로 의도적으로 찬 공을 손으로 잡을 수 없다.',
+      enTrueStatement:
+          'A goalkeeper cannot handle a deliberate kick from a teammate’s foot.',
+      koFalseStatement: '골키퍼는 팀 동료가 발로 준 패스도 위험하면 손으로 잡아도 된다.',
+      enFalseStatement:
+          'A goalkeeper may always pick up a deliberate pass from a teammate’s foot.',
+      koExplain: '의도적인 발 패스는 골키퍼 손 사용 제한 대상입니다.',
+      enExplain:
+          'A deliberate kick from a teammate’s foot triggers the handling restriction.',
+      koNextPoint: '골키퍼 예외 규칙은 발 패스와 헤더를 나눠서 본다.',
+      enNextPoint:
+          'Read goalkeeper exceptions by separating foot passes from headers.',
+    ),
+    _OxFactSeed(
+      id: 'advantage',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koTrueStatement: '심판은 반칙이 있어도 공격 이점이 크면 플레이를 이어가게 할 수 있다.',
+      enTrueStatement:
+          'A referee may allow play to continue if the fouled team keeps a clear advantage.',
+      koFalseStatement: '반칙이 발생하면 이점과 상관없이 항상 즉시 경기를 끊어야 한다.',
+      enFalseStatement:
+          'Every foul must stop play immediately, regardless of any advantage.',
+      koExplain: '어드밴티지 규칙은 흐름과 기회를 살리기 위해 존재합니다.',
+      enExplain:
+          'The advantage law exists to preserve flow and real attacking opportunity.',
+      koNextPoint: '심판 판정은 규칙과 경기 맥락을 함께 읽는다.',
+      enNextPoint: 'Read officiating through both law and match context.',
+    ),
+    _OxFactSeed(
+      id: 'warmup_readiness',
+      difficulty: 1,
+      category: _QuizCategory.training,
+      koTrueStatement: '경기 전 워밍업은 몸을 깨우고 부상 위험을 낮추는 데 도움을 준다.',
+      enTrueStatement:
+          'A pre-match warm-up helps readiness and can lower injury risk.',
+      koFalseStatement: '경기 전 워밍업은 거의 의미가 없어서 바로 전력 질주로 들어가도 된다.',
+      enFalseStatement:
+          'Warm-ups are mostly unnecessary, so sprinting full speed right away is fine.',
+      koExplain: '워밍업은 체온, 관절 준비, 신경계 활성에 모두 중요합니다.',
+      enExplain:
+          'Warm-ups matter for temperature, joint preparation, and nervous system activation.',
+      koNextPoint: '워밍업 목적을 단순 땀내기가 아니라 준비 과정으로 본다.',
+      enNextPoint: 'Treat warm-up as preparation, not just sweating.',
+    ),
+    _OxFactSeed(
+      id: 'sleep_recovery',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koTrueStatement: '수면은 회복과 학습 정리에 큰 영향을 준다.',
+      enTrueStatement:
+          'Sleep strongly affects recovery and the consolidation of learning.',
+      koFalseStatement: '수면은 축구 실력 향상과 거의 관련이 없다.',
+      enFalseStatement:
+          'Sleep has little to do with football improvement or recovery.',
+      koExplain: '수면은 피로 회복뿐 아니라 판단력과 학습에도 중요합니다.',
+      enExplain:
+          'Sleep supports both physical recovery and decision-making quality.',
+      koNextPoint: '훈련만큼 회복 습관도 루틴으로 관리한다.',
+      enNextPoint: 'Build recovery habits into the routine just like training.',
+    ),
+    _OxFactSeed(
+      id: 'hydration',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koTrueStatement: '수분 보충은 경기력 유지와 회복에 중요하다.',
+      enTrueStatement:
+          'Hydration is important for maintaining performance and recovery.',
+      koFalseStatement: '수분 보충은 땀이 많은 날에만 신경 쓰면 된다.',
+      enFalseStatement: 'Hydration only matters on very sweaty days.',
+      koExplain: '탈수는 집중력과 움직임 품질을 모두 떨어뜨릴 수 있습니다.',
+      enExplain: 'Dehydration can reduce concentration and movement quality.',
+      koNextPoint: '훈련 전중후 수분 루틴을 따로 만든다.',
+      enNextPoint:
+          'Create a hydration routine for before, during, and after training.',
+    ),
+    _OxFactSeed(
+      id: 'carbohydrate_recovery',
+      difficulty: 2,
+      category: _QuizCategory.nutrition,
+      koTrueStatement: '탄수화물은 고강도 운동 후 에너지 저장량 회복에 도움이 된다.',
+      enTrueStatement:
+          'Carbohydrates help restore energy stores after intense work.',
+      koFalseStatement: '축구 선수는 회복기에 탄수화물을 최대한 피하는 것이 좋다.',
+      enFalseStatement:
+          'Football players should avoid carbohydrates during recovery.',
+      koExplain: '탄수화물은 글리코겐 회복에 중요한 역할을 합니다.',
+      enExplain: 'Carbohydrates play a key role in glycogen restoration.',
+      koNextPoint: '영양은 금지 목록보다 타이밍과 균형으로 본다.',
+      enNextPoint:
+          'Treat nutrition as timing and balance, not only restriction.',
+    ),
+    _OxFactSeed(
+      id: 'scan_before_receive',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koTrueStatement: '공을 받기 전에 주변을 스캔하면 첫 판단이 빨라진다.',
+      enTrueStatement:
+          'Scanning before receiving helps speed up the first decision.',
+      koFalseStatement: '공을 받기 전에는 공만 보면 되고 주변 확인은 필요 없다.',
+      enFalseStatement:
+          'Before receiving, it is enough to stare at the ball and ignore the surroundings.',
+      koExplain: '스캔은 다음 선택지를 미리 만들어 줍니다.',
+      enExplain:
+          'Scanning gives the player earlier awareness of the next options.',
+      koNextPoint: '받기 전, 받는 순간, 받은 직후 스캔을 연결한다.',
+      enNextPoint: 'Link scanning before, during, and after the reception.',
+    ),
+    _OxFactSeed(
+      id: 'open_body',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koTrueStatement: '반쯤 열린 몸 방향은 시야를 넓히고 다음 플레이를 쉽게 만든다.',
+      enTrueStatement:
+          'A half-open body shape widens vision and makes the next play easier.',
+      koFalseStatement: '항상 등을 진 채 받는 것이 가장 시야가 넓다.',
+      enFalseStatement:
+          'Receiving with your back fully turned always gives the widest view.',
+      koExplain: '열린 몸 방향은 전방과 측면 정보를 함께 보게 합니다.',
+      enExplain:
+          'An open body shape helps the player see forward and sideways at once.',
+      koNextPoint: '받는 자세는 방향 전환 속도와 같이 본다.',
+      enNextPoint: 'Connect receiving shape with turning speed.',
+    ),
+    _OxFactSeed(
+      id: 'first_touch_space',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koTrueStatement: '첫 터치를 압박 반대 방향 공간으로 두면 탈압박에 유리하다.',
+      enTrueStatement:
+          'A first touch into space away from pressure helps beat pressure.',
+      koFalseStatement: '첫 터치는 항상 발밑에만 두는 것이 가장 안전하다.',
+      enFalseStatement:
+          'The safest first touch is always directly under your feet.',
+      koExplain: '좋은 첫 터치는 시간을 만들고 압박 각도를 바꿉니다.',
+      enExplain:
+          'A good first touch creates time and changes the pressure angle.',
+      koNextPoint: '첫 터치는 방향과 다음 액션을 함께 계획한다.',
+      enNextPoint: 'Plan the first touch together with the next action.',
+    ),
+    _OxFactSeed(
+      id: 'support_angle',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '볼 소유자 옆이나 대각 뒤에 서는 지원 각도는 안전한 패스 길을 만든다.',
+      enTrueStatement:
+          'Support angles beside or diagonally behind the ball create safer passing lanes.',
+      koFalseStatement: '지원은 항상 볼 소유자와 일직선 앞에만 서야 좋다.',
+      enFalseStatement:
+          'The best support is always standing directly in front of the ball carrier on one straight line.',
+      koExplain: '좋은 지원 각도는 패스 길과 다음 연결을 동시에 열어 줍니다.',
+      enExplain:
+          'A strong support angle opens both the pass lane and the next connection.',
+      koNextPoint: '지원은 거리와 각도를 세트로 본다.',
+      enNextPoint: 'Read support as a pair of distance and angle.',
+    ),
+    _OxFactSeed(
+      id: 'switch_play',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '한쪽에 상대가 몰리면 반대 전환이 공간을 여는 좋은 방법이 될 수 있다.',
+      enTrueStatement:
+          'When opponents overload one side, switching play can open space on the far side.',
+      koFalseStatement: '상대가 한쪽에 몰릴수록 그쪽만 더 파고드는 것이 항상 정답이다.',
+      enFalseStatement:
+          'The more opponents crowd one side, the more you should always force play into that same side.',
+      koExplain: '전환은 수비 이동을 크게 만들고 반대 공간을 활용하게 합니다.',
+      enExplain:
+          'A switch stretches the defense and attacks the far-side space.',
+      koNextPoint: '전환 타이밍은 반대편 공간 확인과 함께 본다.',
+      enNextPoint: 'Read switching timing together with far-side space.',
+    ),
+    _OxFactSeed(
+      id: 'counterpress',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '공을 잃은 직후 가까운 압박은 상대 역습 속도를 늦출 수 있다.',
+      enTrueStatement:
+          'Immediate nearby pressure after losing the ball can slow the opponent’s counterattack.',
+      koFalseStatement: '공을 잃은 직후에는 모두 뒤로만 뛰는 것이 항상 최선이다.',
+      enFalseStatement:
+          'After losing the ball, the best answer is always for everyone to run backward only.',
+      koExplain: '즉시 압박과 지연은 상대의 첫 전진 선택을 어렵게 만듭니다.',
+      enExplain:
+          'Immediate pressure and delay can disrupt the opponent’s first forward choice.',
+      koNextPoint: '전환 순간 첫 2초를 따로 의식한다.',
+      enNextPoint:
+          'Treat the first two seconds of transition as a special moment.',
+    ),
+    _OxFactSeed(
+      id: 'delay_defending',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '수비 전환 첫 동작에서 지연은 동료 복귀 시간을 벌어 준다.',
+      enTrueStatement:
+          'Delaying in the first defensive transition action buys time for teammates to recover.',
+      koFalseStatement: '수비 전환에서는 각도와 거리보다 무조건 태클이 우선이다.',
+      enFalseStatement:
+          'In defensive transition, tackling immediately always matters more than angle and distance.',
+      koExplain: '지연은 수비 숫자를 회복하고 위험한 패스길을 닫게 합니다.',
+      enExplain:
+          'Delay helps recover defensive numbers and close dangerous passing lanes.',
+      koNextPoint: '수비는 빼앗기 이전에 늦추는 기술도 중요하다.',
+      enNextPoint:
+          'Defending is also about delaying, not only winning the ball.',
+    ),
+    _OxFactSeed(
+      id: 'width_attack',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '공격 폭을 넓히면 수비 간격을 벌리는 데 도움이 된다.',
+      enTrueStatement: 'Attacking width helps stretch the defending team.',
+      koFalseStatement: '공격 때는 항상 중앙에만 최대한 모이는 것이 공간 만들기에 좋다.',
+      enFalseStatement:
+          'Attacking space is always best created by crowding everyone into the center.',
+      koExplain: '폭은 상대 라인을 넓히고 중앙 침투 공간도 도와줍니다.',
+      enExplain: 'Width stretches the line and can also free central gaps.',
+      koNextPoint: '폭과 깊이를 함께 보는 습관을 만든다.',
+      enNextPoint: 'Build the habit of reading width together with depth.',
+    ),
+    _OxFactSeed(
+      id: 'compact_defense',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koTrueStatement: '수비 간격이 지나치게 벌어지면 중앙 공간이 위험해질 수 있다.',
+      enTrueStatement:
+          'If defensive distances become too wide, the central space can become dangerous.',
+      koFalseStatement: '수비는 간격이 멀수록 항상 패스 차단이 쉬워진다.',
+      enFalseStatement:
+          'The farther apart defenders are, the easier it always becomes to block passes.',
+      koExplain: '컴팩트함은 중앙 보호와 커버의 기본입니다.',
+      enExplain:
+          'Compactness is a core principle for protecting the center and covering.',
+      koNextPoint: '라인 간격과 선수 간격을 따로 본다.',
+      enNextPoint: 'Read line spacing and player spacing separately.',
+    ),
+    _OxFactSeed(
+      id: 'goalkeeper_communication',
+      difficulty: 1,
+      category: _QuizCategory.positions,
+      koTrueStatement: '골키퍼의 소통은 수비 라인 정리와 충돌 방지에 도움을 준다.',
+      enTrueStatement:
+          'Goalkeeper communication helps organize the back line and prevent collisions.',
+      koFalseStatement: '골키퍼는 세이브만 잘하면 되고 소통은 거의 중요하지 않다.',
+      enFalseStatement:
+          'A goalkeeper only needs to save shots; communication is barely important.',
+      koExplain: '골키퍼는 뒤에서 전체 그림을 가장 넓게 보는 포지션입니다.',
+      enExplain:
+          'The goalkeeper often has the widest view of the whole defensive picture.',
+      koNextPoint: '포지션별 역할은 기술과 소통을 함께 익힌다.',
+      enNextPoint: 'Learn each position through both skill and communication.',
+    ),
+    _OxFactSeed(
+      id: 'fullback_overlap',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      koTrueStatement: '풀백의 오버래핑은 측면에서 숫자 우위를 만들 수 있다.',
+      enTrueStatement:
+          'A fullback overlap can create a numerical advantage on the flank.',
+      koFalseStatement: '풀백은 언제나 하프라인 뒤에만 머무는 것이 전술적으로 가장 좋다.',
+      enFalseStatement:
+          'The best tactical role for a fullback is always to stay behind the halfway line.',
+      koExplain: '오버래핑은 타이밍이 맞으면 패스길과 크로스각을 동시에 만듭니다.',
+      enExplain:
+          'A well-timed overlap can open both a passing lane and a crossing angle.',
+      koNextPoint: '포지션 역할은 고정이 아니라 상황에 따라 변한다.',
+      enNextPoint:
+          'Positional roles change with the situation, not just fixed labels.',
+    ),
+    _OxFactSeed(
+      id: 'striker_pin',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      koTrueStatement: '스트라이커의 위치 고정 움직임은 센터백 시선을 묶는 데 도움이 된다.',
+      enTrueStatement:
+          'A striker pinning the center-backs can help occupy their attention.',
+      koFalseStatement: '스트라이커는 공이 없을 때 아무 움직임도 하지 않는 편이 낫다.',
+      enFalseStatement:
+          'When the striker does not have the ball, it is best to stop moving entirely.',
+      koExplain: '공이 없는 움직임도 동료 공간 만들기에 큰 역할을 합니다.',
+      enExplain:
+          'Off-ball movement can be crucial for creating space for teammates.',
+      koNextPoint: '공이 없는 선수도 전술의 중심이라는 점을 기억한다.',
+      enNextPoint: 'Remember that off-ball players are central to tactics too.',
+    ),
+    _OxFactSeed(
+      id: 'mistake_reset',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      koTrueStatement: '실수 직후에는 다음 역할로 빠르게 복귀하는 것이 중요하다.',
+      enTrueStatement:
+          'After a mistake, it is important to reset quickly into the next role.',
+      koFalseStatement: '실수 뒤에는 한 플레이 쉬면서 마음이 돌아오길 기다리는 것이 낫다.',
+      enFalseStatement:
+          'After a mistake, it is better to take one play off and wait for confidence to return.',
+      koExplain: '실수 후 복귀 속도는 다음 장면의 손실을 줄입니다.',
+      enExplain:
+          'Fast reset after a mistake reduces the damage in the next action.',
+      koNextPoint: '실수 대응 루틴을 미리 정해둔다.',
+      enNextPoint: 'Prepare a reset routine for mistakes in advance.',
+    ),
+    _OxFactSeed(
+      id: 'communication_help',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      koTrueStatement: '짧고 명확한 소통은 팀 판단 속도를 높여 준다.',
+      enTrueStatement:
+          'Short and clear communication helps speed up team decisions.',
+      koFalseStatement: '경기 중 소통은 오히려 집중을 깨니 가능한 한 하지 않는 편이 낫다.',
+      enFalseStatement:
+          'Communication during the game mostly hurts focus, so it is better to avoid it.',
+      koExplain: '좋은 소통은 정보 전달을 빠르게 만들어 팀을 묶어 줍니다.',
+      enExplain:
+          'Good communication shares information quickly and keeps the team connected.',
+      koNextPoint: '소통은 길이보다 명확성이 중요하다.',
+      enNextPoint: 'In communication, clarity matters more than length.',
+    ),
+    _OxFactSeed(
+      id: 'repeated_sprint',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koTrueStatement: '반복 스프린트 훈련은 경기 중 고강도 움직임 대응에 도움을 준다.',
+      enTrueStatement:
+          'Repeated sprint training helps players handle high-intensity match actions.',
+      koFalseStatement: '축구 훈련에는 방향 전환이나 반복 질주가 거의 필요 없다.',
+      enFalseStatement:
+          'Football training barely needs change-of-direction or repeated sprint work.',
+      koExplain: '축구는 짧고 강한 움직임이 반복되는 종목입니다.',
+      enExplain: 'Football repeatedly demands short, high-intensity actions.',
+      koNextPoint: '체력은 경기 요구와 연결해 본다.',
+      enNextPoint: 'Read fitness through match demands.',
+    ),
+    _OxFactSeed(
+      id: 'ball_protection',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koTrueStatement: '상대 압박이 가까울 때는 몸으로 공을 보호하는 기술이 중요하다.',
+      enTrueStatement:
+          'When pressure is close, shielding the ball with the body becomes important.',
+      koFalseStatement: '압박이 와도 공 보호보다 큰 스윙만 하면 대부분 해결된다.',
+      enFalseStatement:
+          'When pressure comes, a big uncontrolled swing solves most situations better than shielding.',
+      koExplain: '볼 보호는 시간을 벌고 파울 유도에도 도움을 줍니다.',
+      enExplain: 'Ball protection can buy time and sometimes draw a foul.',
+      koNextPoint: '기술은 화려함보다 상황 적합성을 본다.',
+      enNextPoint: 'Judge technique by fit to the situation, not only flair.',
+    ),
+    _OxFactSeed(
+      id: 'match_starts_11',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koTrueStatement: '축구 경기는 보통 팀당 11명으로 시작한다.',
+      enTrueStatement:
+          'A standard football match normally starts with 11 players per team.',
+      koFalseStatement: '축구 경기는 기본적으로 팀당 10명으로 시작한다.',
+      enFalseStatement:
+          'A standard football match normally starts with 10 players per team.',
+      koExplain: '정식 축구의 기본 인원은 팀당 11명입니다.',
+      enExplain:
+          'The standard player count in association football is 11 per team.',
+      koNextPoint: '기본 규칙은 숫자부터 분명히 익힌다.',
+      enNextPoint: 'Learn the basic numbers of the game clearly.',
+    ),
+  ];
+}
+
+List<_McqSeed> _mcqSeeds() {
+  return const [
+    _McqSeed(
+      id: 'offside_reference',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koStem: '오프사이드 위치를 판단할 때 기준이 되는 수비수는 보통 누구인가?',
+      enStem:
+          'Which defender is usually the reference point when judging offside position?',
+      options: [
+        _FootballQuizOption(
+          koText: '두 번째로 뒤에 있는 상대 수비수',
+          enText: 'The second-last opponent',
         ),
-        _BoardQuizOption(
-          koText: '거리만 유지하고 대기',
-          enText: 'Keep distance and wait only',
+        _FootballQuizOption(koText: '가장 가까운 주심', enText: 'The nearest referee'),
+        _FootballQuizOption(
+          koText: '터치라인과 가장 가까운 선수',
+          enText: 'The player nearest the touchline',
         ),
-        _BoardQuizOption(
-          koText: '무조건 태클 먼저 시도',
-          enText: 'Always tackle first',
+        _FootballQuizOption(
+          koText: '벤치에 앉아 있는 교체 선수',
+          enText: 'A substitute on the bench',
         ),
       ],
       correctIndex: 0,
-      koExplain: '보드에서 측면 각이 살아 있으므로 발 각도를 먼저 닫아야 크로스 확률이 줄어듭니다.',
+      koExplain: '오프사이드는 일반적으로 두 번째로 뒤에 있는 상대를 기준으로 봅니다.',
       enExplain:
-          'The flank angle is open here, so closing crossing-foot angle is the first priority.',
-      koNextPoint: '측면 수비는 각도 차단 후 거리 조절',
-      enNextPoint: 'On flank defense: close angle, then control distance',
+          'Offside position is generally judged against the second-last opponent.',
+      koNextPoint: '골키퍼가 항상 마지막 수비수는 아니라는 점도 기억한다.',
+      enNextPoint:
+          'Remember that the goalkeeper is not always the last defender.',
     ),
-    _question(
-      id: 'bq_08',
+    _McqSeed(
+      id: 'throw_in_restart',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koStem: '공이 터치라인 밖으로 나가면 어떤 재개가 주어지는가?',
+      enStem:
+          'What restart is awarded when the ball goes out over the touchline?',
+      options: [
+        _FootballQuizOption(koText: '스로인', enText: 'Throw-in'),
+        _FootballQuizOption(koText: '골킥', enText: 'Goal kick'),
+        _FootballQuizOption(koText: '코너킥', enText: 'Corner kick'),
+        _FootballQuizOption(koText: '드롭볼', enText: 'Dropped ball'),
+      ],
+      correctIndex: 0,
+      koExplain: '터치라인을 넘어 나간 공은 스로인으로 재개합니다.',
+      enExplain:
+          'When the ball leaves over the touchline, play restarts with a throw-in.',
+      koNextPoint: '어떤 라인을 넘었는지부터 확인하는 습관을 들인다.',
+      enNextPoint: 'First check which line the ball crossed.',
+    ),
+    _McqSeed(
+      id: 'goal_kick_restart',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koStem: '공이 공격자에게 마지막으로 맞고 골라인 밖으로 나가면 보통 어떤 재개인가?',
+      enStem:
+          'If the ball last touches an attacker and goes over the goal line, what is the usual restart?',
+      options: [
+        _FootballQuizOption(koText: '골킥', enText: 'Goal kick'),
+        _FootballQuizOption(koText: '코너킥', enText: 'Corner kick'),
+        _FootballQuizOption(koText: '스로인', enText: 'Throw-in'),
+        _FootballQuizOption(koText: '페널티킥', enText: 'Penalty kick'),
+      ],
+      correctIndex: 0,
+      koExplain: '공격자가 마지막으로 건드린 뒤 골라인을 넘으면 골킥입니다.',
+      enExplain:
+          'If the attacker touched it last before it crossed the goal line, it is a goal kick.',
+      koNextPoint: '골라인 재개는 마지막 터치 팀으로 구분한다.',
+      enNextPoint: 'Goal-line restarts depend on the last touch.',
+    ),
+    _McqSeed(
+      id: 'corner_restart',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koStem: '공이 수비자에게 마지막으로 맞고 골라인 밖으로 나가면 보통 어떤 재개인가?',
+      enStem:
+          'If the ball last touches a defender and goes over the goal line, what is the usual restart?',
+      options: [
+        _FootballQuizOption(koText: '코너킥', enText: 'Corner kick'),
+        _FootballQuizOption(koText: '골킥', enText: 'Goal kick'),
+        _FootballQuizOption(koText: '스로인', enText: 'Throw-in'),
+        _FootballQuizOption(koText: '간접 프리킥', enText: 'Indirect free kick'),
+      ],
+      correctIndex: 0,
+      koExplain: '수비자가 마지막 터치 후 골라인을 넘으면 코너킥입니다.',
+      enExplain:
+          'If the defender touched it last before it crossed the goal line, it is a corner kick.',
+      koNextPoint: '골라인 판단은 공격자/수비자 마지막 터치를 나눈다.',
+      enNextPoint:
+          'For goal-line decisions, separate attacker-last from defender-last.',
+    ),
+    _McqSeed(
+      id: 'yellow_card_meaning',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koStem: '경고를 의미하는 카드는 무엇인가?',
+      enStem: 'Which card represents a caution?',
+      options: [
+        _FootballQuizOption(koText: '옐로카드', enText: 'Yellow card'),
+        _FootballQuizOption(koText: '레드카드', enText: 'Red card'),
+        _FootballQuizOption(koText: '그린카드', enText: 'Green card'),
+        _FootballQuizOption(koText: '블루카드', enText: 'Blue card'),
+      ],
+      correctIndex: 0,
+      koExplain: '경고는 옐로카드로 표시합니다.',
+      enExplain: 'A caution is shown with a yellow card.',
+      koNextPoint: '카드 색과 의미를 연결해서 외운다.',
+      enNextPoint: 'Connect each card color with its meaning.',
+    ),
+    _McqSeed(
+      id: 'red_card_meaning',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koStem: '퇴장을 의미하는 카드는 무엇인가?',
+      enStem: 'Which card represents a sending-off?',
+      options: [
+        _FootballQuizOption(koText: '레드카드', enText: 'Red card'),
+        _FootballQuizOption(koText: '옐로카드', enText: 'Yellow card'),
+        _FootballQuizOption(koText: '화이트카드', enText: 'White card'),
+        _FootballQuizOption(koText: '주황카드', enText: 'Orange card'),
+      ],
+      correctIndex: 0,
+      koExplain: '퇴장은 레드카드로 표시합니다.',
+      enExplain: 'A sending-off is shown with a red card.',
+      koNextPoint: '경고와 퇴장을 색으로 빠르게 구분한다.',
+      enNextPoint: 'Separate caution and dismissal instantly by color.',
+    ),
+    _McqSeed(
+      id: 'scan_skill',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koStem: '공을 받기 전 주변 정보를 미리 확인하는 행동을 보통 무엇이라고 하나?',
+      enStem:
+          'What do we usually call checking the surroundings before receiving the ball?',
+      options: [
+        _FootballQuizOption(koText: '스캐닝', enText: 'Scanning'),
+        _FootballQuizOption(koText: '슬라이딩', enText: 'Sliding'),
+        _FootballQuizOption(koText: '클리어링', enText: 'Clearing'),
+        _FootballQuizOption(koText: '드롭핑', enText: 'Dropping'),
+      ],
+      correctIndex: 0,
+      koExplain: '스캐닝은 다음 선택지를 미리 보는 핵심 기술입니다.',
+      enExplain: 'Scanning is a key skill for seeing the next options early.',
+      koNextPoint: '보기 전에 받지 않는다는 습관을 만든다.',
+      enNextPoint: 'Build the habit of seeing before receiving.',
+    ),
+    _McqSeed(
+      id: 'open_body_shape',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '압박을 받기 전에 시야를 넓게 확보하기 가장 좋은 받는 자세는?',
+      enStem:
+          'Which receiving shape is best for keeping a broad view before pressure arrives?',
+      options: [
+        _FootballQuizOption(
+          koText: '반쯤 열린 자세',
+          enText: 'A half-open body shape',
+        ),
+        _FootballQuizOption(
+          koText: '완전히 등을 진 자세',
+          enText: 'A fully closed back-to-play shape',
+        ),
+        _FootballQuizOption(
+          koText: '두 발을 멈춘 채 정면만 보는 자세',
+          enText: 'A static shape looking only straight ahead',
+        ),
+        _FootballQuizOption(
+          koText: '눈을 감고 받는 자세',
+          enText: 'Receiving with eyes closed',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '반쯤 열린 자세는 전방과 측면을 함께 보기 좋습니다.',
+      enExplain:
+          'A half-open body shape makes it easier to see both forward and sideways.',
+      koNextPoint: '받는 자세와 다음 방향 전환을 연결한다.',
+      enNextPoint: 'Link the receiving shape with the next turn.',
+    ),
+    _McqSeed(
+      id: 'first_touch_escape',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koStem: '정면 압박을 피하려는 첫 터치의 방향으로 가장 좋은 것은?',
+      enStem:
+          'Which direction is best for a first touch when escaping frontal pressure?',
+      options: [
+        _FootballQuizOption(
+          koText: '압박 반대 방향의 열린 공간',
+          enText: 'Open space away from the pressure',
+        ),
+        _FootballQuizOption(
+          koText: '상대 발 앞으로 그대로',
+          enText: 'Directly toward the opponent’s foot',
+        ),
+        _FootballQuizOption(
+          koText: '늘 자기 발밑으로만',
+          enText: 'Always straight under your feet',
+        ),
+        _FootballQuizOption(
+          koText: '라인 밖으로 크게',
+          enText: 'Big touch out of bounds',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '압박 반대 공간으로 두는 첫 터치가 시간을 만듭니다.',
+      enExplain: 'A first touch away from pressure creates valuable time.',
+      koNextPoint: '첫 터치는 공간과 방향을 함께 읽는다.',
+      enNextPoint: 'Read the first touch through both space and direction.',
+    ),
+    _McqSeed(
+      id: 'shielding_ball',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koStem: '등 뒤 압박이 가까울 때 가장 먼저 떠올릴 기술로 알맞은 것은?',
+      enStem:
+          'When pressure is tight from behind, which technique should come to mind first?',
+      options: [
+        _FootballQuizOption(
+          koText: '몸으로 공 보호하기',
+          enText: 'Shielding the ball with the body',
+        ),
+        _FootballQuizOption(
+          koText: '눈 감고 큰 스윙하기',
+          enText: 'Swinging wildly with eyes closed',
+        ),
+        _FootballQuizOption(
+          koText: '공을 멀리 던지기',
+          enText: 'Throwing the ball away',
+        ),
+        _FootballQuizOption(koText: '제자리 점프하기', enText: 'Jumping in place'),
+      ],
+      correctIndex: 0,
+      koExplain: '볼 보호는 시간을 벌고 다음 연결을 준비하게 합니다.',
+      enExplain:
+          'Shielding buys time and allows the next action to be prepared.',
+      koNextPoint: '보호 후 연결까지 세트로 훈련한다.',
+      enNextPoint: 'Train shielding together with the next pass or turn.',
+    ),
+    _McqSeed(
+      id: 'support_angle_best',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koStem: '볼 소유자를 돕는 기본 지원 위치로 가장 알맞은 것은?',
+      enStem:
+          'Which position is the most basic support spot for helping the ball carrier?',
+      options: [
+        _FootballQuizOption(
+          koText: '옆이나 대각 뒤의 패스 각도',
+          enText: 'A lane beside or diagonally behind',
+        ),
+        _FootballQuizOption(
+          koText: '항상 같은 일직선 앞',
+          enText: 'Always on the same straight line ahead',
+        ),
+        _FootballQuizOption(
+          koText: '심판 뒤쪽',
+          enText: 'Directly behind the referee',
+        ),
+        _FootballQuizOption(
+          koText: '코너 플래그 바로 옆',
+          enText: 'Right next to the corner flag',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '옆이나 대각 뒤 지원은 안전한 패스길을 만들기 좋습니다.',
+      enExplain:
+          'Support beside or diagonally behind is ideal for creating a safe passing lane.',
+      koNextPoint: '지원은 볼과 수비 사이의 각도로 본다.',
+      enNextPoint: 'Read support through the angle between ball and defenders.',
+    ),
+    _McqSeed(
+      id: 'switch_play_far_side',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '상대가 한쪽에 몰려 있을 때 자주 좋은 선택이 되는 것은?',
+      enStem:
+          'When opponents crowd one side, what often becomes a good option?',
+      options: [
+        _FootballQuizOption(
+          koText: '반대편으로 전환하기',
+          enText: 'Switching play to the far side',
+        ),
+        _FootballQuizOption(
+          koText: '더 좁은 쪽으로 무조건 밀어넣기',
+          enText: 'Forcing the ball into the tighter side',
+        ),
+        _FootballQuizOption(
+          koText: '공을 손으로 들어 올리기',
+          enText: 'Picking the ball up by hand',
+        ),
+        _FootballQuizOption(
+          koText: '전원이 골문 앞으로 이동하기',
+          enText: 'Moving everyone directly in front of the goal',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '전환은 밀집된 쪽 반대의 공간을 활용하는 방법입니다.',
+      enExplain:
+          'A switch is a common way to attack the space opposite the overload.',
+      koNextPoint: '반대편 공간과 수비 이동을 함께 본다.',
+      enNextPoint: 'Read the far-side space together with defensive movement.',
+    ),
+    _McqSeed(
+      id: 'counterpress_first_action',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '상대 진영에서 공을 잃은 직후 가장 먼저 생각할 팀 반응으로 좋은 것은?',
+      enStem:
+          'Right after losing the ball high up the pitch, which team reaction is often best first?',
+      options: [
+        _FootballQuizOption(
+          koText: '가까운 압박으로 역습 속도 늦추기',
+          enText: 'Immediate nearby pressure to slow the counter',
+        ),
+        _FootballQuizOption(
+          koText: '모두 제자리 멈추기',
+          enText: 'Everyone freezing in place',
+        ),
+        _FootballQuizOption(
+          koText: '전원이 손 들고 항의하기',
+          enText: 'Everyone raising hands to protest',
+        ),
+        _FootballQuizOption(
+          koText: '공 없는 쪽으로 뛰기만 하기',
+          enText: 'Running only away from the ball',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '즉시 압박은 상대의 첫 전진 선택을 어렵게 만듭니다.',
+      enExplain:
+          'Immediate pressure can disrupt the opponent’s first forward action.',
+      koNextPoint: '전환 순간 첫 반응 속도를 강조한다.',
+      enNextPoint: 'Emphasize the speed of the first transition reaction.',
+    ),
+    _McqSeed(
+      id: 'delay_on_flank_defense',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '측면 1대1 수비에서 우선순위로 가장 알맞은 것은?',
+      enStem: 'In a wide 1v1 defensive situation, what is the best priority?',
+      options: [
+        _FootballQuizOption(
+          koText: '안쪽 길을 닫고 지연하기',
+          enText: 'Close the inside lane and delay',
+        ),
+        _FootballQuizOption(
+          koText: '무조건 먼저 태클하기',
+          enText: 'Tackle immediately every time',
+        ),
+        _FootballQuizOption(
+          koText: '뒤돌아 달리기만 하기',
+          enText: 'Only turn and run away',
+        ),
+        _FootballQuizOption(
+          koText: '선수 시선만 따라가기',
+          enText: 'Follow only the attacker’s eyes',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '측면 수비는 안쪽 차단과 지연이 기본 원리입니다.',
+      enExplain:
+          'Wide defending is built on protecting the inside and delaying.',
+      koNextPoint: '측면 수비는 각도와 속도 조절이 핵심이다.',
+      enNextPoint: 'Wide defending is about angle control and speed control.',
+    ),
+    _McqSeed(
+      id: 'compactness_center',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '수비 라인이 너무 벌어졌을 때 가장 크게 위험해지는 공간은 어디인가?',
+      enStem:
+          'If the defensive unit spreads too much, which space usually becomes most dangerous?',
+      options: [
+        _FootballQuizOption(koText: '중앙 공간', enText: 'The central space'),
+        _FootballQuizOption(koText: '관중석', enText: 'The stands'),
+        _FootballQuizOption(koText: '벤치 뒤', enText: 'Behind the bench'),
+        _FootballQuizOption(
+          koText: '코너 플래그 바깥',
+          enText: 'Outside the corner flag',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '컴팩트함이 무너지면 중앙 침투와 연결이 쉬워집니다.',
+      enExplain:
+          'When compactness breaks, central progression and combinations become easier.',
+      koNextPoint: '공간 위험도는 중앙과 하프스페이스부터 본다.',
+      enNextPoint: 'Start by reading the danger in the center and half-spaces.',
+    ),
+    _McqSeed(
+      id: 'width_attack_reason',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koStem: '공격 시 폭을 넓게 쓰는 가장 큰 이유로 알맞은 것은?',
+      enStem: 'What is the main reason for using width in attack?',
+      options: [
+        _FootballQuizOption(
+          koText: '수비 간격을 벌려 공간을 만들기 위해',
+          enText: 'To stretch defenders and create space',
+        ),
+        _FootballQuizOption(
+          koText: '공을 경기장 밖으로 보내기 위해',
+          enText: 'To send the ball out of the field',
+        ),
+        _FootballQuizOption(
+          koText: '골키퍼와 멀어지기 위해',
+          enText: 'To move away from the goalkeeper',
+        ),
+        _FootballQuizOption(
+          koText: '심판 시야를 가리기 위해',
+          enText: 'To block the referee’s vision',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '폭은 수비를 늘려 중앙과 반대편 공간을 열어 줍니다.',
+      enExplain:
+          'Width stretches the defense and opens central or far-side gaps.',
+      koNextPoint: '폭과 깊이를 함께 활용하는 그림을 떠올린다.',
+      enNextPoint: 'Picture width and depth working together.',
+    ),
+    _McqSeed(
+      id: 'fullback_role',
+      difficulty: 1,
+      category: _QuizCategory.positions,
+      koStem: '측면에서 오버래핑으로 숫자 우위를 만들 수 있는 포지션으로 대표적인 것은?',
+      enStem:
+          'Which position is commonly associated with creating an overlap on the flank?',
+      options: [
+        _FootballQuizOption(koText: '풀백', enText: 'Fullback'),
+        _FootballQuizOption(koText: '주심', enText: 'Referee'),
+        _FootballQuizOption(koText: '관중', enText: 'Spectator'),
+        _FootballQuizOption(koText: '볼보이', enText: 'Ball boy'),
+      ],
+      correctIndex: 0,
+      koExplain: '풀백의 오버래핑은 측면 공격 전개를 돕는 대표 장면입니다.',
+      enExplain:
+          'The fullback overlap is a classic example of supporting wide attacks.',
+      koNextPoint: '포지션 역할은 공수 전환까지 연결해 본다.',
+      enNextPoint:
+          'Connect positional roles to attacking and defensive transitions.',
+    ),
+    _McqSeed(
+      id: 'goalkeeper_view',
+      difficulty: 1,
+      category: _QuizCategory.positions,
+      koStem: '수비 조직을 뒤에서 가장 넓게 보며 지시하기 좋은 포지션은?',
+      enStem:
+          'Which position usually has the widest rear view for organizing the defense?',
+      options: [
+        _FootballQuizOption(koText: '골키퍼', enText: 'Goalkeeper'),
+        _FootballQuizOption(koText: '스트라이커', enText: 'Striker'),
+        _FootballQuizOption(koText: '윙어', enText: 'Winger'),
+        _FootballQuizOption(koText: '코너키커', enText: 'Corner taker'),
+      ],
+      correctIndex: 0,
+      koExplain: '골키퍼는 뒤에서 라인 전체를 보며 소통하기 좋습니다.',
+      enExplain:
+          'The goalkeeper often sees the defensive line from behind most clearly.',
+      koNextPoint: '포지션별 시야 차이를 이해한다.',
+      enNextPoint: 'Understand how the view differs by position.',
+    ),
+    _McqSeed(
+      id: 'striker_off_ball',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      koStem: '스트라이커의 공 없는 움직임이 중요한 이유로 가장 알맞은 것은?',
+      enStem: 'Why is off-ball movement important for a striker?',
+      options: [
+        _FootballQuizOption(
+          koText: '수비 시선을 묶고 동료 공간을 만들 수 있어서',
+          enText: 'It can occupy defenders and create space for teammates',
+        ),
+        _FootballQuizOption(
+          koText: '경기 시간을 더 빨리 끝내기 위해서',
+          enText: 'To make the match finish faster',
+        ),
+        _FootballQuizOption(
+          koText: '볼을 손으로 잡기 위해서',
+          enText: 'To handle the ball by hand',
+        ),
+        _FootballQuizOption(
+          koText: '심판을 피하기 위해서',
+          enText: 'To avoid the referee',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '공이 없어도 움직임은 수비를 흔들고 공간을 만듭니다.',
+      enExplain:
+          'Even without the ball, movement can disorganize defenders and create space.',
+      koNextPoint: '오프더볼의 가치를 득점 장면과 연결해 본다.',
+      enNextPoint: 'Connect off-ball value with chance creation.',
+    ),
+    _McqSeed(
+      id: 'sleep_best_recovery',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koStem: '회복과 다음 날 판단력에 가장 기본적으로 중요한 습관은?',
+      enStem:
+          'Which habit is fundamentally important for recovery and next-day decision-making?',
+      options: [
+        _FootballQuizOption(koText: '충분한 수면', enText: 'Adequate sleep'),
+        _FootballQuizOption(
+          koText: '밤새 영상 보기',
+          enText: 'Watching videos all night',
+        ),
+        _FootballQuizOption(
+          koText: '훈련 후 물 안 마시기',
+          enText: 'Skipping water after training',
+        ),
+        _FootballQuizOption(koText: '식사 거르기', enText: 'Skipping meals'),
+      ],
+      correctIndex: 0,
+      koExplain: '수면은 회복과 학습 정리에 모두 큰 영향을 줍니다.',
+      enExplain:
+          'Sleep strongly influences both recovery and the consolidation of learning.',
+      koNextPoint: '회복 루틴은 훈련 계획의 일부로 기록한다.',
+      enNextPoint: 'Record recovery habits as part of the training plan.',
+    ),
+    _McqSeed(
+      id: 'hydration_best',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koStem: '훈련 전중후 꾸준히 관리해야 하는 항목으로 가장 알맞은 것은?',
+      enStem:
+          'Which item is best managed consistently before, during, and after training?',
+      options: [
+        _FootballQuizOption(koText: '수분 보충', enText: 'Hydration'),
+        _FootballQuizOption(koText: '항의 횟수', enText: 'Number of protests'),
+        _FootballQuizOption(koText: '유니폼 색상', enText: 'Shirt color'),
+        _FootballQuizOption(koText: '관중석 위치', enText: 'Seat location'),
+      ],
+      correctIndex: 0,
+      koExplain: '수분 상태는 경기력과 회복 모두에 영향을 줍니다.',
+      enExplain: 'Hydration status affects both performance and recovery.',
+      koNextPoint: '수분은 갈증 전에 관리하는 습관이 중요하다.',
+      enNextPoint:
+          'Build the habit of managing fluids before strong thirst appears.',
+    ),
+    _McqSeed(
+      id: 'carb_role',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koStem: '고강도 훈련 뒤 에너지 저장량 회복과 가장 연결되는 영양소는?',
+      enStem:
+          'Which nutrient is most associated with restoring energy stores after hard training?',
+      options: [
+        _FootballQuizOption(koText: '탄수화물', enText: 'Carbohydrates'),
+        _FootballQuizOption(koText: '모래', enText: 'Sand'),
+        _FootballQuizOption(koText: '탄산만', enText: 'Only soda'),
+        _FootballQuizOption(koText: '향수', enText: 'Perfume'),
+      ],
+      correctIndex: 0,
+      koExplain: '탄수화물은 글리코겐 회복과 연결됩니다.',
+      enExplain: 'Carbohydrates are linked to glycogen restoration.',
+      koNextPoint: '영양은 경기 요구와 연결해 이해한다.',
+      enNextPoint: 'Understand nutrition through match demands.',
+    ),
+    _McqSeed(
+      id: 'warmup_purpose',
+      difficulty: 1,
+      category: _QuizCategory.training,
+      koStem: '워밍업의 주된 목적에 가장 가까운 것은?',
+      enStem: 'Which answer is closest to the main purpose of a warm-up?',
+      options: [
+        _FootballQuizOption(
+          koText: '몸과 신경계를 경기 속도에 맞게 준비시키기',
+          enText: 'Preparing the body and nervous system for match speed',
+        ),
+        _FootballQuizOption(
+          koText: '최대한 빨리 지치기',
+          enText: 'Getting tired as fast as possible',
+        ),
+        _FootballQuizOption(
+          koText: '훈련 시간을 없애기',
+          enText: 'Removing the need for training',
+        ),
+        _FootballQuizOption(
+          koText: '유니폼을 더럽히기',
+          enText: 'Making the kit dirty',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '워밍업은 몸과 판단을 경기 강도에 맞게 끌어올립니다.',
+      enExplain:
+          'Warm-ups raise the body and decision-making system toward match intensity.',
+      koNextPoint: '워밍업은 형식이 아니라 기능으로 이해한다.',
+      enNextPoint: 'Understand warm-ups by function, not only routine.',
+    ),
+    _McqSeed(
+      id: 'repeated_sprint_value',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koStem: '반복 스프린트 훈련이 특히 도움이 되는 장면은?',
+      enStem:
+          'Which match demand is repeated sprint training especially useful for?',
+      options: [
+        _FootballQuizOption(
+          koText: '짧고 강한 움직임이 반복되는 상황',
+          enText: 'Situations with repeated short high-intensity actions',
+        ),
+        _FootballQuizOption(
+          koText: '항상 가만히 서 있는 상황',
+          enText: 'Situations where players always stand still',
+        ),
+        _FootballQuizOption(
+          koText: '심판 판정 기다리는 상황',
+          enText: 'Waiting for a referee decision',
+        ),
+        _FootballQuizOption(koText: '경기장 청소 상황', enText: 'Cleaning the pitch'),
+      ],
+      correctIndex: 0,
+      koExplain: '축구는 짧고 강한 움직임이 반복되는 스포츠입니다.',
+      enExplain: 'Football repeatedly demands short, explosive actions.',
+      koNextPoint: '체력 훈련은 실제 경기 움직임과 연결한다.',
+      enNextPoint: 'Link fitness work to real match movement patterns.',
+    ),
+    _McqSeed(
+      id: 'mistake_reaction',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      koStem: '실수 직후 가장 좋은 반응으로 알맞은 것은?',
+      enStem: 'Which reaction is best right after making a mistake?',
+      options: [
+        _FootballQuizOption(
+          koText: '다음 역할로 빠르게 복귀하기',
+          enText: 'Reset quickly into the next role',
+        ),
+        _FootballQuizOption(
+          koText: '한 플레이 쉬어 버리기',
+          enText: 'Take the next play off',
+        ),
+        _FootballQuizOption(
+          koText: '계속 실수만 떠올리기',
+          enText: 'Keep replaying the mistake only',
+        ),
+        _FootballQuizOption(koText: '동료 탓만 하기', enText: 'Blame teammates only'),
+      ],
+      correctIndex: 0,
+      koExplain: '실수 후 빠른 복귀가 다음 장면 손실을 줄입니다.',
+      enExplain:
+          'A fast reset after a mistake reduces the damage in the next moment.',
+      koNextPoint: '실수 복귀 루틴을 짧은 문장으로 정리해 둔다.',
+      enNextPoint: 'Prepare a short reset phrase or routine for mistakes.',
+    ),
+    _McqSeed(
+      id: 'communication_style',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      koStem: '경기 중 팀 소통 방식으로 가장 바람직한 것은?',
+      enStem: 'Which communication style is most desirable during a match?',
+      options: [
+        _FootballQuizOption(
+          koText: '짧고 명확한 정보 전달',
+          enText: 'Short and clear information sharing',
+        ),
+        _FootballQuizOption(
+          koText: '길고 복잡한 설명만 하기',
+          enText: 'Giving only long and complex speeches',
+        ),
+        _FootballQuizOption(koText: '계속 비난하기', enText: 'Constant criticism'),
+        _FootballQuizOption(koText: '아예 말하지 않기', enText: 'Not speaking at all'),
+      ],
+      correctIndex: 0,
+      koExplain: '짧고 명확한 소통이 경기 속도에 가장 잘 맞습니다.',
+      enExplain:
+          'Short and clear communication fits the speed of the game best.',
+      koNextPoint: '소통은 길이보다 실행 가능성이 중요하다.',
+      enNextPoint: 'In communication, actionability matters more than length.',
+    ),
+    _McqSeed(
+      id: 'team_size',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koStem: '정식 축구 경기의 기본 시작 인원은 팀당 몇 명인가?',
+      enStem:
+          'How many players does each team normally start with in standard football?',
+      options: [
+        _FootballQuizOption(koText: '11명', enText: '11 players'),
+        _FootballQuizOption(koText: '10명', enText: '10 players'),
+        _FootballQuizOption(koText: '9명', enText: '9 players'),
+        _FootballQuizOption(koText: '12명', enText: '12 players'),
+      ],
+      correctIndex: 0,
+      koExplain: '정식 축구의 기본 시작 인원은 팀당 11명입니다.',
+      enExplain:
+          'Standard association football starts with 11 players per team.',
+      koNextPoint: '기본 규칙 숫자는 먼저 정확히 익힌다.',
+      enNextPoint: 'Learn the game’s core numbers accurately first.',
+    ),
+    _McqSeed(
+      id: 'clean_sheet',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koStem: '클린시트라는 표현은 보통 무엇을 뜻하는가?',
+      enStem: 'What does the phrase “clean sheet” usually mean?',
+      options: [
+        _FootballQuizOption(
+          koText: '실점 없이 경기를 마친 것',
+          enText: 'Finishing the match without conceding',
+        ),
+        _FootballQuizOption(koText: '새 유니폼을 입은 것', enText: 'Wearing a new kit'),
+        _FootballQuizOption(
+          koText: '전반전만 뛴 것',
+          enText: 'Playing only the first half',
+        ),
+        _FootballQuizOption(
+          koText: '경기장을 청소한 것',
+          enText: 'Cleaning the stadium',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '클린시트는 실점 없이 경기를 끝낸 기록을 뜻합니다.',
+      enExplain: 'A clean sheet means finishing without conceding a goal.',
+      koNextPoint: '축구 용어는 실제 경기 상황과 묶어 기억한다.',
+      enNextPoint:
+          'Remember football terms by linking them to match situations.',
+    ),
+    _McqSeed(
+      id: 'hat_trick',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koStem: '한 선수가 한 경기에서 3골을 넣으면 보통 무엇이라고 하나?',
+      enStem:
+          'What is it usually called when one player scores three goals in a match?',
+      options: [
+        _FootballQuizOption(koText: '해트트릭', enText: 'Hat-trick'),
+        _FootballQuizOption(koText: '더블세이브', enText: 'Double save'),
+        _FootballQuizOption(koText: '스로인', enText: 'Throw-in'),
+        _FootballQuizOption(koText: '파울로스', enText: 'Foul loss'),
+      ],
+      correctIndex: 0,
+      koExplain: '한 경기 3골은 해트트릭이라고 부릅니다.',
+      enExplain: 'Scoring three times in one match is called a hat-trick.',
+      koNextPoint: '자주 쓰는 축구 용어를 기본 상식으로 챙긴다.',
+      enNextPoint: 'Keep common football terms as part of your core knowledge.',
+    ),
+    _McqSeed(
+      id: 'half_time_length',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koStem: '일반적인 성인 정식 경기에서 한 하프의 기본 시간은 얼마인가?',
+      enStem:
+          'In a standard adult match, what is the basic length of one half?',
+      options: [
+        _FootballQuizOption(koText: '45분', enText: '45 minutes'),
+        _FootballQuizOption(koText: '30분', enText: '30 minutes'),
+        _FootballQuizOption(koText: '60분', enText: '60 minutes'),
+        _FootballQuizOption(koText: '20분', enText: '20 minutes'),
+      ],
+      correctIndex: 0,
+      koExplain: '일반적인 정식 경기는 전후반 각 45분이 기본입니다.',
+      enExplain:
+          'A standard adult match is built around two halves of 45 minutes.',
+      koNextPoint: '기본 경기 구조를 숫자로 정리한다.',
+      enNextPoint: 'Organize the core match structure through its key numbers.',
+    ),
+    _McqSeed(
+      id: 'penalty_distance',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '페널티킥 지점은 골문 중앙에서 약 몇 m 떨어져 있는가?',
+      enStem: 'About how far is the penalty mark from the center of the goal?',
+      options: [
+        _FootballQuizOption(koText: '11m', enText: '11 meters'),
+        _FootballQuizOption(koText: '5m', enText: '5 meters'),
+        _FootballQuizOption(koText: '20m', enText: '20 meters'),
+        _FootballQuizOption(koText: '2m', enText: '2 meters'),
+      ],
+      correctIndex: 0,
+      koExplain: '페널티 마크는 골문 중앙에서 11m 지점입니다.',
+      enExplain: 'The penalty mark is 11 meters from the center of the goal.',
+      koNextPoint: '경기장 숫자 정보도 규칙 이해에 포함한다.',
+      enNextPoint: 'Include pitch numbers as part of learning the laws.',
+    ),
+    _McqSeed(
+      id: 'body_part_field_player',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koStem: '필드 플레이어가 일반적인 경기 상황에서 사용할 수 없는 신체 부위는?',
+      enStem:
+          'Which body part can a field player not normally use during regular play?',
+      options: [
+        _FootballQuizOption(koText: '손/팔', enText: 'Hand/arm'),
+        _FootballQuizOption(koText: '발', enText: 'Foot'),
+        _FootballQuizOption(koText: '머리', enText: 'Head'),
+        _FootballQuizOption(koText: '가슴', enText: 'Chest'),
+      ],
+      correctIndex: 0,
+      koExplain: '필드 플레이어는 일반적으로 손과 팔을 사용할 수 없습니다.',
+      enExplain:
+          'Field players are generally not allowed to use the hand or arm.',
+      koNextPoint: '기본 금지 동작을 가장 먼저 분명히 한다.',
+      enNextPoint: 'Make the core prohibited actions clear first.',
+    ),
+    _McqSeed(
+      id: 'advantage_reason',
+      difficulty: 2,
+      category: _QuizCategory.rules,
+      koStem: '어드밴티지 규칙을 적용하는 주된 이유로 가장 알맞은 것은?',
+      enStem: 'What is the main reason for applying the advantage law?',
+      options: [
+        _FootballQuizOption(
+          koText: '공격팀의 유리한 흐름과 기회를 살리기 위해',
+          enText:
+              'To preserve a beneficial flow and chance for the fouled team',
+        ),
+        _FootballQuizOption(
+          koText: '심판이 덜 뛰기 위해',
+          enText: 'So the referee can run less',
+        ),
+        _FootballQuizOption(
+          koText: '항의를 늘리기 위해',
+          enText: 'To increase arguments',
+        ),
+        _FootballQuizOption(
+          koText: '시간을 없애기 위해',
+          enText: 'To remove time from the match',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '어드밴티지는 실제 이득이 이어질 때 경기를 살리기 위한 판정입니다.',
+      enExplain:
+          'Advantage is used to keep play alive when a real benefit remains.',
+      koNextPoint: '심판 규칙도 경기 흐름 관점에서 이해한다.',
+      enNextPoint: 'Understand refereeing through the flow of the match.',
+    ),
+    _McqSeed(
+      id: 'late_lead_choice',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '경기 막판 리드 상황에서 안정적인 선택으로 가장 알맞은 것은?',
+      enStem:
+          'Late in a match while leading, which choice is generally the most stable?',
+      options: [
+        _FootballQuizOption(
+          koText: '짧은 연결로 템포를 관리하기',
+          enText: 'Managing tempo with short connections',
+        ),
+        _FootballQuizOption(
+          koText: '매번 가장 어려운 전진패스 시도하기',
+          enText: 'Forcing the hardest forward pass every time',
+        ),
+        _FootballQuizOption(
+          koText: '전원이 한 번에 최전방 침투하기',
+          enText: 'Sending everyone on the same forward run',
+        ),
+        _FootballQuizOption(
+          koText: '아무 소통 없이 각자 플레이하기',
+          enText: 'Everyone playing individually without communication',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '리드 상황에서는 짧고 안정적인 연결이 위험 관리에 유리합니다.',
+      enExplain:
+          'When protecting a lead, shorter stable links usually manage risk better.',
+      koNextPoint: '스코어 상황에 따라 위험 기준을 조정한다.',
+      enNextPoint: 'Adjust risk level according to the score state.',
+    ),
+    _McqSeed(
+      id: 'pressing_trigger_bad_touch',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koStem: '압박을 강하게 들어갈 신호로 자주 활용되는 것은?',
+      enStem: 'Which cue is commonly used as a pressing trigger?',
+      options: [
+        _FootballQuizOption(
+          koText: '상대의 큰 터치나 불안한 컨트롤',
+          enText: 'A heavy touch or shaky control by the opponent',
+        ),
+        _FootballQuizOption(koText: '하프타임 휘슬', enText: 'The halftime whistle'),
+        _FootballQuizOption(
+          koText: '관중의 박수',
+          enText: 'Applause from the crowd',
+        ),
+        _FootballQuizOption(koText: '벤치 색상', enText: 'The color of the bench'),
+      ],
+      correctIndex: 0,
+      koExplain: '상대의 큰 터치는 압박 타이밍으로 자주 이용됩니다.',
+      enExplain: 'A heavy touch is a classic cue for stepping into pressure.',
+      koNextPoint: '압박은 무작정이 아니라 신호를 보고 들어간다.',
+      enNextPoint: 'Press with triggers, not just emotion.',
+    ),
+    _McqSeed(
+      id: 'half_space_value',
       difficulty: 3,
-      type: _BoardQuestionType.practical,
-      template: _BoardQuizTemplate.twoStep,
-      scene: scenes[7],
-      koCaption: '좌하단에서 실수 후 다시 중앙으로 복귀해야 하는 장면',
-      enCaption: 'After-mistake scene requiring quick recovery to central shape',
-      koQuestion: '실수 직후 형태가 흔들린 이 장면에서, 즉시 해야 할 반응은?',
-      enQuestion: 'After a mistake in this broken-shape frame, what is best reset action?',
-      options: const [
-        _BoardQuizOption(
-          koText: '즉시 본인 다음 역할(수비/지원)로 복귀',
-          enText: 'Return immediately to next role (defend/support)',
+      category: _QuizCategory.tactics,
+      koStem: '하프스페이스가 자주 중요하게 언급되는 이유로 가장 알맞은 것은?',
+      enStem: 'Why is the half-space often considered valuable?',
+      options: [
+        _FootballQuizOption(
+          koText: '전진 패스, 슈팅, 연계가 모두 나오기 좋은 구역이라서',
+          enText: 'It supports forward passing, shooting, and combinations',
         ),
-        _BoardQuizOption(
-          koText: '이전 실수 장면을 계속 떠올리기',
-          enText: 'Keep replaying the mistake mentally',
+        _FootballQuizOption(
+          koText: '규칙상 득점이 두 배라서',
+          enText: 'Goals count double there by rule',
         ),
-        _BoardQuizOption(
-          koText: '한 플레이 쉬면서 멈추기',
-          enText: 'Take one play off and pause',
+        _FootballQuizOption(
+          koText: '심판이 접근하지 못해서',
+          enText: 'Referees cannot enter it',
+        ),
+        _FootballQuizOption(
+          koText: '오프사이드가 사라져서',
+          enText: 'Offside does not exist there',
         ),
       ],
       correctIndex: 0,
-      koExplain: '이 화면은 전환 속도가 중요해 즉시 역할 복귀가 가장 큰 회복 효과를 냅니다.',
+      koExplain: '하프스페이스는 다양한 다음 액션이 연결되기 쉬운 구역입니다.',
       enExplain:
-          'In this transition frame, immediate role recovery gives the highest reset value.',
-      koNextPoint: '실수 직후에는 다음 역할 복귀를 2초 안에 실행',
-      enNextPoint: 'After mistakes, execute next-role recovery within 2 seconds',
+          'The half-space is valuable because many next actions can flow from it.',
+      koNextPoint: '중앙, 측면, 하프스페이스를 비교해서 본다.',
+      enNextPoint: 'Compare center, wing, and half-space usage.',
+    ),
+    _McqSeed(
+      id: 'third_man_run',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koStem: '제3자 움직임(third-man run)의 핵심 목적에 가장 가까운 것은?',
+      enStem: 'What is the core purpose of a third-man run?',
+      options: [
+        _FootballQuizOption(
+          koText: '직접 공 없는 선수가 다음 공간을 이어 받도록 만들기',
+          enText: 'To let a third player receive the next space or lane',
+        ),
+        _FootballQuizOption(
+          koText: '항상 뒤로만 패스하기',
+          enText: 'To force play only backward',
+        ),
+        _FootballQuizOption(
+          koText: '공을 멈춰 두기',
+          enText: 'To stop the ball completely',
+        ),
+        _FootballQuizOption(
+          koText: '킥오프만 반복하기',
+          enText: 'To repeat kick-offs only',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '제3자 움직임은 패스 한 번 더 앞의 연결을 만드는 개념입니다.',
+      enExplain:
+          'A third-man run is about building the next connection beyond the immediate pass.',
+      koNextPoint: '바로 앞 선택뿐 아니라 다음 선택도 함께 본다.',
+      enNextPoint: 'Read not only the next option but the option after that.',
     ),
   ];
-}
-
-_BoardQuizQuestion _question({
-  required String id,
-  required int difficulty,
-  required _BoardQuestionType type,
-  _BoardQuizTemplate template = _BoardQuizTemplate.oneStep,
-  required TrainingMethodPage scene,
-  required String koCaption,
-  required String enCaption,
-  required String koQuestion,
-  required String enQuestion,
-  required List<_BoardQuizOption> options,
-  required int correctIndex,
-  required String koExplain,
-  required String enExplain,
-  String koNextPoint = '',
-  String enNextPoint = '',
-}) {
-  return _BoardQuizQuestion(
-    id: id,
-    difficulty: difficulty,
-    type: type,
-    template: template,
-    page: scene,
-    koCaption: koCaption,
-    enCaption: enCaption,
-    koQuestion: koQuestion,
-    enQuestion: enQuestion,
-    options: options,
-    correctIndex: correctIndex,
-    koExplain: koExplain,
-    enExplain: enExplain,
-    koNextPoint: koNextPoint,
-    enNextPoint: enNextPoint,
-  );
-}
-
-List<TrainingMethodPage> _sceneTemplates() {
-  return <TrainingMethodPage>[
-    _scene(
-      name: 's1',
-      attackers: const [
-        Offset(0.18, 0.74),
-        Offset(0.40, 0.62),
-        Offset(0.66, 0.45),
-      ],
-      defenders: const [
-        Offset(0.34, 0.56),
-        Offset(0.56, 0.50),
-      ],
-      ball: const Offset(0.18, 0.74),
-      playerPath: const [
-        Offset(0.40, 0.62),
-        Offset(0.56, 0.50),
-        Offset(0.66, 0.45)
-      ],
-      ballPath: const [Offset(0.18, 0.74), Offset(0.40, 0.62)],
-    ),
-    _scene(
-      name: 's2',
-      attackers: const [
-        Offset(0.16, 0.24),
-        Offset(0.30, 0.46),
-        Offset(0.60, 0.62),
-      ],
-      defenders: const [
-        Offset(0.28, 0.30),
-        Offset(0.46, 0.54),
-      ],
-      ball: const Offset(0.30, 0.46),
-      playerPath: const [
-        Offset(0.30, 0.46),
-        Offset(0.46, 0.40),
-        Offset(0.60, 0.62)
-      ],
-      ballPath: const [Offset(0.30, 0.46), Offset(0.60, 0.62)],
-    ),
-    _scene(
-      name: 's3',
-      attackers: const [
-        Offset(0.20, 0.70),
-        Offset(0.42, 0.58),
-        Offset(0.74, 0.44),
-      ],
-      defenders: const [
-        Offset(0.38, 0.62),
-        Offset(0.58, 0.50),
-      ],
-      ball: const Offset(0.42, 0.58),
-      playerPath: const [
-        Offset(0.42, 0.58),
-        Offset(0.58, 0.52),
-        Offset(0.74, 0.44)
-      ],
-      ballPath: const [Offset(0.42, 0.58), Offset(0.74, 0.44)],
-    ),
-    _scene(
-      name: 's4',
-      attackers: const [
-        Offset(0.22, 0.68),
-        Offset(0.40, 0.64),
-        Offset(0.58, 0.56),
-      ],
-      defenders: const [
-        Offset(0.46, 0.64),
-        Offset(0.64, 0.58),
-      ],
-      ball: const Offset(0.22, 0.68),
-      playerPath: const [Offset(0.40, 0.64), Offset(0.58, 0.56)],
-      ballPath: const [Offset(0.22, 0.68), Offset(0.40, 0.64)],
-    ),
-    _scene(
-      name: 's5',
-      attackers: const [
-        Offset(0.72, 0.42),
-        Offset(0.54, 0.52),
-        Offset(0.30, 0.64),
-      ],
-      defenders: const [
-        Offset(0.62, 0.44),
-        Offset(0.44, 0.56),
-      ],
-      ball: const Offset(0.72, 0.42),
-      playerPath: const [Offset(0.54, 0.52), Offset(0.38, 0.62)],
-      ballPath: const [Offset(0.72, 0.42), Offset(0.54, 0.52)],
-    ),
-    _scene(
-      name: 's6',
-      attackers: const [
-        Offset(0.18, 0.30),
-        Offset(0.38, 0.44),
-        Offset(0.64, 0.56),
-      ],
-      defenders: const [
-        Offset(0.34, 0.36),
-        Offset(0.52, 0.50),
-      ],
-      ball: const Offset(0.18, 0.30),
-      playerPath: const [
-        Offset(0.38, 0.44),
-        Offset(0.52, 0.50),
-        Offset(0.64, 0.56)
-      ],
-      ballPath: const [Offset(0.18, 0.30), Offset(0.38, 0.44)],
-    ),
-    _scene(
-      name: 's7',
-      attackers: const [
-        Offset(0.14, 0.64),
-        Offset(0.28, 0.50),
-        Offset(0.52, 0.38),
-      ],
-      defenders: const [
-        Offset(0.34, 0.50),
-        Offset(0.48, 0.42),
-      ],
-      ball: const Offset(0.14, 0.64),
-      playerPath: const [Offset(0.28, 0.50), Offset(0.52, 0.38)],
-      ballPath: const [Offset(0.14, 0.64), Offset(0.28, 0.50)],
-    ),
-    _scene(
-      name: 's8',
-      attackers: const [
-        Offset(0.24, 0.72),
-        Offset(0.40, 0.62),
-        Offset(0.60, 0.48),
-      ],
-      defenders: const [
-        Offset(0.46, 0.58),
-        Offset(0.64, 0.50),
-      ],
-      ball: const Offset(0.24, 0.72),
-      playerPath: const [
-        Offset(0.40, 0.62),
-        Offset(0.52, 0.56),
-        Offset(0.60, 0.48)
-      ],
-      ballPath: const [Offset(0.24, 0.72), Offset(0.40, 0.62)],
-    ),
-  ];
-}
-
-TrainingMethodPage _scene({
-  required String name,
-  required List<Offset> attackers,
-  required List<Offset> defenders,
-  required Offset ball,
-  required List<Offset> playerPath,
-  required List<Offset> ballPath,
-}) {
-  final items = <TrainingMethodItem>[
-    ...attackers.map(
-      (point) => TrainingMethodItem(
-        type: 'player',
-        x: point.dx,
-        y: point.dy,
-        size: 34,
-        colorValue: 0xFFB3E5FC,
-      ),
-    ),
-    ...defenders.map(
-      (point) => TrainingMethodItem(
-        type: 'player',
-        x: point.dx,
-        y: point.dy,
-        size: 34,
-        colorValue: 0xFFFFCCBC,
-      ),
-    ),
-    TrainingMethodItem(
-      type: 'ball',
-      x: ball.dx,
-      y: ball.dy,
-      size: 28,
-      colorValue: 0xFFFFF8E1,
-    ),
-  ];
-
-  final strokes = <TrainingMethodStroke>[
-    TrainingMethodStroke(
-      points: [
-        ...playerPath
-            .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy)),
-      ],
-      colorValue: 0xFF43A047,
-      width: 3.4,
-    ),
-    TrainingMethodStroke(
-      points: [
-        ...ballPath
-            .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy)),
-      ],
-      colorValue: 0xFF1E88E5,
-      width: 3.0,
-    ),
-  ];
-
-  return TrainingMethodPage(
-    name: name,
-    items: items,
-    strokes: strokes,
-    playerPath: playerPath
-        .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
-        .toList(growable: false),
-    ballPath: ballPath
-        .map((point) => TrainingMethodPoint(x: point.dx, y: point.dy))
-        .toList(growable: false),
-  );
 }
 
 int _stableHash(String text) {
