@@ -60,23 +60,27 @@ Future<void> main() async {
     backupService: backupService,
   );
   await backupService.autoBackupDaily();
-  final reminderService =
-      TrainingPlanReminderService(optionRepository, settingsService);
+  final reminderService = TrainingPlanReminderService(
+    optionRepository,
+    settingsService,
+  );
   final badgeService = TrainingPlanBadgeService(optionRepository);
   await reminderService.initialize();
-  await reminderService.syncFromStorage();
+  await reminderService.syncAll(entries: await trainingService.allEntries());
   await badgeService.syncFromStorage();
   settingsService.addListener(() {
-    unawaited(reminderService.syncFromStorage());
+    unawaited(reminderService.syncSettingsDrivenReminders());
   });
 
-  runApp(FootballNoteApp(
-    trainingService: trainingService,
-    optionRepository: optionRepository,
-    localeService: localeService,
-    settingsService: settingsService,
-    driveBackupService: backupService,
-  ));
+  runApp(
+    FootballNoteApp(
+      trainingService: trainingService,
+      optionRepository: optionRepository,
+      localeService: localeService,
+      settingsService: settingsService,
+      driveBackupService: backupService,
+    ),
+  );
 }
 
 class FootballNoteApp extends StatelessWidget {
@@ -107,10 +111,7 @@ class FootballNoteApp extends StatelessWidget {
           darkTheme: AppTheme.dark(),
           themeMode: settingsService.themeMode,
           locale: localeService.locale,
-          supportedLocales: const [
-            Locale('en'),
-            Locale('ko', 'KR'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

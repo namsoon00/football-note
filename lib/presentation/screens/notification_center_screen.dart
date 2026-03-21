@@ -30,6 +30,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   bool _mutedNow = false;
   List<PendingNotificationRequest> _pending = const [];
   List<_PlanAlarmRow> _planRows = const [];
+  String? _lastTrainingLogAt;
 
   @override
   void initState() {
@@ -47,12 +48,16 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final muted = await _reminderService.isAlarmMutedNow();
     final pending = await _reminderService.pendingReminders();
     final planRows = _loadPlanRows();
+    final lastTrainingLogAt = widget.optionRepository.getValue<String>(
+      TrainingPlanReminderService.lastTrainingLogAtKey,
+    );
     if (!mounted) return;
     setState(() {
       _permissionGranted = permission;
       _mutedNow = muted;
       _pending = pending..sort((a, b) => a.id.compareTo(b.id));
       _planRows = planRows;
+      _lastTrainingLogAt = lastTrainingLogAt;
       _loading = false;
     });
   }
@@ -65,12 +70,13 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const [];
-      final rows = decoded
-          .whereType<Map>()
-          .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
-          .where((e) => e.scheduledAt.isAfter(DateTime.now()))
-          .toList(growable: false)
-        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+      final rows =
+          decoded
+              .whereType<Map>()
+              .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
+              .where((e) => e.scheduledAt.isAfter(DateTime.now()))
+              .toList(growable: false)
+            ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
       return rows;
     } catch (_) {
       return const [];
@@ -87,7 +93,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _resumeAlerts() async {
     await _reminderService.clearAlarmMute();
-    await _reminderService.syncFromStorage();
+    await _reminderService.syncSettingsDrivenReminders();
     if (!mounted) return;
     await _load();
   }
@@ -121,20 +127,20 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     title: Text(
                       _permissionGranted
                           ? (isKo
-                              ? '알림 권한 허용됨'
-                              : 'Notification permission granted')
+                                ? '알림 권한 허용됨'
+                                : 'Notification permission granted')
                           : (isKo
-                              ? '알림 권한 꺼짐'
-                              : 'Notification permission is off'),
+                                ? '알림 권한 꺼짐'
+                                : 'Notification permission is off'),
                     ),
                     subtitle: Text(
                       _permissionGranted
                           ? (isKo
-                              ? '훈련 계획 알림을 받을 수 있어요.'
-                              : 'You can receive training plan reminders.')
+                                ? '훈련 계획 알림을 받을 수 있어요.'
+                                : 'You can receive training plan reminders.')
                           : (isKo
-                              ? '설정 > 알림에서 권한을 켜 주세요.'
-                              : 'Enable permission in Settings > Notifications.'),
+                                ? '설정 > 알림에서 권한을 켜 주세요.'
+                                : 'Enable permission in Settings > Notifications.'),
                     ),
                   ),
                 ),
@@ -152,20 +158,20 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           _mutedNow
                               ? (isKo ? '알림 일시중지됨' : 'Alerts are paused')
                               : (isKo ? '반복 알림 제어' : 'Repeating alert control'),
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed:
-                                    _mutedNow ? null : () => _muteForHours(8),
+                                onPressed: _mutedNow
+                                    ? null
+                                    : () => _muteForHours(8),
                                 icon: const Icon(
-                                    Icons.notifications_off_outlined),
+                                  Icons.notifications_off_outlined,
+                                ),
                                 label: Text(isKo ? '8시간 끄기' : 'Mute 8h'),
                               ),
                             ),
@@ -174,7 +180,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                               child: FilledButton.icon(
                                 onPressed: _mutedNow ? _resumeAlerts : null,
                                 icon: const Icon(
-                                    Icons.notifications_active_outlined),
+                                  Icons.notifications_active_outlined,
+                                ),
                                 label: Text(isKo ? '다시 켜기' : 'Resume'),
                               ),
                             ),
@@ -185,21 +192,58 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.bedtime_outlined),
+                    title: Text(
+                      widget.settingsService.wakeAlarmEnabled
+                          ? (isKo ? '새벽 기상 알람 사용 중' : 'Wake alarm is on')
+                          : (isKo ? '새벽 기상 알람 꺼짐' : 'Wake alarm is off'),
+                    ),
+                    subtitle: Text(
+                      widget.settingsService.wakeAlarmEnabled
+                          ? (isKo
+                                ? '${widget.settingsService.wakeAlarmTime.format(context)} · 주 ${widget.settingsService.wakeAlarmWeekdays.length}일 · ${widget.settingsService.wakeAlarmRepeatCount}회 반복'
+                                : '${widget.settingsService.wakeAlarmTime.format(context)} · ${widget.settingsService.wakeAlarmWeekdays.length} days/week · ${widget.settingsService.wakeAlarmRepeatCount} repeats')
+                          : (isKo
+                                ? '설정에서 켜면 새벽 훈련용 반복 알람을 예약합니다.'
+                                : 'Enable it in Settings to schedule repeated morning alarms.'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.edit_calendar_outlined),
+                    title: Text(
+                      widget.settingsService.inactivityAlertEnabled
+                          ? (isKo
+                                ? '기록 공백 리마인드 사용 중'
+                                : 'Inactivity reminder is on')
+                          : (isKo
+                                ? '기록 공백 리마인드 꺼짐'
+                                : 'Inactivity reminder is off'),
+                    ),
+                    subtitle: Text(_buildInactivitySubtitle(isKo)),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Text(
                   isKo
                       ? '훈련 알림 ${_planRows.length}개'
                       : '${_planRows.length} training alerts',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 if (_planRows.isEmpty)
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.inbox_outlined),
-                      title:
-                          Text(isKo ? '예약된 알림이 없어요.' : 'No scheduled alerts.'),
+                      title: Text(
+                        isKo ? '예약된 알림이 없어요.' : 'No scheduled alerts.',
+                      ),
                       subtitle: Text(
                         isKo
                             ? '훈련 계획을 추가하면 알림이 여기에 표시돼요.'
@@ -228,8 +272,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           ],
                         ),
                         subtitle: Text(
-                          DateFormat(isKo ? 'M/d(E)' : 'EEE, M/d')
-                              .format(item.scheduledAt),
+                          DateFormat(
+                            isKo ? 'M/d(E)' : 'EEE, M/d',
+                          ).format(item.scheduledAt),
                         ),
                       ),
                     ),
@@ -247,20 +292,35 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             ),
     );
   }
+
+  String _buildInactivitySubtitle(bool isKo) {
+    final raw = _lastTrainingLogAt;
+    final parsed = raw == null ? null : DateTime.tryParse(raw);
+    final base = widget.settingsService.inactivityAlertEnabled
+        ? (isKo
+              ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
+              : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
+        : (isKo
+              ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
+              : 'Enable it in Settings to get nudges after quiet periods.');
+    if (parsed == null) return base;
+    final formatted = DateFormat(
+      isKo ? 'M/d HH:mm' : 'MMM d HH:mm',
+    ).format(parsed);
+    return isKo ? '$base\n마지막 기록: $formatted' : '$base\nLast log: $formatted';
+  }
 }
 
 class _PlanAlarmRow {
   final DateTime scheduledAt;
   final String category;
 
-  const _PlanAlarmRow({
-    required this.scheduledAt,
-    required this.category,
-  });
+  const _PlanAlarmRow({required this.scheduledAt, required this.category});
 
   factory _PlanAlarmRow.fromMap(Map<String, dynamic> map) {
     return _PlanAlarmRow(
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
     );

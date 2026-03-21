@@ -153,7 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-            _durationOptions.first;
+        _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -300,8 +300,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed:
-                      _restoreBusy ? null : () => _restoreFromDrive(l10n),
+                  onPressed: _restoreBusy
+                      ? null
+                      : () => _restoreFromDrive(l10n),
                   icon: const Icon(Icons.cloud_download_outlined),
                   label: Text(
                     _restoreBusy
@@ -312,7 +313,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _restoreBusy ||
+                  onPressed:
+                      _restoreBusy ||
                           !widget.driveBackupService!.hasLocalPreRestoreBackup()
                       ? null
                       : () => _restoreLocalBackup(l10n),
@@ -464,8 +466,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (value) async {
                   await widget.settingsService.setReminderEnabled(value);
                   if (value) {
-                    final granted =
-                        await _reminderService.hasNotificationPermission();
+                    final granted = await _reminderService
+                        .hasNotificationPermission();
                     if (context.mounted && !granted) {
                       AppFeedback.showMessage(
                         context,
@@ -480,9 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(
-                  isKo ? '훈련 계획 진동 알림' : 'Training plan vibration',
-                ),
+                title: Text(isKo ? '훈련 계획 진동 알림' : 'Training plan vibration'),
                 subtitle: Text(
                   isKo
                       ? '훈련 계획 알림이 올 때 진동을 함께 울립니다.'
@@ -497,6 +497,177 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       }
                     : null,
               ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(isKo ? '기록 리마인드 시간' : 'Training reminder time'),
+                subtitle: Text(
+                  '${widget.settingsService.reminderTime.format(context)} · '
+                  '${isKo ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 알림' : 'alert after ${widget.settingsService.inactivityAlertDays} days without logs'}',
+                ),
+                trailing: OutlinedButton(
+                  onPressed: widget.settingsService.reminderEnabled
+                      ? () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: widget.settingsService.reminderTime,
+                          );
+                          if (picked == null) return;
+                          await widget.settingsService.setReminderTime(picked);
+                          if (mounted) setState(() {});
+                        }
+                      : null,
+                  child: Text(isKo ? '시간 변경' : 'Change'),
+                ),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(isKo ? '레벨 업 알림' : 'Level-up notifications'),
+                subtitle: Text(
+                  isKo
+                      ? '레벨이 오를 때 바로 알림을 보냅니다.'
+                      : 'Shows an alert as soon as you level up.',
+                ),
+                value: widget.settingsService.levelUpAlertEnabled,
+                onChanged: widget.settingsService.reminderEnabled
+                    ? (value) async {
+                        await widget.settingsService.setLevelUpAlertEnabled(
+                          value,
+                        );
+                        if (mounted) setState(() {});
+                      }
+                    : null,
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(isKo ? '기록 공백 리마인드' : 'Inactivity reminders'),
+                subtitle: Text(
+                  isKo
+                      ? '훈련 기록이 뜸하면 저녁에 다시 적도록 알려줍니다.'
+                      : 'Prompts you in the evening when training logs go quiet.',
+                ),
+                value: widget.settingsService.inactivityAlertEnabled,
+                onChanged: widget.settingsService.reminderEnabled
+                    ? (value) async {
+                        await widget.settingsService.setInactivityAlertEnabled(
+                          value,
+                        );
+                        if (mounted) setState(() {});
+                      }
+                    : null,
+              ),
+              if (widget.settingsService.inactivityAlertEnabled)
+                _buildSelectRow<int>(
+                  label: isKo ? '기록 공백 기준' : 'Inactivity threshold',
+                  value: widget.settingsService.inactivityAlertDays,
+                  options: const [1, 2, 3, 5, 7, 10, 14],
+                  optionLabel: (value) =>
+                      isKo ? '$value일' : '$value day${value == 1 ? '' : 's'}',
+                  onChanged: (value) async {
+                    await widget.settingsService.setInactivityAlertDays(value);
+                    if (mounted) setState(() {});
+                  },
+                ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(isKo ? '새벽 기상 알람' : 'Wake alarm'),
+                subtitle: Text(
+                  isKo
+                      ? '훈련 전에 반복해서 울리는 기상 알람입니다.'
+                      : 'Repeating early alarms before training sessions.',
+                ),
+                value: widget.settingsService.wakeAlarmEnabled,
+                onChanged: widget.settingsService.reminderEnabled
+                    ? (value) async {
+                        await widget.settingsService.setWakeAlarmEnabled(value);
+                        if (mounted) setState(() {});
+                      }
+                    : null,
+              ),
+              if (widget.settingsService.wakeAlarmEnabled) ...[
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(isKo ? '기상 알람 시간' : 'Wake time'),
+                  subtitle: Text(
+                    widget.settingsService.wakeAlarmTime.format(context),
+                  ),
+                  trailing: OutlinedButton(
+                    onPressed: widget.settingsService.reminderEnabled
+                        ? () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: widget.settingsService.wakeAlarmTime,
+                            );
+                            if (picked == null) return;
+                            await widget.settingsService.setWakeAlarmTime(
+                              picked,
+                            );
+                            if (mounted) setState(() {});
+                          }
+                        : null,
+                    child: Text(isKo ? '시간 변경' : 'Change'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List<Widget>.generate(7, (index) {
+                      final weekday = index + 1;
+                      final selected = widget.settingsService.wakeAlarmWeekdays
+                          .contains(weekday);
+                      final label = isKo
+                          ? _weekdayShortKo(weekday)
+                          : _weekdayShortEn(weekday);
+                      return FilterChip(
+                        label: Text(label),
+                        selected: selected,
+                        onSelected: widget.settingsService.reminderEnabled
+                            ? (value) async {
+                                final weekdays = widget
+                                    .settingsService
+                                    .wakeAlarmWeekdays
+                                    .toList();
+                                if (value) {
+                                  if (!weekdays.contains(weekday)) {
+                                    weekdays.add(weekday);
+                                  }
+                                } else if (weekdays.length > 1) {
+                                  weekdays.remove(weekday);
+                                }
+                                await widget.settingsService
+                                    .setWakeAlarmWeekdays(weekdays);
+                                if (mounted) setState(() {});
+                              }
+                            : null,
+                      );
+                    }),
+                  ),
+                ),
+                _buildSelectRow<int>(
+                  label: isKo ? '반복 횟수' : 'Repeat count',
+                  value: widget.settingsService.wakeAlarmRepeatCount,
+                  options: const [1, 2, 3, 4, 5, 6],
+                  optionLabel: (value) => isKo ? '$value회' : '$value times',
+                  onChanged: (value) async {
+                    await widget.settingsService.setWakeAlarmRepeatCount(value);
+                    if (mounted) setState(() {});
+                  },
+                ),
+                _buildSelectRow<int>(
+                  label: isKo ? '반복 간격' : 'Repeat interval',
+                  value: widget.settingsService.wakeAlarmRepeatIntervalMinutes,
+                  options: const [2, 3, 5, 7, 10, 15],
+                  optionLabel: (value) =>
+                      isKo ? '$value분 간격' : 'Every $value min',
+                  onChanged: (value) async {
+                    await widget.settingsService
+                        .setWakeAlarmRepeatIntervalMinutes(value);
+                    if (mounted) setState(() {});
+                  },
+                  topSpacing: 0,
+                ),
+              ],
             ],
           ),
         ],
@@ -545,8 +716,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -606,9 +778,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  String _weekdayShortKo(int weekday) {
+    const labels = <int, String>{
+      DateTime.monday: '월',
+      DateTime.tuesday: '화',
+      DateTime.wednesday: '수',
+      DateTime.thursday: '목',
+      DateTime.friday: '금',
+      DateTime.saturday: '토',
+      DateTime.sunday: '일',
+    };
+    return labels[weekday] ?? '?';
+  }
+
+  String _weekdayShortEn(int weekday) {
+    const labels = <int, String>{
+      DateTime.monday: 'Mon',
+      DateTime.tuesday: 'Tue',
+      DateTime.wednesday: 'Wed',
+      DateTime.thursday: 'Thu',
+      DateTime.friday: 'Fri',
+      DateTime.saturday: 'Sat',
+      DateTime.sunday: 'Sun',
+    };
+    return labels[weekday] ?? '?';
+  }
+
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText =
-        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
+    final defaultDurationText = _defaultDuration <= 0
+        ? l10n.notSet
+        : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1013,8 +1212,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized =
-                            sanitize == null ? added : sanitize(added);
+                        final normalized = sanitize == null
+                            ? added
+                            : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1300,7 +1500,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1338,7 +1539,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
