@@ -1239,6 +1239,11 @@ class _BoardSceneCard extends StatelessWidget {
     final players = page.items.where((item) => item.type == 'player').toList();
     final ourTeam = players.where((item) => item.colorValue == 0xFFB3E5FC);
     final oppTeam = players.where((item) => item.colorValue == 0xFFFFCCBC);
+    final ownerLabel = _nearestPlayerLabel(
+      ball: ball.isEmpty ? null : ball.first,
+      players: players,
+      isKo: isKo,
+    );
 
     final ballPos = ball.isEmpty ? null : _zoneLabel(ball.first.x, ball.first.y);
     final passTo = page.ballPath.isEmpty ? null : page.ballPath.last;
@@ -1246,25 +1251,49 @@ class _BoardSceneCard extends StatelessWidget {
     final runTo = page.playerPath.isEmpty ? null : page.playerPath.last;
     final runPos = runTo == null ? null : _zoneLabel(runTo.x, runTo.y);
     if (isKo) {
-      return '장면 읽기: 볼 ${ballPos ?? '중앙'} · 패스 목표 ${supportPos ?? '없음'} · '
+      return '장면 읽기: 볼소유 ${ownerLabel ?? '미확인'} · 볼 ${ballPos ?? '중앙'} · 패스 목표 ${supportPos ?? '없음'} · '
           '러너 방향 ${runPos ?? '없음'} · 우리 ${ourTeam.length}명 / 상대 ${oppTeam.length}명';
     }
-    return 'Scene read: Ball ${ballPos ?? 'center'} · Pass target ${supportPos ?? 'none'} · '
+    return 'Scene read: Owner ${ownerLabel ?? 'unknown'} · Ball ${ballPos ?? 'center'} · Pass target ${supportPos ?? 'none'} · '
         'Runner path ${runPos ?? 'none'} · Us ${ourTeam.length} / Opp ${oppTeam.length}';
   }
 
   String _zoneLabel(double x, double y) {
-    final h = x < 0.33
-        ? 'left'
-        : x > 0.67
-            ? 'right'
-            : 'center';
-    final v = y < 0.33
-        ? 'top'
-        : y > 0.67
-            ? 'bottom'
-            : 'middle';
+    final h = x < 0.33 ? 'left' : x > 0.67 ? 'right' : 'center';
+    final v = y < 0.33 ? 'top' : y > 0.67 ? 'bottom' : 'middle';
     return '$v-$h';
+  }
+
+  String? _nearestPlayerLabel({
+    required TrainingMethodItem? ball,
+    required Iterable<TrainingMethodItem> players,
+    required bool isKo,
+  }) {
+    if (ball == null) return null;
+    final list = players.toList(growable: false);
+    if (list.isEmpty) return null;
+    var bestIndex = 0;
+    var bestDistance = double.infinity;
+    for (var i = 0; i < list.length; i++) {
+      final item = list[i];
+      final dx = item.x - ball.x;
+      final dy = item.y - ball.y;
+      final dist = (dx * dx) + (dy * dy);
+      if (dist < bestDistance) {
+        bestDistance = dist;
+        bestIndex = i;
+      }
+    }
+    final owner = list[bestIndex];
+    final sameTeamIndex = list
+            .take(bestIndex + 1)
+            .where((item) => item.colorValue == owner.colorValue)
+            .length;
+    final isOur = owner.colorValue == 0xFFB3E5FC;
+    if (isKo) {
+      return isOur ? '우리$sameTeamIndex' : '상대$sameTeamIndex';
+    }
+    return isOur ? 'A$sameTeamIndex' : 'D$sameTeamIndex';
   }
 }
 
@@ -1834,26 +1863,26 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[0],
       koCaption: '좌하단 볼 소유자가 중앙 지원에게 연결할 수 있는 장면',
       enCaption: 'Bottom-left ball holder can connect to central support',
-      koQuestion: '이 장면에서 첫 패스로 가장 안전한 선택은?',
-      enQuestion: 'In this scene, what is the safest first pass?',
+      koQuestion: '화면에서 우리1(볼) 기준, 가장 짧고 안전한 패스 대상은?',
+      enQuestion: 'From A1 (ball), which visible target is the shortest safe pass?',
       options: const [
         _BoardQuizOption(
-          koText: '가까운 지원에게 짧게 연결',
-          enText: 'Play short to nearest support',
+          koText: '우리2(중앙)로 짧게 연결',
+          enText: 'Short pass to A2 (center)',
         ),
         _BoardQuizOption(
-          koText: '수비 2명 사이로 롱패스',
-          enText: 'Long pass between two defenders',
+          koText: '수비 사이로 우리3(우상단) 롱패스',
+          enText: 'Long pass to A3 through defenders',
         ),
         _BoardQuizOption(
-          koText: '볼을 멈추고 뒤로만 이동',
-          enText: 'Stop and move backward only',
+          koText: '패스 없이 멈춰서 대기',
+          enText: 'No pass, just hold the ball',
         ),
       ],
       correctIndex: 0,
-      koExplain: '가까운 연결로 압박을 먼저 끊고 다음 전진 선택을 준비하는 것이 안전합니다.',
+      koExplain: '보드에서 우리2가 우리1과 가장 가깝고 패스 라인도 짧아 첫 선택으로 가장 안전합니다.',
       enExplain:
-          'Breaking pressure with a short support pass is the safest setup for next progression.',
+          'A2 is the nearest visible support from A1 with the shortest passing lane.',
     ),
     _question(
       id: 'bq_02',
@@ -1862,26 +1891,26 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[1],
       koCaption: '중앙 보유, 오른쪽 하단 지원이 비어 있는 장면',
       enCaption: 'Central possession with open right-lower support lane',
-      koQuestion: '이 장면에서 압박 탈출을 위해 먼저 확인할 정보는?',
-      enQuestion: 'In this scene, what should be checked first to escape press?',
+      koQuestion: '우리2(볼) 기준, 화면에서 가장 열린 다음 연결 지점은?',
+      enQuestion: 'From A2 (ball), which visible next lane is most open?',
       options: const [
         _BoardQuizOption(
-          koText: '빈 반대측 공간과 지원 각도',
-          enText: 'Far-side space and support angle',
+          koText: '우리3(우하단) 쪽 열린 라인',
+          enText: 'Open lane toward A3 (right-lower)',
         ),
         _BoardQuizOption(
-          koText: '공만 보며 드리블 시작',
-          enText: 'Start dribbling while staring at ball',
+          koText: '공만 보고 전진 드리블',
+          enText: 'Dribble forward staring at ball',
         ),
         _BoardQuizOption(
-          koText: '항상 중앙 고정 패스',
-          enText: 'Always force central pass',
+          koText: '항상 중앙으로만 강제 패스',
+          enText: 'Force center-only pass every time',
         ),
       ],
       correctIndex: 0,
-      koExplain: '압박 상황일수록 반대측 공간과 지원 각도를 먼저 확인해야 탈압박이 쉽습니다.',
+      koExplain: '장면에서 우리3 방향이 수비 간격이 넓어 가장 열려 있습니다.',
       enExplain:
-          'Against pressure, far-side space and support angle are key to escaping safely.',
+          'The lane to A3 is visibly wider than central forced options in this frame.',
     ),
     _question(
       id: 'bq_03',
@@ -1890,26 +1919,26 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[2],
       koCaption: '중앙에서 우측 전방 러너가 침투하는 전환 장면',
       enCaption: 'Transition scene with right-front runner making a run',
-      koQuestion: '이 장면에서 찬스를 만들 우선 선택은?',
-      enQuestion: 'In this scene, what is the first choice to create chance?',
+      koQuestion: '우리2(볼)에서 찬스를 만들려면 누구 앞공간으로 넣어야 하나?',
+      enQuestion: 'From A2 (ball), whose front-space pass creates a chance?',
       options: const [
         _BoardQuizOption(
-          koText: '러너 앞 공간으로 타이밍 패스',
-          enText: 'Timing pass into runner front-space',
+          koText: '우리3(우측 러너) 전방 공간',
+          enText: 'Into A3 (right runner) front space',
         ),
         _BoardQuizOption(
-          koText: '멈춰서 모든 선수 대기',
-          enText: 'Stop and wait for all players',
+          koText: '멈춰서 전원 올라올 때까지 대기',
+          enText: 'Stop and wait for full team push-up',
         ),
         _BoardQuizOption(
-          koText: '뒤로 돌아 안전패스만',
-          enText: 'Turn back and only play safe backward',
+          koText: '뒤로만 안전 패스 반복',
+          enText: 'Repeat only backward safe passes',
         ),
       ],
       correctIndex: 0,
-      koExplain: '전환 순간에는 앞공간과 타이밍을 맞춘 빠른 연결이 찬스를 만듭니다.',
+      koExplain: '보드에서 우리3의 진행 방향 앞이 비어 있어 타이밍 패스가 가장 위협적입니다.',
       enExplain:
-          'In transition moments, timing into front-space creates the best chance.',
+          'A3 has open front-space in this frame, making the timing pass most dangerous.',
     ),
     _question(
       id: 'bq_04',
@@ -1918,26 +1947,26 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[3],
       koCaption: '좌하단 볼 소유, 근거리 패스 옵션 2개가 보이는 리드 상황',
       enCaption: 'Lead situation with two short passing options from bottom-left',
-      koQuestion: '이 장면에서 1점 리드를 지키기 위한 운영 선택은?',
-      enQuestion: 'In this scene, what is best game management with one-goal lead?',
+      koQuestion: '우리1(볼), 1점 리드 상황에서 화면 기준 가장 안정적인 운영은?',
+      enQuestion: 'A1 on the ball, one-goal lead: which visible choice is most stable?',
       options: const [
         _BoardQuizOption(
-          koText: '무리한 전진보다 짧은 연결로 템포 조절',
-          enText: 'Control tempo with short connections over risky pushes',
+          koText: '우리2로 짧게 연결하며 템포 조절',
+          enText: 'Short link to A2 to control tempo',
         ),
         _BoardQuizOption(
-          koText: '항상 가장 먼 공간으로 전진',
-          enText: 'Always force longest forward ball',
+          koText: '가장 먼 전방으로 즉시 전진 패스',
+          enText: 'Force the longest immediate forward pass',
         ),
         _BoardQuizOption(
-          koText: '공만 지키며 전원 정지',
-          enText: 'Everyone freezes while only shielding the ball',
+          koText: '볼만 보호하고 움직임 정지',
+          enText: 'Freeze movement and shield only',
         ),
       ],
       correctIndex: 0,
-      koExplain: '리드 상황에서는 템포 조절과 안정 연결이 실수 확률을 줄입니다.',
+      koExplain: '이 장면은 근거리 지원(우리2)이 보여 짧은 연결이 실수 위험을 가장 낮춥니다.',
       enExplain:
-          'With a lead, controlled tempo and stable links reduce costly mistakes.',
+          'A2 is the clear close outlet here, minimizing turnover risk while leading.',
     ),
     _question(
       id: 'bq_05',
@@ -1946,25 +1975,26 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[4],
       koCaption: '우상단 볼 보유 상대를 향해 수비 전환이 시작되는 장면',
       enCaption: 'Defensive transition starts against top-right ball holder',
-      koQuestion: '이 장면에서 수비 전환 직후 가장 먼저 할 행동은?',
-      enQuestion: 'In this scene, what is the first defensive transition action?',
+      koQuestion: '수비 전환 직후, 화면에서 상대 볼(우상단) 대응의 첫 행동은?',
+      enQuestion: 'Right after transition, what is the first action vs top-right ball?',
       options: const [
         _BoardQuizOption(
-          koText: '가장 가까운 패스길 차단 + 지연',
-          enText: 'Block nearest lane and delay',
+          koText: '가까운 패스길(중앙) 차단하며 지연',
+          enText: 'Block nearest central lane and delay',
         ),
         _BoardQuizOption(
-          koText: '공 쪽으로 전원 돌진',
-          enText: 'Everyone sprints directly to ball',
+          koText: '전원 공 쪽으로 동시 돌진',
+          enText: 'All players rush ball at once',
         ),
         _BoardQuizOption(
-          koText: '즉시 박스 안으로 후퇴만',
+          koText: '무조건 깊게 물러서기만',
           enText: 'Only retreat deep immediately',
         ),
       ],
       correctIndex: 0,
-      koExplain: '지연과 패스길 차단이 동료 복귀 시간을 벌어줍니다.',
-      enExplain: 'Delay plus lane blocking buys recovery time for teammates.',
+      koExplain: '보드에서 중앙 연결길이 가장 위험하므로 먼저 차단하고 시간(지연)을 벌어야 합니다.',
+      enExplain:
+          'The central outlet is the key danger lane in this frame, so delay + lane block comes first.',
     ),
     _question(
       id: 'bq_06',
@@ -1973,26 +2003,26 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[5],
       koCaption: '좌상단에서 중앙 지원으로 연결될 수 있는 빌드업 장면',
       enCaption: 'Build-up scene from top-left into central support',
-      koQuestion: '이 장면에서 받기 전 스캔의 핵심 목적은?',
-      enQuestion: 'In this scene, what is the key goal of pre-receive scanning?',
+      koQuestion: '우리1(좌상단)이 받을 때, 화면 기반 프리스캔 목표는?',
+      enQuestion: 'When A1 receives (top-left), what is the pre-scan goal here?',
       options: const [
         _BoardQuizOption(
-          koText: '다음 1~2선택을 미리 정하기',
-          enText: 'Pre-plan next 1-2 options',
+          koText: '우리2/우리3 다음 선택 2개 미리 확인',
+          enText: 'Pre-check two next options: A2/A3',
         ),
         _BoardQuizOption(
-          koText: '공만 더 오래 보기',
-          enText: 'Stare longer at the ball only',
+          koText: '공만 오래 보며 터치 준비',
+          enText: 'Stare only at ball before touch',
         ),
         _BoardQuizOption(
-          koText: '터치 수를 늘리기',
-          enText: 'Increase number of touches',
+          koText: '터치를 늘려 시간 벌기',
+          enText: 'Increase touches to buy time',
         ),
       ],
       correctIndex: 0,
-      koExplain: '프리스캔은 공을 받자마자 빠른 판단을 가능하게 만듭니다.',
+      koExplain: '이 장면처럼 지원 옵션이 2개일 때, 받기 전에 다음 선택을 정해두면 판단 속도가 빨라집니다.',
       enExplain:
-          'Pre-scanning enables immediate faster decisions after receiving.',
+          'With two visible supports, pre-checking options enables immediate decisions.',
     ),
     _question(
       id: 'bq_07',
@@ -2001,26 +2031,26 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[6],
       koCaption: '좌측 측면에서 크로스가 가능한 압박 장면',
       enCaption: 'Left-flank pressure scene where cross is possible',
-      koQuestion: '이 장면에서 크로스를 막기 위한 최우선 수비는?',
-      enQuestion: 'In this scene, what is top defensive priority to block cross?',
+      koQuestion: '좌측 측면 볼 상황에서, 화면상 크로스 억제 1순위는?',
+      enQuestion: 'Left-flank ball situation: what is priority #1 to stop cross?',
       options: const [
         _BoardQuizOption(
-          koText: '크로스 발 각도 차단',
-          enText: 'Block crossing-foot angle',
+          koText: '크로스 발(오른발) 각도 먼저 차단',
+          enText: 'Block crossing-foot angle first',
         ),
         _BoardQuizOption(
-          koText: '거리만 두고 기다리기',
-          enText: 'Only keep distance and wait',
+          koText: '거리만 유지하고 대기',
+          enText: 'Keep distance and wait only',
         ),
         _BoardQuizOption(
-          koText: '무조건 태클부터',
+          koText: '무조건 태클 먼저 시도',
           enText: 'Always tackle first',
         ),
       ],
       correctIndex: 0,
-      koExplain: '크로스 발 각도를 먼저 막아야 실점 확률이 낮아집니다.',
+      koExplain: '보드에서 측면 각이 살아 있으므로 발 각도를 먼저 닫아야 크로스 확률이 줄어듭니다.',
       enExplain:
-          'Blocking crossing-foot angle first lowers conceding probability.',
+          'The flank angle is open here, so closing crossing-foot angle is the first priority.',
     ),
     _question(
       id: 'bq_08',
@@ -2029,15 +2059,15 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
       scene: scenes[7],
       koCaption: '좌하단에서 실수 후 다시 중앙으로 복귀해야 하는 장면',
       enCaption: 'After-mistake scene requiring quick recovery to central shape',
-      koQuestion: '이 장면에서 실수 직후 가장 좋은 회복 반응은?',
-      enQuestion: 'In this scene, what is the best immediate reset response?',
+      koQuestion: '실수 직후 형태가 흔들린 이 장면에서, 즉시 해야 할 반응은?',
+      enQuestion: 'After a mistake in this broken-shape frame, what is best reset action?',
       options: const [
         _BoardQuizOption(
-          koText: '즉시 다음 수비/지원 역할로 재집중',
-          enText: 'Refocus on next defensive/support task immediately',
+          koText: '즉시 본인 다음 역할(수비/지원)로 복귀',
+          enText: 'Return immediately to next role (defend/support)',
         ),
         _BoardQuizOption(
-          koText: '이전 실수 장면만 계속 생각',
+          koText: '이전 실수 장면을 계속 떠올리기',
           enText: 'Keep replaying the mistake mentally',
         ),
         _BoardQuizOption(
@@ -2046,9 +2076,9 @@ List<_BoardQuizQuestion> _buildBoardQuizPool() {
         ),
       ],
       correctIndex: 0,
-      koExplain: '회복 탄력성은 다음 행동의 질로 나타납니다. 바로 역할 복귀가 핵심입니다.',
+      koExplain: '이 화면은 전환 속도가 중요해 즉시 역할 복귀가 가장 큰 회복 효과를 냅니다.',
       enExplain:
-          'Resilience appears in next-action quality. Immediate role recovery is key.',
+          'In this transition frame, immediate role recovery gives the highest reset value.',
     ),
   ];
 }
