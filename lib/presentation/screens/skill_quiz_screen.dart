@@ -583,151 +583,183 @@ class _SkillQuizScreenState extends State<SkillQuizScreen>
     final question = _questions[_index];
     final progressText = '${_index + 1}/${_questions.length}';
     final missionTarget = _mode == _QuizMode.review ? 4 : 6;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boardHeight =
+            (constraints.maxHeight * 0.48).clamp(320.0, 560.0).toDouble();
+        final canGoNext = _answered || _retryUsed;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _InfoChip(label: _mode.label(isKo)),
-            _InfoChip(
-                label: isKo ? '진행 $progressText' : 'Progress $progressText'),
-            _InfoChip(
-              label: isKo
-                  ? '미션 ${math.min(_score, missionTarget)}/$missionTarget'
-                  : 'Mission ${math.min(_score, missionTarget)}/$missionTarget',
-            ),
-            _InfoChip(
-              label: isKo ? '콤보 x$_combo' : 'Combo x$_combo',
-              success: _combo >= 2,
-            ),
-            _InfoChip(
-              label: isKo ? '모멘텀 $_momentum' : 'Momentum $_momentum',
-              success: _momentum >= 60,
-            ),
-            if (_mode == _QuizMode.speed)
-              _InfoChip(
-                label: isKo ? '⏱ ${_speedLeft}s' : '⏱ ${_speedLeft}s',
-                danger: _speedLeft <= 3,
-              ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Stack(
-          children: [
-            _BoardSceneCard(
-              question: question,
-              pulse: _pulseController,
-              motion: _sceneMotionController,
-              isKo: isKo,
-            ),
-            if (_answerFx != _AnswerFx.none)
-              Positioned(
-                top: 10,
-                right: 10,
-                child: _AnswerFxBadge(fx: _answerFx, isKo: isKo),
-              ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Text(
-              question.questionText(isKo),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        ...question.options.asMap().entries.map((entry) {
-          final optionIndex = entry.key;
-          final option = entry.value;
-          final selected = _selectedIndex == optionIndex;
-          final isCorrect = optionIndex == question.correctIndex;
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _InfoChip(label: _mode.label(isKo)),
+                        _InfoChip(label: isKo
+                            ? '진행 $progressText'
+                            : 'Progress $progressText'),
+                        _InfoChip(
+                          label: isKo
+                              ? '미션 ${math.min(_score, missionTarget)}/$missionTarget'
+                              : 'Mission ${math.min(_score, missionTarget)}/$missionTarget',
+                        ),
+                        _InfoChip(
+                          label: isKo ? '콤보 x$_combo' : 'Combo x$_combo',
+                          success: _combo >= 2,
+                        ),
+                        _InfoChip(
+                          label: isKo ? '모멘텀 $_momentum' : 'Momentum $_momentum',
+                          success: _momentum >= 60,
+                        ),
+                        if (_mode == _QuizMode.speed)
+                          _InfoChip(
+                            label: isKo ? '⏱ ${_speedLeft}s' : '⏱ ${_speedLeft}s',
+                            danger: _speedLeft <= 3,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Stack(
+                      children: [
+                        _BoardSceneCard(
+                          question: question,
+                          pulse: _pulseController,
+                          motion: _sceneMotionController,
+                          isKo: isKo,
+                          height: boardHeight,
+                        ),
+                        if (_answerFx != _AnswerFx.none)
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: _AnswerFxBadge(fx: _answerFx, isKo: isKo),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Text(
+                          question.questionText(isKo),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...question.options.asMap().entries.map((entry) {
+                      final optionIndex = entry.key;
+                      final option = entry.value;
+                      final selected = _selectedIndex == optionIndex;
+                      final isCorrect = optionIndex == question.correctIndex;
 
-          Color? borderColor;
-          Color? bgColor;
-          if (_answered || (_retryUsed && selected)) {
-            if (isCorrect) {
-              borderColor = const Color(0xFF0FA968);
-              bgColor = const Color(0x1A0FA968);
-            } else if (selected) {
-              borderColor = const Color(0xFFEB5757);
-              bgColor = const Color(0x1AEB5757);
-            }
-          }
+                      Color? borderColor;
+                      Color? bgColor;
+                      if (_answered || (_retryUsed && selected)) {
+                        if (isCorrect) {
+                          borderColor = const Color(0xFF0FA968);
+                          bgColor = const Color(0x1A0FA968);
+                        } else if (selected) {
+                          borderColor = const Color(0xFFEB5757);
+                          bgColor = const Color(0x1AEB5757);
+                        }
+                      }
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: OutlinedButton(
-              onPressed: () => _selectAnswer(optionIndex),
-              style: OutlinedButton.styleFrom(
-                alignment: Alignment.centerLeft,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                side: BorderSide(
-                  color: borderColor ??
-                      Theme.of(context).colorScheme.outlineVariant,
-                  width: borderColor == null ? 1.0 : 1.6,
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: OutlinedButton(
+                          onPressed: () => _selectAnswer(optionIndex),
+                          style: OutlinedButton.styleFrom(
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            side: BorderSide(
+                              color: borderColor ??
+                                  Theme.of(context).colorScheme.outlineVariant,
+                              width: borderColor == null ? 1.0 : 1.6,
+                            ),
+                            backgroundColor: bgColor,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(child: Text(option.text(isKo))),
+                              if (_answered && isCorrect)
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Color(0xFF0FA968),
+                                ),
+                              if ((_answered || _retryUsed) &&
+                                  selected &&
+                                  !isCorrect)
+                                const Icon(
+                                  Icons.cancel,
+                                  color: Color(0xFFEB5757),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    if (!_answered && _retryFeedback == 'incorrect')
+                      Text(
+                        isKo
+                            ? '틀렸어요. 한 번 더 고를 수 있어요.'
+                            : 'Incorrect. One more try.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFFEB5757),
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    if (!_answered && _retryFeedback == 'timeout')
+                      Text(
+                        isKo
+                            ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
+                            : 'Time out! Try a faster decision.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFFEB5757),
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    if (_answered) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                        ),
+                        child: Text(
+                          question.explainText(isKo),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                backgroundColor: bgColor,
               ),
-              child: Row(
-                children: [
-                  Expanded(child: Text(option.text(isKo))),
-                  if (_answered && isCorrect)
-                    const Icon(Icons.check_circle, color: Color(0xFF0FA968)),
-                  if ((_answered || _retryUsed) && selected && !isCorrect)
-                    const Icon(Icons.cancel, color: Color(0xFFEB5757)),
-                ],
-              ),
             ),
-          );
-        }),
-        if (!_answered && _retryFeedback == 'incorrect')
-          Text(
-            isKo ? '틀렸어요. 한 번 더 고를 수 있어요.' : 'Incorrect. One more try.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFFEB5757),
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        if (!_answered && _retryFeedback == 'timeout')
-          Text(
-            isKo
-                ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
-                : 'Time out! Try a faster decision.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFFEB5757),
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        if (_answered) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              onPressed: canGoNext ? _goNext : null,
+              icon: const Icon(Icons.navigate_next),
+              label: Text(isKo ? '다음' : 'Next'),
             ),
-            child: Text(
-              question.explainText(isKo),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-        ],
-        const Spacer(),
-        FilledButton.icon(
-          onPressed: (_answered || _retryUsed) ? _goNext : null,
-          icon: const Icon(Icons.navigate_next),
-          label: Text(isKo ? '다음' : 'Next'),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -1086,12 +1118,14 @@ class _BoardSceneCard extends StatelessWidget {
   final Animation<double> pulse;
   final Animation<double> motion;
   final bool isKo;
+  final double height;
 
   const _BoardSceneCard({
     required this.question,
     required this.pulse,
     required this.motion,
     required this.isKo,
+    required this.height,
   });
 
   @override
@@ -1117,7 +1151,7 @@ class _BoardSceneCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: SizedBox(
-              height: 340,
+              height: height,
               width: double.infinity,
               child: AnimatedBuilder(
                 animation: Listenable.merge([pulse, motion]),
@@ -1382,10 +1416,32 @@ class _PlayMotionPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final pulseAlpha = (0.25 + (0.55 * (0.5 + 0.5 * math.sin(t * math.pi * 2))))
+        .clamp(0.0, 1.0);
+    final lanePath = _lanePath(page.ballPath, size);
+    if (lanePath != null) {
+      final lanePaint = Paint()
+        ..color = const Color(0xFF4FC3F7).withValues(alpha: pulseAlpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(lanePath, lanePaint);
+    }
+
     final ball = _samplePoint(page.ballPath, t);
     final runner = _samplePoint(page.playerPath, (t + 0.18) % 1.0);
 
     if (ball != null) {
+      for (var i = 1; i <= 4; i++) {
+        final trailPoint = _samplePoint(page.ballPath, _wrap01(t - (i * 0.07)));
+        if (trailPoint == null) continue;
+        final trail = Offset(trailPoint.x * size.width, trailPoint.y * size.height);
+        final a = (0.12 * (5 - i)).clamp(0.0, 0.45);
+        final trailPaint = Paint()
+          ..color = const Color(0xFFFFD54F).withValues(alpha: a)
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(trail, 5.5 - i, trailPaint);
+      }
       final c = Offset(ball.x * size.width, ball.y * size.height);
       final glow = Paint()
         ..color = const Color(0x80FFD54F)
@@ -1393,8 +1449,8 @@ class _PlayMotionPainter extends CustomPainter {
       final dot = Paint()
         ..color = const Color(0xFFFFC107)
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(c, 14, glow);
-      canvas.drawCircle(c, 6.5, dot);
+      canvas.drawCircle(c, 17, glow);
+      canvas.drawCircle(c, 8, dot);
     }
 
     if (runner != null) {
@@ -1405,9 +1461,19 @@ class _PlayMotionPainter extends CustomPainter {
       final dot = Paint()
         ..color = const Color(0xFF1E88E5)
         ..style = PaintingStyle.fill;
-      canvas.drawCircle(c, 13, glow);
-      canvas.drawCircle(c, 6, dot);
+      canvas.drawCircle(c, 15, glow);
+      canvas.drawCircle(c, 7, dot);
     }
+  }
+
+  Path? _lanePath(List<TrainingMethodPoint> path, Size size) {
+    if (path.length < 2) return null;
+    final lane = Path()
+      ..moveTo(path.first.x * size.width, path.first.y * size.height);
+    for (var i = 1; i < path.length; i++) {
+      lane.lineTo(path[i].x * size.width, path[i].y * size.height);
+    }
+    return lane;
   }
 
   TrainingMethodPoint? _samplePoint(List<TrainingMethodPoint> path, double t) {
@@ -1423,6 +1489,17 @@ class _PlayMotionPainter extends CustomPainter {
       x: start.x + (end.x - start.x) * local,
       y: start.y + (end.y - start.y) * local,
     );
+  }
+
+  double _wrap01(double value) {
+    var v = value;
+    while (v < 0) {
+      v += 1;
+    }
+    while (v >= 1) {
+      v -= 1;
+    }
+    return v;
   }
 
   @override
