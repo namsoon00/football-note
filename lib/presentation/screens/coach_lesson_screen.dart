@@ -9,6 +9,7 @@ import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
+import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/entities/training_entry.dart';
@@ -23,6 +24,7 @@ import 'news_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'skill_quiz_screen.dart';
+import 'notification_center_screen.dart';
 
 class CoachLessonScreen extends StatefulWidget {
   static const String todayViewedDiaryDayKey = 'coach_diary_viewed_day_v1';
@@ -110,6 +112,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         widget.settingsService != null;
     final profilePhotoSource =
         widget.optionRepository.getValue<String>('profile_photo_url') ?? '';
+    final reminderUnreadCount = widget.settingsService == null
+        ? 0
+        : TrainingPlanReminderService(
+            widget.optionRepository,
+            widget.settingsService!,
+          ).unreadReminderCountSync();
 
     return Scaffold(
       drawer: canOpenDrawer
@@ -178,6 +186,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           ? _openQuiz
                           : null,
                       onProfileTap: _openProfile,
+                      onNotificationTap: widget.settingsService != null
+                          ? _openNotifications
+                          : null,
+                      notificationBadgeCount: reminderUnreadCount,
                       onSettingsTap: widget.localeService != null &&
                               widget.settingsService != null
                           ? _openSettings
@@ -393,6 +405,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
+  }
+
+  Future<void> _openNotifications() async {
+    final settingsService = widget.settingsService;
+    if (settingsService == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NotificationCenterScreen(
+          optionRepository: widget.optionRepository,
+          settingsService: settingsService,
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
   }
 
   void _markDiaryViewedIfNeeded(DateTime date) {

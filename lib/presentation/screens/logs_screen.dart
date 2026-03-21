@@ -17,6 +17,7 @@ import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/training_board_service.dart';
+import '../../application/training_plan_reminder_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/entities/training_board.dart';
 import '../models/training_method_layout.dart';
@@ -31,6 +32,7 @@ import 'profile_screen.dart';
 import 'training_board_list_screen.dart';
 import 'news_screen.dart';
 import 'skill_quiz_screen.dart';
+import 'notification_center_screen.dart';
 
 class LogsScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -187,6 +189,10 @@ class _LogsScreenState extends State<LogsScreen> {
                 widget.optionRepository,
               );
               final boardsById = boardService.boardMap();
+              final reminderUnreadCount = TrainingPlanReminderService(
+                widget.optionRepository,
+                widget.settingsService,
+              ).unreadReminderCountSync();
 
               return NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
@@ -210,6 +216,8 @@ class _LogsScreenState extends State<LogsScreen> {
                           onLeadingTap: () => Scaffold.of(context).openDrawer(),
                           onNewsTap: () => _openNews(context),
                           onQuizTap: () => _openQuiz(context),
+                          onNotificationTap: () => _openNotifications(context),
+                          notificationBadgeCount: reminderUnreadCount,
                           profilePhotoSource:
                               widget.optionRepository.getValue<String>(
                                     'profile_photo_url',
@@ -913,6 +921,18 @@ class _LogsScreenState extends State<LogsScreen> {
       AppPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openNotifications(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NotificationCenterScreen(
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+        ),
       ),
     );
     if (mounted) setState(() {});

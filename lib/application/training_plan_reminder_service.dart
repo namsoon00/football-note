@@ -12,6 +12,7 @@ import 'settings_service.dart';
 class TrainingPlanReminderService {
   static const String plansStorageKey = 'training_plans_v1';
   static const String reminderIdsKey = 'training_plan_reminder_ids_v1';
+  static const String reminderReadIdsKey = 'training_plan_reminder_read_ids_v1';
   static const String alarmMutedUntilKey = 'training_plan_alarm_muted_until_v1';
 
   static const String _androidChannelId = 'training_plan_reminders';
@@ -190,6 +191,14 @@ class TrainingPlanReminderService {
     }
 
     await _options.setValue(reminderIdsKey, scheduledIds);
+    final readIdsRaw = _options.getValue<List>(reminderReadIdsKey) ?? const [];
+    final readIds = readIdsRaw
+        .map((e) => (e as num?)?.toInt() ?? -1)
+        .where((id) => id >= 0)
+        .toSet();
+    final active = scheduledIds.toSet();
+    final pruned = readIds.where(active.contains).toList(growable: false);
+    await _options.setValue(reminderReadIdsKey, pruned);
   }
 
   List<tz.TZDateTime> _buildBaseTimes(_PlanLite plan, DateTime now) {
@@ -313,6 +322,30 @@ class TrainingPlanReminderService {
       await _plugin.cancel(id);
     }
     await _options.setValue(reminderIdsKey, <int>[]);
+    await _options.setValue(reminderReadIdsKey, <int>[]);
+  }
+
+  int unreadReminderCountSync() {
+    final scheduledRaw = _options.getValue<List>(reminderIdsKey) ?? const [];
+    final readRaw = _options.getValue<List>(reminderReadIdsKey) ?? const [];
+    final scheduled = scheduledRaw
+        .map((e) => (e as num?)?.toInt() ?? -1)
+        .where((id) => id >= 0)
+        .toSet();
+    final read = readRaw
+        .map((e) => (e as num?)?.toInt() ?? -1)
+        .where((id) => id >= 0)
+        .toSet();
+    return scheduled.difference(read).length;
+  }
+
+  Future<void> markAllRemindersRead() async {
+    final scheduledRaw = _options.getValue<List>(reminderIdsKey) ?? const [];
+    final scheduled = scheduledRaw
+        .map((e) => (e as num?)?.toInt() ?? -1)
+        .where((id) => id >= 0)
+        .toList(growable: false);
+    await _options.setValue(reminderReadIdsKey, scheduled);
   }
 
   int _notificationIdForPlan(String planId, {required int slot}) {
