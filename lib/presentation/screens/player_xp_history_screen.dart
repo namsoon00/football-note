@@ -4,19 +4,42 @@ import 'package:intl/intl.dart';
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_feedback.dart';
 
-class PlayerXpHistoryScreen extends StatelessWidget {
+class PlayerXpHistoryScreen extends StatefulWidget {
   final OptionRepository optionRepository;
 
   const PlayerXpHistoryScreen({super.key, required this.optionRepository});
 
   @override
+  State<PlayerXpHistoryScreen> createState() => _PlayerXpHistoryScreenState();
+}
+
+class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
+  late final PlayerLevelService _levelService;
+
+  @override
+  void initState() {
+    super.initState();
+    _levelService = PlayerLevelService(widget.optionRepository);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final history = PlayerLevelService(optionRepository).loadXpHistory();
+    final history = _levelService.loadXpHistory();
 
     return Scaffold(
-      appBar: AppBar(title: Text(isKo ? '경험치 히스토리' : 'XP history')),
+      appBar: AppBar(
+        title: Text(isKo ? '경험치 히스토리' : 'XP history'),
+        actions: [
+          if (history.isNotEmpty)
+            TextButton(
+              onPressed: () => _confirmClearHistory(isKo),
+              child: Text(isKo ? '전체 삭제' : 'Clear all'),
+            ),
+        ],
+      ),
       body: AppBackground(
         child: SafeArea(
           child: history.isEmpty
@@ -36,11 +59,55 @@ class PlayerXpHistoryScreen extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = history[index];
-                    return _XpHistoryCard(item: item, isKo: isKo);
+                    return _XpHistoryCard(
+                      item: item,
+                      isKo: isKo,
+                      onDelete: () => _deleteHistoryItem(item, isKo),
+                    );
                   },
                 ),
         ),
       ),
+    );
+  }
+
+  Future<void> _deleteHistoryItem(PlayerXpHistoryEntry item, bool isKo) async {
+    await _levelService.deleteXpHistoryEntry(item);
+    if (!mounted) return;
+    setState(() {});
+    AppFeedback.showSuccess(
+      context,
+      text: isKo ? '경험치 메세지를 삭제했어요.' : 'XP message deleted.',
+    );
+  }
+
+  Future<void> _confirmClearHistory(bool isKo) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isKo ? '경험치 메세지 삭제' : 'Delete XP messages'),
+        content: Text(
+          isKo ? '쌓인 경험치 메세지를 모두 삭제할까요?' : 'Delete all saved XP messages?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(isKo ? '취소' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(isKo ? '전체 삭제' : 'Clear all'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _levelService.clearXpHistory();
+    if (!mounted) return;
+    setState(() {});
+    AppFeedback.showSuccess(
+      context,
+      text: isKo ? '경험치 메세지를 모두 삭제했어요.' : 'All XP messages deleted.',
     );
   }
 }
@@ -48,8 +115,13 @@ class PlayerXpHistoryScreen extends StatelessWidget {
 class _XpHistoryCard extends StatelessWidget {
   final PlayerXpHistoryEntry item;
   final bool isKo;
+  final VoidCallback onDelete;
 
-  const _XpHistoryCard({required this.item, required this.isKo});
+  const _XpHistoryCard({
+    required this.item,
+    required this.isKo,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +163,11 @@ class _XpHistoryCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                tooltip: isKo ? '메세지 삭제' : 'Delete message',
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline),
               ),
               const SizedBox(width: 12),
               Text(
