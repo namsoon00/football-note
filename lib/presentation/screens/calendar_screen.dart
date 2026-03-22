@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -1006,6 +1007,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         l10n.defaultProgram3,
       ],
     );
+    final dedupedCategories = LinkedHashSet<String>.from(
+      categories.map((item) => item.trim()).where((item) => item.isNotEmpty),
+    ).toList(growable: false);
     if (!_sameStringList(rawCategories, categories)) {
       widget.optionRepository.saveOptions('programs', categories);
     }
@@ -1033,7 +1037,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
         : editingAfterThis
             ? (seriesSeed?.seriesEndDate ?? baseScheduledAt)
             : baseSeriesEndDate;
-    var category = editingPlan?.category ?? categories.first;
+    final fallbackCategory = dedupedCategories.isEmpty
+        ? (isKo ? '훈련' : 'Training')
+        : dedupedCategories.first;
+    var category = (editingPlan?.category ?? fallbackCategory).trim();
+    if (category.isEmpty) {
+      category = fallbackCategory;
+    }
+    final availableCategories = LinkedHashSet<String>.from(dedupedCategories);
+    if (!availableCategories.contains(category)) {
+      availableCategories.add(category);
+    }
+    final categoryItems = availableCategories.toList(growable: false);
     var time = TimeOfDay(
       hour: (editingPlan?.scheduledAt.hour ?? 18),
       minute: (editingPlan?.scheduledAt.minute ?? 0),
@@ -1090,7 +1105,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         decoration: InputDecoration(
                           labelText: isKo ? '훈련 항목' : 'Category',
                         ),
-                        items: categories
+                        items: categoryItems
                             .map(
                               (item) => DropdownMenuItem<String>(
                                 value: item,
