@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../application/player_profile_service.dart';
 import '../../domain/repositories/option_repository.dart';
 
 class SkillQuizScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class SkillQuizScreen extends StatefulWidget {
   static const String dailyQuestionsDayKey =
       'skill_quiz_daily_questions_day_v2';
   static const String clearedSetsKey = 'skill_quiz_cleared_sets_v1';
+  static const String categoryStatsKey = 'skill_quiz_category_stats_v1';
 
   const SkillQuizScreen({super.key, required this.optionRepository});
 
@@ -33,16 +35,13 @@ class SkillQuizScreen extends StatefulWidget {
       optionRepository.getValue<String>(pendingWrongScheduleKey),
     );
     final now = DateTime.now();
-    final pendingDueCount = pending
-        .where((item) => !item.dueAt.isAfter(now))
-        .length;
+    final pendingDueCount =
+        pending.where((item) => !item.dueAt.isAfter(now)).length;
 
     final rawCompletedAt = optionRepository.getValue<String>(completionKey);
-    final completedAt = rawCompletedAt == null
-        ? null
-        : DateTime.tryParse(rawCompletedAt);
-    final completedToday =
-        completedAt != null &&
+    final completedAt =
+        rawCompletedAt == null ? null : DateTime.tryParse(rawCompletedAt);
+    final completedToday = completedAt != null &&
         completedAt.year == now.year &&
         completedAt.month == now.month &&
         completedAt.day == now.day;
@@ -65,11 +64,13 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   static const int _dailyCount = 10;
   static const int _reviewCount = 10;
   static const int _challengeCount = 10;
+  static const int _focusCount = 8;
   static const int _speedCount = 10;
   static const int _speedLimitSec = 12;
 
   late final Map<String, _FootballQuizQuestion> _questionMap;
   late final List<_FootballQuizQuestion> _allQuestions;
+  late final PlayerProfileService _profileService;
   _QuizSessionSnapshot? _pendingResumeSnapshot;
   late SkillQuizResumeSummary _resumeSummary;
 
@@ -106,6 +107,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _questionMap = {
       for (final question in _allQuestions) question.id: question,
     };
+    _profileService = PlayerProfileService(widget.optionRepository);
     _resumeSummary = SkillQuizScreen.loadResumeSummary(widget.optionRepository);
     _pendingResumeSnapshot = _QuizSessionSnapshot.tryParse(
       widget.optionRepository.getValue<String>(SkillQuizScreen.sessionKey),
@@ -138,6 +140,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         return;
       case _QuizEntryAction.challenge:
         _startChallengeSession();
+        return;
+      case _QuizEntryAction.focus:
+        _startFocusSession();
         return;
       case _QuizEntryAction.speed:
         _startSpeedSession();
@@ -232,6 +237,22 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       random: random,
     );
     _startSession(questions: picked, mode: _QuizMode.challenge);
+  }
+
+  void _startFocusSession() {
+    final personalization = _buildPersonalization();
+    final targetCategory =
+        personalization.weakestCategory ?? personalization.recommendedCategory;
+    final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+    final focusedSource = _allQuestions
+        .where((question) => question.category == targetCategory)
+        .toList(growable: false);
+    final picked = _pickAdaptiveQuestions(
+      source: focusedSource.isEmpty ? _allQuestions : focusedSource,
+      count: _focusCount,
+      random: random,
+    );
+    _startSession(questions: picked, mode: _QuizMode.focus);
   }
 
   void _startSpeedSession() {
@@ -474,6 +495,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     await _scheduleReviewQuestions(wrongQuestions);
     await _recordRecentPerformance();
+    await _recordCategoryPerformance();
     await _trackMetric('football_quiz_session_completed');
 
     await widget.optionRepository.setValue(
@@ -520,6 +542,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               onTap: () => Navigator.of(context).pop(_QuizMode.challenge),
             ),
             ListTile(
+              leading: const Icon(Icons.center_focus_strong_outlined),
+              title: Text(isKo ? '약점 집중 모드' : 'Focus mode'),
+              subtitle: Text(
+                isKo
+                    ? '약한 카테고리 중심 8문제'
+                    : '8 questions around your weak category',
+              ),
+              onTap: () => Navigator.of(context).pop(_QuizMode.focus),
+            ),
+            ListTile(
               leading: const Icon(Icons.speed_outlined),
               title: Text(isKo ? '스피드 모드' : 'Speed mode'),
               subtitle: Text(
@@ -545,6 +577,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         return;
       case _QuizMode.challenge:
         _startChallengeSession();
+        return;
+      case _QuizMode.focus:
+        _startFocusSession();
         return;
       case _QuizMode.speed:
         _startSpeedSession();
@@ -613,9 +648,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   children: [
                     _InfoChip(label: _mode.label(isKo)),
                     _InfoChip(
-                      label: isKo
-                          ? '진행 $progressText'
-                          : 'Progress $progressText',
+                      label:
+                          isKo ? '진행 $progressText' : 'Progress $progressText',
                     ),
                     _InfoChip(
                       label: isKo
@@ -644,8 +678,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   explanationText: (_answered || _retryUsed)
                       ? question.explainText(isKo)
                       : (isKo
-                            ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
-                            : 'The explanation will appear here right after you answer.'),
+                          ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
+                          : 'The explanation will appear here right after you answer.'),
                 ),
                 const SizedBox(height: 12),
                 ...question.options.asMap().entries.map((entry) {
@@ -669,8 +703,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Material(
-                      color:
-                          bgColor ??
+                      color: bgColor ??
                           Theme.of(context).colorScheme.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(16),
                       child: InkWell(
@@ -684,8 +717,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color:
-                                  borderColor ??
+                              color: borderColor ??
                                   Theme.of(context).colorScheme.outlineVariant,
                               width: borderColor == null ? 1.0 : 1.6,
                             ),
@@ -701,7 +733,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                               Expanded(
                                 child: Text(
                                   option.text(isKo),
-                                  style: Theme.of(context).textTheme.titleSmall
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
                                       ?.copyWith(fontWeight: FontWeight.w800),
                                 ),
                               ),
@@ -728,9 +762,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   Text(
                     isKo ? '틀렸어요. 한 번 더 고를 수 있어요.' : 'Incorrect. One more try.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFFEB5757),
-                      fontWeight: FontWeight.w700,
-                    ),
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 if (!_answered && _retryFeedback == 'timeout')
                   Text(
@@ -738,9 +772,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
                         : 'Time out! Try a faster decision.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFFEB5757),
-                      fontWeight: FontWeight.w700,
-                    ),
+                          color: const Color(0xFFEB5757),
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 if (_answered) ...[
                   const SizedBox(height: 10),
@@ -757,7 +791,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       children: [
                         Text(
                           isKo ? '정답 포인트' : 'Answer insight',
-                          style: Theme.of(context).textTheme.labelLarge
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
                               ?.copyWith(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 6),
@@ -770,7 +806,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           isKo
                               ? '다음에 볼 포인트: ${question.nextPoint(true)}'
                               : 'Next focus: ${question.nextPoint(false)}',
-                          style: Theme.of(context).textTheme.bodySmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                       ],
@@ -797,6 +835,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final avgResponse = _answerCount == 0
         ? 0
         : ((_responseMillisSum / _answerCount) / 1000).toStringAsFixed(1);
+    final recap = _buildResultRecap();
+    final categoryStats = _sessionCategoryStats();
 
     return Center(
       child: ConstrainedBox(
@@ -822,8 +862,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : '$_score / $total correct ($accuracy%)',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -832,6 +872,53 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       : 'Best streak $_bestStreak · Best combo $_bestComboRun · Avg ${avgResponse}s · Timeouts $_timeouts',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isKo ? '코치 해설' : 'Coach recap',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        recap.summary(isKo),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              height: 1.5,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        recap.nextAction(isKo),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: categoryStats.entries
+                      .map(
+                        (entry) => _InfoChip(
+                          label: isKo
+                              ? '${entry.key.label(true)} ${entry.value.correct}/${entry.value.total}'
+                              : '${entry.key.label(false)} ${entry.value.correct}/${entry.value.total}',
+                        ),
+                      )
+                      .toList(growable: false),
                 ),
                 const SizedBox(height: 14),
                 OutlinedButton.icon(
@@ -850,6 +937,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   onPressed: _startChallengeSession,
                   icon: const Icon(Icons.sports_soccer_outlined),
                   label: Text(isKo ? '챌린지 모드' : 'Challenge mode'),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _startFocusSession,
+                  icon: const Icon(Icons.center_focus_strong_outlined),
+                  label: Text(isKo ? '약점 집중 모드' : 'Focus mode'),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
@@ -979,6 +1072,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   Widget _buildEntryHub(bool isKo) {
     final dueReviewCount = _resumeSummary.pendingWrongCount;
+    final personalization = _buildPersonalization();
     final actions = <_QuizEntryCardData>[
       if (_resumeSummary.hasActiveSession && _pendingResumeSnapshot != null)
         _QuizEntryCardData(
@@ -999,8 +1093,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         subtitle: _resumeSummary.completedToday
             ? (isKo ? '오늘 세트를 다시 풀어요' : 'Replay today’s set')
             : (isKo
-                  ? '오늘 10문제 세트, 지난 오답도 1~2문제 섞여 나와요'
-                  : 'Play today’s 10-question set with 1-2 past wrong answers mixed in'),
+                ? '오늘 10문제 세트, 지난 오답도 1~2문제 섞여 나와요'
+                : 'Play today’s 10-question set with 1-2 past wrong answers mixed in'),
         badge: isKo ? '기본 추천' : 'Recommended',
       ),
       _QuizEntryCardData(
@@ -1009,8 +1103,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         title: isKo ? '복습하기' : 'Review',
         subtitle: dueReviewCount > 0
             ? (isKo
-                  ? '지금 풀 수 있는 오답 $dueReviewCount개'
-                  : '$dueReviewCount wrong answers ready now')
+                ? '지금 풀 수 있는 오답 $dueReviewCount개'
+                : '$dueReviewCount wrong answers ready now')
             : (isKo ? '복습 대기 중인 오답이 없어요' : 'No wrong answers are due yet'),
         badge: dueReviewCount > 0
             ? (isKo ? '지금 가능' : 'Ready')
@@ -1023,6 +1117,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         title: isKo ? '다른 스타일 풀기' : 'Challenge mix',
         subtitle: isKo ? '분야를 섞은 적응형 10문제' : 'Adaptive mixed set of 10',
         badge: isKo ? '새 문제 흐름' : 'Fresh mix',
+      ),
+      _QuizEntryCardData(
+        action: _QuizEntryAction.focus,
+        icon: Icons.center_focus_strong_outlined,
+        title: isKo ? '약점 집중' : 'Focus mode',
+        subtitle: isKo
+            ? '${personalization.recommendedCategory.label(true)} 중심으로 8문제를 풀어요'
+            : 'Play 8 questions focused on ${personalization.recommendedCategory.label(false)}',
+        badge: isKo ? '개인화 추천' : 'Personalized',
       ),
       _QuizEntryCardData(
         action: _QuizEntryAction.speed,
@@ -1053,19 +1156,25 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               Text(
                 isKo ? '오늘의 퀴즈 시작' : 'Start today’s quiz',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(
                 isKo
-                    ? '오늘 문제를 다시 풀지, 오답을 복습할지, 다른 스타일로 새 세트를 시작할지 고르세요.'
-                    : 'Choose whether to replay today, review mistakes, or start a different style.',
+                    ? '오늘 문제를 다시 풀지, 오답을 복습할지, 약점 분야를 파고들지 고르세요.'
+                    : 'Choose whether to replay today, review mistakes, or drill into your weakest area.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  height: 1.5,
-                ),
+                      color: Colors.white.withValues(alpha: 0.92),
+                      height: 1.5,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              _QuizCoachBanner(
+                title: isKo ? '오늘 추천' : 'Today recommendation',
+                subtitle: personalization.heroSubtitle(isKo),
+                detail: personalization.heroDetail(isKo),
               ),
             ],
           ),
@@ -1130,14 +1239,124 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Future<void> _recordRecentPerformance() async {
     if (_questions.isEmpty) return;
     final accuracy = _score / _questions.length;
-    final avgSec = _answerCount == 0
-        ? 8.0
-        : (_responseMillisSum / _answerCount) / 1000;
+    final avgSec =
+        _answerCount == 0 ? 8.0 : (_responseMillisSum / _answerCount) / 1000;
     final perf = _RecentPerformance(accuracy: accuracy, avgSeconds: avgSec);
     await widget.optionRepository.setValue(
       SkillQuizScreen.recentPerformanceKey,
       perf.encode(),
     );
+  }
+
+  Future<void> _recordCategoryPerformance() async {
+    if (_questions.isEmpty) return;
+    final current = _QuizCategoryAggregate.decodeMap(
+      widget.optionRepository
+          .getValue<String>(SkillQuizScreen.categoryStatsKey),
+    );
+    final session = _sessionCategoryStats();
+    for (final entry in session.entries) {
+      final previous = current[entry.key] ?? const _QuizCategoryAggregate();
+      current[entry.key] = previous.merge(entry.value);
+    }
+    await widget.optionRepository.setValue(
+      SkillQuizScreen.categoryStatsKey,
+      _QuizCategoryAggregate.encodeMap(current),
+    );
+  }
+
+  Map<_QuizCategory, _QuizCategoryAggregate> _sessionCategoryStats() {
+    final stats = <_QuizCategory, _QuizCategoryAggregate>{};
+    for (final question in _questions) {
+      final previous =
+          stats[question.category] ?? const _QuizCategoryAggregate();
+      stats[question.category] = previous.addResult(
+        correct: !_wrongIds.contains(question.id),
+      );
+    }
+    return stats;
+  }
+
+  _QuizResultRecap _buildResultRecap() {
+    final stats = _sessionCategoryStats();
+    _QuizCategory? strongest;
+    _QuizCategory? weakest;
+    double strongestScore = -1;
+    double weakestScore = 2;
+    for (final entry in stats.entries) {
+      final accuracy = entry.value.accuracy;
+      if (accuracy > strongestScore) {
+        strongestScore = accuracy;
+        strongest = entry.key;
+      }
+      if (accuracy < weakestScore) {
+        weakestScore = accuracy;
+        weakest = entry.key;
+      }
+    }
+    return _QuizResultRecap(
+      strongestCategory: strongest,
+      weakestCategory: weakest,
+      score: _score,
+      total: _questions.length,
+      bestCombo: _bestComboRun,
+      timeouts: _timeouts,
+    );
+  }
+
+  _QuizPersonalization _buildPersonalization() {
+    final profile = _profileService.load();
+    final categoryStats = _QuizCategoryAggregate.decodeMap(
+      widget.optionRepository
+          .getValue<String>(SkillQuizScreen.categoryStatsKey),
+    );
+    _QuizCategory? weakest;
+    double weakestScore = 2;
+    for (final entry in categoryStats.entries) {
+      if (entry.value.total < 2) continue;
+      final accuracy = entry.value.accuracy;
+      if (accuracy < weakestScore) {
+        weakestScore = accuracy;
+        weakest = entry.key;
+      }
+    }
+    final recommended =
+        weakest ?? _recommendedCategoryForPosition(profile.positionTestResult);
+    return _QuizPersonalization(
+      weakestCategory: weakest,
+      recommendedCategory: recommended,
+      positionLabel: profile.positionTestResult.trim(),
+      dueReviewCount: _resumeSummary.pendingWrongCount,
+    );
+  }
+
+  _QuizCategory _recommendedCategoryForPosition(String rawPosition) {
+    final text = rawPosition.toLowerCase();
+    if (text.contains('fw') ||
+        text.contains('st') ||
+        text.contains('윙') ||
+        text.contains('striker') ||
+        text.contains('forward')) {
+      return _QuizCategory.technique;
+    }
+    if (text.contains('mf') ||
+        text.contains('mid') ||
+        text.contains('cm') ||
+        text.contains('cam') ||
+        text.contains('midfielder')) {
+      return _QuizCategory.tactics;
+    }
+    if (text.contains('df') ||
+        text.contains('cb') ||
+        text.contains('fb') ||
+        text.contains('defender') ||
+        text.contains('수비')) {
+      return _QuizCategory.positions;
+    }
+    if (text.contains('gk') || text.contains('goalkeeper')) {
+      return _QuizCategory.rules;
+    }
+    return _QuizCategory.tactics;
   }
 
   List<_FootballQuizQuestion> _pickAdaptiveQuestions({
@@ -1163,12 +1382,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final hardPool = [...hard]..shuffle(random);
 
     final total = math.min(count, source.length);
-    final hardRatio = targetDifficulty >= 3
-        ? 0.45
-        : (targetDifficulty <= 1 ? 0.15 : 0.30);
-    final easyRatio = targetDifficulty <= 1
-        ? 0.45
-        : (targetDifficulty >= 3 ? 0.18 : 0.25);
+    final hardRatio =
+        targetDifficulty >= 3 ? 0.45 : (targetDifficulty <= 1 ? 0.15 : 0.30);
+    final easyRatio =
+        targetDifficulty <= 1 ? 0.45 : (targetDifficulty >= 3 ? 0.18 : 0.25);
     final midRatio = 1 - easyRatio - hardRatio;
 
     final needEasy = (total * easyRatio).round();
@@ -1206,18 +1423,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final reviewQuestions = mixedReview.take(mixCount).toList(growable: false);
     final excludedIds = reviewQuestions.map((question) => question.id).toSet();
     final remainingCount = math.max(0, _dailyCount - reviewQuestions.length);
-    final ox =
-        _allQuestions
-            .where((q) => q.style == _QuestionStyle.ox)
-            .where((q) => !excludedIds.contains(q.id))
-            .toList(growable: false)
-          ..shuffle(random);
-    final mcq =
-        _allQuestions
-            .where((q) => q.style == _QuestionStyle.multipleChoice)
-            .where((q) => !excludedIds.contains(q.id))
-            .toList(growable: false)
-          ..shuffle(random);
+    final ox = _allQuestions
+        .where((q) => q.style == _QuestionStyle.ox)
+        .where((q) => !excludedIds.contains(q.id))
+        .toList(growable: false)
+      ..shuffle(random);
+    final mcq = _allQuestions
+        .where((q) => q.style == _QuestionStyle.multipleChoice)
+        .where((q) => !excludedIds.contains(q.id))
+        .toList(growable: false)
+      ..shuffle(random);
     final oxCount = remainingCount ~/ 2;
     final mcqCount = remainingCount - oxCount;
     final picked = <_FootballQuizQuestion>[
@@ -1346,9 +1561,9 @@ class SkillQuizResumeSummary {
   });
 }
 
-enum _QuizEntryAction { resume, daily, review, challenge, speed }
+enum _QuizEntryAction { resume, daily, review, challenge, focus, speed }
 
-enum _QuizMode { daily, review, challenge, speed }
+enum _QuizMode { daily, review, challenge, focus, speed }
 
 extension _QuizModeX on _QuizMode {
   static _QuizMode? tryParse(String? raw) {
@@ -1366,6 +1581,8 @@ extension _QuizModeX on _QuizMode {
         return isKo ? '복습' : 'Review';
       case _QuizMode.challenge:
         return isKo ? '챌린지' : 'Challenge';
+      case _QuizMode.focus:
+        return isKo ? '집중' : 'Focus';
       case _QuizMode.speed:
         return isKo ? '스피드' : 'Speed';
     }
@@ -1543,9 +1760,9 @@ class _QuestionHeroCard extends StatelessWidget {
                       ? '${question.category.label(true)} ${question.style.label(true)}'
                       : '${question.category.label(false)} ${question.style.label(false)}',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w900,
-                  ),
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
               const Spacer(),
@@ -1569,18 +1786,18 @@ class _QuestionHeroCard extends StatelessWidget {
                         overlay.title,
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: overlay.accent,
-                          fontWeight: FontWeight.w900,
-                        ),
+                              color: overlay.accent,
+                              fontWeight: FontWeight.w900,
+                            ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         overlay.subtitle,
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.72),
-                          fontWeight: FontWeight.w700,
-                        ),
+                              color: scheme.onSurface.withValues(alpha: 0.72),
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ],
                   ),
@@ -1592,9 +1809,9 @@ class _QuestionHeroCard extends StatelessWidget {
           Text(
             question.prompt(isKo),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-              height: 1.35,
-            ),
+                  fontWeight: FontWeight.w900,
+                  height: 1.35,
+                ),
           ),
           const SizedBox(height: 12),
           Container(
@@ -1612,8 +1829,8 @@ class _QuestionHeroCard extends StatelessWidget {
                   child: Text(
                     explanationText,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ),
               ],
@@ -1643,9 +1860,9 @@ class _OptionBadge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.primary,
+            ),
       ),
     );
   }
@@ -1722,21 +1939,21 @@ class _QuizEntryCard extends StatelessWidget {
                     Text(
                       data.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: data.enabled
-                            ? null
-                            : scheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                            fontWeight: FontWeight.w900,
+                            color: data.enabled
+                                ? null
+                                : scheme.onSurface.withValues(alpha: 0.6),
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       data.subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface.withValues(
-                          alpha: data.enabled ? 0.74 : 0.5,
-                        ),
-                        height: 1.4,
-                      ),
+                            color: scheme.onSurface.withValues(
+                              alpha: data.enabled ? 0.74 : 0.5,
+                            ),
+                            height: 1.4,
+                          ),
                     ),
                   ],
                 ),
@@ -1759,11 +1976,11 @@ class _QuizEntryCard extends StatelessWidget {
                     child: Text(
                       data.badge,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: data.enabled
-                            ? scheme.primary
-                            : scheme.onSurface.withValues(alpha: 0.45),
-                        fontWeight: FontWeight.w800,
-                      ),
+                            color: data.enabled
+                                ? scheme.primary
+                                : scheme.onSurface.withValues(alpha: 0.45),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1779,6 +1996,58 @@ class _QuizEntryCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _QuizCoachBanner extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String detail;
+
+  const _QuizCoachBanner({
+    required this.title,
+    required this.subtitle,
+    required this.detail,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            detail,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  height: 1.45,
+                ),
+          ),
+        ],
       ),
     );
   }
@@ -1806,9 +2075,8 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final bgColor = danger
-        ? const Color(0x1AEB5757)
-        : scheme.surfaceContainerHighest;
+    final bgColor =
+        danger ? const Color(0x1AEB5757) : scheme.surfaceContainerHighest;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -1818,9 +2086,9 @@ class _InfoChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          fontWeight: FontWeight.w800,
-          color: danger ? const Color(0xFFC62828) : null,
-        ),
+              fontWeight: FontWeight.w800,
+              color: danger ? const Color(0xFFC62828) : null,
+            ),
       ),
     );
   }
@@ -1838,20 +2106,20 @@ class _AnswerFxBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, text, color) = switch (fx) {
       _AnswerFx.success => (
-        Icons.check_circle,
-        isKo ? '정답!' : 'Correct!',
-        const Color(0xFF0FA968),
-      ),
+          Icons.check_circle,
+          isKo ? '정답!' : 'Correct!',
+          const Color(0xFF0FA968),
+        ),
       _AnswerFx.fail => (
-        Icons.cancel,
-        isKo ? '오답' : 'Incorrect',
-        const Color(0xFFEB5757),
-      ),
+          Icons.cancel,
+          isKo ? '오답' : 'Incorrect',
+          const Color(0xFFEB5757),
+        ),
       _AnswerFx.timeout => (
-        Icons.timer_off,
-        isKo ? '시간 초과' : 'Time out',
-        const Color(0xFFF57C00),
-      ),
+          Icons.timer_off,
+          isKo ? '시간 초과' : 'Time out',
+          const Color(0xFFF57C00),
+        ),
       _AnswerFx.none => (Icons.circle, '', Colors.transparent),
     };
 
@@ -1870,9 +2138,9 @@ class _AnswerFxBadge extends StatelessWidget {
           Text(
             text,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
         ],
       ),
@@ -1918,31 +2186,30 @@ class _QuizSessionSnapshot {
   });
 
   String encode() => jsonEncode(<String, dynamic>{
-    'mode': mode,
-    'questionIds': questionIds,
-    'index': index,
-    'score': score,
-    'streak': streak,
-    'bestStreak': bestStreak,
-    'timeouts': timeouts,
-    'answerCount': answerCount,
-    'responseMillisSum': responseMillisSum,
-    'selectedIndex': selectedIndex,
-    'answered': answered,
-    'retryUsed': retryUsed,
-    'retryFeedback': retryFeedback,
-    'wrongIds': wrongIds,
-    'finished': finished,
-    'speedLeft': speedLeft,
-  });
+        'mode': mode,
+        'questionIds': questionIds,
+        'index': index,
+        'score': score,
+        'streak': streak,
+        'bestStreak': bestStreak,
+        'timeouts': timeouts,
+        'answerCount': answerCount,
+        'responseMillisSum': responseMillisSum,
+        'selectedIndex': selectedIndex,
+        'answered': answered,
+        'retryUsed': retryUsed,
+        'retryFeedback': retryFeedback,
+        'wrongIds': wrongIds,
+        'finished': finished,
+        'speedLeft': speedLeft,
+      });
 
   static _QuizSessionSnapshot? tryParse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) return null;
-      final ids =
-          (decoded['questionIds'] as List?)
+      final ids = (decoded['questionIds'] as List?)
               ?.map((item) => item.toString())
               .toList(growable: false) ??
           const <String>[];
@@ -1961,8 +2228,7 @@ class _QuizSessionSnapshot {
         answered: decoded['answered'] == true,
         retryUsed: decoded['retryUsed'] == true,
         retryFeedback: decoded['retryFeedback']?.toString(),
-        wrongIds:
-            (decoded['wrongIds'] as List?)
+        wrongIds: (decoded['wrongIds'] as List?)
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
@@ -1989,11 +2255,11 @@ class _ScheduledWrongItem {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'questionId': questionId,
-    'dueAt': dueAt.toIso8601String(),
-    'wrongCount': wrongCount,
-    'lastWrongAt': lastWrongAt.toIso8601String(),
-  };
+        'questionId': questionId,
+        'dueAt': dueAt.toIso8601String(),
+        'wrongCount': wrongCount,
+        'lastWrongAt': lastWrongAt.toIso8601String(),
+      };
 
   static String encodeList(List<_ScheduledWrongItem> list) =>
       jsonEncode(list.map((item) => item.toMap()).toList(growable: false));
@@ -2040,9 +2306,9 @@ class _RecentPerformance {
   }
 
   String encode() => jsonEncode(<String, dynamic>{
-    'accuracy': accuracy,
-    'avgSeconds': avgSeconds,
-  });
+        'accuracy': accuracy,
+        'avgSeconds': avgSeconds,
+      });
 
   static _RecentPerformance? tryParse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
@@ -2071,6 +2337,153 @@ class _QuizMetrics {
     } catch (_) {
       return <String, int>{};
     }
+  }
+}
+
+class _QuizCategoryAggregate {
+  final int total;
+  final int correct;
+
+  const _QuizCategoryAggregate({this.total = 0, this.correct = 0});
+
+  double get accuracy => total == 0 ? 0 : correct / total;
+
+  _QuizCategoryAggregate addResult({required bool correct}) {
+    return _QuizCategoryAggregate(
+      total: total + 1,
+      correct: this.correct + (correct ? 1 : 0),
+    );
+  }
+
+  _QuizCategoryAggregate merge(_QuizCategoryAggregate other) {
+    return _QuizCategoryAggregate(
+      total: total + other.total,
+      correct: correct + other.correct,
+    );
+  }
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'total': total,
+        'correct': correct,
+      };
+
+  static String encodeMap(Map<_QuizCategory, _QuizCategoryAggregate> map) {
+    return jsonEncode({
+      for (final entry in map.entries) entry.key.name: entry.value.toMap(),
+    });
+  }
+
+  static Map<_QuizCategory, _QuizCategoryAggregate> decodeMap(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return <_QuizCategory, _QuizCategoryAggregate>{};
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return <_QuizCategory, _QuizCategoryAggregate>{};
+      final result = <_QuizCategory, _QuizCategoryAggregate>{};
+      for (final category in _QuizCategory.values) {
+        final value = decoded[category.name];
+        if (value is! Map) continue;
+        result[category] = _QuizCategoryAggregate(
+          total: (value['total'] as num?)?.toInt() ?? 0,
+          correct: (value['correct'] as num?)?.toInt() ?? 0,
+        );
+      }
+      return result;
+    } catch (_) {
+      return <_QuizCategory, _QuizCategoryAggregate>{};
+    }
+  }
+}
+
+class _QuizPersonalization {
+  final _QuizCategory? weakestCategory;
+  final _QuizCategory recommendedCategory;
+  final String positionLabel;
+  final int dueReviewCount;
+
+  const _QuizPersonalization({
+    required this.weakestCategory,
+    required this.recommendedCategory,
+    required this.positionLabel,
+    required this.dueReviewCount,
+  });
+
+  String heroSubtitle(bool isKo) {
+    final category = weakestCategory ?? recommendedCategory;
+    if (weakestCategory != null) {
+      return isKo
+          ? '약점 분야는 ${category.label(true)} 입니다.'
+          : 'Your weakest area is ${category.label(false)}.';
+    }
+    if (positionLabel.trim().isNotEmpty) {
+      return isKo
+          ? '$positionLabel 기준 추천은 ${category.label(true)} 입니다.'
+          : 'For $positionLabel, ${category.label(false)} is recommended.';
+    }
+    return isKo
+        ? '오늘 추천 분야는 ${category.label(true)} 입니다.'
+        : 'Today’s recommended area is ${category.label(false)}.';
+  }
+
+  String heroDetail(bool isKo) {
+    if (dueReviewCount > 0) {
+      return isKo
+          ? '오답 복습이 $dueReviewCount개 대기 중입니다. 먼저 약점 집중으로 감을 올린 뒤 복습 모드로 이어가세요.'
+          : '$dueReviewCount review items are waiting. Warm up in focus mode, then clear the review queue.';
+    }
+    return isKo
+        ? '오늘 세트와 약점 집중 모드를 번갈아 풀면 학습 유지에 유리합니다.'
+        : 'Alternating the daily set and focus mode helps learning stick.';
+  }
+}
+
+class _QuizResultRecap {
+  final _QuizCategory? strongestCategory;
+  final _QuizCategory? weakestCategory;
+  final int score;
+  final int total;
+  final int bestCombo;
+  final int timeouts;
+
+  const _QuizResultRecap({
+    required this.strongestCategory,
+    required this.weakestCategory,
+    required this.score,
+    required this.total,
+    required this.bestCombo,
+    required this.timeouts,
+  });
+
+  String summary(bool isKo) {
+    final strongest =
+        strongestCategory?.label(isKo) ?? (isKo ? '기본기' : 'basics');
+    final weakest = weakestCategory?.label(isKo) ?? (isKo ? '기본기' : 'basics');
+    if (score >= (total * 0.8).round()) {
+      return isKo
+          ? '$strongest 판단은 안정적이었습니다. 반면 $weakest 쪽은 한 번 더 정리하면 전체 흐름이 더 좋아집니다.'
+          : '$strongest decisions were stable. Tightening up $weakest would improve the overall flow.';
+    }
+    return isKo
+        ? '$weakest 판단에서 흔들림이 있었습니다. 대신 $strongest 쪽은 기준이 잡혀 있어 다음 세트의 중심축으로 쓰기 좋습니다.'
+        : '$weakest was shakier today. $strongest is stable enough to anchor your next set.';
+  }
+
+  String nextAction(bool isKo) {
+    final weakest = weakestCategory?.label(isKo) ?? (isKo ? '기본기' : 'basics');
+    if (timeouts > 0) {
+      return isKo
+          ? '다음 액션: $weakest 중심의 집중 모드로 들어가고, 스피드 모드는 마지막에 다시 시도하세요.'
+          : 'Next action: run a focus set on $weakest, then retry speed mode later.';
+    }
+    if (bestCombo >= 3) {
+      return isKo
+          ? '다음 액션: 집중 모드로 약점을 보강한 뒤 챌린지 모드로 확장하세요.'
+          : 'Next action: sharpen the weak area in focus mode, then expand with challenge mode.';
+    }
+    return isKo
+        ? '다음 액션: 오늘 세트 재도전보다 약점 집중 모드를 먼저 추천합니다.'
+        : 'Next action: use focus mode before replaying the daily set.';
   }
 }
 
@@ -2190,16 +2603,12 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
   final questions = <_FootballQuizQuestion>[];
 
   for (final fact in oxFacts) {
-    for (
-      var prefixIndex = 0;
-      prefixIndex < oxPrefixesKo.length;
-      prefixIndex++
-    ) {
-      for (
-        var suffixIndex = 0;
-        suffixIndex < oxSuffixesKo.length;
-        suffixIndex++
-      ) {
+    for (var prefixIndex = 0;
+        prefixIndex < oxPrefixesKo.length;
+        prefixIndex++) {
+      for (var suffixIndex = 0;
+          suffixIndex < oxSuffixesKo.length;
+          suffixIndex++) {
         questions.add(
           _FootballQuizQuestion(
             id: 'ox_${fact.id}_${prefixIndex}_${suffixIndex}_t',
@@ -2248,16 +2657,12 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
   }
 
   for (final seed in mcqSeeds) {
-    for (
-      var prefixIndex = 0;
-      prefixIndex < mcqPrefixesKo.length;
-      prefixIndex++
-    ) {
-      for (
-        var suffixIndex = 0;
-        suffixIndex < mcqSuffixesKo.length;
-        suffixIndex++
-      ) {
+    for (var prefixIndex = 0;
+        prefixIndex < mcqPrefixesKo.length;
+        prefixIndex++) {
+      for (var suffixIndex = 0;
+          suffixIndex < mcqSuffixesKo.length;
+          suffixIndex++) {
         questions.add(
           _FootballQuizQuestion(
             id: 'mcq_${seed.id}_${prefixIndex}_$suffixIndex',
