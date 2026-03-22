@@ -8,17 +8,6 @@ class SettingsService extends ChangeNotifier {
   bool _reminderEnabled = true;
   bool _reminderVibrationEnabled = true;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 19, minute: 0);
-  bool _wakeAlarmEnabled = false;
-  TimeOfDay _wakeAlarmTime = const TimeOfDay(hour: 5, minute: 30);
-  List<int> _wakeAlarmWeekdays = const [
-    DateTime.monday,
-    DateTime.tuesday,
-    DateTime.wednesday,
-    DateTime.thursday,
-    DateTime.friday,
-  ];
-  int _wakeAlarmRepeatCount = 4;
-  int _wakeAlarmRepeatIntervalMinutes = 5;
   bool _levelUpAlertEnabled = true;
   bool _xpAlertEnabled = true;
   bool _inactivityAlertEnabled = true;
@@ -30,11 +19,6 @@ class SettingsService extends ChangeNotifier {
   bool get reminderEnabled => _reminderEnabled;
   bool get reminderVibrationEnabled => _reminderVibrationEnabled;
   TimeOfDay get reminderTime => _reminderTime;
-  bool get wakeAlarmEnabled => _wakeAlarmEnabled;
-  TimeOfDay get wakeAlarmTime => _wakeAlarmTime;
-  List<int> get wakeAlarmWeekdays => List<int>.unmodifiable(_wakeAlarmWeekdays);
-  int get wakeAlarmRepeatCount => _wakeAlarmRepeatCount;
-  int get wakeAlarmRepeatIntervalMinutes => _wakeAlarmRepeatIntervalMinutes;
   bool get levelUpAlertEnabled => _levelUpAlertEnabled;
   bool get xpAlertEnabled => _xpAlertEnabled;
   bool get inactivityAlertEnabled => _inactivityAlertEnabled;
@@ -48,35 +32,14 @@ class SettingsService extends ChangeNotifier {
         _repository.getValue<bool>('reminder_vibration_enabled') ?? true;
     final time = _repository.getValue<String>('reminder_time');
     _reminderTime = _parseTime(time) ?? _reminderTime;
-    _wakeAlarmEnabled =
-        _repository.getValue<bool>('wake_alarm_enabled') ?? _wakeAlarmEnabled;
-    _wakeAlarmTime =
-        _parseTime(_repository.getValue<String>('wake_alarm_time')) ??
-        _wakeAlarmTime;
-    _wakeAlarmWeekdays = _sanitizeWeekdays(
-      _repository.getValue<List>('wake_alarm_weekdays'),
-      fallback: _wakeAlarmWeekdays,
-    );
-    _wakeAlarmRepeatCount = _clampInt(
-      _repository.getValue<num>('wake_alarm_repeat_count')?.toInt(),
-      fallback: _wakeAlarmRepeatCount,
-      min: 1,
-      max: 8,
-    );
-    _wakeAlarmRepeatIntervalMinutes = _clampInt(
-      _repository.getValue<num>('wake_alarm_repeat_interval_minutes')?.toInt(),
-      fallback: _wakeAlarmRepeatIntervalMinutes,
-      min: 1,
-      max: 15,
-    );
     _levelUpAlertEnabled =
         _repository.getValue<bool>('level_up_alert_enabled') ??
-        _levelUpAlertEnabled;
+            _levelUpAlertEnabled;
     _xpAlertEnabled =
         _repository.getValue<bool>('xp_alert_enabled') ?? _xpAlertEnabled;
     _inactivityAlertEnabled =
         _repository.getValue<bool>('inactivity_alert_enabled') ??
-        _inactivityAlertEnabled;
+            _inactivityAlertEnabled;
     _inactivityAlertDays = _clampInt(
       _repository.getValue<num>('inactivity_alert_days')?.toInt(),
       fallback: _inactivityAlertDays,
@@ -107,45 +70,6 @@ class SettingsService extends ChangeNotifier {
   Future<void> setReminderTime(TimeOfDay time) async {
     _reminderTime = time;
     await _repository.setValue('reminder_time', _formatTime(time));
-    notifyListeners();
-  }
-
-  Future<void> setWakeAlarmEnabled(bool enabled) async {
-    _wakeAlarmEnabled = enabled;
-    await _repository.setValue('wake_alarm_enabled', enabled);
-    notifyListeners();
-  }
-
-  Future<void> setWakeAlarmTime(TimeOfDay time) async {
-    _wakeAlarmTime = time;
-    await _repository.setValue('wake_alarm_time', _formatTime(time));
-    notifyListeners();
-  }
-
-  Future<void> setWakeAlarmWeekdays(List<int> weekdays) async {
-    _wakeAlarmWeekdays = _sanitizeWeekdays(
-      weekdays,
-      fallback: _wakeAlarmWeekdays,
-    );
-    await _repository.setValue('wake_alarm_weekdays', _wakeAlarmWeekdays);
-    notifyListeners();
-  }
-
-  Future<void> setWakeAlarmRepeatCount(int count) async {
-    _wakeAlarmRepeatCount = count.clamp(1, 8);
-    await _repository.setValue(
-      'wake_alarm_repeat_count',
-      _wakeAlarmRepeatCount,
-    );
-    notifyListeners();
-  }
-
-  Future<void> setWakeAlarmRepeatIntervalMinutes(int minutes) async {
-    _wakeAlarmRepeatIntervalMinutes = minutes.clamp(1, 15);
-    await _repository.setValue(
-      'wake_alarm_repeat_interval_minutes',
-      _wakeAlarmRepeatIntervalMinutes,
-    );
     notifyListeners();
   }
 
@@ -199,28 +123,6 @@ class SettingsService extends ChangeNotifier {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
-  }
-
-  List<int> _sanitizeWeekdays(
-    List<dynamic>? raw, {
-    required List<int> fallback,
-  }) {
-    final weekdays =
-        (raw ?? const <dynamic>[])
-            .map(
-              (item) =>
-                  (item is num) ? item.toInt() : int.tryParse('$item') ?? 0,
-            )
-            .where(
-              (value) => value >= DateTime.monday && value <= DateTime.sunday,
-            )
-            .toSet()
-            .toList(growable: false)
-          ..sort();
-    if (weekdays.isEmpty) {
-      return List<int>.from(fallback);
-    }
-    return weekdays;
   }
 
   int _clampInt(

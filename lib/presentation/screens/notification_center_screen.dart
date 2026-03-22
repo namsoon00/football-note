@@ -239,26 +239,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 const SizedBox(height: 8),
                 Card(
                   child: ListTile(
-                    leading: const Icon(Icons.bedtime_outlined),
-                    title: Text(
-                      widget.settingsService.wakeAlarmEnabled
-                          ? (isKo ? '새벽 기상 알람 사용 중' : 'Wake alarm is on')
-                          : (isKo ? '새벽 기상 알람 꺼짐' : 'Wake alarm is off'),
-                    ),
-                    subtitle: Text(
-                      widget.settingsService.wakeAlarmEnabled
-                          ? (isKo
-                              ? '${widget.settingsService.wakeAlarmTime.format(context)} · 주 ${widget.settingsService.wakeAlarmWeekdays.length}일 · ${widget.settingsService.wakeAlarmRepeatCount}회 반복'
-                              : '${widget.settingsService.wakeAlarmTime.format(context)} · ${widget.settingsService.wakeAlarmWeekdays.length} days/week · ${widget.settingsService.wakeAlarmRepeatCount} repeats')
-                          : (isKo
-                              ? '설정에서 켜면 새벽 훈련용 반복 알람을 예약합니다.'
-                              : 'Enable it in Settings to schedule repeated morning alarms.'),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  child: ListTile(
                     leading: const Icon(Icons.edit_calendar_outlined),
                     title: Text(
                       widget.settingsService.inactivityAlertEnabled
@@ -601,18 +581,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                 }
                               : null,
                         ),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(isKo ? '새벽 기상 알람' : 'Wake alarm'),
-                        value: widget.settingsService.wakeAlarmEnabled,
-                        onChanged: widget.settingsService.reminderEnabled
-                            ? (value) async {
-                                await widget.settingsService
-                                    .setWakeAlarmEnabled(value);
-                                await refreshSheet();
-                              }
-                            : null,
-                      ),
                     ],
                   ),
                 ),

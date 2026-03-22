@@ -19,7 +19,6 @@ class TrainingPlanReminderService {
   static const String xpMessageLogKey = 'xp_alert_message_log_v1';
   static const String xpMessageReadIdsKey = 'xp_alert_message_read_ids_v1';
   static const String alarmMutedUntilKey = 'training_plan_alarm_muted_until_v1';
-  static const String wakeAlarmIdsKey = 'wake_alarm_notification_ids_v1';
   static const String inactivityReminderIdsKey =
       'training_inactivity_notification_ids_v1';
   static const String lastTrainingLogAtKey = 'last_training_log_at_v1';
@@ -27,14 +26,10 @@ class TrainingPlanReminderService {
   static const String _androidChannelId = 'training_plan_reminders';
   static const String _androidChannelIdVibrate =
       'training_plan_reminders_vibrate';
-  static const String _androidWakeChannelId = 'training_wake_alarms';
   static const String _androidRoutineChannelId = 'training_routine_alerts';
   static const String _androidChannelName = 'Training Plan Reminders';
   static const String _androidChannelDescription =
       'Reminder notifications before scheduled training plans';
-  static const String _androidWakeChannelName = 'Training Wake Alarms';
-  static const String _androidWakeChannelDescription =
-      'Repeated wake alarms for scheduled training routines';
   static const String _androidRoutineChannelName = 'Training Routine Alerts';
   static const String _androidRoutineChannelDescription =
       'Level-up and inactivity reminders for training consistency';
@@ -100,15 +95,6 @@ class TrainingPlanReminderService {
         importance: Importance.high,
         enableVibration: true,
         vibrationPattern: _vibrationPattern,
-      ),
-    );
-    await androidImpl?.createNotificationChannel(
-      const AndroidNotificationChannel(
-        _androidWakeChannelId,
-        _androidWakeChannelName,
-        description: _androidWakeChannelDescription,
-        importance: Importance.max,
-        enableVibration: true,
       ),
     );
     await androidImpl?.createNotificationChannel(
@@ -223,75 +209,6 @@ class TrainingPlanReminderService {
     await _options.setValue(reminderReadIdsKey, pruned);
   }
 
-  Future<void> syncWakeAlarms() async {
-    await initialize();
-    if (kIsWeb) return;
-    await _clearNotificationIds(wakeAlarmIdsKey);
-    if (!_settings.reminderEnabled || !_settings.wakeAlarmEnabled) return;
-    if (await isAlarmMutedNow()) return;
-
-    final scheduledIds = <int>[];
-    final weekdays = _settings.wakeAlarmWeekdays;
-    final repeatCount = _settings.wakeAlarmRepeatCount;
-    final intervalMinutes = _settings.wakeAlarmRepeatIntervalMinutes;
-    final baseTime = _settings.wakeAlarmTime;
-    final now = tz.TZDateTime.now(tz.local);
-
-    for (final weekday in weekdays) {
-      for (var ring = 0; ring < repeatCount; ring++) {
-        final minuteOffset = ring * intervalMinutes;
-        final totalMinutes =
-            baseTime.hour * 60 + baseTime.minute + minuteOffset;
-        final hour = (totalMinutes ~/ 60) % 24;
-        final minute = totalMinutes % 60;
-        final dayShift = totalMinutes ~/ (24 * 60);
-        final scheduledWeekday = ((weekday - 1 + dayShift) % 7) + 1;
-        var next = _nextWeekdayTime(
-          now,
-          weekday: scheduledWeekday,
-          hour: hour,
-          minute: minute,
-        );
-        if (!next.isAfter(now)) {
-          next = next.add(const Duration(days: 7));
-        }
-        final id = _notificationIdForScope(
-          'wake',
-          '$scheduledWeekday:$ring:$hour:$minute',
-        );
-        try {
-          await _plugin.zonedSchedule(
-            id,
-            'SoccerNote',
-            'Wake up for training.',
-            next,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                _androidWakeChannelId,
-                _androidWakeChannelName,
-                channelDescription: _androidWakeChannelDescription,
-                importance: Importance.max,
-                priority: Priority.high,
-                enableVibration: true,
-                vibrationPattern: _vibrationPattern,
-              ),
-              iOS: const DarwinNotificationDetails(),
-            ),
-            androidScheduleMode: AndroidScheduleMode.alarmClock,
-            uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime,
-            payload: 'wake:$scheduledWeekday:$ring',
-            matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
-          );
-          scheduledIds.add(id);
-        } catch (_) {
-          // Keep scheduling the remaining wake alarms.
-        }
-      }
-    }
-    await _options.setValue(wakeAlarmIdsKey, scheduledIds);
-  }
-
   Future<void> syncInactivityReminder() async {
     await initialize();
     if (kIsWeb) return;
@@ -364,13 +281,11 @@ class TrainingPlanReminderService {
     List<Map<String, dynamic>>? plans,
   }) async {
     await syncFromPlans(plans ?? loadPlansFromStorage());
-    await syncWakeAlarms();
     await syncInactivityFromEntries(entries);
   }
 
   Future<void> syncSettingsDrivenReminders() async {
     await syncFromPlans(loadPlansFromStorage());
-    await syncWakeAlarms();
     await syncInactivityReminder();
   }
 
