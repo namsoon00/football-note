@@ -15,7 +15,6 @@ import '../../application/training_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
-import '../../gen/app_localizations.dart';
 import '../models/training_board_link_codec.dart';
 import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
@@ -70,7 +69,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   ThemeData get _theme => Theme.of(context);
   bool get _isDark => _theme.brightness == Brightness.dark;
-  AppLocalizations get _l10n => AppLocalizations.of(context)!;
   _DiaryThemePalette get _palette =>
       _DiaryThemePalette.fromId(_selectedThemeId);
   Color get _paperSurface => _isDark ? _palette.paperDark : _palette.paper;
@@ -1073,8 +1071,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildRecoveryCard(_DiaryDayData day) {
-    final lifting = _buildLiftingSummary(day.entries);
-    final jumpRope = _buildJumpRopeSummary(day.entries);
     final injuryNotes = day.entries
         .where((entry) => entry.injury)
         .map(_injurySummary)
@@ -1089,12 +1085,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               _isKo
                   ? '부상: ${injuryNotes.join(' / ')}'
                   : 'Injury: ${injuryNotes.join(' / ')}',
-            ),
-          if (lifting.isNotEmpty)
-            _buildSummaryLine(_isKo ? '리프팅: $lifting' : 'Lifting: $lifting'),
-          if (jumpRope.isNotEmpty)
-            _buildSummaryLine(
-              _isKo ? '줄넘기: $jumpRope' : 'Jump rope: $jumpRope',
             ),
         ],
       ),
@@ -1406,14 +1396,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   bool _hasRecoveryRecord(_DiaryDayData day) {
-    return day.entries.any(
-      (entry) =>
-          entry.injury ||
-          entry.liftingByPart.values.any((count) => count > 0) ||
-          entry.jumpRopeCount > 0 ||
-          entry.jumpRopeMinutes > 0 ||
-          entry.jumpRopeNote.trim().isNotEmpty,
-    );
+    return day.entries.any((entry) => entry.injury);
   }
 
   String _trainingSummary(TrainingEntry entry) {
@@ -1631,102 +1614,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return parts.join(' · ');
   }
 
-  String _buildLiftingSummary(List<TrainingEntry> entries) {
-    final totals = <String, int>{};
-    for (final entry in entries) {
-      entry.liftingByPart.forEach((part, count) {
-        if (count <= 0) return;
-        totals[part] = (totals[part] ?? 0) + count;
-      });
-    }
-    if (totals.isEmpty) return '';
-    final sorted = totals.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return sorted
-        .map((entry) => '${_liftingPartLabel(entry.key)} ${entry.value}회')
-        .join(', ');
-  }
-
-  String _buildJumpRopeSummary(List<TrainingEntry> entries) {
-    final totalCount = entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.jumpRopeCount,
-    );
-    final totalMinutes = entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.jumpRopeMinutes,
-    );
-    final notes = entries
-        .map((entry) => entry.jumpRopeNote.trim())
-        .where((text) => text.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
-    if (totalCount == 0 && totalMinutes == 0 && notes.isEmpty) return '';
-    final parts = <String>[
-      if (totalCount > 0) _isKo ? '$totalCount회' : '$totalCount reps',
-      if (totalMinutes > 0) _isKo ? '$totalMinutes분' : '$totalMinutes min',
-      if (notes.isNotEmpty) notes.join(' / '),
-    ];
-    return parts.join(' · ');
-  }
-
   String _buildRecoveryDiaryParagraph(_DiaryDayData day) {
     final injuries = day.entries
         .where((entry) => entry.injury)
         .map(_injurySummary)
         .toList(growable: false);
-    final lifting = _buildLiftingSummary(day.entries);
-    final jumpRope = _buildJumpRopeSummary(day.entries);
-    if (injuries.isEmpty && lifting.isEmpty && jumpRope.isEmpty) return '';
-    final parts = <String>[
-      if (injuries.isNotEmpty)
-        _isKo
-            ? '부상 기록은 ${injuries.join(' / ')}'
-            : 'injury notes were ${injuries.join(' / ')}',
-      if (lifting.isNotEmpty) _isKo ? '리프팅은 $lifting' : 'lifting was $lifting',
-      if (jumpRope.isNotEmpty)
-        _isKo ? '줄넘기는 $jumpRope' : 'jump rope was $jumpRope',
-    ];
+    if (injuries.isEmpty) return '';
     return _isKo
-        ? '몸을 돌보는 기록까지 펼쳐 보면 ${parts.join(', ')}. 눈에 띄지 않는 반복이었지만 이런 장면들이 결국 하루의 밀도를 만든다.'
-        : 'When the quieter recovery work is unfolded, ${parts.join(', ')}. They are easy to overlook, but this is often where the day gathers its real density.';
-  }
-
-  String _liftingPartLabel(String key) {
-    switch (key) {
-      case 'infront':
-        return _l10n.liftingPartInfront;
-      case 'inside':
-        return _l10n.liftingPartInside;
-      case 'outside':
-        return _l10n.liftingPartOutside;
-      case 'muple':
-        return _l10n.liftingPartMuple;
-      case 'head':
-        return _l10n.liftingPartHead;
-      case 'chest':
-        return _l10n.liftingPartChest;
-      case 'left_foot':
-        return '${_l10n.liftingPartInfront} (${_l10n.legacyLabel})';
-      case 'right_foot':
-        return '${_l10n.liftingPartInside} (${_l10n.legacyLabel})';
-      case 'left_thigh':
-        return '${_l10n.liftingPartOutside} (${_l10n.legacyLabel})';
-      case 'right_thigh':
-        return '${_l10n.liftingPartMuple} (${_l10n.legacyLabel})';
-      case 'back':
-        return '${_l10n.liftingPartInside} (${_l10n.oldLabel})';
-      case 'legs':
-        return '${_l10n.liftingPartOutside} (${_l10n.oldLabel})';
-      case 'shoulders':
-        return '${_l10n.liftingPartMuple} (${_l10n.oldLabel})';
-      case 'arms':
-        return '${_l10n.liftingPartHead} (${_l10n.legacyLabel})';
-      case 'core':
-        return '${_l10n.liftingPartChest} (${_l10n.legacyLabel})';
-      default:
-        return key;
-    }
+        ? '몸을 돌보는 기록을 보면 부상 기록은 ${injuries.join(' / ')}. 통증 흐름을 남겨 둔 덕분에 다음 훈련 강도 조절이 더 쉬워진다.'
+        : 'In the body-care notes, injury records were ${injuries.join(' / ')}. Keeping this pain flow makes it easier to adjust next-session intensity.';
   }
 
   String _buildBoardDiaryParagraph(_DiaryDayData day) {
