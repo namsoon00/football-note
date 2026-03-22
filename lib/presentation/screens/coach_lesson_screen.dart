@@ -534,6 +534,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 child: _buildRecoveryCard(day),
               ),
             ],
+            if (_hasConditioningRecord(day)) ...[
+              const SizedBox(height: 20),
+              _buildDiarySection(
+                title: _isKo ? '줄넘기/리프팅' : 'Jump rope / Lifting',
+                child: _buildConditioningCard(day),
+              ),
+            ],
             if (day.boards.isNotEmpty) ...[
               const SizedBox(height: 20),
               _buildDiarySection(
@@ -1091,6 +1098,55 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  Widget _buildConditioningCard(_DiaryDayData day) {
+    final liftingTotal = day.entries.fold<int>(
+      0,
+      (sum, entry) =>
+          sum +
+          entry.liftingByPart.values.fold<int>(0, (acc, value) => acc + value),
+    );
+    final jumpCountTotal = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeCount,
+    );
+    final jumpMinutesTotal = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeMinutes,
+    );
+    final jumpNotes = day.entries
+        .map((entry) => entry.jumpRopeNote.trim())
+        .where((text) => text.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    return _buildPaperCard(
+      title: null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (liftingTotal > 0)
+            _buildSummaryLine(
+              _isKo
+                  ? '리프팅 총 반복: $liftingTotal회'
+                  : 'Lifting total reps: $liftingTotal',
+            ),
+          if (jumpCountTotal > 0 || jumpMinutesTotal > 0)
+            _buildSummaryLine(
+              _isKo
+                  ? '줄넘기: ${jumpCountTotal > 0 ? '$jumpCountTotal회' : ''}${(jumpCountTotal > 0 && jumpMinutesTotal > 0) ? ' · ' : ''}${jumpMinutesTotal > 0 ? '$jumpMinutesTotal분' : ''}'
+                  : 'Jump rope: ${jumpCountTotal > 0 ? '$jumpCountTotal reps' : ''}${(jumpCountTotal > 0 && jumpMinutesTotal > 0) ? ' · ' : ''}${jumpMinutesTotal > 0 ? '$jumpMinutesTotal min' : ''}',
+            ),
+          if (jumpNotes.isNotEmpty)
+            _buildSummaryLine(
+              _isKo
+                  ? '줄넘기 메모: ${jumpNotes.join(' / ')}'
+                  : 'Jump rope note: ${jumpNotes.join(' / ')}',
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBoardCard(_DiaryDayData day) {
     return _buildPaperCard(
       title: null,
@@ -1343,6 +1399,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       paragraphs.add(recoveryParagraph);
     }
 
+    final conditioningParagraph = _buildConditioningDiaryParagraph(day);
+    if (conditioningParagraph.isNotEmpty) {
+      paragraphs.add(conditioningParagraph);
+    }
+
     final boardParagraph = _buildBoardDiaryParagraph(day);
     if (boardParagraph.isNotEmpty) {
       paragraphs.add(boardParagraph);
@@ -1397,6 +1458,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   bool _hasRecoveryRecord(_DiaryDayData day) {
     return day.entries.any((entry) => entry.injury);
+  }
+
+  bool _hasConditioningRecord(_DiaryDayData day) {
+    return day.entries.any(
+      (entry) =>
+          entry.liftingByPart.values.any((count) => count > 0) ||
+          entry.jumpRopeCount > 0 ||
+          entry.jumpRopeMinutes > 0 ||
+          entry.jumpRopeNote.trim().isNotEmpty,
+    );
   }
 
   String _trainingSummary(TrainingEntry entry) {
@@ -1623,6 +1694,37 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _isKo
         ? '몸을 돌보는 기록을 보면 부상 기록은 ${injuries.join(' / ')}. 통증 흐름을 남겨 둔 덕분에 다음 훈련 강도 조절이 더 쉬워진다.'
         : 'In the body-care notes, injury records were ${injuries.join(' / ')}. Keeping this pain flow makes it easier to adjust next-session intensity.';
+  }
+
+  String _buildConditioningDiaryParagraph(_DiaryDayData day) {
+    final liftingTotal = day.entries.fold<int>(
+      0,
+      (sum, entry) =>
+          sum +
+          entry.liftingByPart.values.fold<int>(0, (acc, value) => acc + value),
+    );
+    final jumpCountTotal = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeCount,
+    );
+    final jumpMinutesTotal = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeMinutes,
+    );
+    if (liftingTotal <= 0 && jumpCountTotal <= 0 && jumpMinutesTotal <= 0) {
+      return '';
+    }
+    final jumpCountTextKo = jumpCountTotal > 0 ? '$jumpCountTotal회' : '0회';
+    final jumpCountTextEn =
+        jumpCountTotal > 0 ? '$jumpCountTotal reps' : '0 reps';
+    final jumpMinutesTextKo =
+        jumpMinutesTotal > 0 ? ' / $jumpMinutesTotal분' : '';
+    final jumpMinutesTextEn =
+        jumpMinutesTotal > 0 ? ' / $jumpMinutesTotal min' : '';
+    if (_isKo) {
+      return '보조 기록에는 리프팅 $liftingTotal회, 줄넘기 $jumpCountTextKo$jumpMinutesTextKo이 남아 있다. 메인 훈련과 분리해서 보면 준비 루틴의 흐름이 더 또렷해진다.';
+    }
+    return 'Support logs recorded lifting $liftingTotal reps and jump rope $jumpCountTextEn$jumpMinutesTextEn. Reading them separately from main training makes the prep routine clearer.';
   }
 
   String _buildBoardDiaryParagraph(_DiaryDayData day) {
