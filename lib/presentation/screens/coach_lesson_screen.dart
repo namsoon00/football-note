@@ -482,7 +482,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       onReachedEnd: () => _markDiaryCompletedIfNeeded(day.date),
       childBuilder: (controller) => SingleChildScrollView(
         controller: controller,
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+        padding: const EdgeInsets.fromLTRB(40, 12, 16, 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -496,11 +496,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 icon: const Icon(Icons.content_copy_outlined),
               ),
               child: _buildNightReviewCard(diary),
-            ),
-            const SizedBox(height: 20),
-            _buildDiarySection(
-              title: _isKo ? '오늘 분석' : 'Today analysis',
-              child: _buildRoleReviewGrid(day),
             ),
             const SizedBox(height: 20),
             _buildDiarySection(
@@ -812,173 +807,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         context,
       ).textTheme.bodyLarge?.copyWith(height: 1.7, color: _headlineInk),
     );
-  }
-
-  Widget _buildRoleReviewGrid(_DiaryDayData day) {
-    final cards = <Widget>[
-      _buildRoleInsightCard(
-        title: _isKo ? '코치 포인트' : 'Coach point',
-        icon: Icons.sports_score_outlined,
-        lines: _coachPointLines(day),
-      ),
-      _buildRoleInsightCard(
-        title: _isKo ? '데이터 신호' : 'Data signal',
-        icon: Icons.insights_outlined,
-        lines: _dataSignalLines(day),
-      ),
-      _buildRoleInsightCard(
-        title: _isKo ? '다음 액션' : 'Next action',
-        icon: Icons.flag_outlined,
-        lines: _nextActionLines(day),
-      ),
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 720;
-        if (wide) {
-          return GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 1.45,
-            children: cards,
-          );
-        }
-        return Column(
-          children: [
-            for (var index = 0; index < cards.length; index++) ...[
-              cards[index],
-              if (index != cards.length - 1) const SizedBox(height: 10),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildRoleInsightCard({
-    required String title,
-    required IconData icon,
-    required List<String> lines,
-  }) {
-    return Container(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: _accentInk),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: _theme.textTheme.titleSmall?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ...lines.map(
-            (line) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(
-                line,
-                style: _theme.textTheme.bodyMedium?.copyWith(
-                  color: _bodyInk,
-                  height: 1.45,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<String> _coachPointLines(_DiaryDayData day) {
-    final strengths = day.trainingEntries
-        .map((entry) => entry.goodPoints.trim())
-        .where((text) => text.isNotEmpty)
-        .toSet()
-        .take(2)
-        .toList(growable: false);
-    final improvements = day.trainingEntries
-        .map((entry) => entry.improvements.trim())
-        .where((text) => text.isNotEmpty)
-        .toSet()
-        .take(2)
-        .toList(growable: false);
-    return <String>[
-      strengths.isEmpty
-          ? (_isKo ? '잘한 점 기록이 아직 없습니다.' : 'No strong-point note recorded yet.')
-          : (_isKo
-              ? '잘한 점: ${strengths.join(' / ')}'
-              : 'Strong point: ${strengths.join(' / ')}'),
-      improvements.isEmpty
-          ? (_isKo ? '아쉬운 점 기록이 아직 없습니다.' : 'No improvement note recorded yet.')
-          : (_isKo
-              ? '아쉬운 점: ${improvements.join(' / ')}'
-              : 'Needs work: ${improvements.join(' / ')}'),
-      _isKo
-          ? '흔들린 장면까지 같이 남겨야 다음 목표가 정확해집니다.'
-          : 'The next goal gets clearer when shaky moments are logged too.',
-    ];
-  }
-
-  List<String> _dataSignalLines(_DiaryDayData day) {
-    final totalMinutes = day.trainingEntries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.durationMinutes,
-    );
-    final liftingDone = day.entries.any(
-      (entry) => entry.liftingByPart.values.any((value) => value > 0),
-    );
-    final jumpRopeDone = day.entries.any(
-      (entry) => entry.jumpRopeCount > 0 || entry.jumpRopeMinutes > 0,
-    );
-    return <String>[
-      _isKo
-          ? '총 훈련 시간 $totalMinutes분'
-          : 'Total training time $totalMinutes min',
-      _isKo
-          ? '계획 ${day.plans.length}개, 실제 훈련 ${day.trainingEntries.length}개'
-          : '${day.plans.length} plans, ${day.trainingEntries.length} trainings',
-      _isKo
-          ? '회복 신호: ${liftingDone ? '리프팅 기록' : '리프팅 없음'} / ${jumpRopeDone ? '줄넘기 기록' : '줄넘기 없음'}'
-          : 'Recovery signal: ${liftingDone ? 'lifting' : 'no lifting'} / ${jumpRopeDone ? 'jump rope' : 'no jump rope'}',
-    ];
-  }
-
-  List<String> _nextActionLines(_DiaryDayData day) {
-    final nextGoals = day.trainingEntries
-        .map(_trainingGoalText)
-        .where((text) => text.trim().isNotEmpty)
-        .toSet()
-        .take(2)
-        .toList(growable: false);
-    if (nextGoals.isNotEmpty) {
-      return <String>[
-        for (final goal in nextGoals)
-          _isKo ? '다음 목표: $goal' : 'Next goal: $goal',
-        _isKo
-            ? '다음 훈련 시작 전에 위 목표를 한 줄로 다시 확인하세요.'
-            : 'Review this goal once before the next session starts.',
-      ];
-    }
-    return <String>[
-      _isKo ? '다음 목표가 아직 입력되지 않았습니다.' : 'No next goal has been entered yet.',
-      _isKo
-          ? '훈련노트의 아쉬운 점 아래에 다음 목표를 적어두면 여기에 반영됩니다.'
-          : 'Add a next goal below the improvement note in the training log and it will appear here.',
-      _isKo ? '짧고 구체적인 목표가 가장 좋습니다.' : 'Short and specific goals work best.',
-    ];
   }
 
   Widget _buildPlanCard(List<_DiaryPlan> plans) {
