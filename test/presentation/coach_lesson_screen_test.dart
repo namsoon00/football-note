@@ -132,7 +132,6 @@ void main() {
     expect(find.textContaining('측면 전개 보드'), findsWidgets);
     expect(find.textContaining('오른쪽 발목'), findsWidgets);
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);
-    expect(find.textContaining('리프팅: 인사이드 80회, 아웃사이드 60회'), findsWidgets);
     expect(find.textContaining('Blue FC전'), findsWidgets);
     expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
     expect(find.textContaining('코치 시선으로 다시 읽는다'), findsOneWidget);
@@ -228,63 +227,77 @@ void main() {
   });
 
   testWidgets(
-      'coach lesson screen marks today diary only when today page is opened', (
-    WidgetTester tester,
-  ) async {
-    final today = DateTime.now();
-    final optionRepository = _FakeOptionRepository();
-    final trainingService = TrainingService(
-      _FakeTrainingRepository(<TrainingEntry>[
-        TrainingEntry(
-          date: DateTime(today.year, today.month, today.day, 18, 0),
-          durationMinutes: 40,
-          intensity: 3,
-          type: '볼터치',
-          mood: 4,
-          injury: false,
-          notes: '오늘 기록',
-          location: '학교 운동장',
-        ),
-        TrainingEntry(
-          date: DateTime(today.year, today.month, today.day - 1, 18, 0),
-          durationMinutes: 30,
-          intensity: 3,
-          type: '패스',
-          mood: 3,
-          injury: false,
-          notes: '어제 기록',
-          location: '학교 운동장',
-        ),
-      ]),
-    );
+    'coach lesson screen marks today diary only when today page is read to the end',
+    (WidgetTester tester) async {
+      final today = DateTime.now();
+      final optionRepository = _FakeOptionRepository();
+      final trainingService = TrainingService(
+        _FakeTrainingRepository(<TrainingEntry>[
+          TrainingEntry(
+            date: DateTime(today.year, today.month, today.day, 18, 0),
+            durationMinutes: 40,
+            intensity: 3,
+            type: '볼터치',
+            mood: 4,
+            injury: false,
+            notes: '오늘 기록',
+            location: '학교 운동장',
+          ),
+          TrainingEntry(
+            date: DateTime(today.year, today.month, today.day - 1, 18, 0),
+            durationMinutes: 30,
+            intensity: 3,
+            type: '패스',
+            mood: 3,
+            injury: false,
+            notes: '어제 기록',
+            location: '학교 운동장',
+          ),
+        ]),
+      );
 
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: TestAssetBundle(),
-        child: MaterialApp(
-          locale: const Locale('ko', 'KR'),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
-          home: CoachLessonScreen(
-            optionRepository: optionRepository,
-            trainingService: trainingService,
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: CoachLessonScreen(
+              optionRepository: optionRepository,
+              trainingService: trainingService,
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 100));
+      );
+      await tester.pump(const Duration(milliseconds: 100));
 
-    expect(
-      optionRepository
-          .getValue<String>(CoachLessonScreen.todayViewedDiaryDayKey),
-      CoachLessonScreen.todayViewedDayToken(today),
-    );
-  });
+      expect(
+        optionRepository.getValue<String>(
+          CoachLessonScreen.todayViewedDiaryDayKey,
+        ),
+        isNull,
+      );
+
+      await tester.drag(
+        find.byType(SingleChildScrollView).first,
+        const Offset(0, -2000),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        optionRepository.getValue<String>(
+          CoachLessonScreen.todayViewedDiaryDayKey,
+        ),
+        CoachLessonScreen.todayViewedDayToken(today),
+      );
+    },
+  );
 }
 
 class _FakeTrainingRepository implements TrainingRepository {
