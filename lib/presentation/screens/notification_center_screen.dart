@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/settings_service.dart';
+import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../domain/repositories/option_repository.dart';
 
@@ -95,6 +96,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         TrainingPlanReminderService.lastTrainingLogAtKey,
       );
+      await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
       if (!mounted) return;
       setState(() {
         _permissionGranted = permission;
@@ -173,6 +175,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
     await _reminderService.dismissMessageKey(row.messageKey);
+    await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
     if (!mounted) return;
     setState(() {
       _planRows = _planRows
@@ -183,6 +186,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _deleteXpMessage(_XpMessageRow row) async {
     await _reminderService.deleteXpMessage(row.id);
+    await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
     if (!mounted) return;
     setState(() {
       _xpRows =
