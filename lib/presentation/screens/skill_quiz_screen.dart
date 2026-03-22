@@ -87,6 +87,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   int _combo = 0;
   int _bestComboRun = 0;
   int _momentum = 0;
+  final TextEditingController _shortAnswerController = TextEditingController();
 
   int? _selectedIndex;
   bool _answered = false;
@@ -117,6 +118,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   void dispose() {
     _speedTimer?.cancel();
+    _shortAnswerController.dispose();
     super.dispose();
   }
 
@@ -184,6 +186,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _speedLeft = snapshot.speedLeft.clamp(0, _speedLimitSec);
       _answerFx = _AnswerFx.none;
     });
+    _shortAnswerController.clear();
     _pendingResumeSnapshot = snapshot;
 
     if (!_finished) {
@@ -258,7 +261,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   void _startSpeedSession() {
     final random = math.Random(DateTime.now().microsecondsSinceEpoch);
     final source = _allQuestions
-        .where((question) => question.style != _QuestionStyle.ox)
+        .where((question) => question.style == _QuestionStyle.multipleChoice)
         .toList(growable: false);
     final picked = _pickAdaptiveQuestions(
       source: source.isEmpty ? _allQuestions : source,
@@ -318,6 +321,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _speedLeft = _speedLimitSec;
       _answerFx = _AnswerFx.none;
     });
+    _shortAnswerController.clear();
     _pendingResumeSnapshot = null;
 
     if (clearDueReview) {
@@ -402,6 +406,47 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     );
   }
 
+  void _submitShortAnswer() {
+    if (_finished || _answered || _questions.isEmpty) return;
+    final question = _questions[_index];
+    if (question.style != _QuestionStyle.shortAnswer) return;
+    final raw = _shortAnswerController.text.trim();
+    if (raw.isEmpty) return;
+
+    final normalizedInput = _normalizeShortAnswer(raw);
+    final isCorrect = question.acceptedAnswers.any(
+      (answer) => _normalizeShortAnswer(answer) == normalizedInput,
+    );
+
+    if (isCorrect) {
+      _onAnswerResolved(choice: 0, correct: true);
+      return;
+    }
+
+    if (!_retryUsed) {
+      setState(() {
+        _retryUsed = true;
+        _retryFeedback = 'incorrect';
+      });
+      unawaited(_trackMetric('football_option_selected'));
+      unawaited(_persistSession());
+      return;
+    }
+
+    _onAnswerResolved(
+      choice: 0,
+      correct: false,
+      wrongQuestionId: question.id,
+    );
+  }
+
+  String _normalizeShortAnswer(String input) {
+    return input
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll(RegExp(r'[^a-z0-9가-힣]'), '');
+  }
+
   void _onAnswerResolved({
     required int choice,
     required bool correct,
@@ -483,6 +528,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _retryFeedback = null;
       _answerFx = _AnswerFx.none;
     });
+    _shortAnswerController.clear();
 
     _startQuestionClock();
     await _persistSession();
@@ -692,82 +738,117 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           : 'The explanation will appear here right after you answer.'),
                 ),
                 const SizedBox(height: 12),
-                ...question.options.asMap().entries.map((entry) {
-                  final optionIndex = entry.key;
-                  final option = entry.value;
-                  final selected = _selectedIndex == optionIndex;
-                  final isCorrect = optionIndex == question.correctIndex;
+                if (question.style == _QuestionStyle.shortAnswer)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextField(
+                          controller: _shortAnswerController,
+                          enabled: !_answered,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _submitShortAnswer(),
+                          decoration: InputDecoration(
+                            hintText: isKo ? '정답을 입력하세요' : 'Type your answer',
+                            border: const OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        FilledButton(
+                          onPressed: _answered ? null : _submitShortAnswer,
+                          child: Text(isKo ? '정답 확인' : 'Check answer'),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ...question.options.asMap().entries.map((entry) {
+                    final optionIndex = entry.key;
+                    final option = entry.value;
+                    final selected = _selectedIndex == optionIndex;
+                    final isCorrect = optionIndex == question.correctIndex;
 
-                  Color? borderColor;
-                  Color? bgColor;
-                  if (_answered || (_retryUsed && selected)) {
-                    if (isCorrect) {
-                      borderColor = const Color(0xFF0FA968);
-                      bgColor = const Color(0x1A0FA968);
-                    } else if (selected) {
-                      borderColor = const Color(0xFFEB5757);
-                      bgColor = const Color(0x1AEB5757);
+                    Color? borderColor;
+                    Color? bgColor;
+                    if (_answered || (_retryUsed && selected)) {
+                      if (isCorrect) {
+                        borderColor = const Color(0xFF0FA968);
+                        bgColor = const Color(0x1A0FA968);
+                      } else if (selected) {
+                        borderColor = const Color(0xFFEB5757);
+                        bgColor = const Color(0x1AEB5757);
+                      }
                     }
-                  }
 
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Material(
-                      color: bgColor ??
-                          Theme.of(context).colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Material(
+                        color: bgColor ??
+                            Theme.of(context).colorScheme.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => _selectAnswer(optionIndex),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: borderColor ??
-                                  Theme.of(context).colorScheme.outlineVariant,
-                              width: borderColor == null ? 1.0 : 1.6,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => _selectAnswer(optionIndex),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 14,
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              _OptionBadge(
-                                label: question.style == _QuestionStyle.ox
-                                    ? option.text(isKo)
-                                    : _optionLabel(optionIndex),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: borderColor ??
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .outlineVariant,
+                                width: borderColor == null ? 1.0 : 1.6,
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  option.text(isKo),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            child: Row(
+                              children: [
+                                _OptionBadge(
+                                  label: question.style == _QuestionStyle.ox
+                                      ? option.text(isKo)
+                                      : _optionLabel(optionIndex),
                                 ),
-                              ),
-                              if (_answered && isCorrect)
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Color(0xFF0FA968),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    option.text(isKo),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                  ),
                                 ),
-                              if ((_answered || _retryUsed) &&
-                                  selected &&
-                                  !isCorrect)
-                                const Icon(
-                                  Icons.cancel,
-                                  color: Color(0xFFEB5757),
-                                ),
-                            ],
+                                if (_answered && isCorrect)
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Color(0xFF0FA968),
+                                  ),
+                                if ((_answered || _retryUsed) &&
+                                    selected &&
+                                    !isCorrect)
+                                  const Icon(
+                                    Icons.cancel,
+                                    color: Color(0xFFEB5757),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
                 if (!_answered && _retryFeedback == 'incorrect')
                   Text(
                     isKo ? '틀렸어요. 한 번 더 고를 수 있어요.' : 'Incorrect. One more try.',
@@ -1012,6 +1093,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _momentum = 0;
       _speedLeft = _speedLimitSec;
     });
+    _shortAnswerController.clear();
   }
 
   _QuizHeroOverlayData _buildHeroOverlay(
@@ -1443,12 +1525,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         .where((q) => !excludedIds.contains(q.id))
         .toList(growable: false)
       ..shuffle(random);
-    final oxCount = remainingCount ~/ 2;
-    final mcqCount = remainingCount - oxCount;
+    final shortAnswer = _allQuestions
+        .where((q) => q.style == _QuestionStyle.shortAnswer)
+        .where((q) => !excludedIds.contains(q.id))
+        .toList(growable: false)
+      ..shuffle(random);
+    final oxCount = remainingCount ~/ 3;
+    final mcqCount = remainingCount ~/ 3;
+    final shortCount = remainingCount - oxCount - mcqCount;
     final picked = <_FootballQuizQuestion>[
       ...reviewQuestions,
       ...ox.take(oxCount),
       ...mcq.take(mcqCount),
+      ...shortAnswer.take(shortCount),
     ];
     if (picked.length < _dailyCount) {
       final rest = <_FootballQuizQuestion>[
@@ -1599,7 +1688,7 @@ extension _QuizModeX on _QuizMode {
   }
 }
 
-enum _QuestionStyle { ox, multipleChoice }
+enum _QuestionStyle { ox, multipleChoice, shortAnswer }
 
 extension _QuestionStyleX on _QuestionStyle {
   String label(bool isKo) {
@@ -1608,6 +1697,8 @@ extension _QuestionStyleX on _QuestionStyle {
         return isKo ? 'OX' : 'True/False';
       case _QuestionStyle.multipleChoice:
         return isKo ? '4지선다' : 'Multiple choice';
+      case _QuestionStyle.shortAnswer:
+        return isKo ? '주관식' : 'Short answer';
     }
   }
 }
@@ -1655,6 +1746,7 @@ class _FootballQuizQuestion {
   final String enPrompt;
   final List<_FootballQuizOption> options;
   final int correctIndex;
+  final List<String> acceptedAnswers;
   final String koExplain;
   final String enExplain;
   final String koNextPoint;
@@ -1669,6 +1761,7 @@ class _FootballQuizQuestion {
     required this.enPrompt,
     required this.options,
     required this.correctIndex,
+    this.acceptedAnswers = const <String>[],
     required this.koExplain,
     required this.enExplain,
     required this.koNextPoint,
@@ -2553,154 +2646,342 @@ class _McqSeed {
   });
 }
 
-List<_FootballQuizQuestion> _buildFootballQuizPool() {
-  final oxFacts = _oxFacts();
-  final mcqSeeds = _mcqSeeds();
-  final oxPrefixesKo = [
-    'OX 워밍업:',
-    '경기 이해 체크:',
-    '코치 퀵질문:',
-    '축구 상식 라운드:',
-    '집중 퀴즈:',
-    '현장 포인트:',
-  ];
-  final oxPrefixesEn = [
-    'True/False warm-up:',
-    'Game understanding check:',
-    'Coach quick question:',
-    'Football knowledge round:',
-    'Focus quiz:',
-    'On-pitch point:',
-  ];
-  final oxSuffixesKo = [
-    '맞으면 O, 틀리면 X.',
-    '정답이면 O를, 아니면 X를 고르세요.',
-    '판단만 빠르게 해보세요. O 또는 X.',
-    '사실이면 O, 아니라면 X입니다.',
-  ];
-  final oxSuffixesEn = [
-    'Choose O if it is true, X if it is false.',
-    'Pick O for correct, X for incorrect.',
-    'Decide quickly: O or X.',
-    'Mark O for fact, X for non-fact.',
-  ];
+class _ShortAnswerSeed {
+  final String id;
+  final int difficulty;
+  final _QuizCategory category;
+  final String koPrompt;
+  final String enPrompt;
+  final List<String> acceptedAnswers;
+  final String koExplain;
+  final String enExplain;
+  final String koNextPoint;
+  final String enNextPoint;
 
-  final mcqPrefixesKo = ['개념 체크:', '실전 선택:', '코치 질문:', '축구 기본기:', '퀴즈 카드:'];
-  final mcqPrefixesEn = [
-    'Concept check:',
-    'Match choice:',
-    'Coach asks:',
-    'Football basics:',
-    'Quiz card:',
-  ];
-  final mcqSuffixesKo = [
-    '가장 알맞은 답을 고르세요.',
-    '보기 중 하나만 선택하세요.',
-    '교육 포인트에 가장 가까운 답은?',
-    '실수 줄이는 선택을 골라보세요.',
-    '핵심 개념에 맞는 답을 선택하세요.',
-    '한 문제 한 답입니다.',
-  ];
-  final mcqSuffixesEn = [
-    'Choose the best answer.',
-    'Select one option only.',
-    'Which answer matches the learning point?',
-    'Pick the choice that reduces mistakes.',
-    'Choose the answer that fits the core concept.',
-    'One question, one answer.',
-  ];
+  const _ShortAnswerSeed({
+    required this.id,
+    required this.difficulty,
+    required this.category,
+    required this.koPrompt,
+    required this.enPrompt,
+    required this.acceptedAnswers,
+    required this.koExplain,
+    required this.enExplain,
+    required this.koNextPoint,
+    required this.enNextPoint,
+  });
+}
+
+List<_FootballQuizQuestion> _buildFootballQuizPool() {
+  final oxFacts = _buildOxSeedPool300();
+  final mcqSeeds = _buildMcqSeedPool300();
+  final shortSeeds = _buildShortAnswerSeedPool300();
 
   final questions = <_FootballQuizQuestion>[];
 
-  for (final fact in oxFacts) {
-    for (var prefixIndex = 0;
-        prefixIndex < oxPrefixesKo.length;
-        prefixIndex++) {
-      for (var suffixIndex = 0;
-          suffixIndex < oxSuffixesKo.length;
-          suffixIndex++) {
-        questions.add(
-          _FootballQuizQuestion(
-            id: 'ox_${fact.id}_${prefixIndex}_${suffixIndex}_t',
-            difficulty: fact.difficulty,
-            style: _QuestionStyle.ox,
-            category: fact.category,
-            koPrompt:
-                '${oxPrefixesKo[prefixIndex]} ${fact.koTrueStatement} ${oxSuffixesKo[suffixIndex]}',
-            enPrompt:
-                '${oxPrefixesEn[prefixIndex]} ${fact.enTrueStatement} ${oxSuffixesEn[suffixIndex]}',
-            options: const [
-              _FootballQuizOption(koText: 'O', enText: 'O'),
-              _FootballQuizOption(koText: 'X', enText: 'X'),
-            ],
-            correctIndex: 0,
-            koExplain: '${fact.koExplain} 그래서 정답은 O예요.',
-            enExplain: '${fact.enExplain} So the correct answer is O.',
-            koNextPoint: fact.koNextPoint,
-            enNextPoint: fact.enNextPoint,
-          ),
-        );
-        questions.add(
-          _FootballQuizQuestion(
-            id: 'ox_${fact.id}_${prefixIndex}_${suffixIndex}_f',
-            difficulty: fact.difficulty,
-            style: _QuestionStyle.ox,
-            category: fact.category,
-            koPrompt:
-                '${oxPrefixesKo[prefixIndex]} ${fact.koFalseStatement} ${oxSuffixesKo[suffixIndex]}',
-            enPrompt:
-                '${oxPrefixesEn[prefixIndex]} ${fact.enFalseStatement} ${oxSuffixesEn[suffixIndex]}',
-            options: const [
-              _FootballQuizOption(koText: 'O', enText: 'O'),
-              _FootballQuizOption(koText: 'X', enText: 'X'),
-            ],
-            correctIndex: 1,
-            koExplain: '${fact.koExplain} 제시문은 일부가 틀렸기 때문에 정답은 X예요.',
-            enExplain:
-                '${fact.enExplain} The statement is intentionally wrong, so the correct answer is X.',
-            koNextPoint: fact.koNextPoint,
-            enNextPoint: fact.enNextPoint,
-          ),
-        );
-      }
-    }
+  for (var index = 0; index < oxFacts.length; index++) {
+    final fact = oxFacts[index];
+    final useTrue = index.isEven;
+    questions.add(
+      _FootballQuizQuestion(
+        id: 'ox_${fact.id}',
+        difficulty: fact.difficulty,
+        style: _QuestionStyle.ox,
+        category: fact.category,
+        koPrompt: useTrue ? fact.koTrueStatement : fact.koFalseStatement,
+        enPrompt: useTrue ? fact.enTrueStatement : fact.enFalseStatement,
+        options: const [
+          _FootballQuizOption(koText: 'O', enText: 'O'),
+          _FootballQuizOption(koText: 'X', enText: 'X'),
+        ],
+        correctIndex: useTrue ? 0 : 1,
+        koExplain: useTrue
+            ? '${fact.koExplain} 그래서 정답은 O예요.'
+            : '${fact.koExplain} 그래서 정답은 X예요.',
+        enExplain: useTrue
+            ? '${fact.enExplain} So the correct answer is O.'
+            : '${fact.enExplain} So the correct answer is X.',
+        koNextPoint: fact.koNextPoint,
+        enNextPoint: fact.enNextPoint,
+      ),
+    );
   }
 
   for (final seed in mcqSeeds) {
-    for (var prefixIndex = 0;
-        prefixIndex < mcqPrefixesKo.length;
-        prefixIndex++) {
-      for (var suffixIndex = 0;
-          suffixIndex < mcqSuffixesKo.length;
-          suffixIndex++) {
-        questions.add(
-          _FootballQuizQuestion(
-            id: 'mcq_${seed.id}_${prefixIndex}_$suffixIndex',
-            difficulty: seed.difficulty,
-            style: _QuestionStyle.multipleChoice,
-            category: seed.category,
-            koPrompt:
-                '${mcqPrefixesKo[prefixIndex]} ${seed.koStem} ${mcqSuffixesKo[suffixIndex]}',
-            enPrompt:
-                '${mcqPrefixesEn[prefixIndex]} ${seed.enStem} ${mcqSuffixesEn[suffixIndex]}',
-            options: seed.options,
-            correctIndex: seed.correctIndex,
-            koExplain: seed.koExplain,
-            enExplain: seed.enExplain,
-            koNextPoint: seed.koNextPoint,
-            enNextPoint: seed.enNextPoint,
-          ),
-        );
-      }
-    }
+    questions.add(
+      _FootballQuizQuestion(
+        id: 'mcq_${seed.id}',
+        difficulty: seed.difficulty,
+        style: _QuestionStyle.multipleChoice,
+        category: seed.category,
+        koPrompt: seed.koStem,
+        enPrompt: seed.enStem,
+        options: seed.options,
+        correctIndex: seed.correctIndex,
+        koExplain: seed.koExplain,
+        enExplain: seed.enExplain,
+        koNextPoint: seed.koNextPoint,
+        enNextPoint: seed.enNextPoint,
+      ),
+    );
   }
 
-  if (questions.length < 2000) {
+  for (final seed in shortSeeds) {
+    questions.add(
+      _FootballQuizQuestion(
+        id: 'sa_${seed.id}',
+        difficulty: seed.difficulty,
+        style: _QuestionStyle.shortAnswer,
+        category: seed.category,
+        koPrompt: seed.koPrompt,
+        enPrompt: seed.enPrompt,
+        options: const <_FootballQuizOption>[],
+        correctIndex: 0,
+        acceptedAnswers: seed.acceptedAnswers,
+        koExplain: seed.koExplain,
+        enExplain: seed.enExplain,
+        koNextPoint: seed.koNextPoint,
+        enNextPoint: seed.enNextPoint,
+      ),
+    );
+  }
+
+  if (questions.length != 900) {
     throw StateError(
-      'Football quiz pool must contain at least 2000 questions.',
+      'Football quiz pool must contain exactly 900 questions.',
     );
   }
   return questions;
+}
+
+List<_OxFactSeed> _buildOxSeedPool300() {
+  final base = _oxFacts();
+  final contextKo = [
+    '경기 시작 전 체크',
+    '전반 중반 상황',
+    '후반 종료 직전 상황',
+    '코너킥 직후 상황',
+    '역습 전개 상황',
+    '수비 전환 상황',
+    '압박 상황',
+    '빌드업 상황',
+    '골킥 연결 상황',
+    '세트피스 수비 상황',
+  ];
+  final contextEn = [
+    'pre-kickoff check',
+    'mid-first-half scenario',
+    'late-second-half scenario',
+    'post-corner scenario',
+    'counterattack scenario',
+    'defensive transition scenario',
+    'pressing scenario',
+    'build-up scenario',
+    'goal-kick sequence',
+    'set-piece defense',
+  ];
+  final out = <_OxFactSeed>[];
+  for (var i = 0; i < 300; i++) {
+    final seed = base[i % base.length];
+    final k = i % contextKo.length;
+    out.add(
+      _OxFactSeed(
+        id: '${seed.id}_$i',
+        difficulty: seed.difficulty,
+        category: seed.category,
+        koTrueStatement: '${seed.koTrueStatement} (${contextKo[k]})',
+        enTrueStatement: '${seed.enTrueStatement} (${contextEn[k]})',
+        koFalseStatement: '${seed.koFalseStatement} (${contextKo[k]})',
+        enFalseStatement: '${seed.enFalseStatement} (${contextEn[k]})',
+        koExplain: seed.koExplain,
+        enExplain: seed.enExplain,
+        koNextPoint: seed.koNextPoint,
+        enNextPoint: seed.enNextPoint,
+      ),
+    );
+  }
+  return out;
+}
+
+List<_McqSeed> _buildMcqSeedPool300() {
+  final base = _mcqSeeds();
+  final contextKo = [
+    '실전 기준',
+    '훈련 기준',
+    '경기장 기준',
+    '코치 지시 기준',
+    '기본기 기준',
+    '수비 기준',
+    '공격 기준',
+    '전환 기준',
+  ];
+  final contextEn = [
+    'match context',
+    'training context',
+    'on-pitch context',
+    'coach instruction context',
+    'fundamental context',
+    'defending context',
+    'attacking context',
+    'transition context',
+  ];
+  final out = <_McqSeed>[];
+  for (var i = 0; i < 300; i++) {
+    final seed = base[i % base.length];
+    final k = i % contextKo.length;
+    out.add(
+      _McqSeed(
+        id: '${seed.id}_$i',
+        difficulty: seed.difficulty,
+        category: seed.category,
+        koStem: '${seed.koStem} (${contextKo[k]})',
+        enStem: '${seed.enStem} (${contextEn[k]})',
+        options: seed.options,
+        correctIndex: seed.correctIndex,
+        koExplain: seed.koExplain,
+        enExplain: seed.enExplain,
+        koNextPoint: seed.koNextPoint,
+        enNextPoint: seed.enNextPoint,
+      ),
+    );
+  }
+  return out;
+}
+
+List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
+  final keywords = <({
+    _QuizCategory category,
+    String koClue,
+    String enClue,
+    String koAnswer,
+    String enAnswer,
+  })>[
+    (
+      category: _QuizCategory.rules,
+      koClue: '손을 쓰지 못하는 기본 규칙의 이름',
+      enClue: 'Basic rule name that forbids hand use',
+      koAnswer: '핸들링',
+      enAnswer: 'handling',
+    ),
+    (
+      category: _QuizCategory.rules,
+      koClue: '상대 진영에서 위치를 보는 반칙',
+      enClue: 'Position-based offense in attacking half',
+      koAnswer: '오프사이드',
+      enAnswer: 'offside',
+    ),
+    (
+      category: _QuizCategory.tactics,
+      koClue: '공을 잃은 직후 바로 압박하는 전술',
+      enClue: 'Immediate press right after losing the ball',
+      koAnswer: '게겐프레싱',
+      enAnswer: 'gegenpressing',
+    ),
+    (
+      category: _QuizCategory.tactics,
+      koClue: '공격에서 수비로 바뀌는 순간',
+      enClue: 'Moment when attack turns into defense',
+      koAnswer: '전환',
+      enAnswer: 'transition',
+    ),
+    (
+      category: _QuizCategory.technique,
+      koClue: '공을 처음 받는 동작',
+      enClue: 'First touch when receiving the ball',
+      koAnswer: '퍼스트터치',
+      enAnswer: 'first touch',
+    ),
+    (
+      category: _QuizCategory.technique,
+      koClue: '주변을 먼저 보고 판단하는 기술',
+      enClue: 'Skill of checking surroundings before action',
+      koAnswer: '스캐닝',
+      enAnswer: 'scanning',
+    ),
+    (
+      category: _QuizCategory.positions,
+      koClue: '골대 앞 마지막 수비 포지션',
+      enClue: 'Final defending position in front of goal',
+      koAnswer: '골키퍼',
+      enAnswer: 'goalkeeper',
+    ),
+    (
+      category: _QuizCategory.positions,
+      koClue: '측면 수비수 포지션',
+      enClue: 'Wide defending position',
+      koAnswer: '풀백',
+      enAnswer: 'fullback',
+    ),
+    (
+      category: _QuizCategory.training,
+      koClue: '훈련 전 몸을 데우는 단계',
+      enClue: 'Body-prep step before training',
+      koAnswer: '워밍업',
+      enAnswer: 'warm-up',
+    ),
+    (
+      category: _QuizCategory.training,
+      koClue: '훈련 후 몸을 천천히 내리는 단계',
+      enClue: 'Step to gradually lower intensity after training',
+      koAnswer: '쿨다운',
+      enAnswer: 'cool-down',
+    ),
+    (
+      category: _QuizCategory.mindset,
+      koClue: '실수 후 바로 집중을 되찾는 태도',
+      enClue: 'Attitude to regain focus right after mistakes',
+      koAnswer: '리셋',
+      enAnswer: 'reset',
+    ),
+    (
+      category: _QuizCategory.nutrition,
+      koClue: '경기 전후 가장 기본 회복 요소',
+      enClue: 'Most basic recovery factor before/after match',
+      koAnswer: '수분',
+      enAnswer: 'hydration',
+    ),
+  ];
+  final questionKoTemplates = [
+    '빈칸에 들어갈 단어를 쓰세요: "{clue}"',
+    '다음 설명에 맞는 용어를 입력하세요: "{clue}"',
+    '한 단어로 답하세요: "{clue}"',
+    '핵심 개념을 써보세요: "{clue}"',
+    '정답 단어를 입력하세요: "{clue}"',
+  ];
+  final questionEnTemplates = [
+    'Type the term that fits: "{clue}"',
+    'Enter the key word for: "{clue}"',
+    'Answer with one term: "{clue}"',
+    'Write the concept term: "{clue}"',
+    'Fill in the right word: "{clue}"',
+  ];
+  final out = <_ShortAnswerSeed>[];
+  for (var i = 0; i < 300; i++) {
+    final key = keywords[i % keywords.length];
+    final t = i % questionKoTemplates.length;
+    final koPrompt = questionKoTemplates[t].replaceAll('{clue}', key.koClue);
+    final enPrompt = questionEnTemplates[t].replaceAll('{clue}', key.enClue);
+    out.add(
+      _ShortAnswerSeed(
+        id: 'short_$i',
+        difficulty: (i % 3) + 1,
+        category: key.category,
+        koPrompt: koPrompt,
+        enPrompt: enPrompt,
+        acceptedAnswers: [
+          key.koAnswer,
+          key.enAnswer,
+          key.koAnswer.replaceAll(' ', ''),
+          key.enAnswer.replaceAll(' ', ''),
+        ],
+        koExplain: '정답은 "${key.koAnswer}"입니다.',
+        enExplain: 'The answer is "${key.enAnswer}".',
+        koNextPoint: '용어를 알고 실제 장면에서 바로 연결해 보세요.',
+        enNextPoint: 'Know the term, then connect it to real situations.',
+      ),
+    );
+  }
+  return out;
 }
 
 List<_OxFactSeed> _oxFacts() {
