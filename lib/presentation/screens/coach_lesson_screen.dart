@@ -80,7 +80,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       _isDark ? _palette.headlineInkDark : _palette.headlineInk;
   Color get _bodyInk => _isDark ? _palette.bodyInkDark : _palette.bodyInk;
   Color get _accentInk => _isDark ? _palette.accentInkDark : _palette.accentInk;
-  Color get _accentWash => _accentInk.withValues(alpha: _isDark ? 0.16 : 0.1);
   Color get _tileSurface =>
       _isDark ? _palette.tileDark : Colors.white.withValues(alpha: 0.58);
   Color get _notebookLine =>
@@ -480,9 +479,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             children: [
               _buildDayHeadlineCard(day),
               const SizedBox(height: 12),
-              _buildRoleReviewGrid(day),
-              const SizedBox(height: 12),
               _buildNightReviewCard(day, diary),
+              const SizedBox(height: 12),
+              _buildRoleReviewGrid(day),
               const SizedBox(height: 12),
               _buildFortuneCard(day),
               if (day.plans.isNotEmpty) ...[
@@ -513,10 +512,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildDayHeadlineCard(_DiaryDayData day) {
-    final totalMinutes = day.entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.durationMinutes,
-    );
     final trainingCount = day.trainingEntries.length;
     final matchCount = day.matchEntries.length;
     final weatherSummary = _dayWeatherSummary(day);
@@ -546,58 +541,32 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             const SizedBox(height: 8),
             Text(
               _isKo
-                  ? '저장된 계획, 경기, 훈련, 회복 기록을 한 편의 일기처럼 이어서 읽을 수 있도록 정리했습니다.'
-                  : 'Saved plans, matches, training, and recovery notes are gathered here as one diary entry.',
+                  ? '오늘 핵심: 훈련 $trainingCount회, 시합 $matchCount회'
+                  : 'Today focus: $trainingCount trainings, $matchCount matches',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.45),
             ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildStatChip(
-                  _isKo ? '훈련 $trainingCount개' : '$trainingCount trainings',
-                ),
-                _buildStatChip(
-                  _isKo ? '시합 $matchCount개' : '$matchCount matches',
-                ),
-                _buildStatChip(
-                  _isKo
-                      ? '계획 ${day.plans.length}개'
-                      : '${day.plans.length} plans',
-                ),
-                _buildStatChip(
-                  _isKo ? '합계 $totalMinutes분' : '$totalMinutes min total',
-                ),
-                if (day.boards.isNotEmpty)
-                  _buildStatChip(
-                    _isKo
-                        ? '보드 ${day.boards.length}개'
-                        : '${day.boards.length} boards',
-                  ),
-              ],
+            const SizedBox(height: 4),
+            Text(
+              _isKo
+                  ? '가장 많이 잡힌 키워드: ${_topFocus(day.trainingEntries)}'
+                  : 'Most repeated focus: ${_topFocus(day.trainingEntries)}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.45),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _isKo
+                  ? '주요 장소: ${_topPlaces(day.trainingEntries)}'
+                  : 'Main place: ${_topPlaces(day.trainingEntries)}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.45),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: _accentWash,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: _accentInk,
-              fontWeight: FontWeight.w800,
-            ),
       ),
     );
   }
@@ -789,21 +758,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildRoleReviewGrid(_DiaryDayData day) {
     final cards = <Widget>[
-      _buildRoleInsightCard(
-        title: _isKo ? '오늘 핵심' : 'Today focus',
-        icon: Icons.today_outlined,
-        lines: [
-          _isKo
-              ? '훈련 ${day.trainingEntries.length}회, 시합 ${day.matchEntries.length}회'
-              : '${day.trainingEntries.length} trainings, ${day.matchEntries.length} matches',
-          _isKo
-              ? '가장 많이 잡힌 키워드: ${_topFocus(day.trainingEntries)}'
-              : 'Most repeated focus: ${_topFocus(day.trainingEntries)}',
-          _isKo
-              ? '주요 장소: ${_topPlaces(day.trainingEntries)}'
-              : 'Main place: ${_topPlaces(day.trainingEntries)}',
-        ],
-      ),
       _buildRoleInsightCard(
         title: _isKo ? '코치 포인트' : 'Coach point',
         icon: Icons.sports_score_outlined,
