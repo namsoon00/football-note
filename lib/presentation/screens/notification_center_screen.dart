@@ -24,10 +24,17 @@ class NotificationCenterScreen extends StatefulWidget {
 }
 
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
+  static const _seenPlanKeysStorageKey = 'notification_seen_plan_keys_v1';
+  static const _seenXpIdsStorageKey = 'notification_seen_xp_ids_v1';
+
   late final TrainingPlanReminderService _reminderService;
   bool _permissionGranted = true;
   bool _loading = true;
   bool _mutedNow = false;
+  bool _showInactivitySection = true;
+  bool _showXpSection = true;
+  bool _showPlanSection = true;
+  bool _showSystemSection = false;
   List<PendingNotificationRequest> _pending = const [];
   List<_PlanAlarmRow> _planRows = const [];
   List<_XpMessageRow> _xpRows = const [];
@@ -45,12 +52,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _load() async {
     try {
+      final seenPlanKeys = _loadSeenIds(_seenPlanKeysStorageKey);
+      final seenXpIds = _loadSeenIds(_seenXpIdsStorageKey);
       await _reminderService.markAllRemindersRead();
       final permission = await _reminderService.hasNotificationPermission();
       final muted = await _reminderService.isAlarmMutedNow();
       final pending = await _reminderService.pendingReminders();
-      final planRows = _loadPlanRows();
-      final xpRows = _loadXpRows();
+      final planRows = _loadPlanRows(seenPlanKeys);
+      final xpRows = _loadXpRows(seenXpIds);
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         TrainingPlanReminderService.lastTrainingLogAtKey,
       );
@@ -64,18 +73,38 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _lastTrainingLogAt = lastTrainingLogAt;
         _loading = false;
       });
+      await _markRowsSeen(planRows: planRows, xpRows: xpRows);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _pending = const [];
-        _planRows = _loadPlanRows();
-        _xpRows = _loadXpRows();
+        _planRows = _loadPlanRows(const <String>{});
+        _xpRows = _loadXpRows(const <String>{});
         _loading = false;
       });
     }
   }
 
-  List<_PlanAlarmRow> _loadPlanRows() {
+  Set<String> _loadSeenIds(String key) {
+    final raw = widget.optionRepository.getValue<List>(key) ?? const [];
+    return raw.map((item) => item.toString()).toSet();
+  }
+
+  Future<void> _markRowsSeen({
+    required List<_PlanAlarmRow> planRows,
+    required List<_XpMessageRow> xpRows,
+  }) async {
+    await widget.optionRepository.setValue(
+      _seenPlanKeysStorageKey,
+      planRows.map((row) => row.messageKey).toList(growable: false),
+    );
+    await widget.optionRepository.setValue(
+      _seenXpIdsStorageKey,
+      xpRows.map((row) => row.id).toList(growable: false),
+    );
+  }
+
+  List<_PlanAlarmRow> _loadPlanRows(Set<String> seenPlanKeys) {
     final raw = widget.optionRepository.getValue<String>(
       TrainingPlanReminderService.plansStorageKey,
     );
@@ -85,7 +114,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       if (decoded is! List) return const [];
       final rows = decoded
           .whereType<Map>()
-          .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
+          .map(
+            (e) => _PlanAlarmRow.fromMap(
+              e.cast<String, dynamic>(),
+              seenKeys: seenPlanKeys,
+            ),
+          )
           .where((e) => e.scheduledAt.isAfter(DateTime.now()))
           .toList(growable: false)
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
@@ -98,9 +132,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
   }
 
-  List<_XpMessageRow> _loadXpRows() {
+  List<_XpMessageRow> _loadXpRows(Set<String> seenXpIds) {
     final logs = _reminderService.loadXpMessageLogSync();
-    return logs.map(_XpMessageRow.fromMap).toList(growable: false);
+    return logs
+        .map((item) => _XpMessageRow.fromMap(item, seenIds: seenXpIds))
+        .toList(growable: false);
   }
 
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
@@ -140,6 +176,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final xpNewCount = _xpRows.where((row) => row.isNew).length;
+    final planNewCount = _planRows.where((row) => row.isNew).length;
     return Scaffold(
       appBar: AppBar(
         title: Text(isKo ? '알림' : 'Notifications'),
@@ -177,8 +215,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   ),
                   const SizedBox(height: 8),
                 ],
-                Card(
+                _NotificationSectionCard(
+                  title: isKo ? '기록 리마인드' : 'Inactivity reminder',
+                  icon: Icons.edit_calendar_outlined,
+                  expanded: _showInactivitySection,
+                  onTap: () => setState(() {
+                    _showInactivitySection = !_showInactivitySection;
+                  }),
                   child: ListTile(
+                    contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.edit_calendar_outlined),
                     title: Text(
                       widget.settingsService.inactivityAlertEnabled
@@ -193,143 +238,190 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  isKo
+                _NotificationSectionCard(
+                  title: isKo
                       ? '경험치 알림 ${_xpRows.length}개'
                       : '${_xpRows.length} XP alerts',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  icon: Icons.stars_rounded,
+                  expanded: _showXpSection,
+                  newCount: xpNewCount,
+                  onTap: () => setState(() {
+                    _showXpSection = !_showXpSection;
+                  }),
+                  child: _xpRows.isEmpty
+                      ? ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.stars_outlined),
+                          title: Text(
+                            isKo ? '경험치 알림이 없어요.' : 'No XP alerts yet.',
+                          ),
+                        )
+                      : Column(
+                          children: _xpRows
+                              .map(
+                                (item) => Dismissible(
+                                  key: ValueKey('xp-msg-${item.id}'),
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .errorContainer,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.delete_outline,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onErrorContainer,
+                                    ),
+                                  ),
+                                  onDismissed: (_) => _deleteXpMessage(item),
+                                  child: Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: const Icon(Icons.stars_rounded),
+                                      title: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              item.label.isEmpty
+                                                  ? (isKo
+                                                      ? '경험치 알림'
+                                                      : 'XP alert')
+                                                  : item.label,
+                                            ),
+                                          ),
+                                          if (item.isNew) const _NewBadge(),
+                                        ],
+                                      ),
+                                      subtitle: Text(
+                                        '${isKo ? '+${item.gainedXp} XP · 누적 ${item.totalXp} XP' : '+${item.gainedXp} XP · total ${item.totalXp} XP'}\n${DateFormat(isKo ? 'M/d HH:mm' : 'MMM d HH:mm').format(item.createdAt)}',
+                                      ),
+                                      trailing: IconButton(
+                                        tooltip: isKo ? '삭제' : 'Delete',
+                                        onPressed: () => _deleteXpMessage(item),
+                                        icon: const Icon(Icons.delete_outline),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
+                        ),
                 ),
                 const SizedBox(height: 8),
-                if (_xpRows.isEmpty)
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.stars_outlined),
-                      title: Text(
-                        isKo ? '경험치 알림이 없어요.' : 'No XP alerts yet.',
-                      ),
-                    ),
-                  )
-                else
-                  ..._xpRows.map(
-                    (item) => Dismissible(
-                      key: ValueKey('xp-msg-${item.id}'),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.delete_outline,
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                      ),
-                      onDismissed: (_) => _deleteXpMessage(item),
-                      child: Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.stars_rounded),
-                          title: Text(
-                            item.label.isEmpty
-                                ? (isKo ? '경험치 알림' : 'XP alert')
-                                : item.label,
-                          ),
-                          subtitle: Text(
-                            '${isKo ? '+${item.gainedXp} XP · 누적 ${item.totalXp} XP' : '+${item.gainedXp} XP · total ${item.totalXp} XP'}\n${DateFormat(isKo ? 'M/d HH:mm' : 'MMM d HH:mm').format(item.createdAt)}',
-                          ),
-                          trailing: IconButton(
-                            tooltip: isKo ? '삭제' : 'Delete',
-                            onPressed: () => _deleteXpMessage(item),
-                            icon: const Icon(Icons.delete_outline),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                Text(
-                  isKo
+                _NotificationSectionCard(
+                  title: isKo
                       ? '훈련 알림 ${_planRows.length}개'
                       : '${_planRows.length} training alerts',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                if (_planRows.isEmpty)
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.inbox_outlined),
-                      title: Text(
-                        isKo ? '예약된 알림이 없어요.' : 'No scheduled alerts.',
-                      ),
-                      subtitle: Text(
-                        isKo
-                            ? '훈련 계획을 추가하면 알림이 여기에 표시돼요.'
-                            : 'Add a training plan to see reminders here.',
-                      ),
-                    ),
-                  )
-                else
-                  ..._planRows.map(
-                    (item) => Dismissible(
-                      key: ValueKey('alarm-msg-${item.messageKey}'),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.delete_outline,
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                      ),
-                      onDismissed: (_) => _deleteMessage(item),
-                      child: Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.alarm_outlined),
-                          title: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  item.category.isEmpty
-                                      ? (isKo ? '훈련 계획' : 'Training plan')
-                                      : item.category,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                  DateFormat('HH:mm').format(item.scheduledAt)),
-                            ],
+                  icon: Icons.alarm_outlined,
+                  expanded: _showPlanSection,
+                  newCount: planNewCount,
+                  onTap: () => setState(() {
+                    _showPlanSection = !_showPlanSection;
+                  }),
+                  child: _planRows.isEmpty
+                      ? ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.inbox_outlined),
+                          title: Text(
+                            isKo ? '예약된 알림이 없어요.' : 'No scheduled alerts.',
                           ),
                           subtitle: Text(
-                            '${DateFormat(isKo ? 'M/d(E)' : 'EEE, M/d').format(item.scheduledAt)}'
-                            '${item.scheduleSummary.isEmpty ? '' : '\n${item.scheduleSummary}'}',
+                            isKo
+                                ? '훈련 계획을 추가하면 알림이 여기에 표시돼요.'
+                                : 'Add a training plan to see reminders here.',
                           ),
-                          trailing: IconButton(
-                            tooltip: isKo ? '삭제' : 'Delete',
-                            onPressed: () => _deleteMessage(item),
-                            icon: const Icon(Icons.delete_outline),
-                          ),
+                        )
+                      : Column(
+                          children: _planRows
+                              .map(
+                                (item) => Dismissible(
+                                  key: ValueKey('alarm-msg-${item.messageKey}'),
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .errorContainer,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.delete_outline,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onErrorContainer,
+                                    ),
+                                  ),
+                                  onDismissed: (_) => _deleteMessage(item),
+                                  child: Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: const Icon(Icons.alarm_outlined),
+                                      title: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              item.category.isEmpty
+                                                  ? (isKo
+                                                      ? '훈련 계획'
+                                                      : 'Training plan')
+                                                  : item.category,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (item.isNew) ...[
+                                            const SizedBox(width: 8),
+                                            const _NewBadge(),
+                                          ],
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            DateFormat('HH:mm')
+                                                .format(item.scheduledAt),
+                                          ),
+                                        ],
+                                      ),
+                                      subtitle: Text(
+                                        '${DateFormat(isKo ? 'M/d(E)' : 'EEE, M/d').format(item.scheduledAt)}'
+                                        '${item.scheduleSummary.isEmpty ? '' : '\n${item.scheduleSummary}'}',
+                                      ),
+                                      trailing: IconButton(
+                                        tooltip: isKo ? '삭제' : 'Delete',
+                                        onPressed: () => _deleteMessage(item),
+                                        icon: const Icon(Icons.delete_outline),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
                         ),
-                      ),
-                    ),
-                  ),
+                ),
                 if (_pending.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Text(
-                    isKo
+                  _NotificationSectionCard(
+                    title: isKo
                         ? '시스템 예약 알림 ${_pending.length}개'
                         : '${_pending.length} system-scheduled alerts',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    icon: Icons.schedule_outlined,
+                    expanded: _showSystemSection,
+                    onTap: () => setState(() {
+                      _showSystemSection = !_showSystemSection;
+                    }),
+                    child: Text(
+                      isKo
+                          ? '시스템 예약 상태를 참고용으로 보여줍니다.'
+                          : 'This shows the OS-level scheduled notification count.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                 ],
               ],
@@ -604,12 +696,104 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   }
 }
 
+class _NotificationSectionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool expanded;
+  final VoidCallback onTap;
+  final Widget child;
+  final int newCount;
+
+  const _NotificationSectionCard({
+    required this.title,
+    required this.icon,
+    required this.expanded,
+    required this.onTap,
+    required this.child,
+    this.newCount = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Icon(icon, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    if (newCount > 0) ...[
+                      _NewBadge(label: 'NEW $newCount'),
+                      const SizedBox(width: 8),
+                    ],
+                    Icon(
+                      expanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (expanded) ...[
+              const SizedBox(height: 8),
+              child,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NewBadge extends StatelessWidget {
+  final String label;
+
+  const _NewBadge({this.label = 'NEW'});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w800,
+            ),
+      ),
+    );
+  }
+}
+
 class _PlanAlarmRow {
   final String id;
   final DateTime scheduledAt;
   final String category;
   final String scheduleSummary;
   final String messageKey;
+  final bool isNew;
 
   const _PlanAlarmRow({
     required this.id,
@@ -617,9 +801,13 @@ class _PlanAlarmRow {
     required this.category,
     required this.scheduleSummary,
     required this.messageKey,
+    required this.isNew,
   });
 
-  factory _PlanAlarmRow.fromMap(Map<String, dynamic> map) {
+  factory _PlanAlarmRow.fromMap(
+    Map<String, dynamic> map, {
+    Set<String> seenKeys = const <String>{},
+  }) {
     final weekdays = ((map['repeatWeekdays'] as List?) ?? const [])
         .map((e) => (e as num?)?.toInt() ?? 0)
         .where((value) => value >= DateTime.monday && value <= DateTime.sunday)
@@ -635,6 +823,8 @@ class _PlanAlarmRow {
     final rangeText = (seriesStart == null || seriesEnd == null)
         ? ''
         : '${DateFormat('M/d').format(seriesStart)}-${DateFormat('M/d').format(seriesEnd)}';
+    final messageKey =
+        '${map['id']?.toString() ?? ''}|${map['scheduledAt']?.toString() ?? ''}';
     return _PlanAlarmRow(
       id: map['id']?.toString() ?? '',
       scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
@@ -644,8 +834,8 @@ class _PlanAlarmRow {
         weekdayText,
         rangeText,
       ].where((value) => value.trim().isNotEmpty).join(' · '),
-      messageKey:
-          '${map['id']?.toString() ?? ''}|${map['scheduledAt']?.toString() ?? ''}',
+      messageKey: messageKey,
+      isNew: !seenKeys.contains(messageKey),
     );
   }
 }
@@ -656,6 +846,7 @@ class _XpMessageRow {
   final int gainedXp;
   final int totalXp;
   final String label;
+  final bool isNew;
 
   const _XpMessageRow({
     required this.id,
@@ -663,16 +854,22 @@ class _XpMessageRow {
     required this.gainedXp,
     required this.totalXp,
     required this.label,
+    required this.isNew,
   });
 
-  factory _XpMessageRow.fromMap(Map<String, dynamic> map) {
+  factory _XpMessageRow.fromMap(
+    Map<String, dynamic> map, {
+    Set<String> seenIds = const <String>{},
+  }) {
+    final id = map['id']?.toString() ?? '';
     return _XpMessageRow(
-      id: map['id']?.toString() ?? '',
+      id: id,
       createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
       gainedXp: (map['gainedXp'] as num?)?.toInt() ?? 0,
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
       label: map['label']?.toString() ?? '',
+      isNew: !seenIds.contains(id),
     );
   }
 }
