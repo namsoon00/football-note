@@ -246,7 +246,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             builder: (context, snapshot) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final isDark = Theme.of(context).brightness == Brightness.dark;
-              final l10n = AppLocalizations.of(context)!;
               final entries = snapshot.data ?? [];
               final entryMap = _groupByDay(entries);
               final planMap = _groupPlansByDay(_plans);
@@ -287,6 +286,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       titleTrailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          ChoiceChip(
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            label: Text(isKo ? '2주' : '2W'),
+                            selected:
+                                _calendarFormat == CalendarFormat.twoWeeks,
+                            onSelected: (_) =>
+                                _setCalendarFormat(CalendarFormat.twoWeeks),
+                          ),
+                          const SizedBox(width: 6),
+                          ChoiceChip(
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            label: Text(isKo ? '1개월' : '1M'),
+                            selected: _calendarFormat == CalendarFormat.month,
+                            onSelected: (_) =>
+                                _setCalendarFormat(CalendarFormat.month),
+                          ),
+                          const SizedBox(width: 8),
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               visualDensity: VisualDensity.compact,
@@ -312,32 +332,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   ? '오늘'
                                   : 'Today',
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ChoiceChip(
-                            label: Text(l10n.calendarFormatMonth),
-                            selected: _calendarFormat == CalendarFormat.month,
-                            onSelected: (_) =>
-                                _setCalendarFormat(CalendarFormat.month),
-                          ),
-                          ChoiceChip(
-                            label: Text(l10n.calendarFormatTwoWeeks),
-                            selected:
-                                _calendarFormat == CalendarFormat.twoWeeks,
-                            onSelected: (_) =>
-                                _setCalendarFormat(CalendarFormat.twoWeeks),
                           ),
                         ],
                       ),
