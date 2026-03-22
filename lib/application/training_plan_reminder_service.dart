@@ -16,6 +16,8 @@ class TrainingPlanReminderService {
   static const String reminderReadIdsKey = 'training_plan_reminder_read_ids_v1';
   static const String dismissedMessageKeysKey =
       'training_plan_dismissed_message_keys_v1';
+  static const String xpMessageLogKey = 'xp_alert_message_log_v1';
+  static const String xpMessageReadIdsKey = 'xp_alert_message_read_ids_v1';
   static const String alarmMutedUntilKey = 'training_plan_alarm_muted_until_v1';
   static const String wakeAlarmIdsKey = 'wake_alarm_notification_ids_v1';
   static const String inactivityReminderIdsKey =
@@ -458,9 +460,16 @@ class TrainingPlanReminderService {
     if (kIsWeb) return;
     if (gainedXp <= 0) return;
     if (!_settings.reminderEnabled || !_settings.xpAlertEnabled) return;
-    if (!await hasNotificationPermission()) return;
 
     final label = sourceLabel?.trim() ?? '';
+    final messageId = 'xp:${DateTime.now().microsecondsSinceEpoch}:$totalXp';
+    await _appendXpMessageLog(
+      id: messageId,
+      gainedXp: gainedXp,
+      totalXp: totalXp,
+      label: label,
+    );
+    if (!await hasNotificationPermission()) return;
     final body = isKo
         ? '${label.isEmpty ? '경험치' : label} +$gainedXp XP · 누적 $totalXp XP'
         : '${label.isEmpty ? 'XP' : label} +$gainedXp XP · total $totalXp XP';
@@ -491,6 +500,26 @@ class TrainingPlanReminderService {
     } catch (_) {
       // Ignore immediate notification failures.
     }
+  }
+
+  Future<void> _appendXpMessageLog({
+    required String id,
+    required int gainedXp,
+    required int totalXp,
+    required String label,
+  }) async {
+    final logs = loadXpMessageLogSync().toList(growable: true);
+    logs.insert(0, {
+      'id': id,
+      'createdAt': DateTime.now().toIso8601String(),
+      'gainedXp': gainedXp,
+      'totalXp': totalXp,
+      'label': label,
+    });
+    if (logs.length > 200) {
+      logs.removeRange(200, logs.length);
+    }
+    await _options.setValue(xpMessageLogKey, logs);
   }
 
   List<_PendingPlanNotification> _buildNotifications(
@@ -657,7 +686,16 @@ class TrainingPlanReminderService {
         .map((e) => (e as num?)?.toInt() ?? -1)
         .where((id) => id >= 0)
         .toSet();
-    return scheduled.difference(read).length;
+    final reminderUnread = scheduled.difference(read).length;
+    final xpLogs = _options.getValue<List>(xpMessageLogKey) ?? const [];
+    final xpReadRaw = _options.getValue<List>(xpMessageReadIdsKey) ?? const [];
+    final xpReadIds = xpReadRaw.map((e) => e.toString()).toSet();
+    final xpUnread = xpLogs.whereType<Map>().where((item) {
+      final id = item['id']?.toString() ?? '';
+      if (id.isEmpty) return false;
+      return !xpReadIds.contains(id);
+    }).length;
+    return reminderUnread + xpUnread;
   }
 
   Future<void> markAllRemindersRead() async {
@@ -667,6 +705,13 @@ class TrainingPlanReminderService {
         .where((id) => id >= 0)
         .toList(growable: false);
     await _options.setValue(reminderReadIdsKey, scheduled);
+    final xpLogs = _options.getValue<List>(xpMessageLogKey) ?? const [];
+    final xpIds = xpLogs
+        .whereType<Map>()
+        .map((item) => item['id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+    await _options.setValue(xpMessageReadIdsKey, xpIds);
   }
 
   List<String> dismissedMessageKeysSync() {
@@ -685,6 +730,35 @@ class TrainingPlanReminderService {
 
   Future<void> clearDismissedMessageKeys() async {
     await _options.setValue(dismissedMessageKeysKey, <String>[]);
+  }
+
+  List<Map<String, dynamic>> loadXpMessageLogSync() {
+    final raw = _options.getValue<List>(xpMessageLogKey) ?? const [];
+    final logs = raw
+        .whereType<Map>()
+        .map((item) => item.cast<String, dynamic>())
+        .toList(growable: false)
+      ..sort((a, b) {
+        final aAt = DateTime.tryParse(a['createdAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bAt = DateTime.tryParse(b['createdAt']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        return bAt.compareTo(aAt);
+      });
+    return logs;
+  }
+
+  Future<void> deleteXpMessage(String id) async {
+    final logs = loadXpMessageLogSync()
+        .where((item) => (item['id']?.toString() ?? '') != id)
+        .toList(growable: false);
+    await _options.setValue(xpMessageLogKey, logs);
+    final readRaw = _options.getValue<List>(xpMessageReadIdsKey) ?? const [];
+    final readIds = readRaw.map((e) => e.toString()).toSet()..remove(id);
+    await _options.setValue(
+      xpMessageReadIdsKey,
+      readIds.toList(growable: false),
+    );
   }
 
   Future<void> _clearNotificationIds(String key) async {
