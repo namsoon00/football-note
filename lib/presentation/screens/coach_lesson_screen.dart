@@ -65,6 +65,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
   final Set<String> _expandedTrainingGroups = <String>{};
+  final Set<String> _expandedDiarySections = <String>{'analysis'};
   String? _lastViewedDiaryToken;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
@@ -469,6 +470,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildDiaryPage(_DiaryDayData day) {
     final diary = _buildDiary(day);
+    final fortuneCount = day.fortunes(_isKo).length;
     return _DiaryScrollPage(
       onReachedEnd: () => _markDiaryCompletedIfNeeded(day.date),
       child: SingleChildScrollView(
@@ -479,30 +481,88 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             children: [
               _buildDayHeadlineCard(day),
               const SizedBox(height: 12),
-              _buildNightReviewCard(day, diary),
+              _buildCollapsibleDiarySection(
+                sectionKey: 'analysis',
+                title: _isKo ? '오늘 분석' : 'Today analysis',
+                summary: _isKo
+                    ? '코치 포인트, 데이터 신호, 다음 액션을 한 번에 확인'
+                    : 'Coach points, data signals, and next actions in one place',
+                countLabel: _isKo ? '3영역' : '3 areas',
+                child: _buildRoleReviewGrid(day),
+              ),
               const SizedBox(height: 12),
-              _buildRoleReviewGrid(day),
+              _buildCollapsibleDiarySection(
+                sectionKey: 'night',
+                title: _isKo ? '자기 전 다이어리' : 'Night review diary',
+                summary: _isKo
+                    ? '기록 내용을 문장으로 다시 정리해요.'
+                    : 'Review your records as one recap text.',
+                child: _buildNightReviewCard(day, diary),
+              ),
               const SizedBox(height: 12),
-              _buildFortuneCard(day),
+              _buildCollapsibleDiarySection(
+                sectionKey: 'fortune',
+                title: _isKo ? '오늘의 운세 노트' : 'Today fortune note',
+                summary: _isKo
+                    ? '훈련노트에 저장된 운세 요약'
+                    : 'Saved fortune snippets from training notes',
+                countLabel: '$fortuneCount',
+                child: _buildFortuneCard(day),
+              ),
               if (day.plans.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _buildPlanCard(day.plans),
+                _buildCollapsibleDiarySection(
+                  sectionKey: 'plan',
+                  title: _isKo ? '훈련 계획' : 'Training plans',
+                  summary:
+                      _isKo ? '오늘 등록된 계획 요약' : 'Planned sessions for this day',
+                  countLabel: '${day.plans.length}',
+                  child: _buildPlanCard(day.plans),
+                ),
               ],
               if (day.matchEntries.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _buildMatchCard(day.matchEntries),
+                _buildCollapsibleDiarySection(
+                  sectionKey: 'match',
+                  title: _isKo ? '시합 기록' : 'Match records',
+                  summary: _isKo ? '오늘 시합 기록 요약' : 'Match logs from this day',
+                  countLabel: '${day.matchEntries.length}',
+                  child: _buildMatchCard(day.matchEntries),
+                ),
               ],
               if (day.trainingEntries.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _buildTrainingSection(day),
+                _buildCollapsibleDiarySection(
+                  sectionKey: 'training',
+                  title: _isKo ? '훈련 기록' : 'Training records',
+                  summary: _isKo
+                      ? '훈련 기록을 카드/타임라인으로 확인'
+                      : 'Browse training logs as cards or timeline',
+                  countLabel: '${day.trainingEntries.length}',
+                  child: _buildTrainingSection(day),
+                ),
               ],
               if (_hasRecoveryRecord(day)) ...[
                 const SizedBox(height: 12),
-                _buildRecoveryCard(day),
+                _buildCollapsibleDiarySection(
+                  sectionKey: 'recovery',
+                  title: _isKo ? '회복 기록' : 'Recovery logs',
+                  summary: _isKo
+                      ? '부상, 리프팅, 줄넘기 요약'
+                      : 'Injury, lifting, and jump-rope summary',
+                  child: _buildRecoveryCard(day),
+                ),
               ],
               if (day.boards.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _buildBoardCard(day),
+                _buildCollapsibleDiarySection(
+                  sectionKey: 'board',
+                  title: _isKo ? '훈련보드' : 'Training boards',
+                  summary:
+                      _isKo ? '오늘 연결된 훈련보드 요약' : 'Boards linked to this day',
+                  countLabel: '${day.boards.length}',
+                  child: _buildBoardCard(day),
+                ),
               ],
             ],
           ),
@@ -565,6 +625,101 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 context,
               ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.45),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCollapsibleDiarySection({
+    required String sectionKey,
+    required String title,
+    required String summary,
+    String? countLabel,
+    required Widget child,
+  }) {
+    final expanded = _expandedDiarySections.contains(sectionKey);
+    return Container(
+      decoration: _paperDecoration(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                setState(() {
+                  if (expanded) {
+                    _expandedDiarySections.remove(sectionKey);
+                  } else {
+                    _expandedDiarySections.add(sectionKey);
+                  }
+                });
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: _theme.textTheme.titleMedium?.copyWith(
+                              color: _headlineInk,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            summary,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: _theme.textTheme.bodySmall?.copyWith(
+                              color: _bodyInk,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (countLabel != null && countLabel.trim().isNotEmpty) ...[
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _tileSurface,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: _paperEdge),
+                        ),
+                        child: Text(
+                          countLabel,
+                          style: _theme.textTheme.labelMedium?.copyWith(
+                            color: _headlineInk,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                    Icon(
+                      expanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: _accentInk,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (expanded) ...[
+              const SizedBox(height: 10),
+              child,
+            ],
           ],
         ),
       ),
