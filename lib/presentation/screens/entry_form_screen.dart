@@ -100,6 +100,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _saveInProgress = false;
   bool _deleteInProgress = false;
   int? _editingKey;
+  TrainingEntry? _persistedEntryForXp;
   final Set<String> _linkedBoardIds = <String>{};
   String _initialSnapshot = '';
   bool _didHandleInitialBoardOpen = false;
@@ -183,6 +184,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         widget.optionRepository.getValue<bool>(_weatherAutoEnabledKey) ?? false;
     final entry = widget.entry;
     if (entry != null) {
+      _persistedEntryForXp = entry;
       _editingKey = entry.key is int ? entry.key as int : null;
       _date = entry.date;
       _durationMinutes = _initIntSelection(
@@ -1366,9 +1368,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         children: [
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: Text(
-                              isKo ? '줄넘기 기록' : 'Jump rope record',
-                            ),
+                            title: Text(isKo ? '줄넘기 기록' : 'Jump rope record'),
                             value: _jumpRopeEnabled,
                             onChanged: (value) {
                               setState(() => _jumpRopeEnabled = value);
@@ -2321,12 +2321,15 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         minutesPlayed: draftEntry.minutesPlayed,
       );
 
+      final playerLevelService = PlayerLevelService(widget.optionRepository);
       PlayerLevelAward? levelAward;
       if (widget.entry == null) {
         await widget.trainingService.add(entry);
-        levelAward = await PlayerLevelService(
-          widget.optionRepository,
-        ).awardForTrainingLog(entry: entry, existingEntries: allEntries);
+        _persistedEntryForXp = entry;
+        levelAward = await playerLevelService.awardForTrainingLog(
+          entry: entry,
+          existingEntries: allEntries,
+        );
         final reminderService = TrainingPlanReminderService(
           widget.optionRepository,
           widget.settingsService,
@@ -2368,6 +2371,30 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           return;
         }
         await widget.trainingService.update(editingKey, entry);
+        final previousEntryForXp = _persistedEntryForXp ?? widget.entry!;
+        levelAward = await playerLevelService.awardForTrainingLogUpdate(
+          previousEntry: previousEntryForXp,
+          updatedEntry: entry,
+        );
+        _persistedEntryForXp = entry;
+        if (levelAward.gainedXp > 0) {
+          final reminderService = TrainingPlanReminderService(
+            widget.optionRepository,
+            widget.settingsService,
+          );
+          await reminderService.showXpGainAlert(
+            gainedXp: levelAward.gainedXp,
+            totalXp: levelAward.after.totalXp,
+            isKo: isKo,
+            sourceLabel: isKo ? '훈련 기록 수정' : 'Training update',
+          );
+          if (levelAward.didLevelUp) {
+            await reminderService.showLevelUpAlert(
+              level: levelAward.after.level,
+              isKo: isKo,
+            );
+          }
+        }
       }
       _initialSnapshot = _formSnapshot();
       if (!mounted) return;
@@ -2378,10 +2405,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         await _showFortuneRevealDialog(fortuneToShow);
         if (!mounted) return;
       }
-      if (popAfterSave &&
-          widget.entry == null &&
-          levelAward != null &&
-          levelAward.didLevelUp) {
+      if (popAfterSave && widget.entry == null && levelAward.didLevelUp) {
         final leveledUpAward = levelAward;
         final customRewardName = PlayerLevelService(
           widget.optionRepository,
@@ -2411,7 +2435,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         if (widget.entry != null) {
           AppFeedback.showSuccess(
             context,
-            text: isKo ? '훈련노트를 저장했어요.' : 'Training note saved.',
+            text: levelAward.gainedXp > 0
+                ? _buildSaveFeedback(isKo: isKo, levelAward: levelAward)
+                : (isKo ? '훈련노트를 저장했어요.' : 'Training note saved.'),
           );
         }
         Navigator.of(context).pop();
