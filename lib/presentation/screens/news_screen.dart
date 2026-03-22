@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/news_read_state.dart';
 import '../../application/news_service.dart';
+import '../../application/player_profile_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
@@ -48,16 +49,21 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       'news_title_translate_enabled';
   static const String _scrappedLinksKey = 'news_scrapped_links';
   static const String _scrappedItemsKey = 'news_scrapped_items_v1';
+  static const String _sourceOpenCountsKey = 'news_source_open_counts_v1';
   static const Duration _autoRefreshInterval = Duration(hours: 1);
+  static const int _primaryChannelLoadCount = 3;
   static DateTime? _cachedLoadedAt;
   static Set<String>? _cachedChannelIds;
   static final List<NewsArticle> _cachedArticles = <NewsArticle>[];
   late final NewsService _newsService;
+  late final PlayerProfileService _profileService;
   late final List<NewsChannel> _channels;
   final TextEditingController _searchController = TextEditingController();
   late Set<String> _selectedChannelIds;
   late Set<String> _scrappedLinks;
   late Map<String, _ScrappedNewsItem> _scrappedItemsByLink;
+  late Map<String, int> _sourceOpenCounts;
+  late String _positionHint;
   final List<NewsArticle> _articles = <NewsArticle>[];
   final Set<String> _seenLinks = <String>{};
   final Set<String> _seenTitles = <String>{};
@@ -80,6 +86,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   bool _showSearch = false;
   bool _showScrappedOnly = false;
   bool _guideShownOnce = false;
+  bool _isBackgroundLoading = false;
   int _loadToken = 0;
   DateTime? _lastLoadedAt;
 
@@ -88,7 +95,10 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _newsService = NewsService(RssNewsRepository(widget.optionRepository));
+    _profileService = PlayerProfileService(widget.optionRepository);
     _channels = _newsService.channels();
+    _positionHint =
+        _profileService.load().positionTestResult.trim().toLowerCase();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _scrappedLinks = widget.optionRepository
         .getOptions(_scrappedLinksKey, const [])
@@ -99,6 +109,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     if (_scrappedItemsByLink.isNotEmpty) {
       _scrappedLinks = {..._scrappedLinks, ..._scrappedItemsByLink.keys};
     }
+    _sourceOpenCounts = _loadSourceOpenCounts();
     _applyCacheIfValid();
     unawaited(_markVisibleArticlesRead());
     _loadProgressive();
@@ -232,16 +243,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                       ),
                       if (isKo)
                         IconButton(
-                          tooltip: _titleTranslateEnabled
-                              ? '제목 번역 켜짐'
-                              : '제목 번역 꺼짐',
+                          tooltip:
+                              _titleTranslateEnabled ? '제목 번역 켜짐' : '제목 번역 꺼짐',
                           onPressed: _toggleTitleTranslate,
                           icon: Icon(
                             Icons.translate_rounded,
                             color: _titleTranslateEnabled
                                 ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSurface
-                                      .withValues(alpha: 0.55),
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.55),
                           ),
                         ),
                     ],
@@ -379,7 +391,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             );
           },
         ),
-        if (_isLoading)
+        if (_isLoading || _isBackgroundLoading)
           const Align(
             alignment: Alignment.topCenter,
             child: LinearProgressIndicator(minHeight: 2),
@@ -435,17 +447,15 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         ? scrappedBase.map((item) => item.article).toList(growable: false)
         : List<NewsArticle>.unmodifiable(_articles);
     if (query.isEmpty) return base;
-    return base
-        .where((article) {
-          final title = article.title.toLowerCase();
-          final sourceText = article.source.toLowerCase();
-          final translated =
-              _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
-          return title.contains(query) ||
-              sourceText.contains(query) ||
-              translated.contains(query);
-        })
-        .toList(growable: false);
+    return base.where((article) {
+      final title = article.title.toLowerCase();
+      final sourceText = article.source.toLowerCase();
+      final translated =
+          _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
+      return title.contains(query) ||
+          sourceText.contains(query) ||
+          translated.contains(query);
+    }).toList(growable: false);
   }
 
   String _scrapKeyForArticle(NewsArticle article) {
@@ -550,26 +560,23 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     SizedBox(
                       height: 320,
                       child: ListView(
-                        children: _channels
-                            .map((channel) {
-                              return CheckboxListTile(
-                                dense: true,
-                                value: temp.contains(channel.id),
-                                title: Text(channel.name),
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                onChanged: (checked) {
-                                  setSheetState(() {
-                                    if (checked == true) {
-                                      temp.add(channel.id);
-                                    } else {
-                                      temp.remove(channel.id);
-                                    }
-                                  });
-                                },
-                              );
-                            })
-                            .toList(growable: false),
+                        children: _channels.map((channel) {
+                          return CheckboxListTile(
+                            dense: true,
+                            value: temp.contains(channel.id),
+                            title: Text(channel.name),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (checked) {
+                              setSheetState(() {
+                                if (checked == true) {
+                                  temp.add(channel.id);
+                                } else {
+                                  temp.remove(channel.id);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(growable: false),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -596,10 +603,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     if (!force && !_shouldRefreshByPolicy()) {
       return;
     }
-    final channelIds = _selectedChannelIds.toList(growable: false);
+    final channelIds = _prioritizedSelectedChannelIds();
     final token = ++_loadToken;
     setState(() {
       _isLoading = true;
+      _isBackgroundLoading = false;
       _hadError = false;
       if (force) {
         _articles.clear();
@@ -614,37 +622,49 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       setState(() => _isLoading = false);
       return;
     }
+    final primaryIds = channelIds.take(_primaryChannelLoadCount).toList(
+          growable: false,
+        );
+    final secondaryIds = channelIds.skip(_primaryChannelLoadCount).toList(
+          growable: false,
+        );
 
-    final tasks = channelIds
-        .map((id) async {
-          try {
-            final chunk = await _newsService.latest(id);
-            if (!mounted || token != _loadToken) return;
-            if (chunk.isEmpty) return;
-            setState(() {
-              _mergeChunk(chunk);
-            });
-          } catch (_) {
-            if (!mounted || token != _loadToken) return;
-            setState(() {
-              _hadError = true;
-            });
-          }
-        })
-        .toList(growable: false);
-
-    await Future.wait(tasks);
+    final primarySucceeded = await _loadChannels(
+      token: token,
+      channelIds: primaryIds,
+    );
     await _markVisibleArticlesRead();
     if (!mounted || token != _loadToken) return;
+
+    if (secondaryIds.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _hadError = !primarySucceeded && _articles.isEmpty;
+      });
+      _updateNewsCache();
+      return;
+    }
+
     setState(() {
       _isLoading = false;
-      _lastLoadedAt = DateTime.now();
-      _cachedLoadedAt = _lastLoadedAt;
-      _cachedChannelIds = Set<String>.from(_selectedChannelIds);
-      _cachedArticles
-        ..clear()
-        ..addAll(_articles);
+      _isBackgroundLoading = true;
+      _hadError = !primarySucceeded && _articles.isEmpty;
     });
+    unawaited(
+      _loadChannels(
+        token: token,
+        channelIds: secondaryIds,
+      ).then((secondarySucceeded) async {
+        await _markVisibleArticlesRead();
+        if (!mounted || token != _loadToken) return;
+        setState(() {
+          _isBackgroundLoading = false;
+          _hadError =
+              _articles.isEmpty && !(primarySucceeded || secondarySucceeded);
+        });
+        _updateNewsCache();
+      }),
+    );
   }
 
   bool _shouldRefreshByPolicy() {
@@ -674,6 +694,37 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             .where((v) => v.isNotEmpty),
       );
     _lastLoadedAt = cachedAt;
+  }
+
+  Future<bool> _loadChannels({
+    required int token,
+    required List<String> channelIds,
+  }) async {
+    if (channelIds.isEmpty) return false;
+    var loadedAny = false;
+    final tasks = channelIds.map((id) async {
+      try {
+        final chunk = await _newsService.latest(id);
+        if (!mounted || token != _loadToken || chunk.isEmpty) return;
+        loadedAny = true;
+        setState(() {
+          _mergeChunk(chunk);
+        });
+      } catch (_) {
+        // Keep loading remaining channels even if one feed fails.
+      }
+    }).toList(growable: false);
+    await Future.wait(tasks);
+    return loadedAny;
+  }
+
+  void _updateNewsCache() {
+    _lastLoadedAt = DateTime.now();
+    _cachedLoadedAt = _lastLoadedAt;
+    _cachedChannelIds = Set<String>.from(_selectedChannelIds);
+    _cachedArticles
+      ..clear()
+      ..addAll(_articles);
   }
 
   Future<void> _markVisibleArticlesRead() async {
@@ -710,15 +761,177 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         _scrappedItemsByLink[link] = scrapped.copyWith(article: article);
       }
     }
+    _resortArticles();
+  }
 
-    _articles.sort((a, b) {
-      final at = a.publishedAt;
-      final bt = b.publishedAt;
-      if (at == null && bt == null) return 0;
-      if (at == null) return 1;
-      if (bt == null) return -1;
-      return bt.compareTo(at);
-    });
+  void _resortArticles() {
+    _articles.sort((a, b) => _scoreArticle(b).compareTo(_scoreArticle(a)));
+  }
+
+  double _scoreArticle(NewsArticle article) {
+    var score = 0.0;
+    final now = DateTime.now();
+    final publishedAt = article.publishedAt?.toLocal();
+    if (publishedAt != null) {
+      final ageHours = now.difference(publishedAt).inHours;
+      score += (96 - ageHours).clamp(0, 96) * 0.35;
+    }
+    final sourceKey = _normalizeSourceKey(article.source);
+    score += ((_sourceOpenCounts[sourceKey] ?? 0).clamp(0, 8)) * 7.0;
+    score += (_scrappedSourceCount(sourceKey).clamp(0, 4)) * 4.0;
+    score += _scoreArticleForPosition(article);
+    if (_matchesPriorityLeague(article)) {
+      score += 4.0;
+    }
+    return score;
+  }
+
+  double _scoreArticleForPosition(NewsArticle article) {
+    if (_positionHint.isEmpty) return 0;
+    final haystack = '${article.title} ${article.source}'.trim().toLowerCase();
+    final keywords = _positionKeywords(_positionHint);
+    var score = 0.0;
+    for (final keyword in keywords) {
+      if (haystack.contains(keyword)) {
+        score += 6.0;
+      }
+    }
+    return score;
+  }
+
+  bool _matchesPriorityLeague(NewsArticle article) {
+    final lower = article.title.toLowerCase();
+    return lower.contains('premier league') ||
+        lower.contains('champions league') ||
+        lower.contains('ucl');
+  }
+
+  List<String> _positionKeywords(String position) {
+    if (position.contains('keeper') ||
+        position.contains('goalkeeper') ||
+        position.contains('골키퍼')) {
+      return const [
+        'goalkeeper',
+        'keeper',
+        'save',
+        'shot-stopper',
+        'distribution'
+      ];
+    }
+    if (position.contains('defender') ||
+        position.contains('center back') ||
+        position.contains('centre back') ||
+        position.contains('fullback') ||
+        position.contains('풀백') ||
+        position.contains('수비')) {
+      return const [
+        'defender',
+        'centre-back',
+        'center-back',
+        'full-back',
+        'fullback',
+        'press',
+        'build-up'
+      ];
+    }
+    if (position.contains('midfielder') ||
+        position.contains('midfield') ||
+        position.contains('미드필더')) {
+      return const [
+        'midfielder',
+        'midfield',
+        'playmaker',
+        'passing',
+        'tempo',
+        'press'
+      ];
+    }
+    if (position.contains('wing') ||
+        position.contains('winger') ||
+        position.contains('윙')) {
+      return const ['winger', 'wing', 'cross', 'dribble', '1v1', 'wide'];
+    }
+    if (position.contains('forward') ||
+        position.contains('striker') ||
+        position.contains('attacker') ||
+        position.contains('공격')) {
+      return const [
+        'striker',
+        'forward',
+        'finishing',
+        'shooting',
+        'goal',
+        'pressing'
+      ];
+    }
+    return const ['football', 'match', 'training'];
+  }
+
+  List<String> _prioritizedSelectedChannelIds() {
+    final selected = _channels
+        .where((channel) => _selectedChannelIds.contains(channel.id))
+        .toList(growable: false)
+      ..sort(
+        (a, b) => _channelPriorityScore(b).compareTo(_channelPriorityScore(a)),
+      );
+    return selected.map((channel) => channel.id).toList(growable: false);
+  }
+
+  double _channelPriorityScore(NewsChannel channel) {
+    final lowerName = channel.name.toLowerCase();
+    final sourceKey = _normalizeSourceKey(channel.name.split('·').first);
+    var score = ((_sourceOpenCounts[sourceKey] ?? 0).clamp(0, 8)) * 8.0;
+    if (!lowerName.contains('premier league') &&
+        !lowerName.contains('champions league')) {
+      score += 3.0;
+    }
+    for (final keyword in _positionKeywords(_positionHint)) {
+      if (lowerName.contains(keyword)) {
+        score += 2.0;
+      }
+    }
+    return score;
+  }
+
+  Map<String, int> _loadSourceOpenCounts() {
+    final raw = widget.optionRepository.getValue<String>(_sourceOpenCountsKey);
+    if (raw == null || raw.trim().isEmpty) return <String, int>{};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return <String, int>{};
+      return decoded.map<String, int>((key, value) {
+        final count =
+            value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+        return MapEntry(key.toString(), count);
+      });
+    } catch (_) {
+      return <String, int>{};
+    }
+  }
+
+  String _normalizeSourceKey(String raw) {
+    return raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  int _scrappedSourceCount(String sourceKey) {
+    if (sourceKey.isEmpty) return 0;
+    return _scrappedItemsByLink.values.where((item) {
+      return _normalizeSourceKey(item.article.source) == sourceKey;
+    }).length;
+  }
+
+  Future<void> _recordSourceOpen(NewsArticle article) async {
+    final key = _normalizeSourceKey(article.source);
+    if (key.isEmpty) return;
+    final next = Map<String, int>.from(_sourceOpenCounts);
+    next[key] = (next[key] ?? 0) + 1;
+    _sourceOpenCounts = next;
+    await widget.optionRepository.setValue(
+      _sourceOpenCountsKey,
+      jsonEncode(next),
+    );
+    if (!mounted) return;
+    setState(_resortArticles);
   }
 
   bool _isRenderableArticle(NewsArticle article) {
@@ -785,6 +998,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         );
       }
     }
+    await _recordSourceOpen(article);
     await launchUrl(
       uri,
       mode: LaunchMode.inAppBrowserView,
@@ -812,19 +1026,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle)
-        .then((translated) {
-          if (!mounted) return;
-          final value = translated.trim();
-          if (value.isNotEmpty && value != originalTitle) {
-            setState(() {
-              _translatedTitlesByLink[key] = value;
-            });
-          }
-        })
-        .whenComplete(() {
-          _translatingLinks.remove(key);
+    _translateToKorean(originalTitle).then((translated) {
+      if (!mounted) return;
+      final value = translated.trim();
+      if (value.isNotEmpty && value != originalTitle) {
+        setState(() {
+          _translatedTitlesByLink[key] = value;
         });
+      }
+    }).whenComplete(() {
+      _translatingLinks.remove(key);
+    });
   }
 
   Future<void> _toggleTitleTranslate() async {
