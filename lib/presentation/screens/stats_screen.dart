@@ -32,6 +32,7 @@ class StatsScreen extends StatefulWidget {
   final SettingsService settingsService;
   final BackupService? driveBackupService;
   final DateTimeRange? initialRange;
+  final int initialRangeRequestKey;
 
   const StatsScreen({
     super.key,
@@ -42,6 +43,7 @@ class StatsScreen extends StatefulWidget {
     required this.settingsService,
     this.driveBackupService,
     this.initialRange,
+    this.initialRangeRequestKey = 0,
   });
 
   @override
@@ -67,7 +69,10 @@ class _StatsScreenState extends State<StatsScreen> {
     super.didUpdateWidget(oldWidget);
     final nextRange = widget.initialRange;
     final previousRange = oldWidget.initialRange;
-    if (!_sameRange(previousRange, nextRange) && nextRange != null) {
+    final forceApplyRange =
+        widget.initialRangeRequestKey != oldWidget.initialRangeRequestKey;
+    if (nextRange != null &&
+        (forceApplyRange || !_sameRange(previousRange, nextRange))) {
       _selectedRange = nextRange;
     }
   }
