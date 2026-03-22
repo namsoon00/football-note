@@ -482,8 +482,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               const SizedBox(height: 12),
               _buildRoleReviewGrid(day),
               const SizedBox(height: 12),
-              _buildTrainingOverviewCard(day),
-              const SizedBox(height: 12),
               _buildNightReviewCard(day, diary),
               const SizedBox(height: 12),
               _buildFortuneCard(day),
@@ -785,38 +783,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         style: Theme.of(
           context,
         ).textTheme.bodyLarge?.copyWith(height: 1.7, color: _headlineInk),
-      ),
-    );
-  }
-
-  Widget _buildTrainingOverviewCard(_DiaryDayData day) {
-    final trainings = day.trainingEntries;
-    final totalMinutes = trainings.fold<int>(
-      0,
-      (sum, entry) => sum + entry.durationMinutes,
-    );
-    final topFocus = _topFocus(trainings);
-    final topPlace = _topPlaces(trainings);
-    final modeLabel = trainings.length >= 6
-        ? (_isKo ? '압축 타임라인 모드' : 'Compact timeline mode')
-        : (_isKo ? '카드 모드' : 'Card mode');
-    return _buildPaperCard(
-      title: _isKo ? '오늘 훈련 요약' : 'Today training summary',
-      subtitle: _isKo
-          ? '핵심만 먼저 보여주고, 아래에서 상세를 펼쳐볼 수 있어요.'
-          : 'See key points first, then open details below.',
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          _buildStatChip(
-            _isKo ? '훈련 ${trainings.length}개' : '${trainings.length} logs',
-          ),
-          _buildStatChip(_isKo ? '합계 $totalMinutes분' : '$totalMinutes min'),
-          _buildStatChip(_isKo ? '중심 $topFocus' : 'Focus $topFocus'),
-          _buildStatChip(_isKo ? '장소 $topPlace' : 'Place $topPlace'),
-          _buildStatChip(modeLabel),
-        ],
       ),
     );
   }
