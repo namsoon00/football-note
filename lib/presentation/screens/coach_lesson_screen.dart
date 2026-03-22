@@ -479,9 +479,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             children: [
               _buildDayHeadlineCard(day),
               const SizedBox(height: 12),
-              _buildRoleReviewGrid(day),
-              const SizedBox(height: 12),
               _buildNightReviewCard(day, diary),
+              const SizedBox(height: 12),
+              _buildRoleReviewGrid(day),
               const SizedBox(height: 12),
               _buildFortuneCard(day),
               if (day.plans.isNotEmpty) ...[
