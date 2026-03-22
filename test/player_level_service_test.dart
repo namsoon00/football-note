@@ -135,6 +135,55 @@ void main() {
     expect(history.first.reasons, contains('log'));
   });
 
+  test(
+    'training log update restores xp for newly added lifting and jump rope',
+    () async {
+      final repository = _MemoryOptionRepository()
+        ..seed(PlayerLevelService.totalXpKey, 100);
+      final service = PlayerLevelService(repository);
+
+      final award = await service.awardForTrainingLogUpdate(
+        previousEntry: TrainingEntry(
+          date: DateTime(2026, 3, 18, 18),
+          durationMinutes: 55,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+        updatedEntry: TrainingEntry(
+          date: DateTime(2026, 3, 18, 18),
+          createdAt: DateTime(2026, 3, 18, 19),
+          durationMinutes: 55,
+          intensity: 4,
+          type: '패스',
+          program: '원터치 패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+          liftingByPart: const {'inside': 40},
+          jumpRopeCount: 120,
+          jumpRopeEnabled: true,
+        ),
+      );
+
+      expect(award.gainedXp, 20);
+      expect(
+        award.reasons,
+        containsAll(<String>['lifting_added', 'jump_rope_added']),
+      );
+      expect(service.loadState().totalXp, 120);
+
+      final history = service.loadXpHistory();
+      expect(history, hasLength(1));
+      expect(history.first.label, '원터치 패스');
+      expect(history.first.reasons, contains('lifting_added'));
+    },
+  );
+
   test('board save and diary review awards are tracked once per day', () async {
     final repository = _MemoryOptionRepository();
     final service = PlayerLevelService(repository);

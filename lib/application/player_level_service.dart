@@ -161,6 +161,62 @@ class PlayerLevelService {
     );
   }
 
+  Future<PlayerLevelAward> awardForTrainingLogUpdate({
+    required TrainingEntry previousEntry,
+    required TrainingEntry updatedEntry,
+  }) async {
+    final before = loadState();
+    final reasons = <String>[];
+    var gainedXp = 0;
+
+    final previousLiftingDone = _hasLiftingRecord(previousEntry);
+    final updatedLiftingDone = _hasLiftingRecord(updatedEntry);
+    if (!previousLiftingDone && updatedLiftingDone) {
+      gainedXp += 10;
+      reasons.add('lifting_added');
+    }
+
+    final previousJumpRopeDone = _hasJumpRopeRecord(previousEntry);
+    final updatedJumpRopeDone = _hasJumpRopeRecord(updatedEntry);
+    if (!previousJumpRopeDone && updatedJumpRopeDone) {
+      gainedXp += 10;
+      reasons.add('jump_rope_added');
+    }
+
+    if (gainedXp == 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+
+    final nextTotal = before.totalXp + gainedXp;
+    await _options.setValue(totalXpKey, nextTotal);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: updatedEntry.createdAt,
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.training,
+        label: updatedEntry.program.trim().isNotEmpty
+            ? updatedEntry.program.trim()
+            : updatedEntry.type,
+        reasons: reasons,
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: reasons,
+    );
+  }
+
   Future<PlayerLevelAward> awardForQuizCompletion({
     DateTime? completedAt,
   }) async {
@@ -607,6 +663,16 @@ class PlayerLevelService {
 
   DateTime _normalizeDay(DateTime value) =>
       DateTime(value.year, value.month, value.day);
+
+  bool _hasLiftingRecord(TrainingEntry entry) {
+    return entry.liftingByPart.values.any((count) => count > 0);
+  }
+
+  bool _hasJumpRopeRecord(TrainingEntry entry) {
+    return entry.jumpRopeCount > 0 ||
+        entry.jumpRopeMinutes > 0 ||
+        entry.jumpRopeNote.trim().isNotEmpty;
+  }
 
   String _dayKey(DateTime value) {
     final normalized = _normalizeDay(value);

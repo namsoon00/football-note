@@ -253,6 +253,10 @@ class _XpHistoryCard extends StatelessWidget {
         return isKo ? '리프팅 미기록' : 'no lifting';
       case 'jump_rope_missed':
         return isKo ? '줄넘기 미기록' : 'no jump rope';
+      case 'lifting_added':
+        return isKo ? '리프팅 추가 기록' : 'lifting added';
+      case 'jump_rope_added':
+        return isKo ? '줄넘기 추가 기록' : 'jump rope added';
       case 'streak_3':
         return isKo ? '3일 연속' : '3-day streak';
       case 'streak_7':
