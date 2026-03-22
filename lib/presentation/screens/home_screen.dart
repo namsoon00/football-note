@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late int _index;
   DateTime? _calendarSelectedDay;
   DateTimeRange? _statsInitialRange;
+  int _statsInitialRangeRequestKey = 0;
   CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
   final Set<int> _guideCheckedInSession = <int>{};
   bool _routePushInFlight = false;
@@ -107,8 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
         initialSelectedDay: _calendarSelectedDay,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction:
-            _pendingCalendarQuickCreateAction ??
+        quickCreateAction: _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
@@ -123,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
         initialRange: _statsInitialRange,
+        initialRangeRequestKey: _statsInitialRangeRequestKey,
       ),
       CoachLessonScreen(
         optionRepository: widget.optionRepository,
@@ -183,6 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openWeeklyStatsForCurrentWeek() {
     setState(() {
       _statsInitialRange = _currentWeekRange();
+      _statsInitialRangeRequestKey++;
       _index = 3;
     });
     unawaited(_showTabGuideIfNeeded(3));
