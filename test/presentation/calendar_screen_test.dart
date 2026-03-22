@@ -181,7 +181,7 @@ void main() {
     expect(find.byTooltip('다이어리'), findsNothing);
   });
 
-  testWidgets('계획이 있는 날짜는 기록과 다른 색 마커를 날짜 아래에 표시한다', (tester) async {
+  testWidgets('계획 마커는 유지하고 파란 마커는 시합이 있는 날에만 표시한다', (tester) async {
     final today = DateTime.now();
     await trainingService.add(
       TrainingEntry(
@@ -193,6 +193,22 @@ void main() {
         injury: false,
         notes: '',
         location: '',
+      ),
+    );
+    await trainingService.add(
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 18),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '시합',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '주 경기장',
+        opponentTeam: '블루 FC',
+        scoredGoals: 2,
+        concededGoals: 1,
+        matchLocation: '주 경기장',
       ),
     );
     await optionRepository.setValue(
@@ -236,6 +252,29 @@ void main() {
     expect(
       find.byKey(ValueKey('calendar_day_plan_marker_${today.day}')),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('훈련 기록만 있는 날에는 파란 마커를 표시하지 않는다', (tester) async {
+    final today = DateTime.now();
+    await trainingService.add(
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 7),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '',
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    expect(
+      find.byKey(ValueKey('calendar_day_entry_marker_${today.day}')),
+      findsNothing,
     );
   });
 }
