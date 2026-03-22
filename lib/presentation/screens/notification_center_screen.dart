@@ -61,16 +61,16 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   void _restoreSectionExpandedState() {
     _showInactivitySection =
         widget.optionRepository.getValue<bool>(_showInactivitySectionKey) ??
-            _showInactivitySection;
+        _showInactivitySection;
     _showXpSection =
         widget.optionRepository.getValue<bool>(_showXpSectionKey) ??
-            _showXpSection;
+        _showXpSection;
     _showPlanSection =
         widget.optionRepository.getValue<bool>(_showPlanSectionKey) ??
-            _showPlanSection;
+        _showPlanSection;
     _showSystemSection =
         widget.optionRepository.getValue<bool>(_showSystemSectionKey) ??
-            _showSystemSection;
+        _showSystemSection;
   }
 
   void _toggleSection({
@@ -146,17 +146,18 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const [];
-      final rows = decoded
-          .whereType<Map>()
-          .map(
-            (e) => _PlanAlarmRow.fromMap(
-              e.cast<String, dynamic>(),
-              seenKeys: seenPlanKeys,
-            ),
-          )
-          .where((e) => e.scheduledAt.isAfter(DateTime.now()))
-          .toList(growable: false)
-        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+      final rows =
+          decoded
+              .whereType<Map>()
+              .map(
+                (e) => _PlanAlarmRow.fromMap(
+                  e.cast<String, dynamic>(),
+                  seenKeys: seenPlanKeys,
+                ),
+              )
+              .where((e) => e.scheduledAt.isAfter(DateTime.now()))
+              .toList(growable: false)
+            ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
       final dismissed = _reminderService.dismissedMessageKeysSync().toSet();
       return rows
           .where((row) => !dismissed.contains(row.messageKey))
@@ -189,8 +190,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     await TrainingPlanBadgeService(widget.optionRepository).syncFromStorage();
     if (!mounted) return;
     setState(() {
-      _xpRows =
-          _xpRows.where((item) => item.id != row.id).toList(growable: false);
+      _xpRows = _xpRows
+          .where((item) => item.id != row.id)
+          .toList(growable: false);
     });
   }
 
@@ -235,22 +237,39 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
-                if (!_permissionGranted) ...[
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.notifications_off_outlined),
-                      title: Text(
-                        isKo ? '알림 권한 꺼짐' : 'Notification permission is off',
-                      ),
-                      subtitle: Text(
-                        isKo
-                            ? '설정 > 알림에서 권한을 켜 주세요.'
-                            : 'Enable permission in Settings > Notifications.',
-                      ),
+                Card(
+                  child: ListTile(
+                    leading: Icon(
+                      _permissionGranted
+                          ? Icons.notifications_active_outlined
+                          : Icons.notifications_off_outlined,
                     ),
+                    title: Text(
+                      _permissionGranted
+                          ? (isKo ? '폰 알림 활성화' : 'Phone notifications are on')
+                          : (isKo
+                                ? '폰 알림 비활성화'
+                                : 'Phone notifications are off'),
+                    ),
+                    subtitle: Text(
+                      _permissionGranted
+                          ? (widget.settingsService.reminderEnabled
+                                ? (isKo
+                                      ? '기기 알림과 앱 알림이 모두 켜져 있습니다.'
+                                      : 'Both device notifications and in-app alerts are enabled.')
+                                : (isKo
+                                      ? '기기 알림은 켜져 있지만 앱 내 전체 알림은 꺼져 있습니다.'
+                                      : 'Device notifications are on, but in-app alerts are turned off.'))
+                          : (isKo
+                                ? '설정 > 알림에서 이 앱의 알림을 허용해야 실제 알림이 도착합니다.'
+                                : 'Allow notifications for this app in Settings > Notifications to receive alerts.'),
+                    ),
+                    trailing: _permissionGranted
+                        ? const Icon(Icons.check_circle_outline)
+                        : const Icon(Icons.error_outline),
                   ),
-                  const SizedBox(height: 8),
-                ],
+                ),
+                const SizedBox(height: 8),
                 _NotificationSectionCard(
                   title: isKo ? '기록 리마인드' : 'Inactivity reminder',
                   icon: Icons.edit_calendar_outlined,
@@ -266,11 +285,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     title: Text(
                       widget.settingsService.inactivityAlertEnabled
                           ? (isKo
-                              ? '기록 공백 리마인드 사용 중'
-                              : 'Inactivity reminder is on')
+                                ? '기록 공백 리마인드 사용 중'
+                                : 'Inactivity reminder is on')
                           : (isKo
-                              ? '기록 공백 리마인드 꺼짐'
-                              : 'Inactivity reminder is off'),
+                                ? '기록 공백 리마인드 꺼짐'
+                                : 'Inactivity reminder is off'),
                     ),
                     subtitle: Text(_buildInactivitySubtitle(isKo)),
                   ),
@@ -305,18 +324,19 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                   background: Container(
                                     alignment: Alignment.centerRight,
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
+                                      horizontal: 16,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .errorContainer,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.errorContainer,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       Icons.delete_outline,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onErrorContainer,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
                                     ),
                                   ),
                                   onDismissed: (_) => _deleteXpMessage(item),
@@ -330,8 +350,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                             child: Text(
                                               item.label.isEmpty
                                                   ? (isKo
-                                                      ? '경험치 알림'
-                                                      : 'XP alert')
+                                                        ? '경험치 알림'
+                                                        : 'XP alert')
                                                   : item.label,
                                             ),
                                           ),
@@ -388,18 +408,19 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                   background: Container(
                                     alignment: Alignment.centerRight,
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
+                                      horizontal: 16,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .errorContainer,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.errorContainer,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
                                       Icons.delete_outline,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onErrorContainer,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
                                     ),
                                   ),
                                   onDismissed: (_) => _deleteMessage(item),
@@ -413,8 +434,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                             child: Text(
                                               item.category.isEmpty
                                                   ? (isKo
-                                                      ? '훈련 계획'
-                                                      : 'Training plan')
+                                                        ? '훈련 계획'
+                                                        : 'Training plan')
                                                   : item.category,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
@@ -426,8 +447,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                           ],
                                           const SizedBox(width: 8),
                                           Text(
-                                            DateFormat('HH:mm')
-                                                .format(item.scheduledAt),
+                                            DateFormat(
+                                              'HH:mm',
+                                            ).format(item.scheduledAt),
                                           ),
                                         ],
                                       ),
@@ -478,11 +500,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final parsed = raw == null ? null : DateTime.tryParse(raw);
     final base = widget.settingsService.inactivityAlertEnabled
         ? (isKo
-            ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
-            : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
+              ? '${widget.settingsService.inactivityAlertDays}일 동안 기록이 없으면 ${widget.settingsService.reminderTime.format(context)}에 알림'
+              : 'Alert at ${widget.settingsService.reminderTime.format(context)} after ${widget.settingsService.inactivityAlertDays} inactive days')
         : (isKo
-            ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
-            : 'Enable it in Settings to get nudges after quiet periods.');
+              ? '설정에서 켜면 훈련 기록 공백을 알려줍니다.'
+              : 'Enable it in Settings to get nudges after quiet periods.');
     if (parsed == null) return base;
     final formatted = DateFormat(
       isKo ? 'M/d HH:mm' : 'MMM d HH:mm',
@@ -542,14 +564,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                             Text(
                               _mutedNow
                                   ? (isKo
-                                      ? '현재 알림이 일시중지되어 있어요.'
-                                      : 'Alerts are currently paused.')
+                                        ? '현재 알림이 일시중지되어 있어요.'
+                                        : 'Alerts are currently paused.')
                                   : (isKo
-                                      ? '반복 알림 제어'
-                                      : 'Repeating alert control'),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                                        ? '반복 알림 제어'
+                                        : 'Repeating alert control'),
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 8),
@@ -702,8 +722,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           initialValue:
                               widget.settingsService.inactivityAlertDays,
                           decoration: InputDecoration(
-                            labelText:
-                                isKo ? '기록 공백 기준' : 'Inactivity threshold',
+                            labelText: isKo
+                                ? '기록 공백 기준'
+                                : 'Inactivity threshold',
                           ),
                           items: const [1, 2, 3, 5, 7, 10, 14]
                               .map(
@@ -776,9 +797,7 @@ class _NotificationSectionCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -795,10 +814,7 @@ class _NotificationSectionCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (expanded) ...[
-              const SizedBox(height: 8),
-              child,
-            ],
+            if (expanded) ...[const SizedBox(height: 8), child],
           ],
         ),
       ),
@@ -823,9 +839,9 @@ class _NewBadge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w800,
-            ),
+          color: color,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -871,7 +887,8 @@ class _PlanAlarmRow {
         '${map['id']?.toString() ?? ''}|${map['scheduledAt']?.toString() ?? ''}';
     return _PlanAlarmRow(
       id: map['id']?.toString() ?? '',
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       scheduleSummary: [
@@ -908,7 +925,8 @@ class _XpMessageRow {
     final id = map['id']?.toString() ?? '';
     return _XpMessageRow(
       id: id,
-      createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
+      createdAt:
+          DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
       gainedXp: (map['gainedXp'] as num?)?.toInt() ?? 0,
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
