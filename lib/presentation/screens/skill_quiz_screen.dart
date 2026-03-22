@@ -1512,7 +1512,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final mixedReview = _loadDueReviewQuestions().toList(growable: true)
       ..shuffle(random);
     final mixCount = math.min(mixedReview.length, 2);
-    final reviewQuestions = mixedReview.take(mixCount).toList(growable: false);
+    final reviewQuestions = <_FootballQuizQuestion>[];
+    var reviewShortAnswerCount = 0;
+    for (final question in mixedReview) {
+      if (reviewQuestions.length >= mixCount) break;
+      if (question.style == _QuestionStyle.shortAnswer &&
+          reviewShortAnswerCount >= 1) {
+        continue;
+      }
+      reviewQuestions.add(question);
+      if (question.style == _QuestionStyle.shortAnswer) {
+        reviewShortAnswerCount += 1;
+      }
+    }
     final excludedIds = reviewQuestions.map((question) => question.id).toSet();
     final remainingCount = math.max(0, _dailyCount - reviewQuestions.length);
     final ox = _allQuestions
@@ -1530,9 +1542,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         .where((q) => !excludedIds.contains(q.id))
         .toList(growable: false)
       ..shuffle(random);
-    final oxCount = remainingCount ~/ 3;
-    final mcqCount = remainingCount ~/ 3;
-    final shortCount = remainingCount - oxCount - mcqCount;
+    final shortCount = (reviewShortAnswerCount == 0 &&
+            remainingCount > 0 &&
+            shortAnswer.isNotEmpty)
+        ? 1
+        : 0;
+    final objectiveCount = remainingCount - shortCount;
+    final oxCount = objectiveCount ~/ 2;
+    final mcqCount = objectiveCount - oxCount;
     final picked = <_FootballQuizQuestion>[
       ...reviewQuestions,
       ...ox.take(oxCount),
