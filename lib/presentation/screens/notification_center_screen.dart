@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -26,6 +27,11 @@ class NotificationCenterScreen extends StatefulWidget {
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   static const _seenPlanKeysStorageKey = 'notification_seen_plan_keys_v1';
   static const _seenXpIdsStorageKey = 'notification_seen_xp_ids_v1';
+  static const _showInactivitySectionKey =
+      'notification_show_inactivity_section_v1';
+  static const _showXpSectionKey = 'notification_show_xp_section_v1';
+  static const _showPlanSectionKey = 'notification_show_plan_section_v1';
+  static const _showSystemSectionKey = 'notification_show_system_section_v1';
 
   late final TrainingPlanReminderService _reminderService;
   bool _permissionGranted = true;
@@ -47,7 +53,33 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       widget.optionRepository,
       widget.settingsService,
     );
+    _restoreSectionExpandedState();
     _load();
+  }
+
+  void _restoreSectionExpandedState() {
+    _showInactivitySection =
+        widget.optionRepository.getValue<bool>(_showInactivitySectionKey) ??
+            _showInactivitySection;
+    _showXpSection =
+        widget.optionRepository.getValue<bool>(_showXpSectionKey) ??
+            _showXpSection;
+    _showPlanSection =
+        widget.optionRepository.getValue<bool>(_showPlanSectionKey) ??
+            _showPlanSection;
+    _showSystemSection =
+        widget.optionRepository.getValue<bool>(_showSystemSectionKey) ??
+            _showSystemSection;
+  }
+
+  void _toggleSection({
+    required String storageKey,
+    required bool currentValue,
+    required void Function(bool next) apply,
+  }) {
+    final next = !currentValue;
+    setState(() => apply(next));
+    unawaited(widget.optionRepository.setValue(storageKey, next));
   }
 
   Future<void> _load() async {
@@ -219,9 +251,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   title: isKo ? '기록 리마인드' : 'Inactivity reminder',
                   icon: Icons.edit_calendar_outlined,
                   expanded: _showInactivitySection,
-                  onTap: () => setState(() {
-                    _showInactivitySection = !_showInactivitySection;
-                  }),
+                  onTap: () => _toggleSection(
+                    storageKey: _showInactivitySectionKey,
+                    currentValue: _showInactivitySection,
+                    apply: (next) => _showInactivitySection = next,
+                  ),
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.edit_calendar_outlined),
@@ -245,9 +279,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   icon: Icons.stars_rounded,
                   expanded: _showXpSection,
                   newCount: xpNewCount,
-                  onTap: () => setState(() {
-                    _showXpSection = !_showXpSection;
-                  }),
+                  onTap: () => _toggleSection(
+                    storageKey: _showXpSectionKey,
+                    currentValue: _showXpSection,
+                    apply: (next) => _showXpSection = next,
+                  ),
                   child: _xpRows.isEmpty
                       ? ListTile(
                           contentPadding: EdgeInsets.zero,
@@ -321,9 +357,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   icon: Icons.alarm_outlined,
                   expanded: _showPlanSection,
                   newCount: planNewCount,
-                  onTap: () => setState(() {
-                    _showPlanSection = !_showPlanSection;
-                  }),
+                  onTap: () => _toggleSection(
+                    storageKey: _showPlanSectionKey,
+                    currentValue: _showPlanSection,
+                    apply: (next) => _showPlanSection = next,
+                  ),
                   child: _planRows.isEmpty
                       ? ListTile(
                           contentPadding: EdgeInsets.zero,
@@ -413,9 +451,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                         : '${_pending.length} system-scheduled alerts',
                     icon: Icons.schedule_outlined,
                     expanded: _showSystemSection,
-                    onTap: () => setState(() {
-                      _showSystemSection = !_showSystemSection;
-                    }),
+                    onTap: () => _toggleSection(
+                      storageKey: _showSystemSectionKey,
+                      currentValue: _showSystemSection,
+                      apply: (next) => _showSystemSection = next,
+                    ),
                     child: Text(
                       isKo
                           ? '시스템 예약 상태를 참고용으로 보여줍니다.'
