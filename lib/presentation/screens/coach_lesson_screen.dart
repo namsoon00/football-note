@@ -481,6 +481,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             children: [
               _buildDayHeadlineCard(day),
               const SizedBox(height: 12),
+              _buildPinnedDiarySection(
+                title: _isKo ? '자기 전 다이어리' : 'Night review diary',
+                summary: _isKo
+                    ? '기록 내용을 문장으로 다시 정리해요.'
+                    : 'Review your records as one recap text.',
+                child: _buildNightReviewCard(day, diary),
+              ),
+              const SizedBox(height: 12),
               _buildCollapsibleDiarySection(
                 sectionKey: 'analysis',
                 title: _isKo ? '오늘 분석' : 'Today analysis',
@@ -489,15 +497,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     : 'Coach points, data signals, and next actions in one place',
                 countLabel: _isKo ? '3영역' : '3 areas',
                 child: _buildRoleReviewGrid(day),
-              ),
-              const SizedBox(height: 12),
-              _buildCollapsibleDiarySection(
-                sectionKey: 'night',
-                title: _isKo ? '자기 전 다이어리' : 'Night review diary',
-                summary: _isKo
-                    ? '기록 내용을 문장으로 다시 정리해요.'
-                    : 'Review your records as one recap text.',
-                child: _buildNightReviewCard(day, diary),
               ),
               const SizedBox(height: 12),
               _buildCollapsibleDiarySection(
@@ -631,6 +630,73 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  Widget _buildPinnedDiarySection({
+    required String title,
+    required String summary,
+    String? countLabel,
+    required Widget child,
+  }) {
+    return Container(
+      decoration: _paperDecoration(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: _theme.textTheme.titleMedium?.copyWith(
+                          color: _headlineInk,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        summary,
+                        style: _theme.textTheme.bodySmall?.copyWith(
+                          color: _bodyInk,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (countLabel != null && countLabel.trim().isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _tileSurface,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: _paperEdge),
+                    ),
+                    child: Text(
+                      countLabel,
+                      style: _theme.textTheme.labelMedium?.copyWith(
+                        color: _headlineInk,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCollapsibleDiarySection({
     required String sectionKey,
     required String title,
@@ -730,10 +796,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final fortunes = day.fortunes(_isKo);
     if (fortunes.isEmpty) {
       return _buildPaperCard(
-        title: _isKo ? '오늘의 운세 노트' : 'Today fortune note',
-        subtitle: _isKo
-            ? '같은 날 훈련노트에 저장된 운세가 아직 없어요.'
-            : 'No saved fortunes from training notes on this day yet.',
+        title: null,
+        subtitle: null,
         child: Text(
           _isKo
               ? '훈련노트에서 오늘의 운세를 저장하면 이 다이어리 페이지에 함께 보여줍니다.'
@@ -746,10 +810,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
     }
     return _buildPaperCard(
-      title: _isKo ? '오늘의 운세 노트' : 'Today fortune note',
-      subtitle: _isKo
-          ? '같은 날 훈련노트에 저장된 운세를 모아서 보여줘요.'
-          : 'Saved fortunes from training notes on the same day are shown here.',
+      title: null,
+      subtitle: null,
       child: SizedBox(
         height: fortunes.length > 1 ? 300 : 260,
         child: Column(
@@ -888,10 +950,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildNightReviewCard(_DiaryDayData day, String diary) {
     return _buildPaperCard(
-      title: _isKo ? '자기 전 다이어리' : 'Night review diary',
-      subtitle: _isKo
-          ? '기록에 있는 사실만 연결해서 오늘을 다시 읽습니다.'
-          : 'This recap only uses details already recorded in your logs.',
+      title: null,
+      subtitle: null,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1085,7 +1145,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildPlanCard(List<_DiaryPlan> plans) {
     return _buildPaperCard(
-      title: _isKo ? '훈련 계획' : 'Training plans',
+      title: null,
       child: Column(
         children: plans
             .map(
@@ -1103,7 +1163,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildMatchCard(List<TrainingEntry> entries) {
     return _buildPaperCard(
-      title: _isKo ? '시합 기록' : 'Match records',
+      title: null,
       child: Column(
         children: entries
             .map(
@@ -1120,7 +1180,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildTrainingCard(List<TrainingEntry> entries) {
     return _buildPaperCard(
-      title: _isKo ? '훈련 기록' : 'Training records',
+      title: null,
       child: SizedBox(
         height: entries.length > 1 ? 260 : 220,
         child: Column(
@@ -1167,10 +1227,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget _buildTrainingTimelineCard(_DiaryDayData day) {
     final grouped = _groupTrainingEntriesByType(day.trainingEntries);
     return _buildPaperCard(
-      title: _isKo ? '훈련 기록 타임라인' : 'Training timeline',
-      subtitle: _isKo
-          ? '훈련이 많아 유형별로 묶어 보여줍니다. 탭해서 펼치세요.'
-          : 'Many logs are grouped by type. Tap to expand.',
+      title: null,
+      subtitle: null,
       child: Column(
         children: grouped.entries.map((group) {
           final groupKey = _trainingGroupKey(day.date, group.key);
@@ -1356,7 +1414,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .map(_injurySummary)
         .toList(growable: false);
     return _buildPaperCard(
-      title: _isKo ? '부상 · 리프팅 · 줄넘기' : 'Injury, lifting, jump rope',
+      title: null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1379,10 +1437,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildBoardCard(_DiaryDayData day) {
     return _buildPaperCard(
-      title: _isKo ? '다이어리에 담긴 훈련보드' : 'Training boards in this diary',
-      subtitle: _isKo
-          ? '실제 보드 화면과 보드 메모, 연결된 기록 메모를 함께 남깁니다.'
-          : 'Keeps the board preview, board memo, and linked log notes together.',
+      title: null,
+      subtitle: null,
       child: Column(
         children: day.boards
             .map((board) => _buildBoardDiaryTile(day: day, board: board))
@@ -1406,11 +1462,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildPaperCard({
-    required String title,
+    required String? title,
     String? subtitle,
     Widget? trailing,
     required Widget child,
   }) {
+    final hasHeader = (title?.trim().isNotEmpty ?? false) ||
+        (subtitle?.trim().isNotEmpty ?? false) ||
+        trailing != null;
     return Container(
       decoration: _paperDecoration(),
       child: Padding(
@@ -1418,38 +1477,43 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
+            if (hasHeader) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (title != null && title.trim().isNotEmpty)
+                          Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   color: _headlineInk,
                                   fontWeight: FontWeight.w900,
                                 ),
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: _bodyInk, height: 1.45),
-                        ),
+                          ),
+                        if (subtitle != null && subtitle.trim().isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: _bodyInk, height: 1.45),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                if (trailing != null) trailing,
-              ],
-            ),
-            const SizedBox(height: 14),
+                  if (trailing != null) trailing,
+                ],
+              ),
+              const SizedBox(height: 14),
+            ],
             child,
           ],
         ),
