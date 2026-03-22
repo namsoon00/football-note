@@ -190,50 +190,24 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 ),
                 const SizedBox(height: 8),
                 Card(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+                  child: ListTile(
+                    leading: Icon(
+                      _mutedNow
+                          ? Icons.notifications_paused_outlined
+                          : Icons.tune,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          _mutedNow
-                              ? (isKo ? '알림 일시중지됨' : 'Alerts are paused')
-                              : (isKo ? '반복 알림 제어' : 'Repeating alert control'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed:
-                                    _mutedNow ? null : () => _muteForHours(8),
-                                icon: const Icon(
-                                  Icons.notifications_off_outlined,
-                                ),
-                                label: Text(isKo ? '8시간 끄기' : 'Mute 8h'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: _mutedNow ? _resumeAlerts : null,
-                                icon: const Icon(
-                                  Icons.notifications_active_outlined,
-                                ),
-                                label: Text(isKo ? '다시 켜기' : 'Resume'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    title: Text(
+                      _mutedNow
+                          ? (isKo ? '알림 일시중지됨' : 'Alerts are paused')
+                          : (isKo ? '알림 제어' : 'Alert controls'),
                     ),
+                    subtitle: Text(
+                      isKo
+                          ? '알림 설정에서 제어 옵션을 확인하세요.'
+                          : 'Open alert settings for control options.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _openNotificationSettingsSheet,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -452,6 +426,75 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       Text(
                         isKo ? '알림 설정' : 'Alert settings',
                         style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              _mutedNow
+                                  ? (isKo
+                                      ? '현재 알림이 일시중지되어 있어요.'
+                                      : 'Alerts are currently paused.')
+                                  : (isKo
+                                      ? '반복 알림 제어'
+                                      : 'Repeating alert control'),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              isKo
+                                  ? '알림을 잠시 멈추거나 다시 켤 수 있어요.'
+                                  : 'Temporarily mute alerts or resume anytime.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _mutedNow
+                                        ? null
+                                        : () async {
+                                            await _muteForHours(8);
+                                            if (!mounted) return;
+                                            setSheetState(() {});
+                                          },
+                                    icon: const Icon(
+                                      Icons.notifications_off_outlined,
+                                    ),
+                                    label: Text(isKo ? '8시간 끄기' : 'Mute 8h'),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FilledButton.icon(
+                                    onPressed: _mutedNow
+                                        ? () async {
+                                            await _resumeAlerts();
+                                            if (!mounted) return;
+                                            setSheetState(() {});
+                                          }
+                                        : null,
+                                    icon: const Icon(
+                                      Icons.notifications_active_outlined,
+                                    ),
+                                    label: Text(isKo ? '다시 켜기' : 'Resume'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SwitchListTile(
