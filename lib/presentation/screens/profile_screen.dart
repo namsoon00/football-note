@@ -245,9 +245,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            _buildProfileTestResultSnapshot(isKo),
+            const SizedBox(height: 12),
             _buildProfileTestsEntry(context, isKo),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileTestResultSnapshot(bool isKo) {
+    final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
+    final positionSummary = _positionResultSummary(_positionTestResult, isKo);
+    final hasAnyResult = mbtiSummary.title.trim().isNotEmpty ||
+        positionSummary.title.trim().isNotEmpty;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isKo ? '성향 테스트 결과' : 'Profile test results',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            if (!hasAnyResult)
+              Text(
+                isKo
+                    ? '아직 결과가 없어요. 아래 성향 테스트에서 진행해 주세요.'
+                    : 'No result yet. Please run the tests below.',
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (mbtiSummary.title.trim().isNotEmpty)
+                    _resultChip(
+                      label:
+                          '${isKo ? 'MBTI' : 'MBTI'} · ${mbtiSummary.title.trim()}',
+                    ),
+                  if (positionSummary.title.trim().isNotEmpty)
+                    _resultChip(
+                      label:
+                          '${isKo ? '포지션' : 'Position'} · ${positionSummary.title.trim()}',
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _resultChip({required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
