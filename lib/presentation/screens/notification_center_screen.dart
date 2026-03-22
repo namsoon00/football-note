@@ -161,56 +161,22 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
-                Card(
-                  child: ListTile(
-                    leading: Icon(
-                      _permissionGranted
-                          ? Icons.notifications_active_outlined
-                          : Icons.notifications_off_outlined,
-                    ),
-                    title: Text(
-                      _permissionGranted
-                          ? (isKo
-                              ? '알림 권한 허용됨'
-                              : 'Notification permission granted')
-                          : (isKo
-                              ? '알림 권한 꺼짐'
-                              : 'Notification permission is off'),
-                    ),
-                    subtitle: Text(
-                      _permissionGranted
-                          ? (isKo
-                              ? '훈련 계획 알림을 받을 수 있어요.'
-                              : 'You can receive training plan reminders.')
-                          : (isKo
-                              ? '설정 > 알림에서 권한을 켜 주세요.'
-                              : 'Enable permission in Settings > Notifications.'),
+                if (!_permissionGranted) ...[
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.notifications_off_outlined),
+                      title: Text(
+                        isKo ? '알림 권한 꺼짐' : 'Notification permission is off',
+                      ),
+                      subtitle: Text(
+                        isKo
+                            ? '설정 > 알림에서 권한을 켜 주세요.'
+                            : 'Enable permission in Settings > Notifications.',
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  child: ListTile(
-                    leading: Icon(
-                      _mutedNow
-                          ? Icons.notifications_paused_outlined
-                          : Icons.tune,
-                    ),
-                    title: Text(
-                      _mutedNow
-                          ? (isKo ? '알림 일시중지됨' : 'Alerts are paused')
-                          : (isKo ? '알림 제어' : 'Alert controls'),
-                    ),
-                    subtitle: Text(
-                      isKo
-                          ? '알림 설정에서 제어 옵션을 확인하세요.'
-                          : 'Open alert settings for control options.',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: _openNotificationSettingsSheet,
-                  ),
-                ),
-                const SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                ],
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.edit_calendar_outlined),
