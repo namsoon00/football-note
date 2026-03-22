@@ -1013,8 +1013,12 @@ class _PriorityActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final (title, body, buttonLabel, icon) = _copy();
+    final compact = data.focusSignal == 'upgrade_quality';
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 12 : 14,
+        vertical: compact ? 10 : 14,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1030,34 +1034,61 @@ class _PriorityActionCard extends StatelessWidget {
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: compact ? 38 : 44,
+            height: compact ? 38 : 44,
             decoration: BoxDecoration(
               color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(compact ? 12 : 14),
             ),
-            child: Icon(icon, color: theme.colorScheme.primary),
+            child: Icon(
+              icon,
+              color: theme.colorScheme.primary,
+              size: compact ? 20 : 24,
+            ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: compact ? 10 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   title,
+                  maxLines: compact ? 1 : 2,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(body, style: theme.textTheme.bodyMedium),
+                SizedBox(height: compact ? 2 : 4),
+                Text(
+                  body,
+                  maxLines: compact ? 2 : 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: compact
+                      ? theme.textTheme.bodySmall?.copyWith(height: 1.35)
+                      : theme.textTheme.bodyMedium,
+                ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          FilledButton(onPressed: onTap, child: Text(buttonLabel)),
+          FilledButton(
+            onPressed: onTap,
+            style: FilledButton.styleFrom(
+              visualDensity: compact
+                  ? const VisualDensity(horizontal: -1, vertical: -2)
+                  : VisualDensity.standard,
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 12 : 16,
+                vertical: compact ? 8 : 10,
+              ),
+            ),
+            child: Text(buttonLabel),
+          ),
         ],
       ),
     );
@@ -1105,8 +1136,8 @@ class _PriorityActionCard extends StatelessWidget {
         return (
           isKo ? '이번 주 퀄리티를 올릴 차례입니다' : 'Now raise this week’s quality',
           isKo
-              ? '기록은 충분합니다. 통계와 복기를 연결해 다음 훈련의 질을 높이세요.'
-              : 'You have enough volume. Use stats and review to improve the next session.',
+              ? '기록은 충분합니다. 주간 리뷰만 짧게 확인해도 다음 훈련 방향이 선명해집니다.'
+              : 'You have enough volume. A short weekly review will sharpen the next session.',
           isKo ? '주간 리뷰' : 'Weekly review',
           Icons.insights_outlined,
         );
