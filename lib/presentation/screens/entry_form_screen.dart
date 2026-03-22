@@ -859,13 +859,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   ),
                                 ),
                               ),
-                              TextButton.icon(
-                                onPressed: _saveInProgress || _deleteInProgress
-                                    ? null
-                                    : _save,
-                                icon: const Icon(Icons.check_circle_outline),
-                                label: Text(isKo ? '저장 완료' : 'Save'),
-                              ),
                             ],
                           ),
                         ),
