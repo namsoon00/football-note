@@ -74,6 +74,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   static const _plansStorageKey = 'training_plans_v1';
   static const _calendarExpandedKey = 'calendar_expanded_v1';
   static const _calendarFormatKey = 'calendar_format_v1';
+  static const double _calendarDayNumberFontSize = 17;
   static const Map<String, String> _krFixedHolidayLabels = <String, String>{
     '01-01': '신정',
     '03-01': '삼일절',
@@ -483,14 +484,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       shape: BoxShape.circle,
                                     ),
                                     defaultTextStyle: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: _calendarDayNumberFontSize,
                                       fontWeight: FontWeight.w700,
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.onSurface,
                                     ),
                                     weekendTextStyle: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: _calendarDayNumberFontSize,
                                       fontWeight: FontWeight.w700,
                                       color: Theme.of(
                                         context,
@@ -505,21 +506,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           .withValues(alpha: 0.35),
                                     ),
                                     todayTextStyle: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: _calendarDayNumberFontSize,
                                       fontWeight: FontWeight.w800,
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.onPrimary,
                                     ),
                                     selectedTextStyle: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: _calendarDayNumberFontSize,
                                       fontWeight: FontWeight.w800,
                                       color: Theme.of(
                                         context,
                                       ).colorScheme.onPrimary,
                                     ),
                                     holidayTextStyle: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: _calendarDayNumberFontSize,
                                       color: Colors.red.shade500,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -2244,7 +2245,7 @@ class _CalendarStatusDayCell extends StatelessWidget {
             Text(
               '$dayNumber',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: _CalendarScreenState._calendarDayNumberFontSize,
                 fontWeight: FontWeight.w800,
                 color: dayTextColor,
                 height: 1.0,
