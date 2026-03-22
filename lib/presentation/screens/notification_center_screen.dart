@@ -30,6 +30,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   bool _mutedNow = false;
   List<PendingNotificationRequest> _pending = const [];
   List<_PlanAlarmRow> _planRows = const [];
+  List<_XpMessageRow> _xpRows = const [];
   String? _lastTrainingLogAt;
 
   @override
@@ -49,6 +50,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final muted = await _reminderService.isAlarmMutedNow();
       final pending = await _reminderService.pendingReminders();
       final planRows = _loadPlanRows();
+      final xpRows = _loadXpRows();
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         TrainingPlanReminderService.lastTrainingLogAtKey,
       );
@@ -58,6 +60,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         _mutedNow = muted;
         _pending = [...pending]..sort((a, b) => a.id.compareTo(b.id));
         _planRows = planRows;
+        _xpRows = xpRows;
         _lastTrainingLogAt = lastTrainingLogAt;
         _loading = false;
       });
@@ -66,6 +69,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       setState(() {
         _pending = const [];
         _planRows = _loadPlanRows();
+        _xpRows = _loadXpRows();
         _loading = false;
       });
     }
@@ -94,6 +98,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
   }
 
+  List<_XpMessageRow> _loadXpRows() {
+    final logs = _reminderService.loadXpMessageLogSync();
+    return logs.map(_XpMessageRow.fromMap).toList(growable: false);
+  }
+
   Future<void> _deleteMessage(_PlanAlarmRow row) async {
     await _reminderService.dismissMessageKey(row.messageKey);
     if (!mounted) return;
@@ -101,6 +110,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       _planRows = _planRows
           .where((item) => item.messageKey != row.messageKey)
           .toList(growable: false);
+    });
+  }
+
+  Future<void> _deleteXpMessage(_XpMessageRow row) async {
+    await _reminderService.deleteXpMessage(row.id);
+    if (!mounted) return;
+    setState(() {
+      _xpRows =
+          _xpRows.where((item) => item.id != row.id).toList(growable: false);
     });
   }
 
@@ -254,6 +272,63 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     subtitle: Text(_buildInactivitySubtitle(isKo)),
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  isKo
+                      ? '경험치 알림 ${_xpRows.length}개'
+                      : '${_xpRows.length} XP alerts',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                if (_xpRows.isEmpty)
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.stars_outlined),
+                      title: Text(
+                        isKo ? '경험치 알림이 없어요.' : 'No XP alerts yet.',
+                      ),
+                    ),
+                  )
+                else
+                  ..._xpRows.map(
+                    (item) => Dismissible(
+                      key: ValueKey('xp-msg-${item.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.errorContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ),
+                      onDismissed: (_) => _deleteXpMessage(item),
+                      child: Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.stars_rounded),
+                          title: Text(
+                            item.label.isEmpty
+                                ? (isKo ? '경험치 알림' : 'XP alert')
+                                : item.label,
+                          ),
+                          subtitle: Text(
+                            '${isKo ? '+${item.gainedXp} XP · 누적 ${item.totalXp} XP' : '+${item.gainedXp} XP · total ${item.totalXp} XP'}\n${DateFormat(isKo ? 'M/d HH:mm' : 'MMM d HH:mm').format(item.createdAt)}',
+                          ),
+                          trailing: IconButton(
+                            tooltip: isKo ? '삭제' : 'Delete',
+                            onPressed: () => _deleteXpMessage(item),
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 Text(
                   isKo
@@ -594,6 +669,33 @@ class _PlanAlarmRow {
       ].where((value) => value.trim().isNotEmpty).join(' · '),
       messageKey:
           '${map['id']?.toString() ?? ''}|${map['scheduledAt']?.toString() ?? ''}',
+    );
+  }
+}
+
+class _XpMessageRow {
+  final String id;
+  final DateTime createdAt;
+  final int gainedXp;
+  final int totalXp;
+  final String label;
+
+  const _XpMessageRow({
+    required this.id,
+    required this.createdAt,
+    required this.gainedXp,
+    required this.totalXp,
+    required this.label,
+  });
+
+  factory _XpMessageRow.fromMap(Map<String, dynamic> map) {
+    return _XpMessageRow(
+      id: map['id']?.toString() ?? '',
+      createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
+      gainedXp: (map['gainedXp'] as num?)?.toInt() ?? 0,
+      totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
+      label: map['label']?.toString() ?? '',
     );
   }
 }
