@@ -35,7 +35,7 @@ enum _CalendarCreateAction { entry, plan, match }
 
 enum CalendarQuickCreateAction { plan, match }
 
-enum _PlanEditScope { single, series }
+enum _PlanEditScope { single, afterThis, series }
 
 class CalendarScreen extends StatefulWidget {
   final TrainingService trainingService;
@@ -73,6 +73,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   static const _plansStorageKey = 'training_plans_v1';
   static const _calendarExpandedKey = 'calendar_expanded_v1';
   static const _calendarFormatKey = 'calendar_format_v1';
+  static const _weeklyGoalKey = 'calendar_weekly_goal_count_v1';
   static const Map<String, String> _krFixedHolidayLabels = <String, String>{
     '01-01': '신정',
     '03-01': '삼일절',
@@ -255,6 +256,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final selected = _normalizeDay(_selectedDay ?? _focusedDay);
               final dayEntries = entryMap[selected] ?? const <TrainingEntry>[];
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
+              final weeklyGoal = _weeklyGoalCount();
+              final weeklyDone = _weeklyCompletedCount(
+                selectedDay: selected,
+                entryMap: entryMap,
+              );
+              final weeklyProgress =
+                  (weeklyDone / weeklyGoal).clamp(0.0, 1.0).toDouble();
+              final dayWarnings = _dayWarningMessages(
+                selectedDay: selected,
+                dayPlans: dayPlans,
+                dayEntries: dayEntries,
+              );
+              final monthInsight = _buildMonthInsight(
+                focusedDay: _focusedDay,
+                entries: entries,
+              );
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
               final isCalendarExpanded =
@@ -338,6 +355,136 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: WatchCartCard(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                _summaryChip(
+                                  context,
+                                  label: isKo
+                                      ? '훈련 ${dayEntries.where((e) => !e.isMatch).length}'
+                                      : 'Train ${dayEntries.where((e) => !e.isMatch).length}',
+                                  icon: Icons.fitness_center_outlined,
+                                ),
+                                const SizedBox(width: 6),
+                                _summaryChip(
+                                  context,
+                                  label: isKo
+                                      ? '시합 ${dayEntries.where((e) => e.isMatch).length}'
+                                      : 'Match ${dayEntries.where((e) => e.isMatch).length}',
+                                  icon: Icons.sports_soccer_outlined,
+                                ),
+                                const SizedBox(width: 6),
+                                _summaryChip(
+                                  context,
+                                  label: isKo
+                                      ? '계획 ${dayPlans.length}'
+                                      : 'Plan ${dayPlans.length}',
+                                  icon: Icons.alarm_outlined,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    isKo
+                                        ? '이번 주 목표 $weeklyGoal일 · 달성 $weeklyDone일'
+                                        : 'Weekly goal $weeklyGoal days · done $weeklyDone',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                ),
+                                Text(
+                                  '${(weeklyProgress * 100).round()}%',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(fontWeight: FontWeight.w800),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(999),
+                              child: LinearProgressIndicator(
+                                minHeight: 8,
+                                value: weeklyProgress,
+                              ),
+                            ),
+                            if (dayWarnings.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: dayWarnings
+                                    .map(
+                                      (warning) => Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .errorContainer
+                                              .withValues(alpha: 0.6),
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                        ),
+                                        child: Text(
+                                          warning,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onErrorContainer,
+                                              ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(growable: false),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_isLastWeekOfMonth(selected)) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: WatchCartCard(
+                        child: ListTile(
+                          leading: const Icon(Icons.insights_outlined),
+                          title: Text(
+                            isKo ? '이달 인사이트' : 'This month insight',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          subtitle: Text(
+                            isKo
+                                ? '가장 많이 한 훈련: ${monthInsight.topType}\n쉬었던 날: ${monthInsight.restDays}일 · 집중 최고일: ${monthInsight.bestFocusDayLabel}'
+                                : 'Top training: ${monthInsight.topType}\nRest days: ${monthInsight.restDays} · Best focus day: ${monthInsight.bestFocusDayLabel}',
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   AnimatedSize(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
@@ -596,6 +743,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         day: plan.scheduledAt,
                         editingPlan: plan,
                       ),
+                      onMovePlan: _movePlanSchedule,
                       onDeleteEntry: _confirmDeleteEntry,
                       onDeletePlan: _confirmDeletePlan,
                       onListScrollUp: () {
@@ -657,6 +805,62 @@ class _CalendarScreenState extends State<CalendarScreen> {
               onTap: () =>
                   Navigator.of(context).pop(_CalendarCreateAction.match),
             ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  isKo ? '빠른 추가 템플릿' : 'Quick add templates',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ActionChip(
+                  avatar: const Icon(Icons.self_improvement_outlined, size: 16),
+                  label: Text(isKo ? '회복 30분' : 'Recovery 30m'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _createQuickTemplatePlan(
+                      day: selectedDay,
+                      category: isKo ? '회복 훈련' : 'Recovery',
+                      durationMinutes: 30,
+                    );
+                  },
+                ),
+                ActionChip(
+                  avatar: const Icon(Icons.sports_outlined, size: 16),
+                  label: Text(isKo ? '기술 60분' : 'Skill 60m'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _createQuickTemplatePlan(
+                      day: selectedDay,
+                      category: isKo ? '기술 훈련' : 'Skill',
+                      durationMinutes: 60,
+                    );
+                  },
+                ),
+                ActionChip(
+                  avatar: const Icon(Icons.sports_soccer_outlined, size: 16),
+                  label: Text(isKo ? '게임 90분' : 'Game 90m'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _createQuickTemplatePlan(
+                      day: selectedDay,
+                      category: isKo ? '게임 훈련' : 'Game',
+                      durationMinutes: 90,
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -673,6 +877,62 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await _openMatchSheet(day: selectedDay, entries: entries);
         break;
     }
+  }
+
+  Future<void> _createQuickTemplatePlan({
+    required DateTime day,
+    required String category,
+    required int durationMinutes,
+  }) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final normalized = _normalizeDay(day);
+    final scheduledAt = DateTime(
+      normalized.year,
+      normalized.month,
+      normalized.day,
+      18,
+      0,
+    );
+    final hasConflict = _plans.any(
+      (plan) =>
+          _normalizeDay(plan.scheduledAt) == normalized &&
+          plan.scheduledAt.hour == scheduledAt.hour &&
+          plan.scheduledAt.minute == scheduledAt.minute,
+    );
+    if (hasConflict) {
+      AppFeedback.showMessage(
+        context,
+        text: isKo
+            ? '빠른 추가 시간(18:00)에 이미 계획이 있어요.'
+            : 'A plan already exists at 18:00.',
+      );
+      return;
+    }
+    final idSeed = DateTime.now().microsecondsSinceEpoch.toString();
+    final quickPlan = _TrainingPlan(
+      id: '${idSeed}_${DateFormat('yyyyMMddHHmm').format(scheduledAt)}',
+      scheduledAt: scheduledAt,
+      category: category,
+      durationMinutes: durationMinutes,
+      reminderMinutesBefore: 30,
+      repeatWeekdays: const <int>[],
+      alarmLoopEnabled: false,
+      note: isKo ? '빠른 추가' : 'Quick add',
+    );
+    setState(() {
+      _plans = [..._plans, quickPlan]
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    });
+    await _savePlans();
+    await _requestReminderPermissionIfNeeded();
+    await _syncPlanReminders();
+    if (!mounted) return;
+    AppFeedback.showSuccess(
+      context,
+      text: isKo
+          ? '${quickPlan.category} 계획을 빠르게 추가했어요.'
+          : 'Added ${quickPlan.category} quickly.',
+    );
   }
 
   Future<void> _syncPlanReminders() async {
@@ -755,16 +1015,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (editingPlan != null && editingScope == null) return;
     final editingSeries =
         editingPlan != null && editingScope == _PlanEditScope.series;
-    final seriesPlans = editingSeries
+    final editingAfterThis =
+        editingPlan != null && editingScope == _PlanEditScope.afterThis;
+    final seriesPlans = (editingSeries || editingAfterThis)
         ? _plansInSameSeries(editingPlan)
         : const <_TrainingPlan>[];
     final seriesSeed = seriesPlans.isNotEmpty ? seriesPlans.first : editingPlan;
+    final baseScheduledAt = editingPlan?.scheduledAt ?? day;
+    final baseSeriesEndDate = editingPlan?.seriesEndDate ?? baseScheduledAt;
     var planDay = editingSeries
         ? (seriesSeed?.seriesStartDate ?? seriesSeed?.scheduledAt ?? day)
-        : (editingPlan?.scheduledAt ?? day);
+        : editingAfterThis
+            ? baseScheduledAt
+            : baseScheduledAt;
     var planEndDay = editingSeries
         ? (seriesSeed?.seriesEndDate ?? seriesSeed?.scheduledAt ?? day)
-        : (editingPlan?.seriesEndDate ?? editingPlan?.scheduledAt ?? day);
+        : editingAfterThis
+            ? (seriesSeed?.seriesEndDate ?? baseScheduledAt)
+            : baseSeriesEndDate;
     var category = editingPlan?.category ?? categories.first;
     var time = TimeOfDay(
       hour: (editingPlan?.scheduledAt.hour ?? 18),
@@ -772,7 +1040,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     var duration = editingPlan?.durationMinutes ?? 60;
     var reminderBefore = editingPlan?.reminderMinutesBefore ?? 30;
-    final seedWeekdays = editingSeries
+    final seedWeekdays = (editingSeries || editingAfterThis)
         ? (seriesSeed?.repeatWeekdays ?? const <int>[])
         : (editingPlan?.repeatWeekdays ?? const <int>[]);
     var repeatWeekdays =
@@ -807,7 +1075,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ? (isKo
                                     ? '훈련 계획 묶음 수정'
                                     : 'Edit Training Series')
-                                : (isKo ? '훈련 계획 수정' : 'Edit Training Plan'),
+                                : editingAfterThis
+                                    ? (isKo
+                                        ? '이후 일정 수정'
+                                        : 'Edit this and following plans')
+                                    : (isKo
+                                        ? '훈련 계획 수정'
+                                        : 'Edit Training Plan'),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
@@ -866,7 +1140,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               ),
                             ),
                           ),
-                          if (editingPlan == null || editingSeries) ...[
+                          if (editingPlan == null ||
+                              editingSeries ||
+                              editingAfterThis) ...[
                             const SizedBox(width: 8),
                             Expanded(
                               child: OutlinedButton.icon(
@@ -1009,9 +1285,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ? (isKo
                                     ? '이 묶음의 요일, 기간, 시간을 한 번에 바꿔요.'
                                     : 'Update weekdays, range, and time for this series at once.')
-                                : (isKo
-                                    ? '이번 계획만 따로 수정해요.'
-                                    : 'Edit only this occurrence.'),
+                                : editingAfterThis
+                                    ? (isKo
+                                        ? '선택한 일정부터 이후 일정을 한 번에 바꿔요.'
+                                        : 'Update from this plan onward.')
+                                    : (isKo
+                                        ? '이번 계획만 따로 수정해요.'
+                                        : 'Edit only this occurrence.'),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(height: 6),
@@ -1061,7 +1341,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       FilledButton.icon(
                         onPressed: () {
                           final occurrenceDates = (editingPlan == null ||
-                                  editingSeries)
+                                  editingSeries ||
+                                  editingAfterThis)
                               ? TrainingPlanSeriesBuilder.buildOccurrenceDates(
                                   startDate: planDay,
                                   endDate: planEndDay,
@@ -1088,12 +1369,54 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             return;
                           }
                           final isRecurring = (editingPlan == null ||
-                                  editingSeries) &&
+                                  editingSeries ||
+                                  editingAfterThis) &&
                               TrainingPlanSeriesBuilder.isRecurringSelection(
                                 startDate: planDay,
                                 endDate: planEndDay,
                                 weekdays: repeatWeekdays.toList(),
                               );
+                          final hasTimeConflict = occurrenceDates.any((date) {
+                            final onSameDay = _plans.where((plan) {
+                              if (_normalizeDay(plan.scheduledAt) !=
+                                  _normalizeDay(date)) {
+                                return false;
+                              }
+                              if (editingPlan == null) return true;
+                              if (editingSeries &&
+                                  editingPlan.seriesId != null &&
+                                  plan.seriesId == editingPlan.seriesId) {
+                                return false;
+                              }
+                              if (editingAfterThis &&
+                                  editingPlan.seriesId != null &&
+                                  plan.seriesId == editingPlan.seriesId &&
+                                  !plan.scheduledAt
+                                      .isBefore(editingPlan.scheduledAt)) {
+                                return false;
+                              }
+                              if (!editingSeries &&
+                                  !editingAfterThis &&
+                                  plan.id == editingPlan.id) {
+                                return false;
+                              }
+                              return true;
+                            }).toList(growable: false);
+                            return onSameDay.any(
+                              (plan) =>
+                                  plan.scheduledAt.hour == date.hour &&
+                                  plan.scheduledAt.minute == date.minute,
+                            );
+                          });
+                          if (hasTimeConflict) {
+                            AppFeedback.showMessage(
+                              context,
+                              text: isKo
+                                  ? '같은 시간에 이미 등록된 계획이 있어요.'
+                                  : 'Another plan already exists at that time.',
+                            );
+                            return;
+                          }
                           final scheduledAt = DateTime(
                             planDay.year,
                             planDay.month,
@@ -1133,28 +1456,50 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                               ? editingPlan.seriesId
                                               : null,
                                         )
-                                      : <_TrainingPlan>[
-                                          _TrainingPlan(
-                                            id: editingPlan.id,
-                                            scheduledAt: scheduledAt,
-                                            category: category,
-                                            durationMinutes: duration,
-                                            reminderMinutesBefore:
-                                                reminderBefore,
-                                            repeatWeekdays:
-                                                editingPlan.repeatWeekdays,
-                                            alarmLoopEnabled: alarmLoopEnabled,
-                                            note: noteText.trim(),
-                                            seriesId: editingPlan.seriesId,
-                                            seriesStartDate:
-                                                editingPlan.seriesStartDate,
-                                            seriesEndDate:
-                                                editingPlan.seriesEndDate,
-                                          ),
-                                        ],
+                                      : editingAfterThis
+                                          ? _buildPlanDrafts(
+                                              occurrenceDates: occurrenceDates,
+                                              category: category,
+                                              durationMinutes: duration,
+                                              reminderMinutesBefore:
+                                                  reminderBefore,
+                                              repeatWeekdays:
+                                                  repeatWeekdays.toList(),
+                                              alarmLoopEnabled:
+                                                  alarmLoopEnabled,
+                                              note: noteText.trim(),
+                                              isRecurring: isRecurring,
+                                              seriesStartDate: planDay,
+                                              seriesEndDate: planEndDay,
+                                              existingSeriesId: isRecurring
+                                                  ? editingPlan.seriesId
+                                                  : null,
+                                            )
+                                          : <_TrainingPlan>[
+                                              _TrainingPlan(
+                                                id: editingPlan.id,
+                                                scheduledAt: scheduledAt,
+                                                category: category,
+                                                durationMinutes: duration,
+                                                reminderMinutesBefore:
+                                                    reminderBefore,
+                                                repeatWeekdays:
+                                                    editingPlan.repeatWeekdays,
+                                                alarmLoopEnabled:
+                                                    alarmLoopEnabled,
+                                                note: noteText.trim(),
+                                                seriesId: editingPlan.seriesId,
+                                                seriesStartDate:
+                                                    editingPlan.seriesStartDate,
+                                                seriesEndDate:
+                                                    editingPlan.seriesEndDate,
+                                              ),
+                                            ],
                               scope: editingSeries
                                   ? _PlanEditScope.series
-                                  : _PlanEditScope.single,
+                                  : editingAfterThis
+                                      ? _PlanEditScope.afterThis
+                                      : _PlanEditScope.single,
                             ),
                           );
                         },
@@ -1177,6 +1522,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
       } else if (saved.scope == _PlanEditScope.series &&
           editingPlan.seriesId != null) {
         _plans = _replacePlansForSeries(editingPlan.seriesId!, saved.plans);
+      } else if (saved.scope == _PlanEditScope.afterThis &&
+          editingPlan.seriesId != null) {
+        _plans = _replacePlansAfterDateForSeries(
+          editingPlan.seriesId!,
+          editingPlan.scheduledAt,
+          saved.plans,
+        );
       } else {
         _plans = _plans
             .map(
@@ -1508,6 +1860,59 @@ class _CalendarScreenState extends State<CalendarScreen> {
     await _syncPlanReminders();
   }
 
+  Future<void> _movePlanSchedule(_TrainingPlan plan) async {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: plan.scheduledAt,
+      firstDate: DateTime(2022),
+      lastDate: DateTime(2032),
+    );
+    if (pickedDate == null || !mounted) return;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(plan.scheduledAt),
+    );
+    if (pickedTime == null || !mounted) return;
+    final movedAt = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+    final hasConflict = _plans.any(
+      (item) =>
+          item.id != plan.id &&
+          _normalizeDay(item.scheduledAt) == _normalizeDay(movedAt) &&
+          item.scheduledAt.hour == movedAt.hour &&
+          item.scheduledAt.minute == movedAt.minute,
+    );
+    if (hasConflict) {
+      AppFeedback.showMessage(
+        context,
+        text: isKo
+            ? '같은 시간에 이미 등록된 계획이 있어요.'
+            : 'Another plan already exists at that time.',
+      );
+      return;
+    }
+    setState(() {
+      _plans = _plans
+          .map((item) =>
+              item.id == plan.id ? item.copyWith(scheduledAt: movedAt) : item)
+          .toList(growable: false)
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    });
+    await _savePlans();
+    await _syncPlanReminders();
+    if (!mounted) return;
+    AppFeedback.showSuccess(
+      context,
+      text: isKo ? '계획 시간을 이동했어요.' : 'Plan time moved.',
+    );
+  }
+
   Future<void> _confirmDeletePlan(_TrainingPlan plan) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final scope = await _pickPlanDeleteScope(plan);
@@ -1522,9 +1927,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ? (isKo
                   ? '이 묶음에 포함된 훈련 계획을 모두 삭제할까요?'
                   : 'Delete every training plan in this series?')
-              : (isKo
-                  ? '이 훈련 계획을 정말 삭제할까요?'
-                  : 'Are you sure you want to delete this training plan?'),
+              : scope == _PlanEditScope.afterThis
+                  ? (isKo
+                      ? '선택한 일정부터 이후 계획을 모두 삭제할까요?'
+                      : 'Delete this plan and all following plans?')
+                  : (isKo
+                      ? '이 훈련 계획을 정말 삭제할까요?'
+                      : 'Are you sure you want to delete this training plan?'),
         ),
         actions: [
           TextButton(
@@ -1543,6 +1952,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
         setState(() {
           _plans = _plans
               .where((item) => item.seriesId != plan.seriesId)
+              .toList(growable: false);
+        });
+        await _savePlans();
+        await _syncPlanReminders();
+      } else if (scope == _PlanEditScope.afterThis && plan.seriesId != null) {
+        setState(() {
+          _plans = _plans
+              .where(
+                (item) =>
+                    item.seriesId != plan.seriesId ||
+                    item.scheduledAt.isBefore(plan.scheduledAt),
+              )
               .toList(growable: false);
         });
         await _savePlans();
@@ -1624,6 +2045,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return next;
   }
 
+  List<_TrainingPlan> _replacePlansAfterDateForSeries(
+    String seriesId,
+    DateTime pivotDateTime,
+    List<_TrainingPlan> replacement,
+  ) {
+    final next = _plans
+        .where(
+          (plan) =>
+              plan.seriesId != seriesId ||
+              plan.scheduledAt.isBefore(pivotDateTime),
+        )
+        .toList(growable: true)
+      ..addAll(replacement)
+      ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    return next;
+  }
+
   Future<_PlanEditScope?> _pickPlanEditScope(_TrainingPlan? plan) async {
     if (plan == null || plan.seriesId == null) return _PlanEditScope.single;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -1651,6 +2089,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       : 'Edit only the selected occurrence.',
                 ),
                 onTap: () => Navigator.of(context).pop(_PlanEditScope.single),
+              ),
+              ListTile(
+                leading: const Icon(Icons.trending_flat_outlined),
+                title: Text(isKo ? '이번 이후 일정' : 'This and following'),
+                subtitle: Text(
+                  isKo
+                      ? '선택한 일정부터 이후 일정을 수정합니다.'
+                      : 'Update this occurrence and following ones.',
+                ),
+                onTap: () =>
+                    Navigator.of(context).pop(_PlanEditScope.afterThis),
               ),
               ListTile(
                 leading: const Icon(Icons.layers_outlined),
@@ -1691,6 +2140,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 leading: const Icon(Icons.delete_outline),
                 title: Text(isKo ? '이번 계획만 삭제' : 'Delete this plan'),
                 onTap: () => Navigator.of(context).pop(_PlanEditScope.single),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_forever_outlined),
+                title: Text(isKo ? '이번 이후 삭제' : 'Delete this and following'),
+                onTap: () =>
+                    Navigator.of(context).pop(_PlanEditScope.afterThis),
               ),
               ListTile(
                 leading: const Icon(Icons.delete_sweep_outlined),
@@ -1779,6 +2234,173 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   DateTime _normalizeDay(DateTime day) =>
       DateTime(day.year, day.month, day.day);
+
+  Widget _summaryChip(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _weeklyGoalCount() {
+    final raw = widget.optionRepository.getValue<num>(_weeklyGoalKey)?.toInt();
+    if (raw == null) return 5;
+    return raw.clamp(1, 14);
+  }
+
+  int _weeklyCompletedCount({
+    required DateTime selectedDay,
+    required Map<DateTime, List<TrainingEntry>> entryMap,
+  }) {
+    final start = _normalizeDay(
+      selectedDay.subtract(Duration(days: selectedDay.weekday - 1)),
+    );
+    var completed = 0;
+    for (var i = 0; i < 7; i++) {
+      final day = start.add(Duration(days: i));
+      final entries = entryMap[day] ?? const <TrainingEntry>[];
+      if (entries.any((entry) => !entry.isMatch)) {
+        completed += 1;
+      }
+    }
+    return completed;
+  }
+
+  List<String> _dayWarningMessages({
+    required DateTime selectedDay,
+    required List<_TrainingPlan> dayPlans,
+    required List<TrainingEntry> dayEntries,
+  }) {
+    final warnings = <String>[];
+    final totalMinutes = dayEntries
+        .where((entry) => !entry.isMatch)
+        .fold<int>(0, (sum, entry) => sum + entry.durationMinutes);
+    final plannedMinutes = dayPlans.fold<int>(
+      0,
+      (sum, plan) => sum + plan.durationMinutes,
+    );
+    if (totalMinutes >= 120 || plannedMinutes >= 180) {
+      warnings.add(
+        Localizations.localeOf(context).languageCode == 'ko'
+            ? '훈련량 과부하 주의'
+            : 'Training load is high',
+      );
+    }
+    final usedMinuteSlots = <String>{};
+    var hasConflict = false;
+    for (final plan in dayPlans) {
+      final slot =
+          '${plan.scheduledAt.hour.toString().padLeft(2, '0')}:${plan.scheduledAt.minute.toString().padLeft(2, '0')}';
+      if (!usedMinuteSlots.add(slot)) {
+        hasConflict = true;
+        break;
+      }
+    }
+    if (hasConflict) {
+      warnings.add(
+        Localizations.localeOf(context).languageCode == 'ko'
+            ? '동시간대 계획 충돌'
+            : 'Schedule conflict detected',
+      );
+    }
+    final now = DateTime.now();
+    if (_normalizeDay(selectedDay) == _normalizeDay(now) && dayPlans.isEmpty) {
+      warnings.add(
+        Localizations.localeOf(context).languageCode == 'ko'
+            ? '오늘 계획이 비어 있어요'
+            : 'No plan scheduled for today',
+      );
+    }
+    return warnings;
+  }
+
+  _CalendarMonthInsight _buildMonthInsight({
+    required DateTime focusedDay,
+    required List<TrainingEntry> entries,
+  }) {
+    final monthEntries = entries.where((entry) {
+      return entry.date.year == focusedDay.year &&
+          entry.date.month == focusedDay.month;
+    }).toList(growable: false);
+    if (monthEntries.isEmpty) {
+      return _CalendarMonthInsight.empty(
+        isKo: Localizations.localeOf(context).languageCode == 'ko',
+      );
+    }
+
+    final trainingEntries =
+        monthEntries.where((entry) => !entry.isMatch).toList(growable: false);
+    final byType = <String, int>{};
+    final byDayFocusCount = <DateTime, int>{};
+    final activeDays = <DateTime>{};
+
+    for (final entry in trainingEntries) {
+      final type = entry.type.trim().isEmpty
+          ? (Localizations.localeOf(context).languageCode == 'ko'
+              ? '일반 훈련'
+              : 'General training')
+          : entry.type.trim();
+      byType[type] = (byType[type] ?? 0) + 1;
+      final day = _normalizeDay(entry.date);
+      activeDays.add(day);
+      final focusCount =
+          entry.goalFocuses.isNotEmpty ? entry.goalFocuses.length : 1;
+      byDayFocusCount[day] = (byDayFocusCount[day] ?? 0) + focusCount;
+    }
+
+    final topType = byType.entries.fold<MapEntry<String, int>?>(
+      null,
+      (best, current) =>
+          (best == null || current.value > best.value) ? current : best,
+    );
+    final bestFocusDay = byDayFocusCount.entries.fold<MapEntry<DateTime, int>?>(
+      null,
+      (best, current) =>
+          (best == null || current.value > best.value) ? current : best,
+    );
+
+    final daysInMonth = DateTime(focusedDay.year, focusedDay.month + 1, 0).day;
+    final restDays = (daysInMonth - activeDays.length).clamp(0, daysInMonth);
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    return _CalendarMonthInsight(
+      topType: topType?.key ?? (isKo ? '기록 없음' : 'No data'),
+      restDays: restDays,
+      bestFocusDayLabel: bestFocusDay == null
+          ? (isKo ? '없음' : 'N/A')
+          : DateFormat(isKo ? 'M/d(E)' : 'MMM d (EEE)')
+              .format(bestFocusDay.key),
+    );
+  }
+
+  bool _isLastWeekOfMonth(DateTime day) {
+    final daysInMonth = DateTime(day.year, day.month + 1, 0).day;
+    return day.day >= (daysInMonth - 6);
+  }
 
   String? _bestStatusForDay(List<TrainingEntry> entries) {
     if (entries.isEmpty) return null;
@@ -2050,6 +2672,7 @@ class _DayTimeline extends StatelessWidget {
   final List<TrainingEntry> dayEntries;
   final ValueChanged<TrainingEntry> onEditEntry;
   final ValueChanged<_TrainingPlan> onEditPlan;
+  final ValueChanged<_TrainingPlan> onMovePlan;
   final Future<bool> Function(TrainingEntry) onDeleteEntry;
   final ValueChanged<_TrainingPlan> onDeletePlan;
   final VoidCallback onListScrollUp;
@@ -2061,6 +2684,7 @@ class _DayTimeline extends StatelessWidget {
     required this.dayEntries,
     required this.onEditEntry,
     required this.onEditPlan,
+    required this.onMovePlan,
     required this.onDeleteEntry,
     required this.onDeletePlan,
     required this.onListScrollUp,
@@ -2173,6 +2797,7 @@ class _DayTimeline extends StatelessWidget {
                 child: _PlanTile(
                   plan: plan,
                   onTap: () => onEditPlan(plan),
+                  onMove: () => onMovePlan(plan),
                   onDelete: () => onDeletePlan(plan),
                 ),
               ),
@@ -2259,11 +2884,13 @@ class _DayTimeline extends StatelessWidget {
 class _PlanTile extends StatelessWidget {
   final _TrainingPlan plan;
   final VoidCallback onTap;
+  final VoidCallback onMove;
   final VoidCallback onDelete;
 
   const _PlanTile({
     required this.plan,
     required this.onTap,
+    required this.onMove,
     required this.onDelete,
   });
 
@@ -2281,6 +2908,7 @@ class _PlanTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         onTap: onTap,
+        onLongPress: onMove,
         dense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         leading: CircleAvatar(
@@ -2303,10 +2931,20 @@ class _PlanTile extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: _calendarTimelineSubtitleStyle(context),
         ),
-        trailing: IconButton(
-          tooltip: isKo ? '계획 삭제' : 'Delete plan',
-          icon: const Icon(Icons.delete_outline),
-          onPressed: onDelete,
+        trailing: Wrap(
+          spacing: 2,
+          children: [
+            IconButton(
+              tooltip: isKo ? '시간 이동' : 'Move schedule',
+              icon: const Icon(Icons.open_with_outlined),
+              onPressed: onMove,
+            ),
+            IconButton(
+              tooltip: isKo ? '계획 삭제' : 'Delete plan',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: onDelete,
+            ),
+          ],
         ),
       ),
     );
@@ -2703,6 +3341,26 @@ class _PlanSheetResult {
   });
 }
 
+class _CalendarMonthInsight {
+  final String topType;
+  final int restDays;
+  final String bestFocusDayLabel;
+
+  const _CalendarMonthInsight({
+    required this.topType,
+    required this.restDays,
+    required this.bestFocusDayLabel,
+  });
+
+  factory _CalendarMonthInsight.empty({required bool isKo}) {
+    return _CalendarMonthInsight(
+      topType: isKo ? '기록 없음' : 'No data',
+      restDays: 0,
+      bestFocusDayLabel: isKo ? '없음' : 'N/A',
+    );
+  }
+}
+
 class _TrainingPlan {
   final String id;
   final DateTime scheduledAt;
@@ -2729,6 +3387,35 @@ class _TrainingPlan {
     this.seriesStartDate,
     this.seriesEndDate,
   });
+
+  _TrainingPlan copyWith({
+    String? id,
+    DateTime? scheduledAt,
+    String? category,
+    int? durationMinutes,
+    int? reminderMinutesBefore,
+    List<int>? repeatWeekdays,
+    bool? alarmLoopEnabled,
+    String? note,
+    String? seriesId,
+    DateTime? seriesStartDate,
+    DateTime? seriesEndDate,
+  }) {
+    return _TrainingPlan(
+      id: id ?? this.id,
+      scheduledAt: scheduledAt ?? this.scheduledAt,
+      category: category ?? this.category,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      reminderMinutesBefore:
+          reminderMinutesBefore ?? this.reminderMinutesBefore,
+      repeatWeekdays: repeatWeekdays ?? this.repeatWeekdays,
+      alarmLoopEnabled: alarmLoopEnabled ?? this.alarmLoopEnabled,
+      note: note ?? this.note,
+      seriesId: seriesId ?? this.seriesId,
+      seriesStartDate: seriesStartDate ?? this.seriesStartDate,
+      seriesEndDate: seriesEndDate ?? this.seriesEndDate,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
