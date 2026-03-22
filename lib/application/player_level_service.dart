@@ -503,6 +503,20 @@ class PlayerLevelService {
       ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
   }
 
+  Future<void> deleteXpHistoryEntry(PlayerXpHistoryEntry target) async {
+    final history = loadXpHistory().toList(growable: true);
+    final targetIndex = history.indexWhere(
+      (item) => _sameXpHistoryEntry(item, target),
+    );
+    if (targetIndex < 0) return;
+    history.removeAt(targetIndex);
+    await _saveXpHistory(history);
+  }
+
+  Future<void> clearXpHistory() async {
+    await _saveXpHistory(const <PlayerXpHistoryEntry>[]);
+  }
+
   PlayerLevelRewardStatus? nextRewardStatus({
     int? fromLevel,
     bool includeClaimable = true,
@@ -604,10 +618,31 @@ class PlayerLevelService {
   Future<void> _appendXpHistory(PlayerXpHistoryEntry entry) async {
     final history = loadXpHistory().take(199).toList(growable: true);
     history.insert(0, entry);
+    await _saveXpHistory(history);
+  }
+
+  Future<void> _saveXpHistory(List<PlayerXpHistoryEntry> history) async {
     await _options.setValue(
       xpHistoryKey,
       history.map((item) => item.toMap()).toList(growable: false),
     );
+  }
+
+  bool _sameXpHistoryEntry(PlayerXpHistoryEntry a, PlayerXpHistoryEntry b) {
+    if (a.awardedAt != b.awardedAt ||
+        a.deltaXp != b.deltaXp ||
+        a.totalXp != b.totalXp ||
+        a.beforeLevel != b.beforeLevel ||
+        a.afterLevel != b.afterLevel ||
+        a.category != b.category ||
+        a.label != b.label) {
+      return false;
+    }
+    if (a.reasons.length != b.reasons.length) return false;
+    for (var i = 0; i < a.reasons.length; i++) {
+      if (a.reasons[i] != b.reasons[i]) return false;
+    }
+    return true;
   }
 }
 

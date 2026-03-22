@@ -168,6 +168,31 @@ void main() {
     expect(history.first.category, PlayerXpHistoryCategory.diary);
     expect(history.last.category, PlayerXpHistoryCategory.board);
   });
+
+  test(
+    'xp history entries can be deleted individually and all at once',
+    () async {
+      final repository = _MemoryOptionRepository();
+      final service = PlayerLevelService(repository);
+
+      await service.awardForBoardSaved(
+        boardId: 'board-1',
+        boardTitle: '측면 전개',
+        savedAt: DateTime(2026, 3, 22, 10),
+        created: true,
+      );
+      await service.awardForDiaryReview(reviewedAt: DateTime(2026, 3, 22, 21));
+
+      final history = service.loadXpHistory();
+      expect(history, hasLength(2));
+
+      await service.deleteXpHistoryEntry(history.first);
+      expect(service.loadXpHistory(), hasLength(1));
+
+      await service.clearXpHistory();
+      expect(service.loadXpHistory(), isEmpty);
+    },
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {

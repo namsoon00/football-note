@@ -104,9 +104,11 @@ class _HomeScreenState extends State<HomeScreen> {
         optionRepository: widget.optionRepository,
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
+        initialSelectedDay: _calendarSelectedDay,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction: _pendingCalendarQuickCreateAction ??
+        quickCreateAction:
+            _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
@@ -323,7 +325,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openPlans() {
-    setState(() => _index = 2);
+    final today = DateTime.now();
+    setState(() {
+      _calendarSelectedDay = DateTime(today.year, today.month, today.day);
+      _index = 2;
+    });
     unawaited(_showTabGuideIfNeeded(2));
   }
 
