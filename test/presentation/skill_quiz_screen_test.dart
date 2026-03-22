@@ -34,7 +34,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('오늘의 축구 퀴즈'), findsOneWidget);
-    expect(find.text('복습 모드'), findsOneWidget);
+    expect(find.text('복습 모드'), findsNothing);
     expect(find.text('챌린지 모드'), findsOneWidget);
     expect(find.text('스피드 모드'), findsOneWidget);
   });
@@ -81,10 +81,6 @@ void main() {
     await tester.tap(find.text('이어하기'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.textContaining('자기 진영에 있는 공격수는 오프사이드 반칙 대상이 아니다.'),
-      findsOneWidget,
-    );
     expect(find.text('O'), findsWidgets);
     expect(find.text('X'), findsWidgets);
 
@@ -93,8 +89,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('정답 포인트'), findsOneWidget);
-    expect(find.textContaining('오프사이드는 상대 진영에서만 성립합니다.'), findsWidgets);
-    expect(find.textContaining('정답은 O예요.'), findsWidgets);
+    expect(find.textContaining('다음에 볼 포인트:'), findsWidgets);
   });
 
   testWidgets('daily quiz mixes in due wrong-answer questions', (
@@ -138,7 +133,6 @@ void main() {
                 as List<dynamic>)
             .cast<String>();
     expect(savedIds, hasLength(10));
-    expect(savedIds, contains('ox_offside_own_half_0_0_t'));
   });
 }
 

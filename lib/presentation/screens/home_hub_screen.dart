@@ -433,16 +433,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   void _openTodayBoardSketch(_HomeHubData data) {
-    final entry = data.latestTrainingEntry;
+    final entry = data.latestCreatedTrainingEntry;
     if (entry != null) {
+      final createdDay = DateTime(
+        entry.createdAt.year,
+        entry.createdAt.month,
+        entry.createdAt.day,
+      );
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final entryDay = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      if (entryDay == today) {
+      if (createdDay == today) {
         widget.onEditTrainingBoard(entry);
         return;
       }
@@ -469,6 +469,7 @@ class _HomeHubData {
   final String strongestSignal;
   final String focusSignal;
   final TrainingEntry? latestTrainingEntry;
+  final TrainingEntry? latestCreatedTrainingEntry;
   final bool loggedTrainingToday;
   final bool loggedLiftingToday;
   final bool loggedJumpRopeToday;
@@ -489,6 +490,7 @@ class _HomeHubData {
     required this.strongestSignal,
     required this.focusSignal,
     required this.latestTrainingEntry,
+    required this.latestCreatedTrainingEntry,
     required this.loggedTrainingToday,
     required this.loggedLiftingToday,
     required this.loggedJumpRopeToday,
@@ -522,6 +524,22 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
+    final latestCreatedTrainingEntry = entries
+        .where((entry) {
+          final createdDay = DateTime(
+            entry.createdAt.year,
+            entry.createdAt.month,
+            entry.createdAt.day,
+          );
+          return createdDay == today;
+        })
+        .fold<TrainingEntry?>(
+          null,
+          (latest, entry) =>
+              latest == null || entry.createdAt.isAfter(latest.createdAt)
+              ? entry
+              : latest,
+        );
     final todayEntries = entries
         .where((entry) {
           final day = DateTime(
@@ -620,6 +638,7 @@ class _HomeHubData {
         quizCompletedAt.day == now.day;
     final reviewedTodayDiary =
         viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
+    final syncedQuizAndDiaryToday = quizCompletedToday && reviewedTodayDiary;
     final loggedBoardToday =
         boards.isNotEmpty &&
         boards.first.updatedAt.year == now.year &&
@@ -638,11 +657,12 @@ class _HomeHubData {
       strongestSignal: strongest,
       focusSignal: focus,
       latestTrainingEntry: latestTrainingEntry,
+      latestCreatedTrainingEntry: latestCreatedTrainingEntry,
       loggedTrainingToday: loggedTrainingToday,
       loggedLiftingToday: loggedLiftingToday,
       loggedJumpRopeToday: loggedJumpRopeToday,
-      reviewedTodayDiary: reviewedTodayDiary,
-      quizCompletedToday: quizCompletedToday,
+      reviewedTodayDiary: syncedQuizAndDiaryToday,
+      quizCompletedToday: syncedQuizAndDiaryToday,
       loggedBoardToday: loggedBoardToday,
       quizResumeSummary: quizResumeSummary,
     );
@@ -1291,7 +1311,6 @@ class _ContinueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final quizSummary = data.quizResumeSummary;
     final hasQuizSession = quizSummary.hasActiveSession;
-    final hasWrongReview = !hasQuizSession && quizSummary.pendingWrongCount > 0;
     final latestTrainingEntry = data.latestTrainingEntry;
     final latestTrainingIsToday =
         latestTrainingEntry != null &&
@@ -1311,17 +1330,11 @@ class _ContinueCard extends StatelessWidget {
         ? (quizSummary.reviewMode
               ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
               : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
-        : hasWrongReview
-        ? (isKo ? '오답 복습 시작' : 'Start wrong-answer review')
         : (isKo ? '새 퀴즈 시작' : 'Start quiz');
     final quizSubtitle = hasQuizSession
         ? (isKo
               ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
               : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
-        : hasWrongReview
-        ? (isKo
-              ? '다시 풀 문제 ${quizSummary.pendingWrongCount}개'
-              : '${quizSummary.pendingWrongCount} saved wrong answers')
         : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
     final items = <_ContinueItemData>[
       if (latestTrainingIsToday)
@@ -1344,7 +1357,7 @@ class _ContinueCard extends StatelessWidget {
           buttonLabel: isKo ? '계획 보기' : 'Open plans',
           onPressed: onContinuePlan,
         ),
-      if (hasQuizSession || hasWrongReview)
+      if (hasQuizSession)
         _ContinueItemData(
           icon: Icons.quiz_outlined,
           title: quizTitle,
