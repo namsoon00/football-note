@@ -289,9 +289,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          _isKo
-                              ? '${selectedIndex + 1}/$dayCount 페이지'
-                              : 'Page ${selectedIndex + 1}/$dayCount',
+                          '${selectedIndex + 1}/$dayCount',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style:
@@ -1454,12 +1452,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
     for (final entry in entries) {
       final day = _normalizeDay(entry.date);
-      dayKeys.add(day);
       entriesByDay.putIfAbsent(day, () => <TrainingEntry>[]).add(entry);
+      if (!entry.isMatch) {
+        dayKeys.add(day);
+      }
     }
     for (final plan in plans) {
       final day = _normalizeDay(plan.scheduledAt);
-      dayKeys.add(day);
       plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
     }
 
