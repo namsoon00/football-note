@@ -204,6 +204,22 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       ),
                     ],
                     const SizedBox(height: 12),
+                    _PriorityActionCard(
+                      data: data,
+                      isKo: isKo,
+                      onTap: _trackedAction(
+                        'priority_action',
+                        data.focusSignal == 'log_today' ||
+                                data.focusSignal == 'add_session'
+                            ? widget.onCreate
+                            : data.focusSignal == 'add_minutes'
+                                ? widget.onOpenPlans
+                                : data.focusSignal == 'recovery'
+                                    ? widget.onOpenDiary
+                                    : widget.onOpenWeeklyStats,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     _DailyFlowCard(
                       data: data,
                       isKo: isKo,
@@ -228,6 +244,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         'daily_flow_board',
                         () => _openTodayBoardSketch(data),
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    _WeeklyReviewCard(
+                      data: data,
+                      isKo: isKo,
+                      onOpenStats: widget.onOpenWeeklyStats,
+                      onOpenDiary: widget.onOpenDiary,
                     ),
                     const SizedBox(height: 12),
                     _QuickActionGrid(
@@ -1045,6 +1068,222 @@ class _DailyFlowCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _PriorityActionCard extends StatelessWidget {
+  final _HomeHubData data;
+  final bool isKo;
+  final VoidCallback? onTap;
+
+  const _PriorityActionCard({
+    required this.data,
+    required this.isKo,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (title, body, buttonLabel, icon) = _copy();
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.secondaryContainer.withValues(alpha: 0.95),
+            theme.colorScheme.primaryContainer.withValues(alpha: 0.70),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.14),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: theme.colorScheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(body, style: theme.textTheme.bodyMedium),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: onTap,
+            child: Text(buttonLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  (String, String, String, IconData) _copy() {
+    switch (data.focusSignal) {
+      case 'log_today':
+        return (
+          isKo ? '오늘 기록부터 시작하세요' : 'Start with today’s log',
+          isKo
+              ? '아직 오늘 훈련 기록이 없습니다. 30초 기록으로 루틴을 끊기지 않게 유지하세요.'
+              : 'No training log yet today. Use the quick log to keep the routine alive.',
+          isKo ? '지금 기록' : 'Log now',
+          Icons.edit_note_outlined,
+        );
+      case 'add_session':
+        return (
+          isKo ? '이번 주 훈련 수를 채워야 합니다' : 'Add one more session',
+          isKo
+              ? '이번 주 기록 수가 적습니다. 한 번만 더 기록해도 흐름이 살아납니다.'
+              : 'This week is still light. One more session will restore momentum.',
+          isKo ? '훈련 추가' : 'Add session',
+          Icons.track_changes_outlined,
+        );
+      case 'add_minutes':
+        return (
+          isKo ? '시간을 조금 더 확보하세요' : 'Add a bit more volume',
+          isKo
+              ? '훈련 횟수는 괜찮지만 총 시간이 부족합니다. 계획부터 잡는 편이 좋습니다.'
+              : 'Session count is fine, but total minutes are low. Plan the next block.',
+          isKo ? '계획 보기' : 'Open plans',
+          Icons.timer_outlined,
+        );
+      case 'recovery':
+        return (
+          isKo ? '오늘은 회복 복기가 우선입니다' : 'Recovery review comes first',
+          isKo
+              ? '컨디션 지표가 낮습니다. 다이어리에서 피로 원인과 다음 목표를 먼저 정리하세요.'
+              : 'Condition is trending low. Review the diary before pushing intensity.',
+          isKo ? '다이어리 열기' : 'Open diary',
+          Icons.spa_outlined,
+        );
+      default:
+        return (
+          isKo ? '이번 주 퀄리티를 올릴 차례입니다' : 'Now raise this week’s quality',
+          isKo
+              ? '기록은 충분합니다. 통계와 복기를 연결해 다음 훈련의 질을 높이세요.'
+              : 'You have enough volume. Use stats and review to improve the next session.',
+          isKo ? '주간 리뷰' : 'Weekly review',
+          Icons.insights_outlined,
+        );
+    }
+  }
+}
+
+class _WeeklyReviewCard extends StatelessWidget {
+  final _HomeHubData data;
+  final bool isKo;
+  final VoidCallback onOpenStats;
+  final VoidCallback onOpenDiary;
+
+  const _WeeklyReviewCard({
+    required this.data,
+    required this.isKo,
+    required this.onOpenStats,
+    required this.onOpenDiary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '이번 주 리뷰' : 'Weekly review',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _headline(),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _body(),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onOpenStats,
+                icon: const Icon(Icons.bar_chart_outlined, size: 18),
+                label: Text(isKo ? '통계 보기' : 'Open stats'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onOpenDiary,
+                icon: const Icon(Icons.auto_stories_outlined, size: 18),
+                label: Text(isKo ? '복기 보기' : 'Open diary'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _headline() {
+    final strongest = switch (data.strongestSignal) {
+      'consistency' => isKo ? '강점은 꾸준함입니다.' : 'Consistency is your strength.',
+      'condition' =>
+        isKo ? '컨디션 관리가 잘 되고 있습니다.' : 'Condition management is working.',
+      'volume' => isKo ? '훈련 볼륨이 충분합니다.' : 'Training volume is solid.',
+      _ => isKo
+          ? '이번 주 루틴을 다시 세우는 중입니다.'
+          : 'You are rebuilding the weekly routine.',
+    };
+    return strongest;
+  }
+
+  String _body() {
+    return isKo
+        ? '이번 주 ${data.weeklyTrainingCount}회, ${data.weeklyMinutes}분 기록했습니다. ${data.streakDays}일 연속 흐름을 유지 중이며 다음 액션은 ${_focusLabel()}입니다.'
+        : 'You logged ${data.weeklyTrainingCount} sessions and ${data.weeklyMinutes} minutes this week. The streak is ${data.streakDays} days, and the next move is ${_focusLabel()}.';
+  }
+
+  String _focusLabel() {
+    switch (data.focusSignal) {
+      case 'log_today':
+        return isKo ? '오늘 기록 남기기' : 'logging today';
+      case 'add_session':
+        return isKo ? '훈련 1회 추가' : 'adding one session';
+      case 'add_minutes':
+        return isKo ? '훈련 시간 보강' : 'adding more minutes';
+      case 'recovery':
+        return isKo ? '회복 점검' : 'checking recovery';
+      default:
+        return isKo ? '훈련 질 개선' : 'improving quality';
+    }
   }
 }
 

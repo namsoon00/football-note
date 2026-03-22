@@ -201,6 +201,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.manage_accounts_outlined,
               initiallyExpanded: true,
               children: [
+                _BackupHealthCard(
+                  isKo: isKo,
+                  signedIn: _signedIn,
+                  autoDaily: _autoDaily,
+                  autoOnSave: _autoOnSave,
+                  lastBackupAt: widget.driveBackupService!.getLastBackup(),
+                  localRestoreAt:
+                      widget.driveBackupService!.getLocalPreRestoreTime(),
+                  formatBackupTime: _formatBackupTime,
+                ),
+                const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: _signInBusy
                       ? null
@@ -1445,5 +1456,183 @@ class _SettingsScreenState extends State<SettingsScreen> {
         setState(() => _benchmarkSyncBusy = false);
       }
     }
+  }
+}
+
+class _BackupHealthCard extends StatelessWidget {
+  final bool isKo;
+  final bool signedIn;
+  final bool autoDaily;
+  final bool autoOnSave;
+  final DateTime? lastBackupAt;
+  final DateTime? localRestoreAt;
+  final String Function(DateTime value) formatBackupTime;
+
+  const _BackupHealthCard({
+    required this.isKo,
+    required this.signedIn,
+    required this.autoDaily,
+    required this.autoOnSave,
+    required this.lastBackupAt,
+    required this.localRestoreAt,
+    required this.formatBackupTime,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final healthLabel = _healthLabel();
+    final healthColor = _healthColor(theme);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: healthColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: healthColor.withValues(alpha: 0.24)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified_user_outlined, color: healthColor, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isKo ? '백업 상태' : 'Backup health',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Text(
+                healthLabel,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: healthColor,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _summary(),
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _InfoPill(
+                label: isKo
+                    ? (signedIn ? '구글 연결됨' : '구글 미연결')
+                    : (signedIn ? 'Google connected' : 'Google disconnected'),
+              ),
+              _InfoPill(
+                label: isKo
+                    ? (autoDaily ? '일일 자동 백업 켜짐' : '일일 자동 백업 꺼짐')
+                    : (autoDaily
+                        ? 'Daily auto-backup on'
+                        : 'Daily auto-backup off'),
+              ),
+              _InfoPill(
+                label: isKo
+                    ? (autoOnSave ? '저장 시 자동 백업 켜짐' : '저장 시 자동 백업 꺼짐')
+                    : (autoOnSave
+                        ? 'Auto-backup on save on'
+                        : 'Auto-backup on save off'),
+              ),
+            ],
+          ),
+          if (lastBackupAt != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              isKo
+                  ? '마지막 클라우드 백업: ${formatBackupTime(lastBackupAt!)}'
+                  : 'Last cloud backup: ${formatBackupTime(lastBackupAt!)}',
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+          if (localRestoreAt != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              isKo
+                  ? '복원 전 로컬 보관본: ${formatBackupTime(localRestoreAt!)}'
+                  : 'Pre-restore local snapshot: ${formatBackupTime(localRestoreAt!)}',
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _healthLabel() {
+    if (!signedIn) return isKo ? '로그인 필요' : 'Sign-in required';
+    if (lastBackupAt == null) return isKo ? '백업 없음' : 'No backup';
+    final age = DateTime.now().difference(lastBackupAt!);
+    if (age <= const Duration(hours: 24)) return isKo ? '정상' : 'Healthy';
+    if (age <= const Duration(days: 3)) return isKo ? '확인 필요' : 'Review';
+    return isKo ? '위험' : 'At risk';
+  }
+
+  Color _healthColor(ThemeData theme) {
+    if (!signedIn || lastBackupAt == null) {
+      return theme.colorScheme.error;
+    }
+    final age = DateTime.now().difference(lastBackupAt!);
+    if (age <= const Duration(hours: 24)) {
+      return Colors.green.shade700;
+    }
+    if (age <= const Duration(days: 3)) {
+      return Colors.orange.shade700;
+    }
+    return theme.colorScheme.error;
+  }
+
+  String _summary() {
+    if (!signedIn) {
+      return isKo
+          ? '계정 연결 전에는 자동 백업이 동작하지 않습니다.'
+          : 'Automatic backups cannot run until an account is connected.';
+    }
+    if (lastBackupAt == null) {
+      return isKo
+          ? '첫 백업을 아직 만들지 않았습니다. 지금 한 번 백업해 두는 편이 안전합니다.'
+          : 'No backup has been created yet. Running one now is the safer path.';
+    }
+    final age = DateTime.now().difference(lastBackupAt!);
+    if (age <= const Duration(hours: 24)) {
+      return isKo
+          ? '최근 24시간 안에 백업이 완료되어 현재 데이터 보호 상태가 좋습니다.'
+          : 'A backup completed within the last 24 hours, so protection is in good shape.';
+    }
+    return isKo
+        ? '마지막 백업이 오래되었습니다. 수동 백업 또는 자동 백업 설정을 다시 확인하세요.'
+        : 'The last backup is getting old. Run a manual backup or verify the automation settings.';
+  }
+}
+
+class _InfoPill extends StatelessWidget {
+  final String label;
+
+  const _InfoPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+      ),
+    );
   }
 }
