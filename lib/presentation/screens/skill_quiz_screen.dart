@@ -587,32 +587,42 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     }
   }
 
+  bool get _showEntryHubBackButton => _questions.isNotEmpty || _finished;
+
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isKo ? '축구 퀴즈' : 'Football Quiz'),
-        actions: [
-          if (_questions.isNotEmpty || _finished)
+    return PopScope(
+      canPop: !_showEntryHubBackButton,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop || !_showEntryHubBackButton) return;
+        unawaited(_openEntryHub());
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: _showEntryHubBackButton
+              ? IconButton(
+                  onPressed: _openEntryHub,
+                  tooltip: isKo ? '퀴즈 홈으로' : 'Back to quiz home',
+                  icon: const Icon(Icons.arrow_back),
+                )
+              : null,
+          title: Text(isKo ? '축구 퀴즈' : 'Football Quiz'),
+          actions: [
             IconButton(
-              onPressed: _openEntryHub,
-              tooltip: isKo ? '퀴즈 시작 화면' : 'Quiz start hub',
-              icon: const Icon(Icons.home_filled),
+              onPressed: _openModeMenu,
+              tooltip: isKo ? '퀴즈 모드 선택' : 'Choose quiz mode',
+              icon: const Icon(Icons.tune_outlined),
             ),
-          IconButton(
-            onPressed: _openModeMenu,
-            tooltip: isKo ? '퀴즈 모드 선택' : 'Choose quiz mode',
-            icon: const Icon(Icons.tune_outlined),
+          ],
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: _questions.isEmpty && !_finished
+                ? _buildEntryHub(isKo)
+                : (_finished ? _buildResult(isKo) : _buildQuestion(isKo)),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: _questions.isEmpty && !_finished
-              ? _buildEntryHub(isKo)
-              : (_finished ? _buildResult(isKo) : _buildQuestion(isKo)),
         ),
       ),
     );
