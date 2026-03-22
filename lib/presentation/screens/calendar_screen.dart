@@ -72,6 +72,7 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   static const _plansStorageKey = 'training_plans_v1';
   static const _calendarExpandedKey = 'calendar_expanded_v1';
+  static const _calendarFormatKey = 'calendar_format_v1';
   static const Map<String, String> _krFixedHolidayLabels = <String, String>{
     '01-01': '신정',
     '03-01': '삼일절',
@@ -85,7 +86,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  final CalendarFormat _calendarFormat = CalendarFormat.month;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
   bool _calendarExpanded = true;
 
   late final TrainingPlanReminderService _reminderService;
@@ -105,6 +106,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _plans = _loadPlans();
     _calendarExpanded =
         widget.optionRepository.getValue<bool>(_calendarExpandedKey) ?? true;
+    _calendarFormat = _loadCalendarFormat();
     final initialSelectedDay = widget.initialSelectedDay;
     if (initialSelectedDay != null) {
       final normalizedDay = _normalizeDay(initialSelectedDay);
@@ -170,6 +172,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
     await widget.optionRepository.setValue(_calendarExpandedKey, expanded);
   }
 
+  Future<void> _setCalendarFormat(CalendarFormat format) async {
+    if (_calendarFormat == format) return;
+    setState(() => _calendarFormat = format);
+    await widget.optionRepository.setValue(
+      _calendarFormatKey,
+      _serializeCalendarFormat(format),
+    );
+  }
+
+  CalendarFormat _loadCalendarFormat() {
+    final raw =
+        widget.optionRepository.getValue<String>(_calendarFormatKey) ?? '';
+    switch (raw) {
+      case 'twoWeeks':
+        return CalendarFormat.twoWeeks;
+      case 'month':
+      default:
+        return CalendarFormat.month;
+    }
+  }
+
+  String _serializeCalendarFormat(CalendarFormat format) {
+    switch (format) {
+      case CalendarFormat.twoWeeks:
+        return 'twoWeeks';
+      case CalendarFormat.month:
+      default:
+        return 'month';
+    }
+  }
+
   Future<T?> _showModalBottomSheetSafely<T>({
     required WidgetBuilder builder,
     bool showDragHandle = false,
@@ -213,6 +246,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             builder: (context, snapshot) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final isDark = Theme.of(context).brightness == Brightness.dark;
+              final l10n = AppLocalizations.of(context)!;
               final entries = snapshot.data ?? [];
               final entryMap = _groupByDay(entries);
               final planMap = _groupPlansByDay(_plans);
@@ -224,9 +258,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
               final hasDaySchedule =
                   dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded = hasDaySchedule
-                  ? _calendarExpanded
-                  : true;
+              final isCalendarExpanded =
+                  hasDaySchedule ? _calendarExpanded : true;
               final selectedHolidayName = holidayMap[selected];
               final reminderUnreadCount = TrainingPlanReminderService(
                 widget.optionRepository,
@@ -245,9 +278,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       notificationBadgeCount: reminderUnreadCount,
                       profilePhotoSource:
                           widget.optionRepository.getValue<String>(
-                            'profile_photo_url',
-                          ) ??
-                          '',
+                                'profile_photo_url',
+                              ) ??
+                              '',
                       onProfileTap: () => _openProfile(context),
                       onSettingsTap: () => _openSettings(context),
                       title: AppLocalizations.of(context)!.calendar,
@@ -279,6 +312,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   ? '오늘'
                                   : 'Today',
                             ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          ChoiceChip(
+                            label: Text(l10n.calendarFormatMonth),
+                            selected: _calendarFormat == CalendarFormat.month,
+                            onSelected: (_) =>
+                                _setCalendarFormat(CalendarFormat.month),
+                          ),
+                          ChoiceChip(
+                            label: Text(l10n.calendarFormatTwoWeeks),
+                            selected:
+                                _calendarFormat == CalendarFormat.twoWeeks,
+                            onSelected: (_) =>
+                                _setCalendarFormat(CalendarFormat.twoWeeks),
                           ),
                         ],
                       ),
@@ -338,10 +397,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           entryMap[key] ??
                                               const <TrainingEntry>[],
                                         ),
-                                        hasPlan:
-                                            (planMap[key] ??
-                                                    const <_TrainingPlan>[])
-                                                .isNotEmpty,
+                                        hasPlan: (planMap[key] ??
+                                                const <_TrainingPlan>[])
+                                            .isNotEmpty,
                                         isSelected: isSameDay(
                                           day,
                                           _selectedDay,
@@ -359,10 +417,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           entryMap[key] ??
                                               const <TrainingEntry>[],
                                         ),
-                                        hasPlan:
-                                            (planMap[key] ??
-                                                    const <_TrainingPlan>[])
-                                                .isNotEmpty,
+                                        hasPlan: (planMap[key] ??
+                                                const <_TrainingPlan>[])
+                                            .isNotEmpty,
                                         isSelected: isSameDay(
                                           day,
                                           _selectedDay,
@@ -374,27 +431,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     selectedBuilder:
                                         (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          return _CalendarStatusDayCell(
-                                            dayNumber: day.day,
-                                            status: _bestStatusForDay(
-                                              entryMap[key] ??
-                                                  const <TrainingEntry>[],
-                                            ),
-                                            hasPlan:
-                                                (planMap[key] ??
-                                                        const <_TrainingPlan>[])
-                                                    .isNotEmpty,
-                                            isSelected: true,
-                                            isToday: isSameDay(
-                                              day,
-                                              DateTime.now(),
-                                            ),
-                                            isHoliday:
-                                                isKo &&
-                                                holidayMap.containsKey(key),
-                                          );
-                                        },
+                                      final key = _normalizeDay(day);
+                                      return _CalendarStatusDayCell(
+                                        dayNumber: day.day,
+                                        status: _bestStatusForDay(
+                                          entryMap[key] ??
+                                              const <TrainingEntry>[],
+                                        ),
+                                        hasPlan: (planMap[key] ??
+                                                const <_TrainingPlan>[])
+                                            .isNotEmpty,
+                                        isSelected: true,
+                                        isToday: isSameDay(
+                                          day,
+                                          DateTime.now(),
+                                        ),
+                                        isHoliday:
+                                            isKo && holidayMap.containsKey(key),
+                                      );
+                                    },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
                                       return _CalendarStatusDayCell(
@@ -403,10 +458,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           entryMap[key] ??
                                               const <TrainingEntry>[],
                                         ),
-                                        hasPlan:
-                                            (planMap[key] ??
-                                                    const <_TrainingPlan>[])
-                                                .isNotEmpty,
+                                        hasPlan: (planMap[key] ??
+                                                const <_TrainingPlan>[])
+                                            .isNotEmpty,
                                         isSelected: isSameDay(
                                           day,
                                           _selectedDay,
@@ -423,9 +477,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: isDark
                                           ? Colors.white.withValues(alpha: 0.92)
                                           : Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(alpha: 0.88),
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.88),
                                       shape: BoxShape.circle,
                                     ),
                                     defaultTextStyle: TextStyle(
@@ -512,11 +566,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 Localizations.localeOf(context).languageCode ==
                                         'ko'
                                     ? (isCalendarExpanded
-                                          ? '캘린더 접기'
-                                          : '캘린더 펼치기')
+                                        ? '캘린더 접기'
+                                        : '캘린더 펼치기')
                                     : (isCalendarExpanded
-                                          ? 'Collapse calendar'
-                                          : 'Expand calendar'),
+                                        ? 'Collapse calendar'
+                                        : 'Expand calendar'),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -727,9 +781,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final seedWeekdays = editingSeries
         ? (seriesSeed?.repeatWeekdays ?? const <int>[])
         : (editingPlan?.repeatWeekdays ?? const <int>[]);
-    var repeatWeekdays = seedWeekdays.isNotEmpty
-        ? seedWeekdays.toSet()
-        : <int>{planDay.weekday};
+    var repeatWeekdays =
+        seedWeekdays.isNotEmpty ? seedWeekdays.toSet() : <int>{planDay.weekday};
     var alarmLoopEnabled = editingPlan?.alarmLoopEnabled ?? false;
     var noteText = editingPlan?.note ?? '';
     if (!mounted) return;
@@ -757,8 +810,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         editingPlan == null
                             ? (isKo ? '훈련 계획 추가' : 'Add Training Plan')
                             : editingSeries
-                            ? (isKo ? '훈련 계획 묶음 수정' : 'Edit Training Series')
-                            : (isKo ? '훈련 계획 수정' : 'Edit Training Plan'),
+                                ? (isKo
+                                    ? '훈련 계획 묶음 수정'
+                                    : 'Edit Training Series')
+                                : (isKo ? '훈련 계획 수정' : 'Edit Training Plan'),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
@@ -811,8 +866,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               label: Text(
                                 editingPlan == null
                                     ? (isKo
-                                          ? '시작 ${DateFormat('yyyy-MM-dd').format(planDay)}'
-                                          : 'From ${DateFormat('yyyy-MM-dd').format(planDay)}')
+                                        ? '시작 ${DateFormat('yyyy-MM-dd').format(planDay)}'
+                                        : 'From ${DateFormat('yyyy-MM-dd').format(planDay)}')
                                     : DateFormat('yyyy-MM-dd').format(planDay),
                               ),
                             ),
@@ -954,15 +1009,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       Text(
                         editingPlan == null
                             ? (isKo
-                                  ? '기간과 요일을 고르면 실제 계획이 날짜별로 생성돼요.'
-                                  : 'Pick a range and weekdays to create real plans on each matching date.')
+                                ? '기간과 요일을 고르면 실제 계획이 날짜별로 생성돼요.'
+                                : 'Pick a range and weekdays to create real plans on each matching date.')
                             : editingSeries
-                            ? (isKo
-                                  ? '이 묶음의 요일, 기간, 시간을 한 번에 바꿔요.'
-                                  : 'Update weekdays, range, and time for this series at once.')
-                            : (isKo
-                                  ? '이번 계획만 따로 수정해요.'
-                                  : 'Edit only this occurrence.'),
+                                ? (isKo
+                                    ? '이 묶음의 요일, 기간, 시간을 한 번에 바꿔요.'
+                                    : 'Update weekdays, range, and time for this series at once.')
+                                : (isKo
+                                    ? '이번 계획만 따로 수정해요.'
+                                    : 'Edit only this occurrence.'),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(height: 6),
@@ -1011,8 +1066,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       const SizedBox(height: 6),
                       FilledButton.icon(
                         onPressed: () {
-                          final occurrenceDates =
-                              (editingPlan == null || editingSeries)
+                          final occurrenceDates = (editingPlan == null ||
+                                  editingSeries)
                               ? TrainingPlanSeriesBuilder.buildOccurrenceDates(
                                   startDate: planDay,
                                   endDate: planEndDay,
@@ -1038,8 +1093,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             );
                             return;
                           }
-                          final isRecurring =
-                              (editingPlan == null || editingSeries) &&
+                          final isRecurring = (editingPlan == null ||
+                                  editingSeries) &&
                               TrainingPlanSeriesBuilder.isRecurringSelection(
                                 startDate: planDay,
                                 endDate: planEndDay,
@@ -1068,39 +1123,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       seriesEndDate: planEndDay,
                                     )
                                   : editingSeries
-                                  ? _buildPlanDrafts(
-                                      occurrenceDates: occurrenceDates,
-                                      category: category,
-                                      durationMinutes: duration,
-                                      reminderMinutesBefore: reminderBefore,
-                                      repeatWeekdays: repeatWeekdays.toList(),
-                                      alarmLoopEnabled: alarmLoopEnabled,
-                                      note: noteText.trim(),
-                                      isRecurring: isRecurring,
-                                      seriesStartDate: planDay,
-                                      seriesEndDate: planEndDay,
-                                      existingSeriesId: isRecurring
-                                          ? editingPlan.seriesId
-                                          : null,
-                                    )
-                                  : <_TrainingPlan>[
-                                      _TrainingPlan(
-                                        id: editingPlan.id,
-                                        scheduledAt: scheduledAt,
-                                        category: category,
-                                        durationMinutes: duration,
-                                        reminderMinutesBefore: reminderBefore,
-                                        repeatWeekdays:
-                                            editingPlan.repeatWeekdays,
-                                        alarmLoopEnabled: alarmLoopEnabled,
-                                        note: noteText.trim(),
-                                        seriesId: editingPlan.seriesId,
-                                        seriesStartDate:
-                                            editingPlan.seriesStartDate,
-                                        seriesEndDate:
-                                            editingPlan.seriesEndDate,
-                                      ),
-                                    ],
+                                      ? _buildPlanDrafts(
+                                          occurrenceDates: occurrenceDates,
+                                          category: category,
+                                          durationMinutes: duration,
+                                          reminderMinutesBefore: reminderBefore,
+                                          repeatWeekdays:
+                                              repeatWeekdays.toList(),
+                                          alarmLoopEnabled: alarmLoopEnabled,
+                                          note: noteText.trim(),
+                                          isRecurring: isRecurring,
+                                          seriesStartDate: planDay,
+                                          seriesEndDate: planEndDay,
+                                          existingSeriesId: isRecurring
+                                              ? editingPlan.seriesId
+                                              : null,
+                                        )
+                                      : <_TrainingPlan>[
+                                          _TrainingPlan(
+                                            id: editingPlan.id,
+                                            scheduledAt: scheduledAt,
+                                            category: category,
+                                            durationMinutes: duration,
+                                            reminderMinutesBefore:
+                                                reminderBefore,
+                                            repeatWeekdays:
+                                                editingPlan.repeatWeekdays,
+                                            alarmLoopEnabled: alarmLoopEnabled,
+                                            note: noteText.trim(),
+                                            seriesId: editingPlan.seriesId,
+                                            seriesStartDate:
+                                                editingPlan.seriesStartDate,
+                                            seriesEndDate:
+                                                editingPlan.seriesEndDate,
+                                          ),
+                                        ],
                               scope: editingSeries
                                   ? _PlanEditScope.series
                                   : _PlanEditScope.single,
@@ -1412,9 +1469,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   List<String> _matchOpponentOptions(List<TrainingEntry> entries) {
     return _dedupeAutocompleteValues(
-      entries
-          .where((entry) => entry.isMatch)
-          .map(
+      entries.where((entry) => entry.isMatch).map(
             (entry) => entry.opponentTeam.trim().isNotEmpty
                 ? entry.opponentTeam
                 : entry.club,
@@ -1471,11 +1526,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
         content: Text(
           scope == _PlanEditScope.series
               ? (isKo
-                    ? '이 묶음에 포함된 훈련 계획을 모두 삭제할까요?'
-                    : 'Delete every training plan in this series?')
+                  ? '이 묶음에 포함된 훈련 계획을 모두 삭제할까요?'
+                  : 'Delete every training plan in this series?')
               : (isKo
-                    ? '이 훈련 계획을 정말 삭제할까요?'
-                    : 'Are you sure you want to delete this training plan?'),
+                  ? '이 훈련 계획을 정말 삭제할까요?'
+                  : 'Are you sure you want to delete this training plan?'),
         ),
         actions: [
           TextButton(
@@ -1537,26 +1592,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final seriesId = isRecurring ? idSeed : null;
     final normalizedWeekdays = repeatWeekdays.toSet().toList(growable: false)
       ..sort();
-    return sortedDates
-        .map((scheduledAt) {
-          final dateToken = DateFormat('yyyyMMddHHmm').format(scheduledAt);
-          return _TrainingPlan(
-            id: '${seriesId ?? idSeed}_$dateToken',
-            scheduledAt: scheduledAt,
-            category: category,
-            durationMinutes: durationMinutes,
-            reminderMinutesBefore: reminderMinutesBefore,
-            repeatWeekdays: isRecurring ? normalizedWeekdays : const <int>[],
-            alarmLoopEnabled: alarmLoopEnabled,
-            note: note,
-            seriesId: seriesId,
-            seriesStartDate: isRecurring
-                ? _normalizeDay(seriesStartDate)
-                : null,
-            seriesEndDate: isRecurring ? _normalizeDay(seriesEndDate) : null,
-          );
-        })
-        .toList(growable: false);
+    return sortedDates.map((scheduledAt) {
+      final dateToken = DateFormat('yyyyMMddHHmm').format(scheduledAt);
+      return _TrainingPlan(
+        id: '${seriesId ?? idSeed}_$dateToken',
+        scheduledAt: scheduledAt,
+        category: category,
+        durationMinutes: durationMinutes,
+        reminderMinutesBefore: reminderMinutesBefore,
+        repeatWeekdays: isRecurring ? normalizedWeekdays : const <int>[],
+        alarmLoopEnabled: alarmLoopEnabled,
+        note: note,
+        seriesId: seriesId,
+        seriesStartDate: isRecurring ? _normalizeDay(seriesStartDate) : null,
+        seriesEndDate: isRecurring ? _normalizeDay(seriesEndDate) : null,
+      );
+    }).toList(growable: false);
   }
 
   List<_TrainingPlan> _plansInSameSeries(_TrainingPlan plan) {
@@ -1869,10 +1920,10 @@ class _CalendarStatusDayCell extends StatelessWidget {
     final borderColor = isSelected
         ? colorScheme.primary
         : (isHoliday
-              ? Colors.red.shade400.withAlpha(170)
-              : (isToday
-                    ? colorScheme.primary.withAlpha(150)
-                    : Colors.transparent));
+            ? Colors.red.shade400.withAlpha(170)
+            : (isToday
+                ? colorScheme.primary.withAlpha(150)
+                : Colors.transparent));
     final backgroundColor = isSelected
         ? colorScheme.primary.withAlpha(28)
         : (isToday ? colorScheme.primary.withAlpha(14) : Colors.transparent);
@@ -2029,12 +2080,10 @@ class _DayTimeline extends StatelessWidget {
       ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
     final sortedEntries = [...dayEntries]
       ..sort(TrainingEntry.compareByRecentCreated);
-    final sortedMatchEntries = sortedEntries
-        .where((entry) => entry.isMatch)
-        .toList(growable: false);
-    final sortedTrainingEntries = sortedEntries
-        .where((entry) => !entry.isMatch)
-        .toList(growable: false);
+    final sortedMatchEntries =
+        sortedEntries.where((entry) => entry.isMatch).toList(growable: false);
+    final sortedTrainingEntries =
+        sortedEntries.where((entry) => !entry.isMatch).toList(growable: false);
     if (sortedPlans.isEmpty &&
         sortedMatchEntries.isEmpty &&
         sortedTrainingEntries.isEmpty) {
@@ -2125,10 +2174,13 @@ class _DayTimeline extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             ...sortedPlans.map(
-              (plan) => _PlanTile(
-                plan: plan,
-                onTap: () => onEditPlan(plan),
-                onDelete: () => onDeletePlan(plan),
+              (plan) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _PlanTile(
+                  plan: plan,
+                  onTap: () => onEditPlan(plan),
+                  onDelete: () => onDeletePlan(plan),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -2229,8 +2281,8 @@ class _PlanTile extends StatelessWidget {
     final reminderText = plan.alarmLoopEnabled
         ? (isKo ? '시작 시각에도 노티' : 'also notify at start time')
         : (isKo
-              ? '${plan.reminderMinutesBefore}분 전 알림'
-              : 'alert ${plan.reminderMinutesBefore} min before');
+            ? '${plan.reminderMinutesBefore}분 전 알림'
+            : 'alert ${plan.reminderMinutesBefore} min before');
     return WatchCartCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
@@ -2577,25 +2629,25 @@ class _MatchAutocompleteField extends StatelessWidget {
       onSelected: onChanged,
       fieldViewBuilder:
           (context, textEditingController, focusNode, onFieldSubmitted) {
-            if (textEditingController.text != initialValue &&
-                textEditingController.text.isEmpty) {
-              textEditingController.value = TextEditingValue(
-                text: initialValue,
-                selection: TextSelection.collapsed(offset: initialValue.length),
-              );
-            }
-            return TextField(
-              controller: textEditingController,
-              focusNode: focusNode,
-              textInputAction: textInputAction,
-              onChanged: onChanged,
-              onSubmitted: (_) => onFieldSubmitted(),
-              decoration: InputDecoration(
-                labelText: labelText,
-                hintText: hintText,
-              ),
-            );
-          },
+        if (textEditingController.text != initialValue &&
+            textEditingController.text.isEmpty) {
+          textEditingController.value = TextEditingValue(
+            text: initialValue,
+            selection: TextSelection.collapsed(offset: initialValue.length),
+          );
+        }
+        return TextField(
+          controller: textEditingController,
+          focusNode: focusNode,
+          textInputAction: textInputAction,
+          onChanged: onChanged,
+          onSubmitted: (_) => onFieldSubmitted(),
+          decoration: InputDecoration(
+            labelText: labelText,
+            hintText: hintText,
+          ),
+        );
+      },
       optionsViewBuilder: (context, onSelected, displayedOptions) {
         final items = displayedOptions.toList(growable: false);
         if (items.isEmpty) return const SizedBox.shrink();
@@ -2703,21 +2755,19 @@ class _TrainingPlan {
   factory _TrainingPlan.fromMap(Map<String, dynamic> map) {
     final rawDate = map['scheduledAt']?.toString() ?? '';
     return _TrainingPlan(
-      id:
-          map['id']?.toString() ??
+      id: map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       scheduledAt: DateTime.tryParse(rawDate) ?? DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,
       reminderMinutesBefore:
           (map['reminderMinutesBefore'] as num?)?.toInt() ?? 30,
-      repeatWeekdays:
-          ((map['repeatWeekdays'] as List?) ?? const [])
-              .map((e) => (e as num?)?.toInt() ?? 0)
-              .where((v) => v >= DateTime.monday && v <= DateTime.sunday)
-              .toSet()
-              .toList(growable: false)
-            ..sort(),
+      repeatWeekdays: ((map['repeatWeekdays'] as List?) ?? const [])
+          .map((e) => (e as num?)?.toInt() ?? 0)
+          .where((v) => v >= DateTime.monday && v <= DateTime.sunday)
+          .toSet()
+          .toList(growable: false)
+        ..sort(),
       alarmLoopEnabled: (map['alarmLoopEnabled'] as bool?) ?? true,
       note: map['note']?.toString() ?? '',
       seriesId: map['seriesId']?.toString(),
