@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: NavigationBar(
-        height: 68,
+        height: 62,
         backgroundColor: navBackground,
         indicatorColor: Theme.of(context).colorScheme.primary.withAlpha(38),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
