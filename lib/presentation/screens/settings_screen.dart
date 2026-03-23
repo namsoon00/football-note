@@ -1459,7 +1459,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-class _BackupHealthCard extends StatelessWidget {
+class _BackupHealthCard extends StatefulWidget {
   final bool isKo;
   final bool signedIn;
   final bool autoDaily;
@@ -1477,6 +1477,13 @@ class _BackupHealthCard extends StatelessWidget {
     required this.localRestoreAt,
     required this.formatBackupTime,
   });
+
+  @override
+  State<_BackupHealthCard> createState() => _BackupHealthCardState();
+}
+
+class _BackupHealthCardState extends State<_BackupHealthCard> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -1499,7 +1506,7 @@ class _BackupHealthCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isKo ? '백업 상태' : 'Backup health',
+                  widget.isKo ? '백업 상태' : 'Backup health',
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -1519,49 +1526,70 @@ class _BackupHealthCard extends StatelessWidget {
             _summary(),
             style: theme.textTheme.bodyMedium,
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _InfoPill(
-                label: isKo
-                    ? (signedIn ? '구글 연결됨' : '구글 미연결')
-                    : (signedIn ? 'Google connected' : 'Google disconnected'),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => setState(() => _expanded = !_expanded),
+            icon: Icon(
+              _expanded ? Icons.expand_less : Icons.expand_more,
+              color: healthColor,
+            ),
+            label: Text(
+              widget.isKo
+                  ? (_expanded ? '자세한 상태 숨기기' : '자세한 상태 보기')
+                  : (_expanded ? 'Hide details' : 'Show details'),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: healthColor,
+                fontWeight: FontWeight.w800,
               ),
-              _InfoPill(
-                label: isKo
-                    ? (autoDaily ? '일일 자동 백업 켜짐' : '일일 자동 백업 꺼짐')
-                    : (autoDaily
-                        ? 'Daily auto-backup on'
-                        : 'Daily auto-backup off'),
-              ),
-              _InfoPill(
-                label: isKo
-                    ? (autoOnSave ? '저장 시 자동 백업 켜짐' : '저장 시 자동 백업 꺼짐')
-                    : (autoOnSave
-                        ? 'Auto-backup on save on'
-                        : 'Auto-backup on save off'),
+            ),
+          ),
+          if (_expanded) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _InfoPill(
+                  label: widget.isKo
+                      ? (widget.signedIn ? '구글 연결됨' : '구글 미연결')
+                      : (widget.signedIn
+                          ? 'Google connected'
+                          : 'Google disconnected'),
+                ),
+                _InfoPill(
+                  label: widget.isKo
+                      ? (widget.autoDaily ? '일일 자동 백업 켜짐' : '일일 자동 백업 꺼짐')
+                      : (widget.autoDaily
+                          ? 'Daily auto-backup on'
+                          : 'Daily auto-backup off'),
+                ),
+                _InfoPill(
+                  label: widget.isKo
+                      ? (widget.autoOnSave ? '저장 시 자동 백업 켜짐' : '저장 시 자동 백업 꺼짐')
+                      : (widget.autoOnSave
+                          ? 'Auto-backup on save on'
+                          : 'Auto-backup on save off'),
+                ),
+              ],
+            ),
+            if (widget.lastBackupAt != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                widget.isKo
+                    ? '마지막 클라우드 백업: ${widget.formatBackupTime(widget.lastBackupAt!)}'
+                    : 'Last cloud backup: ${widget.formatBackupTime(widget.lastBackupAt!)}',
+                style: theme.textTheme.bodySmall,
               ),
             ],
-          ),
-          if (lastBackupAt != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              isKo
-                  ? '마지막 클라우드 백업: ${formatBackupTime(lastBackupAt!)}'
-                  : 'Last cloud backup: ${formatBackupTime(lastBackupAt!)}',
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
-          if (localRestoreAt != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              isKo
-                  ? '복원 전 로컬 보관본: ${formatBackupTime(localRestoreAt!)}'
-                  : 'Pre-restore local snapshot: ${formatBackupTime(localRestoreAt!)}',
-              style: theme.textTheme.bodySmall,
-            ),
+            if (widget.localRestoreAt != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                widget.isKo
+                    ? '복원 전 로컬 보관본: ${widget.formatBackupTime(widget.localRestoreAt!)}'
+                    : 'Pre-restore local snapshot: ${widget.formatBackupTime(widget.localRestoreAt!)}',
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
           ],
         ],
       ),
@@ -1569,19 +1597,27 @@ class _BackupHealthCard extends StatelessWidget {
   }
 
   String _healthLabel() {
-    if (!signedIn) return isKo ? '로그인 필요' : 'Sign-in required';
-    if (lastBackupAt == null) return isKo ? '백업 없음' : 'No backup';
-    final age = DateTime.now().difference(lastBackupAt!);
-    if (age <= const Duration(hours: 24)) return isKo ? '정상' : 'Healthy';
-    if (age <= const Duration(days: 3)) return isKo ? '확인 필요' : 'Review';
-    return isKo ? '위험' : 'At risk';
+    if (!widget.signedIn) {
+      return widget.isKo ? '로그인 필요' : 'Sign-in required';
+    }
+    if (widget.lastBackupAt == null) {
+      return widget.isKo ? '백업 없음' : 'No backup';
+    }
+    final age = DateTime.now().difference(widget.lastBackupAt!);
+    if (age <= const Duration(hours: 24)) {
+      return widget.isKo ? '정상' : 'Healthy';
+    }
+    if (age <= const Duration(days: 3)) {
+      return widget.isKo ? '확인 필요' : 'Review';
+    }
+    return widget.isKo ? '위험' : 'At risk';
   }
 
   Color _healthColor(ThemeData theme) {
-    if (!signedIn || lastBackupAt == null) {
+    if (!widget.signedIn || widget.lastBackupAt == null) {
       return theme.colorScheme.error;
     }
-    final age = DateTime.now().difference(lastBackupAt!);
+    final age = DateTime.now().difference(widget.lastBackupAt!);
     if (age <= const Duration(hours: 24)) {
       return Colors.green.shade700;
     }
@@ -1592,23 +1628,23 @@ class _BackupHealthCard extends StatelessWidget {
   }
 
   String _summary() {
-    if (!signedIn) {
-      return isKo
+    if (!widget.signedIn) {
+      return widget.isKo
           ? '계정 연결 전에는 자동 백업이 동작하지 않습니다.'
           : 'Automatic backups cannot run until an account is connected.';
     }
-    if (lastBackupAt == null) {
-      return isKo
+    if (widget.lastBackupAt == null) {
+      return widget.isKo
           ? '첫 백업을 아직 만들지 않았습니다. 지금 한 번 백업해 두는 편이 안전합니다.'
           : 'No backup has been created yet. Running one now is the safer path.';
     }
-    final age = DateTime.now().difference(lastBackupAt!);
+    final age = DateTime.now().difference(widget.lastBackupAt!);
     if (age <= const Duration(hours: 24)) {
-      return isKo
+      return widget.isKo
           ? '최근 24시간 안에 백업이 완료되어 현재 데이터 보호 상태가 좋습니다.'
           : 'A backup completed within the last 24 hours, so protection is in good shape.';
     }
-    return isKo
+    return widget.isKo
         ? '마지막 백업이 오래되었습니다. 수동 백업 또는 자동 백업 설정을 다시 확인하세요.'
         : 'The last backup is getting old. Run a manual backup or verify the automation settings.';
   }
