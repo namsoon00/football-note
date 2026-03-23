@@ -218,6 +218,30 @@ void main() {
     expect(history.last.category, PlayerXpHistoryCategory.board);
   });
 
+  test('grouped training plan creation awards bonus xp once', () async {
+    final repository = _MemoryOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForPlanCreated(
+      planId: 'plan-1',
+      planIds: const ['plan-1', 'plan-2', 'plan-3'],
+    );
+    final duplicateAward = await service.awardForPlanCreated(
+      planId: 'plan-1',
+      planIds: const ['plan-1', 'plan-2', 'plan-3'],
+    );
+
+    expect(award.gainedXp, 20);
+    expect(award.reasons, contains('plan_created'));
+    expect(award.reasons, contains('plan_group_created:3'));
+    expect(duplicateAward.gainedXp, 0);
+
+    final history = service.loadXpHistory();
+    expect(history, hasLength(1));
+    expect(history.first.category, PlayerXpHistoryCategory.plan);
+    expect(history.first.reasons, contains('plan_group_created:3'));
+  });
+
   test(
     'xp history entries can be deleted individually and all at once',
     () async {

@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/presentation/screens/player_xp_guide_screen.dart';
 import 'package:football_note/presentation/screens/player_level_guide_screen.dart';
 
 void main() {
@@ -79,6 +80,28 @@ void main() {
     expect(find.textContaining('훈련 기록 · 원터치 패스'), findsWidgets);
     expect(find.text('+30 XP'), findsOneWidget);
     expect(find.textContaining('누적 130 XP'), findsOneWidget);
+  });
+
+  testWidgets('xp guide lists lifting jump rope and plan series bonus', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+        home: PlayerXpGuideScreen(optionRepository: _MemoryOptionRepository()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('리프팅 기록 추가'), findsOneWidget);
+    expect(find.text('줄넘기 기록 추가'), findsOneWidget);
+    expect(find.text('묶음 계획 생성 보너스'), findsOneWidget);
   });
 }
 

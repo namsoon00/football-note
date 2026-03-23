@@ -35,6 +35,16 @@ class PlayerXpGuideScreen extends StatelessWidget {
             title: isKo ? '계획한 날 훈련 완료' : 'Complete a planned day',
             xpLabel: '+25 XP',
           ),
+          _XpGuideItem(
+            icon: Icons.sports_soccer_outlined,
+            title: isKo ? '리프팅 기록 추가' : 'Lifting recorded',
+            xpLabel: '+10 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.fitness_center_outlined,
+            title: isKo ? '줄넘기 기록 추가' : 'Jump rope recorded',
+            xpLabel: '+10 XP',
+          ),
         ],
       ),
       _XpGuideSection(
@@ -57,6 +67,13 @@ class PlayerXpGuideScreen extends StatelessWidget {
             icon: Icons.event_note_outlined,
             title: isKo ? '훈련 계획 생성' : 'Training plan created',
             xpLabel: '+10 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.repeat_outlined,
+            title: isKo ? '묶음 계획 생성 보너스' : 'Plan series bonus',
+            xpLabel: isKo
+                ? '+5 XP씩 추가 (최대 +20 XP)'
+                : '+5 XP each (up to +20 XP)',
           ),
         ],
       ),

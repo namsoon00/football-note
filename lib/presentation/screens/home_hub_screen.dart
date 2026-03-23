@@ -212,22 +212,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             ? widget.onOpenWeeklyStats
                             : _openLevelGuide,
                       ),
-                      onPlanTap: _trackedAction(
-                        'priority_plan',
-                        widget.onQuickPlan,
-                      ),
-                      onStatsTap: _trackedAction(
-                        'priority_stats',
-                        widget.onOpenWeeklyStats,
-                      ),
-                      onBoardTap: _trackedAction(
-                        'priority_board',
-                        widget.onQuickBoard,
-                      ),
-                      onLevelTap: _trackedAction(
-                        'priority_level',
-                        _openLevelGuide,
-                      ),
                     ),
                     const SizedBox(height: 12),
                     _DailyFlowCard(
@@ -1045,28 +1029,19 @@ class _PriorityActionCard extends StatelessWidget {
   final _HomeHubData data;
   final bool isKo;
   final VoidCallback? onPrimaryTap;
-  final VoidCallback? onPlanTap;
-  final VoidCallback? onStatsTap;
-  final VoidCallback? onBoardTap;
-  final VoidCallback? onLevelTap;
 
   const _PriorityActionCard({
     required this.data,
     required this.isKo,
     required this.onPrimaryTap,
-    required this.onPlanTap,
-    required this.onStatsTap,
-    required this.onBoardTap,
-    required this.onLevelTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final (title, body, buttonLabel, icon) = _copy();
-    final suggestions = _suggestions();
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1102,20 +1077,12 @@ class _PriorityActionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isKo ? '다음 액션 제안' : 'Next action ideas',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
                       title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       body,
                       maxLines: 2,
@@ -1138,119 +1105,9 @@ class _PriorityActionCard extends StatelessWidget {
               ),
             ],
           ),
-          if (suggestions.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: suggestions
-                  .map((item) => _PrioritySuggestionPill(item: item))
-                  .toList(growable: false),
-            ),
-          ],
         ],
       ),
     );
-  }
-
-  List<_PrioritySuggestion> _suggestions() {
-    switch (data.focusSignal) {
-      case 'log_today':
-        return <_PrioritySuggestion>[
-          _PrioritySuggestion(
-            icon: Icons.event_note_outlined,
-            title: isKo ? '계획 먼저 보기' : 'Open plans first',
-            subtitle: isKo
-                ? '오늘 빈 시간이 어디 있는지 먼저 확인하세요.'
-                : 'Check where today still has room first.',
-            onTap: onPlanTap,
-          ),
-          _PrioritySuggestion(
-            icon: Icons.bar_chart_outlined,
-            title: isKo ? '주간 흐름 보기' : 'See weekly trend',
-            subtitle: isKo
-                ? '이번 주 빈 날과 훈련 밀도를 같이 보세요.'
-                : 'Review empty days and weekly density together.',
-            onTap: onStatsTap,
-          ),
-        ];
-      case 'add_session':
-        return <_PrioritySuggestion>[
-          _PrioritySuggestion(
-            icon: Icons.event_note_outlined,
-            title: isKo ? '남은 계획 확인' : 'Check remaining plans',
-            subtitle: isKo
-                ? '남은 슬롯을 먼저 보고 세션 수를 맞추세요.'
-                : 'See the remaining slots before filling the week.',
-            onTap: onPlanTap,
-          ),
-          _PrioritySuggestion(
-            icon: Icons.developer_board_outlined,
-            title: isKo ? '훈련판 미리 그리기' : 'Sketch the session',
-            subtitle: isKo
-                ? '다음 세션 포인트를 보드로 먼저 정리하세요.'
-                : 'Map the next session with a quick board first.',
-            onTap: onBoardTap,
-          ),
-        ];
-      case 'add_minutes':
-        return <_PrioritySuggestion>[
-          _PrioritySuggestion(
-            icon: Icons.developer_board_outlined,
-            title: isKo ? '긴 세션 설계' : 'Design a longer block',
-            subtitle: isKo
-                ? '보드에서 45~60분 흐름을 먼저 짜보세요.'
-                : 'Draft a 45-60 min session flow on the board.',
-            onTap: onBoardTap,
-          ),
-          _PrioritySuggestion(
-            icon: Icons.bar_chart_outlined,
-            title: isKo ? '주간 시간 확인' : 'Review weekly minutes',
-            subtitle: isKo
-                ? '어느 날이 짧았는지 통계에서 바로 볼 수 있어요.'
-                : 'Stats will show which days stayed short.',
-            onTap: onStatsTap,
-          ),
-        ];
-      case 'recovery':
-        return <_PrioritySuggestion>[
-          _PrioritySuggestion(
-            icon: Icons.bar_chart_outlined,
-            title: isKo ? '피로 흐름 확인' : 'Check fatigue trend',
-            subtitle: isKo
-                ? '최근 컨디션 점수를 묶어서 보면 판단이 쉬워집니다.'
-                : 'Recent condition scores are easier to judge together.',
-            onTap: onStatsTap,
-          ),
-          _PrioritySuggestion(
-            icon: Icons.event_note_outlined,
-            title: isKo ? '계획 강도 조절' : 'Adjust plan load',
-            subtitle: isKo
-                ? '남은 계획의 길이와 강도를 먼저 줄여두세요.'
-                : 'Reduce upcoming plan load before adding more work.',
-            onTap: onPlanTap,
-          ),
-        ];
-      default:
-        return <_PrioritySuggestion>[
-          _PrioritySuggestion(
-            icon: Icons.military_tech_outlined,
-            title: isKo ? '레벨 보상 점검' : 'Review level rewards',
-            subtitle: isKo
-                ? '선물 기준과 다음 레벨 보상을 미리 확인하세요.'
-                : 'Check the next reward before the next push.',
-            onTap: onLevelTap,
-          ),
-          _PrioritySuggestion(
-            icon: Icons.developer_board_outlined,
-            title: isKo ? '다음 훈련 설계' : 'Shape the next session',
-            subtitle: isKo
-                ? '훈련 보드에서 다음 세션 디테일을 선명하게 하세요.'
-                : 'Use the training board to sharpen the next details.',
-            onTap: onBoardTap,
-          ),
-        ];
-    }
   }
 
   (String, String, String, IconData) _copy() {
@@ -1259,8 +1116,8 @@ class _PriorityActionCard extends StatelessWidget {
         return (
           isKo ? '기록 전에 일정부터 정리해두세요' : 'Shape the day before logging',
           isKo
-              ? '오늘 할 일과 겹치는 제안은 뺐어요. 먼저 남은 계획과 주간 흐름을 보고 빈 자리를 정리하세요.'
-              : 'Daily-task overlaps are removed here. Review plans and the weekly flow before acting.',
+              ? '오늘 기록 전, 남은 계획부터 가볍게 확인하세요.'
+              : 'Review the remaining plans before logging today.',
           isKo ? '계획 보기' : 'Open plans',
           Icons.event_note_outlined,
         );
@@ -1270,8 +1127,8 @@ class _PriorityActionCard extends StatelessWidget {
               ? '세션 수는 계획과 통계로 채우는 편이 낫습니다'
               : 'Use plans and stats to add the next session',
           isKo
-              ? '훈련 추가나 다이어리 보기는 오늘 할 일에 이미 있어요. 여기서는 남은 일정과 다음 세션 설계를 보게 합니다.'
-              : 'Add session and diary review already exist in today tasks. This card stays on planning and structure.',
+              ? '먼저 주간 흐름을 보고 다음 세션을 추가하세요.'
+              : 'Check the weekly flow before adding another session.',
           isKo ? '주간 통계 보기' : 'Open weekly stats',
           Icons.bar_chart_outlined,
         );
@@ -1281,8 +1138,8 @@ class _PriorityActionCard extends StatelessWidget {
               ? '다음 훈련은 길이를 설계해서 늘리세요'
               : 'Extend the next session deliberately',
           isKo
-              ? '오늘 할 일과 겹치지 않게, 보드와 통계로 긴 세션 구조를 먼저 잡도록 바꿨어요.'
-              : 'To avoid overlapping with today tasks, this now points to board and stats for a longer session design.',
+              ? '보드에서 긴 세션 흐름만 먼저 잡아두세요.'
+              : 'Shape a longer session flow on the board first.',
           isKo ? '훈련판 열기' : 'Open board',
           Icons.developer_board_outlined,
         );
@@ -1290,8 +1147,8 @@ class _PriorityActionCard extends StatelessWidget {
         return (
           isKo ? '회복은 먼저 흐름을 보고 조절하세요' : 'Adjust recovery from the trend first',
           isKo
-              ? '다이어리 보기는 오늘 할 일에 이미 있으니, 여기서는 컨디션 추세와 남은 계획 강도 조절을 우선 제안합니다.'
-              : 'Diary review is already in today tasks, so this focuses on condition trends and plan load adjustment.',
+              ? '최근 컨디션 흐름을 보고 강도만 조절하세요.'
+              : 'Check the recent condition trend before adjusting load.',
           isKo ? '주간 통계 보기' : 'Open weekly stats',
           Icons.monitor_heart_outlined,
         );
@@ -1301,62 +1158,12 @@ class _PriorityActionCard extends StatelessWidget {
               ? '이제는 보상과 다음 설계를 같이 보세요'
               : 'Pair rewards with the next design step',
           isKo
-              ? '오늘 할 일 밖의 액션만 남겨서, 레벨 보상 확인과 다음 훈련 설계를 중심으로 정리했습니다.'
-              : 'Only non-daily-task actions remain here, centered on rewards and next-session design.',
+              ? '보상 확인 뒤 바로 다음 훈련 흐름을 잡아보세요.'
+              : 'Review rewards, then shape the next training flow.',
           isKo ? '레벨 가이드' : 'Level guide',
           Icons.military_tech_outlined,
         );
     }
-  }
-}
-
-class _PrioritySuggestion {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
-
-  const _PrioritySuggestion({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-}
-
-class _PrioritySuggestionPill extends StatelessWidget {
-  final _PrioritySuggestion item;
-
-  const _PrioritySuggestionPill({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.white.withValues(alpha: 0.44),
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: item.onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(item.icon, size: 16, color: scheme.primary),
-              const SizedBox(width: 6),
-              Text(
-                item.title,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: scheme.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

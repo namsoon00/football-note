@@ -257,10 +257,17 @@ class PlayerLevelService {
     );
   }
 
-  Future<PlayerLevelAward> awardForPlanCreated({required String planId}) async {
+  Future<PlayerLevelAward> awardForPlanCreated({
+    required String planId,
+    List<String> planIds = const <String>[],
+  }) async {
     final before = loadState();
     final awardedPlanIds = _getStringSet(awardedPlanIdsKey);
-    if (!awardedPlanIds.add(planId)) {
+    final normalizedPlanIds = (planIds.isEmpty ? <String>[planId] : planIds)
+        .where((id) => id.trim().isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    if (normalizedPlanIds.isEmpty) {
       return PlayerLevelAward(
         gainedXp: 0,
         before: before,
@@ -268,8 +275,25 @@ class PlayerLevelService {
         reasons: const <String>[],
       );
     }
+    final newPlanIds = normalizedPlanIds
+        .where((id) => !awardedPlanIds.contains(id))
+        .toList(growable: false);
+    if (newPlanIds.isEmpty) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    awardedPlanIds.addAll(newPlanIds);
 
-    const gainedXp = 10;
+    final additionalPlans = (newPlanIds.length - 1).clamp(0, 4);
+    final gainedXp = 10 + (additionalPlans * 5);
+    final reasons = <String>[
+      'plan_created',
+      if (newPlanIds.length > 1) 'plan_group_created:${newPlanIds.length}',
+    ];
     final nextTotal = before.totalXp + gainedXp;
     await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(awardedPlanIdsKey, awardedPlanIds.toList()..sort());
@@ -282,15 +306,15 @@ class PlayerLevelService {
         beforeLevel: before.level,
         afterLevel: after.level,
         category: PlayerXpHistoryCategory.plan,
-        label: planId,
-        reasons: const <String>['plan_created'],
+        label: '',
+        reasons: reasons,
       ),
     );
     return PlayerLevelAward(
       gainedXp: gainedXp,
       before: before,
       after: after,
-      reasons: const <String>['plan_created'],
+      reasons: reasons,
     );
   }
 
