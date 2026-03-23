@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -52,6 +53,7 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
+  static const String _plansStorageKey = 'training_plans_v1';
   late final BenchmarkService _benchmarkService;
   late DateTimeRange _selectedRange;
   int _statsTabIndex = 0;
@@ -199,9 +201,12 @@ class _StatsScreenState extends State<StatsScreen> {
     final trainingEntries = filteredEntries
         .where((entry) => !entry.isMatch)
         .toList(growable: false);
-    final matchEntries = filteredEntries
-        .where((entry) => entry.isMatch)
-        .toList(growable: false);
+    final matchEntries =
+        filteredEntries.where((entry) => entry.isMatch).toList(growable: false);
+    final plansInRange = _loadPlansInRange(
+      rangeStart: rangeStart,
+      rangeEndExclusive: rangeEndExclusive,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -221,8 +226,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 onQuizTap: () => _openQuiz(context),
                 onNotificationTap: () => _openNotifications(context),
                 notificationBadgeCount: reminderUnreadCount,
-                profilePhotoSource:
-                    widget.optionRepository.getValue<String>(
+                profilePhotoSource: widget.optionRepository.getValue<String>(
                       'profile_photo_url',
                     ) ??
                     '',
@@ -281,6 +285,7 @@ class _StatsScreenState extends State<StatsScreen> {
               soccerYears: soccerYears,
               canShowAverage: canShowAverage,
               trainingEntries: trainingEntries,
+              plansInRange: plansInRange,
             )
           else
             _buildMatchStatsTab(
@@ -327,6 +332,7 @@ class _StatsScreenState extends State<StatsScreen> {
     required int? soccerYears,
     required bool canShowAverage,
     required List<TrainingEntry> trainingEntries,
+    required List<_StatsPlanLite> plansInRange,
   }) {
     if (trainingEntries.isEmpty) {
       return _InlineNotice(
@@ -339,6 +345,18 @@ class _StatsScreenState extends State<StatsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _TrainingOverviewSection(
+          entries: trainingEntries,
+          plans: plansInRange,
+          isKo: isKo,
+          range: _selectedRange,
+        ),
+        const SizedBox(height: 18),
+        Divider(
+          height: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        ),
+        const SizedBox(height: 18),
         _TrainingSummaryCard(entries: trainingEntries),
         const SizedBox(height: 18),
         Divider(
@@ -351,9 +369,8 @@ class _StatsScreenState extends State<StatsScreen> {
             text: isKo
                 ? '현재는 판단 기준(나이/구력)이 없어 평균 비교 통계를 보여드릴 수 없어요. 프로필에서 생년월일과 축구 시작일을 입력해 주세요.'
                 : 'Average comparison is hidden because age and soccer experience are missing. Add birth date and soccer start date in profile.',
-            title: isKo
-                ? '나이/구력 정보를 입력해 주세요'
-                : 'Enter age and soccer experience',
+            title:
+                isKo ? '나이/구력 정보를 입력해 주세요' : 'Enter age and soccer experience',
             trailing: Align(
               alignment: Alignment.centerLeft,
               child: OutlinedButton.icon(
@@ -388,11 +405,11 @@ class _StatsScreenState extends State<StatsScreen> {
           showAverage: canShowAverage,
           onReferenceTap: canShowAverage
               ? () => _openAverageBenchmark(
-                  context,
-                  trainingEntries,
-                  ageYears,
-                  soccerYears,
-                )
+                    context,
+                    trainingEntries,
+                    ageYears,
+                    soccerYears,
+                  )
               : null,
         ),
         const SizedBox(height: 18),
@@ -436,6 +453,13 @@ class _StatsScreenState extends State<StatsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _MatchOverviewSection(entries: matchEntries, isKo: isKo),
+        const SizedBox(height: 18),
+        Divider(
+          height: 1,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        ),
+        const SizedBox(height: 18),
         _MatchSummaryCard(entries: matchEntries),
         const SizedBox(height: 18),
         Divider(
@@ -490,12 +514,10 @@ class _StatsScreenState extends State<StatsScreen> {
   String _rangeLabel(bool isKo) {
     final start = _selectedRange.start;
     final end = _selectedRange.end;
-    final startText = isKo
-        ? '${start.month}/${start.day}'
-        : '${start.month}/${start.day}';
-    final endText = isKo
-        ? '${end.month}/${end.day}'
-        : '${end.month}/${end.day}';
+    final startText =
+        isKo ? '${start.month}/${start.day}' : '${start.month}/${start.day}';
+    final endText =
+        isKo ? '${end.month}/${end.day}' : '${end.month}/${end.day}';
     return isKo ? '$startText~$endText' : '$startText-$endText';
   }
 
@@ -515,6 +537,29 @@ class _StatsScreenState extends State<StatsScreen> {
   bool _sameRange(DateTimeRange? left, DateTimeRange? right) {
     if (left == null || right == null) return left == right;
     return left.start == right.start && left.end == right.end;
+  }
+
+  List<_StatsPlanLite> _loadPlansInRange({
+    required DateTime rangeStart,
+    required DateTime rangeEndExclusive,
+  }) {
+    final raw = widget.optionRepository.getValue<String>(_plansStorageKey);
+    if (raw == null || raw.trim().isEmpty) return const <_StatsPlanLite>[];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const <_StatsPlanLite>[];
+      return decoded
+          .whereType<Map>()
+          .map((item) => _StatsPlanLite.fromMap(item.cast<String, dynamic>()))
+          .where(
+            (plan) =>
+                !plan.scheduledAt.isBefore(rangeStart) &&
+                plan.scheduledAt.isBefore(rangeEndExclusive),
+          )
+          .toList(growable: false);
+    } catch (_) {
+      return const <_StatsPlanLite>[];
+    }
   }
 
   void _openSettings(BuildContext context) {
@@ -622,12 +667,10 @@ String _buildPeriodAdvice({
       ? (targetSessions <= 0 ? 0.0 : (sessions / targetSessions))
       : _heuristicSessionRatio(period, sessions);
   final combined = ((ratio * 0.65) + (sessionRatio * 0.35)).clamp(0.0, 2.0);
-  final gapMinutes = showAverage
-      ? math.max(0.0, targetMinutes - minutes).round()
-      : 0;
-  final gapSessions = showAverage
-      ? math.max(0.0, targetSessions - sessions).ceil()
-      : 0;
+  final gapMinutes =
+      showAverage ? math.max(0.0, targetMinutes - minutes).round() : 0;
+  final gapSessions =
+      showAverage ? math.max(0.0, targetSessions - sessions).ceil() : 0;
   final variant = variantSeed % 3;
 
   if (combined >= 1.0) {
@@ -760,9 +803,8 @@ class _TargetGrowthChart extends StatelessWidget {
     final labels = <int, String>{};
     final workedDays = <DateTime>{};
     final dailyTarget = (target.weeklyMinutesTarget / 7).round();
-    final labelStep = dayPoints.length <= 10
-        ? 1
-        : (dayPoints.length <= 20 ? 2 : 3);
+    final labelStep =
+        dayPoints.length <= 10 ? 1 : (dayPoints.length <= 20 ? 2 : 3);
 
     for (var i = 0; i < dayPoints.length; i++) {
       final start = dayPoints[i];
@@ -783,16 +825,16 @@ class _TargetGrowthChart extends StatelessWidget {
     final workedLabel = workedDateText.isEmpty
         ? (isKo ? '운동한 날: 없음' : 'Workout days: none')
         : (isKo
-              ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
-              : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
+            ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
+            : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
     final periodDays = periodEnd.difference(periodStart).inDays + 1;
     final totalMinutes = entries.fold<int>(
       0,
       (sum, entry) => sum + entry.durationMinutes,
     );
     final sessions = entries.length;
-    final scaledTargetMinutes = ((target.weeklyMinutesTarget * periodDays) / 7)
-        .round();
+    final scaledTargetMinutes =
+        ((target.weeklyMinutesTarget * periodDays) / 7).round();
     final scaledTargetSessions =
         ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
     final period = _periodFromDays(periodDays);
@@ -957,9 +999,8 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           sum +
           e.liftingByPart.values.fold<int>(0, (acc, count) => acc + count),
     );
-    final avgLiftPerSession = entries.isEmpty
-        ? 0
-        : (totalLifts / entries.length).round();
+    final avgLiftPerSession =
+        entries.isEmpty ? 0 : (totalLifts / entries.length).round();
     final benchmark = benchmarkService.physicalBenchmarkForAge(ageYears);
 
     return Column(
@@ -1006,10 +1047,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestHeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestHeight - benchmark.heightCmAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestHeight != null &&
               latestHeight - benchmark.heightCmAvg >= 0,
         ),
@@ -1026,10 +1066,9 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
           gap: latestWeight == null
               ? (isKo ? '비교 불가' : 'N/A')
               : showAverage
-              ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
-              : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+                  ? _gapText(latestWeight - benchmark.weightKgAvg, isKo)
+                  : (isKo ? '비교 숨김' : 'Hidden'),
+          isPositive: showAverage &&
               latestWeight != null &&
               latestWeight - benchmark.weightKgAvg >= 0,
         ),
@@ -1047,8 +1086,7 @@ class _BodyAndLiftingBenchmarkCard extends StatelessWidget {
                   isKo,
                 )
               : (isKo ? '비교 숨김' : 'Hidden'),
-          isPositive:
-              showAverage &&
+          isPositive: showAverage &&
               avgLiftPerSession - benchmark.liftsPerSessionAvg >= 0,
         ),
       ],
@@ -1220,27 +1258,23 @@ class _LiftingSummaryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                barGroups: trendEntries
-                    .asMap()
-                    .entries
-                    .map((entry) {
-                      return BarChartGroupData(
-                        x: entry.key,
-                        barRods: [
-                          BarChartRodData(
-                            toY: entry.value.value.toDouble(),
-                            width: 16,
-                            borderRadius: BorderRadius.circular(6),
-                            gradient: const LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [Color(0xFF2F80ED), Color(0xFF6FCF97)],
-                            ),
-                          ),
-                        ],
-                      );
-                    })
-                    .toList(growable: false),
+                barGroups: trendEntries.asMap().entries.map((entry) {
+                  return BarChartGroupData(
+                    x: entry.key,
+                    barRods: [
+                      BarChartRodData(
+                        toY: entry.value.value.toDouble(),
+                        width: 16,
+                        borderRadius: BorderRadius.circular(6),
+                        gradient: const LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [Color(0xFF2F80ED), Color(0xFF6FCF97)],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(growable: false),
               ),
             ),
           ),
@@ -1282,8 +1316,8 @@ class _LiftingSummaryCard extends StatelessWidget {
                   Text(
                     _dateText(entry.value.date),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ],
               ),
@@ -1370,11 +1404,9 @@ class _JumpRopeSummaryCard extends StatelessWidget {
     );
     final end = DateTime(range.end.year, range.end.month, range.end.day);
     final days = <DateTime>[];
-    for (
-      var current = start;
-      !current.isAfter(end);
-      current = current.add(const Duration(days: 1))
-    ) {
+    for (var current = start;
+        !current.isAfter(end);
+        current = current.add(const Duration(days: 1))) {
       days.add(current);
     }
     final countByDay = <DateTime, int>{for (final day in days) day: 0};
@@ -1390,16 +1422,14 @@ class _JumpRopeSummaryCard extends StatelessWidget {
         .map((day) => MapEntry(day, countByDay[day] ?? 0))
         .toList(growable: false);
     final totalCount = points.fold<int>(0, (sum, item) => sum + item.value);
-    final bestCount = points.isEmpty
-        ? 0
-        : points.map((item) => item.value).reduce(math.max);
+    final bestCount =
+        points.isEmpty ? 0 : points.map((item) => item.value).reduce(math.max);
     final bestDay = points.firstWhere(
       (item) => item.value == bestCount,
       orElse: () => MapEntry(start, 0),
     );
-    final maxY = bestCount <= 0
-        ? 5.0
-        : (bestCount * 1.25).clamp(5, 1000000).toDouble();
+    final maxY =
+        bestCount <= 0 ? 5.0 : (bestCount * 1.25).clamp(5, 1000000).toDouble();
     final labelStride = math.max(1, (days.length / 6).ceil());
 
     return Column(
@@ -1542,6 +1572,205 @@ class _JumpRopeSummaryCard extends StatelessWidget {
   }
 }
 
+class _TrainingOverviewSection extends StatelessWidget {
+  final List<TrainingEntry> entries;
+  final List<_StatsPlanLite> plans;
+  final bool isKo;
+  final DateTimeRange range;
+
+  const _TrainingOverviewSection({
+    required this.entries,
+    required this.plans,
+    required this.isKo,
+    required this.range,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final totalMinutes = entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    final activeDays = entries
+        .map((entry) =>
+            DateTime(entry.date.year, entry.date.month, entry.date.day))
+        .toSet();
+    final plannedDays = plans
+        .map((plan) => DateTime(plan.scheduledAt.year, plan.scheduledAt.month,
+            plan.scheduledAt.day))
+        .toSet();
+    final completedPlanDays = plannedDays.where(activeDays.contains).length;
+    final executionRate = plannedDays.isEmpty
+        ? null
+        : ((completedPlanDays / plannedDays.length) * 100).round();
+    final focus = _topFocusLabel(entries, isKo);
+    final strongest = _topPhrase(
+      entries.map((entry) => entry.goodPoints).toList(growable: false),
+      isKo: isKo,
+      fallback: isKo ? '강점 기록 필요' : 'Need strength notes',
+    );
+    final weakest = _topPhrase(
+      entries.map((entry) => entry.improvements).toList(growable: false),
+      isKo: isKo,
+      fallback: isKo ? '보완점 기록 필요' : 'Need improvement notes',
+    );
+    final nextAction = _topPhrase(
+      entries.map((entry) => entry.nextGoal).toList(growable: false),
+      isKo: isKo,
+      fallback: executionRate != null && executionRate < 70
+          ? (isKo ? '계획한 날 훈련 완료부터 회복' : 'Recover plan completion first')
+          : (isKo
+              ? '다음 목표를 훈련노트에 적어주세요'
+              : 'Add the next goal in training logs'),
+    );
+    final streak = _currentTrainingStreak(entries);
+    final overviewMessage = _buildOverviewMessage(
+      isKo: isKo,
+      totalMinutes: totalMinutes,
+      sessions: entries.length,
+      executionRate: executionRate,
+      weakest: weakest,
+      nextAction: nextAction,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionTitle(
+          icon: Icons.insights_outlined,
+          title: isKo ? '이번 기간 성장 요약' : 'Growth Summary',
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _MetricCard(
+              label: isKo ? '훈련 횟수' : 'Sessions',
+              value: isKo ? '${entries.length}회' : '${entries.length}',
+            ),
+            _MetricCard(
+              label: isKo ? '총 훈련 시간' : 'Total time',
+              value: _formatMinutesAsTime(totalMinutes, isKo: isKo),
+            ),
+            _MetricCard(
+              label: isKo ? '계획 실행률' : 'Plan execution',
+              value: executionRate == null
+                  ? (isKo ? '계획 없음' : 'No plan')
+                  : '$executionRate%',
+            ),
+            _MetricCard(
+              label: isKo ? '집중 분야' : 'Focus',
+              value: focus,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _CoachMessage(
+          icon: Icons.auto_awesome_outlined,
+          title: isKo ? '코치 해석' : 'Coach Insight',
+          message: overviewMessage,
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 700;
+            final cards = [
+              _InsightMiniCard(
+                title: isKo ? '가장 좋아진 점' : 'Best gain',
+                value: strongest,
+                icon: Icons.trending_up_outlined,
+              ),
+              _InsightMiniCard(
+                title: isKo ? '가장 약한 점' : 'Weak spot',
+                value: weakest,
+                icon: Icons.report_problem_outlined,
+              ),
+              _InsightMiniCard(
+                title: isKo ? '다음 액션' : 'Next action',
+                value: nextAction,
+                icon: Icons.flag_outlined,
+              ),
+              _InsightMiniCard(
+                title: isKo ? '꾸준함' : 'Consistency',
+                value: isKo ? '$streak일 연속 기록' : '$streak-day streak',
+                icon: Icons.local_fire_department_outlined,
+              ),
+            ];
+            if (!wide) {
+              return Column(
+                children: [
+                  for (var i = 0; i < cards.length; i++) ...[
+                    cards[i],
+                    if (i != cards.length - 1) const SizedBox(height: 10),
+                  ],
+                ],
+              );
+            }
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: cards
+                  .map(
+                    (card) => SizedBox(
+                      width: (constraints.maxWidth - 10) / 2,
+                      child: card,
+                    ),
+                  )
+                  .toList(growable: false),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchOverviewSection extends StatelessWidget {
+  final List<TrainingEntry> entries;
+  final bool isKo;
+
+  const _MatchOverviewSection({
+    required this.entries,
+    required this.isKo,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final wins = entries.where((entry) => _matchOutcome(entry) == 1).length;
+    final losses = entries.where((entry) => _matchOutcome(entry) == -1).length;
+    final playerGoals = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.playerGoals ?? 0),
+    );
+    final playerAssists = entries.fold<int>(
+      0,
+      (sum, entry) => sum + (entry.playerAssists ?? 0),
+    );
+    final direction = wins >= losses
+        ? (isKo ? '최근 흐름이 무너지지 않았습니다.' : 'Recent match trend is stable.')
+        : (isKo ? '결과 흐름 관리가 필요합니다.' : 'Result trend needs attention.');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionTitle(
+          icon: Icons.sports_soccer_outlined,
+          title: isKo ? '시합 해석' : 'Match Insight',
+        ),
+        const SizedBox(height: 12),
+        _CoachMessage(
+          icon: Icons.tips_and_updates_outlined,
+          title: isKo ? '기간 해석' : 'Period Insight',
+          message: isKo
+              ? '${entries.length}경기 동안 개인 기록은 $playerGoals골 $playerAssists도움입니다. $direction'
+              : 'Across ${entries.length} matches you produced $playerGoals goals and $playerAssists assists. $direction',
+        ),
+      ],
+    );
+  }
+}
+
 class _TrainingSummaryCard extends StatelessWidget {
   final List<TrainingEntry> entries;
 
@@ -1558,13 +1787,13 @@ class _TrainingSummaryCard extends StatelessWidget {
     final avgIntensity = entries.isEmpty
         ? 0
         : (entries.fold<int>(0, (sum, entry) => sum + entry.intensity) /
-                  entries.length)
-              .toStringAsFixed(1);
+                entries.length)
+            .toStringAsFixed(1);
     final avgCondition = entries.isEmpty
         ? 0
         : (entries.fold<int>(0, (sum, entry) => sum + entry.mood) /
-                  entries.length)
-              .toStringAsFixed(1);
+                entries.length)
+            .toStringAsFixed(1);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1793,6 +2022,59 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
+class _InsightMiniCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+
+  const _InsightMiniCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        height: 1.45,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 int _matchOutcome(TrainingEntry entry) {
   final scored = entry.scoredGoals;
   final conceded = entry.concededGoals;
@@ -1878,6 +2160,97 @@ class _PartBest {
   });
 }
 
+class _StatsPlanLite {
+  final DateTime scheduledAt;
+
+  const _StatsPlanLite({required this.scheduledAt});
+
+  factory _StatsPlanLite.fromMap(Map<String, dynamic> map) {
+    return _StatsPlanLite(
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
+}
+
+String _topFocusLabel(List<TrainingEntry> entries, bool isKo) {
+  final counts = <String, int>{};
+  for (final entry in entries) {
+    for (final value in <String>[
+      ...entry.goalFocuses,
+      entry.program,
+      entry.type,
+    ]) {
+      final text = value.trim();
+      if (text.isEmpty) continue;
+      counts[text] = (counts[text] ?? 0) + 1;
+    }
+  }
+  if (counts.isEmpty) {
+    return isKo ? '기본기' : 'Fundamentals';
+  }
+  final sorted = counts.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+  return sorted.first.key;
+}
+
+String _topPhrase(
+  List<String> rawValues, {
+  required bool isKo,
+  required String fallback,
+}) {
+  final counts = <String, int>{};
+  for (final raw in rawValues) {
+    for (final chunk in raw.split(RegExp(r'[\n,/]'))) {
+      final text = chunk.trim();
+      if (text.isEmpty) continue;
+      counts[text] = (counts[text] ?? 0) + 1;
+    }
+  }
+  if (counts.isEmpty) return fallback;
+  final sorted = counts.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+  return sorted.first.key;
+}
+
+int _currentTrainingStreak(List<TrainingEntry> entries) {
+  final workedDays = entries
+      .map((entry) =>
+          DateTime(entry.date.year, entry.date.month, entry.date.day))
+      .toSet()
+      .toList(growable: false)
+    ..sort((a, b) => b.compareTo(a));
+  if (workedDays.isEmpty) return 0;
+  var streak = 1;
+  for (var i = 1; i < workedDays.length; i++) {
+    final gap = workedDays[i - 1].difference(workedDays[i]).inDays;
+    if (gap == 1) {
+      streak += 1;
+      continue;
+    }
+    break;
+  }
+  return streak;
+}
+
+String _buildOverviewMessage({
+  required bool isKo,
+  required int totalMinutes,
+  required int sessions,
+  required int? executionRate,
+  required String weakest,
+  required String nextAction,
+}) {
+  final executionText = executionRate == null
+      ? (isKo ? '계획 데이터는 아직 없습니다.' : 'No plan data yet.')
+      : (isKo
+          ? '계획 실행률은 $executionRate%입니다.'
+          : 'Plan execution is $executionRate%.');
+  return isKo
+      ? '이번 기간 훈련은 총 ${_formatMinutesAsTime(totalMinutes, isKo: true)}, $sessions회입니다. $executionText 가장 약한 지점은 $weakest 쪽으로 보이고, 다음엔 $nextAction 를 먼저 가져가면 좋습니다.'
+      : 'This period totals ${_formatMinutesAsTime(totalMinutes, isKo: false)} across $sessions sessions. $executionText The main weak area looks like $weakest, and the next priority is $nextAction.';
+}
+
 class _PartRecord {
   final int count;
   final DateTime date;
@@ -1912,9 +2285,9 @@ class _SectionTitle extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.1,
-            ),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.1,
+                ),
           ),
         ),
         if (trailing != null) ...[const SizedBox(width: 8), trailing!],
@@ -1966,9 +2339,9 @@ class _CoachMessage extends StatelessWidget {
                 Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.45,
-                    fontWeight: FontWeight.w500,
-                  ),
+                        height: 1.45,
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ],
             ),
