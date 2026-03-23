@@ -317,9 +317,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     required _QuizMode mode,
     bool clearDueReview = false,
   }) {
-    if (questions.isEmpty) return;
+    final uniqueQuestions = _dedupeSessionQuestions(questions);
+    if (uniqueQuestions.isEmpty) return;
     setState(() {
-      _questions = questions;
+      _questions = uniqueQuestions;
       _mode = mode;
       _index = 0;
       _score = 0;
@@ -345,7 +346,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _pendingResumeSnapshot = null;
 
     if (clearDueReview) {
-      unawaited(_removeDueReviewQuestions(questions));
+      unawaited(_removeDueReviewQuestions(uniqueQuestions));
     }
 
     unawaited(_trackMetric('football_quiz_session_started'));
@@ -1696,6 +1697,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     final picked = <_FootballQuizQuestion>[];
     final usedConcepts = <String>{};
+    final usedQuestionKeys = <String>{};
     void take(List<_FootballQuizQuestion> from, int need) {
       if (need <= 0) return;
       final takenIndexes = <int>[];
@@ -1704,7 +1706,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           break;
         }
         final question = from[index];
+        final contentKey = _sessionQuestionContentKey(question);
         if (!usedConcepts.add(question.conceptKey)) {
+          continue;
+        }
+        if (!usedQuestionKeys.add(contentKey)) {
+          usedConcepts.remove(question.conceptKey);
           continue;
         }
         picked.add(question);
@@ -1730,6 +1737,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         candidates: remaining,
         count: total - picked.length,
         usedConcepts: usedConcepts,
+        usedQuestionKeys: usedQuestionKeys,
       );
     }
 
@@ -1742,15 +1750,22 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final mixCount = math.min(mixedReview.length, 2);
     final reviewQuestions = <_FootballQuizQuestion>[];
     final usedConcepts = <String>{};
+    final usedQuestionKeys = <String>{};
     var reviewShortAnswerCount = 0;
     for (final question in mixedReview) {
       if (reviewQuestions.length >= mixCount) break;
+      final contentKey = _sessionQuestionContentKey(question);
       if (!usedConcepts.add(question.conceptKey)) {
+        continue;
+      }
+      if (!usedQuestionKeys.add(contentKey)) {
+        usedConcepts.remove(question.conceptKey);
         continue;
       }
       if (question.style == _QuestionStyle.shortAnswer &&
           reviewShortAnswerCount >= 1) {
         usedConcepts.remove(question.conceptKey);
+        usedQuestionKeys.remove(contentKey);
         continue;
       }
       reviewQuestions.add(question);
@@ -1789,25 +1804,29 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       candidates: ox,
       count: oxCount,
       usedConcepts: usedConcepts,
+      usedQuestionKeys: usedQuestionKeys,
     );
     _appendUniqueQuestions(
       target: picked,
       candidates: mcq,
       count: mcqCount,
       usedConcepts: usedConcepts,
+      usedQuestionKeys: usedQuestionKeys,
     );
     _appendUniqueQuestions(
       target: picked,
       candidates: shortAnswer,
       count: shortCount,
       usedConcepts: usedConcepts,
+      usedQuestionKeys: usedQuestionKeys,
     );
     if (picked.length < _dailyCount) {
       final rest = <_FootballQuizQuestion>[
         ..._allQuestions.where(
           (q) =>
               !picked.any((pickedQuestion) => pickedQuestion.id == q.id) &&
-              !usedConcepts.contains(q.conceptKey),
+              !usedConcepts.contains(q.conceptKey) &&
+              !usedQuestionKeys.contains(_sessionQuestionContentKey(q)),
         ),
       ]..shuffle(random);
       _appendUniqueQuestions(
@@ -1815,6 +1834,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         candidates: rest,
         count: _dailyCount - picked.length,
         usedConcepts: usedConcepts,
+        usedQuestionKeys: usedQuestionKeys,
       );
     }
     return picked.take(_dailyCount).toList(growable: false);
@@ -1838,7 +1858,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       picked,
       question,
     ) {
+      final contentKey = _sessionQuestionContentKey(question);
       if (picked.any((item) => item.conceptKey == question.conceptKey)) {
+        return picked;
+      }
+      if (picked.any((item) => _sessionQuestionContentKey(item) == contentKey)) {
         return picked;
       }
       picked.add(question);
@@ -1851,6 +1875,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     required Iterable<_FootballQuizQuestion> candidates,
     required int count,
     required Set<String> usedConcepts,
+    required Set<String> usedQuestionKeys,
   }) {
     if (count <= 0) return;
     var added = 0;
@@ -1858,12 +1883,52 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       if (added >= count) {
         break;
       }
+      final contentKey = _sessionQuestionContentKey(question);
       if (!usedConcepts.add(question.conceptKey)) {
+        continue;
+      }
+      if (!usedQuestionKeys.add(contentKey)) {
+        usedConcepts.remove(question.conceptKey);
         continue;
       }
       target.add(question);
       added += 1;
     }
+  }
+
+  List<_FootballQuizQuestion> _dedupeSessionQuestions(
+    List<_FootballQuizQuestion> source,
+  ) {
+    final seenConcepts = <String>{};
+    final seenContentKeys = <String>{};
+    final unique = <_FootballQuizQuestion>[];
+    for (final question in source) {
+      final contentKey = _sessionQuestionContentKey(question);
+      if (!seenConcepts.add(question.conceptKey)) continue;
+      if (!seenContentKeys.add(contentKey)) continue;
+      unique.add(question);
+    }
+    return unique;
+  }
+
+  String _sessionQuestionContentKey(_FootballQuizQuestion question) {
+    String normalize(String text) =>
+        text.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    final optionKey = question.options
+        .map((option) =>
+            '${normalize(option.koText)}|${normalize(option.enText)}')
+        .join('||');
+    final answers = [...question.acceptedAnswers]
+      ..sort((a, b) => a.compareTo(b));
+    final answerKey = answers.map(normalize).join('|');
+    return [
+      normalize(question.koPrompt),
+      normalize(question.enPrompt),
+      optionKey,
+      question.correctIndex.toString(),
+      answerKey,
+    ].join('::');
   }
 
   Future<void> _removeDueReviewQuestions(
