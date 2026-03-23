@@ -2182,14 +2182,10 @@ class _AnswerFxBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (icon, text, color) = switch (fx) {
-      _AnswerFx.success => (
-        Icons.check_circle,
-        isKo ? '정답!' : 'Correct!',
-        const Color(0xFF0FA968),
-      ),
+      _AnswerFx.success => (Icons.check_circle, '', const Color(0xFF0FA968)),
       _AnswerFx.fail => (
         Icons.cancel,
-        isKo ? '오답' : 'Incorrect',
+        isKo ? '다시 보기' : 'Review',
         const Color(0xFFEB5757),
       ),
       _AnswerFx.timeout => (
@@ -2211,14 +2207,16 @@ class _AnswerFxBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: color),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w900,
+          if (text.isNotEmpty) ...[
+            const SizedBox(width: 4),
+            Text(
+              text,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

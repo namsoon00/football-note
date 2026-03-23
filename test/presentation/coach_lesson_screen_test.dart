@@ -134,7 +134,7 @@ void main() {
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);
     expect(find.textContaining('Blue FC전'), findsWidgets);
     expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
-    expect(find.textContaining('코치 시선으로 다시 읽는다'), findsOneWidget);
+    expect(find.textContaining('기록을 다시 펼쳐 보았다'), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('자기 전 다이어리')).dy,
       lessThan(tester.getTopLeft(find.text('오늘의 운세 노트')).dy),
