@@ -38,7 +38,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('코치용 퀴즈 라이브러리'), findsOneWidget);
-      expect(find.textContaining('전체 900문제'), findsOneWidget);
+      expect(find.textContaining('대표 개념'), findsOneWidget);
       expect(find.textContaining('자동 검증 통과'), findsOneWidget);
 
       await tester.tap(find.byType(BackButton));
@@ -114,9 +114,8 @@ void main() {
             'questionId': 'ox_offside_own_half_0_0_t',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
         ]),
       );
@@ -134,14 +133,12 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds =
-        (jsonDecode(
-                  repository.getValue<String>(
-                    SkillQuizScreen.dailyQuestionsKey,
-                  )!,
-                )
-                as List<dynamic>)
-            .cast<String>();
+    final savedIds = (jsonDecode(
+      repository.getValue<String>(
+        SkillQuizScreen.dailyQuestionsKey,
+      )!,
+    ) as List<dynamic>)
+        .cast<String>();
     expect(savedIds, hasLength(10));
   });
 
@@ -157,17 +154,15 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
         ]),
       );
@@ -185,14 +180,12 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds =
-        (jsonDecode(
-                  repository.getValue<String>(
-                    SkillQuizScreen.dailyQuestionsKey,
-                  )!,
-                )
-                as List<dynamic>)
-            .cast<String>();
+    final savedIds = (jsonDecode(
+      repository.getValue<String>(
+        SkillQuizScreen.dailyQuestionsKey,
+      )!,
+    ) as List<dynamic>)
+        .cast<String>();
 
     final duplicateConceptIds = savedIds
         .where(
@@ -201,6 +194,91 @@ void main() {
         )
         .toList(growable: false);
     expect(duplicateConceptIds, hasLength(1));
+  });
+
+  testWidgets('review summary deduplicates stale and similar wrong questions', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime.now();
+    final repository = _MemoryOptionRepository()
+      ..seed(
+        SkillQuizScreen.pendingWrongScheduleKey,
+        jsonEncode(<Map<String, dynamic>>[
+          <String, dynamic>{
+            'questionId': 'ox_support_angle_15',
+            'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
+            'wrongCount': 1,
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
+          },
+          <String, dynamic>{
+            'questionId': 'mcq_support_angle_best_10',
+            'dueAt': now.subtract(const Duration(hours: 12)).toIso8601String(),
+            'wrongCount': 2,
+            'lastWrongAt':
+                now.subtract(const Duration(hours: 18)).toIso8601String(),
+          },
+          <String, dynamic>{
+            'questionId': 'missing_question',
+            'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
+            'wrongCount': 1,
+            'lastWrongAt':
+                now.subtract(const Duration(days: 3)).toIso8601String(),
+          },
+        ]),
+      );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('복습 대기 1개'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('오답 복습'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('오답 복습'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('진행 1/1'), findsOneWidget);
+  });
+
+  testWidgets('quiz library collapses similar questions into one concept card',
+      (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('전체 문제 보기'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('전체 문제 보기'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'support angle');
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('현재 필터 1문제'), findsOneWidget);
   });
 
   testWidgets('correct answer does not show green success badge', (

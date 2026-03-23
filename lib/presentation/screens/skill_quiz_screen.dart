@@ -32,12 +32,15 @@ class SkillQuizScreen extends StatefulWidget {
     final session = _QuizSessionSnapshot.tryParse(
       optionRepository.getValue<String>(sessionKey),
     );
-    final pending = _ScheduledWrongItem.decodeList(
+    final pending = _normalizeScheduledWrongItems(
       optionRepository.getValue<String>(pendingWrongScheduleKey),
     );
     final now = DateTime.now();
-    final pendingDueCount =
-        pending.where((item) => !item.dueAt.isAfter(now)).length;
+    final pendingDueCount = pending
+        .where((item) => !item.dueAt.isAfter(now))
+        .map((item) => item.conceptKey)
+        .toSet()
+        .length;
 
     final rawCompletedAt = optionRepository.getValue<String>(completionKey);
     final completedAt =
@@ -1818,7 +1821,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 
   List<_FootballQuizQuestion> _loadDueReviewQuestions() {
-    final scheduled = _ScheduledWrongItem.decodeList(
+    final scheduled = _normalizeScheduledWrongItems(
       widget.optionRepository.getValue<String>(
         SkillQuizScreen.pendingWrongScheduleKey,
       ),
@@ -1867,14 +1870,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     List<_FootballQuizQuestion> questions,
   ) async {
     if (questions.isEmpty) return;
-    final ids = questions.map((q) => q.id).toSet();
-    final current = _ScheduledWrongItem.decodeList(
+    final concepts = questions.map((question) => question.conceptKey).toSet();
+    final current = _normalizeScheduledWrongItems(
       widget.optionRepository.getValue<String>(
         SkillQuizScreen.pendingWrongScheduleKey,
       ),
     );
     final next = current
-        .where((item) => !ids.contains(item.questionId))
+        .where((item) => !concepts.contains(item.conceptKey))
         .toList(growable: false);
     await widget.optionRepository.setValue(
       SkillQuizScreen.pendingWrongScheduleKey,
@@ -1889,20 +1892,21 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Future<void> _scheduleReviewQuestions(
     List<_FootballQuizQuestion> wrongQuestions,
   ) async {
-    final current = _ScheduledWrongItem.decodeList(
+    final current = _normalizeScheduledWrongItems(
       widget.optionRepository.getValue<String>(
         SkillQuizScreen.pendingWrongScheduleKey,
       ),
     );
     final map = <String, _ScheduledWrongItem>{
-      for (final item in current) item.questionId: item,
+      for (final item in current) item.conceptKey: item,
     };
 
     final now = DateTime.now();
     for (final question in wrongQuestions) {
-      final prev = map[question.id];
-      map[question.id] = _ScheduledWrongItem(
+      final prev = map[question.conceptKey];
+      map[question.conceptKey] = _ScheduledWrongItem(
         questionId: question.id,
+        conceptKey: question.conceptKey,
         dueAt: now.add(const Duration(hours: 24)),
         wrongCount: (prev?.wrongCount ?? 0) + 1,
         lastWrongAt: now,
@@ -2425,7 +2429,7 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
 
   List<_FootballQuizQuestion> get _filteredQuestions {
     final normalized = _query.trim().toLowerCase();
-    return widget.questions.where((question) {
+    final filtered = widget.questions.where((question) {
       if (_category != null && question.category != _category) return false;
       if (_style != null && question.style != _style) return false;
       if (_difficulty != null && question.difficulty != _difficulty) {
@@ -2442,6 +2446,7 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
       ].join(' ').toLowerCase();
       return haystack.contains(normalized);
     }).toList(growable: false);
+    return _deduplicateQuestionsByConcept(filtered);
   }
 
   @override
@@ -2454,6 +2459,8 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
         .length;
     final filteredCoreFocus =
         filtered.where((question) => question.category.isCoreFocus).length;
+    final uniqueConceptCount =
+        _deduplicateQuestionsByConcept(widget.questions).length;
 
     return Scaffold(
       appBar: AppBar(title: Text(isKo ? '전체 문제 보기' : 'Question library')),
@@ -2503,6 +2510,11 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                       label: isKo
                           ? '전체 ${widget.questions.length}문제'
                           : 'Total ${widget.questions.length}',
+                    ),
+                    _InfoChip(
+                      label: isKo
+                          ? '대표 개념 $uniqueConceptCount개'
+                          : 'Concepts $uniqueConceptCount',
                     ),
                     _InfoChip(
                       label: isKo
@@ -2883,6 +2895,8 @@ class _SuggestionCard extends StatelessWidget {
               children: [
                 Text(
                   data.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.visible,
                   style: Theme.of(
                     context,
                   ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
@@ -2890,6 +2904,8 @@ class _SuggestionCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   data.body,
+                  maxLines: 2,
+                  overflow: TextOverflow.visible,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(height: 1.45),
@@ -3468,12 +3484,14 @@ class _QuizHistoryEntry {
 
 class _ScheduledWrongItem {
   final String questionId;
+  final String conceptKey;
   final DateTime dueAt;
   final int wrongCount;
   final DateTime lastWrongAt;
 
   const _ScheduledWrongItem({
     required this.questionId,
+    required this.conceptKey,
     required this.dueAt,
     required this.wrongCount,
     required this.lastWrongAt,
@@ -3481,6 +3499,7 @@ class _ScheduledWrongItem {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
         'questionId': questionId,
+        'conceptKey': conceptKey,
         'dueAt': dueAt.toIso8601String(),
         'wrongCount': wrongCount,
         'lastWrongAt': lastWrongAt.toIso8601String(),
@@ -3503,8 +3522,12 @@ class _ScheduledWrongItem {
               map['lastWrongAt']?.toString() ?? '',
             );
             if (dueAt == null || lastWrongAt == null) return null;
+            final questionId = map['questionId']?.toString() ?? '';
             return _ScheduledWrongItem(
-              questionId: map['questionId']?.toString() ?? '',
+              questionId: questionId,
+              conceptKey: _quizConceptKeyForQuestionId(
+                map['conceptKey']?.toString() ?? questionId,
+              ),
               dueAt: dueAt,
               wrongCount: (map['wrongCount'] as num?)?.toInt() ?? 1,
               lastWrongAt: lastWrongAt,
@@ -3967,6 +3990,20 @@ List<_FootballQuizQuestion> _deduplicateQuizQuestions(
   return unique;
 }
 
+List<_FootballQuizQuestion> _deduplicateQuestionsByConcept(
+  Iterable<_FootballQuizQuestion> questions,
+) {
+  final seenConcepts = <String>{};
+  final unique = <_FootballQuizQuestion>[];
+  for (final question in questions) {
+    if (!seenConcepts.add(question.conceptKey)) {
+      continue;
+    }
+    unique.add(question);
+  }
+  return unique;
+}
+
 List<_OxFactSeed> _buildOxSeedPool300() {
   final base = _oxFacts();
   final contextKo = [
@@ -4230,6 +4267,65 @@ String _canonicalQuizConceptKey(String raw) {
     'pressing_trigger_bad_touch': 'pressing_trigger',
   };
   return aliases[raw] ?? raw;
+}
+
+final Map<String, String> _quizConceptKeyByQuestionId = () {
+  final map = <String, String>{};
+  for (final question in _buildFootballQuizPool()) {
+    map[question.id] = question.conceptKey;
+    for (final entry in _legacyQuestionAliases(question).entries) {
+      map[entry.key] = entry.value.conceptKey;
+    }
+  }
+  return map;
+}();
+
+final Set<String> _quizKnownConceptKeys =
+    _quizConceptKeyByQuestionId.values.toSet();
+
+String _quizConceptKeyForQuestionId(String raw) {
+  if (raw.isEmpty) return raw;
+  return _quizConceptKeyByQuestionId[raw] ??
+      _canonicalQuizConceptKey(
+        raw
+            .replaceFirst(RegExp(r'^(ox|mcq|sa)_'), '')
+            .replaceFirst(RegExp(r'_[0-9]+(?:_[0-9]+_[tf])?$'), ''),
+      );
+}
+
+List<_ScheduledWrongItem> _normalizeScheduledWrongItems(String? raw) {
+  final merged = <String, _ScheduledWrongItem>{};
+  for (final item in _ScheduledWrongItem.decodeList(raw)) {
+    final conceptKey = _quizConceptKeyForQuestionId(item.conceptKey);
+    if (conceptKey.isEmpty) {
+      continue;
+    }
+    if (!_quizKnownConceptKeys.contains(conceptKey)) {
+      continue;
+    }
+    final existing = merged[conceptKey];
+    if (existing == null ||
+        item.lastWrongAt.isAfter(existing.lastWrongAt) ||
+        (item.lastWrongAt.isAtSameMomentAs(existing.lastWrongAt) &&
+            item.dueAt.isAfter(existing.dueAt))) {
+      merged[conceptKey] = _ScheduledWrongItem(
+        questionId: item.questionId,
+        conceptKey: conceptKey,
+        dueAt: item.dueAt,
+        wrongCount: math.max(item.wrongCount, existing?.wrongCount ?? 0),
+        lastWrongAt: item.lastWrongAt,
+      );
+      continue;
+    }
+    merged[conceptKey] = _ScheduledWrongItem(
+      questionId: existing.questionId,
+      conceptKey: conceptKey,
+      dueAt: existing.dueAt.isAfter(item.dueAt) ? existing.dueAt : item.dueAt,
+      wrongCount: math.max(existing.wrongCount, item.wrongCount),
+      lastWrongAt: existing.lastWrongAt,
+    );
+  }
+  return merged.values.toList(growable: false);
 }
 
 Map<String, _FootballQuizQuestion> _legacyQuestionAliases(
