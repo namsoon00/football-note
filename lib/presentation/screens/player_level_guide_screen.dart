@@ -5,6 +5,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/player_level_visuals.dart';
+import 'player_xp_guide_screen.dart';
 import 'player_xp_history_screen.dart';
 
 class PlayerLevelGuideScreen extends StatefulWidget {
@@ -23,7 +24,6 @@ class PlayerLevelGuideScreen extends StatefulWidget {
 
 class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   late final PlayerLevelService _levelService;
-  bool _showXpGuide = false;
 
   @override
   void initState() {
@@ -46,20 +46,14 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
         title: Text(isKo ? '레벨 가이드' : 'Level guide'),
         actions: [
           IconButton(
-            tooltip: _showXpGuide
-                ? (isKo ? '경험치 방법 숨기기' : 'Hide XP guide')
-                : (isKo ? '경험치 오르는 방법' : 'How XP goes up'),
-            onPressed: () => setState(() => _showXpGuide = !_showXpGuide),
-            icon: Icon(
-              _showXpGuide
-                  ? Icons.visibility_off_outlined
-                  : Icons.trending_up_outlined,
-            ),
+            tooltip: isKo ? '경험치 가이드 열기' : 'Open XP guide',
+            onPressed: () => _openXpGuide(context),
+            icon: const Icon(Icons.menu_book_outlined),
           ),
           IconButton(
             tooltip: isKo ? '경험치 히스토리' : 'XP history',
             onPressed: () => _openXpHistory(context, isKo),
-            icon: const Icon(Icons.timeline_outlined),
+            icon: const Icon(Icons.schedule_outlined),
           ),
         ],
       ),
@@ -73,12 +67,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 currentLevel: currentState.level,
                 totalXp: currentState.totalXp,
                 xpToNextLevel: currentState.xpToNextLevel,
-                showXpGuide: _showXpGuide,
               ),
-              if (_showXpGuide) ...[
-                const SizedBox(height: 12),
-                _XpGuideCard(isKo: isKo),
-              ],
               for (
                 var levelIndex = 0;
                 levelIndex < thresholds.length;
@@ -155,6 +144,15 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       ),
     );
   }
+
+  Future<void> _openXpGuide(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            PlayerXpGuideScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+  }
 }
 
 class _LevelGuideSummaryCard extends StatelessWidget {
@@ -162,14 +160,12 @@ class _LevelGuideSummaryCard extends StatelessWidget {
   final int currentLevel;
   final int totalXp;
   final int xpToNextLevel;
-  final bool showXpGuide;
 
   const _LevelGuideSummaryCard({
     required this.isKo,
     required this.currentLevel,
     required this.totalXp,
     required this.xpToNextLevel,
-    required this.showXpGuide,
   });
 
   @override
@@ -202,13 +198,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            showXpGuide
-                ? (isKo
-                      ? '경험치 오르는 방법을 펼쳐둔 상태예요.'
-                      : 'The XP guide is open right now.')
-                : (isKo
-                      ? '다음 레벨까지 $xpToNextLevel XP 남았습니다.'
-                      : '$xpToNextLevel XP left until the next level.'),
+            isKo
+                ? '다음 레벨까지 $xpToNextLevel XP 남았습니다. 우측 상단에서 경험치 가이드와 히스토리를 바로 열 수 있어요.'
+                : '$xpToNextLevel XP left until the next level. Use the top-right actions for the XP guide and history.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
@@ -328,6 +320,13 @@ class _LevelGuideCard extends StatelessWidget {
     final nextRewardLabel = rewardStatus == null || customRewardName.isEmpty
         ? (isKo ? '없음' : 'Empty')
         : customRewardName;
+    final rewardHeadline = customRewardName.isEmpty
+        ? (isKo
+              ? '이번 레벨 선물을 아직 정하지 않았어요.'
+              : 'No reward set for this level yet.')
+        : (isKo
+              ? '이번 레벨 선물은 $customRewardName 입니다.'
+              : 'This level reward is $customRewardName.');
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -402,6 +401,57 @@ class _LevelGuideCard extends StatelessWidget {
                 ),
                 if (reward != null) ...[
                   const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.20),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.card_giftcard_outlined,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isKo ? '레벨 선물' : 'Level reward',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                rewardHeadline,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
@@ -480,57 +530,6 @@ class _LevelGuideCard extends StatelessWidget {
             width: 108,
             height: 108,
             child: PlayerLevelIllustration(level: level),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _XpGuideCard extends StatelessWidget {
-  final bool isKo;
-
-  const _XpGuideCard({required this.isKo});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = <String>[
-      isKo ? '훈련 기록 저장: +20 XP' : 'Training log saved: +20 XP',
-      isKo ? '하루 첫 훈련 기록: +10 XP' : 'First log of the day: +10 XP',
-      isKo ? '계획한 날 훈련 완료: +25 XP' : 'Train on a planned day: +25 XP',
-      isKo ? '퀴즈 완료: +15 XP' : 'Quiz completion: +15 XP',
-      isKo ? '훈련 계획 생성: +10 XP' : 'Training plan created: +10 XP',
-      isKo ? '훈련 스케치 저장: +8 XP' : 'Training sketch saved: +8 XP',
-      isKo ? '새 훈련 스케치 생성: +12 XP' : 'Training sketch created: +12 XP',
-      isKo ? '오늘 다이어리 확인: +5 XP' : 'Today diary reviewed: +5 XP',
-      isKo
-          ? '3일 연속 기록: +25 XP / 7일 연속 기록: +60 XP'
-          : '3-day streak: +25 XP / 7-day streak: +60 XP',
-      isKo
-          ? '주간 3회 기록: +40 XP / 5회 기록: +70 XP'
-          : '3 logs in a week: +40 XP / 5 logs: +70 XP',
-    ];
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isKo ? '경험치 오르는 방법' : 'How XP goes up',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          ...items.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Text(item, style: Theme.of(context).textTheme.bodyMedium),
-            ),
           ),
         ],
       ),

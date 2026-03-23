@@ -2114,7 +2114,7 @@ class _DiaryNotebookBackgroundPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
     }
 
-    final marginX = size.width * 0.10;
+    final marginX = size.width * 0.085;
     final marginPaint = Paint()
       ..color = marginColor.withValues(alpha: 0.74)
       ..strokeWidth = 1.4;

@@ -108,7 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
         initialSelectedDay: _calendarSelectedDay,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction: _pendingCalendarQuickCreateAction ??
+        quickCreateAction:
+            _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
@@ -138,6 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: NavigationBar(
+        height: 68,
         backgroundColor: navBackground,
         indicatorColor: Theme.of(context).colorScheme.primary.withAlpha(38),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,

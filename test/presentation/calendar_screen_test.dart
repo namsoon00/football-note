@@ -253,12 +253,16 @@ void main() {
     await pumpCalendar(tester);
 
     expect(
-      find.byKey(ValueKey('calendar_day_entry_marker_${today.day}')),
+      find.byKey(ValueKey('calendar_day_match_marker_${today.day}')),
       findsOneWidget,
     );
     expect(
       find.byKey(ValueKey('calendar_day_plan_marker_${today.day}')),
       findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey('calendar_day_training_marker_${today.day}')),
+      findsNothing,
     );
   });
 
@@ -280,8 +284,12 @@ void main() {
     await pumpCalendar(tester);
 
     expect(
-      find.byKey(ValueKey('calendar_day_entry_marker_${today.day}')),
+      find.byKey(ValueKey('calendar_day_match_marker_${today.day}')),
       findsNothing,
+    );
+    expect(
+      find.byKey(ValueKey('calendar_day_training_marker_${today.day}')),
+      findsOneWidget,
     );
   });
 }

@@ -99,10 +99,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
-                  .where((entry) => !entry.isMatch)
-                  .toList()
-                ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries =
+                  (snapshot.data ?? const <TrainingEntry>[])
+                      .where((entry) => !entry.isMatch)
+                      .toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final boardsById = TrainingBoardService(
                 widget.optionRepository,
@@ -148,9 +149,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 Scaffold.of(context).openDrawer(),
                             profilePhotoSource:
                                 widget.optionRepository.getValue<String>(
-                                      'profile_photo_url',
-                                    ) ??
-                                    '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                             onNewsTap: _openNews,
                             newsBadgeCount: newsCount,
                             onQuizTap: _openQuizShortcut,
@@ -174,9 +175,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         Expanded(
                           child: Text(
                             isKo ? '오늘의 홈' : 'Today Home',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -203,26 +202,31 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       isKo: isKo,
                       onPrimaryTap: _trackedAction(
                         'priority_action',
-                        data.focusSignal == 'log_today' ||
-                                data.focusSignal == 'add_session'
-                            ? widget.onCreate
+                        data.focusSignal == 'log_today'
+                            ? widget.onOpenPlans
+                            : data.focusSignal == 'add_session'
+                            ? widget.onOpenWeeklyStats
                             : data.focusSignal == 'add_minutes'
-                                ? widget.onOpenPlans
-                                : data.focusSignal == 'recovery'
-                                    ? widget.onOpenDiary
-                                    : widget.onOpenWeeklyStats,
+                            ? widget.onQuickBoard
+                            : data.focusSignal == 'recovery'
+                            ? widget.onOpenWeeklyStats
+                            : _openLevelGuide,
                       ),
                       onPlanTap: _trackedAction(
                         'priority_plan',
                         widget.onQuickPlan,
                       ),
-                      onQuizTap: _trackedAction(
-                        'priority_quiz',
-                        widget.onQuickQuiz,
+                      onStatsTap: _trackedAction(
+                        'priority_stats',
+                        widget.onOpenWeeklyStats,
                       ),
-                      onDiaryTap: _trackedAction(
-                        'priority_diary',
-                        widget.onOpenDiary,
+                      onBoardTap: _trackedAction(
+                        'priority_board',
+                        widget.onQuickBoard,
+                      ),
+                      onLevelTap: _trackedAction(
+                        'priority_level',
+                        _openLevelGuide,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -525,28 +529,32 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final latestCreatedTrainingEntry = entries.where((entry) {
-      final createdDay = DateTime(
-        entry.createdAt.year,
-        entry.createdAt.month,
-        entry.createdAt.day,
-      );
-      return createdDay == today;
-    }).fold<TrainingEntry?>(
-      null,
-      (latest, entry) =>
-          latest == null || entry.createdAt.isAfter(latest.createdAt)
+    final latestCreatedTrainingEntry = entries
+        .where((entry) {
+          final createdDay = DateTime(
+            entry.createdAt.year,
+            entry.createdAt.month,
+            entry.createdAt.day,
+          );
+          return createdDay == today;
+        })
+        .fold<TrainingEntry?>(
+          null,
+          (latest, entry) =>
+              latest == null || entry.createdAt.isAfter(latest.createdAt)
               ? entry
               : latest,
-    );
-    final todayEntries = entries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).toList(growable: false);
+        );
+    final todayEntries = entries
+        .where((entry) {
+          final day = DateTime(
+            entry.date.year,
+            entry.date.month,
+            entry.date.day,
+          );
+          return day == today;
+        })
+        .toList(growable: false);
     final loggedTrainingToday = todayEntries.isNotEmpty;
     final loggedLiftingToday = todayEntries.any(
       (entry) => entry.liftingByPart.values.any((value) => value > 0),
@@ -600,8 +608,9 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.mood,
     );
-    final averageMood =
-        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
+    final averageMood = weeklyEntries.isEmpty
+        ? 0
+        : totalMood / weeklyEntries.length;
 
     String strongest;
     String focus;
@@ -627,14 +636,16 @@ class _HomeHubData {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedToday = quizCompletedAt != null &&
+    final quizCompletedToday =
+        quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
     final reviewedTodayDiary =
         viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
     final syncedQuizAndDiaryToday = quizCompletedToday && reviewedTodayDiary;
-    final loggedBoardToday = boards.isNotEmpty &&
+    final loggedBoardToday =
+        boards.isNotEmpty &&
         boards.first.updatedAt.year == now.year &&
         boards.first.updatedAt.month == now.month &&
         boards.first.updatedAt.day == now.day;
@@ -670,7 +681,8 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -747,8 +759,8 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                     Text(
                       isKo ? '오늘의 훈련 계획' : 'Today training plan',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -756,10 +768,9 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                           ? '등록된 계획 $count개를 바로 확인하세요.'
                           : 'Open your $count saved plans for today.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -771,9 +782,9 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                   Text(
                     isKo ? '계획 보기' : 'Open plans',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   Icon(
                     Icons.chevron_right,
@@ -852,9 +863,7 @@ class _LevelHeroCard extends StatelessWidget {
                               ),
                               child: Text(
                                 'Lv.${levelState.level}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
+                                style: Theme.of(context).textTheme.labelLarge
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -870,9 +879,7 @@ class _LevelHeroCard extends StatelessWidget {
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -891,11 +898,11 @@ class _LevelHeroCard extends StatelessWidget {
                           isKo
                               ? '다음까지 ${levelState.xpToNextLevel}XP'
                               : '${levelState.xpToNextLevel} XP left',
-                          style:
-                              Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.92),
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.92),
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
@@ -962,16 +969,16 @@ class _DailyFlowCard extends StatelessWidget {
                 child: Text(
                   isKo ? '오늘 할 일' : 'Today tasks',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               Text(
                 isKo ? '$completedCount/6 완료' : '$completedCount/6 done',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ],
           ),
@@ -1039,16 +1046,18 @@ class _PriorityActionCard extends StatelessWidget {
   final bool isKo;
   final VoidCallback? onPrimaryTap;
   final VoidCallback? onPlanTap;
-  final VoidCallback? onQuizTap;
-  final VoidCallback? onDiaryTap;
+  final VoidCallback? onStatsTap;
+  final VoidCallback? onBoardTap;
+  final VoidCallback? onLevelTap;
 
   const _PriorityActionCard({
     required this.data,
     required this.isKo,
     required this.onPrimaryTap,
     required this.onPlanTap,
-    required this.onQuizTap,
-    required this.onDiaryTap,
+    required this.onStatsTap,
+    required this.onBoardTap,
+    required this.onLevelTap,
   });
 
   @override
@@ -1150,83 +1159,95 @@ class _PriorityActionCard extends StatelessWidget {
         return <_PrioritySuggestion>[
           _PrioritySuggestion(
             icon: Icons.event_note_outlined,
-            title: isKo ? '주간 흐름 시작' : 'Start the week',
+            title: isKo ? '계획 먼저 보기' : 'Open plans first',
             subtitle: isKo
-                ? '첫 기록 하나가 리듬을 다시 만듭니다.'
-                : 'One log is enough to restart the rhythm.',
+                ? '오늘 빈 시간이 어디 있는지 먼저 확인하세요.'
+                : 'Check where today still has room first.',
             onTap: onPlanTap,
           ),
           _PrioritySuggestion(
-            icon: Icons.quiz_outlined,
-            title: isKo ? '짧은 워밍업' : 'Short warm-up',
+            icon: Icons.bar_chart_outlined,
+            title: isKo ? '주간 흐름 보기' : 'See weekly trend',
             subtitle: isKo
-                ? '퀴즈로 집중만 먼저 올려도 좋습니다.'
-                : 'A quick quiz can sharpen focus first.',
-            onTap: onQuizTap,
+                ? '이번 주 빈 날과 훈련 밀도를 같이 보세요.'
+                : 'Review empty days and weekly density together.',
+            onTap: onStatsTap,
           ),
         ];
       case 'add_session':
         return <_PrioritySuggestion>[
           _PrioritySuggestion(
-            icon: Icons.track_changes_outlined,
-            title: isKo
-                ? '주간 ${data.weeklyTrainingCount}회'
-                : '${data.weeklyTrainingCount} this week',
+            icon: Icons.event_note_outlined,
+            title: isKo ? '남은 계획 확인' : 'Check remaining plans',
             subtitle: isKo
-                ? '한 번만 더 이어 가면 흐름이 안정됩니다.'
-                : 'One more session will steady the week.',
+                ? '남은 슬롯을 먼저 보고 세션 수를 맞추세요.'
+                : 'See the remaining slots before filling the week.',
             onTap: onPlanTap,
           ),
           _PrioritySuggestion(
-            icon: Icons.auto_stories_outlined,
-            title: isKo ? '한 줄 복기' : 'One-line review',
+            icon: Icons.developer_board_outlined,
+            title: isKo ? '훈련판 미리 그리기' : 'Sketch the session',
             subtitle: isKo
-                ? '다음 세션 목표를 하나만 정해 두세요.'
-                : 'Pick just one focus for the next session.',
-            onTap: onDiaryTap,
+                ? '다음 세션 포인트를 보드로 먼저 정리하세요.'
+                : 'Map the next session with a quick board first.',
+            onTap: onBoardTap,
           ),
         ];
       case 'add_minutes':
         return <_PrioritySuggestion>[
           _PrioritySuggestion(
-            icon: Icons.timer_outlined,
-            title: isKo
-                ? '주간 ${data.weeklyMinutes}분'
-                : '${data.weeklyMinutes} min',
+            icon: Icons.developer_board_outlined,
+            title: isKo ? '긴 세션 설계' : 'Design a longer block',
             subtitle: isKo
-                ? '다음 훈련은 45~60분 블록이 좋습니다.'
-                : 'A 45-60 min block fits best next.',
-            onTap: onPlanTap,
+                ? '보드에서 45~60분 흐름을 먼저 짜보세요.'
+                : 'Draft a 45-60 min session flow on the board.',
+            onTap: onBoardTap,
+          ),
+          _PrioritySuggestion(
+            icon: Icons.bar_chart_outlined,
+            title: isKo ? '주간 시간 확인' : 'Review weekly minutes',
+            subtitle: isKo
+                ? '어느 날이 짧았는지 통계에서 바로 볼 수 있어요.'
+                : 'Stats will show which days stayed short.',
+            onTap: onStatsTap,
           ),
         ];
       case 'recovery':
         return <_PrioritySuggestion>[
           _PrioritySuggestion(
-            icon: Icons.spa_outlined,
-            title: isKo ? '강도보다 회복' : 'Recovery first',
+            icon: Icons.bar_chart_outlined,
+            title: isKo ? '피로 흐름 확인' : 'Check fatigue trend',
             subtitle: isKo
-                ? '피로 원인을 한 줄만 적어도 충분합니다.'
-                : 'One recovery note is enough for now.',
-            onTap: onDiaryTap,
+                ? '최근 컨디션 점수를 묶어서 보면 판단이 쉬워집니다.'
+                : 'Recent condition scores are easier to judge together.',
+            onTap: onStatsTap,
+          ),
+          _PrioritySuggestion(
+            icon: Icons.event_note_outlined,
+            title: isKo ? '계획 강도 조절' : 'Adjust plan load',
+            subtitle: isKo
+                ? '남은 계획의 길이와 강도를 먼저 줄여두세요.'
+                : 'Reduce upcoming plan load before adding more work.',
+            onTap: onPlanTap,
           ),
         ];
       default:
         return <_PrioritySuggestion>[
           _PrioritySuggestion(
-            icon: Icons.quiz_outlined,
-            title: isKo ? '품질 점검' : 'Quality check',
+            icon: Icons.military_tech_outlined,
+            title: isKo ? '레벨 보상 점검' : 'Review level rewards',
             subtitle: isKo
-                ? '다음 훈련 포인트를 선명하게 만드세요.'
-                : 'Sharpen one clear next focus.',
-            onTap: onQuizTap,
+                ? '선물 기준과 다음 레벨 보상을 미리 확인하세요.'
+                : 'Check the next reward before the next push.',
+            onTap: onLevelTap,
           ),
           _PrioritySuggestion(
-            icon: Icons.auto_stories_outlined,
-            title: isKo ? '짧은 복기' : 'Short review',
+            icon: Icons.developer_board_outlined,
+            title: isKo ? '다음 훈련 설계' : 'Shape the next session',
             subtitle: isKo
-                ? '잘된 점과 아쉬운 점 하나씩이면 충분합니다.'
-                : 'One good point and one fix are enough.',
-            onTap: onDiaryTap,
+                ? '훈련 보드에서 다음 세션 디테일을 선명하게 하세요.'
+                : 'Use the training board to sharpen the next details.',
+            onTap: onBoardTap,
           ),
         ];
     }
@@ -1236,48 +1257,54 @@ class _PriorityActionCard extends StatelessWidget {
     switch (data.focusSignal) {
       case 'log_today':
         return (
-          isKo ? '이번 주 흐름을 다시 붙일 차례예요' : 'Time to restart the week',
+          isKo ? '기록 전에 일정부터 정리해두세요' : 'Shape the day before logging',
           isKo
-              ? '오늘 할 일은 아래에서 확인하고, 여기서는 주간 리듬만 보세요. 첫 기록 하나가 흐름을 다시 만듭니다.'
-              : 'Your daily checklist is below. Here the focus is weekly rhythm: one log restarts it.',
-          isKo ? '지금 기록' : 'Log now',
-          Icons.edit_note_outlined,
+              ? '오늘 할 일과 겹치는 제안은 뺐어요. 먼저 남은 계획과 주간 흐름을 보고 빈 자리를 정리하세요.'
+              : 'Daily-task overlaps are removed here. Review plans and the weekly flow before acting.',
+          isKo ? '계획 보기' : 'Open plans',
+          Icons.event_note_outlined,
         );
       case 'add_session':
         return (
-          isKo ? '세션 수를 한 번 더 채우면 됩니다' : 'One more session will help',
           isKo
-              ? '오늘 체크리스트보다 주간 리듬이 더 중요합니다. 이번 주는 한 번만 더 이어 가면 안정됩니다.'
-              : 'The weekly rhythm matters more here than today’s checklist. One more session will steady it.',
-          isKo ? '훈련 추가' : 'Add session',
-          Icons.track_changes_outlined,
+              ? '세션 수는 계획과 통계로 채우는 편이 낫습니다'
+              : 'Use plans and stats to add the next session',
+          isKo
+              ? '훈련 추가나 다이어리 보기는 오늘 할 일에 이미 있어요. 여기서는 남은 일정과 다음 세션 설계를 보게 합니다.'
+              : 'Add session and diary review already exist in today tasks. This card stays on planning and structure.',
+          isKo ? '주간 통계 보기' : 'Open weekly stats',
+          Icons.bar_chart_outlined,
         );
       case 'add_minutes':
         return (
-          isKo ? '다음 훈련은 시간을 조금 더 길게 잡으세요' : 'Stretch the next session a bit',
           isKo
-              ? '횟수는 괜찮지만 총 시간이 짧습니다. 다음 훈련은 45~60분 블록으로 잡는 편이 낫습니다.'
-              : 'Session count is fine, but total minutes are short. A 45-60 min block is the safer move.',
-          isKo ? '계획 보기' : 'Open plans',
-          Icons.timer_outlined,
+              ? '다음 훈련은 길이를 설계해서 늘리세요'
+              : 'Extend the next session deliberately',
+          isKo
+              ? '오늘 할 일과 겹치지 않게, 보드와 통계로 긴 세션 구조를 먼저 잡도록 바꿨어요.'
+              : 'To avoid overlapping with today tasks, this now points to board and stats for a longer session design.',
+          isKo ? '훈련판 열기' : 'Open board',
+          Icons.developer_board_outlined,
         );
       case 'recovery':
         return (
-          isKo ? '오늘은 회복 복기가 우선입니다' : 'Recovery review comes first',
+          isKo ? '회복은 먼저 흐름을 보고 조절하세요' : 'Adjust recovery from the trend first',
           isKo
-              ? '컨디션 흐름이 내려와 있습니다. 오늘 할 일을 더 채우기보다 피로 원인과 강도 조절부터 정리하세요.'
-              : 'Condition is trending low. Review fatigue before adding more load.',
-          isKo ? '다이어리 열기' : 'Open diary',
-          Icons.spa_outlined,
+              ? '다이어리 보기는 오늘 할 일에 이미 있으니, 여기서는 컨디션 추세와 남은 계획 강도 조절을 우선 제안합니다.'
+              : 'Diary review is already in today tasks, so this focuses on condition trends and plan load adjustment.',
+          isKo ? '주간 통계 보기' : 'Open weekly stats',
+          Icons.monitor_heart_outlined,
         );
       default:
         return (
-          isKo ? '이번 주 퀄리티를 올릴 차례입니다' : 'Now raise this week’s quality',
           isKo
-              ? '양은 충분합니다. 이제는 다음 훈련에서 무엇을 선명하게 가져갈지만 정하면 됩니다.'
-              : 'Volume looks fine. Now the gain comes from one clear next focus.',
-          isKo ? '주간 리뷰' : 'Weekly review',
-          Icons.insights_outlined,
+              ? '이제는 보상과 다음 설계를 같이 보세요'
+              : 'Pair rewards with the next design step',
+          isKo
+              ? '오늘 할 일 밖의 액션만 남겨서, 레벨 보상 확인과 다음 훈련 설계를 중심으로 정리했습니다.'
+              : 'Only non-daily-task actions remain here, centered on rewards and next-session design.',
+          isKo ? '레벨 가이드' : 'Level guide',
+          Icons.military_tech_outlined,
         );
     }
   }
@@ -1321,9 +1348,9 @@ class _PrioritySuggestionPill extends StatelessWidget {
               Text(
                 item.title,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: scheme.primary,
-                    ),
+                  fontWeight: FontWeight.w800,
+                  color: scheme.primary,
+                ),
               ),
             ],
           ),
@@ -1358,8 +1385,8 @@ class _PlanDaysCard extends StatelessWidget {
     final whenText = remainingDays <= 0
         ? (isKo ? '오늘' : 'Today')
         : remainingDays == 1
-            ? (isKo ? '내일' : 'Tomorrow')
-            : (isKo ? '$remainingDays일 뒤' : 'In $remainingDays days');
+        ? (isKo ? '내일' : 'Tomorrow')
+        : (isKo ? '$remainingDays일 뒤' : 'In $remainingDays days');
 
     return Material(
       color: Colors.transparent,
@@ -1405,9 +1432,9 @@ class _PlanDaysCard extends StatelessWidget {
                     Text(
                       isKo ? '다음 훈련' : 'Next training',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1417,8 +1444,8 @@ class _PlanDaysCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1428,10 +1455,9 @@ class _PlanDaysCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -1527,7 +1553,8 @@ class _ContinueCard extends StatelessWidget {
     final quizSummary = data.quizResumeSummary;
     final hasQuizSession = quizSummary.hasActiveSession;
     final latestTrainingEntry = data.latestTrainingEntry;
-    final latestTrainingIsToday = latestTrainingEntry != null &&
+    final latestTrainingIsToday =
+        latestTrainingEntry != null &&
         DateTime(
               latestTrainingEntry.date.year,
               latestTrainingEntry.date.month,
@@ -1542,13 +1569,13 @@ class _ContinueCard extends StatelessWidget {
             );
     final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-            ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
-            : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
+              ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
+              : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
         : (isKo ? '새 퀴즈 시작' : 'Start quiz');
     final quizSubtitle = hasQuizSession
         ? (isKo
-            ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
-            : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
+              ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
+              : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
         : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
     final items = <_ContinueItemData>[
       if (latestTrainingIsToday)
@@ -1585,15 +1612,15 @@ class _ContinueCard extends StatelessWidget {
           title: isKo ? '최근 훈련보드' : 'Recent training board',
           subtitle: data.latestBoard == null
               ? (isKo
-                  ? '스케치 ${data.boardCount}개'
-                  : '${data.boardCount} sketches')
+                    ? '스케치 ${data.boardCount}개'
+                    : '${data.boardCount} sketches')
               : data.latestBoardUpdatedAt == null
-                  ? (isKo
-                      ? '스케치 ${data.boardCount}개'
-                      : '${data.boardCount} sketches')
-                  : (isKo
-                      ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
-                      : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
+              ? (isKo
+                    ? '스케치 ${data.boardCount}개'
+                    : '${data.boardCount} sketches')
+              : (isKo
+                    ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
+                    : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
           buttonLabel: isKo ? '바로 수정' : 'Edit now',
           onPressed: onContinueBoard,
         ),
@@ -1688,8 +1715,8 @@ class _ContinueItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1705,9 +1732,9 @@ class _ContinueItem extends StatelessWidget {
               Text(
                 item.buttonLabel,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(width: 2),
               Icon(
@@ -1778,10 +1805,10 @@ class _QuickActionButton extends StatelessWidget {
                       forceStrutHeight: true,
                     ),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontSize: 14,
-                          height: 1.05,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      fontSize: 14,
+                      height: 1.05,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
               ],
@@ -1842,9 +1869,9 @@ class _HomeLevelIllustration extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -1906,10 +1933,10 @@ class _TodoChip extends StatelessWidget {
                     forceStrutHeight: true,
                   ),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: 14,
-                        height: 1.05,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontSize: 14,
+                    height: 1.05,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
