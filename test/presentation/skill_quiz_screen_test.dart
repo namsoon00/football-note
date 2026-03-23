@@ -114,8 +114,9 @@ void main() {
             'questionId': 'ox_offside_own_half_0_0_t',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -133,13 +134,73 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds = (jsonDecode(
-      repository.getValue<String>(
-        SkillQuizScreen.dailyQuestionsKey,
-      )!,
-    ) as List<dynamic>)
-        .cast<String>();
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
     expect(savedIds, hasLength(10));
+  });
+
+  testWidgets('daily quiz keeps only one duplicate concept question', (
+    WidgetTester tester,
+  ) async {
+    final now = DateTime.now();
+    final repository = _MemoryOptionRepository()
+      ..seed(
+        SkillQuizScreen.pendingWrongScheduleKey,
+        jsonEncode(<Map<String, dynamic>>[
+          <String, dynamic>{
+            'questionId': 'ox_support_angle_15',
+            'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
+            'wrongCount': 1,
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
+          },
+          <String, dynamic>{
+            'questionId': 'mcq_support_angle_best_10',
+            'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
+            'wrongCount': 1,
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
+          },
+        ]),
+      );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('오늘의 문제'));
+    await tester.pumpAndSettle();
+
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
+
+    final duplicateConceptIds = savedIds
+        .where(
+          (id) =>
+              id == 'ox_support_angle_15' || id == 'mcq_support_angle_best_10',
+        )
+        .toList(growable: false);
+    expect(duplicateConceptIds, hasLength(1));
   });
 
   testWidgets('correct answer does not show green success badge', (
