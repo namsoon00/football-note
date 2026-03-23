@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('skill quiz shows football quiz mode menu', (
+  testWidgets('skill quiz shows entry hub cards without top-right mode button',
+      (
     WidgetTester tester,
   ) async {
     final repository = _MemoryOptionRepository();
@@ -24,19 +25,19 @@ void main() {
 
     expect(find.text('축구 퀴즈'), findsOneWidget);
     expect(find.text('오늘의 문제'), findsOneWidget);
+    expect(find.byTooltip('퀴즈 모드 선택'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.text('퀴즈 히스토리'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('퀴즈 히스토리'), findsOneWidget);
 
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('진행 1/10'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('퀴즈 모드 선택'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('오늘의 축구 퀴즈'), findsOneWidget);
-    expect(find.text('복습 모드'), findsNothing);
-    expect(find.text('챌린지 모드'), findsOneWidget);
-    expect(find.text('스피드 모드'), findsOneWidget);
   });
 
   testWidgets('skill quiz restores saved general football question session', (
@@ -104,9 +105,8 @@ void main() {
             'questionId': 'ox_offside_own_half_0_0_t',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt': now
-                .subtract(const Duration(days: 2))
-                .toIso8601String(),
+            'lastWrongAt':
+                now.subtract(const Duration(days: 2)).toIso8601String(),
           },
         ]),
       );
@@ -124,14 +124,12 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds =
-        (jsonDecode(
-                  repository.getValue<String>(
-                    SkillQuizScreen.dailyQuestionsKey,
-                  )!,
-                )
-                as List<dynamic>)
-            .cast<String>();
+    final savedIds = (jsonDecode(
+      repository.getValue<String>(
+        SkillQuizScreen.dailyQuestionsKey,
+      )!,
+    ) as List<dynamic>)
+        .cast<String>();
     expect(savedIds, hasLength(10));
   });
 
@@ -164,6 +162,121 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('short answer can reveal answer after one wrong try', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(
+        SkillQuizScreen.sessionKey,
+        jsonEncode(<String, dynamic>{
+          'mode': 'daily',
+          'questionIds': <String>['sa_short_0'],
+          'index': 0,
+          'score': 0,
+          'streak': 0,
+          'bestStreak': 0,
+          'timeouts': 0,
+          'answerCount': 0,
+          'responseMillisSum': 0,
+          'selectedIndex': null,
+          'answered': false,
+          'retryUsed': false,
+          'retryFeedback': null,
+          'answerRevealed': false,
+          'wrongIds': <String>[],
+          'finished': false,
+          'speedLeft': 12,
+        }),
+      );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('이어하기'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '모름');
+    await tester.tap(find.text('정답 확인'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('정답 보기'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('정답 보기'));
+    await tester.tap(find.text('정답 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('정답:'), findsOneWidget);
+    expect(find.text('다음'), findsOneWidget);
+  });
+
+  testWidgets('quiz history opens saved past sessions',
+      (WidgetTester tester) async {
+    final finishedAt = DateTime(2026, 3, 23, 9, 30);
+    final repository = _MemoryOptionRepository()
+      ..seed(
+        SkillQuizScreen.historyKey,
+        jsonEncode(<Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': '1',
+            'mode': 'focus',
+            'finishedAt': finishedAt.toIso8601String(),
+            'totalQuestions': 8,
+            'score': 6,
+            'bestStreak': 3,
+            'bestCombo': 3,
+            'timeouts': 0,
+            'avgResponseMs': 3200,
+            'wrongQuestions': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'id': 'sa_short_0',
+                'promptKo': '테스트 문제',
+                'promptEn': 'Test prompt',
+                'answerKo': '압박',
+                'answerEn': 'Pressing',
+                'explanationKo': '테스트 해설',
+                'explanationEn': 'Test explanation',
+                'category': 'tactics',
+                'style': 'shortAnswer',
+              },
+            ],
+          },
+        ]),
+      );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.scrollUntilVisible(
+      find.text('퀴즈 히스토리'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('퀴즈 히스토리'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('퀴즈 히스토리'), findsWidgets);
+    expect(find.textContaining('6/8 정답'), findsOneWidget);
+
+    await tester.tap(find.textContaining('2026.03.23'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('테스트 문제'), findsOneWidget);
   });
 }
 
