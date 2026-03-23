@@ -473,8 +473,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   const SizedBox(height: 12),
                   _NotificationSectionCard(
                     title: isKo
-                        ? '시스템 예약 알림 ${_pending.length}개'
-                        : '${_pending.length} system-scheduled alerts',
+                        ? '시스템 예약 알림'
+                        : 'System-scheduled alerts',
                     icon: Icons.schedule_outlined,
                     expanded: _showSystemSection,
                     onTap: () => _toggleSection(
