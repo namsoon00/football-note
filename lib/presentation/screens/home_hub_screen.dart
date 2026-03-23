@@ -75,12 +75,10 @@ class HomeHubScreen extends StatefulWidget {
 }
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
-  late Future<int> _newsCountFuture;
-
   @override
   void initState() {
     super.initState();
-    _newsCountFuture = _loadNewsCount();
+    NewsBadgeService.refresh(widget.optionRepository);
   }
 
   @override
@@ -138,10 +136,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    FutureBuilder<int>(
-                      future: _newsCountFuture,
-                      builder: (context, snapshot) {
-                        final newsCount = snapshot.data ?? 0;
+                    ValueListenableBuilder<int>(
+                      valueListenable: NewsBadgeService.listenable(
+                        widget.optionRepository,
+                      ),
+                      builder: (context, newsCount, _) {
                         return Builder(
                           builder: (context) => SharedTabHeader(
                             padding: EdgeInsets.zero,
@@ -332,9 +331,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       ),
     );
     if (!mounted) return;
-    setState(() {
-      _newsCountFuture = _loadNewsCount();
-    });
+    await NewsBadgeService.refresh(widget.optionRepository);
   }
 
   Future<void> _openQuizShortcut() async {
@@ -371,10 +368,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ),
       ),
     );
-  }
-
-  Future<int> _loadNewsCount() async {
-    return NewsBadgeService.unreadCount(widget.optionRepository);
   }
 
   VoidCallback? _trackedAction(String key, VoidCallback? action) {

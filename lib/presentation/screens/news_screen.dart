@@ -8,6 +8,7 @@ import 'package:football_note/gen/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/news_read_state.dart';
+import '../../application/news_badge_service.dart';
 import '../../application/news_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/locale_service.dart';
@@ -730,6 +731,7 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Future<void> _markVisibleArticlesRead() async {
     if (_articles.isEmpty) return;
     await NewsReadState.markRead(widget.optionRepository, _articles);
+    await NewsBadgeService.refresh(widget.optionRepository);
   }
 
   bool _hasSameChannels(Set<String> a, Set<String> b) =>
