@@ -704,7 +704,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               ),
           ],
         ),
-        if (_answerFx != _AnswerFx.none) ...[
+        if (_answerFx == _AnswerFx.fail || _answerFx == _AnswerFx.timeout) ...[
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,

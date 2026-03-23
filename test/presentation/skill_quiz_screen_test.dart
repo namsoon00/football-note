@@ -134,6 +134,37 @@ void main() {
             .cast<String>();
     expect(savedIds, hasLength(10));
   });
+
+  testWidgets('correct answer does not show green success badge', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('오늘의 문제'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('O').first);
+    await tester.pump();
+
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Icon &&
+            widget.icon == Icons.check_circle &&
+            widget.color == const Color(0xFF0FA968),
+      ),
+      findsNothing,
+    );
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {
