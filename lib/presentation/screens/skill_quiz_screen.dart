@@ -36,13 +36,16 @@ class SkillQuizScreen extends StatefulWidget {
       optionRepository.getValue<String>(pendingWrongScheduleKey),
     );
     final now = DateTime.now();
-    final pendingDueCount =
-        pending.where((item) => !item.dueAt.isAfter(now)).length;
+    final pendingDueCount = pending
+        .where((item) => !item.dueAt.isAfter(now))
+        .length;
 
     final rawCompletedAt = optionRepository.getValue<String>(completionKey);
-    final completedAt =
-        rawCompletedAt == null ? null : DateTime.tryParse(rawCompletedAt);
-    final completedToday = completedAt != null &&
+    final completedAt = rawCompletedAt == null
+        ? null
+        : DateTime.tryParse(rawCompletedAt);
+    final completedToday =
+        completedAt != null &&
         completedAt.year == now.year &&
         completedAt.month == now.month &&
         completedAt.day == now.day;
@@ -709,8 +712,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   explanationText: (_answered || _retryUsed)
                       ? question.explainText(isKo)
                       : (isKo
-                          ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
-                          : 'The explanation will appear here right after you answer.'),
+                            ? '정답을 고르면 여기에서 바로 설명을 볼 수 있어요.'
+                            : 'The explanation will appear here right after you answer.'),
                 ),
                 const SizedBox(height: 12),
                 if (question.style == _QuestionStyle.shortAnswer)
@@ -767,7 +770,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Material(
-                        color: bgColor ??
+                        color:
+                            bgColor ??
                             Theme.of(context).colorScheme.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(16),
                         child: InkWell(
@@ -781,7 +785,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: borderColor ??
+                                color:
+                                    borderColor ??
                                     Theme.of(
                                       context,
                                     ).colorScheme.outlineVariant,
@@ -823,9 +828,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                   Text(
                     isKo ? '틀렸어요. 한 번 더 고를 수 있어요.' : 'Incorrect. One more try.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: const Color(0xFFEB5757),
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: const Color(0xFFEB5757),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 if (!_answered &&
                     _retryFeedback == 'incorrect' &&
@@ -843,9 +848,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         ? '시간 초과! 다음엔 더 빨리 판단해보세요.'
                         : 'Time out! Try a faster decision.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: const Color(0xFFEB5757),
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: const Color(0xFFEB5757),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 if (_answered) ...[
                   const SizedBox(height: 10),
@@ -862,9 +867,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       children: [
                         Text(
                           isKo ? '정답 포인트' : 'Answer insight',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
+                          style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 6),
@@ -879,9 +882,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                             isKo
                                 ? '정답: ${_primaryAnswerLabel(question)}'
                                 : 'Answer: ${_primaryAnswerLabel(question)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ],
@@ -890,9 +891,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           isKo
                               ? '다음에 볼 포인트: ${question.nextPoint(true)}'
                               : 'Next focus: ${question.nextPoint(false)}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                       ],
@@ -951,9 +950,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               Text(
                 isKo ? '축구 퀴즈 결과' : 'Football Quiz Result',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 10),
               Text(
@@ -961,9 +960,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     ? '$_score / $total 정답, 정확도 $accuracy%'
                     : '$_score / $total correct, accuracy $accuracy%',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -1132,11 +1131,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         title: isKo ? '오답 복습 큐 정리' : 'Clear the review queue',
         body: reviewCount > 0
             ? (isKo
-                ? '지금 복습 대기 중인 $reviewCount문제를 정리하면 내일 세트의 완성도가 올라갑니다.'
-                : 'Clearing the $reviewCount queued review questions will sharpen tomorrow’s set.')
+                  ? '지금 복습 대기 중인 $reviewCount문제를 정리하면 내일 세트의 완성도가 올라갑니다.'
+                  : 'Clearing the $reviewCount queued review questions will sharpen tomorrow’s set.')
             : (isKo
-                ? '이번 세션 오답은 자동으로 복습 큐에 들어갔습니다. 내일 다시 확인해보세요.'
-                : 'This session’s misses were added to the delayed review queue for tomorrow.'),
+                  ? '이번 세션 오답은 자동으로 복습 큐에 들어갔습니다. 내일 다시 확인해보세요.'
+                  : 'This session’s misses were added to the delayed review queue for tomorrow.'),
       ),
       _QuizSuggestionItem(
         icon: Icons.bolt_outlined,
@@ -1181,8 +1180,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         bestStreak: _bestStreak,
         bestCombo: _bestComboRun,
         timeouts: _timeouts,
-        avgResponseMs:
-            _answerCount == 0 ? 0 : (_responseMillisSum ~/ _answerCount),
+        avgResponseMs: _answerCount == 0
+            ? 0
+            : (_responseMillisSum ~/ _answerCount),
         wrongQuestions: wrongQuestions,
       ),
     );
@@ -1347,8 +1347,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         subtitle: _resumeSummary.completedToday
             ? (isKo ? '오늘 세트를 다시 풀어요' : 'Replay today’s set')
             : (isKo
-                ? '오늘 10문제 세트, 지난 오답도 1~2문제 섞여 나와요'
-                : 'Play today’s 10-question set with 1-2 past wrong answers mixed in'),
+                  ? '오늘 10문제 세트, 지난 오답도 1~2문제 섞여 나와요'
+                  : 'Play today’s 10-question set with 1-2 past wrong answers mixed in'),
         badge: isKo ? '기본 추천' : 'Recommended',
       ),
       _QuizEntryCardData(
@@ -1402,8 +1402,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         subtitle: recentHistory == null
             ? (isKo ? '아직 저장된 퀴즈 기록이 없습니다' : 'No saved quiz runs yet')
             : (isKo
-                ? '최근 ${recentHistory.score}/${recentHistory.totalQuestions} 정답, 오답 ${recentHistory.wrongQuestions.length}개'
-                : 'Latest ${recentHistory.score}/${recentHistory.totalQuestions}, ${recentHistory.wrongQuestions.length} misses'),
+                  ? '최근 ${recentHistory.score}/${recentHistory.totalQuestions} 정답, 오답 ${recentHistory.wrongQuestions.length}개'
+                  : 'Latest ${recentHistory.score}/${recentHistory.totalQuestions}, ${recentHistory.wrongQuestions.length} misses'),
         badge: isKo ? '이전 회차' : 'Past runs',
       ),
     ];
@@ -1426,9 +1426,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
               Text(
                 isKo ? '오늘의 퀴즈 시작' : 'Start today’s quiz',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -1436,9 +1436,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     ? '오늘 문제를 다시 풀지, 다른 스타일로 풀지, 약점 분야를 파고들지 고르세요.'
                     : 'Choose whether to replay today, try a different mode, or drill into your weakest area.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      height: 1.5,
-                    ),
+                  color: Colors.white.withValues(alpha: 0.92),
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 12),
               _QuizCoachBanner(
@@ -1530,8 +1530,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Future<void> _recordRecentPerformance() async {
     if (_questions.isEmpty) return;
     final accuracy = _score / _questions.length;
-    final avgSec =
-        _answerCount == 0 ? 8.0 : (_responseMillisSum / _answerCount) / 1000;
+    final avgSec = _answerCount == 0
+        ? 8.0
+        : (_responseMillisSum / _answerCount) / 1000;
     final perf = _RecentPerformance(accuracy: accuracy, avgSeconds: avgSec);
     await widget.optionRepository.setValue(
       SkillQuizScreen.recentPerformanceKey,
@@ -1681,10 +1682,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final hardPool = [...hard]..shuffle(random);
 
     final total = math.min(count, source.length);
-    final hardRatio =
-        targetDifficulty >= 3 ? 0.45 : (targetDifficulty <= 1 ? 0.15 : 0.30);
-    final easyRatio =
-        targetDifficulty <= 1 ? 0.45 : (targetDifficulty >= 3 ? 0.18 : 0.25);
+    final hardRatio = targetDifficulty >= 3
+        ? 0.45
+        : (targetDifficulty <= 1 ? 0.15 : 0.30);
+    final easyRatio = targetDifficulty <= 1
+        ? 0.45
+        : (targetDifficulty >= 3 ? 0.18 : 0.25);
     final midRatio = 1 - easyRatio - hardRatio;
 
     final needEasy = (total * easyRatio).round();
@@ -1692,11 +1695,24 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final needHard = total - needEasy - needMid;
 
     final picked = <_FootballQuizQuestion>[];
+    final usedConcepts = <String>{};
     void take(List<_FootballQuizQuestion> from, int need) {
       if (need <= 0) return;
-      final takeCount = math.min(need, from.length);
-      picked.addAll(from.take(takeCount));
-      from.removeRange(0, takeCount);
+      final takenIndexes = <int>[];
+      for (var index = 0; index < from.length; index++) {
+        if (takenIndexes.length >= need || picked.length >= total) {
+          break;
+        }
+        final question = from[index];
+        if (!usedConcepts.add(question.conceptKey)) {
+          continue;
+        }
+        picked.add(question);
+        takenIndexes.add(index);
+      }
+      for (final index in takenIndexes.reversed) {
+        from.removeAt(index);
+      }
     }
 
     take(easyPool, needEasy);
@@ -1709,7 +1725,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       ...hardPool,
     ]..shuffle(random);
     if (picked.length < total) {
-      picked.addAll(remaining.take(total - picked.length));
+      _appendUniqueQuestions(
+        target: picked,
+        candidates: remaining,
+        count: total - picked.length,
+        usedConcepts: usedConcepts,
+      );
     }
 
     return picked..shuffle(random);
@@ -1720,11 +1741,16 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       ..shuffle(random);
     final mixCount = math.min(mixedReview.length, 2);
     final reviewQuestions = <_FootballQuizQuestion>[];
+    final usedConcepts = <String>{};
     var reviewShortAnswerCount = 0;
     for (final question in mixedReview) {
       if (reviewQuestions.length >= mixCount) break;
+      if (!usedConcepts.add(question.conceptKey)) {
+        continue;
+      }
       if (question.style == _QuestionStyle.shortAnswer &&
           reviewShortAnswerCount >= 1) {
+        usedConcepts.remove(question.conceptKey);
         continue;
       }
       reviewQuestions.add(question);
@@ -1734,22 +1760,26 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     }
     final excludedIds = reviewQuestions.map((question) => question.id).toSet();
     final remainingCount = math.max(0, _dailyCount - reviewQuestions.length);
-    final ox = _allQuestions
-        .where((q) => q.style == _QuestionStyle.ox)
-        .where((q) => !excludedIds.contains(q.id))
-        .toList(growable: false)
-      ..shuffle(random);
-    final mcq = _allQuestions
-        .where((q) => q.style == _QuestionStyle.multipleChoice)
-        .where((q) => !excludedIds.contains(q.id))
-        .toList(growable: false)
-      ..shuffle(random);
-    final shortAnswer = _allQuestions
-        .where((q) => q.style == _QuestionStyle.shortAnswer)
-        .where((q) => !excludedIds.contains(q.id))
-        .toList(growable: false)
-      ..shuffle(random);
-    final shortCount = (reviewShortAnswerCount == 0 &&
+    final ox =
+        _allQuestions
+            .where((q) => q.style == _QuestionStyle.ox)
+            .where((q) => !excludedIds.contains(q.id))
+            .toList(growable: false)
+          ..shuffle(random);
+    final mcq =
+        _allQuestions
+            .where((q) => q.style == _QuestionStyle.multipleChoice)
+            .where((q) => !excludedIds.contains(q.id))
+            .toList(growable: false)
+          ..shuffle(random);
+    final shortAnswer =
+        _allQuestions
+            .where((q) => q.style == _QuestionStyle.shortAnswer)
+            .where((q) => !excludedIds.contains(q.id))
+            .toList(growable: false)
+          ..shuffle(random);
+    final shortCount =
+        (reviewShortAnswerCount == 0 &&
             remainingCount > 0 &&
             shortAnswer.isNotEmpty)
         ? 1
@@ -1757,19 +1787,39 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final objectiveCount = remainingCount - shortCount;
     final oxCount = objectiveCount ~/ 2;
     final mcqCount = objectiveCount - oxCount;
-    final picked = <_FootballQuizQuestion>[
-      ...reviewQuestions,
-      ...ox.take(oxCount),
-      ...mcq.take(mcqCount),
-      ...shortAnswer.take(shortCount),
-    ];
+    final picked = <_FootballQuizQuestion>[...reviewQuestions];
+    _appendUniqueQuestions(
+      target: picked,
+      candidates: ox,
+      count: oxCount,
+      usedConcepts: usedConcepts,
+    );
+    _appendUniqueQuestions(
+      target: picked,
+      candidates: mcq,
+      count: mcqCount,
+      usedConcepts: usedConcepts,
+    );
+    _appendUniqueQuestions(
+      target: picked,
+      candidates: shortAnswer,
+      count: shortCount,
+      usedConcepts: usedConcepts,
+    );
     if (picked.length < _dailyCount) {
       final rest = <_FootballQuizQuestion>[
         ..._allQuestions.where(
-          (q) => !picked.any((pickedQuestion) => pickedQuestion.id == q.id),
+          (q) =>
+              !picked.any((pickedQuestion) => pickedQuestion.id == q.id) &&
+              !usedConcepts.contains(q.conceptKey),
         ),
       ]..shuffle(random);
-      picked.addAll(rest.take(_dailyCount - picked.length));
+      _appendUniqueQuestions(
+        target: picked,
+        candidates: rest,
+        count: _dailyCount - picked.length,
+        usedConcepts: usedConcepts,
+      );
     }
     return picked.take(_dailyCount).toList(growable: false);
   }
@@ -1788,7 +1838,36 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     return dueIds
         .map((id) => _questionMap[id])
         .whereType<_FootballQuizQuestion>()
-        .toList(growable: false);
+        .fold<List<_FootballQuizQuestion>>(<_FootballQuizQuestion>[], (
+          picked,
+          question,
+        ) {
+          if (picked.any((item) => item.conceptKey == question.conceptKey)) {
+            return picked;
+          }
+          picked.add(question);
+          return picked;
+        });
+  }
+
+  void _appendUniqueQuestions({
+    required List<_FootballQuizQuestion> target,
+    required Iterable<_FootballQuizQuestion> candidates,
+    required int count,
+    required Set<String> usedConcepts,
+  }) {
+    if (count <= 0) return;
+    var added = 0;
+    for (final question in candidates) {
+      if (added >= count) {
+        break;
+      }
+      if (!usedConcepts.add(question.conceptKey)) {
+        continue;
+      }
+      target.add(question);
+      added += 1;
+    }
   }
 
   Future<void> _removeDueReviewQuestions(
@@ -1975,6 +2054,7 @@ extension _QuizCategoryX on _QuizCategory {
 
 class _FootballQuizQuestion {
   final String id;
+  final String conceptKey;
   final int difficulty;
   final _QuestionStyle style;
   final _QuizCategory category;
@@ -1990,6 +2070,7 @@ class _FootballQuizQuestion {
 
   const _FootballQuizQuestion({
     required this.id,
+    required this.conceptKey,
     required this.difficulty,
     required this.style,
     required this.category,
@@ -2112,9 +2193,9 @@ class _QuestionHeroCard extends StatelessWidget {
                       ? '${question.category.label(true)} ${question.style.label(true)}'
                       : '${question.category.label(false)} ${question.style.label(false)}',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               const Spacer(),
@@ -2138,18 +2219,18 @@ class _QuestionHeroCard extends StatelessWidget {
                         overlay.title,
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: overlay.accent,
-                              fontWeight: FontWeight.w900,
-                            ),
+                          color: overlay.accent,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         overlay.subtitle,
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurface.withValues(alpha: 0.72),
-                              fontWeight: FontWeight.w700,
-                            ),
+                          color: scheme.onSurface.withValues(alpha: 0.72),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ],
                   ),
@@ -2161,9 +2242,9 @@ class _QuestionHeroCard extends StatelessWidget {
           Text(
             question.prompt(isKo),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  height: 1.35,
-                ),
+              fontWeight: FontWeight.w900,
+              height: 1.35,
+            ),
           ),
           const SizedBox(height: 12),
           Container(
@@ -2181,8 +2262,8 @@ class _QuestionHeroCard extends StatelessWidget {
                   child: Text(
                     explanationText,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -2212,9 +2293,9 @@ class _OptionBadge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          fontWeight: FontWeight.w900,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
@@ -2276,16 +2357,16 @@ class _QuizEntryCard extends StatelessWidget {
                     Text(
                       data.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       data.subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.74),
-                            height: 1.4,
-                          ),
+                        color: scheme.onSurface.withValues(alpha: 0.74),
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -2306,9 +2387,9 @@ class _QuizEntryCard extends StatelessWidget {
                     child: Text(
                       data.badge,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -2351,23 +2432,25 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
 
   List<_FootballQuizQuestion> get _filteredQuestions {
     final normalized = _query.trim().toLowerCase();
-    return widget.questions.where((question) {
-      if (_category != null && question.category != _category) return false;
-      if (_style != null && question.style != _style) return false;
-      if (_difficulty != null && question.difficulty != _difficulty) {
-        return false;
-      }
-      if (normalized.isEmpty) return true;
-      final haystack = [
-        question.koPrompt,
-        question.enPrompt,
-        question.koExplain,
-        question.enExplain,
-        question.displayAnswer(true),
-        question.displayAnswer(false),
-      ].join(' ').toLowerCase();
-      return haystack.contains(normalized);
-    }).toList(growable: false);
+    return widget.questions
+        .where((question) {
+          if (_category != null && question.category != _category) return false;
+          if (_style != null && question.style != _style) return false;
+          if (_difficulty != null && question.difficulty != _difficulty) {
+            return false;
+          }
+          if (normalized.isEmpty) return true;
+          final haystack = [
+            question.koPrompt,
+            question.enPrompt,
+            question.koExplain,
+            question.enExplain,
+            question.displayAnswer(true),
+            question.displayAnswer(false),
+          ].join(' ').toLowerCase();
+          return haystack.contains(normalized);
+        })
+        .toList(growable: false);
   }
 
   @override
@@ -2378,8 +2461,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
     final coreFocusCount = widget.questions
         .where((question) => question.category.isCoreFocus)
         .length;
-    final filteredCoreFocus =
-        filtered.where((question) => question.category.isCoreFocus).length;
+    final filteredCoreFocus = filtered
+        .where((question) => question.category.isCoreFocus)
+        .length;
 
     return Scaffold(
       appBar: AppBar(title: Text(isKo ? '전체 문제 보기' : 'Question library')),
@@ -2406,9 +2490,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                 Text(
                   isKo ? '코치용 퀴즈 라이브러리' : 'Coach quiz library',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -2416,9 +2500,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                       ? '전체 문제를 카테고리, 유형, 난이도, 검색어로 점검하세요. 기본기와 전술 비중이 높고, 규칙·포지션·대회 상식도 섞여 있습니다.'
                       : 'Inspect the full question bank by category, style, difficulty, and search. Fundamentals and tactics are emphasized while rules, positions, and competition knowledge stay mixed in.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        height: 1.45,
-                      ),
+                    color: Colors.white.withValues(alpha: 0.92),
+                    height: 1.45,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 Wrap(
@@ -2541,9 +2625,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
                       ? '필터 안에서도 기본기/전술 $filteredCoreFocus문제가 유지됩니다.'
                       : '$filteredCoreFocus core-focus questions remain in the current filter.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.72),
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: scheme.onSurface.withValues(alpha: 0.72),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -2643,9 +2727,9 @@ class _QuizLibraryCard extends StatelessWidget {
           Text(
             question.prompt(isKo),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  height: 1.35,
-                ),
+              fontWeight: FontWeight.w900,
+              height: 1.35,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
@@ -2653,17 +2737,17 @@ class _QuizLibraryCard extends StatelessWidget {
                 ? '정답: ${question.displayAnswer(true)}'
                 : 'Answer: ${question.displayAnswer(false)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: accent,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             question.explainText(isKo),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.78),
-                  height: 1.45,
-                ),
+              color: scheme.onSurface.withValues(alpha: 0.78),
+              height: 1.45,
+            ),
           ),
         ],
       ),
@@ -2697,25 +2781,25 @@ class _QuizCoachBanner extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             detail,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  height: 1.45,
-                ),
+              color: Colors.white.withValues(alpha: 0.9),
+              height: 1.45,
+            ),
           ),
         ],
       ),
@@ -2745,17 +2829,17 @@ class _ResultMetricChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  fontWeight: FontWeight.w700,
-                ),
+              color: Colors.white.withValues(alpha: 0.92),
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ],
       ),
@@ -2880,16 +2964,16 @@ class _FlipQuizReviewCardState extends State<_FlipQuizReviewCard> {
                     Text(
                       widget.isKo ? '정답 / 해설' : 'Answer / explanation',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       answer,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -2907,24 +2991,24 @@ class _FlipQuizReviewCardState extends State<_FlipQuizReviewCard> {
                     Text(
                       widget.isKo ? '문제' : 'Question',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       prompt,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            height: 1.4,
-                          ),
+                        fontWeight: FontWeight.w800,
+                        height: 1.4,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       widget.isKo ? '탭해서 뒤집기' : 'Tap to flip',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.65),
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: scheme.onSurface.withValues(alpha: 0.65),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ],
                 ),
@@ -2982,9 +3066,7 @@ class _QuizHistoryScreen extends StatelessWidget {
                       ),
                       title: Text(
                         item.title(isKo),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       subtitle: Text(
@@ -3069,8 +3151,9 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final bgColor =
-        danger ? const Color(0x1AEB5757) : scheme.surfaceContainerHighest;
+    final bgColor = danger
+        ? const Color(0x1AEB5757)
+        : scheme.surfaceContainerHighest;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -3080,9 +3163,9 @@ class _InfoChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: danger ? const Color(0xFFC62828) : null,
-            ),
+          fontWeight: FontWeight.w800,
+          color: danger ? const Color(0xFFC62828) : null,
+        ),
       ),
     );
   }
@@ -3101,15 +3184,15 @@ class _AnswerFxBadge extends StatelessWidget {
     final (icon, text, color) = switch (fx) {
       _AnswerFx.success => (Icons.check_circle, '', const Color(0xFF0FA968)),
       _AnswerFx.fail => (
-          Icons.cancel,
-          isKo ? '다시 보기' : 'Review',
-          const Color(0xFFEB5757),
-        ),
+        Icons.cancel,
+        isKo ? '다시 보기' : 'Review',
+        const Color(0xFFEB5757),
+      ),
       _AnswerFx.timeout => (
-          Icons.timer_off,
-          isKo ? '시간 초과' : 'Time out',
-          const Color(0xFFF57C00),
-        ),
+        Icons.timer_off,
+        isKo ? '시간 초과' : 'Time out',
+        const Color(0xFFF57C00),
+      ),
       _AnswerFx.none => (Icons.circle, '', Colors.transparent),
     };
 
@@ -3129,9 +3212,9 @@ class _AnswerFxBadge extends StatelessWidget {
             Text(
               text,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w900,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ],
         ],
@@ -3180,31 +3263,32 @@ class _QuizSessionSnapshot {
   });
 
   String encode() => jsonEncode(<String, dynamic>{
-        'mode': mode,
-        'questionIds': questionIds,
-        'index': index,
-        'score': score,
-        'streak': streak,
-        'bestStreak': bestStreak,
-        'timeouts': timeouts,
-        'answerCount': answerCount,
-        'responseMillisSum': responseMillisSum,
-        'selectedIndex': selectedIndex,
-        'answered': answered,
-        'retryUsed': retryUsed,
-        'retryFeedback': retryFeedback,
-        'answerRevealed': answerRevealed,
-        'wrongIds': wrongIds,
-        'finished': finished,
-        'speedLeft': speedLeft,
-      });
+    'mode': mode,
+    'questionIds': questionIds,
+    'index': index,
+    'score': score,
+    'streak': streak,
+    'bestStreak': bestStreak,
+    'timeouts': timeouts,
+    'answerCount': answerCount,
+    'responseMillisSum': responseMillisSum,
+    'selectedIndex': selectedIndex,
+    'answered': answered,
+    'retryUsed': retryUsed,
+    'retryFeedback': retryFeedback,
+    'answerRevealed': answerRevealed,
+    'wrongIds': wrongIds,
+    'finished': finished,
+    'speedLeft': speedLeft,
+  });
 
   static _QuizSessionSnapshot? tryParse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) return null;
-      final ids = (decoded['questionIds'] as List?)
+      final ids =
+          (decoded['questionIds'] as List?)
               ?.map((item) => item.toString())
               .toList(growable: false) ??
           const <String>[];
@@ -3224,7 +3308,8 @@ class _QuizSessionSnapshot {
         retryUsed: decoded['retryUsed'] == true,
         retryFeedback: decoded['retryFeedback']?.toString(),
         answerRevealed: decoded['answerRevealed'] == true,
-        wrongIds: (decoded['wrongIds'] as List?)
+        wrongIds:
+            (decoded['wrongIds'] as List?)
                 ?.map((item) => item.toString())
                 .toList(growable: false) ??
             const <String>[],
@@ -3261,16 +3346,16 @@ class _QuizHistoryQuestion {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'id': id,
-        'promptKo': promptKo,
-        'promptEn': promptEn,
-        'answerKo': answerKo,
-        'answerEn': answerEn,
-        'explanationKo': explanationKo,
-        'explanationEn': explanationEn,
-        'category': category,
-        'style': style,
-      };
+    'id': id,
+    'promptKo': promptKo,
+    'promptEn': promptEn,
+    'answerKo': answerKo,
+    'answerEn': answerEn,
+    'explanationKo': explanationKo,
+    'explanationEn': explanationEn,
+    'category': category,
+    'style': style,
+  };
 
   String prompt(bool isKo) => isKo ? promptKo : promptEn;
   String answer(bool isKo) => isKo ? answerKo : answerEn;
@@ -3321,22 +3406,23 @@ class _QuizHistoryEntry {
   double get accuracy => totalQuestions == 0 ? 0 : score / totalQuestions;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'id': id,
-        'mode': mode,
-        'finishedAt': finishedAt.toIso8601String(),
-        'totalQuestions': totalQuestions,
-        'score': score,
-        'bestStreak': bestStreak,
-        'bestCombo': bestCombo,
-        'timeouts': timeouts,
-        'avgResponseMs': avgResponseMs,
-        'wrongQuestions': wrongQuestions.map((item) => item.toMap()).toList(),
-      };
+    'id': id,
+    'mode': mode,
+    'finishedAt': finishedAt.toIso8601String(),
+    'totalQuestions': totalQuestions,
+    'score': score,
+    'bestStreak': bestStreak,
+    'bestCombo': bestCombo,
+    'timeouts': timeouts,
+    'avgResponseMs': avgResponseMs,
+    'wrongQuestions': wrongQuestions.map((item) => item.toMap()).toList(),
+  };
 
   String title(bool isKo) {
     final modeLabel =
         _QuizModeX.tryParse(mode)?.label(isKo) ?? (isKo ? '퀴즈' : 'Quiz');
-    final date = '${finishedAt.year.toString().padLeft(4, '0')}.'
+    final date =
+        '${finishedAt.year.toString().padLeft(4, '0')}.'
         '${finishedAt.month.toString().padLeft(2, '0')}.'
         '${finishedAt.day.toString().padLeft(2, '0')} '
         '${finishedAt.hour.toString().padLeft(2, '0')}:'
@@ -3361,7 +3447,8 @@ class _QuizHistoryEntry {
               map['finishedAt']?.toString() ?? '',
             );
             if (id.isEmpty || finishedAt == null) return null;
-            final wrongQuestions = (map['wrongQuestions'] as List?)
+            final wrongQuestions =
+                (map['wrongQuestions'] as List?)
                     ?.whereType<Map>()
                     .map(
                       (item) => _QuizHistoryQuestion.fromMap(
@@ -3406,11 +3493,11 @@ class _ScheduledWrongItem {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'questionId': questionId,
-        'dueAt': dueAt.toIso8601String(),
-        'wrongCount': wrongCount,
-        'lastWrongAt': lastWrongAt.toIso8601String(),
-      };
+    'questionId': questionId,
+    'dueAt': dueAt.toIso8601String(),
+    'wrongCount': wrongCount,
+    'lastWrongAt': lastWrongAt.toIso8601String(),
+  };
 
   static String encodeList(List<_ScheduledWrongItem> list) =>
       jsonEncode(list.map((item) => item.toMap()).toList(growable: false));
@@ -3457,9 +3544,9 @@ class _RecentPerformance {
   }
 
   String encode() => jsonEncode(<String, dynamic>{
-        'accuracy': accuracy,
-        'avgSeconds': avgSeconds,
-      });
+    'accuracy': accuracy,
+    'avgSeconds': avgSeconds,
+  });
 
   static _RecentPerformance? tryParse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return null;
@@ -3514,9 +3601,9 @@ class _QuizCategoryAggregate {
   }
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'total': total,
-        'correct': correct,
-      };
+    'total': total,
+    'correct': correct,
+  };
 
   static String encodeMap(Map<_QuizCategory, _QuizCategoryAggregate> map) {
     return jsonEncode({
@@ -3720,6 +3807,7 @@ class _McqSeed {
 
 class _ShortAnswerSeed {
   final String id;
+  final String conceptKey;
   final int difficulty;
   final _QuizCategory category;
   final String koPrompt;
@@ -3732,6 +3820,7 @@ class _ShortAnswerSeed {
 
   const _ShortAnswerSeed({
     required this.id,
+    required this.conceptKey,
     required this.difficulty,
     required this.category,
     required this.koPrompt,
@@ -3783,6 +3872,9 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
     questions.add(
       _FootballQuizQuestion(
         id: 'ox_${fact.id}',
+        conceptKey: _canonicalQuizConceptKey(
+          fact.id.replaceFirst(RegExp(r'_[0-9]+$'), ''),
+        ),
         difficulty: fact.difficulty,
         style: _QuestionStyle.ox,
         category: fact.category,
@@ -3809,6 +3901,9 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
     questions.add(
       _FootballQuizQuestion(
         id: 'mcq_${seed.id}',
+        conceptKey: _canonicalQuizConceptKey(
+          seed.id.replaceFirst(RegExp(r'_[0-9]+$'), ''),
+        ),
         difficulty: seed.difficulty,
         style: _QuestionStyle.multipleChoice,
         category: seed.category,
@@ -3828,6 +3923,7 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
     questions.add(
       _FootballQuizQuestion(
         id: 'sa_${seed.id}',
+        conceptKey: _canonicalQuizConceptKey(seed.conceptKey),
         difficulty: seed.difficulty,
         style: _QuestionStyle.shortAnswer,
         category: seed.category,
@@ -3990,6 +4086,7 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
     out.add(
       _ShortAnswerSeed(
         id: 'short_$i',
+        conceptKey: key.id,
         difficulty: key.difficulty,
         category: key.category,
         koPrompt: koPrompt,
@@ -4034,8 +4131,9 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
     }
   }
 
-  final coreFocusCount =
-      questions.where((question) => question.category.isCoreFocus).length;
+  final coreFocusCount = questions
+      .where((question) => question.category.isCoreFocus)
+      .length;
   if (coreFocusCount < 350) {
     throw StateError('Technique and tactics should dominate the quiz bank.');
   }
@@ -4054,10 +4152,9 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
   ];
   for (final item in selfChecks) {
     final question = questions.cast<_FootballQuizQuestion?>().firstWhere(
-          (candidate) =>
-              candidate != null && candidate.id.startsWith(item.prefix),
-          orElse: () => null,
-        );
+      (candidate) => candidate != null && candidate.id.startsWith(item.prefix),
+      orElse: () => null,
+    );
     if (question == null || !_answerMatchesQuestion(question, item.answer)) {
       throw StateError('Quiz self-check failed for ${item.prefix}.');
     }
@@ -4082,6 +4179,34 @@ bool _answerMatchesQuestion(_FootballQuizQuestion question, String answer) {
       .toLowerCase()
       .replaceAll(' ', '');
   return correct == normalized;
+}
+
+String _canonicalQuizConceptKey(String raw) {
+  const aliases = <String, String>{
+    'counterpress_first_action': 'counterpress',
+    'support_angle_best': 'support_angle',
+    'switch_play_far_side': 'switch_play',
+    'compactness_center': 'compact_defense',
+    'width_attack_reason': 'width_attack',
+    'scan_skill': 'scan_before_receive',
+    'open_body_shape': 'open_body',
+    'first_touch_escape': 'first_touch_space',
+    'shielding_ball': 'ball_protection',
+    'fullback_role': 'fullback_overlap',
+    'goalkeeper_view': 'goalkeeper_communication',
+    'striker_off_ball': 'striker_pin',
+    'sleep_best_recovery': 'sleep_recovery',
+    'hydration_best': 'hydration',
+    'carb_role': 'carbohydrate_recovery',
+    'warmup_purpose': 'warmup_readiness',
+    'repeated_sprint_value': 'repeated_sprint',
+    'mistake_reaction': 'mistake_reset',
+    'communication_style': 'communication_help',
+    'half_space_value': 'half_space',
+    'third_man_run': 'third_man',
+    'pressing_trigger_bad_touch': 'pressing_trigger',
+  };
+  return aliases[raw] ?? raw;
 }
 
 Map<String, _FootballQuizQuestion> _legacyQuestionAliases(
