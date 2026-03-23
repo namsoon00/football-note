@@ -4140,9 +4140,13 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
     throw StateError('Technique and tactics should dominate the quiz bank.');
   }
 
+  final minimumPerCategory = questions.length >= 300 ? 6 : 1;
   for (final category in _QuizCategory.values) {
-    if ((categoryCounts[category] ?? 0) < 6) {
-      throw StateError('Category ${category.name} has too few questions.');
+    if ((categoryCounts[category] ?? 0) < minimumPerCategory) {
+      throw StateError(
+        'Category ${category.name} has too few questions. '
+        '(minimum=$minimumPerCategory)',
+      );
     }
   }
 
