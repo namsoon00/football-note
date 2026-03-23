@@ -109,6 +109,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _allQuestions = _buildFootballQuizPool();
     _questionMap = {
       for (final question in _allQuestions) question.id: question,
+      for (final question in _allQuestions) ..._legacyQuestionAliases(question),
     };
     _profileService = PlayerProfileService(widget.optionRepository);
     _resumeSummary = SkillQuizScreen.loadResumeSummary(widget.optionRepository);
@@ -151,6 +152,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       case _QuizEntryAction.speed:
         _startSpeedSession();
         return;
+      case _QuizEntryAction.library:
+        return _openQuizLibrary();
       case _QuizEntryAction.history:
         return _openQuizHistory();
     }
@@ -295,6 +298,14 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       questions: due.take(_reviewCount).toList(growable: false),
       mode: _QuizMode.review,
       clearDueReview: true,
+    );
+  }
+
+  Future<void> _openQuizLibrary() {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _QuizLibraryScreen(questions: _allQuestions),
+      ),
     );
   }
 
@@ -995,23 +1006,23 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             children: [
               Text(
                 isKo ? '코치 해설' : 'Coach recap',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 8),
               Text(
                 recap.summary(isKo),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      height: 1.5,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(height: 1.5),
               ),
               const SizedBox(height: 8),
               Text(
                 recap.nextAction(isKo),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -1019,9 +1030,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         const SizedBox(height: 14),
         Text(
           isKo ? '오늘 결과 한눈에' : 'Session snapshot',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -1040,9 +1051,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         const SizedBox(height: 18),
         Text(
           isKo ? '다음에 이렇게 이어가세요' : 'Suggested next moves',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 10),
         ...suggestions.map(
@@ -1055,9 +1066,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         if (wrongQuestions.isNotEmpty) ...[
           Text(
             isKo ? '이번에 놓친 문제 다시 보기' : 'Review missed questions',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 10),
           ...wrongQuestions.map(
@@ -1376,6 +1387,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         badge: isKo ? '빠른 판단' : 'Fast decisions',
       ),
       _QuizEntryCardData(
+        action: _QuizEntryAction.library,
+        icon: Icons.library_books_outlined,
+        title: isKo ? '전체 문제 보기' : 'Browse all questions',
+        subtitle: isKo
+            ? '900문제 전체를 필터와 검색으로 점검해요'
+            : 'Inspect the full 900-question bank with filters and search',
+        badge: isKo ? '코치 검수' : 'Library',
+      ),
+      _QuizEntryCardData(
         action: _QuizEntryAction.history,
         icon: Icons.history_outlined,
         title: isKo ? '퀴즈 히스토리' : 'Quiz history',
@@ -1443,9 +1463,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                           : 'Runs ${history.length}',
                     ),
                   if (_resumeSummary.completedToday)
-                    _InfoChip(
-                      label: isKo ? '오늘 세트 완료' : 'Today done',
-                    ),
+                    _InfoChip(label: isKo ? '오늘 세트 완료' : 'Today done'),
                 ],
               ),
             ],
@@ -1873,7 +1891,8 @@ enum _QuizEntryAction {
   challenge,
   focus,
   speed,
-  history
+  library,
+  history,
 }
 
 enum _QuizMode { daily, review, challenge, focus, speed }
@@ -1929,6 +1948,9 @@ enum _QuizCategory {
 }
 
 extension _QuizCategoryX on _QuizCategory {
+  bool get isCoreFocus =>
+      this == _QuizCategory.tactics || this == _QuizCategory.technique;
+
   String label(bool isKo) {
     switch (this) {
       case _QuizCategory.rules:
@@ -2007,6 +2029,19 @@ class _FootballQuizQuestion {
   }
 }
 
+Color _quizCategoryAccent(_QuizCategory category) {
+  return switch (category) {
+    _QuizCategory.rules => const Color(0xFF1565C0),
+    _QuizCategory.tactics => const Color(0xFF2E7D32),
+    _QuizCategory.technique => const Color(0xFF6A1B9A),
+    _QuizCategory.positions => const Color(0xFFE65100),
+    _QuizCategory.training => const Color(0xFF00838F),
+    _QuizCategory.mindset => const Color(0xFFAD1457),
+    _QuizCategory.nutrition => const Color(0xFF558B2F),
+    _QuizCategory.fun => const Color(0xFF5D4037),
+  };
+}
+
 class _FootballQuizOption {
   final String koText;
   final String enText;
@@ -2044,16 +2079,7 @@ class _QuestionHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final accent = switch (question.category) {
-      _QuizCategory.rules => const Color(0xFF1565C0),
-      _QuizCategory.tactics => const Color(0xFF2E7D32),
-      _QuizCategory.technique => const Color(0xFF6A1B9A),
-      _QuizCategory.positions => const Color(0xFFE65100),
-      _QuizCategory.training => const Color(0xFF00838F),
-      _QuizCategory.mindset => const Color(0xFFAD1457),
-      _QuizCategory.nutrition => const Color(0xFF558B2F),
-      _QuizCategory.fun => const Color(0xFF5D4037),
-    };
+    final accent = _quizCategoryAccent(question.category);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -2301,6 +2327,350 @@ class _QuizEntryCard extends StatelessWidget {
   }
 }
 
+class _QuizLibraryScreen extends StatefulWidget {
+  final List<_FootballQuizQuestion> questions;
+
+  const _QuizLibraryScreen({required this.questions});
+
+  @override
+  State<_QuizLibraryScreen> createState() => _QuizLibraryScreenState();
+}
+
+class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  _QuizCategory? _category;
+  _QuestionStyle? _style;
+  int? _difficulty;
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<_FootballQuizQuestion> get _filteredQuestions {
+    final normalized = _query.trim().toLowerCase();
+    return widget.questions.where((question) {
+      if (_category != null && question.category != _category) return false;
+      if (_style != null && question.style != _style) return false;
+      if (_difficulty != null && question.difficulty != _difficulty) {
+        return false;
+      }
+      if (normalized.isEmpty) return true;
+      final haystack = [
+        question.koPrompt,
+        question.enPrompt,
+        question.koExplain,
+        question.enExplain,
+        question.displayAnswer(true),
+        question.displayAnswer(false),
+      ].join(' ').toLowerCase();
+      return haystack.contains(normalized);
+    }).toList(growable: false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final scheme = Theme.of(context).colorScheme;
+    final filtered = _filteredQuestions;
+    final coreFocusCount = widget.questions
+        .where((question) => question.category.isCoreFocus)
+        .length;
+    final filteredCoreFocus =
+        filtered.where((question) => question.category.isCoreFocus).length;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(isKo ? '전체 문제 보기' : 'Question library')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF14532D),
+                  Color(0xFF0F766E),
+                  Color(0xFF1D4ED8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isKo ? '코치용 퀴즈 라이브러리' : 'Coach quiz library',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isKo
+                      ? '전체 문제를 카테고리, 유형, 난이도, 검색어로 점검하세요. 기본기와 전술 비중이 높고, 규칙·포지션·대회 상식도 섞여 있습니다.'
+                      : 'Inspect the full question bank by category, style, difficulty, and search. Fundamentals and tactics are emphasized while rules, positions, and competition knowledge stay mixed in.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        height: 1.45,
+                      ),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _InfoChip(
+                      label: isKo
+                          ? '전체 ${widget.questions.length}문제'
+                          : 'Total ${widget.questions.length}',
+                    ),
+                    _InfoChip(
+                      label: isKo
+                          ? '기본기/전술 $coreFocusCount문제'
+                          : 'Core focus $coreFocusCount',
+                    ),
+                    _InfoChip(
+                      label: isKo
+                          ? '현재 필터 ${filtered.length}문제'
+                          : 'Filtered ${filtered.length}',
+                    ),
+                    _InfoChip(
+                      label: isKo ? '자동 검증 통과' : 'Auto validation passed',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: scheme.outlineVariant),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _query.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: isKo ? '검색 지우기' : 'Clear search',
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _query = '');
+                            },
+                            icon: const Icon(Icons.close),
+                          ),
+                    labelText: isKo
+                        ? '문제/정답/해설 검색'
+                        : 'Search prompt/answer/explanation',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _LibraryDropdown<_QuizCategory>(
+                      label: isKo ? '카테고리' : 'Category',
+                      allLabel: isKo ? '전체 카테고리' : 'All categories',
+                      value: _category,
+                      entries: _QuizCategory.values
+                          .map(
+                            (item) => DropdownMenuItem<_QuizCategory?>(
+                              value: item,
+                              child: Text(item.label(isKo)),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (value) => setState(() => _category = value),
+                    ),
+                    _LibraryDropdown<_QuestionStyle>(
+                      label: isKo ? '문항 유형' : 'Style',
+                      allLabel: isKo ? '전체 유형' : 'All styles',
+                      value: _style,
+                      entries: _QuestionStyle.values
+                          .map(
+                            (item) => DropdownMenuItem<_QuestionStyle?>(
+                              value: item,
+                              child: Text(item.label(isKo)),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (value) => setState(() => _style = value),
+                    ),
+                    _LibraryDropdown<int>(
+                      label: isKo ? '난이도' : 'Difficulty',
+                      allLabel: isKo ? '전체 난이도' : 'All difficulties',
+                      value: _difficulty,
+                      entries: [1, 2, 3]
+                          .map(
+                            (item) => DropdownMenuItem<int?>(
+                              value: item,
+                              child: Text(switch (item) {
+                                1 => isKo ? '쉬움' : 'Easy',
+                                2 => isKo ? '보통' : 'Normal',
+                                _ => isKo ? '도전' : 'Hard',
+                              }),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (value) => setState(() => _difficulty = value),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isKo
+                      ? '필터 안에서도 기본기/전술 $filteredCoreFocus문제가 유지됩니다.'
+                      : '$filteredCoreFocus core-focus questions remain in the current filter.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.72),
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Text(
+                  isKo
+                      ? '조건에 맞는 문제가 없습니다.'
+                      : 'No questions match the current filters.',
+                ),
+              ),
+            )
+          else
+            ...filtered.map(
+              (question) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _QuizLibraryCard(question: question, isKo: isKo),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LibraryDropdown<T> extends StatelessWidget {
+  final String label;
+  final String allLabel;
+  final T? value;
+  final List<DropdownMenuItem<T?>> entries;
+  final ValueChanged<T?> onChanged;
+
+  const _LibraryDropdown({
+    required this.label,
+    required this.allLabel,
+    required this.value,
+    required this.entries,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 180,
+      child: DropdownButtonFormField<T?>(
+        initialValue: value,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        items: [
+          DropdownMenuItem<T?>(value: null, child: Text(allLabel)),
+          ...entries,
+        ],
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+class _QuizLibraryCard extends StatelessWidget {
+  final _FootballQuizQuestion question;
+  final bool isKo;
+
+  const _QuizLibraryCard({required this.question, required this.isKo});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = _quizCategoryAccent(question.category);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accent.withValues(alpha: 0.24)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _InfoChip(label: question.category.label(isKo)),
+              _InfoChip(label: question.style.label(isKo)),
+              _InfoChip(label: question.difficultyLabel(isKo)),
+              if (question.category.isCoreFocus)
+                _InfoChip(label: isKo ? '핵심 집중' : 'Core focus'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            question.prompt(isKo),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  height: 1.35,
+                ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isKo
+                ? '정답: ${question.displayAnswer(true)}'
+                : 'Answer: ${question.displayAnswer(false)}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            question.explainText(isKo),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.78),
+                  height: 1.45,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _QuizCoachBanner extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -2439,16 +2809,16 @@ class _SuggestionCard extends StatelessWidget {
               children: [
                 Text(
                   data.title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   data.body,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        height: 1.45,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(height: 1.45),
                 ),
               ],
             ),
@@ -2524,9 +2894,9 @@ class _FlipQuizReviewCardState extends State<_FlipQuizReviewCard> {
                     const SizedBox(height: 8),
                     Text(
                       explanation,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            height: 1.45,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(height: 1.45),
                     ),
                   ],
                 )
@@ -2573,9 +2943,7 @@ class _QuizHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isKo ? '퀴즈 히스토리' : 'Quiz history'),
-      ),
+      appBar: AppBar(title: Text(isKo ? '퀴즈 히스토리' : 'Quiz history')),
       body: SafeArea(
         child: history.isEmpty
             ? Center(
@@ -2614,10 +2982,10 @@ class _QuizHistoryScreen extends StatelessWidget {
                       ),
                       title: Text(
                         item.title(isKo),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       subtitle: Text(
                         isKo
@@ -2995,9 +3363,11 @@ class _QuizHistoryEntry {
             if (id.isEmpty || finishedAt == null) return null;
             final wrongQuestions = (map['wrongQuestions'] as List?)
                     ?.whereType<Map>()
-                    .map((item) => _QuizHistoryQuestion.fromMap(
-                          item.cast<String, dynamic>(),
-                        ))
+                    .map(
+                      (item) => _QuizHistoryQuestion.fromMap(
+                        item.cast<String, dynamic>(),
+                      ),
+                    )
                     .whereType<_QuizHistoryQuestion>()
                     .toList(growable: false) ??
                 const <_QuizHistoryQuestion>[];
@@ -3374,6 +3744,32 @@ class _ShortAnswerSeed {
   });
 }
 
+class _ShortAnswerKnowledgeSeed {
+  final String id;
+  final int difficulty;
+  final _QuizCategory category;
+  final String koClue;
+  final String enClue;
+  final List<String> acceptedAnswers;
+  final String koExplain;
+  final String enExplain;
+  final String koNextPoint;
+  final String enNextPoint;
+
+  const _ShortAnswerKnowledgeSeed({
+    required this.id,
+    required this.difficulty,
+    required this.category,
+    required this.koClue,
+    required this.enClue,
+    required this.acceptedAnswers,
+    required this.koExplain,
+    required this.enExplain,
+    required this.koNextPoint,
+    required this.enNextPoint,
+  });
+}
+
 List<_FootballQuizQuestion> _buildFootballQuizPool() {
   final oxFacts = _buildOxSeedPool300();
   final mcqSeeds = _buildMcqSeedPool300();
@@ -3451,6 +3847,7 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
   if (questions.length != 900) {
     throw StateError('Football quiz pool must contain exactly 900 questions.');
   }
+  _runQuizPoolQualityChecks(questions);
   return questions;
 }
 
@@ -3549,139 +3946,693 @@ List<_McqSeed> _buildMcqSeedPool300() {
 }
 
 List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
-  final keywords = <({
-    _QuizCategory category,
-    String koClue,
-    String enClue,
-    String koAnswer,
-    String enAnswer,
-  })>[
-    (
-      category: _QuizCategory.rules,
-      koClue: '손을 쓰지 못하는 기본 규칙의 이름',
-      enClue: 'Basic rule name that forbids hand use',
-      koAnswer: '핸들링',
-      enAnswer: 'handling',
-    ),
-    (
-      category: _QuizCategory.rules,
-      koClue: '상대 진영에서 위치를 보는 반칙',
-      enClue: 'Position-based offense in attacking half',
-      koAnswer: '오프사이드',
-      enAnswer: 'offside',
-    ),
-    (
-      category: _QuizCategory.tactics,
-      koClue: '공을 잃은 직후 바로 압박하는 전술',
-      enClue: 'Immediate press right after losing the ball',
-      koAnswer: '게겐프레싱',
-      enAnswer: 'gegenpressing',
-    ),
-    (
-      category: _QuizCategory.tactics,
-      koClue: '공격에서 수비로 바뀌는 순간',
-      enClue: 'Moment when attack turns into defense',
-      koAnswer: '전환',
-      enAnswer: 'transition',
-    ),
-    (
-      category: _QuizCategory.technique,
-      koClue: '공을 처음 받는 동작',
-      enClue: 'First touch when receiving the ball',
-      koAnswer: '퍼스트터치',
-      enAnswer: 'first touch',
-    ),
-    (
-      category: _QuizCategory.technique,
-      koClue: '주변을 먼저 보고 판단하는 기술',
-      enClue: 'Skill of checking surroundings before action',
-      koAnswer: '스캐닝',
-      enAnswer: 'scanning',
-    ),
-    (
-      category: _QuizCategory.positions,
-      koClue: '골대 앞 마지막 수비 포지션',
-      enClue: 'Final defending position in front of goal',
-      koAnswer: '골키퍼',
-      enAnswer: 'goalkeeper',
-    ),
-    (
-      category: _QuizCategory.positions,
-      koClue: '측면 수비수 포지션',
-      enClue: 'Wide defending position',
-      koAnswer: '풀백',
-      enAnswer: 'fullback',
-    ),
-    (
-      category: _QuizCategory.training,
-      koClue: '훈련 전 몸을 데우는 단계',
-      enClue: 'Body-prep step before training',
-      koAnswer: '워밍업',
-      enAnswer: 'warm-up',
-    ),
-    (
-      category: _QuizCategory.training,
-      koClue: '훈련 후 몸을 천천히 내리는 단계',
-      enClue: 'Step to gradually lower intensity after training',
-      koAnswer: '쿨다운',
-      enAnswer: 'cool-down',
-    ),
-    (
-      category: _QuizCategory.mindset,
-      koClue: '실수 후 바로 집중을 되찾는 태도',
-      enClue: 'Attitude to regain focus right after mistakes',
-      koAnswer: '리셋',
-      enAnswer: 'reset',
-    ),
-    (
-      category: _QuizCategory.nutrition,
-      koClue: '경기 전후 가장 기본 회복 요소',
-      enClue: 'Most basic recovery factor before/after match',
-      koAnswer: '수분',
-      enAnswer: 'hydration',
-    ),
+  final keywords = _shortAnswerKnowledgeSeeds();
+  final contextKo = [
+    '유스팀 훈련 메모',
+    '실전 코칭 포인트',
+    '비디오 미팅 포인트',
+    '경기 전 체크리스트',
+    '복습 테스트',
+    '포지션별 이해 확인',
+  ];
+  final contextEn = [
+    'academy training note',
+    'match coaching point',
+    'video review point',
+    'pre-match checklist',
+    'review test',
+    'position understanding check',
   ];
   final questionKoTemplates = [
-    '빈칸에 들어갈 단어를 쓰세요: "{clue}"',
-    '다음 설명에 맞는 용어를 입력하세요: "{clue}"',
-    '한 단어로 답하세요: "{clue}"',
-    '핵심 개념을 써보세요: "{clue}"',
-    '정답 단어를 입력하세요: "{clue}"',
+    '빈칸에 들어갈 단어를 쓰세요: "{clue}" ({context})',
+    '다음 설명에 맞는 용어를 입력하세요: "{clue}" ({context})',
+    '한 단어 또는 짧은 용어로 답하세요: "{clue}" ({context})',
+    '코치가 강조한 핵심 개념을 써보세요: "{clue}" ({context})',
+    '정답 용어를 입력하세요: "{clue}" ({context})',
   ];
   final questionEnTemplates = [
-    'Type the term that fits: "{clue}"',
-    'Enter the key word for: "{clue}"',
-    'Answer with one term: "{clue}"',
-    'Write the concept term: "{clue}"',
-    'Fill in the right word: "{clue}"',
+    'Type the term that fits: "{clue}" ({context})',
+    'Enter the key word for: "{clue}" ({context})',
+    'Answer with one term: "{clue}" ({context})',
+    'Write the concept term: "{clue}" ({context})',
+    'Fill in the right word: "{clue}" ({context})',
   ];
   final out = <_ShortAnswerSeed>[];
   for (var i = 0; i < 300; i++) {
     final key = keywords[i % keywords.length];
     final t = i % questionKoTemplates.length;
-    final koPrompt = questionKoTemplates[t].replaceAll('{clue}', key.koClue);
-    final enPrompt = questionEnTemplates[t].replaceAll('{clue}', key.enClue);
+    final koPrompt = questionKoTemplates[t]
+        .replaceAll('{clue}', key.koClue)
+        .replaceAll('{context}', contextKo[i % contextKo.length]);
+    final enPrompt = questionEnTemplates[t]
+        .replaceAll('{clue}', key.enClue)
+        .replaceAll('{context}', contextEn[i % contextEn.length]);
     out.add(
       _ShortAnswerSeed(
         id: 'short_$i',
-        difficulty: (i % 3) + 1,
+        difficulty: key.difficulty,
         category: key.category,
         koPrompt: koPrompt,
         enPrompt: enPrompt,
-        acceptedAnswers: [
-          key.koAnswer,
-          key.enAnswer,
-          key.koAnswer.replaceAll(' ', ''),
-          key.enAnswer.replaceAll(' ', ''),
-        ],
-        koExplain: '정답은 "${key.koAnswer}"입니다.',
-        enExplain: 'The answer is "${key.enAnswer}".',
-        koNextPoint: '용어를 알고 실제 장면에서 바로 연결해 보세요.',
-        enNextPoint: 'Know the term, then connect it to real situations.',
+        acceptedAnswers: key.acceptedAnswers,
+        koExplain: key.koExplain,
+        enExplain: key.enExplain,
+        koNextPoint: key.koNextPoint,
+        enNextPoint: key.enNextPoint,
       ),
     );
   }
   return out;
+}
+
+void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
+  final styleCounts = <_QuestionStyle, int>{};
+  final categoryCounts = <_QuizCategory, int>{};
+  for (final question in questions) {
+    if (question.style == _QuestionStyle.shortAnswer &&
+        !_answerMatchesQuestion(
+          question,
+          question.acceptedAnswers.isEmpty
+              ? ''
+              : question.acceptedAnswers.first,
+        )) {
+      throw StateError('Short-answer validation failed for ${question.id}.');
+    }
+    if (question.style != _QuestionStyle.shortAnswer &&
+        (question.correctIndex < 0 ||
+            question.correctIndex >= question.options.length)) {
+      throw StateError('Choice answer index is invalid for ${question.id}.');
+    }
+    styleCounts[question.style] = (styleCounts[question.style] ?? 0) + 1;
+    categoryCounts[question.category] =
+        (categoryCounts[question.category] ?? 0) + 1;
+  }
+
+  for (final style in _QuestionStyle.values) {
+    if (styleCounts[style] != 300) {
+      throw StateError('Each style must contain 300 questions.');
+    }
+  }
+
+  final coreFocusCount =
+      questions.where((question) => question.category.isCoreFocus).length;
+  if (coreFocusCount < 350) {
+    throw StateError('Technique and tactics should dominate the quiz bank.');
+  }
+
+  for (final category in _QuizCategory.values) {
+    if ((categoryCounts[category] ?? 0) < 24) {
+      throw StateError('Category ${category.name} has too few questions.');
+    }
+  }
+
+  final selfChecks = <({String prefix, String answer})>[
+    (prefix: 'ox_offside_own_half_', answer: 'O'),
+    (prefix: 'mcq_support_angle_best_', answer: '옆이나 대각 뒤의 패스 각도'),
+    (prefix: 'sa_short_0', answer: '게겐프레싱'),
+    (prefix: 'sa_short_1', answer: '하프스페이스'),
+  ];
+  for (final item in selfChecks) {
+    final question = questions.cast<_FootballQuizQuestion?>().firstWhere(
+          (candidate) =>
+              candidate != null && candidate.id.startsWith(item.prefix),
+          orElse: () => null,
+        );
+    if (question == null || !_answerMatchesQuestion(question, item.answer)) {
+      throw StateError('Quiz self-check failed for ${item.prefix}.');
+    }
+  }
+}
+
+bool _answerMatchesQuestion(_FootballQuizQuestion question, String answer) {
+  final normalized = answer.trim().toLowerCase().replaceAll(' ', '');
+  if (question.style == _QuestionStyle.shortAnswer) {
+    return question.acceptedAnswers.any(
+      (candidate) =>
+          candidate.trim().toLowerCase().replaceAll(' ', '') == normalized,
+    );
+  }
+  if (question.correctIndex < 0 ||
+      question.correctIndex >= question.options.length) {
+    return false;
+  }
+  final correct = question.options[question.correctIndex]
+      .text(true)
+      .trim()
+      .toLowerCase()
+      .replaceAll(' ', '');
+  return correct == normalized;
+}
+
+Map<String, _FootballQuizQuestion> _legacyQuestionAliases(
+  _FootballQuizQuestion question,
+) {
+  if (question.style == _QuestionStyle.ox) {
+    final truthSuffix = question.correctIndex == 0 ? 't' : 'f';
+    return {'${question.id}_${question.correctIndex}_$truthSuffix': question};
+  }
+  return const <String, _FootballQuizQuestion>{};
+}
+
+List<_ShortAnswerKnowledgeSeed> _shortAnswerKnowledgeSeeds() {
+  return const [
+    _ShortAnswerKnowledgeSeed(
+      id: 'counterpress',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '공을 잃은 직후 가장 가까운 선수가 즉시 압박해 역습 속도를 늦추는 전술',
+      enClue:
+          'Tactic of pressing immediately after losing the ball to slow the counterattack',
+      acceptedAnswers: ['게겐프레싱', 'gegenpressing', '카운터프레싱', 'counterpressing'],
+      koExplain: '정답은 "게겐프레싱"입니다. 공을 잃은 직후의 즉시 압박으로 상대의 첫 전진 선택을 늦춥니다.',
+      enExplain:
+          'The answer is "gegenpressing." It delays the opponent’s first forward action right after possession is lost.',
+      koNextPoint: '전환 순간 첫 2초를 따로 의식하며 훈련하세요.',
+      enNextPoint:
+          'Train the first two seconds of transition as a separate moment.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'half_space',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '중앙과 측면 사이의 세로 공간 이름',
+      enClue: 'Name of the vertical lane between the center and the flank',
+      acceptedAnswers: ['하프스페이스', 'halfspace', 'half-space'],
+      koExplain: '정답은 "하프스페이스"입니다. 패스각과 슈팅각이 함께 열리기 쉬운 중요 공간입니다.',
+      enExplain:
+          'The answer is "half-space." It is a valuable lane where passing and shooting angles often open together.',
+      koNextPoint: '폭과 깊이, 하프스페이스 점유를 함께 보세요.',
+      enNextPoint: 'Read width, depth, and half-space occupation together.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'support_angle',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koClue: '볼 소유자 옆이나 대각 뒤에서 안전한 패스 길을 만들어 주는 기본 원리',
+      enClue:
+          'Basic principle of offering a safe passing lane beside or diagonally behind the ball carrier',
+      acceptedAnswers: ['지원각', '지원 각도', 'support angle', 'support angles'],
+      koExplain: '정답은 "지원 각도"입니다. 공과 수비 사이에 패스길을 만들며 다음 연결을 돕습니다.',
+      enExplain:
+          'The answer is "support angle." It creates a passing lane between the ball and the defenders.',
+      koNextPoint: '지원은 거리와 각도를 묶어서 보세요.',
+      enNextPoint: 'Read support as a combination of distance and angle.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'switch_play',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '상대가 한쪽에 몰렸을 때 반대편으로 공을 옮겨 공간을 여는 플레이',
+      enClue:
+          'Play that moves the ball to the far side when the opponent overloads one side',
+      acceptedAnswers: ['전환', 'switch', 'switch of play', 'switchplay'],
+      koExplain: '정답은 "전환"입니다. 수비 이동을 크게 만들어 반대 공간을 공격합니다.',
+      enExplain:
+          'The answer is "switch of play." It stretches defensive movement and attacks the far-side space.',
+      koNextPoint: '전환 전에는 반대편 공간과 수비 숫자를 먼저 확인하세요.',
+      enNextPoint:
+          'Before switching, check the far-side space and defensive numbers.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'compactness',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '수비 라인과 선수 사이 간격을 가깝게 유지해 중앙을 보호하는 원리',
+      enClue:
+          'Principle of keeping defensive distances tight to protect the center',
+      acceptedAnswers: ['컴팩트', '컴팩트함', 'compactness', 'compact'],
+      koExplain: '정답은 "컴팩트함"입니다. 간격이 벌어지면 중앙과 하프스페이스가 쉽게 열립니다.',
+      enExplain:
+          'The answer is "compactness." If distances stretch too much, central and half-space gaps open easily.',
+      koNextPoint: '라인 간격과 선수 간격을 따로 체크하세요.',
+      enNextPoint: 'Check line spacing and player spacing separately.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'third_man',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '패스한 선수와 받는 선수 외에 세 번째 선수가 연결해 전진하는 개념',
+      enClue:
+          'Concept where a third player joins the passing action to progress the attack',
+      acceptedAnswers: ['서드맨', 'third man', 'thirdman', 'third-man'],
+      koExplain: '정답은 "서드맨"입니다. 압박을 우회하며 전진 패턴을 만들기 좋습니다.',
+      enExplain:
+          'The answer is "third man." It helps bypass pressure and create progression patterns.',
+      koNextPoint: '세 번째 움직임은 첫 패스가 나가기 전부터 준비하세요.',
+      enNextPoint:
+          'Prepare the third-man movement before the first pass is made.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'overlap',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koClue: '바깥쪽 선수가 앞질러 측면 숫자 우위를 만드는 움직임',
+      enClue:
+          'Movement where the outside player runs beyond to create a wide overload',
+      acceptedAnswers: ['오버래핑', 'overlap', 'overlapping'],
+      koExplain: '정답은 "오버래핑"입니다. 측면에서 패스길과 크로스각을 함께 열 수 있습니다.',
+      enExplain:
+          'The answer is "overlap." It can open both a passing lane and a crossing angle on the flank.',
+      koNextPoint: '오버래핑은 타이밍이 전부입니다.',
+      enNextPoint: 'With overlaps, timing is everything.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'underlap',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '바깥이 아니라 안쪽 통로로 파고드는 지원 움직임',
+      enClue: 'Support run that attacks the inside lane instead of the outside',
+      acceptedAnswers: ['언더래핑', 'underlap', 'underlapping'],
+      koExplain: '정답은 "언더래핑"입니다. 안쪽 채널을 공략하며 수비 시선을 흔듭니다.',
+      enExplain:
+          'The answer is "underlap." It attacks the inside lane and shifts defensive attention.',
+      koNextPoint: '언더래핑은 윙어의 폭 유지와 같이 봐야 합니다.',
+      enNextPoint: 'Underlaps work best when the winger still holds width.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'rest_defense',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '공격 중에도 역습 대비를 위해 뒤에 남겨 두는 수비 구조',
+      enClue:
+          'Defensive structure left in place during attack to guard against counters',
+      acceptedAnswers: ['레스트 디펜스', 'rest defense', 'restdefense'],
+      koExplain: '정답은 "레스트 디펜스"입니다. 공격 중에도 전환 수비를 준비하는 개념입니다.',
+      enExplain:
+          'The answer is "rest defense." It is the structure that protects the team during attacking phases.',
+      koNextPoint: '공격 숫자만 보지 말고 남는 커버 숫자도 확인하세요.',
+      enNextPoint:
+          'Do not count only attackers; count the covering defenders too.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'blind_side',
+      difficulty: 2,
+      category: _QuizCategory.tactics,
+      koClue: '수비수의 시야 뒤쪽에서 움직여 마크를 벗어나는 쪽',
+      enClue:
+          'Side behind a defender’s vision that attackers use to escape marking',
+      acceptedAnswers: ['블라인드사이드', 'blind side', 'blindside'],
+      koExplain: '정답은 "블라인드사이드"입니다. 수비수 시선 밖에서 움직이면 반응이 늦어집니다.',
+      enExplain:
+          'The answer is "blind side." Moving outside the defender’s vision often delays their reaction.',
+      koNextPoint: '패스 타이밍은 움직임보다 반 박자 빠르게 준비하세요.',
+      enNextPoint: 'Prepare the pass timing half a beat ahead of the run.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'pressing_trigger',
+      difficulty: 3,
+      category: _QuizCategory.tactics,
+      koClue: '상대의 불편한 터치나 떠 있는 패스를 보고 압박 시작을 맞추는 기준',
+      enClue:
+          'Cue used to start pressing after a poor touch or a bouncing pass',
+      acceptedAnswers: ['압박 트리거', 'pressing trigger', 'trigger'],
+      koExplain: '정답은 "압박 트리거"입니다. 모두가 같은 신호를 봐야 압박이 동시에 걸립니다.',
+      enExplain:
+          'The answer is "pressing trigger." Everyone must read the same cue to press together.',
+      koNextPoint: '팀 공통 신호를 짧은 단어로 정해 두세요.',
+      enNextPoint: 'Agree on short shared trigger words as a team.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'transition',
+      difficulty: 1,
+      category: _QuizCategory.tactics,
+      koClue: '공격과 수비 역할이 바뀌는 순간 전체를 가리키는 말',
+      enClue:
+          'General term for the moment when attack and defense roles switch',
+      acceptedAnswers: ['전환', 'transition', '트랜지션'],
+      koExplain: '정답은 "전환"입니다. 좋은 팀은 전환 속도에서 차이를 만듭니다.',
+      enExplain:
+          'The answer is "transition." Strong teams often separate themselves through transition speed.',
+      koNextPoint: '공을 따낸 뒤 첫 패스와 공을 잃은 뒤 첫 압박을 묶어서 훈련하세요.',
+      enNextPoint:
+          'Train the first pass after winning it together with the first pressure after losing it.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'first_touch',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koClue: '공을 처음 받는 순간의 터치 기술 이름',
+      enClue:
+          'Name of the touch used when receiving the ball for the first time',
+      acceptedAnswers: ['퍼스트터치', '퍼스트 터치', 'first touch', 'firsttouch'],
+      koExplain: '정답은 "퍼스트 터치"입니다. 다음 행동의 질을 가장 크게 바꾸는 기술 중 하나입니다.',
+      enExplain:
+          'The answer is "first touch." It is one of the biggest factors shaping the next action.',
+      koNextPoint: '첫 터치의 방향까지 함께 의도하세요.',
+      enNextPoint: 'Plan not only the touch but also its direction.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'scanning',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koClue: '받기 전에 주변 정보를 미리 확인하는 기술',
+      enClue: 'Skill of checking the surroundings before receiving',
+      acceptedAnswers: ['스캐닝', 'scanning', 'scan'],
+      koExplain: '정답은 "스캐닝"입니다. 보기 전에 받지 않는 습관이 판단 속도를 바꿉니다.',
+      enExplain:
+          'The answer is "scanning." Seeing before receiving changes the speed of decision-making.',
+      koNextPoint: '받기 전, 받는 순간, 받은 직후를 연속으로 보세요.',
+      enNextPoint: 'Scan before, during, and right after receiving.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'open_body',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koClue: '전방과 측면을 함께 보기 위해 반쯤 열어 두는 받는 자세',
+      enClue: 'Receiving shape kept half open to see both forward and sideways',
+      acceptedAnswers: ['오픈바디', '열린 자세', 'open body', 'open body shape'],
+      koExplain: '정답은 "오픈 바디"입니다. 시야와 방향 전환 속도를 함께 확보합니다.',
+      enExplain:
+          'The answer is "open body shape." It supports both vision and turning speed.',
+      koNextPoint: '첫 터치와 몸 방향을 따로 생각하지 마세요.',
+      enNextPoint: 'Do not separate body shape from the first touch.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'shielding',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koClue: '압박이 올 때 몸으로 공과 상대 사이를 가로막는 기술',
+      enClue:
+          'Technique of placing the body between the defender and the ball under pressure',
+      acceptedAnswers: ['볼 보호', 'shielding', 'ball shielding', 'shield'],
+      koExplain: '정답은 "볼 보호"입니다. 시간을 벌고 파울도 유도할 수 있습니다.',
+      enExplain:
+          'The answer is "shielding." It buys time and can also draw fouls.',
+      koNextPoint: '보호 후 연결 패스나 턴까지 이어서 연습하세요.',
+      enNextPoint: 'Train the next pass or turn right after the shield.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'inside_pass',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koClue: '가장 안정적으로 방향과 세기를 조절하기 좋은 발 부위 패스',
+      enClue:
+          'Pass struck with the most stable foot surface for direction and weight',
+      acceptedAnswers: ['인사이드 패스', '인사이드', 'inside pass'],
+      koExplain: '정답은 "인사이드 패스"입니다. 정확한 연결의 기본이 됩니다.',
+      enExplain:
+          'The answer is "inside pass." It is the technical base for accurate combinations.',
+      koNextPoint: '서포트 발 방향과 끝 동작까지 같이 보세요.',
+      enNextPoint:
+          'Check the plant foot direction and follow-through together.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'instep_shot',
+      difficulty: 1,
+      category: _QuizCategory.technique,
+      koClue: '강한 슈팅에서 흔히 쓰는 발등 타격 기술',
+      enClue: 'Common striking technique with the laces for powerful shooting',
+      acceptedAnswers: ['인스텝', '인스텝 슈팅', 'instep', 'laces shot'],
+      koExplain: '정답은 "인스텝"입니다. 발등 중심 타격으로 큰 힘을 전달합니다.',
+      enExplain:
+          'The answer is "instep." It uses the laces area to generate power.',
+      koNextPoint: '상체 고정과 발목 고정을 함께 확인하세요.',
+      enNextPoint: 'Check both upper-body control and ankle lock.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'check_shoulder',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koClue: '뒤쪽 압박과 공간을 보기 위해 어깨 너머로 확인하는 행동',
+      enClue:
+          'Action of looking over the shoulder to read pressure and space behind',
+      acceptedAnswers: ['어깨 체크', '숄더 체크', 'shoulder check', 'check shoulder'],
+      koExplain: '정답은 "숄더 체크"입니다. 몸을 돌리기 전 필요한 정보를 먼저 얻습니다.',
+      enExplain:
+          'The answer is "shoulder check." It gives the player information before turning.',
+      koNextPoint: '패스가 오기 직전 마지막 확인 타이밍을 익히세요.',
+      enNextPoint: 'Train the final scan just before the pass arrives.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'receiving_line',
+      difficulty: 2,
+      category: _QuizCategory.technique,
+      koClue: '패스를 받기 전에 상대 마크 사이에서 몸을 열고 서는 위치선',
+      enClue:
+          'Receiving line taken between markers with the body opened before the pass',
+      acceptedAnswers: ['받는 선', '수신선', 'receiving line'],
+      koExplain: '정답은 "받는 선"입니다. 좋은 위치선이 첫 터치 부담을 줄입니다.',
+      enExplain:
+          'The answer is "receiving line." Good positioning reduces the pressure on the first touch.',
+      koNextPoint: '패스 전에 한 발 먼저 각도를 만들어 두세요.',
+      enNextPoint: 'Make the angle one step before the pass is played.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'offside',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koClue: '공이 나가는 순간 상대 두 번째 수비수보다 앞선 위치에서 공격에 관여해 생기는 반칙',
+      enClue:
+          'Offense for becoming involved from beyond the second-last defender at the kick moment',
+      acceptedAnswers: ['오프사이드', 'offside'],
+      koExplain: '정답은 "오프사이드"입니다. 위치와 공이 나가는 순간을 함께 봐야 합니다.',
+      enExplain:
+          'The answer is "offside." It depends on both position and the moment the ball is played.',
+      koNextPoint: '출발 타이밍과 마지막 수비수 기준을 묶어서 익히세요.',
+      enNextPoint: 'Link the run timing with the reference line of defenders.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'handling',
+      difficulty: 1,
+      category: _QuizCategory.rules,
+      koClue: '필드 플레이어가 고의로 손이나 팔로 공을 다뤄 생기는 반칙',
+      enClue:
+          'Foul that occurs when a field player deliberately handles the ball with the hand or arm',
+      acceptedAnswers: ['핸들링', 'handling', 'handball'],
+      koExplain: '정답은 "핸들링"입니다. 손 사용은 축구 기본 규칙의 핵심 금지 사항입니다.',
+      enExplain:
+          'The answer is "handling." Restricting hand use is one of football’s basic laws.',
+      koNextPoint: '의도성과 팔 위치를 함께 설명할 수 있어야 합니다.',
+      enNextPoint: 'Be able to explain intent together with arm position.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'goalkeeper',
+      difficulty: 1,
+      category: _QuizCategory.positions,
+      koClue: '골문 앞에서 손을 쓸 수 있고 뒤에서 수비를 지휘하는 포지션',
+      enClue:
+          'Position that can use the hands in the penalty area and organizes the defense from behind',
+      acceptedAnswers: ['골키퍼', 'goalkeeper', 'keeper'],
+      koExplain: '정답은 "골키퍼"입니다. 세이브뿐 아니라 소통도 큰 역할입니다.',
+      enExplain:
+          'The answer is "goalkeeper." Communication matters as much as shot-stopping.',
+      koNextPoint: '세이브 기술과 라인 컨트롤을 함께 보세요.',
+      enNextPoint: 'Study shot-stopping together with line control.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'fullback',
+      difficulty: 1,
+      category: _QuizCategory.positions,
+      koClue: '측면 수비를 맡으면서 오버래핑도 자주 수행하는 포지션',
+      enClue: 'Position that defends wide areas and often overlaps in attack',
+      acceptedAnswers: ['풀백', 'fullback'],
+      koExplain: '정답은 "풀백"입니다. 현대 축구에서 공격 가담 비중도 큽니다.',
+      enExplain:
+          'The answer is "fullback." In modern football the role also contributes heavily to attack.',
+      koNextPoint: '오버래핑 타이밍과 전환 복귀를 함께 훈련하세요.',
+      enNextPoint: 'Train overlap timing together with recovery runs.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'six',
+      difficulty: 2,
+      category: _QuizCategory.positions,
+      koClue: '수비 앞에서 볼 배급과 균형을 맡는 미드필더 역할을 번호로 부르는 표현',
+      enClue:
+          'Number-based name for the midfielder who protects the defense and distributes the ball',
+      acceptedAnswers: ['6번', '6', 'number 6', 'six'],
+      koExplain: '정답은 "6번"입니다. 수비 앞 균형과 빌드업 시작을 맡는 경우가 많습니다.',
+      enExplain:
+          'The answer is "number 6." This role often anchors the build-up and protects the defense.',
+      koNextPoint: '6번은 항상 정지해 있지 않고 각도를 계속 조정합니다.',
+      enNextPoint:
+          'A number 6 keeps adjusting angles instead of standing still.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'warmup',
+      difficulty: 1,
+      category: _QuizCategory.training,
+      koClue: '훈련이나 경기 전에 몸과 신경계를 준비시키는 단계',
+      enClue:
+          'Phase before training or the match that prepares the body and nervous system',
+      acceptedAnswers: ['워밍업', 'warm-up', 'warmup'],
+      koExplain: '정답은 "워밍업"입니다. 체온과 관절, 반응 속도를 함께 끌어올립니다.',
+      enExplain:
+          'The answer is "warm-up." It prepares temperature, joints, and reaction speed together.',
+      koNextPoint: '경기 요구 속도에 맞는 워밍업 구성을 생각하세요.',
+      enNextPoint: 'Build the warm-up around the real match demands.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'cooldown',
+      difficulty: 1,
+      category: _QuizCategory.training,
+      koClue: '훈련 후 강도를 천천히 낮추며 회복으로 넘어가는 단계',
+      enClue:
+          'Phase after training where intensity is lowered gradually to move into recovery',
+      acceptedAnswers: ['쿨다운', 'cool-down', 'cooldown'],
+      koExplain: '정답은 "쿨다운"입니다. 회복 루틴으로 넘어가는 연결 단계입니다.',
+      enExplain:
+          'The answer is "cool-down." It bridges hard work and recovery.',
+      koNextPoint: '쿨다운 뒤에는 수분과 영양, 수면까지 연결하세요.',
+      enNextPoint: 'Connect the cool-down to hydration, nutrition, and sleep.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'rondo',
+      difficulty: 2,
+      category: _QuizCategory.training,
+      koClue: '좁은 공간에서 패스와 압박을 동시에 익히는 대표 훈련',
+      enClue:
+          'Classic drill that trains passing and pressure together in a tight space',
+      acceptedAnswers: ['론도', 'rondo'],
+      koExplain: '정답은 "론도"입니다. 판단 속도와 패스 품질을 짧은 반복으로 끌어올립니다.',
+      enExplain:
+          'The answer is "rondo." It sharpens decision speed and passing quality through short repetitions.',
+      koNextPoint: '론도에서는 패스보다 스캐닝과 자세도 함께 보세요.',
+      enNextPoint:
+          'In rondos, watch scanning and body shape along with the pass.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'reset',
+      difficulty: 1,
+      category: _QuizCategory.mindset,
+      koClue: '실수 후 감정을 길게 끌지 않고 다음 플레이에 바로 복귀하는 태도',
+      enClue:
+          'Attitude of moving on quickly after mistakes and returning to the next play',
+      acceptedAnswers: ['리셋', 'reset'],
+      koExplain: '정답은 "리셋"입니다. 다음 장면 손실을 최소화하는 정신 기술입니다.',
+      enExplain:
+          'The answer is "reset." It is a mental skill that reduces damage in the next action.',
+      koNextPoint: '자신만의 짧은 리셋 문장을 정해 두세요.',
+      enNextPoint: 'Prepare a short personal reset phrase.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'hydration',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koClue: '훈련 전중후 지속적으로 관리해야 하는 가장 기본 회복 요소',
+      enClue:
+          'Most basic recovery element to manage before, during, and after training',
+      acceptedAnswers: ['수분', '수분 보충', 'hydration', 'water'],
+      koExplain: '정답은 "수분"입니다. 탈수는 집중력과 움직임 품질을 모두 낮춥니다.',
+      enExplain:
+          'The answer is "hydration." Dehydration lowers both concentration and movement quality.',
+      koNextPoint: '갈증이 오기 전에 마시는 루틴을 만드세요.',
+      enNextPoint: 'Build a routine that starts before strong thirst appears.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'sleep',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koClue: '회복과 학습 정리에 가장 강하게 연결되는 생활 습관',
+      enClue:
+          'Lifestyle habit most strongly linked to recovery and learning consolidation',
+      acceptedAnswers: ['수면', 'sleep'],
+      koExplain: '정답은 "수면"입니다. 회복과 판단력 유지에 모두 중요합니다.',
+      enExplain:
+          'The answer is "sleep." It is central to both recovery and decision quality.',
+      koNextPoint: '취침 시간을 훈련 계획의 일부로 기록하세요.',
+      enNextPoint: 'Record sleep timing as part of the training plan.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'carbohydrate',
+      difficulty: 1,
+      category: _QuizCategory.nutrition,
+      koClue: '고강도 운동 후 글리코겐 회복과 가장 직접적으로 연결되는 영양소',
+      enClue:
+          'Nutrient most directly linked to glycogen restoration after hard exercise',
+      acceptedAnswers: ['탄수화물', 'carbohydrate', 'carbohydrates', 'carbs'],
+      koExplain: '정답은 "탄수화물"입니다. 에너지 저장량 회복에 핵심 역할을 합니다.',
+      enExplain:
+          'The answer is "carbohydrates." They play a key role in restoring energy stores.',
+      koNextPoint: '회복 영양은 타이밍과 양을 함께 관리하세요.',
+      enNextPoint: 'Manage recovery nutrition through both timing and amount.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'world_cup_cycle',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koClue: 'FIFA 월드컵이 보통 열리는 주기. 숫자와 단위를 함께 쓰세요',
+      enClue:
+          'Typical cycle of the FIFA World Cup. Answer with the number and unit',
+      acceptedAnswers: ['4년', '4 년', 'four years', '4years', '4 years'],
+      koExplain: '정답은 "4년"입니다. 월드컵은 대표팀 축구의 가장 상징적인 주기 대회입니다.',
+      enExplain:
+          'The answer is "4 years." The World Cup is the signature cyclical tournament of national-team football.',
+      koNextPoint: '대회 지식은 경기 주기와 역사까지 같이 익히세요.',
+      enNextPoint:
+          'Study competition facts together with their historical rhythm.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'champions_league',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koClue: '유럽 클럽 최상위 대항전의 대표 약칭 UCL이 가리키는 대회 이름',
+      enClue:
+          'Competition referred to by the abbreviation UCL, the top European club tournament',
+      acceptedAnswers: ['챔피언스리그', 'uefa champions league', 'champions league'],
+      koExplain: '정답은 "챔피언스리그"입니다. 유럽 최상위 클럽 대항전으로 알려져 있습니다.',
+      enExplain:
+          'The answer is "Champions League." It is the best-known top-tier European club competition.',
+      koNextPoint: '리그와 컵, 국제 대회를 구분해서 이해하세요.',
+      enNextPoint:
+          'Separate leagues, cups, and international competitions in your understanding.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'premier_league',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koClue: '맨체스터 시티, 리버풀, 아스널이 속한 잉글랜드 대표 1부 리그 이름',
+      enClue:
+          'Name of the top English league featuring Manchester City, Liverpool, and Arsenal',
+      acceptedAnswers: ['프리미어리그', 'premier league', 'epl'],
+      koExplain: '정답은 "프리미어리그"입니다. 세계적으로 가장 널리 알려진 리그 중 하나입니다.',
+      enExplain:
+          'The answer is "Premier League." It is one of the most widely followed leagues in the world.',
+      koNextPoint: '리그 이름은 대표 팀과 함께 연결해 기억하세요.',
+      enNextPoint: 'Connect league names with representative clubs.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'la_liga',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koClue: '레알 마드리드와 바르셀로나가 속한 스페인 1부 리그 이름',
+      enClue:
+          'Name of the Spanish top division featuring Real Madrid and Barcelona',
+      acceptedAnswers: ['라리가', 'la liga', 'laliga'],
+      koExplain: '정답은 "라리가"입니다. 기술 중심 축구 이미지로 잘 알려진 리그입니다.',
+      enExplain:
+          'The answer is "La Liga." It is widely known for its technical football identity.',
+      koNextPoint: '팀 이름과 리그 이름을 세트로 기억하세요.',
+      enNextPoint: 'Memorize clubs together with their league.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'messi',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koClue: '드리블과 왼발 플레이메이킹으로 상징되는 아르헨티나의 유명 선수 성',
+      enClue:
+          'Surname of the famous Argentine player known for dribbling and left-footed playmaking',
+      acceptedAnswers: ['메시', 'messi'],
+      koExplain: '정답은 "메시"입니다. 축구 퀴즈에서 가장 자주 등장하는 상징적 선수 중 하나입니다.',
+      enExplain:
+          'The answer is "Messi." He is one of the most recognizable players in football quiz culture.',
+      koNextPoint: '선수 이름은 대표 특징과 함께 기억하세요.',
+      enNextPoint: 'Remember player names together with signature traits.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'modric',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koClue: '경기 템포 조절과 외발 인사이드/아웃사이드 패스로 유명한 크로아티아 미드필더 성',
+      enClue:
+          'Surname of the Croatian midfielder famous for controlling tempo and passing variety',
+      acceptedAnswers: ['모드리치', 'modric'],
+      koExplain: '정답은 "모드리치"입니다. 리듬 조절과 방향 전환의 대표적 예시로 자주 거론됩니다.',
+      enExplain:
+          'The answer is "Modric." He is often used as an example of tempo control and directional play.',
+      koNextPoint: '선수 상식도 플레이 특징과 연결해 이해하세요.',
+      enNextPoint: 'Understand player trivia through their playing traits.',
+    ),
+  ];
 }
 
 List<_OxFactSeed> _oxFacts() {
