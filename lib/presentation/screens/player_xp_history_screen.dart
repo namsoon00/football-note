@@ -27,7 +27,9 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final history = _levelService.loadXpHistory();
+    final history = _levelService.loadXpHistory()
+      ..sort((a, b) => b.awardedAt.compareTo(a.awardedAt));
+    final groupedHistory = _groupByDay(history);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,7 +57,7 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                 )
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  itemCount: history.length,
+                  itemCount: groupedHistory.length + 1,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     if (index == 0) {
@@ -66,21 +68,15 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                             count: history.length,
                             latest: history.first,
                           ),
-                          const SizedBox(height: 12),
-                          _XpHistoryCard(
-                            item: history[index],
-                            isKo: isKo,
-                            onDelete: () =>
-                                _deleteHistoryItem(history[index], isKo),
-                          ),
                         ],
                       );
                     }
-                    final item = history[index];
-                    return _XpHistoryCard(
-                      item: item,
+                    final section = groupedHistory[index - 1];
+                    return _XpHistoryDaySection(
                       isKo: isKo,
-                      onDelete: () => _deleteHistoryItem(item, isKo),
+                      day: section.day,
+                      items: section.items,
+                      onDelete: (item) => _deleteHistoryItem(item, isKo),
                     );
                   },
                 ),
@@ -128,6 +124,25 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
       text: isKo ? '경험치 메세지를 모두 삭제했어요.' : 'All XP messages deleted.',
     );
   }
+
+  List<_XpHistoryDaySectionData> _groupByDay(
+    List<PlayerXpHistoryEntry> history,
+  ) {
+    final sections = <_XpHistoryDaySectionData>[];
+    for (final item in history) {
+      final day = DateTime(
+        item.awardedAt.year,
+        item.awardedAt.month,
+        item.awardedAt.day,
+      );
+      if (sections.isNotEmpty && sections.last.day == day) {
+        sections.last.items.add(item);
+        continue;
+      }
+      sections.add(_XpHistoryDaySectionData(day: day, items: [item]));
+    }
+    return sections;
+  }
 }
 
 class _XpHistorySummaryCard extends StatelessWidget {
@@ -172,12 +187,205 @@ class _XpHistorySummaryCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             isKo
-                ? '가장 최근 기록은 ${_XpHistoryCard._title(latest, isKo)} 입니다.'
-                : 'Latest entry: ${_XpHistoryCard._title(latest, isKo)}.',
+                ? '아래에서 날짜와 시간 순서대로 바로 내려가며 확인할 수 있어요. 최근 기록은 ${_XpHistoryCard._title(latest, isKo)} 입니다.'
+                : 'Below, entries are arranged in date and time order. Latest entry: ${_XpHistoryCard._title(latest, isKo)}.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
+    );
+  }
+}
+
+class _XpHistoryDaySection extends StatelessWidget {
+  final bool isKo;
+  final DateTime day;
+  final List<PlayerXpHistoryEntry> items;
+  final ValueChanged<PlayerXpHistoryEntry> onDelete;
+
+  const _XpHistoryDaySection({
+    required this.isKo,
+    required this.day,
+    required this.items,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _dayLabel(day, isKo),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isKo ? '${items.length}개의 경험치 변동' : '${items.length} XP events',
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 14),
+          for (var index = 0; index < items.length; index++) ...[
+            _XpHistoryTimelineRow(
+              item: items[index],
+              isKo: isKo,
+              showConnector: index != items.length - 1,
+              onDelete: () => onDelete(items[index]),
+            ),
+            if (index != items.length - 1) const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static String _dayLabel(DateTime value, bool isKo) {
+    return isKo
+        ? DateFormat('M월 d일 EEEE', 'ko').format(value)
+        : DateFormat('EEE, MMM d').format(value);
+  }
+}
+
+class _XpHistoryTimelineRow extends StatelessWidget {
+  final PlayerXpHistoryEntry item;
+  final bool isKo;
+  final bool showConnector;
+  final VoidCallback onDelete;
+
+  const _XpHistoryTimelineRow({
+    required this.item,
+    required this.isKo,
+    required this.showConnector,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final positive = item.deltaXp >= 0;
+    final accent = positive
+        ? theme.colorScheme.primary
+        : theme.colorScheme.error;
+    final deltaText = positive ? '+${item.deltaXp} XP' : '${item.deltaXp} XP';
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 54,
+          child: Column(
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: accent,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              if (showConnector)
+                Container(
+                  width: 2,
+                  height: 88,
+                  margin: const EdgeInsets.only(top: 4),
+                  color: theme.colorScheme.outlineVariant,
+                ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _XpHistoryCard._title(item, isKo),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _XpHistoryCard._timestamp(item.awardedAt, isKo),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      deltaText,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: isKo ? '메세지 삭제' : 'Delete message',
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _HistoryPill(
+                      label: isKo
+                          ? '누적 ${item.totalXp} XP'
+                          : '${item.totalXp} XP total',
+                    ),
+                    _HistoryPill(
+                      label: item.leveledUp
+                          ? 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}'
+                          : (isKo
+                                ? 'Lv.${item.afterLevel} 유지'
+                                : 'Stayed at Lv.${item.afterLevel}'),
+                    ),
+                  ],
+                ),
+                if (item.reasons.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final reason in item.reasons)
+                        _HistoryReasonChip(
+                          label: _XpHistoryCard._reasonLabel(reason, isKo),
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -349,6 +557,13 @@ class _XpHistoryCard extends StatelessWidget {
         return reason;
     }
   }
+}
+
+class _XpHistoryDaySectionData {
+  final DateTime day;
+  final List<PlayerXpHistoryEntry> items;
+
+  const _XpHistoryDaySectionData({required this.day, required this.items});
 }
 
 class _HistoryPill extends StatelessWidget {

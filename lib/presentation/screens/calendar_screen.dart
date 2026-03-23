@@ -391,12 +391,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   calendarBuilders: CalendarBuilders(
                                     defaultBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
+                                      final dayEntries =
+                                          entryMap[key] ??
+                                          const <TrainingEntry>[];
                                       return _CalendarStatusDayCell(
                                         dayNumber: day.day,
-                                        hasMatch: _hasMatchForDay(
-                                          entryMap[key] ??
-                                              const <TrainingEntry>[],
+                                        hasTraining: _hasTrainingForDay(
+                                          dayEntries,
                                         ),
+                                        hasMatch: _hasMatchForDay(dayEntries),
                                         hasPlan:
                                             (planMap[key] ??
                                                     const <_TrainingPlan>[])
@@ -412,12 +415,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     todayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
+                                      final dayEntries =
+                                          entryMap[key] ??
+                                          const <TrainingEntry>[];
                                       return _CalendarStatusDayCell(
                                         dayNumber: day.day,
-                                        hasMatch: _hasMatchForDay(
-                                          entryMap[key] ??
-                                              const <TrainingEntry>[],
+                                        hasTraining: _hasTrainingForDay(
+                                          dayEntries,
                                         ),
+                                        hasMatch: _hasMatchForDay(dayEntries),
                                         hasPlan:
                                             (planMap[key] ??
                                                     const <_TrainingPlan>[])
@@ -434,11 +440,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     selectedBuilder:
                                         (context, day, focusedDay) {
                                           final key = _normalizeDay(day);
+                                          final dayEntries =
+                                              entryMap[key] ??
+                                              const <TrainingEntry>[];
                                           return _CalendarStatusDayCell(
                                             dayNumber: day.day,
+                                            hasTraining: _hasTrainingForDay(
+                                              dayEntries,
+                                            ),
                                             hasMatch: _hasMatchForDay(
-                                              entryMap[key] ??
-                                                  const <TrainingEntry>[],
+                                              dayEntries,
                                             ),
                                             hasPlan:
                                                 (planMap[key] ??
@@ -456,12 +467,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         },
                                     holidayBuilder: (context, day, focusedDay) {
                                       final key = _normalizeDay(day);
+                                      final dayEntries =
+                                          entryMap[key] ??
+                                          const <TrainingEntry>[];
                                       return _CalendarStatusDayCell(
                                         dayNumber: day.day,
-                                        hasMatch: _hasMatchForDay(
-                                          entryMap[key] ??
-                                              const <TrainingEntry>[],
+                                        hasTraining: _hasTrainingForDay(
+                                          dayEntries,
                                         ),
+                                        hasMatch: _hasMatchForDay(dayEntries),
                                         hasPlan:
                                             (planMap[key] ??
                                                     const <_TrainingPlan>[])
@@ -591,8 +605,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       runSpacing: 6,
                       children: [
                         _CalendarMarkerLegendItem(
-                          color: Theme.of(context).colorScheme.primary,
-                          label: isKo ? '훈련/시합 기록' : 'Training or match',
+                          color: const Color(0xFF0FA968),
+                          label: isKo ? '훈련 기록' : 'Training log',
+                        ),
+                        _CalendarMarkerLegendItem(
+                          color: const Color(0xFF2F80ED),
+                          label: isKo ? '시합 기록' : 'Match',
                         ),
                         _CalendarMarkerLegendItem(
                           color: const Color(0xFFE3A008),
@@ -2178,6 +2196,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _hasMatchForDay(List<TrainingEntry> entries) =>
       entries.any((entry) => entry.isMatch);
 
+  bool _hasTrainingForDay(List<TrainingEntry> entries) =>
+      entries.any((entry) => !entry.isMatch);
+
   Map<DateTime, String> _buildKoreanHolidayMap(DateTime from, DateTime to) {
     final result = <DateTime, String>{};
     for (var year = from.year; year <= to.year; year++) {
@@ -2261,6 +2282,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
 class _CalendarStatusDayCell extends StatelessWidget {
   final int dayNumber;
+  final bool hasTraining;
   final bool hasMatch;
   final bool hasPlan;
   final bool isSelected;
@@ -2269,6 +2291,7 @@ class _CalendarStatusDayCell extends StatelessWidget {
 
   const _CalendarStatusDayCell({
     required this.dayNumber,
+    required this.hasTraining,
     required this.hasMatch,
     required this.hasPlan,
     required this.isSelected,
@@ -2321,9 +2344,11 @@ class _CalendarStatusDayCell extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _CalendarMarkerStrip(
+                  hasTraining: hasTraining,
                   hasMatch: hasMatch,
                   hasPlan: hasPlan,
-                  entryColor: colorScheme.primary,
+                  trainingColor: const Color(0xFF0FA968),
+                  matchColor: const Color(0xFF2F80ED),
                   planColor: const Color(0xFFE3A008),
                   dayNumber: dayNumber,
                 ),
@@ -2402,16 +2427,20 @@ class _CalendarMarkerLegendItem extends StatelessWidget {
 }
 
 class _CalendarMarkerStrip extends StatelessWidget {
+  final bool hasTraining;
   final bool hasMatch;
   final bool hasPlan;
-  final Color entryColor;
+  final Color trainingColor;
+  final Color matchColor;
   final Color planColor;
   final int dayNumber;
 
   const _CalendarMarkerStrip({
+    required this.hasTraining,
     required this.hasMatch,
     required this.hasPlan,
-    required this.entryColor,
+    required this.trainingColor,
+    required this.matchColor,
     required this.planColor,
     required this.dayNumber,
   });
@@ -2423,10 +2452,16 @@ class _CalendarMarkerStrip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (hasTraining)
+            _CalendarMarkerSegment(
+              key: Key('calendar_day_training_marker_$dayNumber'),
+              color: trainingColor,
+            ),
+          if (hasTraining && (hasMatch || hasPlan)) const SizedBox(width: 3),
           if (hasMatch)
             _CalendarMarkerSegment(
-              key: Key('calendar_day_entry_marker_$dayNumber'),
-              color: entryColor,
+              key: Key('calendar_day_match_marker_$dayNumber'),
+              color: matchColor,
             ),
           if (hasMatch && hasPlan) const SizedBox(width: 3),
           if (hasPlan)

@@ -822,11 +822,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                                         ?.copyWith(fontWeight: FontWeight.w800),
                                   ),
                                 ),
-                                if (_answered && isCorrect)
-                                  const Icon(
-                                    Icons.check_circle,
-                                    color: Color(0xFF0FA968),
-                                  ),
                                 if ((_answered || _retryUsed) &&
                                     selected &&
                                     !isCorrect)
