@@ -68,11 +68,9 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 totalXp: currentState.totalXp,
                 xpToNextLevel: currentState.xpToNextLevel,
               ),
-              for (
-                var levelIndex = 0;
-                levelIndex < thresholds.length;
-                levelIndex++
-              ) ...[
+              for (var levelIndex = 0;
+                  levelIndex < thresholds.length;
+                  levelIndex++) ...[
                 const SizedBox(height: 12),
                 _LevelGuideCard(
                   level: levelIndex + 1,
@@ -88,10 +86,10 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                   onEditRewardName: rewardByLevel[levelIndex + 1] == null
                       ? null
                       : () => _editRewardName(
-                          context,
-                          rewardByLevel[levelIndex + 1]!,
-                          isKo,
-                        ),
+                            context,
+                            rewardByLevel[levelIndex + 1]!,
+                            isKo,
+                          ),
                 ),
               ],
             ],
@@ -183,9 +181,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
           Text(
             isKo ? '현재 진행 상태' : 'Current progress',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -317,16 +315,6 @@ class _LevelGuideCard extends StatelessWidget {
     final theme = Theme.of(context);
     final reward = rewardStatus?.reward;
     final customRewardName = rewardStatus?.customRewardName.trim() ?? '';
-    final nextRewardLabel = rewardStatus == null || customRewardName.isEmpty
-        ? (isKo ? '없음' : 'Empty')
-        : customRewardName;
-    final rewardHeadline = customRewardName.isEmpty
-        ? (isKo
-              ? '이번 레벨 선물을 아직 정하지 않았어요.'
-              : 'No reward set for this level yet.')
-        : (isKo
-              ? '이번 레벨 선물은 $customRewardName 입니다.'
-              : 'This level reward is $customRewardName.');
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -392,8 +380,8 @@ class _LevelGuideCard extends StatelessWidget {
                   maxXp == null
                       ? (isKo ? '$minXp XP 이상' : '$minXp XP+')
                       : (isKo
-                            ? '$minXp XP ~ $maxXp XP'
-                            : '$minXp XP to $maxXp XP'),
+                          ? '$minXp XP ~ $maxXp XP'
+                          : '$minXp XP to $maxXp XP'),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w600,
@@ -430,19 +418,41 @@ class _LevelGuideCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                isKo ? '레벨 선물' : 'Level reward',
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      isKo ? '레벨 선물' : 'Level reward',
+                                      style:
+                                          theme.textTheme.labelLarge?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: onEditRewardName,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      minimumSize: const Size(1, 32),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                      ),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: Text(isKo ? '입력' : 'Edit'),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                rewardHeadline,
+                                customRewardName.isEmpty
+                                    ? (isKo ? '미정' : 'Not set')
+                                    : customRewardName,
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                             ],
@@ -451,56 +461,14 @@ class _LevelGuideCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _WhitePill(
-                          label: isKo
-                              ? '선물: $nextRewardLabel'
-                              : 'Reward: $nextRewardLabel',
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: onEditRewardName,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text(isKo ? '입력' : 'Edit'),
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 8),
-                  Text(
-                    customRewardName.isNotEmpty
-                        ? (isKo
-                              ? '직접 입력한 레벨 선물이에요.'
-                              : 'Your custom reward for this level.')
-                        : (isKo
-                              ? '입력하지 않으면 빈값으로 두고 나중에 채울 수 있어요.'
-                              : 'Leave it empty for now and fill it later.'),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
                   if (customRewardName.isEmpty)
-                    Text(
-                      isKo ? '선물을 입력하면 받을 수 있어요.' : 'Add a reward to claim it.',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    _WhitePill(
+                      label: isKo ? '선물 입력 후 수령 가능' : 'Add reward to claim',
                     )
                   else if (rewardStatus!.isClaimed)
-                    Text(
-                      isKo ? '이미 받았어요' : 'Already claimed',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    _WhitePill(
+                      label: isKo ? '이미 받음' : 'Already claimed',
                     )
                   else if (rewardStatus!.isAvailable)
                     FilledButton.tonal(
@@ -512,14 +480,9 @@ class _LevelGuideCard extends StatelessWidget {
                       child: Text(isKo ? '선물 받기' : 'Claim reward'),
                     )
                   else
-                    Text(
-                      isKo
-                          ? 'Lv.$level 이 되면 받을 수 있어요.'
-                          : 'Available at Lv.$level.',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    _WhitePill(
+                      label:
+                          isKo ? 'Lv.$level 달성 시 수령 가능' : 'Claim at Lv.$level',
                     ),
                 ],
               ],
@@ -553,9 +516,9 @@ class _WhitePill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
