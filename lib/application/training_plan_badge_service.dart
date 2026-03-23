@@ -15,23 +15,6 @@ class TrainingPlanBadgeService {
     if (!_supportsAppIconBadge) return;
 
     try {
-      final scheduledRaw =
-          _options.getValue<List>(TrainingPlanReminderService.reminderIdsKey) ??
-              const [];
-      final readRaw = _options.getValue<List>(
-            TrainingPlanReminderService.reminderReadIdsKey,
-          ) ??
-          const [];
-      final scheduled = scheduledRaw
-          .map((e) => (e as num?)?.toInt() ?? -1)
-          .where((id) => id >= 0)
-          .toSet();
-      final read = readRaw
-          .map((e) => (e as num?)?.toInt() ?? -1)
-          .where((id) => id >= 0)
-          .toSet();
-      final reminderUnread = scheduled.difference(read).length;
-
       final xpLogs = _options
               .getValue<List>(TrainingPlanReminderService.xpMessageLogKey) ??
           const [];
@@ -46,7 +29,7 @@ class TrainingPlanBadgeService {
         return !xpReadIds.contains(id);
       }).length;
 
-      final count = reminderUnread + xpUnread;
+      final count = xpUnread;
 
       if (count <= 0) {
         await FlutterAppBadger.removeBadge();

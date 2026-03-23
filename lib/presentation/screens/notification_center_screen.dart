@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/settings_service.dart';
@@ -26,13 +25,11 @@ class NotificationCenterScreen extends StatefulWidget {
 }
 
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
-  static const _seenPlanKeysStorageKey = 'notification_seen_plan_keys_v1';
   static const _seenXpIdsStorageKey = 'notification_seen_xp_ids_v1';
   static const _showInactivitySectionKey =
       'notification_show_inactivity_section_v1';
   static const _showXpSectionKey = 'notification_show_xp_section_v1';
   static const _showPlanSectionKey = 'notification_show_plan_section_v1';
-  static const _showSystemSectionKey = 'notification_show_system_section_v1';
 
   late final TrainingPlanReminderService _reminderService;
   bool _permissionGranted = true;
@@ -41,8 +38,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   bool _showInactivitySection = true;
   bool _showXpSection = true;
   bool _showPlanSection = true;
-  bool _showSystemSection = false;
-  List<PendingNotificationRequest> _pending = const [];
   List<_PlanAlarmRow> _planRows = const [];
   List<_XpMessageRow> _xpRows = const [];
   String? _lastTrainingLogAt;
@@ -68,9 +63,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     _showPlanSection =
         widget.optionRepository.getValue<bool>(_showPlanSectionKey) ??
         _showPlanSection;
-    _showSystemSection =
-        widget.optionRepository.getValue<bool>(_showSystemSectionKey) ??
-        _showSystemSection;
   }
 
   void _toggleSection({
@@ -85,13 +77,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _load() async {
     try {
-      final seenPlanKeys = _loadSeenIds(_seenPlanKeysStorageKey);
       final seenXpIds = _loadSeenIds(_seenXpIdsStorageKey);
       await _reminderService.markAllRemindersRead();
       final permission = await _reminderService.hasNotificationPermission();
       final muted = await _reminderService.isAlarmMutedNow();
-      final pending = await _reminderService.pendingReminders();
-      final planRows = _loadPlanRows(seenPlanKeys);
+      final planRows = _loadPlanRows();
       final xpRows = _loadXpRows(seenXpIds);
       final lastTrainingLogAt = widget.optionRepository.getValue<String>(
         TrainingPlanReminderService.lastTrainingLogAtKey,
@@ -101,18 +91,16 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       setState(() {
         _permissionGranted = permission;
         _mutedNow = muted;
-        _pending = [...pending]..sort((a, b) => a.id.compareTo(b.id));
         _planRows = planRows;
         _xpRows = xpRows;
         _lastTrainingLogAt = lastTrainingLogAt;
         _loading = false;
       });
-      await _markRowsSeen(planRows: planRows, xpRows: xpRows);
+      await _markRowsSeen(xpRows: xpRows);
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _pending = const [];
-        _planRows = _loadPlanRows(const <String>{});
+        _planRows = _loadPlanRows();
         _xpRows = _loadXpRows(const <String>{});
         _loading = false;
       });
@@ -124,21 +112,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     return raw.map((item) => item.toString()).toSet();
   }
 
-  Future<void> _markRowsSeen({
-    required List<_PlanAlarmRow> planRows,
-    required List<_XpMessageRow> xpRows,
-  }) async {
-    await widget.optionRepository.setValue(
-      _seenPlanKeysStorageKey,
-      planRows.map((row) => row.messageKey).toList(growable: false),
-    );
+  Future<void> _markRowsSeen({required List<_XpMessageRow> xpRows}) async {
     await widget.optionRepository.setValue(
       _seenXpIdsStorageKey,
       xpRows.map((row) => row.id).toList(growable: false),
     );
   }
 
-  List<_PlanAlarmRow> _loadPlanRows(Set<String> seenPlanKeys) {
+  List<_PlanAlarmRow> _loadPlanRows() {
     final raw = widget.optionRepository.getValue<String>(
       TrainingPlanReminderService.plansStorageKey,
     );
@@ -149,12 +130,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       final rows =
           decoded
               .whereType<Map>()
-              .map(
-                (e) => _PlanAlarmRow.fromMap(
-                  e.cast<String, dynamic>(),
-                  seenKeys: seenPlanKeys,
-                ),
-              )
+              .map((e) => _PlanAlarmRow.fromMap(e.cast<String, dynamic>()))
               .where((e) => e.scheduledAt.isAfter(DateTime.now()))
               .toList(growable: false)
             ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
@@ -215,7 +191,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final xpNewCount = _xpRows.where((row) => row.isNew).length;
-    final planNewCount = _planRows.where((row) => row.isNew).length;
     return Scaffold(
       appBar: AppBar(
         title: Text(isKo ? '알림' : 'Notifications'),
@@ -380,7 +355,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       : '${_planRows.length} training alerts',
                   icon: Icons.alarm_outlined,
                   expanded: _showPlanSection,
-                  newCount: planNewCount,
                   onTap: () => _toggleSection(
                     storageKey: _showPlanSectionKey,
                     currentValue: _showPlanSection,
@@ -441,10 +415,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
-                                          if (item.isNew) ...[
-                                            const SizedBox(width: 8),
-                                            const _NewBadge(),
-                                          ],
                                           const SizedBox(width: 8),
                                           Text(
                                             DateFormat(
@@ -469,27 +439,6 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                               .toList(growable: false),
                         ),
                 ),
-                if (_pending.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  _NotificationSectionCard(
-                    title: isKo
-                        ? '시스템 예약 알림'
-                        : 'System-scheduled alerts',
-                    icon: Icons.schedule_outlined,
-                    expanded: _showSystemSection,
-                    onTap: () => _toggleSection(
-                      storageKey: _showSystemSectionKey,
-                      currentValue: _showSystemSection,
-                      apply: (next) => _showSystemSection = next,
-                    ),
-                    child: Text(
-                      isKo
-                          ? '시스템 예약 상태를 참고용으로 보여줍니다.'
-                          : 'This shows the OS-level scheduled notification count.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ],
               ],
             ),
     );
@@ -853,7 +802,6 @@ class _PlanAlarmRow {
   final String category;
   final String scheduleSummary;
   final String messageKey;
-  final bool isNew;
 
   const _PlanAlarmRow({
     required this.id,
@@ -861,13 +809,9 @@ class _PlanAlarmRow {
     required this.category,
     required this.scheduleSummary,
     required this.messageKey,
-    required this.isNew,
   });
 
-  factory _PlanAlarmRow.fromMap(
-    Map<String, dynamic> map, {
-    Set<String> seenKeys = const <String>{},
-  }) {
+  factory _PlanAlarmRow.fromMap(Map<String, dynamic> map) {
     final weekdays = ((map['repeatWeekdays'] as List?) ?? const [])
         .map((e) => (e as num?)?.toInt() ?? 0)
         .where((value) => value >= DateTime.monday && value <= DateTime.sunday)
@@ -896,7 +840,6 @@ class _PlanAlarmRow {
         rangeText,
       ].where((value) => value.trim().isNotEmpty).join(' · '),
       messageKey: messageKey,
-      isNew: !seenKeys.contains(messageKey),
     );
   }
 }

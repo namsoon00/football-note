@@ -591,17 +591,6 @@ class TrainingPlanReminderService {
   }
 
   int unreadReminderCountSync() {
-    final scheduledRaw = _options.getValue<List>(reminderIdsKey) ?? const [];
-    final readRaw = _options.getValue<List>(reminderReadIdsKey) ?? const [];
-    final scheduled = scheduledRaw
-        .map((e) => (e as num?)?.toInt() ?? -1)
-        .where((id) => id >= 0)
-        .toSet();
-    final read = readRaw
-        .map((e) => (e as num?)?.toInt() ?? -1)
-        .where((id) => id >= 0)
-        .toSet();
-    final reminderUnread = scheduled.difference(read).length;
     final xpLogs = _options.getValue<List>(xpMessageLogKey) ?? const [];
     final xpReadRaw = _options.getValue<List>(xpMessageReadIdsKey) ?? const [];
     final xpReadIds = xpReadRaw.map((e) => e.toString()).toSet();
@@ -610,7 +599,7 @@ class TrainingPlanReminderService {
       if (id.isEmpty) return false;
       return !xpReadIds.contains(id);
     }).length;
-    return reminderUnread + xpUnread;
+    return xpUnread;
   }
 
   Future<void> markAllRemindersRead() async {
