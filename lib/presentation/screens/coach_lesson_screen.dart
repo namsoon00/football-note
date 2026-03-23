@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
+import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
@@ -63,6 +64,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   final PageController _pageController = PageController();
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
+  late Future<int> _newsCountFuture;
   final Set<String> _expandedTrainingGroups = <String>{};
   String? _lastViewedDiaryToken;
 
@@ -93,6 +95,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _selectedThemeId =
         widget.optionRepository.getValue<String>(_diaryThemeKey) ??
         _DiaryThemePalette.notebook.id;
+    _newsCountFuture = NewsBadgeService.unreadCount(widget.optionRepository);
   }
 
   @override
@@ -169,46 +172,50 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
               return Column(
                 children: [
-                  Builder(
-                    builder: (headerContext) => SharedTabHeader(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      onLeadingTap: showBack
-                          ? () => Navigator.of(context).maybePop()
-                          : canOpenDrawer
-                          ? () => Scaffold.of(headerContext).openDrawer()
-                          : null,
-                      leadingIcon: showBack ? Icons.arrow_back : Icons.menu,
-                      leadingTooltip: _isKo
-                          ? (showBack ? '뒤로가기' : '메뉴')
-                          : (showBack ? 'Back' : 'Menu'),
-                      onNewsTap:
-                          widget.trainingService != null &&
-                              widget.localeService != null &&
-                              widget.settingsService != null
-                          ? _openNews
-                          : null,
-                      onQuizTap:
-                          widget.trainingService != null &&
-                              widget.localeService != null &&
-                              widget.settingsService != null
-                          ? _openQuiz
-                          : null,
-                      onProfileTap: _openProfile,
-                      onNotificationTap: widget.settingsService != null
-                          ? _openNotifications
-                          : null,
-                      notificationBadgeCount: reminderUnreadCount,
-                      onSettingsTap:
-                          widget.localeService != null &&
-                              widget.settingsService != null
-                          ? _openSettings
-                          : _openProfile,
-                      profilePhotoSource: profilePhotoSource,
-                      title: _isKo ? '다이어리' : 'Diary',
-                      titleTrailing: OutlinedButton.icon(
-                        onPressed: _showThemePicker,
-                        icon: const Icon(Icons.palette_outlined, size: 18),
-                        label: Text(_isKo ? '테마' : 'Theme'),
+                  FutureBuilder<int>(
+                    future: _newsCountFuture,
+                    builder: (context, snapshot) => Builder(
+                      builder: (headerContext) => SharedTabHeader(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        onLeadingTap: showBack
+                            ? () => Navigator.of(context).maybePop()
+                            : canOpenDrawer
+                            ? () => Scaffold.of(headerContext).openDrawer()
+                            : null,
+                        leadingIcon: showBack ? Icons.arrow_back : Icons.menu,
+                        leadingTooltip: _isKo
+                            ? (showBack ? '뒤로가기' : '메뉴')
+                            : (showBack ? 'Back' : 'Menu'),
+                        onNewsTap:
+                            widget.trainingService != null &&
+                                widget.localeService != null &&
+                                widget.settingsService != null
+                            ? _openNews
+                            : null,
+                        newsBadgeCount: snapshot.data ?? 0,
+                        onQuizTap:
+                            widget.trainingService != null &&
+                                widget.localeService != null &&
+                                widget.settingsService != null
+                            ? _openQuiz
+                            : null,
+                        onProfileTap: _openProfile,
+                        onNotificationTap: widget.settingsService != null
+                            ? _openNotifications
+                            : null,
+                        notificationBadgeCount: reminderUnreadCount,
+                        onSettingsTap:
+                            widget.localeService != null &&
+                                widget.settingsService != null
+                            ? _openSettings
+                            : _openProfile,
+                        profilePhotoSource: profilePhotoSource,
+                        title: _isKo ? '다이어리' : 'Diary',
+                        titleTrailing: OutlinedButton.icon(
+                          onPressed: _showThemePicker,
+                          icon: const Icon(Icons.palette_outlined, size: 18),
+                          label: Text(_isKo ? '테마' : 'Theme'),
+                        ),
                       ),
                     ),
                   ),
@@ -404,6 +411,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ),
       ),
     );
+    if (mounted) {
+      setState(() {
+        _newsCountFuture = NewsBadgeService.unreadCount(
+          widget.optionRepository,
+        );
+      });
+    }
   }
 
   Future<void> _openQuiz() async {

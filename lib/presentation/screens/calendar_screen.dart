@@ -11,6 +11,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../application/backup_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/locale_service.dart';
+import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -98,6 +99,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<_TrainingPlan> _plans = const <_TrainingPlan>[];
   bool _quickCreateHandled = false;
   bool _overlayOpenInFlight = false;
+  late Future<int> _newsCountFuture;
 
   @override
   void initState() {
@@ -108,6 +110,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     _badgeService = TrainingPlanBadgeService(widget.optionRepository);
     _plans = _loadPlans();
+    _newsCountFuture = NewsBadgeService.unreadCount(widget.optionRepository);
     _calendarExpanded =
         widget.optionRepository.getValue<bool>(_calendarExpandedKey) ?? true;
     _calendarFormat = _loadCalendarFormat();
@@ -271,73 +274,77 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
               return Column(
                 children: [
-                  Builder(
-                    builder: (context) => SharedTabHeader(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      onLeadingTap: () => Scaffold.of(context).openDrawer(),
-                      onNewsTap: () => _openNews(context),
-                      onQuizTap: () => _openQuiz(context),
-                      onNotificationTap: () => _openNotifications(context),
-                      notificationBadgeCount: reminderUnreadCount,
-                      profilePhotoSource:
-                          widget.optionRepository.getValue<String>(
-                                'profile_photo_url',
-                              ) ??
-                              '',
-                      onProfileTap: () => _openProfile(context),
-                      onSettingsTap: () => _openSettings(context),
-                      title: AppLocalizations.of(context)!.calendar,
-                      titleTrailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ChoiceChip(
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            label: Text(isKo ? '2주' : '2W'),
-                            selected:
-                                _calendarFormat == CalendarFormat.twoWeeks,
-                            onSelected: (_) =>
-                                _setCalendarFormat(CalendarFormat.twoWeeks),
-                          ),
-                          const SizedBox(width: 6),
-                          ChoiceChip(
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            label: Text(isKo ? '1개월' : '1M'),
-                            selected: _calendarFormat == CalendarFormat.month,
-                            onSelected: (_) =>
-                                _setCalendarFormat(CalendarFormat.month),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
+                  FutureBuilder<int>(
+                    future: _newsCountFuture,
+                    builder: (context, newsSnapshot) => Builder(
+                      builder: (context) => SharedTabHeader(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        onLeadingTap: () => Scaffold.of(context).openDrawer(),
+                        onNewsTap: () => _openNews(context),
+                        newsBadgeCount: newsSnapshot.data ?? 0,
+                        onQuizTap: () => _openQuiz(context),
+                        onNotificationTap: () => _openNotifications(context),
+                        notificationBadgeCount: reminderUnreadCount,
+                        profilePhotoSource:
+                            widget.optionRepository.getValue<String>(
+                                  'profile_photo_url',
+                                ) ??
+                                '',
+                        onProfileTap: () => _openProfile(context),
+                        onSettingsTap: () => _openSettings(context),
+                        title: AppLocalizations.of(context)!.calendar,
+                        titleTrailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ChoiceChip(
                               visualDensity: VisualDensity.compact,
-                              minimumSize: const Size(1, 40),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              label: Text(isKo ? '2주' : '2W'),
+                              selected:
+                                  _calendarFormat == CalendarFormat.twoWeeks,
+                              onSelected: (_) =>
+                                  _setCalendarFormat(CalendarFormat.twoWeeks),
+                            ),
+                            const SizedBox(width: 6),
+                            ChoiceChip(
+                              visualDensity: VisualDensity.compact,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              label: Text(isKo ? '1개월' : '1M'),
+                              selected: _calendarFormat == CalendarFormat.month,
+                              onSelected: (_) =>
+                                  _setCalendarFormat(CalendarFormat.month),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                minimumSize: const Size(1, 40),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                              ),
+                              onPressed: () {
+                                final today = _normalizeDay(DateTime.now());
+                                setState(() {
+                                  _selectedDay = today;
+                                  _focusedDay = today;
+                                });
+                                widget.onSelectedDayChanged?.call(today);
+                              },
+                              icon: const Icon(Icons.today_outlined, size: 18),
+                              label: Text(
+                                Localizations.localeOf(context).languageCode ==
+                                        'ko'
+                                    ? '오늘'
+                                    : 'Today',
                               ),
                             ),
-                            onPressed: () {
-                              final today = _normalizeDay(DateTime.now());
-                              setState(() {
-                                _selectedDay = today;
-                                _focusedDay = today;
-                              });
-                              widget.onSelectedDayChanged?.call(today);
-                            },
-                            icon: const Icon(Icons.today_outlined, size: 18),
-                            label: Text(
-                              Localizations.localeOf(context).languageCode ==
-                                      'ko'
-                                  ? '오늘'
-                                  : 'Today',
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -667,7 +674,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  isKo ? '빠른 추가 템플릿' : 'Quick add templates',
+                  isKo ? '빠른 계획 추가' : 'Quick plan add',
                   style: Theme.of(
                     context,
                   ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -868,30 +875,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (!_sameStringList(rawCategories, categories)) {
       widget.optionRepository.saveOptions('programs', categories);
     }
-    final editingScope = editingPlan == null
-        ? _PlanEditScope.single
-        : await _pickPlanEditScope(editingPlan);
-    if (editingPlan != null && editingScope == null) return;
-    final editingSeries =
-        editingPlan != null && editingScope == _PlanEditScope.series;
-    final editingAfterThis =
-        editingPlan != null && editingScope == _PlanEditScope.afterThis;
-    final seriesPlans = (editingSeries || editingAfterThis)
-        ? _plansInSameSeries(editingPlan)
-        : const <_TrainingPlan>[];
+    final hasSeries = editingPlan?.seriesId != null;
+    final seriesPlans =
+        hasSeries ? _plansInSameSeries(editingPlan!) : const <_TrainingPlan>[];
     final seriesSeed = seriesPlans.isNotEmpty ? seriesPlans.first : editingPlan;
     final baseScheduledAt = editingPlan?.scheduledAt ?? day;
+    final baseSeriesStartDate = editingPlan?.seriesStartDate ?? baseScheduledAt;
     final baseSeriesEndDate = editingPlan?.seriesEndDate ?? baseScheduledAt;
-    var planDay = editingSeries
-        ? (seriesSeed?.seriesStartDate ?? seriesSeed?.scheduledAt ?? day)
-        : editingAfterThis
-            ? baseScheduledAt
-            : baseScheduledAt;
-    var planEndDay = editingSeries
-        ? (seriesSeed?.seriesEndDate ?? seriesSeed?.scheduledAt ?? day)
-        : editingAfterThis
-            ? (seriesSeed?.seriesEndDate ?? baseScheduledAt)
-            : baseSeriesEndDate;
+    var planDay = hasSeries
+        ? (seriesSeed?.seriesStartDate ?? baseSeriesStartDate)
+        : baseScheduledAt;
+    var planEndDay = hasSeries
+        ? (seriesSeed?.seriesEndDate ?? baseSeriesEndDate)
+        : baseSeriesEndDate;
     final fallbackCategory = dedupedCategories.isEmpty
         ? (isKo ? '훈련' : 'Training')
         : dedupedCategories.first;
@@ -912,13 +908,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var reminderBefore = editingPlan?.reminderMinutesBefore ??
         seriesSeed?.reminderMinutesBefore ??
         _lastPlanReminderMinutes();
-    final seedWeekdays = (editingSeries || editingAfterThis)
+    final seedWeekdays = hasSeries
         ? (seriesSeed?.repeatWeekdays ?? const <int>[])
         : (editingPlan?.repeatWeekdays ?? const <int>[]);
     var repeatWeekdays =
         seedWeekdays.isNotEmpty ? seedWeekdays.toSet() : <int>{planDay.weekday};
-    var showRepeatRangePicker = editingSeries ||
-        editingAfterThis ||
+    var showRepeatRangePicker = hasSeries ||
         !_isSameDay(planDay, planEndDay) ||
         seedWeekdays.length > 1 ||
         (seedWeekdays.length == 1 && !seedWeekdays.contains(planDay.weekday));
@@ -948,17 +943,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       Text(
                         editingPlan == null
                             ? (isKo ? '훈련 계획 추가' : 'Add Training Plan')
-                            : editingSeries
-                                ? (isKo
-                                    ? '훈련 계획 묶음 수정'
-                                    : 'Edit Training Series')
-                                : editingAfterThis
-                                    ? (isKo
-                                        ? '이후 일정 수정'
-                                        : 'Edit this and following plans')
-                                    : (isKo
-                                        ? '훈련 계획 수정'
-                                        : 'Edit Training Plan'),
+                            : (isKo ? '훈련 계획 수정' : 'Edit Training Plan'),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
@@ -1105,168 +1090,164 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           setSheetState(() => alarmLoopEnabled = value);
                         },
                       ),
-                      const SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          isKo ? '반복 요일' : 'Repeat weekdays',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
                       Text(
                         editingPlan == null
                             ? (isKo
                                 ? '기간과 요일을 고르면 실제 계획이 날짜별로 생성돼요.'
                                 : 'Pick a range and weekdays to create real plans on each matching date.')
-                            : editingSeries
+                            : hasSeries
                                 ? (isKo
-                                    ? '이 묶음의 요일, 기간, 시간을 한 번에 바꿔요.'
-                                    : 'Update weekdays, range, and time for this series at once.')
-                                : editingAfterThis
-                                    ? (isKo
-                                        ? '선택한 일정부터 이후 일정을 한 번에 바꿔요.'
-                                        : 'Update from this plan onward.')
-                                    : (isKo
-                                        ? '이번 계획만 따로 수정해요.'
-                                        : 'Edit only this occurrence.'),
+                                    ? '반복 기간을 켜면 요일과 기간을 함께 바꾸고, 저장할 때 적용 범위를 고릅니다.'
+                                    : 'Turn on the repeat range to edit weekdays and date span, then choose the save scope.')
+                                : (isKo
+                                    ? '이번 계획만 따로 수정해요.'
+                                    : 'Edit only this occurrence.'),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      if (editingPlan == null ||
-                          editingSeries ||
-                          editingAfterThis) ...[
-                        const SizedBox(height: 6),
-                        if (!showRepeatRangePicker)
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: TextButton.icon(
-                              onPressed: () {
-                                setSheetState(() {
-                                  showRepeatRangePicker = true;
-                                  if (_isSameDay(planDay, planEndDay)) {
-                                    planEndDay = planDay.add(
-                                      const Duration(days: 7),
-                                    );
-                                  }
-                                });
-                              },
-                              icon: const Icon(Icons.event_repeat_outlined),
-                              label: Text(
-                                isKo ? '반복 기간 설정' : 'Set repeat range',
-                              ),
-                            ),
-                          ),
-                        if (showRepeatRangePicker)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () async {
-                                    final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: planDay,
-                                      firstDate: DateTime(2022),
-                                      lastDate: DateTime(2032),
-                                    );
-                                    if (picked == null || !context.mounted) {
-                                      return;
-                                    }
-                                    setSheetState(() {
-                                      planDay = DateTime(
-                                        picked.year,
-                                        picked.month,
-                                        picked.day,
-                                      );
-                                      if (planEndDay.isBefore(planDay)) {
-                                        planEndDay = planDay;
-                                      }
-                                      if (repeatWeekdays.isEmpty) {
-                                        repeatWeekdays = <int>{planDay.weekday};
-                                      }
-                                    });
-                                  },
-                                  icon: const Icon(
-                                    Icons.calendar_today_outlined,
-                                  ),
-                                  label: Text(
-                                    isKo
-                                        ? '시작 ${DateFormat('yyyy-MM-dd').format(planDay)}'
-                                        : 'From ${DateFormat('yyyy-MM-dd').format(planDay)}',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () async {
-                                    final picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: planEndDay.isBefore(planDay)
-                                          ? planDay
-                                          : planEndDay,
-                                      firstDate: DateTime(
-                                        planDay.year,
-                                        planDay.month,
-                                        planDay.day,
-                                      ),
-                                      lastDate: DateTime(2032),
-                                    );
-                                    if (picked == null || !context.mounted) {
-                                      return;
-                                    }
-                                    setSheetState(() {
-                                      planEndDay = DateTime(
-                                        picked.year,
-                                        picked.month,
-                                        picked.day,
-                                      );
-                                    });
-                                  },
-                                  icon: const Icon(Icons.event_repeat_outlined),
-                                  label: Text(
-                                    isKo
-                                        ? '종료 ${DateFormat('yyyy-MM-dd').format(planEndDay)}'
-                                        : 'Until ${DateFormat('yyyy-MM-dd').format(planEndDay)}',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
                       const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: List<Widget>.generate(7, (index) {
-                          final weekday = index + 1;
-                          final selected = repeatWeekdays.contains(weekday);
-                          const koLabels = ['월', '화', '수', '목', '금', '토', '일'];
-                          const enLabels = [
-                            'Mon',
-                            'Tue',
-                            'Wed',
-                            'Thu',
-                            'Fri',
-                            'Sat',
-                            'Sun',
-                          ];
-                          return ChoiceChip(
-                            label: Text(
-                              isKo ? koLabels[index] : enLabels[index],
-                            ),
-                            selected: selected,
-                            onSelected: (value) {
+                      if (!showRepeatRangePicker)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () {
                               setSheetState(() {
-                                if (value) {
-                                  repeatWeekdays.add(weekday);
-                                } else if (repeatWeekdays.length > 1) {
-                                  repeatWeekdays.remove(weekday);
+                                showRepeatRangePicker = true;
+                                if (_isSameDay(planDay, planEndDay)) {
+                                  planEndDay = planDay.add(
+                                    const Duration(days: 7),
+                                  );
                                 }
                               });
                             },
-                          );
-                        }),
-                      ),
+                            icon: const Icon(Icons.event_repeat_outlined),
+                            label: Text(isKo ? '반복 기간 설정' : 'Set repeat range'),
+                          ),
+                        ),
+                      if (showRepeatRangePicker) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: planDay,
+                                    firstDate: DateTime(2022),
+                                    lastDate: DateTime(2032),
+                                  );
+                                  if (picked == null || !context.mounted) {
+                                    return;
+                                  }
+                                  setSheetState(() {
+                                    planDay = DateTime(
+                                      picked.year,
+                                      picked.month,
+                                      picked.day,
+                                    );
+                                    if (planEndDay.isBefore(planDay)) {
+                                      planEndDay = planDay;
+                                    }
+                                    if (repeatWeekdays.isEmpty) {
+                                      repeatWeekdays = <int>{planDay.weekday};
+                                    }
+                                  });
+                                },
+                                icon: const Icon(Icons.calendar_today_outlined),
+                                label: Text(
+                                  isKo
+                                      ? '시작 ${DateFormat('yyyy-MM-dd').format(planDay)}'
+                                      : 'From ${DateFormat('yyyy-MM-dd').format(planDay)}',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: planEndDay.isBefore(planDay)
+                                        ? planDay
+                                        : planEndDay,
+                                    firstDate: DateTime(
+                                      planDay.year,
+                                      planDay.month,
+                                      planDay.day,
+                                    ),
+                                    lastDate: DateTime(2032),
+                                  );
+                                  if (picked == null || !context.mounted) {
+                                    return;
+                                  }
+                                  setSheetState(() {
+                                    planEndDay = DateTime(
+                                      picked.year,
+                                      picked.month,
+                                      picked.day,
+                                    );
+                                  });
+                                },
+                                icon: const Icon(Icons.event_repeat_outlined),
+                                label: Text(
+                                  isKo
+                                      ? '종료 ${DateFormat('yyyy-MM-dd').format(planEndDay)}'
+                                      : 'Until ${DateFormat('yyyy-MM-dd').format(planEndDay)}',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            isKo ? '반복 요일' : 'Repeat weekdays',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: List<Widget>.generate(7, (index) {
+                            final weekday = index + 1;
+                            final selected = repeatWeekdays.contains(weekday);
+                            const koLabels = [
+                              '월',
+                              '화',
+                              '수',
+                              '목',
+                              '금',
+                              '토',
+                              '일',
+                            ];
+                            const enLabels = [
+                              'Mon',
+                              'Tue',
+                              'Wed',
+                              'Thu',
+                              'Fri',
+                              'Sat',
+                              'Sun',
+                            ];
+                            return ChoiceChip(
+                              label: Text(
+                                isKo ? koLabels[index] : enLabels[index],
+                              ),
+                              selected: selected,
+                              onSelected: (value) {
+                                setSheetState(() {
+                                  if (value) {
+                                    repeatWeekdays.add(weekday);
+                                  } else if (repeatWeekdays.length > 1) {
+                                    repeatWeekdays.remove(weekday);
+                                  }
+                                });
+                              },
+                            );
+                          }),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       TextFormField(
                         initialValue: noteText,
@@ -1278,26 +1259,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       ),
                       const SizedBox(height: 6),
                       FilledButton.icon(
-                        onPressed: () {
-                          final occurrenceDates = (editingPlan == null ||
-                                  editingSeries ||
-                                  editingAfterThis)
-                              ? TrainingPlanSeriesBuilder.buildOccurrenceDates(
+                        onPressed: () async {
+                          final editScope = editingPlan == null || !hasSeries
+                              ? _PlanEditScope.single
+                              : await _pickPlanEditScope(editingPlan);
+                          if (editScope == null || !context.mounted) return;
+                          final editingSeries =
+                              editScope == _PlanEditScope.series;
+                          final editingAfterThis =
+                              editScope == _PlanEditScope.afterThis;
+                          final scheduledAt = DateTime(
+                            planDay.year,
+                            planDay.month,
+                            planDay.day,
+                            time.hour,
+                            time.minute,
+                          );
+                          final occurrenceDates = editScope ==
+                                  _PlanEditScope.single
+                              ? <DateTime>[scheduledAt]
+                              : TrainingPlanSeriesBuilder.buildOccurrenceDates(
                                   startDate: planDay,
                                   endDate: planEndDay,
                                   weekdays: repeatWeekdays.toList(),
                                   hour: time.hour,
                                   minute: time.minute,
-                                )
-                              : <DateTime>[
-                                  DateTime(
-                                    planDay.year,
-                                    planDay.month,
-                                    planDay.day,
-                                    time.hour,
-                                    time.minute,
-                                  ),
-                                ];
+                                );
                           if (occurrenceDates.isEmpty) {
                             AppFeedback.showMessage(
                               context,
@@ -1307,9 +1294,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             );
                             return;
                           }
-                          final isRecurring = (editingPlan == null ||
-                                  editingSeries ||
-                                  editingAfterThis) &&
+                          final isRecurring = editScope !=
+                                  _PlanEditScope.single &&
                               TrainingPlanSeriesBuilder.isRecurringSelection(
                                 startDate: planDay,
                                 endDate: planEndDay,
@@ -1357,13 +1343,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             );
                             return;
                           }
-                          final scheduledAt = DateTime(
-                            planDay.year,
-                            planDay.month,
-                            planDay.day,
-                            time.hour,
-                            time.minute,
-                          );
                           Navigator.of(context).pop(
                             _PlanSheetResult(
                               plans: editingPlan == null
@@ -1379,8 +1358,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       seriesStartDate: planDay,
                                       seriesEndDate: planEndDay,
                                     )
-                                  : editingSeries
-                                      ? _buildPlanDrafts(
+                                  : editScope == _PlanEditScope.single
+                                      ? <_TrainingPlan>[
+                                          _TrainingPlan(
+                                            id: editingPlan.id,
+                                            scheduledAt: scheduledAt,
+                                            category: category,
+                                            durationMinutes: duration,
+                                            reminderMinutesBefore:
+                                                reminderBefore,
+                                            repeatWeekdays:
+                                                editingPlan.repeatWeekdays,
+                                            alarmLoopEnabled: alarmLoopEnabled,
+                                            note: noteText.trim(),
+                                            seriesId: editingPlan.seriesId,
+                                            seriesStartDate:
+                                                editingPlan.seriesStartDate,
+                                            seriesEndDate:
+                                                editingPlan.seriesEndDate,
+                                          ),
+                                        ]
+                                      : _buildPlanDrafts(
                                           occurrenceDates: occurrenceDates,
                                           category: category,
                                           durationMinutes: duration,
@@ -1395,51 +1393,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           existingSeriesId: isRecurring
                                               ? editingPlan.seriesId
                                               : null,
-                                        )
-                                      : editingAfterThis
-                                          ? _buildPlanDrafts(
-                                              occurrenceDates: occurrenceDates,
-                                              category: category,
-                                              durationMinutes: duration,
-                                              reminderMinutesBefore:
-                                                  reminderBefore,
-                                              repeatWeekdays:
-                                                  repeatWeekdays.toList(),
-                                              alarmLoopEnabled:
-                                                  alarmLoopEnabled,
-                                              note: noteText.trim(),
-                                              isRecurring: isRecurring,
-                                              seriesStartDate: planDay,
-                                              seriesEndDate: planEndDay,
-                                              existingSeriesId: isRecurring
-                                                  ? editingPlan.seriesId
-                                                  : null,
-                                            )
-                                          : <_TrainingPlan>[
-                                              _TrainingPlan(
-                                                id: editingPlan.id,
-                                                scheduledAt: scheduledAt,
-                                                category: category,
-                                                durationMinutes: duration,
-                                                reminderMinutesBefore:
-                                                    reminderBefore,
-                                                repeatWeekdays:
-                                                    editingPlan.repeatWeekdays,
-                                                alarmLoopEnabled:
-                                                    alarmLoopEnabled,
-                                                note: noteText.trim(),
-                                                seriesId: editingPlan.seriesId,
-                                                seriesStartDate:
-                                                    editingPlan.seriesStartDate,
-                                                seriesEndDate:
-                                                    editingPlan.seriesEndDate,
-                                              ),
-                                            ],
-                              scope: editingSeries
-                                  ? _PlanEditScope.series
-                                  : editingAfterThis
-                                      ? _PlanEditScope.afterThis
-                                      : _PlanEditScope.single,
+                                        ),
+                              scope: editScope,
                             ),
                           );
                         },
@@ -2241,7 +2196,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       ),
     );
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {
+        _newsCountFuture = NewsBadgeService.unreadCount(
+          widget.optionRepository,
+        );
+      });
+    }
   }
 
   Future<void> _openQuiz(BuildContext context) async {
