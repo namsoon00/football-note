@@ -64,7 +64,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   final PageController _pageController = PageController();
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
-  late Future<int> _newsCountFuture;
   final Set<String> _expandedTrainingGroups = <String>{};
   String? _lastViewedDiaryToken;
 
@@ -95,7 +94,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _selectedThemeId =
         widget.optionRepository.getValue<String>(_diaryThemeKey) ??
         _DiaryThemePalette.notebook.id;
-    _newsCountFuture = NewsBadgeService.unreadCount(widget.optionRepository);
+    NewsBadgeService.refresh(widget.optionRepository);
   }
 
   @override
@@ -172,9 +171,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
               return Column(
                 children: [
-                  FutureBuilder<int>(
-                    future: _newsCountFuture,
-                    builder: (context, snapshot) => Builder(
+                  ValueListenableBuilder<int>(
+                    valueListenable: NewsBadgeService.listenable(
+                      widget.optionRepository,
+                    ),
+                    builder: (context, newsCount, _) => Builder(
                       builder: (headerContext) => SharedTabHeader(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                         onLeadingTap: showBack
@@ -192,7 +193,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                 widget.settingsService != null
                             ? _openNews
                             : null,
-                        newsBadgeCount: snapshot.data ?? 0,
+                        newsBadgeCount: newsCount,
                         onQuizTap:
                             widget.trainingService != null &&
                                 widget.localeService != null &&
@@ -412,11 +413,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ),
     );
     if (mounted) {
-      setState(() {
-        _newsCountFuture = NewsBadgeService.unreadCount(
-          widget.optionRepository,
-        );
-      });
+      await NewsBadgeService.refresh(widget.optionRepository);
     }
   }
 

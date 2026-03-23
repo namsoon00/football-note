@@ -54,7 +54,6 @@ class StatsScreen extends StatefulWidget {
 class _StatsScreenState extends State<StatsScreen> {
   late final BenchmarkService _benchmarkService;
   late DateTimeRange _selectedRange;
-  late Future<int> _newsCountFuture;
   int _statsTabIndex = 0;
   bool _routePushInFlight = false;
 
@@ -63,7 +62,7 @@ class _StatsScreenState extends State<StatsScreen> {
     super.initState();
     _benchmarkService = BenchmarkService(widget.optionRepository);
     _selectedRange = widget.initialRange ?? _recentWeekRange();
-    _newsCountFuture = NewsBadgeService.unreadCount(widget.optionRepository);
+    NewsBadgeService.refresh(widget.optionRepository);
     _refreshBenchmarks();
   }
 
@@ -209,14 +208,16 @@ class _StatsScreenState extends State<StatsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          FutureBuilder<int>(
-            future: _newsCountFuture,
-            builder: (context, snapshot) => Builder(
+          ValueListenableBuilder<int>(
+            valueListenable: NewsBadgeService.listenable(
+              widget.optionRepository,
+            ),
+            builder: (context, newsCount, _) => Builder(
               builder: (context) => SharedTabHeader(
                 padding: EdgeInsets.zero,
                 onLeadingTap: () => Scaffold.of(context).openDrawer(),
                 onNewsTap: () => _openNews(context),
-                newsBadgeCount: snapshot.data ?? 0,
+                newsBadgeCount: newsCount,
                 onQuizTap: () => _openQuiz(context),
                 onNotificationTap: () => _openNotifications(context),
                 notificationBadgeCount: reminderUnreadCount,
@@ -552,11 +553,7 @@ class _StatsScreenState extends State<StatsScreen> {
       ),
     );
     if (mounted) {
-      setState(() {
-        _newsCountFuture = NewsBadgeService.unreadCount(
-          widget.optionRepository,
-        );
-      });
+      await NewsBadgeService.refresh(widget.optionRepository);
     }
   }
 

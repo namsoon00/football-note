@@ -99,7 +99,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<_TrainingPlan> _plans = const <_TrainingPlan>[];
   bool _quickCreateHandled = false;
   bool _overlayOpenInFlight = false;
-  late Future<int> _newsCountFuture;
 
   @override
   void initState() {
@@ -110,7 +109,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     _badgeService = TrainingPlanBadgeService(widget.optionRepository);
     _plans = _loadPlans();
-    _newsCountFuture = NewsBadgeService.unreadCount(widget.optionRepository);
+    NewsBadgeService.refresh(widget.optionRepository);
     _calendarExpanded =
         widget.optionRepository.getValue<bool>(_calendarExpandedKey) ?? true;
     _calendarFormat = _loadCalendarFormat();
@@ -273,14 +272,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
               return Column(
                 children: [
-                  FutureBuilder<int>(
-                    future: _newsCountFuture,
-                    builder: (context, newsSnapshot) => Builder(
+                  ValueListenableBuilder<int>(
+                    valueListenable: NewsBadgeService.listenable(
+                      widget.optionRepository,
+                    ),
+                    builder: (context, newsCount, _) => Builder(
                       builder: (context) => SharedTabHeader(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                         onLeadingTap: () => Scaffold.of(context).openDrawer(),
                         onNewsTap: () => _openNews(context),
-                        newsBadgeCount: newsSnapshot.data ?? 0,
+                        newsBadgeCount: newsCount,
                         onQuizTap: () => _openQuiz(context),
                         onNotificationTap: () => _openNotifications(context),
                         notificationBadgeCount: reminderUnreadCount,
@@ -2212,11 +2213,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
     if (mounted) {
-      setState(() {
-        _newsCountFuture = NewsBadgeService.unreadCount(
-          widget.optionRepository,
-        );
-      });
+      await NewsBadgeService.refresh(widget.optionRepository);
     }
   }
 

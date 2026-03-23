@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../domain/entities/news_article.dart';
 import '../domain/repositories/option_repository.dart';
 import '../infrastructure/rss_news_repository.dart';
@@ -5,6 +7,13 @@ import 'news_read_state.dart';
 import 'news_service.dart';
 
 class NewsBadgeService {
+  static final ValueNotifier<int> _unreadCountNotifier = ValueNotifier<int>(0);
+
+  static ValueListenable<int> listenable(OptionRepository optionRepository) {
+    refresh(optionRepository);
+    return _unreadCountNotifier;
+  }
+
   static Future<int> unreadCount(OptionRepository optionRepository) async {
     final service = NewsService(RssNewsRepository(optionRepository));
     final channels = service.channels();
@@ -27,6 +36,13 @@ class NewsBadgeService {
     );
 
     return NewsReadState.unreadCount(optionRepository, articles);
+  }
+
+  static Future<void> refresh(OptionRepository optionRepository) async {
+    final count = await unreadCount(optionRepository);
+    if (_unreadCountNotifier.value != count) {
+      _unreadCountNotifier.value = count;
+    }
   }
 
   static String _articleKey(NewsArticle article) {

@@ -87,12 +87,11 @@ class _LogsScreenState extends State<LogsScreen> {
   List<String> _programOptions = [];
   static const int _pageSize = 20;
   int _visibleCount = _pageSize;
-  late Future<int> _newsCountFuture;
 
   @override
   void initState() {
     super.initState();
-    _newsCountFuture = NewsBadgeService.unreadCount(widget.optionRepository);
+    NewsBadgeService.refresh(widget.optionRepository);
   }
 
   @override
@@ -217,15 +216,17 @@ class _LogsScreenState extends State<LogsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      FutureBuilder<int>(
-                        future: _newsCountFuture,
-                        builder: (context, snapshot) => Builder(
+                      ValueListenableBuilder<int>(
+                        valueListenable: NewsBadgeService.listenable(
+                          widget.optionRepository,
+                        ),
+                        builder: (context, newsCount, _) => Builder(
                           builder: (context) => SharedTabHeader(
                             padding: EdgeInsets.zero,
                             onLeadingTap: () =>
                                 Scaffold.of(context).openDrawer(),
                             onNewsTap: () => _openNews(context),
-                            newsBadgeCount: snapshot.data ?? 0,
+                            newsBadgeCount: newsCount,
                             onQuizTap: () => _openQuiz(context),
                             onNotificationTap: () =>
                                 _openNotifications(context),
@@ -922,11 +923,7 @@ class _LogsScreenState extends State<LogsScreen> {
       ),
     );
     if (mounted) {
-      setState(() {
-        _newsCountFuture = NewsBadgeService.unreadCount(
-          widget.optionRepository,
-        );
-      });
+      await NewsBadgeService.refresh(widget.optionRepository);
     }
   }
 
