@@ -552,27 +552,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 6),
-                                    Wrap(
-                                      spacing: 12,
-                                      runSpacing: 6,
-                                      alignment: WrapAlignment.center,
-                                      children: [
-                                        _CalendarMarkerLegendItem(
-                                          color: const Color(0xFF0FA968),
-                                          label:
-                                              isKo ? '훈련 기록' : 'Training log',
-                                        ),
-                                        _CalendarMarkerLegendItem(
-                                          color: const Color(0xFF2F80ED),
-                                          label: isKo ? '시합 기록' : 'Match',
-                                        ),
-                                        _CalendarMarkerLegendItem(
-                                          color: const Color(0xFFE3A008),
-                                          label:
-                                              isKo ? '훈련 계획' : 'Training plan',
-                                        ),
-                                      ],
-                                    ),
                                   ],
                                 ),
                               ),
@@ -2385,30 +2364,6 @@ class _CalendarHeaderChipButton extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
       ),
-    );
-  }
-}
-
-class _CalendarMarkerLegendItem extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _CalendarMarkerLegendItem({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _CalendarMarkerSegment(color: color),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-        ),
-      ],
     );
   }
 }
