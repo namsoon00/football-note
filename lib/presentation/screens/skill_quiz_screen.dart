@@ -4015,8 +4015,12 @@ List<_FootballQuizQuestion> _buildFootballQuizPool() {
     );
   }
 
-  if (questions.length != 900) {
-    throw StateError('Football quiz pool must contain exactly 900 questions.');
+  final expectedSourceCount =
+      oxFacts.length + mcqSeeds.length + shortSeeds.length;
+  if (questions.length != expectedSourceCount) {
+    throw StateError(
+      'Football quiz pool size mismatch. expected=$expectedSourceCount actual=${questions.length}',
+    );
   }
   final deduplicated = _deduplicateQuizQuestions(questions);
   _runQuizPoolQualityChecks(deduplicated);
@@ -4070,158 +4074,32 @@ List<_FootballQuizQuestion> _deduplicateQuestionsByConcept(
 }
 
 List<_OxFactSeed> _buildOxSeedPool300() {
-  final base = _oxFacts();
-  final contextKo = [
-    '경기 시작 전 체크',
-    '전반 중반 상황',
-    '후반 종료 직전 상황',
-    '코너킥 직후 상황',
-    '역습 전개 상황',
-    '수비 전환 상황',
-    '압박 상황',
-    '빌드업 상황',
-    '골킥 연결 상황',
-    '세트피스 수비 상황',
-  ];
-  final contextEn = [
-    'pre-kickoff check',
-    'mid-first-half scenario',
-    'late-second-half scenario',
-    'post-corner scenario',
-    'counterattack scenario',
-    'defensive transition scenario',
-    'pressing scenario',
-    'build-up scenario',
-    'goal-kick sequence',
-    'set-piece defense',
-  ];
-  final out = <_OxFactSeed>[];
-  for (var i = 0; i < 300; i++) {
-    final seed = base[i % base.length];
-    final k = i % contextKo.length;
-    out.add(
-      _OxFactSeed(
-        id: '${seed.id}_$i',
-        difficulty: seed.difficulty,
-        category: seed.category,
-        koTrueStatement: '${seed.koTrueStatement} (${contextKo[k]})',
-        enTrueStatement: '${seed.enTrueStatement} (${contextEn[k]})',
-        koFalseStatement: '${seed.koFalseStatement} (${contextKo[k]})',
-        enFalseStatement: '${seed.enFalseStatement} (${contextEn[k]})',
-        koExplain: seed.koExplain,
-        enExplain: seed.enExplain,
-        koNextPoint: seed.koNextPoint,
-        enNextPoint: seed.enNextPoint,
-      ),
-    );
-  }
-  return out;
+  return _oxFacts();
 }
 
 List<_McqSeed> _buildMcqSeedPool300() {
-  final base = _mcqSeeds();
-  final contextKo = [
-    '실전 기준',
-    '훈련 기준',
-    '경기장 기준',
-    '코치 지시 기준',
-    '기본기 기준',
-    '수비 기준',
-    '공격 기준',
-    '전환 기준',
-  ];
-  final contextEn = [
-    'match context',
-    'training context',
-    'on-pitch context',
-    'coach instruction context',
-    'fundamental context',
-    'defending context',
-    'attacking context',
-    'transition context',
-  ];
-  final out = <_McqSeed>[];
-  for (var i = 0; i < 300; i++) {
-    final seed = base[i % base.length];
-    final k = i % contextKo.length;
-    out.add(
-      _McqSeed(
-        id: '${seed.id}_$i',
-        difficulty: seed.difficulty,
-        category: seed.category,
-        koStem: '${seed.koStem} (${contextKo[k]})',
-        enStem: '${seed.enStem} (${contextEn[k]})',
-        options: seed.options,
-        correctIndex: seed.correctIndex,
-        koExplain: seed.koExplain,
-        enExplain: seed.enExplain,
-        koNextPoint: seed.koNextPoint,
-        enNextPoint: seed.enNextPoint,
-      ),
-    );
-  }
-  return out;
+  return _mcqSeeds();
 }
 
 List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
   final keywords = _shortAnswerKnowledgeSeeds();
-  final contextKo = [
-    '유스팀 훈련 메모',
-    '실전 코칭 포인트',
-    '비디오 미팅 포인트',
-    '경기 전 체크리스트',
-    '복습 테스트',
-    '포지션별 이해 확인',
-  ];
-  final contextEn = [
-    'academy training note',
-    'match coaching point',
-    'video review point',
-    'pre-match checklist',
-    'review test',
-    'position understanding check',
-  ];
-  final questionKoTemplates = [
-    '빈칸에 들어갈 단어를 쓰세요: "{clue}" ({context})',
-    '다음 설명에 맞는 용어를 입력하세요: "{clue}" ({context})',
-    '한 단어 또는 짧은 용어로 답하세요: "{clue}" ({context})',
-    '코치가 강조한 핵심 개념을 써보세요: "{clue}" ({context})',
-    '정답 용어를 입력하세요: "{clue}" ({context})',
-  ];
-  final questionEnTemplates = [
-    'Type the term that fits: "{clue}" ({context})',
-    'Enter the key word for: "{clue}" ({context})',
-    'Answer with one term: "{clue}" ({context})',
-    'Write the concept term: "{clue}" ({context})',
-    'Fill in the right word: "{clue}" ({context})',
-  ];
-  final out = <_ShortAnswerSeed>[];
-  for (var i = 0; i < 300; i++) {
-    final key = keywords[i % keywords.length];
-    final t = i % questionKoTemplates.length;
-    final koPrompt = questionKoTemplates[t]
-        .replaceAll('{clue}', key.koClue)
-        .replaceAll('{context}', contextKo[i % contextKo.length]);
-    final enPrompt = questionEnTemplates[t]
-        .replaceAll('{clue}', key.enClue)
-        .replaceAll('{context}', contextEn[i % contextEn.length]);
-    out.add(
-      _ShortAnswerSeed(
-        id: 'short_$i',
-        conceptKey: key.id,
-        difficulty: key.difficulty,
-        category: key.category,
-        koPrompt: koPrompt,
-        enPrompt: enPrompt,
-        acceptedAnswers: key.acceptedAnswers,
-        koExplain: key.koExplain,
-        enExplain: key.enExplain,
-        koNextPoint: key.koNextPoint,
-        enNextPoint: key.enNextPoint,
-      ),
+  return keywords.asMap().entries.map((entry) {
+    final i = entry.key;
+    final key = entry.value;
+    return _ShortAnswerSeed(
+      id: 'short_$i',
+      conceptKey: key.id,
+      difficulty: key.difficulty,
+      category: key.category,
+      koPrompt: '다음 설명의 용어를 입력하세요: "${key.koClue}"',
+      enPrompt: 'Write the term for: "${key.enClue}"',
+      acceptedAnswers: key.acceptedAnswers,
+      koExplain: key.koExplain,
+      enExplain: key.enExplain,
+      koNextPoint: key.koNextPoint,
+      enNextPoint: key.enNextPoint,
     );
-  }
-  return out;
+  }).toList(growable: false);
 }
 
 void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
@@ -4269,8 +4147,8 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
   }
 
   final selfChecks = <({String prefix, String answer})>[
-    (prefix: 'ox_offside_own_half_', answer: 'O'),
-    (prefix: 'mcq_support_angle_best_', answer: '옆이나 대각 뒤의 패스 각도'),
+    (prefix: 'ox_offside_own_half', answer: 'O'),
+    (prefix: 'mcq_support_angle_best', answer: '옆이나 대각 뒤의 패스 각도'),
     (prefix: 'sa_short_0', answer: '게겐프레싱'),
     (prefix: 'sa_short_1', answer: '하프스페이스'),
   ];
