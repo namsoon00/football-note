@@ -1375,8 +1375,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   String _buildDiary(_DiaryDayData day) {
     final paragraphs = <String>[
       _isKo
-          ? '${_formatDiaryDate(day.date)} 기록을 코치 시선으로 다시 읽는다. 주된 장소는 ${_topPlaces(day.entries)}였고, 오늘 훈련의 중심은 ${_topFocus(day.trainingEntries)}에 모였다.'
-          : 'This is the coach-style review for ${_formatDiaryDate(day.date)}. The main place was ${_topPlaces(day.entries)}, and the day centered on ${_topFocus(day.trainingEntries)}.',
+          ? '${_formatDiaryDate(day.date)}의 기록을 다시 펼쳐 보았다. 주로 ${_topPlaces(day.entries)}에서 시간을 보냈고, 하루의 중심은 ${_topFocus(day.trainingEntries)} 쪽에 오래 머물렀다.'
+          : 'I opened the notes for ${_formatDiaryDate(day.date)} again. Most of the day stayed around ${_topPlaces(day.entries)}, and the focus leaned toward ${_topFocus(day.trainingEntries)}.',
     ];
 
     if (day.plans.isNotEmpty) {
@@ -1389,8 +1389,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           .join(', ');
       paragraphs.add(
         _isKo
-            ? '코치 메모에는 오늘 계획이 $planLines 순서로 남아 있다. 계획선이 분명해서 훈련 흐름도 크게 흔들리지 않았다.'
-            : 'The coach note keeps today\'s plan in this order: $planLines. Because the plan line was clear, the training flow stayed steady.',
+            ? '미리 적어 둔 계획은 $planLines 순서였다. 시작 전에 길을 정해 둔 덕분에 하루의 흐름이 크게 흔들리지는 않았다.'
+            : 'The plans were lined up as $planLines. Setting the order early helped the day stay steady.',
       );
     }
 
@@ -1401,7 +1401,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
       paragraphs.add(
         _isKo
-            ? '오늘 훈련은 ${day.trainingEntries.length}회, 총 $totalMinutes분이다. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}'
+            ? '훈련은 ${day.trainingEntries.length}번, 총 $totalMinutes분이었다. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}'
             : 'There were ${day.trainingEntries.length} training blocks today for a total of $totalMinutes minutes. ${day.trainingEntries.map(_trainingDiarySentence).join(' ')}',
       );
     }
@@ -1409,8 +1409,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (day.matchEntries.isNotEmpty) {
       paragraphs.add(
         _isKo
-            ? '시합 장면에서는 ${day.matchEntries.map(_matchDiarySentence).join(' ')}'
-            : 'In the match phase, ${day.matchEntries.map(_matchDiarySentence).join(' ')}',
+            ? '경기 장면을 다시 보면 ${day.matchEntries.map(_matchDiarySentence).join(' ')}'
+            : 'Looking back at the match moments, ${day.matchEntries.map(_matchDiarySentence).join(' ')}',
       );
     }
 
@@ -1431,8 +1431,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
     paragraphs.add(
       _isKo
-          ? '코치 정리로 남기면 오늘 기록은 결과보다 흐름을 보여 준다. 잘된 장면과 흔들린 장면을 같이 남겨야 다음 목표도 더 정확해진다.'
-          : 'As a coach recap, today\'s record shows the flow more than the result. Keeping the steady and shaky moments together makes the next goal clearer.',
+          ? '하루를 이렇게 문장으로 남기고 나니 결과보다 흐름이 더 또렷해진다. 잘된 장면과 흔들린 장면을 같이 적어 둔 덕분에 다음에 무엇을 붙잡아야 할지도 조금 더 선명해졌다.'
+          : 'Writing the day out makes the flow clearer than the result itself. Keeping both the good moments and the shaky ones makes the next focus easier to see.',
     );
     return paragraphs.join('\n\n');
   }
@@ -1519,38 +1519,44 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _trainingDiarySentence(TrainingEntry entry) {
     final cleanNotes = _stripWeatherFromNotes(entry.notes);
+    final typeText = entry.type.trim().isEmpty
+        ? (_isKo ? '훈련' : 'training')
+        : entry.type.trim();
     final locationText = entry.location.trim().isEmpty
-        ? '장소 기록 없이'
-        : '${entry.location.trim()}에서';
+        ? (_isKo ? '장소를 따로 적지는 않았지만' : 'without logging a place')
+        : (_isKo
+              ? '${entry.location.trim()}에서'
+              : 'at ${entry.location.trim()}');
     final noteParts = <String>[
       _isKo
-          ? '강도 ${entry.intensity}, 컨디션 ${entry.mood}로 ${entry.type} ${entry.durationMinutes}분을 진행했다'
-          : '${entry.type} ran for ${entry.durationMinutes} minutes with intensity ${entry.intensity} and condition ${entry.mood}',
+          ? '$locationText $typeText을 ${entry.durationMinutes}분 했다. 강도는 ${entry.intensity}, 컨디션은 ${entry.mood} 정도였다.'
+          : '$typeText stayed with the body for ${entry.durationMinutes} minutes $locationText. Intensity was ${entry.intensity} and condition felt like ${entry.mood}.',
       if (_trainingProgramLabel(entry).isNotEmpty)
         _isKo
-            ? '훈련 프로그램은 ${_trainingProgramLabel(entry)}로 정리했다'
-            : 'the training program was ${_trainingProgramLabel(entry)}',
+            ? '프로그램은 ${_trainingProgramLabel(entry)} 중심으로 정리해 두었다.'
+            : 'The program stayed around ${_trainingProgramLabel(entry)}.',
       if (entry.goodPoints.trim().isNotEmpty)
         _isKo
-            ? '잘된 장면은 ${entry.goodPoints.trim()}'
-            : 'the part that held up was ${entry.goodPoints.trim()}',
+            ? '잘 풀린 장면은 ${entry.goodPoints.trim()}였다.'
+            : 'The part that held up was ${entry.goodPoints.trim()}.',
       if (entry.improvements.trim().isNotEmpty)
         _isKo
-            ? '아직 손봐야 할 부분은 ${entry.improvements.trim()}'
-            : 'what still asks for attention is ${entry.improvements.trim()}',
+            ? '아직 손봐야 할 부분은 ${entry.improvements.trim()}였다.'
+            : 'What still asks for attention is ${entry.improvements.trim()}.',
       if (cleanNotes.isNotEmpty)
-        _isKo ? '메모에는 $cleanNotes' : 'the note admitted $cleanNotes',
+        _isKo
+            ? '메모에는 $cleanNotes 라고 남겨 두었다.'
+            : 'The note admitted: $cleanNotes.',
     ];
     final goalText = _trainingGoalText(entry);
     if (goalText.isNotEmpty) {
       noteParts.add(
-        _isKo ? '다음 훈련 목표는 $goalText' : 'the next training goal is $goalText',
+        _isKo
+            ? '다음 훈련에서는 $goalText부터 먼저 확인해 보고 싶다.'
+            : 'For the next session, I want to check $goalText first.',
       );
     }
-    final suffix = noteParts.isEmpty ? '' : ' ${noteParts.join('. ')}.';
-    return _isKo
-        ? '코치는 $locationText 오늘 훈련을 확인한다.$suffix'
-        : '${entry.type} stayed with the body for ${entry.durationMinutes} minutes ${entry.location.trim().isEmpty ? 'without a logged place' : 'at ${entry.location.trim()}'}.$suffix';
+    return noteParts.join(' ');
   }
 
   String _trainingProgramLabel(TrainingEntry entry) {
@@ -1686,8 +1692,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       if (entry.notes.trim().isNotEmpty) entry.notes.trim(),
     ];
     return _isKo
-        ? '${entry.opponentTeam.isEmpty ? '이름이 남지 않은 경기' : '${entry.opponentTeam}전'}${result == null ? '' : '은 $result'}으로 기록됐다.${extras.isEmpty ? ' 점수만큼 마음의 결도 남아 있었을 것이다.' : ' 그리고 ${extras.join(', ')}까지 빠짐없이 적어 두었다.'}'
-        : '${entry.opponentTeam.isEmpty ? 'a match with no opponent logged' : 'the match against ${entry.opponentTeam}'}${result == null ? '' : ' finished $result'}.${extras.isEmpty ? ' The score remains, even if the finer emotions were left unsaid.' : ' The notes also kept ${extras.join(', ')} close.'}';
+        ? '${entry.opponentTeam.isEmpty ? '상대 이름을 적지 못한 경기' : '${entry.opponentTeam}전'}${result == null ? '' : '은 $result'}으로 남았다.${extras.isEmpty ? ' 숫자만 남았어도 그날의 분위기는 쉽게 잊히지 않았을 것이다.' : ' 여기에 ${extras.join(', ')}까지 함께 적어 두어서 장면이 더 또렷하게 남았다.'}'
+        : '${entry.opponentTeam.isEmpty ? 'a match with no opponent logged' : 'the match against ${entry.opponentTeam}'}${result == null ? '' : ' finished $result'}.${extras.isEmpty ? ' Even with only the score, the feeling of the day probably lingered.' : ' The notes also kept ${extras.join(', ')} close.'}';
   }
 
   String _injurySummary(TrainingEntry entry) {
@@ -1712,8 +1718,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .toList(growable: false);
     if (injuries.isEmpty) return '';
     return _isKo
-        ? '몸을 돌보는 기록을 보면 부상 기록은 ${injuries.join(' / ')}. 통증 흐름을 남겨 둔 덕분에 다음 훈련 강도 조절이 더 쉬워진다.'
-        : 'In the body-care notes, injury records were ${injuries.join(' / ')}. Keeping this pain flow makes it easier to adjust next-session intensity.';
+        ? '몸 상태를 따로 적어 둔 기록에는 ${injuries.join(' / ')}가 보였다. 통증의 결을 이렇게 남겨 두면 다음 훈련에서 어느 정도로 강도를 조절해야 할지 훨씬 수월해진다.'
+        : 'The body-care notes showed ${injuries.join(' / ')}. Keeping that pain flow written down makes the next intensity decision much easier.';
   }
 
   String _buildConditioningDiaryParagraph(_DiaryDayData day) {
@@ -1745,7 +1751,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ? ' / $jumpMinutesTotal min'
         : '';
     if (_isKo) {
-      return '보조 기록에는 리프팅 $liftingTotal회, 줄넘기 $jumpCountTextKo$jumpMinutesTextKo이 남아 있다. 메인 훈련과 분리해서 보면 준비 루틴의 흐름이 더 또렷해진다.';
+      return '보조 기록에는 리프팅 $liftingTotal회, 줄넘기 $jumpCountTextKo$jumpMinutesTextKo이 남아 있었다. 메인 훈련과 따로 읽어 보니 몸을 깨우는 루틴이 어떤 흐름으로 쌓였는지도 더 분명하게 보였다.';
     }
     return 'Support logs recorded lifting $liftingTotal reps and jump rope $jumpCountTextEn$jumpMinutesTextEn. Reading them separately from main training makes the prep routine clearer.';
   }
@@ -1765,7 +1771,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         })
         .join(' / ');
     return _isKo
-        ? '훈련보드에는 $boardNotes 같은 그림과 메모가 남아 있다. 말로 다 적지 못한 움직임은 이런 도식 안에서 다시 또렷해진다.'
+        ? '훈련보드에는 $boardNotes 같은 그림과 메모가 남아 있었다. 말로는 다 적지 못한 움직임도 이런 도식 안에 다시 담아 두니 머릿속에서 한 번 더 정리된다.'
         : 'The training boards kept sketches and notes such as $boardNotes. The movements that were difficult to explain in plain sentences become clear again inside those diagrams.';
   }
 
@@ -2108,7 +2114,7 @@ class _DiaryNotebookBackgroundPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
     }
 
-    final marginX = size.width * 0.14;
+    final marginX = size.width * 0.10;
     final marginPaint = Paint()
       ..color = marginColor.withValues(alpha: 0.74)
       ..strokeWidth = 1.4;

@@ -181,6 +181,13 @@ void main() {
     expect(find.byTooltip('다이어리'), findsNothing);
   });
 
+  testWidgets('캘린더 범례가 기록 점과 계획 점 설명을 보여준다', (tester) async {
+    await pumpCalendar(tester);
+
+    expect(find.text('훈련/시합 기록'), findsOneWidget);
+    expect(find.text('훈련 계획'), findsWidgets);
+  });
+
   testWidgets('계획 마커는 유지하고 파란 마커는 시합이 있는 날에만 표시한다', (tester) async {
     final today = DateTime.now();
     await trainingService.add(
