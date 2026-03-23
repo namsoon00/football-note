@@ -7,38 +7,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('skill quiz shows entry hub cards without top-right mode button',
-      (
-    WidgetTester tester,
-  ) async {
-    final repository = _MemoryOptionRepository();
+  testWidgets(
+    'skill quiz shows entry hub cards without top-right mode button',
+    (WidgetTester tester) async {
+      final repository = _MemoryOptionRepository();
 
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: SkillQuizScreen(optionRepository: repository),
-      ),
-    );
-    await tester.pump();
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SkillQuizScreen(optionRepository: repository),
+        ),
+      );
+      await tester.pump();
 
-    expect(find.text('축구 퀴즈'), findsOneWidget);
-    expect(find.text('오늘의 문제'), findsOneWidget);
-    expect(find.byTooltip('퀴즈 모드 선택'), findsNothing);
+      expect(find.text('축구 퀴즈'), findsOneWidget);
+      expect(find.text('오늘의 문제'), findsOneWidget);
+      expect(find.byTooltip('퀴즈 모드 선택'), findsNothing);
 
-    await tester.scrollUntilVisible(
-      find.text('퀴즈 히스토리'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('퀴즈 히스토리'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('전체 문제 보기'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('전체 문제 보기'), findsOneWidget);
+      expect(find.text('퀴즈 히스토리'), findsOneWidget);
 
-    await tester.tap(find.text('오늘의 문제'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('전체 문제 보기'));
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('진행 1/10'), findsOneWidget);
-  });
+      expect(find.text('코치용 퀴즈 라이브러리'), findsOneWidget);
+      expect(find.textContaining('전체 900문제'), findsOneWidget);
+      expect(find.textContaining('자동 검증 통과'), findsOneWidget);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('퀴즈 히스토리'), findsOneWidget);
+      expect(find.text('오늘의 문제'), findsOneWidget);
+    },
+  );
 
   testWidgets('skill quiz restores saved general football question session', (
     WidgetTester tester,
@@ -218,8 +227,9 @@ void main() {
     expect(find.text('다음'), findsOneWidget);
   });
 
-  testWidgets('quiz history opens saved past sessions',
-      (WidgetTester tester) async {
+  testWidgets('quiz history opens saved past sessions', (
+    WidgetTester tester,
+  ) async {
     final finishedAt = DateTime(2026, 3, 23, 9, 30);
     final repository = _MemoryOptionRepository()
       ..seed(
