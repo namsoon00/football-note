@@ -1862,7 +1862,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       if (picked.any((item) => item.conceptKey == question.conceptKey)) {
         return picked;
       }
-      if (picked.any((item) => _sessionQuestionContentKey(item) == contentKey)) {
+      if (picked
+          .any((item) => _sessionQuestionContentKey(item) == contentKey)) {
         return picked;
       }
       picked.add(question);
@@ -4078,12 +4079,15 @@ List<_OxFactSeed> _buildOxSeedPool300() {
 }
 
 List<_McqSeed> _buildMcqSeedPool300() {
-  return _mcqSeeds();
+  return <_McqSeed>[
+    ..._mcqSeeds(),
+    ..._generatedGlobalFootballMcqSeeds(),
+  ];
 }
 
 List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
   final keywords = _shortAnswerKnowledgeSeeds();
-  return keywords.asMap().entries.map((entry) {
+  final seeded = keywords.asMap().entries.map((entry) {
     final i = entry.key;
     final key = entry.value;
     return _ShortAnswerSeed(
@@ -4100,6 +4104,1664 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
       enNextPoint: key.enNextPoint,
     );
   }).toList(growable: false);
+  return <_ShortAnswerSeed>[
+    ...seeded,
+    ..._generatedGlobalFootballShortAnswerSeeds(),
+  ];
+}
+
+class _KoEnPair {
+  final String ko;
+  final String en;
+
+  const _KoEnPair({required this.ko, required this.en});
+}
+
+List<_McqSeed> _generatedGlobalFootballMcqSeeds() {
+  final generated = <_McqSeed>[];
+
+  const positionPool = <_KoEnPair>[
+    _KoEnPair(ko: '골키퍼', en: 'Goalkeeper'),
+    _KoEnPair(ko: '센터백', en: 'Center Back'),
+    _KoEnPair(ko: '풀백', en: 'Full Back'),
+    _KoEnPair(ko: '수비형 미드필더', en: 'Defensive Midfielder'),
+    _KoEnPair(ko: '중앙 미드필더', en: 'Central Midfielder'),
+    _KoEnPair(ko: '공격형 미드필더', en: 'Attacking Midfielder'),
+    _KoEnPair(ko: '윙어', en: 'Winger'),
+    _KoEnPair(ko: '스트라이커', en: 'Striker'),
+  ];
+
+  final playerFacts = _playerKnowledgeBank();
+  for (var i = 0; i < playerFacts.length; i++) {
+    final player = playerFacts[i];
+    final correct = _KoEnPair(ko: player.koPosition, en: player.enPosition);
+    generated.add(
+      _McqSeed(
+        id: 'gen_player_pos_${player.id}',
+        difficulty: 2,
+        category: _QuizCategory.positions,
+        koStem: '${player.koName}의 주 포지션은 무엇일까요?',
+        enStem: 'What is ${player.enName}\'s primary position?',
+        options: _buildOptionsFromPool(
+          pool: positionPool,
+          correct: correct,
+          seed: i * 17 + 11,
+        ),
+        correctIndex: _correctIndexFromOptions(
+          options: _buildOptionsFromPool(
+            pool: positionPool,
+            correct: correct,
+            seed: i * 17 + 11,
+          ),
+          correct: correct,
+        ),
+        koExplain: '${player.koName}는 주로 ${player.koPosition} 역할로 알려져 있습니다.',
+        enExplain:
+            '${player.enName} is primarily known for the ${player.enPosition} role.',
+        koNextPoint: '포지션별 기본 임무를 함께 기억해두세요.',
+        enNextPoint: 'Also remember the basic tasks of that position.',
+      ),
+    );
+  }
+
+  const leaguePool = <_KoEnPair>[
+    _KoEnPair(ko: '프리미어리그', en: 'Premier League'),
+    _KoEnPair(ko: '라리가', en: 'LaLiga'),
+    _KoEnPair(ko: '분데스리가', en: 'Bundesliga'),
+    _KoEnPair(ko: '세리에 A', en: 'Serie A'),
+    _KoEnPair(ko: '리그 1', en: 'Ligue 1'),
+    _KoEnPair(ko: '에레디비시', en: 'Eredivisie'),
+    _KoEnPair(ko: '프리메이라 리가', en: 'Primeira Liga'),
+    _KoEnPair(ko: '스코티시 프리미어십', en: 'Scottish Premiership'),
+    _KoEnPair(ko: '쉬페르리그', en: 'Super Lig'),
+    _KoEnPair(ko: '사우디 프로리그', en: 'Saudi Pro League'),
+  ];
+  final clubFacts = _clubKnowledgeBank();
+  for (var i = 0; i < clubFacts.length; i++) {
+    final club = clubFacts[i];
+    final correct = _KoEnPair(ko: club.koLeague, en: club.enLeague);
+    generated.add(
+      _McqSeed(
+        id: 'gen_club_league_${club.id}',
+        difficulty: 2,
+        category: _QuizCategory.fun,
+        koStem: '${club.koName}가 주로 뛰는 리그는?',
+        enStem: 'Which league does ${club.enName} play in?',
+        options: _buildOptionsFromPool(
+          pool: leaguePool,
+          correct: correct,
+          seed: i * 13 + 7,
+        ),
+        correctIndex: _correctIndexFromOptions(
+          options: _buildOptionsFromPool(
+            pool: leaguePool,
+            correct: correct,
+            seed: i * 13 + 7,
+          ),
+          correct: correct,
+        ),
+        koExplain: '${club.koName}는 ${club.koLeague} 소속으로 알려져 있습니다.',
+        enExplain: '${club.enName} is known as a ${club.enLeague} club.',
+        koNextPoint: '리그별 경기 템포 차이도 함께 관찰해보세요.',
+        enNextPoint: 'Observe tempo differences across leagues as well.',
+      ),
+    );
+  }
+
+  const confederationPool = <_KoEnPair>[
+    _KoEnPair(ko: 'FIFA', en: 'FIFA'),
+    _KoEnPair(ko: 'UEFA', en: 'UEFA'),
+    _KoEnPair(ko: 'CONMEBOL', en: 'CONMEBOL'),
+    _KoEnPair(ko: 'AFC', en: 'AFC'),
+    _KoEnPair(ko: 'CAF', en: 'CAF'),
+    _KoEnPair(ko: 'CONCACAF', en: 'CONCACAF'),
+    _KoEnPair(ko: 'IOC', en: 'IOC'),
+  ];
+  final tournamentFacts = _tournamentKnowledgeBank();
+  for (var i = 0; i < tournamentFacts.length; i++) {
+    final tournament = tournamentFacts[i];
+    final correct =
+        _KoEnPair(ko: tournament.koOrganizer, en: tournament.enOrganizer);
+    generated.add(
+      _McqSeed(
+        id: 'gen_tournament_org_${tournament.id}',
+        difficulty: 2,
+        category: _QuizCategory.rules,
+        koStem: '${tournament.koName}를 주관하는 주된 연맹은?',
+        enStem: 'Which body mainly organizes ${tournament.enName}?',
+        options: _buildOptionsFromPool(
+          pool: confederationPool,
+          correct: correct,
+          seed: i * 19 + 3,
+        ),
+        correctIndex: _correctIndexFromOptions(
+          options: _buildOptionsFromPool(
+            pool: confederationPool,
+            correct: correct,
+            seed: i * 19 + 3,
+          ),
+          correct: correct,
+        ),
+        koExplain:
+            '${tournament.koName}는 ${tournament.koOrganizer}가 운영하는 대표 대회입니다.',
+        enExplain:
+            '${tournament.enName} is mainly run under ${tournament.enOrganizer}.',
+        koNextPoint: '대회별 규정과 일정 차이를 함께 확인하세요.',
+        enNextPoint: 'Check each competition\'s rule and schedule differences.',
+      ),
+    );
+  }
+
+  final termFacts = _footballTermBank();
+  final termPool = termFacts
+      .map((item) => _KoEnPair(ko: item.koTerm, en: item.enTerm))
+      .toList(growable: false);
+  for (var i = 0; i < termFacts.length; i++) {
+    final term = termFacts[i];
+    final correct = _KoEnPair(ko: term.koTerm, en: term.enTerm);
+    final options = _buildOptionsFromPool(
+      pool: termPool,
+      correct: correct,
+      seed: i * 29 + 5,
+    );
+    generated.add(
+      _McqSeed(
+        id: 'gen_term_en_${term.id}',
+        difficulty: term.difficulty,
+        category: term.category,
+        koStem: '다음 용어의 영어 표현으로 맞는 것은? "${term.koTerm}"',
+        enStem: 'Which English term matches "${term.koTerm}"?',
+        options: options,
+        correctIndex:
+            _correctIndexFromOptions(options: options, correct: correct),
+        koExplain: '"${term.koTerm}"는 영어로 "${term.enTerm}"라고 합니다.',
+        enExplain: '"${term.koTerm}" is expressed as "${term.enTerm}".',
+        koNextPoint: '용어를 실제 경기 장면과 연결해 익히세요.',
+        enNextPoint: 'Connect each term to real match scenes.',
+      ),
+    );
+  }
+
+  return generated;
+}
+
+List<_ShortAnswerSeed> _generatedGlobalFootballShortAnswerSeeds() {
+  final termFacts = _footballTermBank();
+  return termFacts
+      .map(
+        (term) => _ShortAnswerSeed(
+          id: 'gen_sa_term_${term.id}',
+          conceptKey: 'gen_sa_term_${term.id}',
+          difficulty: term.difficulty,
+          category: term.category,
+          koPrompt: '축구 용어 "${term.koTerm}"의 영어를 입력하세요.',
+          enPrompt: 'Type the English term for "${term.koTerm}".',
+          acceptedAnswers: <String>[term.enTerm, term.enTerm.toLowerCase()],
+          koExplain: '"${term.koTerm}"의 영어 표현은 "${term.enTerm}"입니다.',
+          enExplain:
+              'The English term for "${term.koTerm}" is "${term.enTerm}".',
+          koNextPoint: '용어를 말로 설명하면서 다시 확인해보세요.',
+          enNextPoint: 'Try explaining the term aloud once more.',
+        ),
+      )
+      .toList(growable: false);
+}
+
+List<_FootballQuizOption> _buildOptionsFromPool({
+  required List<_KoEnPair> pool,
+  required _KoEnPair correct,
+  required int seed,
+}) {
+  final wrong = pool
+      .where((item) => item.ko != correct.ko || item.en != correct.en)
+      .toList(growable: false);
+  final offset = wrong.isEmpty ? 0 : seed.abs() % wrong.length;
+  final rotated = wrong.isEmpty
+      ? <_KoEnPair>[]
+      : <_KoEnPair>[...wrong.sublist(offset), ...wrong.sublist(0, offset)];
+  final wrongThree = rotated.take(3).toList(growable: false);
+  final slot = seed.abs() % 4;
+  final arranged = <_KoEnPair>[];
+  var wrongIndex = 0;
+  for (var i = 0; i < 4; i++) {
+    if (i == slot) {
+      arranged.add(correct);
+    } else {
+      arranged.add(wrongThree[wrongIndex]);
+      wrongIndex += 1;
+    }
+  }
+  return arranged
+      .map((item) => _FootballQuizOption(koText: item.ko, enText: item.en))
+      .toList(growable: false);
+}
+
+int _correctIndexFromOptions({
+  required List<_FootballQuizOption> options,
+  required _KoEnPair correct,
+}) {
+  for (var i = 0; i < options.length; i++) {
+    final option = options[i];
+    if (option.koText == correct.ko && option.enText == correct.en) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+List<
+    ({
+      String id,
+      String koName,
+      String enName,
+      String koPosition,
+      String enPosition,
+      String koNation,
+      String enNation,
+    })> _playerKnowledgeBank() {
+  return const [
+    (
+      id: 'messi',
+      koName: '리오넬 메시',
+      enName: 'Lionel Messi',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '아르헨티나',
+      enNation: 'Argentina',
+    ),
+    (
+      id: 'ronaldo',
+      koName: '크리스티아누 호날두',
+      enName: 'Cristiano Ronaldo',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '포르투갈',
+      enNation: 'Portugal',
+    ),
+    (
+      id: 'mbappe',
+      koName: '킬리안 음바페',
+      enName: 'Kylian Mbappe',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '프랑스',
+      enNation: 'France',
+    ),
+    (
+      id: 'haaland',
+      koName: '엘링 홀란',
+      enName: 'Erling Haaland',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '노르웨이',
+      enNation: 'Norway',
+    ),
+    (
+      id: 'debruyne',
+      koName: '케빈 더브라위너',
+      enName: 'Kevin De Bruyne',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '벨기에',
+      enNation: 'Belgium',
+    ),
+    (
+      id: 'modric',
+      koName: '루카 모드리치',
+      enName: 'Luka Modric',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '크로아티아',
+      enNation: 'Croatia',
+    ),
+    (
+      id: 'kroos',
+      koName: '토니 크로스',
+      enName: 'Toni Kroos',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '독일',
+      enNation: 'Germany',
+    ),
+    (
+      id: 'rodri',
+      koName: '로드리',
+      enName: 'Rodri',
+      koPosition: '수비형 미드필더',
+      enPosition: 'Defensive Midfielder',
+      koNation: '스페인',
+      enNation: 'Spain',
+    ),
+    (
+      id: 'bellingham',
+      koName: '주드 벨링엄',
+      enName: 'Jude Bellingham',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '잉글랜드',
+      enNation: 'England',
+    ),
+    (
+      id: 'salah',
+      koName: '모하메드 살라',
+      enName: 'Mohamed Salah',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '이집트',
+      enNation: 'Egypt',
+    ),
+    (
+      id: 'mane',
+      koName: '사디오 마네',
+      enName: 'Sadio Mane',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '세네갈',
+      enNation: 'Senegal',
+    ),
+    (
+      id: 'son',
+      koName: '손흥민',
+      enName: 'Son Heung-min',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '대한민국',
+      enNation: 'South Korea',
+    ),
+    (
+      id: 'neymar',
+      koName: '네이마르',
+      enName: 'Neymar',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '브라질',
+      enNation: 'Brazil',
+    ),
+    (
+      id: 'vinicius',
+      koName: '비니시우스 주니오르',
+      enName: 'Vinicius Junior',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '브라질',
+      enNation: 'Brazil',
+    ),
+    (
+      id: 'foden',
+      koName: '필 포든',
+      enName: 'Phil Foden',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '잉글랜드',
+      enNation: 'England',
+    ),
+    (
+      id: 'saka',
+      koName: '부카요 사카',
+      enName: 'Bukayo Saka',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '잉글랜드',
+      enNation: 'England',
+    ),
+    (
+      id: 'bruno',
+      koName: '브루노 페르난데스',
+      enName: 'Bruno Fernandes',
+      koPosition: '공격형 미드필더',
+      enPosition: 'Attacking Midfielder',
+      koNation: '포르투갈',
+      enNation: 'Portugal',
+    ),
+    (
+      id: 'odegaard',
+      koName: '마르틴 외데고르',
+      enName: 'Martin Odegaard',
+      koPosition: '공격형 미드필더',
+      enPosition: 'Attacking Midfielder',
+      koNation: '노르웨이',
+      enNation: 'Norway',
+    ),
+    (
+      id: 'pedri',
+      koName: '페드리',
+      enName: 'Pedri',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '스페인',
+      enNation: 'Spain',
+    ),
+    (
+      id: 'gavi',
+      koName: '가비',
+      enName: 'Gavi',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '스페인',
+      enNation: 'Spain',
+    ),
+    (
+      id: 'vandijk',
+      koName: '버질 반다이크',
+      enName: 'Virgil van Dijk',
+      koPosition: '센터백',
+      enPosition: 'Center Back',
+      koNation: '네덜란드',
+      enNation: 'Netherlands',
+    ),
+    (
+      id: 'rubendias',
+      koName: '후벵 디아스',
+      enName: 'Ruben Dias',
+      koPosition: '센터백',
+      enPosition: 'Center Back',
+      koNation: '포르투갈',
+      enNation: 'Portugal',
+    ),
+    (
+      id: 'thiagosilva',
+      koName: '티아고 실바',
+      enName: 'Thiago Silva',
+      koPosition: '센터백',
+      enPosition: 'Center Back',
+      koNation: '브라질',
+      enNation: 'Brazil',
+    ),
+    (
+      id: 'marquinhos',
+      koName: '마르키뉴스',
+      enName: 'Marquinhos',
+      koPosition: '센터백',
+      enPosition: 'Center Back',
+      koNation: '브라질',
+      enNation: 'Brazil',
+    ),
+    (
+      id: 'hakimi',
+      koName: '아슈라프 하키미',
+      enName: 'Achraf Hakimi',
+      koPosition: '풀백',
+      enPosition: 'Full Back',
+      koNation: '모로코',
+      enNation: 'Morocco',
+    ),
+    (
+      id: 'davies',
+      koName: '알폰소 데이비스',
+      enName: 'Alphonso Davies',
+      koPosition: '풀백',
+      enPosition: 'Full Back',
+      koNation: '캐나다',
+      enNation: 'Canada',
+    ),
+    (
+      id: 'robertson',
+      koName: '앤디 로버트슨',
+      enName: 'Andy Robertson',
+      koPosition: '풀백',
+      enPosition: 'Full Back',
+      koNation: '스코틀랜드',
+      enNation: 'Scotland',
+    ),
+    (
+      id: 'taa',
+      koName: '트렌트 알렉산더아놀드',
+      enName: 'Trent Alexander-Arnold',
+      koPosition: '풀백',
+      enPosition: 'Full Back',
+      koNation: '잉글랜드',
+      enNation: 'England',
+    ),
+    (
+      id: 'alisson',
+      koName: '알리송',
+      enName: 'Alisson',
+      koPosition: '골키퍼',
+      enPosition: 'Goalkeeper',
+      koNation: '브라질',
+      enNation: 'Brazil',
+    ),
+    (
+      id: 'ederson',
+      koName: '에데르송',
+      enName: 'Ederson',
+      koPosition: '골키퍼',
+      enPosition: 'Goalkeeper',
+      koNation: '브라질',
+      enNation: 'Brazil',
+    ),
+    (
+      id: 'courtois',
+      koName: '티보 쿠르투아',
+      enName: 'Thibaut Courtois',
+      koPosition: '골키퍼',
+      enPosition: 'Goalkeeper',
+      koNation: '벨기에',
+      enNation: 'Belgium',
+    ),
+    (
+      id: 'terstegen',
+      koName: '테어 슈테겐',
+      enName: 'Marc-Andre ter Stegen',
+      koPosition: '골키퍼',
+      enPosition: 'Goalkeeper',
+      koNation: '독일',
+      enNation: 'Germany',
+    ),
+    (
+      id: 'kane',
+      koName: '해리 케인',
+      enName: 'Harry Kane',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '잉글랜드',
+      enNation: 'England',
+    ),
+    (
+      id: 'lewandowski',
+      koName: '로베르트 레반도프스키',
+      enName: 'Robert Lewandowski',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '폴란드',
+      enNation: 'Poland',
+    ),
+    (
+      id: 'griezmann',
+      koName: '앙투안 그리즈만',
+      enName: 'Antoine Griezmann',
+      koPosition: '공격형 미드필더',
+      enPosition: 'Attacking Midfielder',
+      koNation: '프랑스',
+      enNation: 'France',
+    ),
+    (
+      id: 'lautaro',
+      koName: '라우타로 마르티네스',
+      enName: 'Lautaro Martinez',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '아르헨티나',
+      enNation: 'Argentina',
+    ),
+    (
+      id: 'osimhen',
+      koName: '빅터 오시멘',
+      enName: 'Victor Osimhen',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '나이지리아',
+      enNation: 'Nigeria',
+    ),
+    (
+      id: 'kvara',
+      koName: '크비차 크바라츠헬리아',
+      enName: 'Khvicha Kvaratskhelia',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '조지아',
+      enNation: 'Georgia',
+    ),
+    (
+      id: 'palmer',
+      koName: '콜 파머',
+      enName: 'Cole Palmer',
+      koPosition: '공격형 미드필더',
+      enPosition: 'Attacking Midfielder',
+      koNation: '잉글랜드',
+      enNation: 'England',
+    ),
+    (
+      id: 'yamal',
+      koName: '라민 야말',
+      enName: 'Lamine Yamal',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '스페인',
+      enNation: 'Spain',
+    ),
+    (
+      id: 'musiala',
+      koName: '자말 무시알라',
+      enName: 'Jamal Musiala',
+      koPosition: '공격형 미드필더',
+      enPosition: 'Attacking Midfielder',
+      koNation: '독일',
+      enNation: 'Germany',
+    ),
+    (
+      id: 'wirtz',
+      koName: '플로리안 비르츠',
+      enName: 'Florian Wirtz',
+      koPosition: '공격형 미드필더',
+      enPosition: 'Attacking Midfielder',
+      koNation: '독일',
+      enNation: 'Germany',
+    ),
+    (
+      id: 'rice',
+      koName: '데클란 라이스',
+      enName: 'Declan Rice',
+      koPosition: '수비형 미드필더',
+      enPosition: 'Defensive Midfielder',
+      koNation: '잉글랜드',
+      enNation: 'England',
+    ),
+    (
+      id: 'casemiro',
+      koName: '카세미루',
+      enName: 'Casemiro',
+      koPosition: '수비형 미드필더',
+      enPosition: 'Defensive Midfielder',
+      koNation: '브라질',
+      enNation: 'Brazil',
+    ),
+    (
+      id: 'kimmich',
+      koName: '요주아 키미히',
+      enName: 'Joshua Kimmich',
+      koPosition: '수비형 미드필더',
+      enPosition: 'Defensive Midfielder',
+      koNation: '독일',
+      enNation: 'Germany',
+    ),
+    (
+      id: 'enzo',
+      koName: '엔소 페르난데스',
+      enName: 'Enzo Fernandez',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '아르헨티나',
+      enNation: 'Argentina',
+    ),
+    (
+      id: 'valverde',
+      koName: '페데리코 발베르데',
+      enName: 'Federico Valverde',
+      koPosition: '중앙 미드필더',
+      enPosition: 'Central Midfielder',
+      koNation: '우루과이',
+      enNation: 'Uruguay',
+    ),
+    (
+      id: 'dembele',
+      koName: '우스만 뎀벨레',
+      enName: 'Ousmane Dembele',
+      koPosition: '윙어',
+      enPosition: 'Winger',
+      koNation: '프랑스',
+      enNation: 'France',
+    ),
+    (
+      id: 'julianalvarez',
+      koName: '훌리안 알바레스',
+      enName: 'Julian Alvarez',
+      koPosition: '스트라이커',
+      enPosition: 'Striker',
+      koNation: '아르헨티나',
+      enNation: 'Argentina',
+    ),
+  ];
+}
+
+List<
+    ({
+      String id,
+      String koName,
+      String enName,
+      String koLeague,
+      String enLeague,
+    })> _clubKnowledgeBank() {
+  return const [
+    (
+      id: 'realmadrid',
+      koName: '레알 마드리드',
+      enName: 'Real Madrid',
+      koLeague: '라리가',
+      enLeague: 'LaLiga'
+    ),
+    (
+      id: 'barcelona',
+      koName: '바르셀로나',
+      enName: 'Barcelona',
+      koLeague: '라리가',
+      enLeague: 'LaLiga'
+    ),
+    (
+      id: 'atleti',
+      koName: '아틀레티코 마드리드',
+      enName: 'Atletico Madrid',
+      koLeague: '라리가',
+      enLeague: 'LaLiga'
+    ),
+    (
+      id: 'mancity',
+      koName: '맨체스터 시티',
+      enName: 'Manchester City',
+      koLeague: '프리미어리그',
+      enLeague: 'Premier League'
+    ),
+    (
+      id: 'arsenal',
+      koName: '아스널',
+      enName: 'Arsenal',
+      koLeague: '프리미어리그',
+      enLeague: 'Premier League'
+    ),
+    (
+      id: 'liverpool',
+      koName: '리버풀',
+      enName: 'Liverpool',
+      koLeague: '프리미어리그',
+      enLeague: 'Premier League'
+    ),
+    (
+      id: 'manutd',
+      koName: '맨체스터 유나이티드',
+      enName: 'Manchester United',
+      koLeague: '프리미어리그',
+      enLeague: 'Premier League'
+    ),
+    (
+      id: 'chelsea',
+      koName: '첼시',
+      enName: 'Chelsea',
+      koLeague: '프리미어리그',
+      enLeague: 'Premier League'
+    ),
+    (
+      id: 'tottenham',
+      koName: '토트넘',
+      enName: 'Tottenham Hotspur',
+      koLeague: '프리미어리그',
+      enLeague: 'Premier League'
+    ),
+    (
+      id: 'bayern',
+      koName: '바이에른 뮌헨',
+      enName: 'Bayern Munich',
+      koLeague: '분데스리가',
+      enLeague: 'Bundesliga'
+    ),
+    (
+      id: 'dortmund',
+      koName: '도르트문트',
+      enName: 'Borussia Dortmund',
+      koLeague: '분데스리가',
+      enLeague: 'Bundesliga'
+    ),
+    (
+      id: 'leverkusen',
+      koName: '레버쿠젠',
+      enName: 'Bayer Leverkusen',
+      koLeague: '분데스리가',
+      enLeague: 'Bundesliga'
+    ),
+    (
+      id: 'juventus',
+      koName: '유벤투스',
+      enName: 'Juventus',
+      koLeague: '세리에 A',
+      enLeague: 'Serie A'
+    ),
+    (
+      id: 'inter',
+      koName: '인터 밀란',
+      enName: 'Inter Milan',
+      koLeague: '세리에 A',
+      enLeague: 'Serie A'
+    ),
+    (
+      id: 'acmilan',
+      koName: 'AC 밀란',
+      enName: 'AC Milan',
+      koLeague: '세리에 A',
+      enLeague: 'Serie A'
+    ),
+    (
+      id: 'napoli',
+      koName: '나폴리',
+      enName: 'Napoli',
+      koLeague: '세리에 A',
+      enLeague: 'Serie A'
+    ),
+    (
+      id: 'roma',
+      koName: '로마',
+      enName: 'Roma',
+      koLeague: '세리에 A',
+      enLeague: 'Serie A'
+    ),
+    (
+      id: 'psg',
+      koName: '파리 생제르맹',
+      enName: 'Paris Saint-Germain',
+      koLeague: '리그 1',
+      enLeague: 'Ligue 1'
+    ),
+    (
+      id: 'marseille',
+      koName: '마르세유',
+      enName: 'Marseille',
+      koLeague: '리그 1',
+      enLeague: 'Ligue 1'
+    ),
+    (
+      id: 'monaco',
+      koName: '모나코',
+      enName: 'Monaco',
+      koLeague: '리그 1',
+      enLeague: 'Ligue 1'
+    ),
+    (
+      id: 'ajax',
+      koName: '아약스',
+      enName: 'Ajax',
+      koLeague: '에레디비시',
+      enLeague: 'Eredivisie'
+    ),
+    (
+      id: 'psv',
+      koName: 'PSV 아인트호벤',
+      enName: 'PSV Eindhoven',
+      koLeague: '에레디비시',
+      enLeague: 'Eredivisie'
+    ),
+    (
+      id: 'benfica',
+      koName: '벤피카',
+      enName: 'Benfica',
+      koLeague: '프리메이라 리가',
+      enLeague: 'Primeira Liga'
+    ),
+    (
+      id: 'sporting',
+      koName: '스포르팅 CP',
+      enName: 'Sporting CP',
+      koLeague: '프리메이라 리가',
+      enLeague: 'Primeira Liga'
+    ),
+    (
+      id: 'porto',
+      koName: '포르투',
+      enName: 'Porto',
+      koLeague: '프리메이라 리가',
+      enLeague: 'Primeira Liga'
+    ),
+    (
+      id: 'celtic',
+      koName: '셀틱',
+      enName: 'Celtic',
+      koLeague: '스코티시 프리미어십',
+      enLeague: 'Scottish Premiership'
+    ),
+    (
+      id: 'galatasaray',
+      koName: '갈라타사라이',
+      enName: 'Galatasaray',
+      koLeague: '쉬페르리그',
+      enLeague: 'Super Lig'
+    ),
+    (
+      id: 'fenerbahce',
+      koName: '페네르바체',
+      enName: 'Fenerbahce',
+      koLeague: '쉬페르리그',
+      enLeague: 'Super Lig'
+    ),
+    (
+      id: 'alhilal',
+      koName: '알 힐랄',
+      enName: 'Al Hilal',
+      koLeague: '사우디 프로리그',
+      enLeague: 'Saudi Pro League'
+    ),
+    (
+      id: 'alnassr',
+      koName: '알 나스르',
+      enName: 'Al Nassr',
+      koLeague: '사우디 프로리그',
+      enLeague: 'Saudi Pro League'
+    ),
+  ];
+}
+
+List<
+    ({
+      String id,
+      String koName,
+      String enName,
+      String koOrganizer,
+      String enOrganizer,
+    })> _tournamentKnowledgeBank() {
+  return const [
+    (
+      id: 'fifa_world_cup',
+      koName: 'FIFA 월드컵',
+      enName: 'FIFA World Cup',
+      koOrganizer: 'FIFA',
+      enOrganizer: 'FIFA'
+    ),
+    (
+      id: 'uefa_euro',
+      koName: 'UEFA 유로',
+      enName: 'UEFA Euro',
+      koOrganizer: 'UEFA',
+      enOrganizer: 'UEFA'
+    ),
+    (
+      id: 'copa_america',
+      koName: '코파 아메리카',
+      enName: 'Copa America',
+      koOrganizer: 'CONMEBOL',
+      enOrganizer: 'CONMEBOL'
+    ),
+    (
+      id: 'afc_asian_cup',
+      koName: 'AFC 아시안컵',
+      enName: 'AFC Asian Cup',
+      koOrganizer: 'AFC',
+      enOrganizer: 'AFC'
+    ),
+    (
+      id: 'afcon',
+      koName: '아프리카 네이션스컵',
+      enName: 'Africa Cup of Nations',
+      koOrganizer: 'CAF',
+      enOrganizer: 'CAF'
+    ),
+    (
+      id: 'gold_cup',
+      koName: 'CONCACAF 골드컵',
+      enName: 'CONCACAF Gold Cup',
+      koOrganizer: 'CONCACAF',
+      enOrganizer: 'CONCACAF'
+    ),
+    (
+      id: 'ucl',
+      koName: 'UEFA 챔피언스리그',
+      enName: 'UEFA Champions League',
+      koOrganizer: 'UEFA',
+      enOrganizer: 'UEFA'
+    ),
+    (
+      id: 'uel',
+      koName: 'UEFA 유로파리그',
+      enName: 'UEFA Europa League',
+      koOrganizer: 'UEFA',
+      enOrganizer: 'UEFA'
+    ),
+    (
+      id: 'uecl',
+      koName: 'UEFA 컨퍼런스리그',
+      enName: 'UEFA Conference League',
+      koOrganizer: 'UEFA',
+      enOrganizer: 'UEFA'
+    ),
+    (
+      id: 'libertadores',
+      koName: '코파 리베르타도레스',
+      enName: 'Copa Libertadores',
+      koOrganizer: 'CONMEBOL',
+      enOrganizer: 'CONMEBOL'
+    ),
+    (
+      id: 'sudamericana',
+      koName: '코파 수다메리카나',
+      enName: 'Copa Sudamericana',
+      koOrganizer: 'CONMEBOL',
+      enOrganizer: 'CONMEBOL'
+    ),
+    (
+      id: 'club_world_cup',
+      koName: 'FIFA 클럽 월드컵',
+      enName: 'FIFA Club World Cup',
+      koOrganizer: 'FIFA',
+      enOrganizer: 'FIFA'
+    ),
+    (
+      id: 'nations_league',
+      koName: 'UEFA 네이션스리그',
+      enName: 'UEFA Nations League',
+      koOrganizer: 'UEFA',
+      enOrganizer: 'UEFA'
+    ),
+    (
+      id: 'olympic_football',
+      koName: '올림픽 축구',
+      enName: 'Olympic Football Tournament',
+      koOrganizer: 'IOC',
+      enOrganizer: 'IOC'
+    ),
+    (
+      id: 'u20_world_cup',
+      koName: 'FIFA U-20 월드컵',
+      enName: 'FIFA U-20 World Cup',
+      koOrganizer: 'FIFA',
+      enOrganizer: 'FIFA'
+    ),
+    (
+      id: 'u17_world_cup',
+      koName: 'FIFA U-17 월드컵',
+      enName: 'FIFA U-17 World Cup',
+      koOrganizer: 'FIFA',
+      enOrganizer: 'FIFA'
+    ),
+    (
+      id: 'afc_champions',
+      koName: 'AFC 챔피언스리그',
+      enName: 'AFC Champions League Elite',
+      koOrganizer: 'AFC',
+      enOrganizer: 'AFC'
+    ),
+    (
+      id: 'caf_champions',
+      koName: 'CAF 챔피언스리그',
+      enName: 'CAF Champions League',
+      koOrganizer: 'CAF',
+      enOrganizer: 'CAF'
+    ),
+    (
+      id: 'concacaf_champions',
+      koName: 'CONCACAF 챔피언스컵',
+      enName: 'CONCACAF Champions Cup',
+      koOrganizer: 'CONCACAF',
+      enOrganizer: 'CONCACAF'
+    ),
+    (
+      id: 'uwcl',
+      koName: 'UEFA 여자 챔피언스리그',
+      enName: 'UEFA Women Champions League',
+      koOrganizer: 'UEFA',
+      enOrganizer: 'UEFA'
+    ),
+  ];
+}
+
+List<
+    ({
+      String id,
+      String koTerm,
+      String enTerm,
+      _QuizCategory category,
+      int difficulty
+    })> _footballTermBank() {
+  return const [
+    (
+      id: 'first_touch',
+      koTerm: '퍼스트 터치',
+      enTerm: 'first touch',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'scanning',
+      koTerm: '스캐닝',
+      enTerm: 'scanning',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'body_feint',
+      koTerm: '바디 페인트',
+      enTerm: 'body feint',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'step_over',
+      koTerm: '스텝오버',
+      enTerm: 'step-over',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'nutmeg',
+      koTerm: '넛메그',
+      enTerm: 'nutmeg',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'cutback',
+      koTerm: '컷백',
+      enTerm: 'cutback',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'overlap',
+      koTerm: '오버래핑',
+      enTerm: 'overlap',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'underlap',
+      koTerm: '언더래핑',
+      enTerm: 'underlap',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'through_pass',
+      koTerm: '스루패스',
+      enTerm: 'through pass',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'switch_play',
+      koTerm: '전환 패스',
+      enTerm: 'switch of play',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'pressing_trigger',
+      koTerm: '압박 트리거',
+      enTerm: 'pressing trigger',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'counter_pressing',
+      koTerm: '카운터프레싱',
+      enTerm: 'counter-pressing',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'low_block',
+      koTerm: '로우 블록',
+      enTerm: 'low block',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'high_line',
+      koTerm: '하이 라인',
+      enTerm: 'high line',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'offside_trap',
+      koTerm: '오프사이드 트랩',
+      enTerm: 'offside trap',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'half_space',
+      koTerm: '하프스페이스',
+      enTerm: 'half-space',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'third_man_run',
+      koTerm: '서드맨 런',
+      enTerm: 'third-man run',
+      category: _QuizCategory.tactics,
+      difficulty: 3
+    ),
+    (
+      id: 'one_two',
+      koTerm: '원투 패스',
+      enTerm: 'one-two pass',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'ball_shielding',
+      koTerm: '볼 키핑',
+      enTerm: 'ball shielding',
+      category: _QuizCategory.technique,
+      difficulty: 2
+    ),
+    (
+      id: 'jockeying',
+      koTerm: '조키잉',
+      enTerm: 'jockeying',
+      category: _QuizCategory.technique,
+      difficulty: 2
+    ),
+    (
+      id: 'interception',
+      koTerm: '인터셉트',
+      enTerm: 'interception',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'man_marking',
+      koTerm: '맨마킹',
+      enTerm: 'man marking',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'zonal_marking',
+      koTerm: '지역 방어',
+      enTerm: 'zonal marking',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'build_up',
+      koTerm: '빌드업',
+      enTerm: 'build-up',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'transition',
+      koTerm: '전환',
+      enTerm: 'transition',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'final_third',
+      koTerm: '파이널 서드',
+      enTerm: 'final third',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'set_piece',
+      koTerm: '세트피스',
+      enTerm: 'set piece',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'near_post_run',
+      koTerm: '니어포스트 런',
+      enTerm: 'near-post run',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'far_post_run',
+      koTerm: '파포스트 런',
+      enTerm: 'far-post run',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'crossing',
+      koTerm: '크로스',
+      enTerm: 'crossing',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'volley',
+      koTerm: '발리슛',
+      enTerm: 'volley',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'half_volley',
+      koTerm: '하프 발리',
+      enTerm: 'half-volley',
+      category: _QuizCategory.technique,
+      difficulty: 2
+    ),
+    (
+      id: 'chest_control',
+      koTerm: '가슴 트래핑',
+      enTerm: 'chest control',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'instep_pass',
+      koTerm: '인사이드 패스',
+      enTerm: 'inside-foot pass',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'outside_pass',
+      koTerm: '아웃사이드 패스',
+      enTerm: 'outside-foot pass',
+      category: _QuizCategory.technique,
+      difficulty: 2
+    ),
+    (
+      id: 'weak_foot',
+      koTerm: '약발 훈련',
+      enTerm: 'weak-foot training',
+      category: _QuizCategory.training,
+      difficulty: 2
+    ),
+    (
+      id: 'recovery_run',
+      koTerm: '리커버리 런',
+      enTerm: 'recovery run',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'compactness',
+      koTerm: '압축성',
+      enTerm: 'compactness',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'line_breaking_pass',
+      koTerm: '라인브레이킹 패스',
+      enTerm: 'line-breaking pass',
+      category: _QuizCategory.tactics,
+      difficulty: 3
+    ),
+    (
+      id: 'progressive_pass',
+      koTerm: '전진 패스',
+      enTerm: 'progressive pass',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'diagonal_run',
+      koTerm: '대각선 침투',
+      enTerm: 'diagonal run',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'blind_side_run',
+      koTerm: '블라인드사이드 런',
+      enTerm: 'blind-side run',
+      category: _QuizCategory.tactics,
+      difficulty: 3
+    ),
+    (
+      id: 'decoy_run',
+      koTerm: '유인 침투',
+      enTerm: 'decoy run',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'hold_up_play',
+      koTerm: '포스트 플레이',
+      enTerm: 'hold-up play',
+      category: _QuizCategory.technique,
+      difficulty: 2
+    ),
+    (
+      id: 'target_man',
+      koTerm: '타깃맨',
+      enTerm: 'target man',
+      category: _QuizCategory.positions,
+      difficulty: 1
+    ),
+    (
+      id: 'false_nine',
+      koTerm: '가짜 9번',
+      enTerm: 'false nine',
+      category: _QuizCategory.positions,
+      difficulty: 2
+    ),
+    (
+      id: 'inverted_winger',
+      koTerm: '인버티드 윙어',
+      enTerm: 'inverted winger',
+      category: _QuizCategory.positions,
+      difficulty: 2
+    ),
+    (
+      id: 'sweeper_keeper',
+      koTerm: '스위퍼 키퍼',
+      enTerm: 'sweeper-keeper',
+      category: _QuizCategory.positions,
+      difficulty: 2
+    ),
+    (
+      id: 'claim_cross',
+      koTerm: '크로스 캐치',
+      enTerm: 'claim the cross',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'goal_kick_routine',
+      koTerm: '골킥 루틴',
+      enTerm: 'goal-kick routine',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'press_resistance',
+      koTerm: '압박 저항',
+      enTerm: 'press resistance',
+      category: _QuizCategory.technique,
+      difficulty: 2
+    ),
+    (
+      id: 'rondo',
+      koTerm: '론도',
+      enTerm: 'rondo',
+      category: _QuizCategory.training,
+      difficulty: 1
+    ),
+    (
+      id: 'small_sided_game',
+      koTerm: '소형 게임',
+      enTerm: 'small-sided game',
+      category: _QuizCategory.training,
+      difficulty: 1
+    ),
+    (
+      id: 'finishing_drill',
+      koTerm: '피니시 훈련',
+      enTerm: 'finishing drill',
+      category: _QuizCategory.training,
+      difficulty: 1
+    ),
+    (
+      id: 'agility_ladder',
+      koTerm: '래더 훈련',
+      enTerm: 'agility ladder',
+      category: _QuizCategory.training,
+      difficulty: 1
+    ),
+    (
+      id: 'plyometric',
+      koTerm: '플라이오메트릭',
+      enTerm: 'plyometric',
+      category: _QuizCategory.training,
+      difficulty: 2
+    ),
+    (
+      id: 'dynamic_stretch',
+      koTerm: '동적 스트레칭',
+      enTerm: 'dynamic stretching',
+      category: _QuizCategory.training,
+      difficulty: 1
+    ),
+    (
+      id: 'cool_down',
+      koTerm: '쿨다운',
+      enTerm: 'cool-down',
+      category: _QuizCategory.training,
+      difficulty: 1
+    ),
+    (
+      id: 'hydration',
+      koTerm: '수분 보충',
+      enTerm: 'hydration',
+      category: _QuizCategory.nutrition,
+      difficulty: 1
+    ),
+    (
+      id: 'glycogen',
+      koTerm: '글리코겐 회복',
+      enTerm: 'glycogen recovery',
+      category: _QuizCategory.nutrition,
+      difficulty: 2
+    ),
+    (
+      id: 'sleep_routine',
+      koTerm: '수면 루틴',
+      enTerm: 'sleep routine',
+      category: _QuizCategory.nutrition,
+      difficulty: 1
+    ),
+    (
+      id: 'mental_reset',
+      koTerm: '멘탈 리셋',
+      enTerm: 'mental reset',
+      category: _QuizCategory.mindset,
+      difficulty: 1
+    ),
+    (
+      id: 'visualization',
+      koTerm: '시각화',
+      enTerm: 'visualization',
+      category: _QuizCategory.mindset,
+      difficulty: 2
+    ),
+    (
+      id: 'communication_cue',
+      koTerm: '커뮤니케이션 큐',
+      enTerm: 'communication cue',
+      category: _QuizCategory.mindset,
+      difficulty: 2
+    ),
+    (
+      id: 'check_shoulder',
+      koTerm: '숄더 체크',
+      enTerm: 'check shoulder',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'back_foot_receive',
+      koTerm: '백풋 리시브',
+      enTerm: 'receive on back foot',
+      category: _QuizCategory.technique,
+      difficulty: 2
+    ),
+    (
+      id: 'open_body',
+      koTerm: '오픈 바디',
+      enTerm: 'open body',
+      category: _QuizCategory.technique,
+      difficulty: 1
+    ),
+    (
+      id: 'tempo_control',
+      koTerm: '템포 조절',
+      enTerm: 'tempo control',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'width',
+      koTerm: '폭 활용',
+      enTerm: 'width',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'depth',
+      koTerm: '깊이 활용',
+      enTerm: 'depth',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'numerical_superiority',
+      koTerm: '수적 우위',
+      enTerm: 'numerical superiority',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'rest_defense',
+      koTerm: '레스트 디펜스',
+      enTerm: 'rest defense',
+      category: _QuizCategory.tactics,
+      difficulty: 3
+    ),
+    (
+      id: 'second_ball',
+      koTerm: '세컨드볼',
+      enTerm: 'second ball',
+      category: _QuizCategory.tactics,
+      difficulty: 2
+    ),
+    (
+      id: 'counter_attack',
+      koTerm: '역습',
+      enTerm: 'counter-attack',
+      category: _QuizCategory.tactics,
+      difficulty: 1
+    ),
+    (
+      id: 'overload_isolate',
+      koTerm: '오버로드 투 아이솔레이트',
+      enTerm: 'overload to isolate',
+      category: _QuizCategory.tactics,
+      difficulty: 3
+    ),
+    (
+      id: 'cover_shadow',
+      koTerm: '커버 섀도우',
+      enTerm: 'cover shadow',
+      category: _QuizCategory.tactics,
+      difficulty: 3
+    ),
+    (
+      id: 'press_backward',
+      koTerm: '백패스 압박 트리거',
+      enTerm: 'back-pass pressing trigger',
+      category: _QuizCategory.tactics,
+      difficulty: 3
+    ),
+    (
+      id: 'dead_ball',
+      koTerm: '데드볼 상황',
+      enTerm: 'dead-ball situation',
+      category: _QuizCategory.rules,
+      difficulty: 1
+    ),
+    (
+      id: 'advantage',
+      koTerm: '어드밴티지',
+      enTerm: 'advantage rule',
+      category: _QuizCategory.rules,
+      difficulty: 2
+    ),
+    (
+      id: 'bookable_offense',
+      koTerm: '경고성 파울',
+      enTerm: 'bookable offense',
+      category: _QuizCategory.rules,
+      difficulty: 2
+    ),
+    (
+      id: 'red_card_offense',
+      koTerm: '퇴장성 파울',
+      enTerm: 'red-card offense',
+      category: _QuizCategory.rules,
+      difficulty: 2
+    ),
+    (
+      id: 'added_time',
+      koTerm: '추가시간',
+      enTerm: 'added time',
+      category: _QuizCategory.rules,
+      difficulty: 1
+    ),
+  ];
 }
 
 void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
