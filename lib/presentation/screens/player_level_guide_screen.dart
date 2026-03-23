@@ -35,36 +35,45 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final thresholds = PlayerLevelService.levelThresholds;
+    final currentState = _levelService.loadState();
     final rewardByLevel = {
       for (final item in _levelService.loadRewardStatuses())
         item.reward.level: item,
     };
 
     return Scaffold(
-      appBar: AppBar(title: Text(isKo ? '레벨 가이드' : 'Level guide')),
+      appBar: AppBar(
+        title: Text(isKo ? '레벨 가이드' : 'Level guide'),
+        actions: [
+          IconButton(
+            tooltip: _showXpGuide
+                ? (isKo ? '경험치 방법 숨기기' : 'Hide XP guide')
+                : (isKo ? '경험치 오르는 방법' : 'How XP goes up'),
+            onPressed: () => setState(() => _showXpGuide = !_showXpGuide),
+            icon: Icon(
+              _showXpGuide
+                  ? Icons.visibility_off_outlined
+                  : Icons.trending_up_outlined,
+            ),
+          ),
+          IconButton(
+            tooltip: isKo ? '경험치 히스토리' : 'XP history',
+            onPressed: () => _openXpHistory(context, isKo),
+            icon: const Icon(Icons.timeline_outlined),
+          ),
+        ],
+      ),
       body: AppBackground(
         child: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
-              OutlinedButton.icon(
-                onPressed: () => setState(() => _showXpGuide = !_showXpGuide),
-                icon: Icon(
-                  _showXpGuide
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                ),
-                label: Text(
-                  _showXpGuide
-                      ? (isKo ? '경험치 방법 숨기기' : 'Hide XP guide')
-                      : (isKo ? '경험치 오르는 방법 보기' : 'Show XP guide'),
-                ),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.tonalIcon(
-                onPressed: () => _openXpHistory(context, isKo),
-                icon: const Icon(Icons.timeline_outlined),
-                label: Text(isKo ? '경험치 히스토리' : 'XP history'),
+              _LevelGuideSummaryCard(
+                isKo: isKo,
+                currentLevel: currentState.level,
+                totalXp: currentState.totalXp,
+                xpToNextLevel: currentState.xpToNextLevel,
+                showXpGuide: _showXpGuide,
               ),
               if (_showXpGuide) ...[
                 const SizedBox(height: 12),
@@ -143,6 +152,66 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       MaterialPageRoute(
         builder: (_) =>
             PlayerXpHistoryScreen(optionRepository: widget.optionRepository),
+      ),
+    );
+  }
+}
+
+class _LevelGuideSummaryCard extends StatelessWidget {
+  final bool isKo;
+  final int currentLevel;
+  final int totalXp;
+  final int xpToNextLevel;
+  final bool showXpGuide;
+
+  const _LevelGuideSummaryCard({
+    required this.isKo,
+    required this.currentLevel,
+    required this.totalXp,
+    required this.xpToNextLevel,
+    required this.showXpGuide,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '현재 진행 상태' : 'Current progress',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isKo
+                ? 'Lv.$currentLevel · 총 $totalXp XP'
+                : 'Lv.$currentLevel · $totalXp XP total',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            showXpGuide
+                ? (isKo
+                      ? '경험치 오르는 방법을 펼쳐둔 상태예요.'
+                      : 'The XP guide is open right now.')
+                : (isKo
+                      ? '다음 레벨까지 $xpToNextLevel XP 남았습니다.'
+                      : '$xpToNextLevel XP left until the next level.'),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
       ),
     );
   }

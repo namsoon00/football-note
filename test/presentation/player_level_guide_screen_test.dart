@@ -72,11 +72,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('경험치 히스토리'));
+    await tester.tap(find.byTooltip('경험치 히스토리'));
     await tester.pumpAndSettle();
 
     expect(find.text('경험치 히스토리'), findsWidgets);
-    expect(find.textContaining('훈련 기록 · 원터치 패스'), findsOneWidget);
+    expect(find.textContaining('훈련 기록 · 원터치 패스'), findsWidgets);
     expect(find.text('+30 XP'), findsOneWidget);
     expect(find.textContaining('누적 130 XP'), findsOneWidget);
   });

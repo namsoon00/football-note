@@ -58,6 +58,24 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
                   itemCount: history.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Column(
+                        children: [
+                          _XpHistorySummaryCard(
+                            isKo: isKo,
+                            count: history.length,
+                            latest: history.first,
+                          ),
+                          const SizedBox(height: 12),
+                          _XpHistoryCard(
+                            item: history[index],
+                            isKo: isKo,
+                            onDelete: () =>
+                                _deleteHistoryItem(history[index], isKo),
+                          ),
+                        ],
+                      );
+                    }
                     final item = history[index];
                     return _XpHistoryCard(
                       item: item,
@@ -108,6 +126,58 @@ class _PlayerXpHistoryScreenState extends State<PlayerXpHistoryScreen> {
     AppFeedback.showSuccess(
       context,
       text: isKo ? '경험치 메세지를 모두 삭제했어요.' : 'All XP messages deleted.',
+    );
+  }
+}
+
+class _XpHistorySummaryCard extends StatelessWidget {
+  final bool isKo;
+  final int count;
+  final PlayerXpHistoryEntry latest;
+
+  const _XpHistorySummaryCard({
+    required this.isKo,
+    required this.count,
+    required this.latest,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '최근 경험치 흐름' : 'Recent XP flow',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isKo
+                ? '총 $count개의 기록이 저장되어 있습니다.'
+                : '$count history items are saved.',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isKo
+                ? '가장 최근 기록은 ${_XpHistoryCard._title(latest, isKo)} 입니다.'
+                : 'Latest entry: ${_XpHistoryCard._title(latest, isKo)}.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
     );
   }
 }

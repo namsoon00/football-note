@@ -5,19 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
-import '../../application/news_read_state.dart';
 import '../../application/locale_service.dart';
-import '../../application/news_service.dart';
+import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
-import '../../domain/entities/news_article.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
-import '../../infrastructure/rss_news_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
@@ -30,6 +27,7 @@ import 'skill_quiz_screen.dart';
 import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
+import 'player_level_guide_screen.dart';
 import 'training_method_board_screen.dart';
 
 class HomeHubScreen extends StatefulWidget {
@@ -166,7 +164,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    _LevelHeroCard(levelState: levelState, isKo: isKo),
+                    _LevelHeroCard(
+                      levelState: levelState,
+                      isKo: isKo,
+                      onTap: _openLevelGuide,
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -198,7 +200,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     _PriorityActionCard(
                       data: data,
                       isKo: isKo,
-                      onTap: _trackedAction(
+                      onPrimaryTap: _trackedAction(
                         'priority_action',
                         data.focusSignal == 'log_today' ||
                                 data.focusSignal == 'add_session'
@@ -208,6 +210,18 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             : data.focusSignal == 'recovery'
                             ? widget.onOpenDiary
                             : widget.onOpenWeeklyStats,
+                      ),
+                      onPlanTap: _trackedAction(
+                        'priority_plan',
+                        widget.onQuickPlan,
+                      ),
+                      onQuizTap: _trackedAction(
+                        'priority_quiz',
+                        widget.onQuickQuiz,
+                      ),
+                      onDiaryTap: _trackedAction(
+                        'priority_diary',
+                        widget.onOpenDiary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -371,27 +385,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   }
 
   Future<int> _loadNewsCount() async {
-    final service = NewsService(RssNewsRepository(widget.optionRepository));
-    final channels = service.channels();
-    final articles = <NewsArticle>[];
-    final seenKeys = <String>{};
-
-    await Future.wait(
-      channels.map((channel) async {
-        try {
-          final channelArticles = await service.latest(channel.id);
-          for (final article in channelArticles) {
-            final key = _newsArticleKey(article);
-            if (!seenKeys.add(key)) continue;
-            articles.add(article);
-          }
-        } catch (_) {
-          // Ignore per-channel failures and show the count from successful feeds.
-        }
-      }),
-    );
-
-    return NewsReadState.unreadCount(widget.optionRepository, articles);
+    return NewsBadgeService.unreadCount(widget.optionRepository);
   }
 
   VoidCallback? _trackedAction(String key, VoidCallback? action) {
@@ -450,10 +444,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     unawaited(widget.onCreateTrainingBoard(initialDate: DateTime.now()));
   }
 
-  String _newsArticleKey(NewsArticle article) {
-    final link = article.link.trim();
-    if (link.isNotEmpty) return link;
-    return '${article.source.trim()}::${article.title.trim().toLowerCase()}';
+  Future<void> _openLevelGuide() async {
+    final levelState = PlayerLevelService(widget.optionRepository).loadState();
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PlayerLevelGuideScreen(
+          currentLevel: levelState.level,
+          optionRepository: widget.optionRepository,
+        ),
+      ),
+    );
   }
 }
 
@@ -798,107 +798,125 @@ class _TodayPlanHighlightCard extends StatelessWidget {
 class _LevelHeroCard extends StatelessWidget {
   final PlayerLevelState levelState;
   final bool isKo;
+  final VoidCallback onTap;
 
-  const _LevelHeroCard({required this.levelState, required this.isKo});
+  const _LevelHeroCard({
+    required this.levelState,
+    required this.isKo,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final spec = PlayerLevelVisualSpec.fromLevel(levelState.level);
-    return Container(
-      key: const ValueKey('level-hero-card'),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            spec.colors.first.withValues(alpha: 0.92),
-            spec.colors.last.withValues(alpha: 0.92),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const ValueKey('level-hero-card'),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                spec.colors.first.withValues(alpha: 0.92),
+                spec.colors.last.withValues(alpha: 0.92),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.20),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            'Lv.${levelState.level}',
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            PlayerLevelService.levelName(
-                              levelState.level,
-                              isKo,
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.20),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'Lv.${levelState.level}',
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                PlayerLevelService.levelName(
+                                  levelState.level,
+                                  isKo,
                                 ),
-                          ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.chevron_right,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          isKo
+                              ? '다음까지 ${levelState.xpToNextLevel}XP'
+                              : '${levelState.xpToNextLevel} XP left',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.92),
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isKo
-                          ? '다음까지 ${levelState.xpToNextLevel}XP'
-                          : '${levelState.xpToNextLevel} XP left',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  _HomeLevelIllustration(isKo: isKo, level: levelState.level),
+                ],
               ),
-              const SizedBox(width: 12),
-              _HomeLevelIllustration(isKo: isKo, level: levelState.level),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(
+                value: levelState.progress,
+                minHeight: 5,
+                borderRadius: BorderRadius.circular(999),
+                backgroundColor: Colors.white.withValues(alpha: 0.18),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: levelState.progress,
-            minHeight: 5,
-            borderRadius: BorderRadius.circular(999),
-            backgroundColor: Colors.white.withValues(alpha: 0.18),
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1021,24 +1039,46 @@ class _DailyFlowCard extends StatelessWidget {
 class _PriorityActionCard extends StatelessWidget {
   final _HomeHubData data;
   final bool isKo;
-  final VoidCallback? onTap;
+  final VoidCallback? onPrimaryTap;
+  final VoidCallback? onPlanTap;
+  final VoidCallback? onQuizTap;
+  final VoidCallback? onDiaryTap;
 
   const _PriorityActionCard({
     required this.data,
     required this.isKo,
-    required this.onTap,
+    required this.onPrimaryTap,
+    required this.onPlanTap,
+    required this.onQuizTap,
+    required this.onDiaryTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final (title, body, buttonLabel, icon) = _copy();
-    final compact = data.focusSignal == 'upgrade_quality';
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 12 : 14,
-        vertical: compact ? 10 : 14,
+    final suggestions = <_PrioritySuggestion>[
+      _PrioritySuggestion(
+        icon: Icons.event_note_outlined,
+        title: isKo ? '계획 먼저' : 'Plan first',
+        subtitle: isKo ? '오늘 블록을 먼저 확보해요.' : 'Lock in today’s block.',
+        onTap: onPlanTap,
       ),
+      _PrioritySuggestion(
+        icon: Icons.quiz_outlined,
+        title: isKo ? '퀴즈 워밍업' : 'Quiz warm-up',
+        subtitle: isKo ? '짧게 집중을 올립니다.' : 'Raise focus quickly.',
+        onTap: onQuizTap,
+      ),
+      _PrioritySuggestion(
+        icon: Icons.auto_stories_outlined,
+        title: isKo ? '복기 메모' : 'Review note',
+        subtitle: isKo ? '컨디션과 회복을 정리해요.' : 'Capture recovery notes.',
+        onTap: onDiaryTap,
+      ),
+    ];
+    return Container(
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1053,61 +1093,62 @@ class _PriorityActionCard extends StatelessWidget {
           color: theme.colorScheme.primary.withValues(alpha: 0.14),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: compact ? 38 : 44,
-            height: compact ? 38 : 44,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(compact ? 12 : 14),
-            ),
-            child: Icon(
-              icon,
-              color: theme.colorScheme.primary,
-              size: compact ? 20 : 24,
-            ),
-          ),
-          SizedBox(width: compact ? 10 : 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  maxLines: compact ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                SizedBox(height: compact ? 2 : 4),
-                Text(
-                  body,
-                  maxLines: compact ? 2 : 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: compact
-                      ? theme.textTheme.bodySmall?.copyWith(height: 1.35)
-                      : theme.textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: onTap,
-            style: FilledButton.styleFrom(
-              visualDensity: compact
-                  ? const VisualDensity(horizontal: -1, vertical: -2)
-                  : VisualDensity.standard,
-              padding: EdgeInsets.symmetric(
-                horizontal: compact ? 12 : 16,
-                vertical: compact ? 8 : 10,
+                child: Icon(icon, color: theme.colorScheme.primary, size: 24),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isKo ? '다음 액션 제안' : 'Next action ideas',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(body, style: theme.textTheme.bodyMedium),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          FilledButton(onPressed: onPrimaryTap, child: Text(buttonLabel)),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.08,
             ),
-            child: Text(buttonLabel),
+            itemCount: suggestions.length,
+            itemBuilder: (context, index) =>
+                _PrioritySuggestionCard(item: suggestions[index]),
           ),
         ],
       ),
@@ -1120,8 +1161,8 @@ class _PriorityActionCard extends StatelessWidget {
         return (
           isKo ? '오늘 기록부터 시작하세요' : 'Start with today’s log',
           isKo
-              ? '아직 오늘 훈련 기록이 없습니다. 30초 기록으로 루틴을 끊기지 않게 유지하세요.'
-              : 'No training log yet today. Use the quick log to keep the routine alive.',
+              ? '아직 오늘 훈련 기록이 없습니다. 가장 짧게 끝낼 수 있는 기록부터 시작하는 편이 좋습니다.'
+              : 'No training log yet today. Start with the quickest action you can finish.',
           isKo ? '지금 기록' : 'Log now',
           Icons.edit_note_outlined,
         );
@@ -1129,8 +1170,8 @@ class _PriorityActionCard extends StatelessWidget {
         return (
           isKo ? '이번 주 훈련 수를 채워야 합니다' : 'Add one more session',
           isKo
-              ? '이번 주 기록 수가 적습니다. 한 번만 더 기록해도 흐름이 살아납니다.'
-              : 'This week is still light. One more session will restore momentum.',
+              ? '이번 주 흐름이 약합니다. 계획이나 기록 하나만 더해도 리듬이 살아납니다.'
+              : 'This week still feels light. One extra plan or log will restore momentum.',
           isKo ? '훈련 추가' : 'Add session',
           Icons.track_changes_outlined,
         );
@@ -1138,8 +1179,8 @@ class _PriorityActionCard extends StatelessWidget {
         return (
           isKo ? '시간을 조금 더 확보하세요' : 'Add a bit more volume',
           isKo
-              ? '훈련 횟수는 괜찮지만 총 시간이 부족합니다. 계획부터 잡는 편이 좋습니다.'
-              : 'Session count is fine, but total minutes are low. Plan the next block.',
+              ? '횟수는 괜찮지만 총 시간이 부족합니다. 먼저 계획을 추가하는 편이 안정적입니다.'
+              : 'Session count is fine, but total minutes are low. Adding a plan is the safer move.',
           isKo ? '계획 보기' : 'Open plans',
           Icons.timer_outlined,
         );
@@ -1156,12 +1197,72 @@ class _PriorityActionCard extends StatelessWidget {
         return (
           isKo ? '이번 주 퀄리티를 올릴 차례입니다' : 'Now raise this week’s quality',
           isKo
-              ? '기록은 충분합니다. 주간 리뷰만 짧게 확인해도 다음 훈련 방향이 선명해집니다.'
-              : 'You have enough volume. A short weekly review will sharpen the next session.',
+              ? '볼륨은 충분합니다. 주간 리뷰나 퀴즈로 다음 훈련의 선명도를 높이세요.'
+              : 'Volume looks fine. Use review or quiz work to sharpen the next session.',
           isKo ? '주간 리뷰' : 'Weekly review',
           Icons.insights_outlined,
         );
     }
+  }
+}
+
+class _PrioritySuggestion {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+
+  const _PrioritySuggestion({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+}
+
+class _PrioritySuggestionCard extends StatelessWidget {
+  final _PrioritySuggestion item;
+
+  const _PrioritySuggestionCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.white.withValues(alpha: 0.42),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(item.icon, color: scheme.primary, size: 20),
+              const SizedBox(height: 10),
+              Text(
+                item.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 4),
+              Expanded(
+                child: Text(
+                  item.subtitle,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
