@@ -45,6 +45,13 @@ class PlayerXpGuideScreen extends StatelessWidget {
             title: isKo ? '줄넘기 기록 추가' : 'Jump rope recorded',
             xpLabel: '+10 XP',
           ),
+          _XpGuideItem(
+            icon: Icons.remove_circle_outline,
+            title: isKo
+                ? '리프팅/줄넘기 없이 저장하면 감점'
+                : 'Missing lifting or jump rope costs XP',
+            xpLabel: isKo ? '-10 XP씩' : '-10 XP each',
+          ),
         ],
       ),
       _XpGuideSection(
