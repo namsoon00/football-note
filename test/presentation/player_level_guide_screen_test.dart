@@ -101,6 +101,7 @@ void main() {
 
     expect(find.text('리프팅 기록 추가'), findsOneWidget);
     expect(find.text('줄넘기 기록 추가'), findsOneWidget);
+    expect(find.text('리프팅/줄넘기 없이 저장하면 감점'), findsOneWidget);
     expect(find.text('묶음 계획 생성 보너스'), findsOneWidget);
   });
 }

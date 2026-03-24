@@ -36,11 +36,11 @@ class SkillQuizScreen extends StatefulWidget {
       optionRepository.getValue<String>(pendingWrongScheduleKey),
     );
     final now = DateTime.now();
-    final pendingDueCount = pending
-        .where((item) => !item.dueAt.isAfter(now))
-        .map((item) => item.conceptKey)
-        .toSet()
-        .length;
+    final pendingDueCount = _resolveDueReviewQuestionsFromSchedule(
+      pending.where((item) => !item.dueAt.isAfter(now)),
+      _quizQuestionById,
+      _quizQuestionByConcept,
+    ).length;
 
     final rawCompletedAt = optionRepository.getValue<String>(completionKey);
     final completedAt =
@@ -641,6 +641,20 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 )
               : null,
           title: Text(isKo ? '축구 퀴즈' : 'Football Quiz'),
+          actions: _showEntryHubBackButton
+              ? null
+              : [
+                  IconButton(
+                    onPressed: _openQuizLibrary,
+                    tooltip: isKo ? '전체 문제 보기' : 'Browse all questions',
+                    icon: const Icon(Icons.library_books_outlined),
+                  ),
+                  IconButton(
+                    onPressed: _openQuizHistory,
+                    tooltip: isKo ? '퀴즈 히스토리' : 'Quiz history',
+                    icon: const Icon(Icons.history_outlined),
+                  ),
+                ],
         ),
         body: SafeArea(
           child: Padding(
@@ -1330,7 +1344,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Widget _buildEntryHub(bool isKo) {
     final personalization = _buildPersonalization();
     final history = _loadQuizHistory();
-    final recentHistory = history.isEmpty ? null : history.first;
     final actions = <_QuizEntryCardData>[
       if (_resumeSummary.hasActiveSession && _pendingResumeSnapshot != null)
         _QuizEntryCardData(
@@ -1358,7 +1371,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _QuizEntryCardData(
         action: _QuizEntryAction.challenge,
         icon: Icons.sports_soccer_outlined,
-        title: isKo ? '다른 스타일 풀기' : 'Challenge mix',
+        title: isKo ? '챌린지 모드' : 'Challenge mix',
         subtitle: isKo ? '분야를 섞은 적응형 10문제' : 'Adaptive mixed set of 10',
         badge: isKo ? '새 문제 흐름' : 'Fresh mix',
       ),
@@ -1389,26 +1402,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             ? '문항당 $_speedLimitSec초 안에 답하기'
             : 'Answer within $_speedLimitSec seconds each',
         badge: isKo ? '빠른 판단' : 'Fast decisions',
-      ),
-      _QuizEntryCardData(
-        action: _QuizEntryAction.library,
-        icon: Icons.library_books_outlined,
-        title: isKo ? '전체 문제 보기' : 'Browse all questions',
-        subtitle: isKo
-            ? '900문제 전체를 필터와 검색으로 점검해요'
-            : 'Inspect the full 900-question bank with filters and search',
-        badge: isKo ? '코치 검수' : 'Library',
-      ),
-      _QuizEntryCardData(
-        action: _QuizEntryAction.history,
-        icon: Icons.history_outlined,
-        title: isKo ? '퀴즈 히스토리' : 'Quiz history',
-        subtitle: recentHistory == null
-            ? (isKo ? '아직 저장된 퀴즈 기록이 없습니다' : 'No saved quiz runs yet')
-            : (isKo
-                ? '최근 ${recentHistory.score}/${recentHistory.totalQuestions} 정답, 오답 ${recentHistory.wrongQuestions.length}개'
-                : 'Latest ${recentHistory.score}/${recentHistory.totalQuestions}, ${recentHistory.wrongQuestions.length} misses'),
-        badge: isKo ? '이전 회차' : 'Past runs',
       ),
     ];
 
@@ -1847,28 +1840,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       ),
     );
     final now = DateTime.now();
-    final dueIds = scheduled
-        .where((item) => !item.dueAt.isAfter(now))
-        .map((item) => item.questionId)
-        .toList(growable: false);
-    return dueIds
-        .map((id) => _questionMap[id])
-        .whereType<_FootballQuizQuestion>()
-        .fold<List<_FootballQuizQuestion>>(<_FootballQuizQuestion>[], (
-      picked,
-      question,
-    ) {
-      final contentKey = _sessionQuestionContentKey(question);
-      if (picked.any((item) => item.conceptKey == question.conceptKey)) {
-        return picked;
-      }
-      if (picked
-          .any((item) => _sessionQuestionContentKey(item) == contentKey)) {
-        return picked;
-      }
-      picked.add(question);
-      return picked;
-    });
+    return _resolveDueReviewQuestionsFromSchedule(
+      scheduled.where((item) => !item.dueAt.isAfter(now)),
+      _questionMap,
+      {for (final question in _allQuestions) question.conceptKey: question},
+    );
   }
 
   void _appendUniqueQuestions({
@@ -1917,8 +1893,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         text.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
 
     final optionKey = question.options
-        .map((option) =>
-            '${normalize(option.koText)}|${normalize(option.enText)}')
+        .map(
+          (option) => '${normalize(option.koText)}|${normalize(option.enText)}',
+        )
         .join('||');
     final answers = [...question.acceptedAnswers]
       ..sort((a, b) => a.compareTo(b));
@@ -2525,8 +2502,9 @@ class _QuizLibraryScreenState extends State<_QuizLibraryScreen> {
         .length;
     final filteredCoreFocus =
         filtered.where((question) => question.category.isCoreFocus).length;
-    final uniqueConceptCount =
-        _deduplicateQuestionsByConcept(widget.questions).length;
+    final uniqueConceptCount = _deduplicateQuestionsByConcept(
+      widget.questions,
+    ).length;
 
     return Scaffold(
       appBar: AppBar(title: Text(isKo ? '전체 문제 보기' : 'Question library')),
@@ -3184,15 +3162,18 @@ class _QuizHistoryScreen extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyMedium,
                           )
                         else
-                          ...item.wrongQuestions.map(
-                            (question) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: _FlipQuizReviewCard(
-                                question: question,
-                                isKo: isKo,
+                          ...item.wrongQuestions.asMap().entries.map(
+                                (entry) => Padding(
+                                  key: ValueKey(
+                                    'quiz-history-wrong-${item.finishedAt.toIso8601String()}-${entry.value.id}-${entry.key}',
+                                  ),
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _FlipQuizReviewCard(
+                                    question: entry.value,
+                                    isKo: isKo,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                       ],
                     ),
                   );
@@ -4038,8 +4019,9 @@ List<_FootballQuizQuestion> _deduplicateQuizQuestions(
   final unique = <_FootballQuizQuestion>[];
   for (final question in source) {
     final optionKey = question.options
-        .map((option) =>
-            '${normalize(option.koText)}|${normalize(option.enText)}')
+        .map(
+          (option) => '${normalize(option.koText)}|${normalize(option.enText)}',
+        )
         .join('||');
     final answers = [...question.acceptedAnswers]
       ..sort((a, b) => a.compareTo(b));
@@ -4079,10 +4061,7 @@ List<_OxFactSeed> _buildOxSeedPool300() {
 }
 
 List<_McqSeed> _buildMcqSeedPool300() {
-  return <_McqSeed>[
-    ..._mcqSeeds(),
-    ..._generatedGlobalFootballMcqSeeds(),
-  ];
+  return <_McqSeed>[..._mcqSeeds(), ..._generatedGlobalFootballMcqSeeds()];
 }
 
 List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
@@ -4220,8 +4199,10 @@ List<_McqSeed> _generatedGlobalFootballMcqSeeds() {
   final tournamentFacts = _tournamentKnowledgeBank();
   for (var i = 0; i < tournamentFacts.length; i++) {
     final tournament = tournamentFacts[i];
-    final correct =
-        _KoEnPair(ko: tournament.koOrganizer, en: tournament.enOrganizer);
+    final correct = _KoEnPair(
+      ko: tournament.koOrganizer,
+      en: tournament.enOrganizer,
+    );
     generated.add(
       _McqSeed(
         id: 'gen_tournament_org_${tournament.id}',
@@ -4272,8 +4253,10 @@ List<_McqSeed> _generatedGlobalFootballMcqSeeds() {
         koStem: '다음 용어의 영어 표현으로 맞는 것은? "${term.koTerm}"',
         enStem: 'Which English term matches "${term.koTerm}"?',
         options: options,
-        correctIndex:
-            _correctIndexFromOptions(options: options, correct: correct),
+        correctIndex: _correctIndexFromOptions(
+          options: options,
+          correct: correct,
+        ),
         koExplain: '"${term.koTerm}"는 영어로 "${term.enTerm}"라고 합니다.',
         enExplain: '"${term.koTerm}" is expressed as "${term.enTerm}".',
         koNextPoint: '용어를 실제 경기 장면과 연결해 익히세요.',
@@ -4810,7 +4793,7 @@ List<
       String koName,
       String enName,
       String koLeague,
-      String enLeague,
+      String enLeague
     })> _clubKnowledgeBank() {
   return const [
     (
@@ -4818,210 +4801,210 @@ List<
       koName: '레알 마드리드',
       enName: 'Real Madrid',
       koLeague: '라리가',
-      enLeague: 'LaLiga'
+      enLeague: 'LaLiga',
     ),
     (
       id: 'barcelona',
       koName: '바르셀로나',
       enName: 'Barcelona',
       koLeague: '라리가',
-      enLeague: 'LaLiga'
+      enLeague: 'LaLiga',
     ),
     (
       id: 'atleti',
       koName: '아틀레티코 마드리드',
       enName: 'Atletico Madrid',
       koLeague: '라리가',
-      enLeague: 'LaLiga'
+      enLeague: 'LaLiga',
     ),
     (
       id: 'mancity',
       koName: '맨체스터 시티',
       enName: 'Manchester City',
       koLeague: '프리미어리그',
-      enLeague: 'Premier League'
+      enLeague: 'Premier League',
     ),
     (
       id: 'arsenal',
       koName: '아스널',
       enName: 'Arsenal',
       koLeague: '프리미어리그',
-      enLeague: 'Premier League'
+      enLeague: 'Premier League',
     ),
     (
       id: 'liverpool',
       koName: '리버풀',
       enName: 'Liverpool',
       koLeague: '프리미어리그',
-      enLeague: 'Premier League'
+      enLeague: 'Premier League',
     ),
     (
       id: 'manutd',
       koName: '맨체스터 유나이티드',
       enName: 'Manchester United',
       koLeague: '프리미어리그',
-      enLeague: 'Premier League'
+      enLeague: 'Premier League',
     ),
     (
       id: 'chelsea',
       koName: '첼시',
       enName: 'Chelsea',
       koLeague: '프리미어리그',
-      enLeague: 'Premier League'
+      enLeague: 'Premier League',
     ),
     (
       id: 'tottenham',
       koName: '토트넘',
       enName: 'Tottenham Hotspur',
       koLeague: '프리미어리그',
-      enLeague: 'Premier League'
+      enLeague: 'Premier League',
     ),
     (
       id: 'bayern',
       koName: '바이에른 뮌헨',
       enName: 'Bayern Munich',
       koLeague: '분데스리가',
-      enLeague: 'Bundesliga'
+      enLeague: 'Bundesliga',
     ),
     (
       id: 'dortmund',
       koName: '도르트문트',
       enName: 'Borussia Dortmund',
       koLeague: '분데스리가',
-      enLeague: 'Bundesliga'
+      enLeague: 'Bundesliga',
     ),
     (
       id: 'leverkusen',
       koName: '레버쿠젠',
       enName: 'Bayer Leverkusen',
       koLeague: '분데스리가',
-      enLeague: 'Bundesliga'
+      enLeague: 'Bundesliga',
     ),
     (
       id: 'juventus',
       koName: '유벤투스',
       enName: 'Juventus',
       koLeague: '세리에 A',
-      enLeague: 'Serie A'
+      enLeague: 'Serie A',
     ),
     (
       id: 'inter',
       koName: '인터 밀란',
       enName: 'Inter Milan',
       koLeague: '세리에 A',
-      enLeague: 'Serie A'
+      enLeague: 'Serie A',
     ),
     (
       id: 'acmilan',
       koName: 'AC 밀란',
       enName: 'AC Milan',
       koLeague: '세리에 A',
-      enLeague: 'Serie A'
+      enLeague: 'Serie A',
     ),
     (
       id: 'napoli',
       koName: '나폴리',
       enName: 'Napoli',
       koLeague: '세리에 A',
-      enLeague: 'Serie A'
+      enLeague: 'Serie A',
     ),
     (
       id: 'roma',
       koName: '로마',
       enName: 'Roma',
       koLeague: '세리에 A',
-      enLeague: 'Serie A'
+      enLeague: 'Serie A',
     ),
     (
       id: 'psg',
       koName: '파리 생제르맹',
       enName: 'Paris Saint-Germain',
       koLeague: '리그 1',
-      enLeague: 'Ligue 1'
+      enLeague: 'Ligue 1',
     ),
     (
       id: 'marseille',
       koName: '마르세유',
       enName: 'Marseille',
       koLeague: '리그 1',
-      enLeague: 'Ligue 1'
+      enLeague: 'Ligue 1',
     ),
     (
       id: 'monaco',
       koName: '모나코',
       enName: 'Monaco',
       koLeague: '리그 1',
-      enLeague: 'Ligue 1'
+      enLeague: 'Ligue 1',
     ),
     (
       id: 'ajax',
       koName: '아약스',
       enName: 'Ajax',
       koLeague: '에레디비시',
-      enLeague: 'Eredivisie'
+      enLeague: 'Eredivisie',
     ),
     (
       id: 'psv',
       koName: 'PSV 아인트호벤',
       enName: 'PSV Eindhoven',
       koLeague: '에레디비시',
-      enLeague: 'Eredivisie'
+      enLeague: 'Eredivisie',
     ),
     (
       id: 'benfica',
       koName: '벤피카',
       enName: 'Benfica',
       koLeague: '프리메이라 리가',
-      enLeague: 'Primeira Liga'
+      enLeague: 'Primeira Liga',
     ),
     (
       id: 'sporting',
       koName: '스포르팅 CP',
       enName: 'Sporting CP',
       koLeague: '프리메이라 리가',
-      enLeague: 'Primeira Liga'
+      enLeague: 'Primeira Liga',
     ),
     (
       id: 'porto',
       koName: '포르투',
       enName: 'Porto',
       koLeague: '프리메이라 리가',
-      enLeague: 'Primeira Liga'
+      enLeague: 'Primeira Liga',
     ),
     (
       id: 'celtic',
       koName: '셀틱',
       enName: 'Celtic',
       koLeague: '스코티시 프리미어십',
-      enLeague: 'Scottish Premiership'
+      enLeague: 'Scottish Premiership',
     ),
     (
       id: 'galatasaray',
       koName: '갈라타사라이',
       enName: 'Galatasaray',
       koLeague: '쉬페르리그',
-      enLeague: 'Super Lig'
+      enLeague: 'Super Lig',
     ),
     (
       id: 'fenerbahce',
       koName: '페네르바체',
       enName: 'Fenerbahce',
       koLeague: '쉬페르리그',
-      enLeague: 'Super Lig'
+      enLeague: 'Super Lig',
     ),
     (
       id: 'alhilal',
       koName: '알 힐랄',
       enName: 'Al Hilal',
       koLeague: '사우디 프로리그',
-      enLeague: 'Saudi Pro League'
+      enLeague: 'Saudi Pro League',
     ),
     (
       id: 'alnassr',
       koName: '알 나스르',
       enName: 'Al Nassr',
       koLeague: '사우디 프로리그',
-      enLeague: 'Saudi Pro League'
+      enLeague: 'Saudi Pro League',
     ),
   ];
 }
@@ -5040,140 +5023,140 @@ List<
       koName: 'FIFA 월드컵',
       enName: 'FIFA World Cup',
       koOrganizer: 'FIFA',
-      enOrganizer: 'FIFA'
+      enOrganizer: 'FIFA',
     ),
     (
       id: 'uefa_euro',
       koName: 'UEFA 유로',
       enName: 'UEFA Euro',
       koOrganizer: 'UEFA',
-      enOrganizer: 'UEFA'
+      enOrganizer: 'UEFA',
     ),
     (
       id: 'copa_america',
       koName: '코파 아메리카',
       enName: 'Copa America',
       koOrganizer: 'CONMEBOL',
-      enOrganizer: 'CONMEBOL'
+      enOrganizer: 'CONMEBOL',
     ),
     (
       id: 'afc_asian_cup',
       koName: 'AFC 아시안컵',
       enName: 'AFC Asian Cup',
       koOrganizer: 'AFC',
-      enOrganizer: 'AFC'
+      enOrganizer: 'AFC',
     ),
     (
       id: 'afcon',
       koName: '아프리카 네이션스컵',
       enName: 'Africa Cup of Nations',
       koOrganizer: 'CAF',
-      enOrganizer: 'CAF'
+      enOrganizer: 'CAF',
     ),
     (
       id: 'gold_cup',
       koName: 'CONCACAF 골드컵',
       enName: 'CONCACAF Gold Cup',
       koOrganizer: 'CONCACAF',
-      enOrganizer: 'CONCACAF'
+      enOrganizer: 'CONCACAF',
     ),
     (
       id: 'ucl',
       koName: 'UEFA 챔피언스리그',
       enName: 'UEFA Champions League',
       koOrganizer: 'UEFA',
-      enOrganizer: 'UEFA'
+      enOrganizer: 'UEFA',
     ),
     (
       id: 'uel',
       koName: 'UEFA 유로파리그',
       enName: 'UEFA Europa League',
       koOrganizer: 'UEFA',
-      enOrganizer: 'UEFA'
+      enOrganizer: 'UEFA',
     ),
     (
       id: 'uecl',
       koName: 'UEFA 컨퍼런스리그',
       enName: 'UEFA Conference League',
       koOrganizer: 'UEFA',
-      enOrganizer: 'UEFA'
+      enOrganizer: 'UEFA',
     ),
     (
       id: 'libertadores',
       koName: '코파 리베르타도레스',
       enName: 'Copa Libertadores',
       koOrganizer: 'CONMEBOL',
-      enOrganizer: 'CONMEBOL'
+      enOrganizer: 'CONMEBOL',
     ),
     (
       id: 'sudamericana',
       koName: '코파 수다메리카나',
       enName: 'Copa Sudamericana',
       koOrganizer: 'CONMEBOL',
-      enOrganizer: 'CONMEBOL'
+      enOrganizer: 'CONMEBOL',
     ),
     (
       id: 'club_world_cup',
       koName: 'FIFA 클럽 월드컵',
       enName: 'FIFA Club World Cup',
       koOrganizer: 'FIFA',
-      enOrganizer: 'FIFA'
+      enOrganizer: 'FIFA',
     ),
     (
       id: 'nations_league',
       koName: 'UEFA 네이션스리그',
       enName: 'UEFA Nations League',
       koOrganizer: 'UEFA',
-      enOrganizer: 'UEFA'
+      enOrganizer: 'UEFA',
     ),
     (
       id: 'olympic_football',
       koName: '올림픽 축구',
       enName: 'Olympic Football Tournament',
       koOrganizer: 'IOC',
-      enOrganizer: 'IOC'
+      enOrganizer: 'IOC',
     ),
     (
       id: 'u20_world_cup',
       koName: 'FIFA U-20 월드컵',
       enName: 'FIFA U-20 World Cup',
       koOrganizer: 'FIFA',
-      enOrganizer: 'FIFA'
+      enOrganizer: 'FIFA',
     ),
     (
       id: 'u17_world_cup',
       koName: 'FIFA U-17 월드컵',
       enName: 'FIFA U-17 World Cup',
       koOrganizer: 'FIFA',
-      enOrganizer: 'FIFA'
+      enOrganizer: 'FIFA',
     ),
     (
       id: 'afc_champions',
       koName: 'AFC 챔피언스리그',
       enName: 'AFC Champions League Elite',
       koOrganizer: 'AFC',
-      enOrganizer: 'AFC'
+      enOrganizer: 'AFC',
     ),
     (
       id: 'caf_champions',
       koName: 'CAF 챔피언스리그',
       enName: 'CAF Champions League',
       koOrganizer: 'CAF',
-      enOrganizer: 'CAF'
+      enOrganizer: 'CAF',
     ),
     (
       id: 'concacaf_champions',
       koName: 'CONCACAF 챔피언스컵',
       enName: 'CONCACAF Champions Cup',
       koOrganizer: 'CONCACAF',
-      enOrganizer: 'CONCACAF'
+      enOrganizer: 'CONCACAF',
     ),
     (
       id: 'uwcl',
       koName: 'UEFA 여자 챔피언스리그',
       enName: 'UEFA Women Champions League',
       koOrganizer: 'UEFA',
-      enOrganizer: 'UEFA'
+      enOrganizer: 'UEFA',
     ),
   ];
 }
@@ -5184,7 +5167,7 @@ List<
       String koTerm,
       String enTerm,
       _QuizCategory category,
-      int difficulty
+      int difficulty,
     })> _footballTermBank() {
   return const [
     (
@@ -5192,574 +5175,574 @@ List<
       koTerm: '퍼스트 터치',
       enTerm: 'first touch',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'scanning',
       koTerm: '스캐닝',
       enTerm: 'scanning',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'body_feint',
       koTerm: '바디 페인트',
       enTerm: 'body feint',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'step_over',
       koTerm: '스텝오버',
       enTerm: 'step-over',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'nutmeg',
       koTerm: '넛메그',
       enTerm: 'nutmeg',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'cutback',
       koTerm: '컷백',
       enTerm: 'cutback',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'overlap',
       koTerm: '오버래핑',
       enTerm: 'overlap',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'underlap',
       koTerm: '언더래핑',
       enTerm: 'underlap',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'through_pass',
       koTerm: '스루패스',
       enTerm: 'through pass',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'switch_play',
       koTerm: '전환 패스',
       enTerm: 'switch of play',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'pressing_trigger',
       koTerm: '압박 트리거',
       enTerm: 'pressing trigger',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'counter_pressing',
       koTerm: '카운터프레싱',
       enTerm: 'counter-pressing',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'low_block',
       koTerm: '로우 블록',
       enTerm: 'low block',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'high_line',
       koTerm: '하이 라인',
       enTerm: 'high line',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'offside_trap',
       koTerm: '오프사이드 트랩',
       enTerm: 'offside trap',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'half_space',
       koTerm: '하프스페이스',
       enTerm: 'half-space',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'third_man_run',
       koTerm: '서드맨 런',
       enTerm: 'third-man run',
       category: _QuizCategory.tactics,
-      difficulty: 3
+      difficulty: 3,
     ),
     (
       id: 'one_two',
       koTerm: '원투 패스',
       enTerm: 'one-two pass',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'ball_shielding',
       koTerm: '볼 키핑',
       enTerm: 'ball shielding',
       category: _QuizCategory.technique,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'jockeying',
       koTerm: '조키잉',
       enTerm: 'jockeying',
       category: _QuizCategory.technique,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'interception',
       koTerm: '인터셉트',
       enTerm: 'interception',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'man_marking',
       koTerm: '맨마킹',
       enTerm: 'man marking',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'zonal_marking',
       koTerm: '지역 방어',
       enTerm: 'zonal marking',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'build_up',
       koTerm: '빌드업',
       enTerm: 'build-up',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'transition',
       koTerm: '전환',
       enTerm: 'transition',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'final_third',
       koTerm: '파이널 서드',
       enTerm: 'final third',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'set_piece',
       koTerm: '세트피스',
       enTerm: 'set piece',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'near_post_run',
       koTerm: '니어포스트 런',
       enTerm: 'near-post run',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'far_post_run',
       koTerm: '파포스트 런',
       enTerm: 'far-post run',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'crossing',
       koTerm: '크로스',
       enTerm: 'crossing',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'volley',
       koTerm: '발리슛',
       enTerm: 'volley',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'half_volley',
       koTerm: '하프 발리',
       enTerm: 'half-volley',
       category: _QuizCategory.technique,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'chest_control',
       koTerm: '가슴 트래핑',
       enTerm: 'chest control',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'instep_pass',
       koTerm: '인사이드 패스',
       enTerm: 'inside-foot pass',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'outside_pass',
       koTerm: '아웃사이드 패스',
       enTerm: 'outside-foot pass',
       category: _QuizCategory.technique,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'weak_foot',
       koTerm: '약발 훈련',
       enTerm: 'weak-foot training',
       category: _QuizCategory.training,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'recovery_run',
       koTerm: '리커버리 런',
       enTerm: 'recovery run',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'compactness',
       koTerm: '압축성',
       enTerm: 'compactness',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'line_breaking_pass',
       koTerm: '라인브레이킹 패스',
       enTerm: 'line-breaking pass',
       category: _QuizCategory.tactics,
-      difficulty: 3
+      difficulty: 3,
     ),
     (
       id: 'progressive_pass',
       koTerm: '전진 패스',
       enTerm: 'progressive pass',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'diagonal_run',
       koTerm: '대각선 침투',
       enTerm: 'diagonal run',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'blind_side_run',
       koTerm: '블라인드사이드 런',
       enTerm: 'blind-side run',
       category: _QuizCategory.tactics,
-      difficulty: 3
+      difficulty: 3,
     ),
     (
       id: 'decoy_run',
       koTerm: '유인 침투',
       enTerm: 'decoy run',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'hold_up_play',
       koTerm: '포스트 플레이',
       enTerm: 'hold-up play',
       category: _QuizCategory.technique,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'target_man',
       koTerm: '타깃맨',
       enTerm: 'target man',
       category: _QuizCategory.positions,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'false_nine',
       koTerm: '가짜 9번',
       enTerm: 'false nine',
       category: _QuizCategory.positions,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'inverted_winger',
       koTerm: '인버티드 윙어',
       enTerm: 'inverted winger',
       category: _QuizCategory.positions,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'sweeper_keeper',
       koTerm: '스위퍼 키퍼',
       enTerm: 'sweeper-keeper',
       category: _QuizCategory.positions,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'claim_cross',
       koTerm: '크로스 캐치',
       enTerm: 'claim the cross',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'goal_kick_routine',
       koTerm: '골킥 루틴',
       enTerm: 'goal-kick routine',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'press_resistance',
       koTerm: '압박 저항',
       enTerm: 'press resistance',
       category: _QuizCategory.technique,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'rondo',
       koTerm: '론도',
       enTerm: 'rondo',
       category: _QuizCategory.training,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'small_sided_game',
       koTerm: '소형 게임',
       enTerm: 'small-sided game',
       category: _QuizCategory.training,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'finishing_drill',
       koTerm: '피니시 훈련',
       enTerm: 'finishing drill',
       category: _QuizCategory.training,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'agility_ladder',
       koTerm: '래더 훈련',
       enTerm: 'agility ladder',
       category: _QuizCategory.training,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'plyometric',
       koTerm: '플라이오메트릭',
       enTerm: 'plyometric',
       category: _QuizCategory.training,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'dynamic_stretch',
       koTerm: '동적 스트레칭',
       enTerm: 'dynamic stretching',
       category: _QuizCategory.training,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'cool_down',
       koTerm: '쿨다운',
       enTerm: 'cool-down',
       category: _QuizCategory.training,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'hydration',
       koTerm: '수분 보충',
       enTerm: 'hydration',
       category: _QuizCategory.nutrition,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'glycogen',
       koTerm: '글리코겐 회복',
       enTerm: 'glycogen recovery',
       category: _QuizCategory.nutrition,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'sleep_routine',
       koTerm: '수면 루틴',
       enTerm: 'sleep routine',
       category: _QuizCategory.nutrition,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'mental_reset',
       koTerm: '멘탈 리셋',
       enTerm: 'mental reset',
       category: _QuizCategory.mindset,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'visualization',
       koTerm: '시각화',
       enTerm: 'visualization',
       category: _QuizCategory.mindset,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'communication_cue',
       koTerm: '커뮤니케이션 큐',
       enTerm: 'communication cue',
       category: _QuizCategory.mindset,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'check_shoulder',
       koTerm: '숄더 체크',
       enTerm: 'check shoulder',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'back_foot_receive',
       koTerm: '백풋 리시브',
       enTerm: 'receive on back foot',
       category: _QuizCategory.technique,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'open_body',
       koTerm: '오픈 바디',
       enTerm: 'open body',
       category: _QuizCategory.technique,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'tempo_control',
       koTerm: '템포 조절',
       enTerm: 'tempo control',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'width',
       koTerm: '폭 활용',
       enTerm: 'width',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'depth',
       koTerm: '깊이 활용',
       enTerm: 'depth',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'numerical_superiority',
       koTerm: '수적 우위',
       enTerm: 'numerical superiority',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'rest_defense',
       koTerm: '레스트 디펜스',
       enTerm: 'rest defense',
       category: _QuizCategory.tactics,
-      difficulty: 3
+      difficulty: 3,
     ),
     (
       id: 'second_ball',
       koTerm: '세컨드볼',
       enTerm: 'second ball',
       category: _QuizCategory.tactics,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'counter_attack',
       koTerm: '역습',
       enTerm: 'counter-attack',
       category: _QuizCategory.tactics,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'overload_isolate',
       koTerm: '오버로드 투 아이솔레이트',
       enTerm: 'overload to isolate',
       category: _QuizCategory.tactics,
-      difficulty: 3
+      difficulty: 3,
     ),
     (
       id: 'cover_shadow',
       koTerm: '커버 섀도우',
       enTerm: 'cover shadow',
       category: _QuizCategory.tactics,
-      difficulty: 3
+      difficulty: 3,
     ),
     (
       id: 'press_backward',
       koTerm: '백패스 압박 트리거',
       enTerm: 'back-pass pressing trigger',
       category: _QuizCategory.tactics,
-      difficulty: 3
+      difficulty: 3,
     ),
     (
       id: 'dead_ball',
       koTerm: '데드볼 상황',
       enTerm: 'dead-ball situation',
       category: _QuizCategory.rules,
-      difficulty: 1
+      difficulty: 1,
     ),
     (
       id: 'advantage',
       koTerm: '어드밴티지',
       enTerm: 'advantage rule',
       category: _QuizCategory.rules,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'bookable_offense',
       koTerm: '경고성 파울',
       enTerm: 'bookable offense',
       category: _QuizCategory.rules,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'red_card_offense',
       koTerm: '퇴장성 파울',
       enTerm: 'red-card offense',
       category: _QuizCategory.rules,
-      difficulty: 2
+      difficulty: 2,
     ),
     (
       id: 'added_time',
       koTerm: '추가시간',
       enTerm: 'added time',
       category: _QuizCategory.rules,
-      difficulty: 1
+      difficulty: 1,
     ),
   ];
 }
@@ -5892,6 +5875,25 @@ final Map<String, String> _quizConceptKeyByQuestionId = () {
 final Set<String> _quizKnownConceptKeys =
     _quizConceptKeyByQuestionId.values.toSet();
 
+final Map<String, _FootballQuizQuestion> _quizQuestionById = () {
+  final map = <String, _FootballQuizQuestion>{};
+  for (final question in _buildFootballQuizPool()) {
+    map[question.id] = question;
+    for (final entry in _legacyQuestionAliases(question).entries) {
+      map[entry.key] = entry.value;
+    }
+  }
+  return map;
+}();
+
+final Map<String, _FootballQuizQuestion> _quizQuestionByConcept = () {
+  final map = <String, _FootballQuizQuestion>{};
+  for (final question in _buildFootballQuizPool()) {
+    map.putIfAbsent(question.conceptKey, () => question);
+  }
+  return map;
+}();
+
 String _quizConceptKeyForQuestionId(String raw) {
   if (raw.isEmpty) return raw;
   return _quizConceptKeyByQuestionId[raw] ??
@@ -5935,6 +5937,49 @@ List<_ScheduledWrongItem> _normalizeScheduledWrongItems(String? raw) {
     );
   }
   return merged.values.toList(growable: false);
+}
+
+List<_FootballQuizQuestion> _resolveDueReviewQuestionsFromSchedule(
+  Iterable<_ScheduledWrongItem> scheduled,
+  Map<String, _FootballQuizQuestion> questionById,
+  Map<String, _FootballQuizQuestion> questionByConcept,
+) {
+  final picked = <_FootballQuizQuestion>[];
+  final seenConcepts = <String>{};
+  final seenContentKeys = <String>{};
+  for (final item in scheduled) {
+    final conceptKey = _quizConceptKeyForQuestionId(item.conceptKey);
+    final question =
+        questionById[item.questionId] ?? questionByConcept[conceptKey];
+    if (question == null) continue;
+    if (!seenConcepts.add(question.conceptKey)) continue;
+    final contentKey = _quizSessionQuestionContentKey(question);
+    if (!seenContentKeys.add(contentKey)) {
+      seenConcepts.remove(question.conceptKey);
+      continue;
+    }
+    picked.add(question);
+  }
+  return picked;
+}
+
+String _quizSessionQuestionContentKey(_FootballQuizQuestion question) {
+  String normalize(String text) =>
+      text.toLowerCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  final optionKey = question.options
+      .map(
+          (option) => '${normalize(option.koText)}|${normalize(option.enText)}')
+      .join('||');
+  final answers = [...question.acceptedAnswers]..sort((a, b) => a.compareTo(b));
+  final answerKey = answers.map(normalize).join('|');
+  return [
+    normalize(question.koPrompt),
+    normalize(question.enPrompt),
+    optionKey,
+    question.correctIndex.toString(),
+    answerKey,
+  ].join('::');
 }
 
 Map<String, _FootballQuizQuestion> _legacyQuestionAliases(
