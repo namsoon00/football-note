@@ -118,7 +118,8 @@ void main() {
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     expect(find.text('오늘의 응원'), findsNothing);
     expect(find.text('오늘의 운세 노트'), findsOneWidget);
-    expect(find.text('자기 전 다이어리'), findsOneWidget);
+    expect(find.text('오늘의 일기'), findsOneWidget);
+    expect(find.text('자기 전 다이어리'), findsNothing);
     expect(find.textContaining('훈련 2개'), findsWidgets);
     expect(find.textContaining('시합 1개'), findsWidgets);
     expect(find.text('계획 1개'), findsWidgets);
@@ -134,9 +135,9 @@ void main() {
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);
     expect(find.textContaining('Blue FC전'), findsWidgets);
     expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
-    expect(find.textContaining('기록을 다시 펼쳐 보았다'), findsOneWidget);
+    expect(find.textContaining('원하는 방식으로 오늘의 일기를 구성해 보세요.'), findsOneWidget);
     expect(
-      tester.getTopLeft(find.text('자기 전 다이어리')).dy,
+      tester.getTopLeft(find.text('오늘의 일기')).dy,
       lessThan(tester.getTopLeft(find.text('오늘의 운세 노트')).dy),
     );
 
@@ -266,7 +267,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('내가 직접 쓰는 페이지'), findsOneWidget);
+    expect(find.text('내가 구성하는 오늘의 일기'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
     await tester.pumpAndSettle();
@@ -279,19 +280,38 @@ void main() {
       find.byKey(const ValueKey('diary-story-field')),
       '볼을 받기 전에 고개를 더 자주 들었고, 패스가 끊기지 않아서 기분이 좋았다.',
     );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('diary-add-section-button')),
+    );
+    await tester.tap(find.byKey(const ValueKey('diary-add-section-button')));
+    await tester.pump();
     await tester.enterText(
-      find.byKey(const ValueKey('diary-highlight-field')),
-      '원터치로 템포를 살린 장면이 가장 좋았다.',
+      find.byKey(const ValueKey('diary-section-title-field-0')),
+      '오늘의 하이라이트',
     );
     await tester.enterText(
-      find.byKey(const ValueKey('diary-gratitude-field')),
+      find.byKey(const ValueKey('diary-section-body-field-0')),
+      '원터치로 템포를 살린 장면이 가장 좋았다.',
+    );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('diary-add-section-button')),
+    );
+    await tester.tap(find.byKey(const ValueKey('diary-add-section-button')));
+    await tester.pump();
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-section-title-field-1')),
+      '고마운 순간',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-section-body-field-1')),
       '같이 패스 템포를 맞춰 준 팀원에게 고마웠다.',
     );
     await tester.ensureVisible(find.byKey(const ValueKey('diary-mood-proud')));
     await tester.tap(find.byKey(const ValueKey('diary-mood-proud')));
     await tester.pump();
-    await tester
-        .ensureVisible(find.byKey(const ValueKey('diary-sticker-star')));
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('diary-sticker-star')),
+    );
     await tester.tap(find.byKey(const ValueKey('diary-sticker-star')));
     await tester.pump();
     await tester.ensureVisible(find.byKey(const ValueKey('diary-save-button')));
@@ -303,13 +323,16 @@ void main() {
       find.byKey(const ValueKey('diary-story-2026-03-15')),
       findsOneWidget,
     );
+    expect(find.text('오늘의 하이라이트'), findsOneWidget);
     expect(find.textContaining('원터치로 템포를 살린 장면'), findsOneWidget);
+    expect(find.text('고마운 순간'), findsOneWidget);
     expect(find.textContaining('같이 패스 템포를 맞춰 준 팀원'), findsOneWidget);
     expect(find.textContaining('오늘의 무드: 뿌듯함'), findsOneWidget);
 
     final raw = optionRepository.getValue<String>('custom_diary_entries_v2');
     expect(raw, isNotNull);
     expect(raw, contains('비 온 날의 패스 노트'));
+    expect(raw, contains('sections'));
     expect(raw, contains('star'));
     expect(raw, contains('proud'));
   });
