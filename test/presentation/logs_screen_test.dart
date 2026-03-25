@@ -44,6 +44,7 @@ void main() {
   });
 
   testWidgets('Logs screen shows saved entry', (WidgetTester tester) async {
+    await box.clear();
     final entry = TrainingEntry(
       date: DateTime(2024, 1, 1),
       durationMinutes: 60,
@@ -53,6 +54,9 @@ void main() {
       injury: false,
       notes: '메모',
       location: '학교 운동장',
+      goodPoints: '압박을 잘 벗어남',
+      improvements: '왼발 패스 템포가 느렸음',
+      nextGoal: '터치 수 줄이기',
     );
     await service.add(entry);
 
@@ -85,6 +89,11 @@ void main() {
     expect(find.text('60분'), findsOneWidget);
     expect(find.text('학교 운동장'), findsOneWidget);
     expect(find.text('기술 · 60분 · 학교 운동장'), findsOneWidget);
+    expect(find.text('다이어리 흐름'), findsOneWidget);
+    expect(find.text('최근 기록에서 건진 문장'), findsOneWidget);
+    expect(find.text('압박을 잘 벗어남'), findsOneWidget);
+    expect(find.text('왼발 패스 템포가 느렸음'), findsOneWidget);
+    expect(find.text('터치 수 줄이기'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
 
     await tester.tap(find.byIcon(Icons.search));
