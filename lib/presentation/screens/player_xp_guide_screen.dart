@@ -67,7 +67,7 @@ class PlayerXpGuideScreen extends StatelessWidget {
           ),
           _XpGuideItem(
             icon: Icons.auto_stories_outlined,
-            title: isKo ? '오늘 다이어리 확인' : 'Today diary reviewed',
+            title: isKo ? '오늘 다이어리 작성' : 'Today diary created',
             xpLabel: '+5 XP',
           ),
           _XpGuideItem(

@@ -136,6 +136,8 @@ void main() {
     expect(find.textContaining('Blue FC전'), findsWidgets);
     expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
     expect(find.textContaining('원하는 방식으로 오늘의 일기를 구성해 보세요.'), findsOneWidget);
+    expect(find.text('오늘 할 일에서 골라 쓰기'), findsOneWidget);
+    expect(find.textContaining('전술 훈련'), findsWidgets);
     expect(
       tester.getTopLeft(find.text('오늘의 일기')).dy,
       lessThan(tester.getTopLeft(find.text('오늘의 운세 노트')).dy),
@@ -329,7 +331,7 @@ void main() {
     expect(find.textContaining('같이 패스 템포를 맞춰 준 팀원'), findsOneWidget);
     expect(find.textContaining('오늘의 무드: 뿌듯함'), findsOneWidget);
 
-    final raw = optionRepository.getValue<String>('custom_diary_entries_v2');
+    final raw = optionRepository.getValue<String>('custom_diary_entries_v3');
     expect(raw, isNotNull);
     expect(raw, contains('비 온 날의 패스 노트'));
     expect(raw, contains('sections'));
@@ -338,7 +340,7 @@ void main() {
   });
 
   testWidgets(
-    'coach lesson screen marks today diary only when today page is read to the end',
+    'coach lesson screen marks today diary only when today diary is saved',
     (WidgetTester tester) async {
       final today = DateTime.now();
       final optionRepository = _FakeOptionRepository();
@@ -395,10 +397,19 @@ void main() {
         isNull,
       );
 
-      await tester.drag(
-        find.byType(SingleChildScrollView).first,
-        const Offset(0, -2000),
+      await tester.tap(
+        find.byKey(
+          ValueKey(
+            'diary-edit-${CoachLessonScreen.todayViewedDayToken(today)}',
+          ),
+        ),
       );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('본문에 넣기').first);
+      await tester.pump();
+      await tester
+          .ensureVisible(find.byKey(const ValueKey('diary-save-button')));
+      await tester.tap(find.byKey(const ValueKey('diary-save-button')));
       await tester.pumpAndSettle();
 
       expect(
@@ -409,6 +420,45 @@ void main() {
       );
     },
   );
+
+  testWidgets('coach lesson screen opens diary page even with only today plans',
+      (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'training_plans_v1',
+        '[{"id":"plan-1","scheduledAt":"2026-03-15T17:30:00.000","category":"전술 훈련","durationMinutes":60,"note":"4대4 전환 패턴 확인"}]',
+      );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: TrainingService(
+              _FakeTrainingRepository(const <TrainingEntry>[]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
+    expect(find.text('아직 기록이 없습니다.'), findsNothing);
+    expect(find.text('계획 1개'), findsWidgets);
+    expect(find.textContaining('전술 훈련'), findsWidgets);
+  });
 }
 
 class _FakeTrainingRepository implements TrainingRepository {

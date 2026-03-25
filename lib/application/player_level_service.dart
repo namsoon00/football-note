@@ -11,7 +11,7 @@ class PlayerLevelService {
   static const String awardedStreaksKey = 'player_awarded_streaks_v1';
   static const String awardedBoardSaveTokensKey =
       'player_awarded_board_save_tokens_v1';
-  static const String diaryReviewDayKey = 'player_diary_review_day_v1';
+  static const String diaryCreatedDayKey = 'player_diary_created_day_v2';
   static const String claimedRewardLevelsKey =
       'player_claimed_reward_levels_v1';
   static const String customRewardNamesKey = 'player_custom_reward_names_v1';
@@ -366,11 +366,11 @@ class PlayerLevelService {
     );
   }
 
-  Future<PlayerLevelAward> awardForDiaryReview({DateTime? reviewedAt}) async {
+  Future<PlayerLevelAward> awardForDiaryCreated({DateTime? createdAt}) async {
     final before = loadState();
-    final day = _normalizeDay(reviewedAt ?? DateTime.now());
+    final day = _normalizeDay(createdAt ?? DateTime.now());
     final token = _dayKey(day);
-    if ((_options.getValue<String>(diaryReviewDayKey) ?? '') == token) {
+    if ((_options.getValue<String>(diaryCreatedDayKey) ?? '') == token) {
       return PlayerLevelAward(
         gainedXp: 0,
         before: before,
@@ -382,25 +382,25 @@ class PlayerLevelService {
     const gainedXp = 5;
     final nextTotal = before.totalXp + gainedXp;
     await _options.setValue(totalXpKey, nextTotal);
-    await _options.setValue(diaryReviewDayKey, token);
+    await _options.setValue(diaryCreatedDayKey, token);
     final after = PlayerLevelState.fromXp(nextTotal);
     await _appendXpHistory(
       PlayerXpHistoryEntry(
-        awardedAt: reviewedAt ?? DateTime.now(),
+        awardedAt: createdAt ?? DateTime.now(),
         deltaXp: gainedXp,
         totalXp: nextTotal,
         beforeLevel: before.level,
         afterLevel: after.level,
         category: PlayerXpHistoryCategory.diary,
         label: '',
-        reasons: const <String>['diary_reviewed'],
+        reasons: const <String>['diary_created'],
       ),
     );
     return PlayerLevelAward(
       gainedXp: gainedXp,
       before: before,
       after: after,
-      reasons: const <String>['diary_reviewed'],
+      reasons: const <String>['diary_created'],
     );
   }
 
