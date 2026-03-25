@@ -28,7 +28,7 @@ import 'skill_quiz_screen.dart';
 import 'notification_center_screen.dart';
 
 class CoachLessonScreen extends StatefulWidget {
-  static const String todayViewedDiaryDayKey = 'coach_diary_viewed_day_v1';
+  static const String todayViewedDiaryDayKey = 'coach_diary_completed_day_v2';
 
   final OptionRepository optionRepository;
   final TrainingService? trainingService;
@@ -59,13 +59,13 @@ class CoachLessonScreen extends StatefulWidget {
 class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _plansStorageKey = 'training_plans_v1';
   static const String _diaryThemeKey = 'diary_theme_v1';
-  static const String _customDiaryEntriesKey = 'custom_diary_entries_v2';
+  static const String _customDiaryEntriesKey = 'custom_diary_entries_v3';
 
   final PageController _pageController = PageController();
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
   final Set<String> _expandedTrainingGroups = <String>{};
-  String? _lastViewedDiaryToken;
+  String? _lastCompletedDiaryToken;
   late Map<String, _CustomDiaryEntryData> _customDiaryEntries;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
@@ -437,25 +437,23 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (mounted) setState(() {});
   }
 
-  void _markDiaryCompletedIfNeeded(DateTime date) {
+  Future<void> _markDiaryCompletedIfNeeded(DateTime date) async {
     final token = CoachLessonScreen.todayViewedDayToken(date);
-    if (_lastViewedDiaryToken == token) return;
+    if (_lastCompletedDiaryToken == token) return;
     final todayToken = CoachLessonScreen.todayViewedDayToken(DateTime.now());
     if (token != todayToken) return;
-    _lastViewedDiaryToken = token;
-    unawaited(
-      widget.optionRepository.setValue(
-        CoachLessonScreen.todayViewedDiaryDayKey,
-        token,
-      ),
+    _lastCompletedDiaryToken = token;
+    await widget.optionRepository.setValue(
+      CoachLessonScreen.todayViewedDiaryDayKey,
+      token,
     );
-    unawaited(_awardDiaryReviewXp(date));
+    await _awardDiaryCreateXp(date);
   }
 
-  Future<void> _awardDiaryReviewXp(DateTime date) async {
+  Future<void> _awardDiaryCreateXp(DateTime date) async {
     final award = await PlayerLevelService(
       widget.optionRepository,
-    ).awardForDiaryReview(reviewedAt: date);
+    ).awardForDiaryCreated(createdAt: date);
     final settingsService = widget.settingsService ??
         (SettingsService(widget.optionRepository)..load());
     await TrainingPlanReminderService(
@@ -471,8 +469,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     AppFeedback.showSuccess(
       context,
       text: _isKo
-          ? '오늘 다이어리 확인 +${award.gainedXp} XP'
-          : 'Today diary reviewed +${award.gainedXp} XP',
+          ? '오늘 다이어리 작성 +${award.gainedXp} XP'
+          : 'Today diary created +${award.gainedXp} XP',
     );
   }
 
@@ -487,7 +485,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget _buildDiaryPage(_DiaryDayData day) {
     final customDiary = _customDiaryForDay(day.date);
     return _DiaryScrollPage(
-      onReachedEnd: () => _markDiaryCompletedIfNeeded(day.date),
+      onReachedEnd: () {},
       childBuilder: (controller) => SingleChildScrollView(
         controller: controller,
         padding: const EdgeInsets.fromLTRB(40, 12, 16, 28),
@@ -695,6 +693,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _DiaryDayData day,
     _CustomDiaryEntryData customDiary,
   ) {
+    final todoSeeds = _todoSeedsForDay(day);
     final stickers = customDiary.stickers
         .map(_DiaryStickerPalette.fromId)
         .whereType<_DiaryStickerPalette>()
@@ -776,6 +775,57 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ),
           ),
           const SizedBox(height: 14),
+          if (!customDiary.hasContent && todoSeeds.isNotEmpty) ...[
+            _buildPromptTile(
+              title: _isKo ? '오늘 할 일에서 골라 쓰기' : 'Build from today tasks',
+              body: _isKo
+                  ? '아래 할 일 중 넣고 싶은 것만 골라서 본문이나 섹션으로 바로 가져올 수 있어요.'
+                  : 'Pick only the tasks you want and pull them straight into the story or a section.',
+            ),
+            const SizedBox(height: 4),
+            ...todoSeeds.take(3).map(
+                  (seed) => Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                    decoration: BoxDecoration(
+                      color: _tileSurface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: _paperEdge),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(seed.icon, size: 18, color: _accentInk),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                seed.title,
+                                style: _theme.textTheme.labelLarge?.copyWith(
+                                  color: _headlineInk,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          seed.summary,
+                          style: _theme.textTheme.bodyMedium?.copyWith(
+                            color: _bodyInk,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          ],
+          if (!customDiary.hasContent && todoSeeds.isNotEmpty)
+            const SizedBox(height: 4),
           Row(children: [Expanded(child: _buildMoodPanel(customDiary.mood))]),
           if (sections.isNotEmpty) ...[
             const SizedBox(height: 14),
@@ -1534,13 +1584,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     for (final entry in entries) {
       final day = _normalizeDay(entry.date);
       entriesByDay.putIfAbsent(day, () => <TrainingEntry>[]).add(entry);
-      if (!entry.isMatch) {
-        dayKeys.add(day);
-      }
+      dayKeys.add(day);
     }
     for (final plan in plans) {
       final day = _normalizeDay(plan.scheduledAt);
       plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
+      dayKeys.add(day);
     }
 
     final days = dayKeys.map((day) {
@@ -1920,6 +1969,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   String _defaultStoryPrompt(_DiaryDayData day) {
+    final seeds = _todoSeedsForDay(day);
+    final primarySeed = seeds.isEmpty ? null : seeds.first;
+    if (primarySeed != null) {
+      return _isKo
+          ? '${primarySeed.title}부터 시작해서 오늘 남기고 싶은 장면을 이어 적어 보세요. 해야 했던 일과 실제로 한 일, 기분 변화를 자연스럽게 붙여 써도 좋아요.'
+          : 'Start from ${primarySeed.title} and continue with the scene you want to keep today. You can naturally connect what you planned, what you actually did, and how it felt.';
+    }
     final focus = _topFocus(day.trainingEntries);
     final place = _topPlaces(day.entries);
     return _isKo
@@ -1929,6 +1985,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _defaultSectionPrompt(_DiaryDayData day) {
     final sectionIdeas = <String>[
+      if (day.plans.isNotEmpty) _isKo ? '오늘 할 일에서 가져온 장면' : 'picked tasks',
       if (day.trainingEntries.isNotEmpty)
         _isKo ? '훈련에서 남은 장면' : 'training moments',
       if (day.matchEntries.isNotEmpty) _isKo ? '시합의 흐름' : 'match flow',
@@ -1942,10 +1999,123 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : 'Create your own section titles such as $joined and tell the day in the order that feels right to you.';
   }
 
+  List<_DiaryTodoSeed> _todoSeedsForDay(_DiaryDayData day) {
+    final seeds = <_DiaryTodoSeed>[
+      ...day.plans.map(_planTodoSeed),
+      ...day.trainingEntries.map(_trainingTodoSeed),
+      ...day.matchEntries.map(_matchTodoSeed),
+    ];
+    if (_hasConditioningRecord(day)) {
+      seeds.add(
+        _DiaryTodoSeed(
+          id: 'conditioning-${_dayStorageToken(day.date)}',
+          title: _isKo ? '줄넘기와 리프팅' : 'Jump rope and lifting',
+          summary: _isKo
+              ? '반복 기록과 몸 감각을 한 문단으로 묶어 적기 좋아요.'
+              : 'A good block for repetition counts and body feel in one paragraph.',
+          storySentence: _isKo
+              ? '줄넘기와 리프팅을 하면서 몸이 어떻게 풀렸는지부터 적어 본다.'
+              : 'Start with how the body opened up during jump rope and lifting.',
+          sectionTitle: _isKo ? '몸 풀린 순간' : 'Body wake-up',
+          sectionBody: _isKo
+              ? '반복 수와 함께 몸이 가벼워진 순간을 남긴다.'
+              : 'Keep the moment the body felt lighter together with the counts.',
+          icon: Icons.sports_gymnastics_outlined,
+        ),
+      );
+    }
+    if (_hasRecoveryRecord(day)) {
+      seeds.add(
+        _DiaryTodoSeed(
+          id: 'recovery-${_dayStorageToken(day.date)}',
+          title: _isKo ? '회복과 몸 상태' : 'Recovery and body status',
+          summary: _isKo
+              ? '통증, 회복 루틴, 내일을 위한 조절 포인트를 정리할 수 있어요.'
+              : 'Capture pain points, recovery routine, and how to adjust for tomorrow.',
+          storySentence: _isKo
+              ? '몸 상태를 돌아보며 오늘 무리했던 지점과 회복이 필요한 부분을 적어 본다.'
+              : 'Look back on the body and note where it was pushed and what needs recovery.',
+          sectionTitle: _isKo ? '몸 상태 체크' : 'Body check',
+          sectionBody: _isKo
+              ? '회복이 필요했던 부위와 내일 조절할 점을 남긴다.'
+              : 'Leave the area that needs recovery and what to adjust tomorrow.',
+          icon: Icons.health_and_safety_outlined,
+        ),
+      );
+    }
+    return seeds;
+  }
+
+  _DiaryTodoSeed _planTodoSeed(_DiaryPlan plan) {
+    final title = '${_formatTime(plan.scheduledAt)} · ${plan.category}';
+    final note = plan.note.trim();
+    return _DiaryTodoSeed(
+      id: 'plan-${plan.id}',
+      title: title,
+      summary: _isKo
+          ? '${plan.durationMinutes}분${note.isEmpty ? '' : ' · $note'}'
+          : '${plan.durationMinutes} min${note.isEmpty ? '' : ' · $note'}',
+      storySentence: _isKo
+          ? '$title 할 일을 먼저 떠올리며, 왜 이걸 오늘 다이어리에 넣고 싶은지 적어 본다.'
+          : 'Start from $title and write why this task deserves a place in today diary.',
+      sectionTitle: _isKo ? '${plan.category} 메모' : '${plan.category} note',
+      sectionBody: _isKo
+          ? '${plan.durationMinutes}분 계획${note.isEmpty ? '' : ' - $note'}'
+          : '${plan.durationMinutes} min plan${note.isEmpty ? '' : ' - $note'}',
+      icon: Icons.event_note_outlined,
+    );
+  }
+
+  _DiaryTodoSeed _trainingTodoSeed(TrainingEntry entry) {
+    final label =
+        entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type;
+    return _DiaryTodoSeed(
+      id: 'training-${entry.createdAt.millisecondsSinceEpoch}',
+      title: _isKo ? '훈련 · $label' : 'Training · $label',
+      summary: _isKo
+          ? '${entry.durationMinutes}분 · ${entry.location.trim().isEmpty ? '장소 기록 없음' : entry.location.trim()}'
+          : '${entry.durationMinutes} min · ${entry.location.trim().isEmpty ? 'No location' : entry.location.trim()}',
+      storySentence: _isKo
+          ? '$label 훈련에서 가장 먼저 떠오르는 장면부터 자연스럽게 적어 본다.'
+          : 'Begin naturally with the first scene that comes back from $label.',
+      sectionTitle: _isKo ? '$label에서 남은 것' : 'What stayed from $label',
+      sectionBody: entry.notes.trim().isNotEmpty
+          ? entry.notes.trim()
+          : (_isKo
+              ? '오늘 훈련에서 남기고 싶은 장면을 적는다.'
+              : 'Write the moment you want to keep from today training.'),
+      icon: Icons.fitness_center_outlined,
+    );
+  }
+
+  _DiaryTodoSeed _matchTodoSeed(TrainingEntry entry) {
+    final opponent = entry.opponentTeam.trim();
+    return _DiaryTodoSeed(
+      id: 'match-${entry.createdAt.millisecondsSinceEpoch}',
+      title: _isKo
+          ? '시합${opponent.isEmpty ? '' : ' · $opponent전'}'
+          : 'Match${opponent.isEmpty ? '' : ' · vs $opponent'}',
+      summary: _isKo
+          ? '${entry.durationMinutes}분 · ${entry.location.trim().isEmpty ? '장소 기록 없음' : entry.location.trim()}'
+          : '${entry.durationMinutes} min · ${entry.location.trim().isEmpty ? 'No location' : entry.location.trim()}',
+      storySentence: _isKo
+          ? '시합 흐름을 한 장면씩 떠올리며 좋았던 선택과 아쉬운 선택을 함께 적어 본다.'
+          : 'Replay the match scene by scene and write both the sharp choices and the missed ones.',
+      sectionTitle: _isKo ? '시합 흐름' : 'Match flow',
+      sectionBody: entry.notes.trim().isNotEmpty
+          ? entry.notes.trim()
+          : (_isKo
+              ? '시합에서 가장 크게 남은 흐름을 적는다.'
+              : 'Write the flow that stayed most from the match.'),
+      icon: Icons.sports_soccer_outlined,
+    );
+  }
+
   Future<void> _openDiaryComposer(
     _DiaryDayData day,
     _CustomDiaryEntryData initialData,
   ) async {
+    final todoSeeds = _todoSeedsForDay(day);
     final titleController = TextEditingController(text: initialData.title);
     final storyController = TextEditingController(text: initialData.story);
     var selectedMood = initialData.mood;
@@ -1986,13 +2156,122 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       const SizedBox(height: 8),
                       Text(
                         _isKo
-                            ? '오늘 한 일을 재료로 삼아, 필요한 섹션을 직접 만들고 순서도 스스로 정해 보세요.'
-                            : 'Use what you did today as material, then create the sections you need in your own order.',
+                            ? '오늘 할 일과 기록을 재료로 삼아, 넣고 싶은 것만 골라 읽듯이 이어 써 보세요.'
+                            : 'Use today tasks and records as material, then pick only what you want and let the story flow.',
                         style: _theme.textTheme.bodyMedium?.copyWith(
                           color: _bodyInk,
                           height: 1.5,
                         ),
                       ),
+                      if (todoSeeds.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        Text(
+                          _isKo ? '오늘 할 일에서 가져오기' : 'Pull from today tasks',
+                          style: _theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ...todoSeeds.map(
+                          (seed) => Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                            decoration: BoxDecoration(
+                              color: _tileSurface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: _paperEdge),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      seed.icon,
+                                      size: 18,
+                                      color: _accentInk,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        seed.title,
+                                        style: _theme.textTheme.labelLarge
+                                            ?.copyWith(
+                                          color: _headlineInk,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  seed.summary,
+                                  style: _theme.textTheme.bodySmall?.copyWith(
+                                    color: _bodyInk,
+                                    height: 1.45,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        final current =
+                                            storyController.text.trim();
+                                        final nextText = current.isEmpty
+                                            ? seed.storySentence
+                                            : '$current\n\n${seed.storySentence}';
+                                        setModalState(() {
+                                          storyController.text = nextText;
+                                          storyController.selection =
+                                              TextSelection.collapsed(
+                                            offset: nextText.length,
+                                          );
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.subject_outlined,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        _isKo ? '본문에 넣기' : 'Into story',
+                                      ),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        setModalState(() {
+                                          sectionDrafts.add(
+                                            _DiarySectionDraft(
+                                              titleController:
+                                                  TextEditingController(
+                                                text: seed.sectionTitle,
+                                              ),
+                                              bodyController:
+                                                  TextEditingController(
+                                                text: seed.sectionBody,
+                                              ),
+                                            ),
+                                          );
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.view_agenda_outlined,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        _isKo ? '섹션으로 넣기' : 'As section',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       TextField(
                         key: const ValueKey('diary-title-field'),
@@ -2065,9 +2344,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ),
                       ] else ...[
                         const SizedBox(height: 12),
-                        ...List<Widget>.generate(sectionDrafts.length, (
-                          index,
-                        ) {
+                        ...List<Widget>.generate(sectionDrafts.length, (index) {
                           final draft = sectionDrafts[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
@@ -2105,9 +2382,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                             sectionDrafts.removeAt(index);
                                           });
                                         },
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                        ),
+                                        icon: const Icon(Icons.delete_outline),
                                       ),
                                     ],
                                   ),
@@ -2205,9 +2480,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   size: 18,
                                   color: sticker.tint,
                                 ),
-                                selected: selectedStickers.contains(
-                                  sticker.id,
-                                ),
+                                selected: selectedStickers.contains(sticker.id),
                                 selectedColor: sticker.tint.withValues(
                                   alpha: 0.16,
                                 ),
@@ -2274,6 +2547,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
     if (result == null) return;
     await _saveCustomDiary(day.date, result);
+    if (result.hasContent) {
+      await _markDiaryCompletedIfNeeded(day.date);
+    }
   }
 
   DateTime _normalizeDay(DateTime value) {
@@ -2927,6 +3203,26 @@ class _CustomDiarySectionData {
       body: (map['body'] as String?) ?? '',
     );
   }
+}
+
+class _DiaryTodoSeed {
+  final String id;
+  final String title;
+  final String summary;
+  final String storySentence;
+  final String sectionTitle;
+  final String sectionBody;
+  final IconData icon;
+
+  const _DiaryTodoSeed({
+    required this.id,
+    required this.title,
+    required this.summary,
+    required this.storySentence,
+    required this.sectionTitle,
+    required this.sectionBody,
+    required this.icon,
+  });
 }
 
 class _DiarySectionDraft {
