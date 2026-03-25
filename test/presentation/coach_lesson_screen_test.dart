@@ -226,6 +226,94 @@ void main() {
     expect(find.textContaining('행운'), findsWidgets);
   });
 
+  testWidgets('coach lesson screen saves personal diary writing and stickers', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _FakeOptionRepository();
+    final trainingService = TrainingService(
+      _FakeTrainingRepository(<TrainingEntry>[
+        TrainingEntry(
+          date: DateTime(2026, 3, 15, 18, 0),
+          durationMinutes: 45,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '개인 다이어리 저장 테스트',
+          location: '학교 운동장',
+        ),
+      ]),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('내가 직접 쓰는 페이지'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-title-field')),
+      '비 온 날의 패스 노트',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-story-field')),
+      '볼을 받기 전에 고개를 더 자주 들었고, 패스가 끊기지 않아서 기분이 좋았다.',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-highlight-field')),
+      '원터치로 템포를 살린 장면이 가장 좋았다.',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-gratitude-field')),
+      '같이 패스 템포를 맞춰 준 팀원에게 고마웠다.',
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('diary-mood-proud')));
+    await tester.tap(find.byKey(const ValueKey('diary-mood-proud')));
+    await tester.pump();
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('diary-sticker-star')));
+    await tester.tap(find.byKey(const ValueKey('diary-sticker-star')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const ValueKey('diary-save-button')));
+    await tester.tap(find.byKey(const ValueKey('diary-save-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('비 온 날의 패스 노트'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('diary-story-2026-03-15')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('원터치로 템포를 살린 장면'), findsOneWidget);
+    expect(find.textContaining('같이 패스 템포를 맞춰 준 팀원'), findsOneWidget);
+    expect(find.textContaining('오늘의 무드: 뿌듯함'), findsOneWidget);
+
+    final raw = optionRepository.getValue<String>('custom_diary_entries_v2');
+    expect(raw, isNotNull);
+    expect(raw, contains('비 온 날의 패스 노트'));
+    expect(raw, contains('star'));
+    expect(raw, contains('proud'));
+  });
+
   testWidgets(
     'coach lesson screen marks today diary only when today page is read to the end',
     (WidgetTester tester) async {
