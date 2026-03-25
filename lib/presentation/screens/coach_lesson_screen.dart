@@ -60,12 +60,14 @@ class CoachLessonScreen extends StatefulWidget {
 class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _plansStorageKey = 'training_plans_v1';
   static const String _diaryThemeKey = 'diary_theme_v1';
+  static const String _customDiaryEntriesKey = 'custom_diary_entries_v2';
 
   final PageController _pageController = PageController();
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
   final Set<String> _expandedTrainingGroups = <String>{};
   String? _lastViewedDiaryToken;
+  late Map<String, _CustomDiaryEntryData> _customDiaryEntries;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   ThemeData get _theme => Theme.of(context);
@@ -94,6 +96,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _selectedThemeId =
         widget.optionRepository.getValue<String>(_diaryThemeKey) ??
         _DiaryThemePalette.notebook.id;
+    _customDiaryEntries = _loadCustomDiaryEntries();
     NewsBadgeService.refresh(widget.optionRepository);
   }
 
@@ -490,6 +493,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildDiaryPage(_DiaryDayData day) {
     final diary = _buildDiary(day);
+    final customDiary = _customDiaryForDay(day.date);
     return _DiaryScrollPage(
       onReachedEnd: () => _markDiaryCompletedIfNeeded(day.date),
       childBuilder: (controller) => SingleChildScrollView(
@@ -500,6 +504,22 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           children: [
             _buildDayHeadlineCard(day),
             const SizedBox(height: 16),
+            _buildDiarySection(
+              title: _isKo ? '오늘의 다이어리 페이지' : 'Today diary page',
+              trailing: OutlinedButton.icon(
+                key: ValueKey('diary-edit-${_dayStorageToken(day.date)}'),
+                onPressed: () => _openDiaryComposer(day, customDiary),
+                icon: Icon(
+                  customDiary.hasContent
+                      ? Icons.edit_note_outlined
+                      : Icons.add_circle_outline,
+                  size: 18,
+                ),
+                label: Text(_isKo ? '작성' : 'Compose'),
+              ),
+              child: _buildCustomDiaryCard(day, customDiary),
+            ),
+            const SizedBox(height: 20),
             _buildDiarySection(
               title: _isKo ? '자기 전 다이어리' : 'Night review diary',
               trailing: IconButton(
@@ -577,6 +597,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
     final weatherSummary = _dayWeatherSummary(day);
     final weatherIcon = _weatherIconForSummary(weatherSummary);
+    final customDiary = _customDiaryForDay(day.date);
+    final stickerSet = customDiary.stickers
+        .map(_DiaryStickerPalette.fromId)
+        .whereType<_DiaryStickerPalette>()
+        .toList(growable: false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -629,7 +654,225 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             context,
           ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.45),
         ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildHeadlineBadge(
+              icon: customDiary.mood.icon,
+              label: _isKo
+                  ? '무드 ${customDiary.mood.labelKo}'
+                  : 'Mood ${customDiary.mood.labelEn}',
+            ),
+            _buildHeadlineBadge(
+              icon: customDiary.hasContent
+                  ? Icons.menu_book_outlined
+                  : Icons.tips_and_updates_outlined,
+              label: customDiary.hasContent
+                  ? (_isKo ? '직접 쓴 페이지 있음' : 'Personal page saved')
+                  : (_isKo ? '오늘의 페이지 작성 전' : 'Ready to write'),
+            ),
+            for (final sticker in stickerSet.take(3))
+              _buildHeadlineBadge(
+                icon: sticker.icon,
+                label: _isKo ? sticker.labelKo : sticker.labelEn,
+              ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildHeadlineBadge({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: _tileSurface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _paperEdge),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: _accentInk),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: _theme.textTheme.labelMedium?.copyWith(
+              color: _headlineInk,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomDiaryCard(
+    _DiaryDayData day,
+    _CustomDiaryEntryData customDiary,
+  ) {
+    final stickers = customDiary.stickers
+        .map(_DiaryStickerPalette.fromId)
+        .whereType<_DiaryStickerPalette>()
+        .toList(growable: false);
+    final promptCards = <Widget>[
+      _buildPromptTile(
+        title: _isKo ? '오늘의 한 줄' : 'One-line memory',
+        body: customDiary.highlight.trim().isNotEmpty
+            ? customDiary.highlight.trim()
+            : (_isKo
+                  ? _defaultHighlightPrompt(day)
+                  : _defaultHighlightPrompt(day)),
+      ),
+      _buildPromptTile(
+        title: _isKo ? '고마운 순간' : 'Gratitude',
+        body: customDiary.gratitude.trim().isNotEmpty
+            ? customDiary.gratitude.trim()
+            : (_isKo
+                  ? '오늘 곁에 남아 준 사람, 장면, 감각을 적어 보세요.'
+                  : 'Write down the person, scene, or feeling that stayed with you.'),
+      ),
+    ];
+    return _buildPaperCard(
+      title: customDiary.title.trim().isEmpty
+          ? (_isKo ? '내가 직접 쓰는 페이지' : 'Your own written page')
+          : customDiary.title.trim(),
+      subtitle: customDiary.updatedAt == null
+          ? (_isKo
+                ? '훈련 기록을 재료로 오늘을 직접 일기처럼 남길 수 있어요.'
+                : 'Turn today into a real diary entry using your records.')
+          : (_isKo
+                ? '마지막 저장 ${DateFormat('M.d HH:mm', 'ko').format(customDiary.updatedAt!)}'
+                : 'Last saved ${DateFormat('MMM d HH:mm', 'en').format(customDiary.updatedAt!)}'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (stickers.isNotEmpty) ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: stickers
+                  .map(
+                    (sticker) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: sticker.tint.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: sticker.tint.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(sticker.icon, size: 18, color: sticker.tint),
+                          const SizedBox(width: 6),
+                          Text(
+                            _isKo ? sticker.labelKo : sticker.labelEn,
+                            style: _theme.textTheme.labelMedium?.copyWith(
+                              color: _headlineInk,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+            const SizedBox(height: 14),
+          ],
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+            decoration: BoxDecoration(
+              color: _tileSurface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _paperEdge),
+            ),
+            child: Text(
+              customDiary.story.trim().isNotEmpty
+                  ? customDiary.story.trim()
+                  : (_isKo
+                        ? _defaultStoryPrompt(day)
+                        : _defaultStoryPrompt(day)),
+              key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
+              style: _theme.textTheme.bodyLarge?.copyWith(
+                color: _headlineInk,
+                height: 1.72,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(children: [Expanded(child: _buildMoodPanel(customDiary.mood))]),
+          const SizedBox(height: 14),
+          ...promptCards,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoodPanel(_DiaryMoodPreset mood) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: mood.tint.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: mood.tint.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(mood.icon, color: mood.tint),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _isKo ? '오늘의 무드: ${mood.labelKo}' : 'Today mood: ${mood.labelEn}',
+              style: _theme.textTheme.bodyMedium?.copyWith(
+                color: _headlineInk,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPromptTile({required String title, required String body}) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: _tileSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _paperEdge),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: _theme.textTheme.labelLarge?.copyWith(
+              color: _accentInk,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            body,
+            style: _theme.textTheme.bodyMedium?.copyWith(
+              color: _headlineInk,
+              height: 1.55,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1369,6 +1612,75 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
   }
 
+  Map<String, _CustomDiaryEntryData> _loadCustomDiaryEntries() {
+    final raw = widget.optionRepository.getValue<String>(
+      _customDiaryEntriesKey,
+    );
+    if (raw == null || raw.trim().isEmpty) {
+      return <String, _CustomDiaryEntryData>{};
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        return <String, _CustomDiaryEntryData>{};
+      }
+      return decoded.map((key, value) {
+        if (value is Map<String, dynamic>) {
+          return MapEntry(key.toString(), _CustomDiaryEntryData.fromMap(value));
+        }
+        if (value is Map) {
+          return MapEntry(
+            key.toString(),
+            _CustomDiaryEntryData.fromMap(value.cast<String, dynamic>()),
+          );
+        }
+        return MapEntry(key.toString(), const _CustomDiaryEntryData.empty());
+      });
+    } catch (_) {
+      return <String, _CustomDiaryEntryData>{};
+    }
+  }
+
+  Future<void> _persistCustomDiaryEntries() {
+    final payload = <String, Map<String, dynamic>>{};
+    for (final entry in _customDiaryEntries.entries) {
+      if (!entry.value.hasContent) continue;
+      payload[entry.key] = entry.value.toMap();
+    }
+    return widget.optionRepository.setValue(
+      _customDiaryEntriesKey,
+      jsonEncode(payload),
+    );
+  }
+
+  String _dayStorageToken(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(_normalizeDay(date));
+  }
+
+  _CustomDiaryEntryData _customDiaryForDay(DateTime date) {
+    return _customDiaryEntries[_dayStorageToken(date)] ??
+        const _CustomDiaryEntryData.empty();
+  }
+
+  Future<void> _saveCustomDiary(
+    DateTime date,
+    _CustomDiaryEntryData data,
+  ) async {
+    final token = _dayStorageToken(date);
+    if (data.hasContent) {
+      _customDiaryEntries[token] = data.copyWith(updatedAt: DateTime.now());
+    } else {
+      _customDiaryEntries.remove(token);
+    }
+    await _persistCustomDiaryEntries();
+    if (!mounted) return;
+    setState(() {});
+    AppFeedback.showSuccess(
+      context,
+      text: _isKo ? '다이어리를 저장했어요.' : 'Diary saved.',
+    );
+  }
+
   String _buildDiary(_DiaryDayData day) {
     final paragraphs = <String>[
       _isKo
@@ -1832,6 +2144,238 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(_isKo ? '일기를 복사했어요.' : 'Diary copied.')),
     );
+  }
+
+  String _defaultStoryPrompt(_DiaryDayData day) {
+    final focus = _topFocus(day.trainingEntries);
+    final place = _topPlaces(day.entries);
+    return _isKo
+        ? '오늘 $place에서 있었던 일을 내 말로 적어 보세요. $focus 쪽에서 어떤 장면이 가장 오래 남았는지, 무엇이 즐거웠고 무엇이 아쉬웠는지 자유롭게 써도 좋아요.'
+        : 'Write today in your own words. Start with what happened around $place, what stayed with you in $focus, what felt good, and what still lingers.';
+  }
+
+  String _defaultHighlightPrompt(_DiaryDayData day) {
+    final totalMinutes = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.durationMinutes,
+    );
+    return _isKo
+        ? '오늘의 하이라이트를 한 줄로 남겨 보세요. 예: $totalMinutes분 동안 가장 반짝였던 한 장면.'
+        : 'Leave one highlight from today. Example: the one scene that shined most across $totalMinutes minutes.';
+  }
+
+  Future<void> _openDiaryComposer(
+    _DiaryDayData day,
+    _CustomDiaryEntryData initialData,
+  ) async {
+    final titleController = TextEditingController(text: initialData.title);
+    final storyController = TextEditingController(text: initialData.story);
+    final highlightController = TextEditingController(
+      text: initialData.highlight,
+    );
+    final gratitudeController = TextEditingController(
+      text: initialData.gratitude,
+    );
+    var selectedMood = initialData.mood;
+    final selectedStickers = <String>{...initialData.stickers};
+
+    final result = await showModalBottomSheet<_CustomDiaryEntryData>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + 16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _isKo ? '오늘의 다이어리 쓰기' : 'Write today diary',
+                        style: _theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _isKo
+                            ? '훈련 기록은 그대로 두고, 오늘을 일기처럼 직접 정리해 보세요.'
+                            : 'Keep the records as they are, and write the day like a personal diary.',
+                        style: _theme.textTheme.bodyMedium?.copyWith(
+                          color: _bodyInk,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        key: const ValueKey('diary-title-field'),
+                        controller: titleController,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          labelText: _isKo ? '제목' : 'Title',
+                          hintText: _isKo
+                              ? '예: 비 온 뒤 더 선명했던 패스'
+                              : 'Ex: Passes felt sharper after the rain',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        key: const ValueKey('diary-story-field'),
+                        controller: storyController,
+                        minLines: 7,
+                        maxLines: 12,
+                        decoration: InputDecoration(
+                          labelText: _isKo ? '오늘의 이야기' : 'Today story',
+                          hintText: _defaultStoryPrompt(day),
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        key: const ValueKey('diary-highlight-field'),
+                        controller: highlightController,
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          labelText: _isKo ? '오늘의 하이라이트' : 'Today highlight',
+                          hintText: _defaultHighlightPrompt(day),
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        key: const ValueKey('diary-gratitude-field'),
+                        controller: gratitudeController,
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          labelText: _isKo ? '고마운 순간' : 'Gratitude',
+                          hintText: _isKo
+                              ? '사람, 장소, 날씨, 작은 감정 모두 괜찮아요.'
+                              : 'A person, place, weather, or a small feeling all count.',
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        _isKo ? '무드 선택' : 'Pick a mood',
+                        style: _theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _DiaryMoodPreset.values
+                            .map(
+                              (mood) => ChoiceChip(
+                                key: ValueKey('diary-mood-${mood.id}'),
+                                label: Text(
+                                  _isKo ? mood.labelKo : mood.labelEn,
+                                ),
+                                selected: selectedMood.id == mood.id,
+                                avatar: Icon(
+                                  mood.icon,
+                                  size: 18,
+                                  color: mood.tint,
+                                ),
+                                selectedColor: mood.tint.withValues(
+                                  alpha: 0.16,
+                                ),
+                                onSelected: (_) {
+                                  setModalState(() => selectedMood = mood);
+                                },
+                              ),
+                            )
+                            .toList(growable: false),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        _isKo ? '스티커 붙이기' : 'Add stickers',
+                        style: _theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _DiaryStickerPalette.values
+                            .map(
+                              (sticker) => FilterChip(
+                                key: ValueKey('diary-sticker-${sticker.id}'),
+                                label: Text(
+                                  _isKo ? sticker.labelKo : sticker.labelEn,
+                                ),
+                                avatar: Icon(
+                                  sticker.icon,
+                                  size: 18,
+                                  color: sticker.tint,
+                                ),
+                                selected: selectedStickers.contains(sticker.id),
+                                selectedColor: sticker.tint.withValues(
+                                  alpha: 0.16,
+                                ),
+                                onSelected: (selected) {
+                                  setModalState(() {
+                                    if (selected) {
+                                      selectedStickers.add(sticker.id);
+                                    } else {
+                                      selectedStickers.remove(sticker.id);
+                                    }
+                                  });
+                                },
+                              ),
+                            )
+                            .toList(growable: false),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(
+                              context,
+                            ).pop(const _CustomDiaryEntryData.empty()),
+                            child: Text(_isKo ? '비우기' : 'Clear'),
+                          ),
+                          const Spacer(),
+                          FilledButton(
+                            key: const ValueKey('diary-save-button'),
+                            onPressed: () {
+                              Navigator.of(context).pop(
+                                _CustomDiaryEntryData(
+                                  title: titleController.text.trim(),
+                                  story: storyController.text.trim(),
+                                  highlight: highlightController.text.trim(),
+                                  gratitude: gratitudeController.text.trim(),
+                                  moodId: selectedMood.id,
+                                  stickers: selectedStickers.toList()..sort(),
+                                  updatedAt: initialData.updatedAt,
+                                ),
+                              );
+                            },
+                            child: Text(_isKo ? '저장' : 'Save'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (result == null) return;
+    await _saveCustomDiary(day.date, result);
   }
 
   DateTime _normalizeDay(DateTime value) {
@@ -2358,6 +2902,241 @@ class _DiaryDayData {
   List<_DiaryFortune> fortunes(bool isKo) => trainingEntries
       .map((entry) => _DiaryFortune.fromEntry(entry, isKo))
       .toList(growable: false);
+}
+
+class _CustomDiaryEntryData {
+  final String title;
+  final String story;
+  final String highlight;
+  final String gratitude;
+  final String moodId;
+  final List<String> stickers;
+  final DateTime? updatedAt;
+
+  const _CustomDiaryEntryData({
+    required this.title,
+    required this.story,
+    required this.highlight,
+    required this.gratitude,
+    required this.moodId,
+    required this.stickers,
+    required this.updatedAt,
+  });
+
+  const _CustomDiaryEntryData.empty()
+    : title = '',
+      story = '',
+      highlight = '',
+      gratitude = '',
+      moodId = _DiaryMoodPreset.calmId,
+      stickers = const <String>[],
+      updatedAt = null;
+
+  bool get hasContent =>
+      title.trim().isNotEmpty ||
+      story.trim().isNotEmpty ||
+      highlight.trim().isNotEmpty ||
+      gratitude.trim().isNotEmpty ||
+      stickers.isNotEmpty;
+
+  _DiaryMoodPreset get mood => _DiaryMoodPreset.fromId(moodId);
+
+  _CustomDiaryEntryData copyWith({
+    String? title,
+    String? story,
+    String? highlight,
+    String? gratitude,
+    String? moodId,
+    List<String>? stickers,
+    DateTime? updatedAt,
+  }) {
+    return _CustomDiaryEntryData(
+      title: title ?? this.title,
+      story: story ?? this.story,
+      highlight: highlight ?? this.highlight,
+      gratitude: gratitude ?? this.gratitude,
+      moodId: moodId ?? this.moodId,
+      stickers: stickers ?? this.stickers,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+    'title': title,
+    'story': story,
+    'highlight': highlight,
+    'gratitude': gratitude,
+    'moodId': moodId,
+    'stickers': stickers,
+    if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+  };
+
+  factory _CustomDiaryEntryData.fromMap(Map<String, dynamic> map) {
+    return _CustomDiaryEntryData(
+      title: (map['title'] as String?) ?? '',
+      story: (map['story'] as String?) ?? '',
+      highlight: (map['highlight'] as String?) ?? '',
+      gratitude: (map['gratitude'] as String?) ?? '',
+      moodId: (map['moodId'] as String?) ?? _DiaryMoodPreset.calmId,
+      stickers:
+          (map['stickers'] as List?)
+              ?.map((value) => value.toString())
+              .where((value) => value.trim().isNotEmpty)
+              .toList(growable: false) ??
+          const <String>[],
+      updatedAt: DateTime.tryParse((map['updatedAt'] as String?) ?? ''),
+    );
+  }
+}
+
+class _DiaryMoodPreset {
+  static const String calmId = 'calm';
+
+  final String id;
+  final String labelKo;
+  final String labelEn;
+  final IconData icon;
+  final Color tint;
+
+  const _DiaryMoodPreset({
+    required this.id,
+    required this.labelKo,
+    required this.labelEn,
+    required this.icon,
+    required this.tint,
+  });
+
+  static const calm = _DiaryMoodPreset(
+    id: calmId,
+    labelKo: '차분함',
+    labelEn: 'Calm',
+    icon: Icons.spa_outlined,
+    tint: Color(0xFF3F7C63),
+  );
+
+  static const proud = _DiaryMoodPreset(
+    id: 'proud',
+    labelKo: '뿌듯함',
+    labelEn: 'Proud',
+    icon: Icons.workspace_premium_outlined,
+    tint: Color(0xFFCB8B1C),
+  );
+
+  static const playful = _DiaryMoodPreset(
+    id: 'playful',
+    labelKo: '들뜸',
+    labelEn: 'Playful',
+    icon: Icons.celebration_outlined,
+    tint: Color(0xFFD45F78),
+  );
+
+  static const focused = _DiaryMoodPreset(
+    id: 'focused',
+    labelKo: '집중',
+    labelEn: 'Focused',
+    icon: Icons.track_changes_outlined,
+    tint: Color(0xFF2E6ECF),
+  );
+
+  static const reflective = _DiaryMoodPreset(
+    id: 'reflective',
+    labelKo: '회고',
+    labelEn: 'Reflective',
+    icon: Icons.nights_stay_outlined,
+    tint: Color(0xFF6A4FA3),
+  );
+
+  static const values = <_DiaryMoodPreset>[
+    calm,
+    proud,
+    playful,
+    focused,
+    reflective,
+  ];
+
+  static _DiaryMoodPreset fromId(String id) {
+    return values.firstWhere((value) => value.id == id, orElse: () => calm);
+  }
+}
+
+class _DiaryStickerPalette {
+  final String id;
+  final String labelKo;
+  final String labelEn;
+  final IconData icon;
+  final Color tint;
+
+  const _DiaryStickerPalette({
+    required this.id,
+    required this.labelKo,
+    required this.labelEn,
+    required this.icon,
+    required this.tint,
+  });
+
+  static const star = _DiaryStickerPalette(
+    id: 'star',
+    labelKo: '반짝',
+    labelEn: 'Spark',
+    icon: Icons.auto_awesome_outlined,
+    tint: Color(0xFFF6B81A),
+  );
+
+  static const heart = _DiaryStickerPalette(
+    id: 'heart',
+    labelKo: '설렘',
+    labelEn: 'Heart',
+    icon: Icons.favorite_border,
+    tint: Color(0xFFE46B8A),
+  );
+
+  static const boot = _DiaryStickerPalette(
+    id: 'boot',
+    labelKo: '풋워크',
+    labelEn: 'Footwork',
+    icon: Icons.sports_soccer_outlined,
+    tint: Color(0xFF2F8F6A),
+  );
+
+  static const rain = _DiaryStickerPalette(
+    id: 'rain',
+    labelKo: '날씨',
+    labelEn: 'Weather',
+    icon: Icons.umbrella_outlined,
+    tint: Color(0xFF4F8FCB),
+  );
+
+  static const note = _DiaryStickerPalette(
+    id: 'note',
+    labelKo: '메모',
+    labelEn: 'Memo',
+    icon: Icons.sticky_note_2_outlined,
+    tint: Color(0xFF97754A),
+  );
+
+  static const trophy = _DiaryStickerPalette(
+    id: 'trophy',
+    labelKo: '성취',
+    labelEn: 'Win',
+    icon: Icons.emoji_events_outlined,
+    tint: Color(0xFFC78A1C),
+  );
+
+  static const values = <_DiaryStickerPalette>[
+    star,
+    heart,
+    boot,
+    rain,
+    note,
+    trophy,
+  ];
+
+  static _DiaryStickerPalette? fromId(String id) {
+    for (final value in values) {
+      if (value.id == id) return value;
+    }
+    return null;
+  }
 }
 
 class _DiaryFortune {
