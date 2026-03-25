@@ -186,6 +186,7 @@ class _LogsScreenState extends State<LogsScreen> {
                   unawaited(_maybeShowQuickGuide(hasEntries: false));
                 });
               }
+              final latestEntry = allEntries.isEmpty ? null : allEntries.first;
               final entries = _applyFilters(allEntries);
               final visibleEntries = entries
                   .take(_visibleCount.clamp(0, entries.length))
@@ -263,6 +264,14 @@ class _LogsScreenState extends State<LogsScreen> {
                       if (_showSearch) ...[
                         const SizedBox(height: 10),
                         _buildSearchBar(l10n),
+                      ],
+                      if (allEntries.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _DiaryInsightCard(
+                          entries: allEntries,
+                          latestEntry: latestEntry!,
+                          onCreate: widget.onCreate,
+                        ),
                       ],
                       const SizedBox(height: 12),
                       AnimatedSwitcher(
@@ -1075,6 +1084,242 @@ class _LogFilters {
   });
 }
 
+class _DiaryInsightCard extends StatelessWidget {
+  final List<TrainingEntry> entries;
+  final TrainingEntry latestEntry;
+  final VoidCallback onCreate;
+
+  const _DiaryInsightCard({
+    required this.entries,
+    required this.latestEntry,
+    required this.onCreate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final theme = Theme.of(context);
+    final streak = _currentEntryStreak(entries);
+    final thisWeekCount = _entryCountThisWeek(entries);
+    final thisMonthCount = _entryCountThisMonth(entries);
+    final averageMood = _averageValue(
+      entries.take(7).map((entry) => entry.mood),
+    );
+    final averageIntensity = _averageValue(
+      entries.take(7).map((entry) => entry.intensity),
+    );
+    final prompt = _diaryPromptForEntry(latestEntry, isKo: isKo);
+    final chips = _reflectionChips(latestEntry, isKo: isKo);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFF2D8), Color(0xFFD8EDFF)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withAlpha(20),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isKo ? '다이어리 흐름' : 'Diary flow',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      prompt,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              FilledButton.icon(
+                onPressed: onCreate,
+                icon: const Icon(Icons.auto_stories_outlined, size: 18),
+                label: Text(isKo ? '이어 쓰기' : 'Keep writing'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _InsightMetric(
+                label: isKo ? '연속 기록' : 'Streak',
+                value: isKo ? '$streak일' : '$streak days',
+                icon: Icons.local_fire_department_outlined,
+              ),
+              _InsightMetric(
+                label: isKo ? '이번 주' : 'This week',
+                value: isKo ? '$thisWeekCount회' : '$thisWeekCount notes',
+                icon: Icons.calendar_view_week_outlined,
+              ),
+              _InsightMetric(
+                label: isKo ? '이번 달' : 'This month',
+                value: isKo ? '$thisMonthCount회' : '$thisMonthCount notes',
+                icon: Icons.edit_calendar_outlined,
+              ),
+              _InsightMetric(
+                label: isKo ? '최근 컨디션' : 'Recent mood',
+                value: averageMood == null
+                    ? '-'
+                    : averageMood.toStringAsFixed(1),
+                icon: Icons.mood_outlined,
+              ),
+              _InsightMetric(
+                label: isKo ? '최근 강도' : 'Recent intensity',
+                value: averageIntensity == null
+                    ? '-'
+                    : averageIntensity.toStringAsFixed(1),
+                icon: Icons.speed_outlined,
+              ),
+            ],
+          ),
+          if (chips.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              isKo ? '최근 기록에서 건진 문장' : 'Lines worth keeping',
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: chips
+                  .map((chip) => _InsightChip(label: chip.$1, text: chip.$2))
+                  .toList(growable: false),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _InsightMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _InsightMetric({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minWidth: 120),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(210),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withAlpha(220)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withAlpha(180),
+                ),
+              ),
+              Text(
+                value,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InsightChip extends StatelessWidget {
+  final String label;
+  final String text;
+
+  const _InsightChip({required this.label, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minWidth: 140, maxWidth: 260),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(214),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            text,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.3),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EntryCard extends StatelessWidget {
   final TrainingEntry entry;
   final Map<String, TrainingBoard> boardsById;
@@ -1396,6 +1641,112 @@ String _buildListFocusText(TrainingEntry entry) {
   final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
   if (notesWithoutWeather.isNotEmpty) return notesWithoutWeather;
   return '';
+}
+
+String _diaryPromptForEntry(TrainingEntry entry, {required bool isKo}) {
+  final primaryFocus = _bestEntryFocus(entry);
+  if (primaryFocus.isEmpty) {
+    return isKo
+        ? '오늘 훈련의 감정과 장면을 한 줄로 남겨보세요.'
+        : 'Leave one honest line about today.';
+  }
+  if (isKo) {
+    return '최근 흐름의 중심은 "$primaryFocus"이에요.';
+  }
+  return 'Your recent diary keeps circling back to "$primaryFocus".';
+}
+
+String _bestEntryFocus(TrainingEntry entry) {
+  if (entry.goalFocuses.isNotEmpty) return entry.goalFocuses.first.trim();
+  if (entry.nextGoal.trim().isNotEmpty) return entry.nextGoal.trim();
+  if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
+  if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
+  final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
+  return notesWithoutWeather;
+}
+
+List<(String, String)> _reflectionChips(
+  TrainingEntry entry, {
+  required bool isKo,
+}) {
+  final chips = <(String, String)>[];
+  final goodPoints = entry.goodPoints.trim();
+  if (goodPoints.isNotEmpty) {
+    chips.add((isKo ? '잘한 점' : 'Win', goodPoints));
+  }
+  final improvements = entry.improvements.trim();
+  if (improvements.isNotEmpty) {
+    chips.add((isKo ? '보완점' : 'Improve', improvements));
+  }
+  final nextGoal = entry.nextGoal.trim();
+  if (nextGoal.isNotEmpty) {
+    chips.add((isKo ? '다음 목표' : 'Next', nextGoal));
+  }
+  if (chips.isEmpty && entry.goalFocuses.isNotEmpty) {
+    chips.add((isKo ? '오늘의 포커스' : 'Focus', entry.goalFocuses.join(', ')));
+  }
+  if (chips.isEmpty) {
+    final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
+    if (notesWithoutWeather.isNotEmpty) {
+      chips.add((isKo ? '메모' : 'Note', notesWithoutWeather));
+    }
+  }
+  return chips.take(3).toList(growable: false);
+}
+
+int _currentEntryStreak(List<TrainingEntry> entries) {
+  if (entries.isEmpty) return 0;
+  final normalizedDays =
+      entries
+          .map(
+            (entry) =>
+                DateTime(entry.date.year, entry.date.month, entry.date.day),
+          )
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.compareTo(a));
+  if (normalizedDays.isEmpty) return 0;
+  var streak = 1;
+  for (var index = 1; index < normalizedDays.length; index++) {
+    final previous = normalizedDays[index - 1];
+    final current = normalizedDays[index];
+    if (previous.difference(current).inDays == 1) {
+      streak += 1;
+      continue;
+    }
+    break;
+  }
+  return streak;
+}
+
+int _entryCountThisWeek(List<TrainingEntry> entries) {
+  final now = DateTime.now();
+  final start = DateTime(
+    now.year,
+    now.month,
+    now.day,
+  ).subtract(Duration(days: now.weekday - 1));
+  final end = start.add(const Duration(days: 7));
+  return entries.where((entry) {
+    final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
+    return !day.isBefore(start) && day.isBefore(end);
+  }).length;
+}
+
+int _entryCountThisMonth(List<TrainingEntry> entries) {
+  final now = DateTime.now();
+  return entries
+      .where(
+        (entry) => entry.date.year == now.year && entry.date.month == now.month,
+      )
+      .length;
+}
+
+double? _averageValue(Iterable<int> values) {
+  final list = values.toList(growable: false);
+  if (list.isEmpty) return null;
+  final total = list.fold<int>(0, (sum, value) => sum + value);
+  return total / list.length;
 }
 
 String _stripWeatherMetaFromNotes(String notes) {
