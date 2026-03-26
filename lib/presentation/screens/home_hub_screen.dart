@@ -1159,7 +1159,9 @@ class _PlanDaysCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalPlans = days.fold<int>(0, (sum, item) => sum + item.count);
     final next = days.first;
-    final nextLabel = DateFormat(isKo ? 'M/d(E)' : 'EEE M/d').format(next.day);
+    final nextLabel = isKo
+        ? '${next.day.month}월 ${next.day.day}일'
+        : DateFormat('EEE M/d').format(next.day);
     final today = DateTime(
       DateTime.now().year,
       DateTime.now().month,
