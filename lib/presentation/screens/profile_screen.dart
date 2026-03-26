@@ -100,6 +100,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             IconButton(
               tooltip: isKo ? '성향 테스트' : 'Profile tests',
               onPressed: () => _openProfileTestsScreen(context),
+              iconSize: 28,
+              constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
               icon: const Icon(Icons.psychology_alt_outlined),
             ),
           ],
