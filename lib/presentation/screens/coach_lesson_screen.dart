@@ -550,10 +550,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .map((sticker) => _resolveRecordSticker(sticker, day))
         .whereType<_DiaryRecordStickerViewData>()
         .toList(growable: false);
+    final customTitle = customDiary.title.trim();
     return _buildPaperCard(
-      title: customDiary.title.trim().isEmpty
-          ? (_isKo ? '오늘의 다이어리' : 'Today diary')
-          : customDiary.title.trim(),
+      title: customTitle.isEmpty ? null : customTitle,
       subtitle: customDiary.updatedAt == null
           ? (_isKo ? '핵심만 간단히 기록해보세요.' : 'Keep it short and clear.')
           : (_isKo
@@ -1035,15 +1034,102 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             .contains(today)
         ? today.add(const Duration(days: 1))
         : today;
-    final picked = await showDatePicker(
+    final firstDay = DateTime(2020, 1, 1);
+    final lastDay = DateTime(2100, 12, 31);
+    final markerMap = <DateTime, Set<_DiaryMarkerType>>{};
+    for (final day in entriesByDay.keys) {
+      final normalized = _normalizeDay(day);
+      final markers =
+          markerMap.putIfAbsent(normalized, () => <_DiaryMarkerType>{});
+      final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
+      if (dayEntries.any((entry) => entry.isMatch)) {
+        markers.add(_DiaryMarkerType.match);
+      }
+      if (dayEntries.any((entry) => !entry.isMatch)) {
+        markers.add(_DiaryMarkerType.training);
+      }
+    }
+    for (final day in plansByDay.keys) {
+      final normalized = _normalizeDay(day);
+      markerMap.putIfAbsent(normalized, () => <_DiaryMarkerType>{}).add(
+            _DiaryMarkerType.plan,
+          );
+    }
+    for (final token in _customDiaryEntries.keys) {
+      final parsed = DateTime.tryParse(token);
+      if (parsed == null) continue;
+      markerMap
+          .putIfAbsent(_normalizeDay(parsed), () => <_DiaryMarkerType>{})
+          .add(_DiaryMarkerType.diary);
+    }
+
+    DateTime focusedDay = initialDate;
+    DateTime? picked;
+    await showModalBottomSheet<void>(
       context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2020, 1, 1),
-      lastDate: DateTime(2100, 12, 31),
-      locale: Locale(_isKo ? 'ko' : 'en'),
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                child: TableCalendar<_DiaryMarkerType>(
+                  locale: _isKo ? 'ko_KR' : 'en_US',
+                  firstDay: firstDay,
+                  lastDay: lastDay,
+                  focusedDay: focusedDay,
+                  calendarFormat: CalendarFormat.month,
+                  availableGestures: AvailableGestures.horizontalSwipe,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  selectedDayPredicate: (day) =>
+                      picked != null && isSameDay(day, picked),
+                  onDaySelected: (selected, focused) {
+                    picked = _normalizeDay(selected);
+                    Navigator.of(sheetContext).pop();
+                  },
+                  onPageChanged: (focused) {
+                    setSheetState(() => focusedDay = focused);
+                  },
+                  eventLoader: (day) {
+                    return markerMap[_normalizeDay(day)]
+                            ?.toList(growable: false) ??
+                        const <_DiaryMarkerType>[];
+                  },
+                  calendarBuilders: CalendarBuilders<_DiaryMarkerType>(
+                    markerBuilder: (context, day, markers) {
+                      if (markers.isEmpty) return const SizedBox.shrink();
+                      final markerList = markers
+                          .whereType<_DiaryMarkerType>()
+                          .toList(growable: false);
+                      if (markerList.isEmpty) return const SizedBox.shrink();
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: markerList
+                            .take(4)
+                            .map((marker) => Container(
+                                  width: 6,
+                                  height: 6,
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: marker.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ))
+                            .toList(growable: false),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
     if (picked == null) return;
-    final normalized = _normalizeDay(picked);
+    final normalized = _normalizeDay(picked!);
     final day = _buildDiaryDayData(
       day: normalized,
       entriesByDay: entriesByDay,
