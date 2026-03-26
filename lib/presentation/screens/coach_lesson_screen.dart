@@ -241,6 +241,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       days: days,
                       dayCount: days.length,
                       selectedIndex: selectedIndex,
+                      selectedDay: selectedDay,
                       selectedLabel: _formatDiaryDate(selectedDay.date),
                     ),
                   ),
@@ -271,78 +272,144 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     required List<_DiaryDayData> days,
     required int dayCount,
     required int selectedIndex,
+    required _DiaryDayData selectedDay,
     required String selectedLabel,
   }) {
     final canGoPrev = selectedIndex < dayCount - 1;
     final canGoNext = selectedIndex > 0;
+    final hasTraining = selectedDay.trainingEntries.isNotEmpty;
+    final hasMatch = selectedDay.matchEntries.isNotEmpty;
+    final hasPlan = selectedDay.plans.isNotEmpty;
     return Container(
       decoration: _paperDecoration(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              tooltip: _isKo ? '이전 날짜' : 'Previous day',
-              onPressed: canGoPrev ? () => _movePage(selectedIndex + 1) : null,
-              icon: const Icon(Icons.chevron_left),
-            ),
-            Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () => _pickDiaryDate(days, selectedIndex),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          selectedLabel,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
+            Row(
+              children: [
+                IconButton(
+                  tooltip: _isKo ? '이전 날짜' : 'Previous day',
+                  onPressed:
+                      canGoPrev ? () => _movePage(selectedIndex + 1) : null,
+                  icon: const Icon(Icons.chevron_left),
+                ),
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: () => _pickDiaryDate(days, selectedIndex),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              selectedLabel,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleSmall?.copyWith(
                                     color: _headlineInk,
                                     fontWeight: FontWeight.w900,
                                   ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Icon(
-                        Icons.calendar_month_outlined,
-                        size: 16,
-                        color: _accentInk,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          '${selectedIndex + 1}/$dayCount',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.calendar_month_outlined,
+                            size: 16,
+                            color: _accentInk,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              '${selectedIndex + 1}/$dayCount',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(
                                     color: _bodyInk,
                                     fontWeight: FontWeight.w600,
                                   ),
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                IconButton(
+                  tooltip: _isKo ? '다음 날짜' : 'Next day',
+                  onPressed:
+                      canGoNext ? () => _movePage(selectedIndex - 1) : null,
+                  icon: const Icon(Icons.chevron_right),
+                ),
+              ],
             ),
-            IconButton(
-              tooltip: _isKo ? '다음 날짜' : 'Next day',
-              onPressed: canGoNext ? () => _movePage(selectedIndex - 1) : null,
-              icon: const Icon(Icons.chevron_right),
+            const SizedBox(height: 2),
+            Wrap(
+              spacing: 10,
+              runSpacing: 6,
+              alignment: WrapAlignment.center,
+              children: [
+                if (hasTraining)
+                  _buildPagerMarker(
+                    color: const Color(0xFF2F8F6A),
+                    label: _isKo ? '기록' : 'Training',
+                  ),
+                if (hasMatch)
+                  _buildPagerMarker(
+                    color: const Color(0xFF2E6ECF),
+                    label: _isKo ? '시합' : 'Match',
+                  ),
+                if (hasPlan)
+                  _buildPagerMarker(
+                    color: const Color(0xFF97754A),
+                    label: _isKo ? '계획' : 'Plan',
+                  ),
+                if (!hasTraining && !hasMatch && !hasPlan)
+                  Text(
+                    _isKo ? '표시할 항목 없음' : 'No markers',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: _bodyInk,
+                        ),
+                  ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPagerMarker({required Color color, required String label}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          )
+              .textTheme
+              .labelSmall
+              ?.copyWith(color: _bodyInk, fontWeight: FontWeight.w700),
+        ),
+      ],
     );
   }
 
@@ -1227,6 +1294,26 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           icon: Icons.event_note_outlined,
           tint: const Color(0xFF97754A),
         );
+      case _DiaryRecordStickerKind.fortune:
+        final entry = day.trainingEntries.cast<TrainingEntry?>().firstWhere(
+              (item) =>
+                  '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
+              orElse: () => null,
+            );
+        if (entry == null) return null;
+        final label = entry.program.trim().isNotEmpty
+            ? entry.program.trim()
+            : (entry.type.trim().isNotEmpty
+                ? entry.type.trim()
+                : (_isKo ? '훈련' : 'Training'));
+        final fortune = _DiaryFortune.fromEntry(entry, _isKo);
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          title: _isKo ? '운세 스티커 · $label' : 'Fortune sticker · $label',
+          summary: fortune.summaryText,
+          icon: Icons.auto_awesome_outlined,
+          tint: const Color(0xFF9B51E0),
+        );
     }
   }
 
@@ -1517,6 +1604,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       sectionTitle: _isKo ? '$label 운세' : '$label fortune',
       sectionBody: storyText,
       icon: Icons.auto_awesome_outlined,
+      recordKind: _DiaryRecordStickerKind.fortune,
+      recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
     );
   }
 
@@ -1678,36 +1767,38 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
-                                    FilterChip(
-                                      key: ValueKey(
-                                        'diary-record-sticker-${seed.id}',
+                                    if (seed.recordKind != null &&
+                                        seed.recordRefId != null)
+                                      FilterChip(
+                                        key: ValueKey(
+                                          'diary-record-sticker-${seed.id}',
+                                        ),
+                                        label: Text(
+                                          _isKo
+                                              ? '기록 스티커로 붙이기'
+                                              : 'Pin as sticker',
+                                        ),
+                                        avatar: Icon(
+                                          Icons.push_pin_outlined,
+                                          size: 18,
+                                          color: _accentInk,
+                                        ),
+                                        selected: selectedRecordStickerIds
+                                            .contains(seed.id),
+                                        onSelected: (selected) {
+                                          setModalState(() {
+                                            if (selected) {
+                                              selectedRecordStickerIds.add(
+                                                seed.id,
+                                              );
+                                            } else {
+                                              selectedRecordStickerIds.remove(
+                                                seed.id,
+                                              );
+                                            }
+                                          });
+                                        },
                                       ),
-                                      label: Text(
-                                        _isKo
-                                            ? '기록 스티커로 붙이기'
-                                            : 'Pin as sticker',
-                                      ),
-                                      avatar: Icon(
-                                        Icons.push_pin_outlined,
-                                        size: 18,
-                                        color: _accentInk,
-                                      ),
-                                      selected: selectedRecordStickerIds
-                                          .contains(seed.id),
-                                      onSelected: (selected) {
-                                        setModalState(() {
-                                          if (selected) {
-                                            selectedRecordStickerIds.add(
-                                              seed.id,
-                                            );
-                                          } else {
-                                            selectedRecordStickerIds.remove(
-                                              seed.id,
-                                            );
-                                          }
-                                        });
-                                      },
-                                    ),
                                     OutlinedButton.icon(
                                       onPressed: () {
                                         final current =
@@ -2019,8 +2110,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   moodId: selectedMood.id,
                                   recordStickers: todoSeeds
                                       .where(
-                                        (seed) => selectedRecordStickerIds
-                                            .contains(seed.id),
+                                        (seed) =>
+                                            selectedRecordStickerIds.contains(
+                                              seed.id,
+                                            ) &&
+                                            seed.recordKind != null &&
+                                            seed.recordRefId != null,
                                       )
                                       .map(
                                         (seed) => _DiaryRecordStickerData(
@@ -2572,7 +2667,7 @@ class _DiaryTodoSeed {
   });
 }
 
-enum _DiaryRecordStickerKind { training, match, plan }
+enum _DiaryRecordStickerKind { training, match, plan, fortune }
 
 class _DiaryRecordStickerData {
   final _DiaryRecordStickerKind kind;
