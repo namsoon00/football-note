@@ -122,37 +122,39 @@ void main() {
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     expect(find.text('오늘의 응원'), findsNothing);
-    expect(find.text('오늘의 운세 노트'), findsOneWidget);
     expect(find.text('오늘의 일기'), findsOneWidget);
     expect(find.text('자기 전 다이어리'), findsNothing);
-    expect(find.textContaining('훈련 2개'), findsWidgets);
-    expect(find.textContaining('시합 1개'), findsWidgets);
-    expect(find.text('계획 1개'), findsWidgets);
-    expect(find.textContaining('합계 190분'), findsWidgets);
-    expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsWidgets);
-    expect(find.text('훈련 운세'), findsWidgets);
-    expect(find.textContaining('좌우로 넘겨서 다른 운세 보기'), findsOneWidget);
-    expect(find.text('1 / 2'), findsWidgets);
-    expect(find.textContaining('측면에서 2:1 패턴 확인'), findsWidgets);
-    expect(find.text('보드 메모: 측면에서 2:1 패턴 확인'), findsOneWidget);
-    expect(find.textContaining('측면 전개 보드'), findsWidgets);
-    expect(find.textContaining('오른쪽 발목'), findsWidgets);
-    expect(find.textContaining('줄넘기: 200회'), findsWidgets);
-    expect(find.textContaining('Blue FC전'), findsWidgets);
-    expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
-    expect(find.textContaining('전술 훈련'), findsWidgets);
-    expect(
-      tester.getTopLeft(find.text('오늘의 일기')).dy,
-      lessThan(tester.getTopLeft(find.text('오늘의 운세 노트')).dy),
-    );
+    expect(find.text('오늘의 운세 노트'), findsNothing);
+    expect(find.textContaining('훈련 2개'), findsNothing);
+    expect(find.textContaining('시합 1개'), findsNothing);
+    expect(find.text('계획 1개'), findsNothing);
+    expect(find.textContaining('합계 190분'), findsNothing);
+    expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsNothing);
+    expect(find.text('훈련 운세'), findsNothing);
+    expect(find.textContaining('측면에서 2:1 패턴 확인'), findsNothing);
+    expect(find.textContaining('오른쪽 발목'), findsNothing);
+    expect(find.textContaining('줄넘기: 200회'), findsNothing);
+    expect(find.textContaining('Blue FC전'), findsNothing);
+    expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsNothing);
+    expect(find.textContaining('전술 훈련'), findsNothing);
 
     expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
+    expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
+    expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
+    expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
+
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('이전 날짜'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('합계 50분'), findsWidgets);
-    expect(find.textContaining('패스'), findsWidgets);
+    expect(find.textContaining('패스 감각 정리.'), findsOneWidget);
   });
 
   testWidgets('coach lesson screen shows empty guidance without records', (
@@ -238,9 +240,13 @@ void main() {
 
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.text('오늘의 응원'), findsNothing);
-    expect(find.text('오늘의 운세 노트'), findsOneWidget);
-    expect(find.textContaining('같은 날 훈련노트에 저장된 운세가 아직 없어요.'), findsNothing);
-    expect(find.textContaining('행운'), findsWidgets);
+    expect(find.text('오늘의 운세 노트'), findsNothing);
+    expect(find.textContaining('행운'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
   });
 
   testWidgets('coach lesson screen saves personal diary writing and stickers', (
@@ -484,7 +490,7 @@ void main() {
       expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
       expect(find.text('아직 기록이 없습니다.'), findsNothing);
       expect(find.text('계획 다이어리'), findsOneWidget);
-      expect(find.text('계획 1개'), findsWidgets);
+      expect(find.text('계획 1개'), findsNothing);
       expect(find.textContaining('전술 훈련'), findsWidgets);
     },
   );
