@@ -1504,6 +1504,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final selectedRecordStickerIds = <String>{
       ...initialSelectedRecordStickerIds,
     };
+    var isClosingFlowRunning = false;
 
     _CustomDiaryEntryData buildDraftData() {
       return _CustomDiaryEntryData(
@@ -1546,9 +1547,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
 
     Future<void> requestCloseWithSavePrompt(BuildContext modalContext) async {
+      if (isClosingFlowRunning) return;
+      isClosingFlowRunning = true;
       final navigator = Navigator.of(modalContext);
       if (!hasUnsavedChanges()) {
-        navigator.pop();
+        if (navigator.canPop()) {
+          navigator.pop();
+        }
+        isClosingFlowRunning = false;
         return;
       }
       final shouldSave = await showDialog<bool>(
@@ -1576,12 +1582,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
         ),
       );
-      if (shouldSave == null) return;
-      if (shouldSave) {
-        navigator.pop(buildDraftData());
-      } else {
-        navigator.pop();
+      if (shouldSave == null) {
+        isClosingFlowRunning = false;
+        return;
       }
+      if (shouldSave) {
+        if (navigator.canPop()) {
+          navigator.pop(buildDraftData());
+        }
+      } else {
+        if (navigator.canPop()) {
+          navigator.pop();
+        }
+      }
+      isClosingFlowRunning = false;
     }
 
     final result = await showModalBottomSheet<_CustomDiaryEntryData>(
@@ -1595,8 +1609,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           builder: (context, setModalState) {
             return PopScope(
               canPop: false,
-              onPopInvokedWithResult: (_, __) =>
-                  requestCloseWithSavePrompt(context),
+              onPopInvokedWithResult: (didPop, __) {
+                if (didPop) return;
+                requestCloseWithSavePrompt(context);
+              },
               child: Padding(
                 padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + 16),
                 child: SingleChildScrollView(
@@ -1906,6 +1922,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     final diaryDay = dayMap[_normalizeDay(day)];
                     if (diaryDay == null) return const <_DiaryMarkerType>[];
                     final markers = <_DiaryMarkerType>[];
+                    final customDiary = _customDiaryForDay(diaryDay.date);
+                    if (customDiary.hasContent) {
+                      markers.add(_DiaryMarkerType.diary);
+                    }
                     if (diaryDay.trainingEntries.isNotEmpty) {
                       markers.add(_DiaryMarkerType.training);
                     }
@@ -1927,7 +1947,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: markerList
-                            .take(3)
+                            .take(4)
                             .map((marker) => Container(
                                   width: 6,
                                   height: 6,
@@ -2298,11 +2318,13 @@ class _DiaryScrollPageState extends State<_DiaryScrollPage> {
   }
 }
 
-enum _DiaryMarkerType { training, match, plan }
+enum _DiaryMarkerType { diary, training, match, plan }
 
 extension on _DiaryMarkerType {
   Color get color {
     switch (this) {
+      case _DiaryMarkerType.diary:
+        return const Color(0xFFE46B8A);
       case _DiaryMarkerType.training:
         return const Color(0xFF2F8F6A);
       case _DiaryMarkerType.match:
