@@ -1572,6 +1572,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _CustomDiaryEntryData initialData,
   ) async {
     final todoSeeds = _todoSeedsForDay(day);
+    String? recordStorageIdFromSeed(_DiaryTodoSeed seed) {
+      if (seed.recordKind == null || seed.recordRefId == null) return null;
+      return '${seed.recordKind!.name}:${seed.recordRefId!}';
+    }
+
     final titleController = TextEditingController(text: initialData.title);
     final storyController = TextEditingController(text: initialData.story);
     final stickerPaletteIds =
@@ -1579,13 +1584,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final initialStickerIds =
         initialData.stickers.where(stickerPaletteIds.contains).toSet();
     final selectedStickerIds = <String>{...initialStickerIds};
-    final selectableRecordSeedIds = todoSeeds
-        .where((seed) => seed.recordKind != null && seed.recordRefId != null)
-        .map((seed) => seed.id)
-        .toSet();
+    final selectableRecordStorageIds =
+        todoSeeds.map(recordStorageIdFromSeed).whereType<String>().toSet();
     final initialSelectedRecordStickerIds = initialData.recordStickers
         .map((sticker) => sticker.storageId)
-        .where(selectableRecordSeedIds.contains)
+        .where(selectableRecordStorageIds.contains)
         .toSet();
     final selectedRecordStickerIds = <String>{
       ...initialSelectedRecordStickerIds,
@@ -1600,10 +1603,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         moodId: _DiaryMoodPreset.calmId,
         recordStickers: todoSeeds
             .where(
-              (seed) =>
-                  selectedRecordStickerIds.contains(seed.id) &&
-                  seed.recordKind != null &&
-                  seed.recordRefId != null,
+              (seed) => selectedRecordStickerIds.contains(
+                recordStorageIdFromSeed(seed),
+              ),
             )
             .map(
               (seed) => _DiaryRecordStickerData(
@@ -1778,40 +1780,45 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   children: [
                                     if (seed.recordKind != null &&
                                         seed.recordRefId != null)
-                                      FilterChip(
-                                        key: ValueKey(
-                                          'diary-record-sticker-${seed.id}',
-                                        ),
-                                        label: Text(
-                                          selectedRecordStickerIds.contains(
-                                            seed.id,
-                                          )
-                                              ? (_isKo
-                                                  ? '스티커 추가됨'
-                                                  : 'Sticker added')
-                                              : (_isKo
-                                                  ? '기록 스티커로 붙이기'
-                                                  : 'Pin as sticker'),
-                                        ),
-                                        avatar: Icon(
-                                          Icons.push_pin_outlined,
-                                          size: 18,
-                                          color: _accentInk,
-                                        ),
-                                        selected: selectedRecordStickerIds
-                                            .contains(seed.id),
-                                        onSelected: (selected) {
-                                          setModalState(() {
-                                            if (selected) {
-                                              selectedRecordStickerIds.add(
-                                                seed.id,
-                                              );
-                                            } else {
-                                              selectedRecordStickerIds.remove(
-                                                seed.id,
-                                              );
-                                            }
-                                          });
+                                      Builder(
+                                        builder: (context) {
+                                          final recordStorageId =
+                                              recordStorageIdFromSeed(seed)!;
+                                          return FilterChip(
+                                            key: ValueKey(
+                                              'diary-record-sticker-${seed.id}',
+                                            ),
+                                            label: Text(
+                                              selectedRecordStickerIds.contains(
+                                                recordStorageId,
+                                              )
+                                                  ? (_isKo
+                                                      ? '스티커 추가됨'
+                                                      : 'Sticker added')
+                                                  : (_isKo
+                                                      ? '기록 스티커로 붙이기'
+                                                      : 'Pin as sticker'),
+                                            ),
+                                            avatar: Icon(
+                                              Icons.push_pin_outlined,
+                                              size: 18,
+                                              color: _accentInk,
+                                            ),
+                                            selected: selectedRecordStickerIds
+                                                .contains(recordStorageId),
+                                            onSelected: (selected) {
+                                              setModalState(() {
+                                                if (selected) {
+                                                  selectedRecordStickerIds.add(
+                                                    recordStorageId,
+                                                  );
+                                                } else {
+                                                  selectedRecordStickerIds
+                                                      .remove(recordStorageId);
+                                                }
+                                              });
+                                            },
+                                          );
                                         },
                                       ),
                                   ],
