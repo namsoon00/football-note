@@ -1488,10 +1488,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final todoSeeds = _todoSeedsForDay(day);
     final titleController = TextEditingController(text: initialData.title);
     final storyController = TextEditingController(text: initialData.story);
-    String? selectedStickerId =
-        initialData.stickers.isEmpty ? null : initialData.stickers.first;
+    final stickerPaletteIds =
+        _DiaryStickerPalette.values.map((sticker) => sticker.id).toSet();
+    final initialStickerIds =
+        initialData.stickers.where(stickerPaletteIds.contains).toSet();
+    final selectedStickerIds = <String>{...initialStickerIds};
+    final selectableRecordSeedIds = todoSeeds
+        .where((seed) => seed.recordKind != null && seed.recordRefId != null)
+        .map((seed) => seed.id)
+        .toSet();
+    final initialSelectedRecordStickerIds = initialData.recordStickers
+        .map((sticker) => sticker.storageId)
+        .where(selectableRecordSeedIds.contains)
+        .toSet();
     final selectedRecordStickerIds = <String>{
-      ...initialData.recordStickers.map((sticker) => sticker.storageId),
+      ...initialSelectedRecordStickerIds,
     };
 
     _CustomDiaryEntryData buildDraftData() {
@@ -1514,9 +1525,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ),
             )
             .toList(growable: false),
-        stickers: selectedStickerId == null
-            ? const <String>[]
-            : <String>[selectedStickerId!],
+        stickers: selectedStickerIds.toList(growable: false),
         updatedAt: initialData.updatedAt,
       );
     }
@@ -1531,12 +1540,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return draft.title.trim() != initialData.title.trim() ||
           draft.story.trim() != initialData.story.trim() ||
           normalizeIds(draft.stickers).join('|') !=
-              normalizeIds(initialData.stickers).join('|') ||
-          normalizeIds(draft.recordStickers.map((e) => e.storageId).toList())
-                  .join('|') !=
-              normalizeIds(
-                initialData.recordStickers.map((e) => e.storageId).toList(),
-              ).join('|');
+              normalizeIds(initialStickerIds.toList()).join('|') ||
+          normalizeIds(selectedRecordStickerIds.toList()).join('|') !=
+              normalizeIds(initialSelectedRecordStickerIds.toList()).join('|');
     }
 
     Future<void> requestCloseWithSavePrompt(BuildContext modalContext) async {
@@ -1750,7 +1756,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         runSpacing: 8,
                         children: _DiaryStickerPalette.values
                             .map(
-                              (sticker) => ChoiceChip(
+                              (sticker) => FilterChip(
                                 key: ValueKey('diary-sticker-${sticker.id}'),
                                 label: Text(
                                   _isKo ? sticker.labelKo : sticker.labelEn,
@@ -1760,16 +1766,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   size: 18,
                                   color: sticker.tint,
                                 ),
-                                selected: selectedStickerId == sticker.id,
+                                selected: selectedStickerIds.contains(
+                                  sticker.id,
+                                ),
                                 selectedColor: sticker.tint.withValues(
                                   alpha: 0.16,
                                 ),
                                 onSelected: (selected) {
                                   setModalState(() {
                                     if (selected) {
-                                      selectedStickerId = sticker.id;
+                                      selectedStickerIds.add(sticker.id);
                                     } else {
-                                      selectedStickerId = null;
+                                      selectedStickerIds.remove(sticker.id);
                                     }
                                   });
                                 },
@@ -1811,7 +1819,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                               setModalState(() {
                                 titleController.clear();
                                 storyController.clear();
-                                selectedStickerId = null;
+                                selectedStickerIds.clear();
                                 selectedRecordStickerIds.clear();
                               });
                             },
@@ -2262,7 +2270,10 @@ class _DiaryScrollPageState extends State<_DiaryScrollPage> {
             _controller.position.pixels <=
                 _controller.position.minScrollExtent + 0.5;
 
-        if (notification is ScrollUpdateNotification) {
+        if (notification is ScrollStartNotification) {
+          _dismissTriggered = false;
+          _pullDownDistance = 0;
+        } else if (notification is ScrollUpdateNotification) {
           final dy = notification.dragDetails?.delta.dy ?? 0;
           if (atTop && dy > 0) {
             _pullDownDistance += dy;
@@ -2270,8 +2281,8 @@ class _DiaryScrollPageState extends State<_DiaryScrollPage> {
             _pullDownDistance = 0;
           }
         } else if (notification is OverscrollNotification) {
-          if (atTop && notification.overscroll < 0) {
-            _pullDownDistance += -notification.overscroll;
+          if (atTop) {
+            _pullDownDistance += notification.overscroll.abs();
           }
         } else if (notification is ScrollEndNotification) {
           if (_pullDownDistance >= 86) {

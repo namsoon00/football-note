@@ -618,129 +618,6 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 }
 
-enum _CoachPeriod { daily, weekly, monthly }
-
-_CoachPeriod _periodFromDays(int days) {
-  if (days <= 1) return _CoachPeriod.daily;
-  if (days <= 14) return _CoachPeriod.weekly;
-  return _CoachPeriod.monthly;
-}
-
-String _buildPeriodAdvice({
-  required _CoachPeriod period,
-  required double minutes,
-  required double sessions,
-  required double targetMinutes,
-  required double targetSessions,
-  required bool showAverage,
-  required bool isKo,
-  required int variantSeed,
-}) {
-  final ratio = showAverage
-      ? (targetMinutes <= 0 ? 0.0 : (minutes / targetMinutes))
-      : _heuristicRatio(period, minutes);
-  final sessionRatio = showAverage
-      ? (targetSessions <= 0 ? 0.0 : (sessions / targetSessions))
-      : _heuristicSessionRatio(period, sessions);
-  final combined = ((ratio * 0.65) + (sessionRatio * 0.35)).clamp(0.0, 2.0);
-  final gapMinutes =
-      showAverage ? math.max(0.0, targetMinutes - minutes).round() : 0;
-  final gapSessions =
-      showAverage ? math.max(0.0, targetSessions - sessions).ceil() : 0;
-  final variant = variantSeed % 3;
-
-  if (combined >= 1.0) {
-    final lines = isKo
-        ? <String>[
-            '${_periodName(period, true)} 목표 이상입니다. 지금 리듬을 유지하고 마지막 10분은 첫 터치/패스 정확도에 집중하세요.',
-            '${_periodName(period, true)} 페이스가 매우 좋아요. 다음 훈련은 약한 발 컨트롤을 추가해 성장 폭을 키워보세요.',
-            '${_periodName(period, true)} 기준으로 안정권입니다. 강도는 유지하고 회복 루틴(스트레칭/수면)도 챙기면 더 좋아요.',
-          ]
-        : <String>[
-            '${_periodName(period, false)} target exceeded. Keep the rhythm and spend the final 10 minutes on first touch and passing accuracy.',
-            '${_periodName(period, false)} pace is strong. Add weak-foot control in the next session for better growth.',
-            '${_periodName(period, false)} level is stable. Keep intensity and reinforce recovery habits.',
-          ];
-    return lines[variant];
-  }
-
-  if (combined >= 0.7) {
-    final lines = isKo
-        ? <String>[
-            '${_periodName(period, true)} 기준 거의 도달했습니다. ${showAverage ? '${_formatMinutesAsTime(gapMinutes, isKo: true)} + $gapSessions회' : '한 세션'}만 보완하면 목표권입니다.',
-            '${_periodName(period, true)} 흐름이 좋습니다. 남은 훈련은 드리블-패스 연계 반복을 넣어 완성도를 올려보세요.',
-            '${_periodName(period, true)} 상위 구간 직전입니다. 짧고 집중도 높은 세션을 1회 추가해 보세요.',
-          ]
-        : <String>[
-            '${_periodName(period, false)} is close to target. ${showAverage ? '${_formatMinutesAsTime(gapMinutes, isKo: false)} + $gapSessions sessions' : 'one focused session'} can close the gap.',
-            '${_periodName(period, false)} trend is positive. Add dribble-pass transition drills in the remaining sessions.',
-            '${_periodName(period, false)} is near upper band. Add one short high-focus session to break through.',
-          ];
-    return lines[variant];
-  }
-
-  if (showAverage) {
-    final lines = isKo
-        ? <String>[
-            '${_periodName(period, true)} 기준이 부족합니다. 최소 ${_formatMinutesAsTime(gapMinutes, isKo: true)}와 $gapSessions회 추가가 필요해요.',
-            '${_periodName(period, true)} 대비 훈련량이 낮습니다. 우선 횟수를 먼저 채우고(짧게라도), 그다음 시간을 늘려보세요.',
-            '${_periodName(period, true)} 목표와 차이가 큽니다. 이번에는 강도보다 규칙성(정해진 요일 고정)에 집중하세요.',
-          ]
-        : <String>[
-            '${_periodName(period, false)} is below target. Add at least ${_formatMinutesAsTime(gapMinutes, isKo: false)} and $gapSessions sessions.',
-            '${_periodName(period, false)} volume is low. Prioritize session count first, then increase total minutes.',
-            '${_periodName(period, false)} gap is significant. Focus on consistency before intensity.',
-          ];
-    return lines[variant];
-  }
-
-  final lines = isKo
-      ? <String>[
-          '${_periodName(period, true)} 기준으로 볼 때 훈련이 적습니다. 이번 기간은 횟수를 먼저 늘려 리듬을 만들어요.',
-          '${_periodName(period, true)} 데이터상 누적량이 부족해요. 짧아도 좋으니 끊기지 않게 이어가는 것이 우선입니다.',
-          '${_periodName(period, true)} 기준 평가에서 개선이 필요합니다. 같은 시간대에 고정 훈련을 잡아보세요.',
-        ]
-      : <String>[
-          '${_periodName(period, false)} suggests low activity. Increase frequency first to build rhythm.',
-          '${_periodName(period, false)} data shows low accumulation. Keep sessions continuous even if short.',
-          '${_periodName(period, false)} needs improvement. Try fixed-time training slots for consistency.',
-        ];
-  return lines[variant];
-}
-
-double _heuristicRatio(_CoachPeriod period, double minutes) {
-  switch (period) {
-    case _CoachPeriod.daily:
-      return (minutes / 50).clamp(0.0, 2.0);
-    case _CoachPeriod.weekly:
-      return (minutes / 220).clamp(0.0, 2.0);
-    case _CoachPeriod.monthly:
-      return (minutes / 880).clamp(0.0, 2.0);
-  }
-}
-
-double _heuristicSessionRatio(_CoachPeriod period, double sessions) {
-  switch (period) {
-    case _CoachPeriod.daily:
-      return sessions >= 1 ? 1.0 : 0.0;
-    case _CoachPeriod.weekly:
-      return (sessions / 4).clamp(0.0, 2.0);
-    case _CoachPeriod.monthly:
-      return (sessions / 16).clamp(0.0, 2.0);
-  }
-}
-
-String _periodName(_CoachPeriod period, bool isKo) {
-  switch (period) {
-    case _CoachPeriod.daily:
-      return isKo ? '일간' : 'Daily';
-    case _CoachPeriod.weekly:
-      return isKo ? '주간' : 'Weekly';
-    case _CoachPeriod.monthly:
-      return isKo ? '월간' : 'Monthly';
-  }
-}
-
 class _TargetGrowthChart extends StatelessWidget {
   final List<TrainingEntry> entries;
   final int? ageYears;
@@ -803,28 +680,6 @@ class _TargetGrowthChart extends StatelessWidget {
         : (isKo
             ? '운동한 날: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}'
             : 'Workout days: ${workedDateText.map((d) => '${d.month}/${d.day}').join(', ')}');
-    final periodDays = periodEnd.difference(periodStart).inDays + 1;
-    final totalMinutes = entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.durationMinutes,
-    );
-    final sessions = entries.length;
-    final scaledTargetMinutes =
-        ((target.weeklyMinutesTarget * periodDays) / 7).round();
-    final scaledTargetSessions =
-        ((target.weeklySessionsTarget * periodDays) / 7).clamp(1, 99).round();
-    final period = _periodFromDays(periodDays);
-    final periodAdvice = _buildPeriodAdvice(
-      period: period,
-      minutes: totalMinutes.toDouble(),
-      sessions: sessions.toDouble(),
-      targetMinutes: scaledTargetMinutes.toDouble(),
-      targetSessions: scaledTargetSessions.toDouble(),
-      showAverage: showAverage,
-      isKo: isKo,
-      variantSeed: periodStart.day + (entries.length % 7) + 1,
-    );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -934,12 +789,6 @@ class _TargetGrowthChart extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(workedLabel, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 10),
-        _CoachMessage(
-          icon: Icons.date_range_outlined,
-          title: isKo ? '기간 코칭' : 'Period Coaching',
-          message: periodAdvice,
-        ),
       ],
     );
   }
