@@ -943,6 +943,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return parts.take(2).join(' · ');
   }
 
+  String _trainingSummaryShortWithWeather(TrainingEntry entry) {
+    final base = _trainingSummaryShort(entry);
+    final weather = _extractWeatherFromNotes(entry.notes);
+    if (weather.isEmpty) return base;
+    return _isKo ? '$base · 날씨 $weather' : '$base · Weather $weather';
+  }
+
   Widget _buildEmptyCard({required VoidCallback onCreateDiary}) {
     return _buildPaperCard(
       title: _isKo ? '아직 만든 다이어리가 없습니다.' : 'No diary pages yet',
@@ -1257,7 +1264,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           title: _isKo
               ? '훈련 스티커 · ${entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type}'
               : 'Training sticker · ${entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type}',
-          summary: _trainingSummaryShort(entry),
+          summary: _trainingSummaryShortWithWeather(entry),
           icon: Icons.fitness_center_outlined,
           tint: const Color(0xFF2F8F6A),
         );
@@ -1444,6 +1451,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .trim();
   }
 
+  String _extractWeatherFromNotes(String notes) {
+    for (final rawLine in notes.split('\n')) {
+      final line = rawLine.trim();
+      if (line.startsWith('[Weather]')) {
+        return line.replaceFirst('[Weather]', '').trim();
+      }
+      if (line.startsWith('[날씨]')) {
+        return line.replaceFirst('[날씨]', '').trim();
+      }
+    }
+    return '';
+  }
+
   String _matchSummary(TrainingEntry entry) {
     final parts = <String>[
       if (_isKo)
@@ -1578,7 +1598,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _DiaryTodoSeed(
       id: 'training-${entry.createdAt.millisecondsSinceEpoch}',
       title: _isKo ? '훈련 · $label' : 'Training · $label',
-      summary: _trainingSummaryShort(entry),
+      summary: _trainingSummaryShortWithWeather(entry),
       storySentence: summaryText,
       sectionTitle: _isKo ? '$label 훈련 요약' : '$label summary',
       sectionBody: summaryText,
@@ -1666,7 +1686,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final titleController = TextEditingController(text: initialData.title);
     final storyController = TextEditingController(text: initialData.story);
     var selectedMood = initialData.mood;
-    final selectedStickers = <String>{...initialData.stickers};
+    String? selectedStickerId =
+        initialData.stickers.isEmpty ? null : initialData.stickers.first;
     final selectedRecordStickerIds = <String>{
       ...initialData.recordStickers.map((sticker) => sticker.storageId),
     };
@@ -1706,8 +1727,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       const SizedBox(height: 8),
                       Text(
                         _isKo
-                            ? '오늘 할 일과 기록을 재료로 삼아, 넣고 싶은 것만 골라 읽듯이 이어 써 보세요.'
-                            : 'Use today tasks and records as material, then pick only what you want and let the story flow.',
+                            ? '아래 기록에서 스티커로 붙일 항목을 고르고, 본문은 직접 간단히 작성하세요.'
+                            : 'Pick stickers from today records below, and write the story yourself in short.',
                         style: _theme.textTheme.bodyMedium?.copyWith(
                           color: _bodyInk,
                           height: 1.5,
@@ -1774,9 +1795,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                           'diary-record-sticker-${seed.id}',
                                         ),
                                         label: Text(
-                                          _isKo
-                                              ? '기록 스티커로 붙이기'
-                                              : 'Pin as sticker',
+                                          selectedRecordStickerIds.contains(
+                                            seed.id,
+                                          )
+                                              ? (_isKo
+                                                  ? '스티커 추가됨'
+                                                  : 'Sticker added')
+                                              : (_isKo
+                                                  ? '기록 스티커로 붙이기'
+                                                  : 'Pin as sticker'),
                                         ),
                                         avatar: Icon(
                                           Icons.push_pin_outlined,
@@ -1799,54 +1826,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                           });
                                         },
                                       ),
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        final current =
-                                            storyController.text.trim();
-                                        final nextText = current.isEmpty
-                                            ? seed.storySentence
-                                            : '$current\n\n${seed.storySentence}';
-                                        setModalState(() {
-                                          storyController.text = nextText;
-                                          storyController.selection =
-                                              TextSelection.collapsed(
-                                            offset: nextText.length,
-                                          );
-                                        });
-                                      },
-                                      icon: const Icon(
-                                        Icons.subject_outlined,
-                                        size: 18,
-                                      ),
-                                      label: Text(
-                                        _isKo ? '본문에 넣기' : 'Into story',
-                                      ),
-                                    ),
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        setModalState(() {
-                                          sectionDrafts.add(
-                                            _DiarySectionDraft(
-                                              titleController:
-                                                  TextEditingController(
-                                                text: seed.sectionTitle,
-                                              ),
-                                              bodyController:
-                                                  TextEditingController(
-                                                text: seed.sectionBody,
-                                              ),
-                                            ),
-                                          );
-                                        });
-                                      },
-                                      icon: const Icon(
-                                        Icons.view_agenda_outlined,
-                                        size: 18,
-                                      ),
-                                      label: Text(
-                                        _isKo ? '섹션으로 넣기' : 'As section',
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ],
@@ -2041,7 +2020,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        _isKo ? '감정 스티커 붙이기' : 'Add mood stickers',
+                        _isKo ? '감정 스티커' : 'Mood sticker',
                         style: _theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -2052,7 +2031,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         runSpacing: 8,
                         children: _DiaryStickerPalette.values
                             .map(
-                              (sticker) => FilterChip(
+                              (sticker) => ChoiceChip(
                                 key: ValueKey('diary-sticker-${sticker.id}'),
                                 label: Text(
                                   _isKo ? sticker.labelKo : sticker.labelEn,
@@ -2062,16 +2041,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   size: 18,
                                   color: sticker.tint,
                                 ),
-                                selected: selectedStickers.contains(sticker.id),
+                                selected: selectedStickerId == sticker.id,
                                 selectedColor: sticker.tint.withValues(
                                   alpha: 0.16,
                                 ),
                                 onSelected: (selected) {
                                   setModalState(() {
                                     if (selected) {
-                                      selectedStickers.add(sticker.id);
+                                      selectedStickerId = sticker.id;
                                     } else {
-                                      selectedStickers.remove(sticker.id);
+                                      selectedStickerId = null;
                                     }
                                   });
                                 },
@@ -2124,7 +2103,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                         ),
                                       )
                                       .toList(growable: false),
-                                  stickers: selectedStickers.toList()..sort(),
+                                  stickers: selectedStickerId == null
+                                      ? const <String>[]
+                                      : <String>[selectedStickerId!],
                                   updatedAt: initialData.updatedAt,
                                 ),
                               );
