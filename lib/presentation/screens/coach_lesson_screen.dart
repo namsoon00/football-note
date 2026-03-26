@@ -595,12 +595,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .toList(growable: false);
     return _buildPaperCard(
       title: customDiary.title.trim().isEmpty
-          ? (_isKo ? '내가 구성하는 오늘의 일기' : 'Diary shaped by you')
+          ? (_isKo ? '오늘의 다이어리' : 'Today diary')
           : customDiary.title.trim(),
       subtitle: customDiary.updatedAt == null
-          ? (_isKo
-              ? '아래 기록을 재료로 제목, 본문, 섹션까지 원하는 방식으로 오늘의 일기를 구성해 보세요.'
-              : 'Use today records as material and shape the title, body, and sections your own way.')
+          ? (_isKo ? '핵심만 간단히 기록해보세요.' : 'Keep it short and clear.')
           : (_isKo
               ? '마지막 저장 ${DateFormat('M.d HH:mm', 'ko').format(customDiary.updatedAt!)}'
               : 'Last saved ${DateFormat('MMM d HH:mm', 'en').format(customDiary.updatedAt!)}'),
@@ -608,13 +606,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (recordStickers.isNotEmpty) ...[
-            _buildPromptTile(
-              title: _isKo ? '붙여둔 기록 스티커' : 'Pinned record stickers',
-              body: _isKo
-                  ? '오늘의 재료 중 남기고 싶은 기록만 다이어리 위에 붙여두었어요.'
-                  : 'Only the records you wanted to keep are pinned onto the diary page.',
-            ),
-            const SizedBox(height: 4),
             ...recordStickers.map(_buildRecordStickerCard),
             const SizedBox(height: 6),
           ],
@@ -668,8 +659,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               customDiary.story.trim().isNotEmpty
                   ? customDiary.story.trim()
                   : (_isKo
-                      ? _defaultStoryPrompt(day)
-                      : _defaultStoryPrompt(day)),
+                      ? '오늘 훈련 핵심을 한 줄로 남겨보세요.'
+                      : 'Write one key point from today.'),
               key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
               style: _theme.textTheme.bodyLarge?.copyWith(
                 color: _headlineInk,
@@ -679,13 +670,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ),
           const SizedBox(height: 14),
           if (!customDiary.hasContent && todoSeeds.isNotEmpty) ...[
-            _buildPromptTile(
-              title: _isKo ? '오늘 할 일에서 골라 쓰기' : 'Build from today tasks',
-              body: _isKo
-                  ? '아래 할 일 중 넣고 싶은 것만 골라서 본문이나 섹션으로 바로 가져올 수 있어요.'
-                  : 'Pick only the tasks you want and pull them straight into the story or a section.',
-            ),
-            const SizedBox(height: 4),
             ...todoSeeds.take(3).map(
                   (seed) => Container(
                     width: double.infinity,
@@ -717,9 +701,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         const SizedBox(height: 6),
                         Text(
                           seed.summary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: _theme.textTheme.bodyMedium?.copyWith(
                             color: _bodyInk,
-                            height: 1.5,
+                            height: 1.35,
                           ),
                         ),
                       ],
@@ -739,12 +725,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     : section.title.trim(),
                 body: section.body.trim(),
               ),
-            ),
-          ] else ...[
-            const SizedBox(height: 14),
-            _buildPromptTile(
-              title: _isKo ? '구성 아이디어' : 'Section idea',
-              body: _defaultSectionPrompt(day),
             ),
           ],
         ],
@@ -904,8 +884,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         children: [
           Text(
             _isKo
-                ? '다이어리를 직접 만들기 전에는 페이지를 보여주지 않습니다. 원하는 날짜를 골라 새 페이지를 만들고, 훈련기록은 필요한 것만 스티커처럼 붙여 넣을 수 있어요.'
-                : 'Pages stay hidden until you create one yourself. Pick any date, start a page, and pin only the records you want like stickers.',
+                ? '날짜를 골라 첫 페이지를 만들면 다이어리가 시작됩니다.'
+                : 'Pick a date and create your first page.',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.5),
@@ -981,7 +961,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ),
     );
   }
-
 
   BoxDecoration _paperDecoration() {
     return BoxDecoration(
@@ -1568,9 +1547,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   _DiaryTodoSeed _boardTodoSeed(TrainingBoard board) {
     final layout = TrainingMethodLayout.decode(board.layoutJson);
-    final boardMemo = layout.pages.isNotEmpty
-        ? layout.pages.first.methodText.trim()
-        : '';
+    final boardMemo =
+        layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
     final body = boardMemo.isNotEmpty
         ? (_isKo ? '보드 메모: $boardMemo' : 'Board note: $boardMemo')
         : (_isKo
@@ -1581,7 +1559,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       title: _isKo ? '훈련보드 · ${board.title}' : 'Board · ${board.title}',
       summary: boardMemo.isNotEmpty
           ? boardMemo
-          : (_isKo ? '전술 아이디어를 일기로 옮길 수 있어요.' : 'Pull the tactic idea into the diary.'),
+          : (_isKo
+              ? '전술 아이디어를 일기로 옮길 수 있어요.'
+              : 'Pull the tactic idea into the diary.'),
       storySentence: body,
       sectionTitle: _isKo ? '${board.title} 메모' : '${board.title} note',
       sectionBody: body,
@@ -2422,7 +2402,6 @@ class _DiaryDayData {
 
   List<TrainingEntry> get matchEntries =>
       entries.where((entry) => entry.isMatch).toList(growable: false);
-
 }
 
 class _CustomDiaryEntryData {
