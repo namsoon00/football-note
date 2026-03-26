@@ -149,13 +149,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-        _allFilterValue;
+            _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -177,16 +177,16 @@ class _LogsScreenState extends State<LogsScreen> {
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
               final sourceEntries = snapshot.data ?? const <TrainingEntry>[];
-              final allEntries =
-                  sourceEntries.where((entry) => !entry.isMatch).toList()
-                    ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries = sourceEntries
+                  .where((entry) => !entry.isMatch)
+                  .toList()
+                ..sort(TrainingEntry.compareByRecentCreated);
               if (allEntries.isEmpty) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
                   unawaited(_maybeShowQuickGuide(hasEntries: false));
                 });
               }
-              final latestEntry = allEntries.isEmpty ? null : allEntries.first;
               final entries = _applyFilters(allEntries);
               final visibleEntries = entries
                   .take(_visibleCount.clamp(0, entries.length))
@@ -234,9 +234,9 @@ class _LogsScreenState extends State<LogsScreen> {
                             notificationBadgeCount: reminderUnreadCount,
                             profilePhotoSource:
                                 widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
+                                      'profile_photo_url',
+                                    ) ??
+                                    '',
                             onProfileTap: () => _openProfile(context),
                             onSettingsTap: () => _openSettings(context),
                             title:
@@ -251,12 +251,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 스케치 리스트'
-                            : 'Training sketch list',
+                                ? '훈련 스케치 리스트'
+                                : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                            ? '훈련 스케치'
-                            : 'Sketches',
+                                ? '훈련 스케치'
+                                : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -264,14 +264,6 @@ class _LogsScreenState extends State<LogsScreen> {
                       if (_showSearch) ...[
                         const SizedBox(height: 10),
                         _buildSearchBar(l10n),
-                      ],
-                      if (allEntries.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        _DiaryInsightCard(
-                          entries: allEntries,
-                          latestEntry: latestEntry!,
-                          onCreate: widget.onCreate,
-                        ),
                       ],
                       const SizedBox(height: 12),
                       AnimatedSwitcher(
@@ -286,15 +278,13 @@ class _LogsScreenState extends State<LogsScreen> {
                                 ),
                                 child: _buildEmptyState(
                                   title: l10n.noEntries,
-                                  subtitle:
-                                      Localizations.localeOf(
+                                  subtitle: Localizations.localeOf(
                                             context,
                                           ).languageCode ==
                                           'ko'
                                       ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
                                       : 'Create your first training note to start the flow.',
-                                  actionLabel:
-                                      Localizations.localeOf(
+                                  actionLabel: Localizations.localeOf(
                                             context,
                                           ).languageCode ==
                                           'ko'
@@ -304,144 +294,153 @@ class _LogsScreenState extends State<LogsScreen> {
                                 ),
                               )
                             : visibleEntries.isEmpty
-                            ? Padding(
-                                key: const ValueKey('logs-empty-filtered'),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 24,
-                                ),
-                                child: _buildEmptyState(
-                                  title: l10n.noResults,
-                                  subtitle:
-                                      Localizations.localeOf(
-                                            context,
-                                          ).languageCode ==
-                                          'ko'
-                                      ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
-                                      : 'Reset filters to see more entries.',
-                                  actionLabel: l10n.filterReset,
-                                  onPressed: () async {
-                                    const reset = _LogFilters(
-                                      status: _allFilterValue,
-                                      location: _allFilterValue,
-                                      program: _allFilterValue,
-                                      injuryOnly: false,
-                                    );
-                                    setState(() {
-                                      _statusFilter = reset.status;
-                                      _locationFilter = reset.location;
-                                      _programFilter = reset.program;
-                                      _injuryOnly = reset.injuryOnly;
-                                      _resetPagination();
-                                    });
-                                    await _persistFilters(reset);
-                                  },
-                                ),
-                              )
-                            : _layout == _LogsLayout.card
-                            ? MasonryGridView.count(
-                                key: const ValueKey('logs-card-view'),
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                                itemCount: visibleEntries.length,
-                                itemBuilder: (context, index) {
-                                  final entry = visibleEntries[index];
-                                  final row = Dismissible(
-                                    key: ValueKey(
-                                      'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                ? Padding(
+                                    key: const ValueKey('logs-empty-filtered'),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 24,
                                     ),
-                                    direction: DismissDirection.endToStart,
-                                    confirmDismiss: (_) =>
-                                        _confirmDelete(context, entry),
-                                    background: Container(
-                                      alignment: Alignment.centerRight,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
+                                    child: _buildEmptyState(
+                                      title: l10n.noResults,
+                                      subtitle: Localizations.localeOf(
+                                                context,
+                                              ).languageCode ==
+                                              'ko'
+                                          ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
+                                          : 'Reset filters to see more entries.',
+                                      actionLabel: l10n.filterReset,
+                                      onPressed: () async {
+                                        const reset = _LogFilters(
+                                          status: _allFilterValue,
+                                          location: _allFilterValue,
+                                          program: _allFilterValue,
+                                          injuryOnly: false,
+                                        );
+                                        setState(() {
+                                          _statusFilter = reset.status;
+                                          _locationFilter = reset.location;
+                                          _programFilter = reset.program;
+                                          _injuryOnly = reset.injuryOnly;
+                                          _resetPagination();
+                                        });
+                                        await _persistFilters(reset);
+                                      },
+                                    ),
+                                  )
+                                : _layout == _LogsLayout.card
+                                    ? MasonryGridView.count(
+                                        key: const ValueKey('logs-card-view'),
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        crossAxisCount: 2,
+                                        mainAxisSpacing: 8,
+                                        crossAxisSpacing: 8,
+                                        itemCount: visibleEntries.length,
+                                        itemBuilder: (context, index) {
+                                          final entry = visibleEntries[index];
+                                          final row = Dismissible(
+                                            key: ValueKey(
+                                              'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                            ),
+                                            direction:
+                                                DismissDirection.endToStart,
+                                            confirmDismiss: (_) =>
+                                                _confirmDelete(context, entry),
+                                            background: Container(
+                                              alignment: Alignment.centerRight,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.errorContainer,
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Icon(
+                                                Icons.delete_outline,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onErrorContainer,
+                                              ),
+                                            ),
+                                            child: _EntryCard(
+                                              entry: entry,
+                                              boardsById: boardsById,
+                                              onEdit: () => _onEntryTap(entry),
+                                            ),
+                                          );
+                                          if (AppMotion.reduceMotion(context)) {
+                                            return row;
+                                          }
+                                          return FadeInUp(
+                                            delay: Duration(
+                                              milliseconds:
+                                                  (index * 24).clamp(0, 240),
+                                            ),
+                                            duration: AppMotion.base(context),
+                                            child: row,
+                                          );
+                                        },
+                                      )
+                                    : ListView.separated(
+                                        key: const ValueKey('logs-list-view'),
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: visibleEntries.length,
+                                        separatorBuilder: (_, __) =>
+                                            const SizedBox(height: 8),
+                                        itemBuilder: (context, index) {
+                                          final entry = visibleEntries[index];
+                                          final row = Dismissible(
+                                            key: ValueKey(
+                                              'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                            ),
+                                            direction:
+                                                DismissDirection.endToStart,
+                                            confirmDismiss: (_) =>
+                                                _confirmDelete(context, entry),
+                                            background: Container(
+                                              alignment: Alignment.centerRight,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.errorContainer,
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Icon(
+                                                Icons.delete_outline,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onErrorContainer,
+                                              ),
+                                            ),
+                                            child: _EntryListItem(
+                                              entry: entry,
+                                              onEdit: () => _onEntryTap(entry),
+                                            ),
+                                          );
+                                          if (AppMotion.reduceMotion(context)) {
+                                            return row;
+                                          }
+                                          return FadeInUp(
+                                            delay: Duration(
+                                              milliseconds:
+                                                  (index * 20).clamp(0, 220),
+                                            ),
+                                            duration: AppMotion.base(context),
+                                            child: row,
+                                          );
+                                        },
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.errorContainer,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Icon(
-                                        Icons.delete_outline,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onErrorContainer,
-                                      ),
-                                    ),
-                                    child: _EntryCard(
-                                      entry: entry,
-                                      boardsById: boardsById,
-                                      onEdit: () => _onEntryTap(entry),
-                                    ),
-                                  );
-                                  if (AppMotion.reduceMotion(context)) {
-                                    return row;
-                                  }
-                                  return FadeInUp(
-                                    delay: Duration(
-                                      milliseconds: (index * 24).clamp(0, 240),
-                                    ),
-                                    duration: AppMotion.base(context),
-                                    child: row,
-                                  );
-                                },
-                              )
-                            : ListView.separated(
-                                key: const ValueKey('logs-list-view'),
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: visibleEntries.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 8),
-                                itemBuilder: (context, index) {
-                                  final entry = visibleEntries[index];
-                                  final row = Dismissible(
-                                    key: ValueKey(
-                                      'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
-                                    ),
-                                    direction: DismissDirection.endToStart,
-                                    confirmDismiss: (_) =>
-                                        _confirmDelete(context, entry),
-                                    background: Container(
-                                      alignment: Alignment.centerRight,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.errorContainer,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Icon(
-                                        Icons.delete_outline,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onErrorContainer,
-                                      ),
-                                    ),
-                                    child: _EntryListItem(
-                                      entry: entry,
-                                      onEdit: () => _onEntryTap(entry),
-                                    ),
-                                  );
-                                  if (AppMotion.reduceMotion(context)) {
-                                    return row;
-                                  }
-                                  return FadeInUp(
-                                    delay: Duration(
-                                      milliseconds: (index * 20).clamp(0, 220),
-                                    ),
-                                    duration: AppMotion.base(context),
-                                    child: row,
-                                  );
-                                },
-                              ),
                       ),
                       if (visibleEntries.length < entries.length)
                         Padding(
@@ -791,9 +790,8 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1084,242 +1082,6 @@ class _LogFilters {
   });
 }
 
-class _DiaryInsightCard extends StatelessWidget {
-  final List<TrainingEntry> entries;
-  final TrainingEntry latestEntry;
-  final VoidCallback onCreate;
-
-  const _DiaryInsightCard({
-    required this.entries,
-    required this.latestEntry,
-    required this.onCreate,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final theme = Theme.of(context);
-    final streak = _currentEntryStreak(entries);
-    final thisWeekCount = _entryCountThisWeek(entries);
-    final thisMonthCount = _entryCountThisMonth(entries);
-    final averageMood = _averageValue(
-      entries.take(7).map((entry) => entry.mood),
-    );
-    final averageIntensity = _averageValue(
-      entries.take(7).map((entry) => entry.intensity),
-    );
-    final prompt = _diaryPromptForEntry(latestEntry, isKo: isKo);
-    final chips = _reflectionChips(latestEntry, isKo: isKo);
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFF2D8), Color(0xFFD8EDFF)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withAlpha(20),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isKo ? '다이어리 흐름' : 'Diary flow',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      prompt,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        height: 1.25,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              FilledButton.icon(
-                onPressed: onCreate,
-                icon: const Icon(Icons.auto_stories_outlined, size: 18),
-                label: Text(isKo ? '이어 쓰기' : 'Keep writing'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _InsightMetric(
-                label: isKo ? '연속 기록' : 'Streak',
-                value: isKo ? '$streak일' : '$streak days',
-                icon: Icons.local_fire_department_outlined,
-              ),
-              _InsightMetric(
-                label: isKo ? '이번 주' : 'This week',
-                value: isKo ? '$thisWeekCount회' : '$thisWeekCount notes',
-                icon: Icons.calendar_view_week_outlined,
-              ),
-              _InsightMetric(
-                label: isKo ? '이번 달' : 'This month',
-                value: isKo ? '$thisMonthCount회' : '$thisMonthCount notes',
-                icon: Icons.edit_calendar_outlined,
-              ),
-              _InsightMetric(
-                label: isKo ? '최근 컨디션' : 'Recent mood',
-                value: averageMood == null
-                    ? '-'
-                    : averageMood.toStringAsFixed(1),
-                icon: Icons.mood_outlined,
-              ),
-              _InsightMetric(
-                label: isKo ? '최근 강도' : 'Recent intensity',
-                value: averageIntensity == null
-                    ? '-'
-                    : averageIntensity.toStringAsFixed(1),
-                icon: Icons.speed_outlined,
-              ),
-            ],
-          ),
-          if (chips.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              isKo ? '최근 기록에서 건진 문장' : 'Lines worth keeping',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: chips
-                  .map((chip) => _InsightChip(label: chip.$1, text: chip.$2))
-                  .toList(growable: false),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _InsightMetric extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _InsightMetric({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      constraints: const BoxConstraints(minWidth: 120),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(210),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withAlpha(220)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withAlpha(180),
-                ),
-              ),
-              Text(
-                value,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InsightChip extends StatelessWidget {
-  final String label;
-  final String text;
-
-  const _InsightChip({required this.label, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      constraints: const BoxConstraints(minWidth: 140, maxWidth: 260),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(214),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            text,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(height: 1.3),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _EntryCard extends StatelessWidget {
   final TrainingEntry entry;
   final Map<String, TrainingBoard> boardsById;
@@ -1354,11 +1116,9 @@ class _EntryCard extends StatelessWidget {
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout = linkedBoards.isEmpty
-        ? TrainingMethodLayout.decode(entry.drills)
-        : null;
-    final hasTrainingBoard =
-        linkedBoards.isNotEmpty ||
+    final legacyLayout =
+        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
+    final hasTrainingBoard = linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -1641,112 +1401,6 @@ String _buildListFocusText(TrainingEntry entry) {
   final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
   if (notesWithoutWeather.isNotEmpty) return notesWithoutWeather;
   return '';
-}
-
-String _diaryPromptForEntry(TrainingEntry entry, {required bool isKo}) {
-  final primaryFocus = _bestEntryFocus(entry);
-  if (primaryFocus.isEmpty) {
-    return isKo
-        ? '오늘 훈련의 감정과 장면을 한 줄로 남겨보세요.'
-        : 'Leave one honest line about today.';
-  }
-  if (isKo) {
-    return '최근 흐름의 중심은 "$primaryFocus"이에요.';
-  }
-  return 'Your recent diary keeps circling back to "$primaryFocus".';
-}
-
-String _bestEntryFocus(TrainingEntry entry) {
-  if (entry.goalFocuses.isNotEmpty) return entry.goalFocuses.first.trim();
-  if (entry.nextGoal.trim().isNotEmpty) return entry.nextGoal.trim();
-  if (entry.goodPoints.trim().isNotEmpty) return entry.goodPoints.trim();
-  if (entry.improvements.trim().isNotEmpty) return entry.improvements.trim();
-  final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
-  return notesWithoutWeather;
-}
-
-List<(String, String)> _reflectionChips(
-  TrainingEntry entry, {
-  required bool isKo,
-}) {
-  final chips = <(String, String)>[];
-  final goodPoints = entry.goodPoints.trim();
-  if (goodPoints.isNotEmpty) {
-    chips.add((isKo ? '잘한 점' : 'Win', goodPoints));
-  }
-  final improvements = entry.improvements.trim();
-  if (improvements.isNotEmpty) {
-    chips.add((isKo ? '보완점' : 'Improve', improvements));
-  }
-  final nextGoal = entry.nextGoal.trim();
-  if (nextGoal.isNotEmpty) {
-    chips.add((isKo ? '다음 목표' : 'Next', nextGoal));
-  }
-  if (chips.isEmpty && entry.goalFocuses.isNotEmpty) {
-    chips.add((isKo ? '오늘의 포커스' : 'Focus', entry.goalFocuses.join(', ')));
-  }
-  if (chips.isEmpty) {
-    final notesWithoutWeather = _stripWeatherMetaFromNotes(entry.notes);
-    if (notesWithoutWeather.isNotEmpty) {
-      chips.add((isKo ? '메모' : 'Note', notesWithoutWeather));
-    }
-  }
-  return chips.take(3).toList(growable: false);
-}
-
-int _currentEntryStreak(List<TrainingEntry> entries) {
-  if (entries.isEmpty) return 0;
-  final normalizedDays =
-      entries
-          .map(
-            (entry) =>
-                DateTime(entry.date.year, entry.date.month, entry.date.day),
-          )
-          .toSet()
-          .toList()
-        ..sort((a, b) => b.compareTo(a));
-  if (normalizedDays.isEmpty) return 0;
-  var streak = 1;
-  for (var index = 1; index < normalizedDays.length; index++) {
-    final previous = normalizedDays[index - 1];
-    final current = normalizedDays[index];
-    if (previous.difference(current).inDays == 1) {
-      streak += 1;
-      continue;
-    }
-    break;
-  }
-  return streak;
-}
-
-int _entryCountThisWeek(List<TrainingEntry> entries) {
-  final now = DateTime.now();
-  final start = DateTime(
-    now.year,
-    now.month,
-    now.day,
-  ).subtract(Duration(days: now.weekday - 1));
-  final end = start.add(const Duration(days: 7));
-  return entries.where((entry) {
-    final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
-    return !day.isBefore(start) && day.isBefore(end);
-  }).length;
-}
-
-int _entryCountThisMonth(List<TrainingEntry> entries) {
-  final now = DateTime.now();
-  return entries
-      .where(
-        (entry) => entry.date.year == now.year && entry.date.month == now.month,
-      )
-      .length;
-}
-
-double? _averageValue(Iterable<int> values) {
-  final list = values.toList(growable: false);
-  if (list.isEmpty) return null;
-  final total = list.fold<int>(0, (sum, value) => sum + value);
-  return total / list.length;
 }
 
 String _stripWeatherMetaFromNotes(String notes) {
