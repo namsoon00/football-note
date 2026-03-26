@@ -314,29 +314,176 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
     Paint stroke,
     Paint softStroke,
   ) {
-    final center = Offset(size.width * 0.5, size.height * 0.46);
-    canvas.drawCircle(center, size.width * 0.23, stroke);
-    final pentagon = Path()
-      ..moveTo(center.dx, center.dy - 12)
-      ..lineTo(center.dx + 10, center.dy - 2)
-      ..lineTo(center.dx + 6, center.dy + 10)
-      ..lineTo(center.dx - 6, center.dy + 10)
-      ..lineTo(center.dx - 10, center.dy - 2)
-      ..close();
-    canvas.drawPath(pentagon, fill);
-    for (final offset in <Offset>[
-      const Offset(0, -24),
-      const Offset(-21, -10),
-      const Offset(21, -10),
-      const Offset(-16, 19),
-      const Offset(16, 19),
+    final center = Offset(size.width * 0.5, size.height * 0.48);
+    final radius = size.width * 0.23;
+    final ballRect = Rect.fromCircle(center: center, radius: radius);
+    final shell = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.18, -0.26),
+        radius: 0.92,
+        colors: <Color>[
+          Colors.white,
+          Colors.white.withValues(alpha: 0.96),
+          const Color(0xFFD9E0E8),
+          const Color(0xFF9AA4B2),
+        ],
+        stops: const <double>[0, 0.38, 0.78, 1],
+      ).createShader(ballRect);
+    final seam = Paint()
+      ..color = const Color(0xFF19222E).withValues(alpha: 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final shadow = Paint()
+      ..color = Colors.black.withValues(alpha: 0.16)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    final panelFill = Paint()
+      ..color = const Color(0xFF121821).withValues(alpha: 0.92)
+      ..style = PaintingStyle.fill;
+    final panelShade = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[
+          Colors.white.withValues(alpha: 0.22),
+          Colors.transparent,
+          Colors.black.withValues(alpha: 0.18),
+        ],
+      ).createShader(ballRect);
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx, center.dy + (radius * 1.18)),
+        width: radius * 1.95,
+        height: radius * 0.48,
+      ),
+      shadow,
+    );
+    canvas.drawCircle(center, radius, shell);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.14)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+
+    canvas.save();
+    canvas.clipPath(Path()..addOval(ballRect));
+
+    final centerPanel = _polygonPath(<Offset>[
+      Offset(center.dx, center.dy - (radius * 0.42)),
+      Offset(center.dx + (radius * 0.34), center.dy - (radius * 0.13)),
+      Offset(center.dx + (radius * 0.22), center.dy + (radius * 0.27)),
+      Offset(center.dx - (radius * 0.22), center.dy + (radius * 0.27)),
+      Offset(center.dx - (radius * 0.34), center.dy - (radius * 0.13)),
+    ]);
+    final upperPanel = _polygonPath(<Offset>[
+      Offset(center.dx, center.dy - (radius * 1.0)),
+      Offset(center.dx + (radius * 0.28), center.dy - (radius * 0.62)),
+      Offset(center.dx + (radius * 0.08), center.dy - (radius * 0.28)),
+      Offset(center.dx - (radius * 0.08), center.dy - (radius * 0.28)),
+      Offset(center.dx - (radius * 0.28), center.dy - (radius * 0.62)),
+    ]);
+    final leftPanel = _polygonPath(<Offset>[
+      Offset(center.dx - (radius * 0.96), center.dy - (radius * 0.22)),
+      Offset(center.dx - (radius * 0.54), center.dy - (radius * 0.46)),
+      Offset(center.dx - (radius * 0.28), center.dy - (radius * 0.08)),
+      Offset(center.dx - (radius * 0.44), center.dy + (radius * 0.34)),
+      Offset(center.dx - (radius * 0.84), center.dy + (radius * 0.12)),
+    ]);
+    final rightPanel = _polygonPath(<Offset>[
+      Offset(center.dx + (radius * 0.96), center.dy - (radius * 0.22)),
+      Offset(center.dx + (radius * 0.54), center.dy - (radius * 0.46)),
+      Offset(center.dx + (radius * 0.28), center.dy - (radius * 0.08)),
+      Offset(center.dx + (radius * 0.44), center.dy + (radius * 0.34)),
+      Offset(center.dx + (radius * 0.84), center.dy + (radius * 0.12)),
+    ]);
+    final lowerLeftPanel = _polygonPath(<Offset>[
+      Offset(center.dx - (radius * 0.48), center.dy + (radius * 0.48)),
+      Offset(center.dx - (radius * 0.12), center.dy + (radius * 0.28)),
+      Offset(center.dx - (radius * 0.18), center.dy + (radius * 0.72)),
+      Offset(center.dx - (radius * 0.62), center.dy + (radius * 0.92)),
+      Offset(center.dx - (radius * 0.8), center.dy + (radius * 0.58)),
+    ]);
+    final lowerRightPanel = _polygonPath(<Offset>[
+      Offset(center.dx + (radius * 0.48), center.dy + (radius * 0.48)),
+      Offset(center.dx + (radius * 0.12), center.dy + (radius * 0.28)),
+      Offset(center.dx + (radius * 0.18), center.dy + (radius * 0.72)),
+      Offset(center.dx + (radius * 0.62), center.dy + (radius * 0.92)),
+      Offset(center.dx + (radius * 0.8), center.dy + (radius * 0.58)),
+    ]);
+
+    for (final panel in <Path>[
+      centerPanel,
+      upperPanel,
+      leftPanel,
+      rightPanel,
+      lowerLeftPanel,
+      lowerRightPanel,
     ]) {
-      canvas.drawLine(
-        center + Offset(offset.dx * 0.45, offset.dy * 0.45),
-        center + offset,
-        softStroke,
-      );
+      canvas.drawPath(panel, panelFill);
+      canvas.drawPath(panel, panelShade);
+      canvas.drawPath(panel, seam);
     }
+
+    for (final segment in <Path>[
+      Path()
+        ..moveTo(center.dx - (radius * 0.32), center.dy - (radius * 0.08))
+        ..quadraticBezierTo(
+          center.dx - (radius * 0.74),
+          center.dy - (radius * 0.26),
+          center.dx - (radius * 0.86),
+          center.dy + (radius * 0.08),
+        ),
+      Path()
+        ..moveTo(center.dx + (radius * 0.32), center.dy - (radius * 0.08))
+        ..quadraticBezierTo(
+          center.dx + (radius * 0.74),
+          center.dy - (radius * 0.26),
+          center.dx + (radius * 0.86),
+          center.dy + (radius * 0.08),
+        ),
+      Path()
+        ..moveTo(center.dx - (radius * 0.18), center.dy + (radius * 0.28))
+        ..quadraticBezierTo(
+          center.dx - (radius * 0.42),
+          center.dy + (radius * 0.72),
+          center.dx - (radius * 0.68),
+          center.dy + (radius * 0.84),
+        ),
+      Path()
+        ..moveTo(center.dx + (radius * 0.18), center.dy + (radius * 0.28))
+        ..quadraticBezierTo(
+          center.dx + (radius * 0.42),
+          center.dy + (radius * 0.72),
+          center.dx + (radius * 0.68),
+          center.dy + (radius * 0.84),
+        ),
+    ]) {
+      canvas.drawPath(segment, seam);
+    }
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx - (radius * 0.22), center.dy - (radius * 0.34)),
+        width: radius * 0.72,
+        height: radius * 0.38,
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.2),
+    );
+    canvas.restore();
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius * 0.94),
+      -pi * 0.18,
+      pi * 0.82,
+      false,
+      softStroke,
+    );
+    canvas.drawCircle(center, radius, stroke);
   }
 
   void _paintCone(
@@ -1036,6 +1183,19 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
         center.dx + cos(angle) * currentRadius,
         center.dy + sin(angle) * currentRadius,
       );
+      if (index == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    return path..close();
+  }
+
+  Path _polygonPath(List<Offset> points) {
+    final path = Path();
+    for (int index = 0; index < points.length; index++) {
+      final point = points[index];
       if (index == 0) {
         path.moveTo(point.dx, point.dy);
       } else {

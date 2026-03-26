@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -85,11 +86,10 @@ class _AppSplashScreenState extends State<AppSplashScreen>
               final ballTravel = Curves.easeInOutCubic.transform(
                 const Interval(0.08, 0.7).transform(animationValue),
               );
-              final ballScale = Tween<double>(begin: 0.2, end: 5.8).transform(
-                Curves.easeInBack.transform(
-                  const Interval(0.36, 1).transform(animationValue),
-                ),
+              final scaleProgress = Curves.easeInCubic.transform(
+                const Interval(0.28, 1).transform(animationValue),
               );
+              final ballScale = lerpDouble(0.28, 5.6, scaleProgress)!;
               final glowOpacity =
                   Tween<double>(begin: 0.18, end: 0.95).transform(
                 Curves.easeOut.transform(
@@ -171,39 +171,63 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               final width = constraints.maxWidth;
-                              final x = lerpDouble(
-                                -width * 0.32,
-                                width * 0.66,
+                              final path = _bananaKickPoint(
+                                width,
+                                280,
                                 ballTravel,
-                              )!;
-                              final y = lerpDouble(156, 28, ballTravel)!;
+                              );
+                              final x = path.dx;
+                              final y = path.dy;
                               final rotation = lerpDouble(
-                                -0.45,
-                                1.6,
-                                ballTravel,
+                                    -0.7,
+                                    3.1,
+                                    Curves.easeInOutCubicEmphasized.transform(
+                                      scaleProgress,
+                                    ),
+                                  )! +
+                                  (sin(ballTravel * pi * 1.2) * 0.18);
+                              final trailWidth = lerpDouble(
+                                width * 0.22,
+                                width * 0.48,
+                                scaleProgress,
                               )!;
+                              final trailHeight = lerpDouble(
+                                12,
+                                34,
+                                scaleProgress,
+                              )!;
+                              final trailAngle =
+                                  -0.22 - (ballTravel * 0.42);
 
                               return Stack(
                                 clipBehavior: Clip.none,
                                 children: [
                                   Positioned(
-                                    left: width * 0.1,
-                                    top: 164,
-                                    child: Opacity(
-                                      opacity: 0.16 + (streakOpacity * 0.2),
-                                      child: Container(
-                                        width: width * 0.58,
-                                        height: 18,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            99,
-                                          ),
-                                          gradient: const LinearGradient(
-                                            colors: [
-                                              Color(0x001CF2FF),
-                                              Color(0xAA7DD3FC),
-                                              Color(0x001CF2FF),
-                                            ],
+                                    left: x - (trailWidth * 0.94),
+                                    top: y + (trailHeight * 0.16),
+                                    child: Transform.rotate(
+                                      angle: trailAngle,
+                                      child: Opacity(
+                                        opacity:
+                                            (0.12 + (streakOpacity * 0.26))
+                                                .clamp(0.0, 1.0),
+                                        child: Container(
+                                          width: trailWidth,
+                                          height: trailHeight,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              999,
+                                            ),
+                                            gradient: const LinearGradient(
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                              colors: [
+                                                Color(0x001CF2FF),
+                                                Color(0xAA7DD3FC),
+                                                Color(0xCCFEF08A),
+                                                Color(0x001CF2FF),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -239,6 +263,26 @@ class _AppSplashScreenState extends State<AppSplashScreen>
         ),
       ),
     );
+  }
+
+  Offset _bananaKickPoint(double width, double height, double t) {
+    final start = Offset(-width * 0.30, height * 0.76);
+    final controlA = Offset(width * 0.16, height * 0.10);
+    final controlB = Offset(width * 0.58, height * 0.18);
+    final end = Offset(width * 0.64, height * 0.04);
+    final curvedT = Curves.easeInOutCubic.transform(t);
+    final oneMinusT = 1 - curvedT;
+
+    final point =
+        (start * pow(oneMinusT, 3).toDouble()) +
+        (controlA * (3 * pow(oneMinusT, 2) * curvedT).toDouble()) +
+        (controlB * (3 * oneMinusT * pow(curvedT, 2)).toDouble()) +
+        (end * pow(curvedT, 3).toDouble());
+    final dip = sin(curvedT * pi) * height * 0.05;
+    final returnLift = Curves.easeOut.transform((curvedT - 0.58).clamp(0, 1)) *
+        height *
+        0.09;
+    return Offset(point.dx, point.dy + dip - returnLift);
   }
 }
 

@@ -1,7 +1,41 @@
 <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="100" cy="100" r="92" fill="#FFFFFF" stroke="#111111" stroke-width="6"/>
-  <polygon points="100,45 128,62 120,94 80,94 72,62" fill="#111111"/>
-  <polygon points="40,85 68,70 80,100 60,128 35,112" fill="#111111"/>
-  <polygon points="160,85 165,112 140,128 120,100 132,70" fill="#111111"/>
-  <polygon points="75,150 100,132 125,150 110,180 90,180" fill="#111111"/>
+  <defs>
+    <radialGradient id="shell" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="42%" stop-color="#F7FAFC"/>
+      <stop offset="78%" stop-color="#D9E2EC"/>
+      <stop offset="100%" stop-color="#9AA5B1"/>
+    </radialGradient>
+    <linearGradient id="panelShade" x1="15%" y1="12%" x2="86%" y2="92%">
+      <stop offset="0%" stop-color="#364152"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <radialGradient id="highlight" cx="32%" cy="24%" r="30%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="ballClip">
+      <circle cx="100" cy="100" r="92"/>
+    </clipPath>
+  </defs>
+
+  <ellipse cx="102" cy="170" rx="58" ry="16" fill="#020617" fill-opacity="0.22"/>
+  <circle cx="100" cy="100" r="92" fill="url(#shell)" stroke="#E5E7EB" stroke-width="2"/>
+  <g clip-path="url(#ballClip)">
+    <path d="M100 52 L131 74 L119 112 L81 112 L69 74 Z" fill="url(#panelShade)" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M100 8 L124 39 L112 66 L88 66 L76 39 Z" fill="url(#panelShade)" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M27 71 L58 53 L80 77 L69 115 L37 126 L17 96 Z" fill="url(#panelShade)" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M173 71 L183 96 L163 126 L131 115 L120 77 L142 53 Z" fill="url(#panelShade)" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M56 128 L81 112 L90 152 L65 184 L35 163 L38 136 Z" fill="url(#panelShade)" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M144 128 L162 136 L165 163 L135 184 L110 152 L119 112 Z" fill="url(#panelShade)" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+
+    <path d="M69 74 C47 66 31 73 22 92" fill="none" stroke="#111827" stroke-width="4" stroke-linecap="round"/>
+    <path d="M131 74 C153 66 169 73 178 92" fill="none" stroke="#111827" stroke-width="4" stroke-linecap="round"/>
+    <path d="M81 112 C74 136 69 157 52 175" fill="none" stroke="#111827" stroke-width="4" stroke-linecap="round"/>
+    <path d="M119 112 C126 136 131 157 148 175" fill="none" stroke="#111827" stroke-width="4" stroke-linecap="round"/>
+
+    <ellipse cx="80" cy="60" rx="28" ry="18" fill="url(#highlight)"/>
+    <ellipse cx="127" cy="143" rx="58" ry="44" fill="#111827" fill-opacity="0.08"/>
+  </g>
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#0F172A" stroke-width="5"/>
 </svg>
