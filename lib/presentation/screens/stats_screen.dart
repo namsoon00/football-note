@@ -830,7 +830,7 @@ class _TargetGrowthChart extends StatelessWidget {
       children: [
         _SectionTitle(
           icon: Icons.show_chart,
-          title: isKo ? '성장 그래프(선택 기간)' : 'Growth Chart (Selected Period)',
+          title: isKo ? '성장 그래프' : 'Growth Chart',
         ),
         const SizedBox(height: 12),
         SizedBox(
