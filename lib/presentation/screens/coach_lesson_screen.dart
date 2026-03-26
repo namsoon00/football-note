@@ -223,14 +223,29 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             : _openProfile,
                         profilePhotoSource: profilePhotoSource,
                         title: _isKo ? '다이어리' : 'Diary',
-                        titleTrailing: OutlinedButton.icon(
-                          onPressed: () => _showDiaryActions(
-                            entriesByDay: entriesByDay,
-                            plansByDay: plansByDay,
-                            boardMap: boardMap,
-                          ),
-                          icon: const Icon(Icons.add_circle_outline, size: 18),
-                          label: Text(_isKo ? '새 다이어리' : 'New diary'),
+                        titleTrailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: _showThemePicker,
+                              icon:
+                                  const Icon(Icons.palette_outlined, size: 18),
+                              label: Text(_isKo ? '테마' : 'Theme'),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              onPressed: () => _openNewDiaryComposer(
+                                entriesByDay: entriesByDay,
+                                plansByDay: plansByDay,
+                                boardMap: boardMap,
+                              ),
+                              icon: const Icon(
+                                Icons.add_circle_outline,
+                                size: 18,
+                              ),
+                              label: Text(_isKo ? '새 다이어리' : 'New diary'),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -411,52 +426,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ),
       ],
     );
-  }
-
-  Future<void> _showDiaryActions({
-    required Map<DateTime, List<TrainingEntry>> entriesByDay,
-    required Map<DateTime, List<_DiaryPlan>> plansByDay,
-    required Map<String, TrainingBoard> boardMap,
-  }) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.add_circle_outline),
-                title: Text(_isKo ? '새 다이어리 만들기' : 'Create diary'),
-                subtitle: Text(
-                  _isKo
-                      ? '훈련이 없어도 원하는 날짜에 페이지를 만들 수 있어요.'
-                      : 'Create a page on any date, even without training.',
-                ),
-                onTap: () => Navigator.of(context).pop('create'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.palette_outlined),
-                title: Text(_isKo ? '테마 바꾸기' : 'Change theme'),
-                onTap: () => Navigator.of(context).pop('theme'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    if (action == 'create') {
-      await _openNewDiaryComposer(
-        entriesByDay: entriesByDay,
-        plansByDay: plansByDay,
-        boardMap: boardMap,
-      );
-      return;
-    }
-    if (action == 'theme') {
-      await _showThemePicker();
-    }
   }
 
   Future<void> _showThemePicker() async {
