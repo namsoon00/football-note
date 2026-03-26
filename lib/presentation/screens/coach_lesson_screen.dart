@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
@@ -256,7 +257,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       days: days,
                       dayCount: days.length,
                       selectedIndex: selectedIndex,
-                      selectedDay: selectedDay,
                       selectedLabel: _formatDiaryDate(selectedDay.date),
                     ),
                   ),
@@ -287,144 +287,65 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     required List<_DiaryDayData> days,
     required int dayCount,
     required int selectedIndex,
-    required _DiaryDayData selectedDay,
     required String selectedLabel,
   }) {
     final canGoPrev = selectedIndex < dayCount - 1;
     final canGoNext = selectedIndex > 0;
-    final hasTraining = selectedDay.trainingEntries.isNotEmpty;
-    final hasMatch = selectedDay.matchEntries.isNotEmpty;
-    final hasPlan = selectedDay.plans.isNotEmpty;
     return Container(
       decoration: _paperDecoration(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Row(
-              children: [
-                IconButton(
-                  tooltip: _isKo ? '이전 날짜' : 'Previous day',
-                  onPressed:
-                      canGoPrev ? () => _movePage(selectedIndex + 1) : null,
-                  icon: const Icon(Icons.chevron_left),
-                ),
-                Expanded(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(18),
-                    onTap: () => _pickDiaryDate(days, selectedIndex),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              selectedLabel,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleSmall?.copyWith(
+            IconButton(
+              tooltip: _isKo ? '이전 날짜' : 'Previous day',
+              onPressed: canGoPrev ? () => _movePage(selectedIndex + 1) : null,
+              icon: const Icon(Icons.chevron_left),
+            ),
+            Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => _pickDiaryDate(days, selectedIndex),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          selectedLabel,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
                                     color: _headlineInk,
                                     fontWeight: FontWeight.w900,
                                   ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Icon(
-                            Icons.calendar_month_outlined,
-                            size: 16,
-                            color: _accentInk,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              '${selectedIndex + 1}/$dayCount',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                    color: _bodyInk,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: _isKo ? '다음 날짜' : 'Next day',
-                  onPressed:
-                      canGoNext ? () => _movePage(selectedIndex - 1) : null,
-                  icon: const Icon(Icons.chevron_right),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Wrap(
-              spacing: 10,
-              runSpacing: 6,
-              alignment: WrapAlignment.center,
-              children: [
-                if (hasTraining)
-                  _buildPagerMarker(
-                    color: const Color(0xFF2F8F6A),
-                    label: _isKo ? '기록' : 'Training',
-                  ),
-                if (hasMatch)
-                  _buildPagerMarker(
-                    color: const Color(0xFF2E6ECF),
-                    label: _isKo ? '시합' : 'Match',
-                  ),
-                if (hasPlan)
-                  _buildPagerMarker(
-                    color: const Color(0xFF97754A),
-                    label: _isKo ? '계획' : 'Plan',
-                  ),
-                if (!hasTraining && !hasMatch && !hasPlan)
-                  Text(
-                    _isKo ? '표시할 항목 없음' : 'No markers',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: _bodyInk,
                         ),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.calendar_month_outlined,
+                        size: 16,
+                        color: _accentInk,
+                      ),
+                    ],
                   ),
-              ],
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: _isKo ? '다음 날짜' : 'Next day',
+              onPressed: canGoNext ? () => _movePage(selectedIndex - 1) : null,
+              icon: const Icon(Icons.chevron_right),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPagerMarker({required Color color, required String label}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          )
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: _bodyInk, fontWeight: FontWeight.w700),
-        ),
-      ],
     );
   }
 
@@ -586,6 +507,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final customDiary = _customDiaryForDay(day.date);
     return _DiaryScrollPage(
       onReachedEnd: () {},
+      onPullDownToDismiss: widget.embeddedInHomeTab
+          ? null
+          : () => Navigator.of(context).maybePop(),
       childBuilder: (controller) => SingleChildScrollView(
         controller: controller,
         padding: const EdgeInsets.fromLTRB(40, 20, 16, 28),
@@ -621,9 +545,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final stickers = customDiary.stickers
         .map(_DiaryStickerPalette.fromId)
         .whereType<_DiaryStickerPalette>()
-        .toList(growable: false);
-    final sections = customDiary.sections
-        .where((section) => section.hasContent)
         .toList(growable: false);
     final recordStickers = customDiary.recordStickers
         .map((sticker) => _resolveRecordSticker(sticker, day))
@@ -751,77 +672,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
           if (!customDiary.hasContent && todoSeeds.isNotEmpty)
             const SizedBox(height: 4),
-          Row(children: [Expanded(child: _buildMoodPanel(customDiary.mood))]),
-          if (sections.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            ...sections.map(
-              (section) => _buildPromptTile(
-                title: section.title.trim().isEmpty
-                    ? (_isKo ? '이야기 조각' : 'Story section')
-                    : section.title.trim(),
-                body: section.body.trim(),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMoodPanel(_DiaryMoodPreset mood) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: mood.tint.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: mood.tint.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          Icon(mood.icon, color: mood.tint),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              _isKo ? '오늘의 무드: ${mood.labelKo}' : 'Today mood: ${mood.labelEn}',
-              style: _theme.textTheme.bodyMedium?.copyWith(
-                color: _headlineInk,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPromptTile({required String title, required String body}) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: _tileSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _paperEdge),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: _theme.textTheme.labelLarge?.copyWith(
-              color: _accentInk,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            body,
-            style: _theme.textTheme.bodyMedium?.copyWith(
-              color: _headlineInk,
-              height: 1.55,
-            ),
-          ),
         ],
       ),
     );
@@ -1473,22 +1323,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : 'Write today in your own words. Start with what happened around $place, what stayed with you in $focus, what felt good, and what still lingers.';
   }
 
-  String _defaultSectionPrompt(_DiaryDayData day) {
-    final sectionIdeas = <String>[
-      if (day.plans.isNotEmpty) _isKo ? '오늘 할 일에서 가져온 장면' : 'picked tasks',
-      if (day.trainingEntries.isNotEmpty)
-        _isKo ? '훈련에서 남은 장면' : 'training moments',
-      if (day.matchEntries.isNotEmpty) _isKo ? '시합의 흐름' : 'match flow',
-      if (day.plans.isNotEmpty) _isKo ? '계획과 실제의 차이' : 'plans versus reality',
-      if (_hasRecoveryRecord(day)) _isKo ? '몸 상태와 회복' : 'body and recovery',
-      if (day.boards.isNotEmpty) _isKo ? '보드에서 떠오른 아이디어' : 'board ideas',
-    ];
-    final joined = sectionIdeas.take(3).join(_isKo ? ', ' : ', ');
-    return _isKo
-        ? '예를 들어 $joined 같은 소제목을 만들고, 각 장면을 원하는 순서로 풀어 써 보세요.'
-        : 'Create your own section titles such as $joined and tell the day in the order that feels right to you.';
-  }
-
   List<_DiaryTodoSeed> _todoSeedsForDay(_DiaryDayData day) {
     final seeds = <_DiaryTodoSeed>[
       ...day.plans.map(_planTodoSeed),
@@ -1654,32 +1488,109 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final todoSeeds = _todoSeedsForDay(day);
     final titleController = TextEditingController(text: initialData.title);
     final storyController = TextEditingController(text: initialData.story);
-    var selectedMood = initialData.mood;
     String? selectedStickerId =
         initialData.stickers.isEmpty ? null : initialData.stickers.first;
     final selectedRecordStickerIds = <String>{
       ...initialData.recordStickers.map((sticker) => sticker.storageId),
     };
-    final sectionDrafts = initialData.sections.isEmpty
-        ? <_DiarySectionDraft>[]
-        : initialData.sections
+
+    _CustomDiaryEntryData buildDraftData() {
+      return _CustomDiaryEntryData(
+        title: titleController.text.trim(),
+        story: storyController.text.trim(),
+        sections: const <_CustomDiarySectionData>[],
+        moodId: _DiaryMoodPreset.calmId,
+        recordStickers: todoSeeds
+            .where(
+              (seed) =>
+                  selectedRecordStickerIds.contains(seed.id) &&
+                  seed.recordKind != null &&
+                  seed.recordRefId != null,
+            )
             .map(
-              (section) => _DiarySectionDraft(
-                titleController: TextEditingController(text: section.title),
-                bodyController: TextEditingController(text: section.body),
+              (seed) => _DiaryRecordStickerData(
+                kind: seed.recordKind!,
+                refId: seed.recordRefId!,
               ),
             )
-            .toList(growable: true);
+            .toList(growable: false),
+        stickers: selectedStickerId == null
+            ? const <String>[]
+            : <String>[selectedStickerId!],
+        updatedAt: initialData.updatedAt,
+      );
+    }
+
+    List<String> normalizeIds(List<String> values) {
+      final ids = [...values]..sort();
+      return ids;
+    }
+
+    bool hasUnsavedChanges() {
+      final draft = buildDraftData();
+      return draft.title.trim() != initialData.title.trim() ||
+          draft.story.trim() != initialData.story.trim() ||
+          normalizeIds(draft.stickers).join('|') !=
+              normalizeIds(initialData.stickers).join('|') ||
+          normalizeIds(draft.recordStickers.map((e) => e.storageId).toList())
+                  .join('|') !=
+              normalizeIds(
+                initialData.recordStickers.map((e) => e.storageId).toList(),
+              ).join('|');
+    }
+
+    Future<void> requestCloseWithSavePrompt(BuildContext modalContext) async {
+      final navigator = Navigator.of(modalContext);
+      if (!hasUnsavedChanges()) {
+        navigator.pop();
+        return;
+      }
+      final shouldSave = await showDialog<bool>(
+        context: modalContext,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(_isKo ? '저장할까요?' : 'Save changes?'),
+          content: Text(
+            _isKo
+                ? '저장하지 않은 내용이 있어요. 저장 후 닫을까요?'
+                : 'You have unsaved changes. Save before closing?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(null),
+              child: Text(_isKo ? '취소' : 'Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(_isKo ? '저장 안 함' : "Don't save"),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(_isKo ? '저장' : 'Save'),
+            ),
+          ],
+        ),
+      );
+      if (shouldSave == null) return;
+      if (shouldSave) {
+        navigator.pop(buildDraftData());
+      } else {
+        navigator.pop();
+      }
+    }
 
     final result = await showModalBottomSheet<_CustomDiaryEntryData>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (context) {
         final bottomInset = MediaQuery.of(context).viewInsets.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return SafeArea(
+            return PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (_, __) =>
+                  requestCloseWithSavePrompt(context),
               child: Padding(
                 padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset + 16),
                 child: SingleChildScrollView(
@@ -1827,167 +1738,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _isKo ? '자유 섹션' : 'Flexible sections',
-                              style: _theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          TextButton.icon(
-                            key: const ValueKey('diary-add-section-button'),
-                            onPressed: () {
-                              setModalState(() {
-                                sectionDrafts.add(
-                                  _DiarySectionDraft(
-                                    titleController: TextEditingController(),
-                                    bodyController: TextEditingController(),
-                                  ),
-                                );
-                              });
-                            },
-                            icon: const Icon(Icons.add),
-                            label: Text(_isKo ? '섹션 추가' : 'Add section'),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        _defaultSectionPrompt(day),
-                        style: _theme.textTheme.bodySmall?.copyWith(
-                          color: _bodyInk,
-                          height: 1.5,
-                        ),
-                      ),
-                      if (sectionDrafts.isEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          _isKo
-                              ? '필요한 만큼 섹션을 추가해서 하루를 원하는 구조로 적어 보세요.'
-                              : 'Add as many sections as you need and shape the day your way.',
-                          style: _theme.textTheme.bodyMedium?.copyWith(
-                            color: _bodyInk,
-                            height: 1.5,
-                          ),
-                        ),
-                      ] else ...[
-                        const SizedBox(height: 12),
-                        ...List<Widget>.generate(sectionDrafts.length, (index) {
-                          final draft = sectionDrafts[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: _tileSurface,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: _paperEdge),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          _isKo
-                                              ? '섹션 ${index + 1}'
-                                              : 'Section ${index + 1}',
-                                          style: _theme.textTheme.labelLarge
-                                              ?.copyWith(
-                                            color: _accentInk,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        key: ValueKey(
-                                          'diary-remove-section-button-$index',
-                                        ),
-                                        tooltip: _isKo ? '삭제' : 'Remove',
-                                        onPressed: () {
-                                          setModalState(() {
-                                            sectionDrafts.removeAt(index);
-                                          });
-                                        },
-                                        icon: const Icon(Icons.delete_outline),
-                                      ),
-                                    ],
-                                  ),
-                                  TextField(
-                                    key: ValueKey(
-                                      'diary-section-title-field-$index',
-                                    ),
-                                    controller: draft.titleController,
-                                    textInputAction: TextInputAction.next,
-                                    decoration: InputDecoration(
-                                      labelText:
-                                          _isKo ? '섹션 제목' : 'Section title',
-                                      hintText: _isKo
-                                          ? '예: 오늘 가장 남은 장면'
-                                          : 'Ex: The moment that stayed most',
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextField(
-                                    key: ValueKey(
-                                      'diary-section-body-field-$index',
-                                    ),
-                                    controller: draft.bodyController,
-                                    minLines: 3,
-                                    maxLines: 6,
-                                    decoration: InputDecoration(
-                                      labelText:
-                                          _isKo ? '섹션 내용' : 'Section body',
-                                      hintText: _isKo
-                                          ? '이 섹션에서 남기고 싶은 장면이나 생각을 적어 보세요.'
-                                          : 'Write the scene or thought you want to keep in this section.',
-                                      alignLabelWithHint: true,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }),
-                      ],
-                      const SizedBox(height: 18),
-                      Text(
-                        _isKo ? '무드 선택' : 'Pick a mood',
-                        style: _theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _DiaryMoodPreset.values
-                            .map(
-                              (mood) => ChoiceChip(
-                                key: ValueKey('diary-mood-${mood.id}'),
-                                label: Text(
-                                  _isKo ? mood.labelKo : mood.labelEn,
-                                ),
-                                selected: selectedMood.id == mood.id,
-                                avatar: Icon(
-                                  mood.icon,
-                                  size: 18,
-                                  color: mood.tint,
-                                ),
-                                selectedColor: mood.tint.withValues(
-                                  alpha: 0.16,
-                                ),
-                                onSelected: (_) {
-                                  setModalState(() => selectedMood = mood);
-                                },
-                              ),
-                            )
-                            .toList(growable: false),
-                      ),
-                      const SizedBox(height: 18),
                       Text(
                         _isKo ? '감정 스티커' : 'Mood sticker',
                         style: _theme.textTheme.titleMedium?.copyWith(
@@ -2031,53 +1781,49 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       Row(
                         children: [
                           TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
+                            onPressed: () async {
+                              final shouldClear = await showDialog<bool>(
+                                context: context,
+                                builder: (dialogContext) => AlertDialog(
+                                  title:
+                                      Text(_isKo ? '정말 비울까요?' : 'Clear all?'),
+                                  content: Text(
+                                    _isKo
+                                        ? '작성한 제목, 본문, 선택한 스티커를 모두 비웁니다.'
+                                        : 'This will clear title, story, and selected stickers.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(
+                                        dialogContext,
+                                      ).pop(false),
+                                      child: Text(_isKo ? '취소' : 'Cancel'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () =>
+                                          Navigator.of(dialogContext).pop(true),
+                                      child: Text(_isKo ? '비우기' : 'Clear'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (shouldClear != true) return;
+                              setModalState(() {
+                                titleController.clear();
+                                storyController.clear();
+                                selectedStickerId = null;
+                                selectedRecordStickerIds.clear();
+                              });
+                            },
                             child: Text(
-                              _isKo ? '저장 없이 나가기' : 'Close without saving',
+                              _isKo ? '비우기' : 'Clear',
                             ),
                           ),
                           const Spacer(),
                           FilledButton(
                             key: const ValueKey('diary-save-button'),
                             onPressed: () {
-                              Navigator.of(context).pop(
-                                _CustomDiaryEntryData(
-                                  title: titleController.text.trim(),
-                                  story: storyController.text.trim(),
-                                  sections: sectionDrafts
-                                      .map(
-                                        (draft) => _CustomDiarySectionData(
-                                          title:
-                                              draft.titleController.text.trim(),
-                                          body:
-                                              draft.bodyController.text.trim(),
-                                        ),
-                                      )
-                                      .where((section) => section.hasContent)
-                                      .toList(growable: false),
-                                  moodId: selectedMood.id,
-                                  recordStickers: todoSeeds
-                                      .where(
-                                        (seed) =>
-                                            selectedRecordStickerIds.contains(
-                                              seed.id,
-                                            ) &&
-                                            seed.recordKind != null &&
-                                            seed.recordRefId != null,
-                                      )
-                                      .map(
-                                        (seed) => _DiaryRecordStickerData(
-                                          kind: seed.recordKind!,
-                                          refId: seed.recordRefId!,
-                                        ),
-                                      )
-                                      .toList(growable: false),
-                                  stickers: selectedStickerId == null
-                                      ? const <String>[]
-                                      : <String>[selectedStickerId!],
-                                  updatedAt: initialData.updatedAt,
-                                ),
-                              );
+                              Navigator.of(context).pop(buildDraftData());
                             },
                             child: Text(_isKo ? '저장' : 'Save'),
                           ),
@@ -2092,6 +1838,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         );
       },
     );
+
+    titleController.dispose();
+    storyController.dispose();
 
     if (result == null) return;
     await _saveCustomDiary(day.date, result);
@@ -2109,18 +1858,92 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     int selectedIndex,
   ) async {
     final selectedDay = days[selectedIndex].date;
-    final availableDays = days.map((day) => day.date).toSet();
-    final picked = await showDatePicker(
+    final dayMap = <DateTime, _DiaryDayData>{
+      for (final day in days) _normalizeDay(day.date): day,
+    };
+    DateTime focusedDay = selectedDay;
+    DateTime? picked;
+    await showModalBottomSheet<void>(
       context: context,
-      initialDate: selectedDay,
-      firstDate: days.last.date,
-      lastDate: days.first.date,
-      selectableDayPredicate: (day) =>
-          availableDays.contains(_normalizeDay(day)),
-      locale: Locale(_isKo ? 'ko' : 'en'),
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                child: TableCalendar<_DiaryMarkerType>(
+                  locale: _isKo ? 'ko_KR' : 'en_US',
+                  firstDay: days.last.date,
+                  lastDay: days.first.date,
+                  focusedDay: focusedDay,
+                  calendarFormat: CalendarFormat.month,
+                  availableGestures: AvailableGestures.horizontalSwipe,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  selectedDayPredicate: (day) =>
+                      isSameDay(day, selectedDay) ||
+                      (picked != null && isSameDay(day, picked)),
+                  enabledDayPredicate: (day) =>
+                      dayMap.containsKey(_normalizeDay(day)),
+                  onDaySelected: (selected, focused) {
+                    final normalized = _normalizeDay(selected);
+                    if (!dayMap.containsKey(normalized)) return;
+                    picked = normalized;
+                    Navigator.of(sheetContext).pop();
+                  },
+                  onPageChanged: (focused) {
+                    setSheetState(() => focusedDay = focused);
+                  },
+                  eventLoader: (day) {
+                    final diaryDay = dayMap[_normalizeDay(day)];
+                    if (diaryDay == null) return const <_DiaryMarkerType>[];
+                    final markers = <_DiaryMarkerType>[];
+                    if (diaryDay.trainingEntries.isNotEmpty) {
+                      markers.add(_DiaryMarkerType.training);
+                    }
+                    if (diaryDay.matchEntries.isNotEmpty) {
+                      markers.add(_DiaryMarkerType.match);
+                    }
+                    if (diaryDay.plans.isNotEmpty) {
+                      markers.add(_DiaryMarkerType.plan);
+                    }
+                    return markers;
+                  },
+                  calendarBuilders: CalendarBuilders<_DiaryMarkerType>(
+                    markerBuilder: (context, day, markers) {
+                      if (markers.isEmpty) return const SizedBox.shrink();
+                      final markerList = markers
+                          .whereType<_DiaryMarkerType>()
+                          .toList(growable: false);
+                      if (markerList.isEmpty) return const SizedBox.shrink();
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: markerList
+                            .take(3)
+                            .map((marker) => Container(
+                                  width: 6,
+                                  height: 6,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: marker.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ))
+                            .toList(growable: false),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
     if (picked == null) return;
-    final normalized = _normalizeDay(picked);
+    final normalized = _normalizeDay(picked!);
     final targetIndex = days.indexWhere((day) => day.date == normalized);
     if (targetIndex == -1) return;
     setState(() => _selectedDayIndex = targetIndex);
@@ -2372,10 +2195,12 @@ class _DiaryThemePalette {
 class _DiaryScrollPage extends StatefulWidget {
   final Widget Function(ScrollController controller) childBuilder;
   final VoidCallback onReachedEnd;
+  final VoidCallback? onPullDownToDismiss;
 
   const _DiaryScrollPage({
     required this.childBuilder,
     required this.onReachedEnd,
+    this.onPullDownToDismiss,
   });
 
   @override
@@ -2385,6 +2210,8 @@ class _DiaryScrollPage extends StatefulWidget {
 class _DiaryScrollPageState extends State<_DiaryScrollPage> {
   final ScrollController _controller = ScrollController();
   bool _didReachEnd = false;
+  double _pullDownDistance = 0;
+  bool _dismissTriggered = false;
 
   @override
   void initState() {
@@ -2425,7 +2252,53 @@ class _DiaryScrollPageState extends State<_DiaryScrollPage> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.childBuilder(_controller);
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        final onPullDownToDismiss = widget.onPullDownToDismiss;
+        if (onPullDownToDismiss == null) return false;
+        if (_dismissTriggered) return false;
+
+        final atTop = !_controller.hasClients ||
+            _controller.position.pixels <=
+                _controller.position.minScrollExtent + 0.5;
+
+        if (notification is ScrollUpdateNotification) {
+          final dy = notification.dragDetails?.delta.dy ?? 0;
+          if (atTop && dy > 0) {
+            _pullDownDistance += dy;
+          } else if (dy < 0) {
+            _pullDownDistance = 0;
+          }
+        } else if (notification is OverscrollNotification) {
+          if (atTop && notification.overscroll < 0) {
+            _pullDownDistance += -notification.overscroll;
+          }
+        } else if (notification is ScrollEndNotification) {
+          if (_pullDownDistance >= 86) {
+            _dismissTriggered = true;
+            onPullDownToDismiss();
+          }
+          _pullDownDistance = 0;
+        }
+        return false;
+      },
+      child: widget.childBuilder(_controller),
+    );
+  }
+}
+
+enum _DiaryMarkerType { training, match, plan }
+
+extension on _DiaryMarkerType {
+  Color get color {
+    switch (this) {
+      case _DiaryMarkerType.training:
+        return const Color(0xFF2F8F6A);
+      case _DiaryMarkerType.match:
+        return const Color(0xFF2E6ECF);
+      case _DiaryMarkerType.plan:
+        return const Color(0xFF97754A);
+    }
   }
 }
 
@@ -2661,16 +2534,6 @@ class _DiaryRecordStickerViewData {
   });
 }
 
-class _DiarySectionDraft {
-  final TextEditingController titleController;
-  final TextEditingController bodyController;
-
-  _DiarySectionDraft({
-    required this.titleController,
-    required this.bodyController,
-  });
-}
-
 class _DiaryMoodPreset {
   static const String calmId = 'calm';
 
@@ -2804,6 +2667,54 @@ class _DiaryStickerPalette {
     tint: Color(0xFFC78A1C),
   );
 
+  static const fire = _DiaryStickerPalette(
+    id: 'fire',
+    labelKo: '열정',
+    labelEn: 'Fire',
+    icon: Icons.local_fire_department_outlined,
+    tint: Color(0xFFE66C3B),
+  );
+
+  static const smile = _DiaryStickerPalette(
+    id: 'smile',
+    labelKo: '신남',
+    labelEn: 'Smile',
+    icon: Icons.sentiment_very_satisfied_outlined,
+    tint: Color(0xFFF2A81D),
+  );
+
+  static const cool = _DiaryStickerPalette(
+    id: 'cool',
+    labelKo: '자신감',
+    labelEn: 'Cool',
+    icon: Icons.mood_outlined,
+    tint: Color(0xFF3E8FD1),
+  );
+
+  static const rocket = _DiaryStickerPalette(
+    id: 'rocket',
+    labelKo: '상승',
+    labelEn: 'Boost',
+    icon: Icons.rocket_launch_outlined,
+    tint: Color(0xFF8C62D8),
+  );
+
+  static const shield = _DiaryStickerPalette(
+    id: 'shield',
+    labelKo: '든든',
+    labelEn: 'Shield',
+    icon: Icons.shield_outlined,
+    tint: Color(0xFF2E8C74),
+  );
+
+  static const clap = _DiaryStickerPalette(
+    id: 'clap',
+    labelKo: '칭찬',
+    labelEn: 'Clap',
+    icon: Icons.celebration_outlined,
+    tint: Color(0xFFDA5E86),
+  );
+
   static const values = <_DiaryStickerPalette>[
     star,
     heart,
@@ -2811,6 +2722,12 @@ class _DiaryStickerPalette {
     rain,
     note,
     trophy,
+    fire,
+    smile,
+    cool,
+    rocket,
+    shield,
+    clap,
   ];
 
   static _DiaryStickerPalette? fromId(String id) {
