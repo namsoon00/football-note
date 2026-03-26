@@ -2031,10 +2031,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       Row(
                         children: [
                           TextButton(
-                            onPressed: () => Navigator.of(
-                              context,
-                            ).pop(const _CustomDiaryEntryData.empty()),
-                            child: Text(_isKo ? '비우기' : 'Clear'),
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(
+                              _isKo ? '저장 없이 나가기' : 'Close without saving',
+                            ),
                           ),
                           const Spacer(),
                           FilledButton(
