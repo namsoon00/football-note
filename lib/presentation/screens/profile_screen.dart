@@ -94,7 +94,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return true;
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(isKo ? '유저 프로필' : 'Player Profile')),
+        appBar: AppBar(
+          title: Text(isKo ? '유저 프로필' : 'Player Profile'),
+          actions: [
+            IconButton(
+              tooltip: isKo ? '성향 테스트' : 'Profile tests',
+              onPressed: () => _openProfileTestsScreen(context),
+              icon: const Icon(Icons.psychology_alt_outlined),
+            ),
+          ],
+        ),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -246,8 +255,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
             _buildProfileTestResultSnapshot(isKo),
-            const SizedBox(height: 12),
-            _buildProfileTestsEntry(context, isKo),
           ],
         ),
       ),
@@ -365,35 +372,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileTestsEntry(BuildContext context, bool isKo) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(14),
-        leading: const Icon(Icons.psychology_alt_outlined),
-        title: Text(
-          isKo ? '성향 테스트' : 'Profile tests',
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            isKo
-                ? 'MBTI와 포지션 테스트를 별도 화면에서 볼 수 있어요.'
-                : 'Open MBTI and position tests on a separate screen.',
-          ),
-        ),
-        trailing: FilledButton.tonal(
-          onPressed: () => _openProfileTestsScreen(context),
-          child: Text(isKo ? '열기' : 'Open'),
-        ),
-        onTap: () => _openProfileTestsScreen(context),
-      ),
-    );
-  }
-
   Future<void> _openProfileTestsScreen(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -401,6 +379,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ProfileTestsScreen(optionRepository: widget.optionRepository),
       ),
     );
+    if (!mounted) return;
+    final saved = _profileService.load();
+    setState(() {
+      _mbtiResult = saved.mbtiResult;
+      _positionTestResult = saved.positionTestResult;
+      _mbtiAnswers = List<int>.from(saved.mbtiAnswers);
+      _positionTestAnswers = List<int>.from(saved.positionTestAnswers);
+    });
   }
 
   // ignore: unused_element
