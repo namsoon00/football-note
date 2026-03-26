@@ -16,6 +16,10 @@ void main() {
   ) async {
     final optionRepository = _FakeOptionRepository()
       ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"2026-03-15":{"title":"3월 15일 다이어리","story":"오늘 장면을 남긴다.","sections":[],"moodId":"calm","recordStickers":[{"kind":"training","refId":"1742061600000"}],"stickers":["star"],"updatedAt":"2026-03-15T21:00:00.000"},"2026-03-13":{"title":"3월 13일 다이어리","story":"패스 감각 정리.","sections":[],"moodId":"calm","stickers":[],"updatedAt":"2026-03-13T21:00:00.000"}}',
+      )
+      ..setRawValue(
         'training_plans_v1',
         '[{"id":"plan-1","scheduledAt":"2026-03-15T17:30:00.000","category":"전술 훈련","durationMinutes":60,"note":"4대4 전환 패턴 확인"}]',
       )
@@ -27,6 +31,7 @@ void main() {
       _FakeTrainingRepository(<TrainingEntry>[
         TrainingEntry(
           date: DateTime(2026, 3, 15, 18, 0),
+          createdAt: DateTime(2026, 3, 15, 18, 0),
           durationMinutes: 70,
           intensity: 4,
           type: '드리블',
@@ -135,8 +140,6 @@ void main() {
     expect(find.textContaining('줄넘기: 200회'), findsWidgets);
     expect(find.textContaining('Blue FC전'), findsWidgets);
     expect(find.textContaining('훈련 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
-    expect(find.textContaining('원하는 방식으로 오늘의 일기를 구성해 보세요.'), findsOneWidget);
-    expect(find.text('오늘 할 일에서 골라 쓰기'), findsOneWidget);
     expect(find.textContaining('전술 훈련'), findsWidgets);
     expect(
       tester.getTopLeft(find.text('오늘의 일기')).dy,
@@ -178,8 +181,15 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('아직 기록이 없습니다.'), findsOneWidget);
-    expect(find.textContaining('훈련이나 시합, 계획을 남기면'), findsOneWidget);
+    expect(find.text('아직 만든 다이어리가 없습니다.'), findsOneWidget);
+    expect(
+      find.textContaining('다이어리를 직접 만들기 전에는 페이지를 보여주지 않습니다.'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('diary-create-first-button')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('coach lesson screen supports dark mode notebook layout', (
@@ -201,7 +211,11 @@ void main() {
           ],
           supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: CoachLessonScreen(
-            optionRepository: _FakeOptionRepository(),
+            optionRepository: _FakeOptionRepository()
+              ..setRawValue(
+                'custom_diary_entries_v3',
+                '{"2026-03-15":{"title":"다크 다이어리","story":"야간 페이지","sections":[],"moodId":"calm","stickers":[],"updatedAt":"2026-03-15T21:00:00.000"}}',
+              ),
             trainingService: TrainingService(
               _FakeTrainingRepository(<TrainingEntry>[
                 TrainingEntry(
@@ -232,7 +246,11 @@ void main() {
   testWidgets('coach lesson screen saves personal diary writing and stickers', (
     WidgetTester tester,
   ) async {
-    final optionRepository = _FakeOptionRepository();
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"2026-03-15":{"title":"초안","story":"기존 페이지","sections":[],"moodId":"calm","stickers":[],"updatedAt":"2026-03-15T20:00:00.000"}}',
+      );
     final trainingService = TrainingService(
       _FakeTrainingRepository(<TrainingEntry>[
         TrainingEntry(
@@ -269,7 +287,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('내가 구성하는 오늘의 일기'), findsOneWidget);
+    expect(find.text('초안'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
     await tester.pumpAndSettle();
@@ -337,13 +355,18 @@ void main() {
     expect(raw, contains('sections'));
     expect(raw, contains('star'));
     expect(raw, contains('proud'));
+    expect(raw, contains('recordStickers'));
   });
 
   testWidgets(
     'coach lesson screen marks today diary only when today diary is saved',
     (WidgetTester tester) async {
       final today = DateTime.now();
-      final optionRepository = _FakeOptionRepository();
+      final optionRepository = _FakeOptionRepository()
+        ..setRawValue(
+          'custom_diary_entries_v3',
+          '{"${CoachLessonScreen.todayViewedDayToken(today)}":{"title":"오늘 초안","story":"미완성","sections":[],"moodId":"calm","stickers":[],"updatedAt":"${DateTime(today.year, today.month, today.day, 12).toIso8601String()}"}}',
+        );
       final trainingService = TrainingService(
         _FakeTrainingRepository(<TrainingEntry>[
           TrainingEntry(
@@ -407,8 +430,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('본문에 넣기').first);
       await tester.pump();
-      await tester
-          .ensureVisible(find.byKey(const ValueKey('diary-save-button')));
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('diary-save-button')),
+      );
       await tester.tap(find.byKey(const ValueKey('diary-save-button')));
       await tester.pumpAndSettle();
 
@@ -421,15 +445,54 @@ void main() {
     },
   );
 
-  testWidgets('coach lesson screen opens diary page even with only today plans',
-      (
+  testWidgets(
+    'coach lesson screen shows saved diary page even with only today plans',
+    (WidgetTester tester) async {
+      final optionRepository = _FakeOptionRepository()
+        ..setRawValue(
+          'custom_diary_entries_v3',
+          '{"2026-03-15":{"title":"계획 다이어리","story":"계획만 있는 날도 기록한다.","sections":[],"moodId":"calm","recordStickers":[{"kind":"plan","refId":"plan-1"}],"stickers":[],"updatedAt":"2026-03-15T18:00:00.000"}}',
+        )
+        ..setRawValue(
+          'training_plans_v1',
+          '[{"id":"plan-1","scheduledAt":"2026-03-15T17:30:00.000","category":"전술 훈련","durationMinutes":60,"note":"4대4 전환 패턴 확인"}]',
+        );
+
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: CoachLessonScreen(
+              optionRepository: optionRepository,
+              trainingService: TrainingService(
+                _FakeTrainingRepository(const <TrainingEntry>[]),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
+      expect(find.text('아직 기록이 없습니다.'), findsNothing);
+      expect(find.text('계획 다이어리'), findsOneWidget);
+      expect(find.text('계획 1개'), findsWidgets);
+      expect(find.textContaining('전술 훈련'), findsWidgets);
+    },
+  );
+
+  testWidgets('coach lesson screen can create diary without training records', (
     WidgetTester tester,
   ) async {
-    final optionRepository = _FakeOptionRepository()
-      ..setRawValue(
-        'training_plans_v1',
-        '[{"id":"plan-1","scheduledAt":"2026-03-15T17:30:00.000","category":"전술 훈련","durationMinutes":60,"note":"4대4 전환 패턴 확인"}]',
-      );
+    final optionRepository = _FakeOptionRepository();
 
     await tester.pumpWidget(
       DefaultAssetBundle(
@@ -452,12 +515,30 @@ void main() {
         ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('diary-page-view')), findsOneWidget);
-    expect(find.text('아직 기록이 없습니다.'), findsNothing);
-    expect(find.text('계획 1개'), findsWidgets);
-    expect(find.textContaining('전술 훈련'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('diary-create-first-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('확인'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-title-field')),
+      '훈련 없는 날의 다이어리',
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-story-field')),
+      '오늘은 훈련이 없었지만 내일을 위해 생각을 정리했다.',
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('diary-save-button')));
+    await tester.tap(find.byKey(const ValueKey('diary-save-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('훈련 없는 날의 다이어리'), findsOneWidget);
+    expect(
+      optionRepository.getValue<String>('custom_diary_entries_v3'),
+      contains('훈련 없는 날의 다이어리'),
+    );
   });
 }
 

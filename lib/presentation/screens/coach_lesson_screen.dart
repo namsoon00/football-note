@@ -146,14 +146,29 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             builder: (context, snapshot) {
               final entries = [...(snapshot.data ?? const <TrainingEntry>[])]
                 ..sort(TrainingEntry.compareByRecentCreated);
+              final entriesByDay = _groupEntriesByDay(entries);
+              final plans = _loadPlans();
+              final plansByDay = _groupPlansByDay(plans);
               final boardMap = TrainingBoardService(
                 widget.optionRepository,
               ).boardMap();
-              final days = _buildDays(entries, _loadPlans(), boardMap);
+              final days = _buildDays(
+                entriesByDay: entriesByDay,
+                plansByDay: plansByDay,
+                boardMap: boardMap,
+              );
               if (days.isEmpty) {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  children: [_buildEmptyCard()],
+                  children: [
+                    _buildEmptyCard(
+                      onCreateDiary: () => _openNewDiaryComposer(
+                        entriesByDay: entriesByDay,
+                        plansByDay: plansByDay,
+                        boardMap: boardMap,
+                      ),
+                    ),
+                  ],
                 );
               }
 
@@ -210,9 +225,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         profilePhotoSource: profilePhotoSource,
                         title: _isKo ? '다이어리' : 'Diary',
                         titleTrailing: OutlinedButton.icon(
-                          onPressed: _showThemePicker,
-                          icon: const Icon(Icons.palette_outlined, size: 18),
-                          label: Text(_isKo ? '테마' : 'Theme'),
+                          onPressed: () => _showDiaryActions(
+                            entriesByDay: entriesByDay,
+                            plansByDay: plansByDay,
+                            boardMap: boardMap,
+                          ),
+                          icon: const Icon(Icons.add_circle_outline, size: 18),
+                          label: Text(_isKo ? '새 다이어리' : 'New diary'),
                         ),
                       ),
                     ),
@@ -326,6 +345,52 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showDiaryActions({
+    required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, List<_DiaryPlan>> plansByDay,
+    required Map<String, TrainingBoard> boardMap,
+  }) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.add_circle_outline),
+                title: Text(_isKo ? '새 다이어리 만들기' : 'Create diary'),
+                subtitle: Text(
+                  _isKo
+                      ? '훈련이 없어도 원하는 날짜에 페이지를 만들 수 있어요.'
+                      : 'Create a page on any date, even without training.',
+                ),
+                onTap: () => Navigator.of(context).pop('create'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.palette_outlined),
+                title: Text(_isKo ? '테마 바꾸기' : 'Change theme'),
+                onTap: () => Navigator.of(context).pop('theme'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (action == 'create') {
+      await _openNewDiaryComposer(
+        entriesByDay: entriesByDay,
+        plansByDay: plansByDay,
+        boardMap: boardMap,
+      );
+      return;
+    }
+    if (action == 'theme') {
+      await _showThemePicker();
+    }
   }
 
   Future<void> _showThemePicker() async {
@@ -582,6 +647,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .map(_DiaryStickerPalette.fromId)
         .whereType<_DiaryStickerPalette>()
         .toList(growable: false);
+    final recordStickerCount = customDiary.recordStickers.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -658,6 +724,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 icon: sticker.icon,
                 label: _isKo ? sticker.labelKo : sticker.labelEn,
               ),
+            if (recordStickerCount > 0)
+              _buildHeadlineBadge(
+                icon: Icons.push_pin_outlined,
+                label: _isKo
+                    ? '기록 스티커 $recordStickerCount개'
+                    : '$recordStickerCount record stickers',
+              ),
           ],
         ),
       ],
@@ -701,6 +774,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final sections = customDiary.sections
         .where((section) => section.hasContent)
         .toList(growable: false);
+    final recordStickers = customDiary.recordStickers
+        .map((sticker) => _resolveRecordSticker(sticker, day))
+        .whereType<_DiaryRecordStickerViewData>()
+        .toList(growable: false);
     return _buildPaperCard(
       title: customDiary.title.trim().isEmpty
           ? (_isKo ? '내가 구성하는 오늘의 일기' : 'Diary shaped by you')
@@ -715,6 +792,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (recordStickers.isNotEmpty) ...[
+            _buildPromptTile(
+              title: _isKo ? '붙여둔 기록 스티커' : 'Pinned record stickers',
+              body: _isKo
+                  ? '오늘의 재료 중 남기고 싶은 기록만 다이어리 위에 붙여두었어요.'
+                  : 'Only the records you wanted to keep are pinned onto the diary page.',
+            ),
+            const SizedBox(height: 4),
+            ...recordStickers.map(_buildRecordStickerCard),
+            const SizedBox(height: 6),
+          ],
           if (stickers.isNotEmpty) ...[
             Wrap(
               spacing: 8,
@@ -901,6 +989,48 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             style: _theme.textTheme.bodyMedium?.copyWith(
               color: _headlineInk,
               height: 1.55,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecordStickerCard(_DiaryRecordStickerViewData sticker) {
+    return Container(
+      key: ValueKey('diary-record-sticker-${sticker.id}'),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: sticker.tint.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: sticker.tint.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(sticker.icon, size: 18, color: sticker.tint),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  sticker.title,
+                  style: _theme.textTheme.labelLarge?.copyWith(
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            sticker.summary,
+            style: _theme.textTheme.bodyMedium?.copyWith(
+              color: _bodyInk,
+              height: 1.5,
             ),
           ),
         ],
@@ -1439,16 +1569,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  Widget _buildEmptyCard() {
+  Widget _buildEmptyCard({required VoidCallback onCreateDiary}) {
     return _buildPaperCard(
-      title: _isKo ? '아직 기록이 없습니다.' : 'No records yet',
-      child: Text(
-        _isKo
-            ? '훈련이나 시합, 계획을 남기면 날짜별 다이어리 페이지가 자동으로 만들어집니다.'
-            : 'Once you add a training note, match, or plan, this screen will build a diary page for that date.',
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.5),
+      title: _isKo ? '아직 만든 다이어리가 없습니다.' : 'No diary pages yet',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _isKo
+                ? '다이어리를 직접 만들기 전에는 페이지를 보여주지 않습니다. 원하는 날짜를 골라 새 페이지를 만들고, 훈련기록은 필요한 것만 스티커처럼 붙여 넣을 수 있어요.'
+                : 'Pages stay hidden until you create one yourself. Pick any date, start a page, and pin only the records you want like stickers.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: _bodyInk, height: 1.5),
+          ),
+          const SizedBox(height: 14),
+          FilledButton.icon(
+            key: const ValueKey('diary-create-first-button'),
+            onPressed: onCreateDiary,
+            icon: const Icon(Icons.add_circle_outline),
+            label: Text(_isKo ? '첫 다이어리 만들기' : 'Create first diary'),
+          ),
+        ],
       ),
     );
   }
@@ -1572,48 +1714,72 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  List<_DiaryDayData> _buildDays(
+  Map<DateTime, List<TrainingEntry>> _groupEntriesByDay(
     List<TrainingEntry> entries,
-    List<_DiaryPlan> plans,
-    Map<String, TrainingBoard> boardMap,
   ) {
-    final dayKeys = <DateTime>{};
-    final entriesByDay = <DateTime, List<TrainingEntry>>{};
-    final plansByDay = <DateTime, List<_DiaryPlan>>{};
-
+    final grouped = <DateTime, List<TrainingEntry>>{};
     for (final entry in entries) {
       final day = _normalizeDay(entry.date);
-      entriesByDay.putIfAbsent(day, () => <TrainingEntry>[]).add(entry);
-      dayKeys.add(day);
+      grouped.putIfAbsent(day, () => <TrainingEntry>[]).add(entry);
     }
+    return grouped;
+  }
+
+  Map<DateTime, List<_DiaryPlan>> _groupPlansByDay(List<_DiaryPlan> plans) {
+    final grouped = <DateTime, List<_DiaryPlan>>{};
     for (final plan in plans) {
       final day = _normalizeDay(plan.scheduledAt);
-      plansByDay.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
-      dayKeys.add(day);
+      grouped.putIfAbsent(day, () => <_DiaryPlan>[]).add(plan);
     }
+    return grouped;
+  }
 
-    final days = dayKeys.map((day) {
-      final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
-      final linkedBoards = <String, TrainingBoard>{};
-      for (final entry in dayEntries) {
-        for (final id in TrainingBoardLinkCodec.decodeBoardIds(
-          entry.drills,
-        )) {
-          final board = boardMap[id];
-          if (board != null) linkedBoards[id] = board;
-        }
-      }
-      return _DiaryDayData(
-        date: day,
-        entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
-        plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
-          ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
-        boards: linkedBoards.values.toList(growable: false)
-          ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
-      );
-    }).toList(growable: false)
+  List<_DiaryDayData> _buildDays({
+    required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, List<_DiaryPlan>> plansByDay,
+    required Map<String, TrainingBoard> boardMap,
+  }) {
+    final diaryDates = _customDiaryEntries.keys
+        .map(DateTime.tryParse)
+        .whereType<DateTime>()
+        .map(_normalizeDay)
+        .toSet();
+    final days = diaryDates
+        .map(
+          (day) => _buildDiaryDayData(
+            day: day,
+            entriesByDay: entriesByDay,
+            plansByDay: plansByDay,
+            boardMap: boardMap,
+          ),
+        )
+        .toList(growable: false)
       ..sort((a, b) => b.date.compareTo(a.date));
     return days;
+  }
+
+  _DiaryDayData _buildDiaryDayData({
+    required DateTime day,
+    required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, List<_DiaryPlan>> plansByDay,
+    required Map<String, TrainingBoard> boardMap,
+  }) {
+    final dayEntries = entriesByDay[day] ?? const <TrainingEntry>[];
+    final linkedBoards = <String, TrainingBoard>{};
+    for (final entry in dayEntries) {
+      for (final id in TrainingBoardLinkCodec.decodeBoardIds(entry.drills)) {
+        final board = boardMap[id];
+        if (board != null) linkedBoards[id] = board;
+      }
+    }
+    return _DiaryDayData(
+      date: day,
+      entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
+      plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
+      boards: linkedBoards.values.toList(growable: false)
+        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+    );
   }
 
   List<_DiaryPlan> _loadPlans() {
@@ -1698,6 +1864,107 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       context,
       text: _isKo ? '다이어리를 저장했어요.' : 'Diary saved.',
     );
+  }
+
+  Future<void> _openNewDiaryComposer({
+    required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, List<_DiaryPlan>> plansByDay,
+    required Map<String, TrainingBoard> boardMap,
+  }) async {
+    final today = _normalizeDay(DateTime.now());
+    final initialDate = _customDiaryEntries.keys
+            .map(DateTime.tryParse)
+            .whereType<DateTime>()
+            .map(_normalizeDay)
+            .contains(today)
+        ? today.add(const Duration(days: 1))
+        : today;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020, 1, 1),
+      lastDate: DateTime(2100, 12, 31),
+      locale: Locale(_isKo ? 'ko' : 'en'),
+    );
+    if (picked == null) return;
+    final normalized = _normalizeDay(picked);
+    final day = _buildDiaryDayData(
+      day: normalized,
+      entriesByDay: entriesByDay,
+      plansByDay: plansByDay,
+      boardMap: boardMap,
+    );
+    await _openDiaryComposer(day, _customDiaryForDay(normalized));
+    if (!mounted) return;
+    final orderedDays = _buildDays(
+      entriesByDay: entriesByDay,
+      plansByDay: plansByDay,
+      boardMap: boardMap,
+    );
+    final index = orderedDays.indexWhere((entry) => entry.date == normalized);
+    if (index >= 0) {
+      setState(() => _selectedDayIndex = index);
+      if (_pageController.hasClients) {
+        await _movePage(index);
+      }
+    }
+  }
+
+  _DiaryRecordStickerViewData? _resolveRecordSticker(
+    _DiaryRecordStickerData sticker,
+    _DiaryDayData day,
+  ) {
+    switch (sticker.kind) {
+      case _DiaryRecordStickerKind.training:
+        final entry = day.trainingEntries.cast<TrainingEntry?>().firstWhere(
+              (item) =>
+                  '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
+              orElse: () => null,
+            );
+        if (entry == null) return null;
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          title: _isKo
+              ? '훈련 스티커 · ${entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type}'
+              : 'Training sticker · ${entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type}',
+          summary: _trainingSummaryShort(entry),
+          icon: Icons.fitness_center_outlined,
+          tint: const Color(0xFF2F8F6A),
+        );
+      case _DiaryRecordStickerKind.match:
+        final entry = day.matchEntries.cast<TrainingEntry?>().firstWhere(
+              (item) =>
+                  '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
+              orElse: () => null,
+            );
+        if (entry == null) return null;
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          title: _isKo
+              ? '시합 스티커${entry.opponentTeam.trim().isEmpty ? '' : ' · ${entry.opponentTeam.trim()}전'}'
+              : 'Match sticker${entry.opponentTeam.trim().isEmpty ? '' : ' · vs ${entry.opponentTeam.trim()}'}',
+          summary: _matchSummary(entry),
+          icon: Icons.sports_soccer_outlined,
+          tint: const Color(0xFF2E6ECF),
+        );
+      case _DiaryRecordStickerKind.plan:
+        final plan = day.plans.cast<_DiaryPlan?>().firstWhere(
+              (item) => item?.id == sticker.refId,
+              orElse: () => null,
+            );
+        if (plan == null) return null;
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          title: _isKo
+              ? '계획 스티커 · ${plan.category}'
+              : 'Plan sticker · ${plan.category}',
+          summary: _isKo
+              ? '${_formatTime(plan.scheduledAt)} · ${plan.durationMinutes}분${plan.note.trim().isEmpty ? '' : ' · ${plan.note.trim()}'}'
+              : '${_formatTime(plan.scheduledAt)} · ${plan.durationMinutes} min${plan.note.trim().isEmpty ? '' : ' · ${plan.note.trim()}'}',
+          icon: Icons.event_note_outlined,
+          tint: const Color(0xFF97754A),
+        );
+    }
   }
 
   String _topFocus(List<TrainingEntry> entries) {
@@ -2063,6 +2330,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ? '${plan.durationMinutes}분 계획${note.isEmpty ? '' : ' - $note'}'
           : '${plan.durationMinutes} min plan${note.isEmpty ? '' : ' - $note'}',
       icon: Icons.event_note_outlined,
+      recordKind: _DiaryRecordStickerKind.plan,
+      recordRefId: plan.id,
     );
   }
 
@@ -2085,6 +2354,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ? '오늘 훈련에서 남기고 싶은 장면을 적는다.'
               : 'Write the moment you want to keep from today training.'),
       icon: Icons.fitness_center_outlined,
+      recordKind: _DiaryRecordStickerKind.training,
+      recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
     );
   }
 
@@ -2108,6 +2379,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ? '시합에서 가장 크게 남은 흐름을 적는다.'
               : 'Write the flow that stayed most from the match.'),
       icon: Icons.sports_soccer_outlined,
+      recordKind: _DiaryRecordStickerKind.match,
+      recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
     );
   }
 
@@ -2120,6 +2393,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final storyController = TextEditingController(text: initialData.story);
     var selectedMood = initialData.mood;
     final selectedStickers = <String>{...initialData.stickers};
+    final selectedRecordStickerIds = <String>{
+      ...initialData.recordStickers.map((sticker) => sticker.storageId),
+    };
     final sectionDrafts = initialData.sections.isEmpty
         ? <_DiarySectionDraft>[]
         : initialData.sections
@@ -2166,7 +2442,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       if (todoSeeds.isNotEmpty) ...[
                         const SizedBox(height: 18),
                         Text(
-                          _isKo ? '오늘 할 일에서 가져오기' : 'Pull from today tasks',
+                          _isKo ? '오늘 기록에서 가져오기' : 'Pull from today records',
                           style: _theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -2217,6 +2493,36 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
+                                    FilterChip(
+                                      key: ValueKey(
+                                        'diary-record-sticker-${seed.id}',
+                                      ),
+                                      label: Text(
+                                        _isKo
+                                            ? '기록 스티커로 붙이기'
+                                            : 'Pin as sticker',
+                                      ),
+                                      avatar: Icon(
+                                        Icons.push_pin_outlined,
+                                        size: 18,
+                                        color: _accentInk,
+                                      ),
+                                      selected: selectedRecordStickerIds
+                                          .contains(seed.id),
+                                      onSelected: (selected) {
+                                        setModalState(() {
+                                          if (selected) {
+                                            selectedRecordStickerIds.add(
+                                              seed.id,
+                                            );
+                                          } else {
+                                            selectedRecordStickerIds.remove(
+                                              seed.id,
+                                            );
+                                          }
+                                        });
+                                      },
+                                    ),
                                     OutlinedButton.icon(
                                       onPressed: () {
                                         final current =
@@ -2459,7 +2765,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        _isKo ? '스티커 붙이기' : 'Add stickers',
+                        _isKo ? '감정 스티커 붙이기' : 'Add mood stickers',
                         style: _theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -2526,6 +2832,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                       .where((section) => section.hasContent)
                                       .toList(growable: false),
                                   moodId: selectedMood.id,
+                                  recordStickers: todoSeeds
+                                      .where(
+                                        (seed) => selectedRecordStickerIds
+                                            .contains(seed.id),
+                                      )
+                                      .map(
+                                        (seed) => _DiaryRecordStickerData(
+                                          kind: seed.recordKind!,
+                                          refId: seed.recordRefId!,
+                                        ),
+                                      )
+                                      .toList(growable: false),
                                   stickers: selectedStickers.toList()..sort(),
                                   updatedAt: initialData.updatedAt,
                                 ),
@@ -3083,6 +3401,7 @@ class _CustomDiaryEntryData {
   final String story;
   final List<_CustomDiarySectionData> sections;
   final String moodId;
+  final List<_DiaryRecordStickerData> recordStickers;
   final List<String> stickers;
   final DateTime? updatedAt;
 
@@ -3091,6 +3410,7 @@ class _CustomDiaryEntryData {
     required this.story,
     required this.sections,
     required this.moodId,
+    required this.recordStickers,
     required this.stickers,
     required this.updatedAt,
   });
@@ -3100,6 +3420,7 @@ class _CustomDiaryEntryData {
         story = '',
         sections = const <_CustomDiarySectionData>[],
         moodId = _DiaryMoodPreset.calmId,
+        recordStickers = const <_DiaryRecordStickerData>[],
         stickers = const <String>[],
         updatedAt = null;
 
@@ -3107,6 +3428,7 @@ class _CustomDiaryEntryData {
       title.trim().isNotEmpty ||
       story.trim().isNotEmpty ||
       sections.any((section) => section.hasContent) ||
+      recordStickers.isNotEmpty ||
       stickers.isNotEmpty;
 
   _DiaryMoodPreset get mood => _DiaryMoodPreset.fromId(moodId);
@@ -3116,6 +3438,7 @@ class _CustomDiaryEntryData {
     String? story,
     List<_CustomDiarySectionData>? sections,
     String? moodId,
+    List<_DiaryRecordStickerData>? recordStickers,
     List<String>? stickers,
     DateTime? updatedAt,
   }) {
@@ -3124,6 +3447,7 @@ class _CustomDiaryEntryData {
       story: story ?? this.story,
       sections: sections ?? this.sections,
       moodId: moodId ?? this.moodId,
+      recordStickers: recordStickers ?? this.recordStickers,
       stickers: stickers ?? this.stickers,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -3134,6 +3458,9 @@ class _CustomDiaryEntryData {
         'story': story,
         'sections': sections.map((section) => section.toMap()).toList(),
         'moodId': moodId,
+        'recordStickers': recordStickers
+            .map((sticker) => sticker.toMap())
+            .toList(growable: false),
         'stickers': stickers,
         if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
       };
@@ -3174,6 +3501,14 @@ class _CustomDiaryEntryData {
       story: (map['story'] as String?) ?? '',
       sections: migratedSections,
       moodId: (map['moodId'] as String?) ?? _DiaryMoodPreset.calmId,
+      recordStickers: ((map['recordStickers'] as List?) ?? const <dynamic>[])
+          .whereType<Map>()
+          .map(
+            (sticker) => _DiaryRecordStickerData.fromMap(
+              sticker.cast<String, dynamic>(),
+            ),
+          )
+          .toList(growable: false),
       stickers: (map['stickers'] as List?)
               ?.map((value) => value.toString())
               .where((value) => value.trim().isNotEmpty)
@@ -3213,6 +3548,8 @@ class _DiaryTodoSeed {
   final String sectionTitle;
   final String sectionBody;
   final IconData icon;
+  final _DiaryRecordStickerKind? recordKind;
+  final String? recordRefId;
 
   const _DiaryTodoSeed({
     required this.id,
@@ -3222,6 +3559,52 @@ class _DiaryTodoSeed {
     required this.sectionTitle,
     required this.sectionBody,
     required this.icon,
+    this.recordKind,
+    this.recordRefId,
+  });
+}
+
+enum _DiaryRecordStickerKind { training, match, plan }
+
+class _DiaryRecordStickerData {
+  final _DiaryRecordStickerKind kind;
+  final String refId;
+
+  const _DiaryRecordStickerData({required this.kind, required this.refId});
+
+  String get storageId => '${kind.name}:$refId';
+
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'kind': kind.name,
+        'refId': refId,
+      };
+
+  factory _DiaryRecordStickerData.fromMap(Map<String, dynamic> map) {
+    final kindName = (map['kind'] as String?) ?? '';
+    final kind = _DiaryRecordStickerKind.values.firstWhere(
+      (value) => value.name == kindName,
+      orElse: () => _DiaryRecordStickerKind.training,
+    );
+    return _DiaryRecordStickerData(
+      kind: kind,
+      refId: (map['refId'] as String?) ?? '',
+    );
+  }
+}
+
+class _DiaryRecordStickerViewData {
+  final String id;
+  final String title;
+  final String summary;
+  final IconData icon;
+  final Color tint;
+
+  const _DiaryRecordStickerViewData({
+    required this.id,
+    required this.title,
+    required this.summary,
+    required this.icon,
+    required this.tint,
   });
 }
 
