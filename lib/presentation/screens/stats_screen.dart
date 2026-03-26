@@ -209,7 +209,7 @@ class _StatsScreenState extends State<StatsScreen> {
     );
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -345,16 +345,13 @@ class _StatsScreenState extends State<StatsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _TrainingOverviewSection(
-          entries: trainingEntries,
-          plans: plansInRange,
-          isKo: isKo,
-          range: _selectedRange,
-        ),
-        const SizedBox(height: 18),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        _StatsPanel(
+          child: _TrainingOverviewSection(
+            entries: trainingEntries,
+            plans: plansInRange,
+            isKo: isKo,
+            range: _selectedRange,
+          ),
         ),
         const SizedBox(height: 18),
         if (!canShowAverage) ...[
@@ -375,50 +372,44 @@ class _StatsScreenState extends State<StatsScreen> {
           ),
           const SizedBox(height: 12),
         ],
-        _TargetGrowthChart(
-          entries: trainingEntries,
-          ageYears: ageYears,
-          soccerYears: soccerYears,
-          isKo: isKo,
-          showAverage: canShowAverage,
-          range: _selectedRange,
+        _StatsPanel(
+          child: _TargetGrowthChart(
+            entries: trainingEntries,
+            ageYears: ageYears,
+            soccerYears: soccerYears,
+            isKo: isKo,
+            showAverage: canShowAverage,
+            range: _selectedRange,
+          ),
         ),
         const SizedBox(height: 18),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        _StatsPanel(
+          child: _BodyAndLiftingBenchmarkCard(
+            entries: trainingEntries,
+            profile: profile,
+            ageYears: ageYears,
+            isKo: isKo,
+            benchmarkService: _benchmarkService,
+            showAverage: canShowAverage,
+            onReferenceTap: canShowAverage
+                ? () => _openAverageBenchmark(
+                      context,
+                      trainingEntries,
+                      ageYears,
+                      soccerYears,
+                    )
+                : null,
+          ),
         ),
         const SizedBox(height: 18),
-        _BodyAndLiftingBenchmarkCard(
-          entries: trainingEntries,
-          profile: profile,
-          ageYears: ageYears,
-          isKo: isKo,
-          benchmarkService: _benchmarkService,
-          showAverage: canShowAverage,
-          onReferenceTap: canShowAverage
-              ? () => _openAverageBenchmark(
-                    context,
-                    trainingEntries,
-                    ageYears,
-                    soccerYears,
-                  )
-              : null,
+        _StatsPanel(child: _LiftingSummaryCard(entries: trainingEntries)),
+        const SizedBox(height: 18),
+        _StatsPanel(
+          child: _JumpRopeSummaryCard(
+            entries: trainingEntries,
+            range: _selectedRange,
+          ),
         ),
-        const SizedBox(height: 18),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
-        ),
-        const SizedBox(height: 18),
-        _LiftingSummaryCard(entries: trainingEntries),
-        const SizedBox(height: 18),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
-        ),
-        const SizedBox(height: 18),
-        _JumpRopeSummaryCard(entries: trainingEntries, range: _selectedRange),
       ],
     );
   }
@@ -446,21 +437,13 @@ class _StatsScreenState extends State<StatsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _MatchOverviewSection(entries: matchEntries, isKo: isKo),
-        const SizedBox(height: 18),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
+        _StatsPanel(
+          child: _MatchOverviewSection(entries: matchEntries, isKo: isKo),
         ),
         const SizedBox(height: 18),
-        _MatchSummaryCard(entries: matchEntries),
+        _StatsPanel(child: _MatchSummaryCard(entries: matchEntries)),
         const SizedBox(height: 18),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
-        ),
-        const SizedBox(height: 18),
-        _MatchHistorySection(entries: matchEntries),
+        _StatsPanel(child: _MatchHistorySection(entries: matchEntries)),
       ],
     );
   }
@@ -2230,6 +2213,39 @@ class _SectionTitle extends StatelessWidget {
         ),
         if (trailing != null) ...[const SizedBox(width: 8), trailing!],
       ],
+    );
+  }
+}
+
+class _StatsPanel extends StatelessWidget {
+  final Widget child;
+
+  const _StatsPanel({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.38)
+            : colorScheme.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.42),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }
