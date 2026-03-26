@@ -1617,29 +1617,42 @@ class _TrainingOverviewSection extends StatelessWidget {
           title: isKo ? '이번 기간 성장 요약' : 'Growth Summary',
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _MetricCard(
-              label: isKo ? '훈련 횟수' : 'Sessions',
-              value: isKo ? '${entries.length}회' : '${entries.length}',
-            ),
-            _MetricCard(
-              label: isKo ? '총 훈련 시간' : 'Total time',
-              value: _formatMinutesAsTime(totalMinutes, isKo: isKo),
-            ),
-            _MetricCard(
-              label: isKo ? '계획 실행률' : 'Plan execution',
-              value: executionRate == null
-                  ? (isKo ? '계획 없음' : 'No plan')
-                  : '$executionRate%',
-            ),
-            _MetricCard(
-              label: isKo ? '집중 분야' : 'Focus',
-              value: focus,
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final cardWidth = (constraints.maxWidth - 10) / 2;
+            final cards = [
+              _MetricCard(
+                label: isKo ? '훈련 횟수' : 'Sessions',
+                value: isKo ? '${entries.length}회' : '${entries.length}',
+              ),
+              _MetricCard(
+                label: isKo ? '총 훈련 시간' : 'Total time',
+                value: _formatMinutesAsTime(totalMinutes, isKo: isKo),
+              ),
+              _MetricCard(
+                label: isKo ? '계획 실행률' : 'Plan execution',
+                value: executionRate == null
+                    ? (isKo ? '계획 없음' : 'No plan')
+                    : '$executionRate%',
+              ),
+              _MetricCard(
+                label: isKo ? '집중 분야' : 'Focus',
+                value: focus,
+              ),
+            ];
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: cards
+                  .map(
+                    (card) => SizedBox(
+                      width: cardWidth,
+                      child: card,
+                    ),
+                  )
+                  .toList(growable: false),
+            );
+          },
         ),
         const SizedBox(height: 12),
         _CoachMessage(
@@ -1916,9 +1929,8 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = (MediaQuery.of(context).size.width - 42) / 2;
     return Container(
-      width: width < 150 ? double.infinity : width,
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(
