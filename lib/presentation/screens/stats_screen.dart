@@ -357,13 +357,6 @@ class _StatsScreenState extends State<StatsScreen> {
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
         ),
         const SizedBox(height: 18),
-        _TrainingSummaryCard(entries: trainingEntries),
-        const SizedBox(height: 18),
-        Divider(
-          height: 1,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
-        ),
-        const SizedBox(height: 18),
         if (!canShowAverage) ...[
           _InlineNotice(
             text: isKo
@@ -1765,61 +1758,6 @@ class _MatchOverviewSection extends StatelessWidget {
           message: isKo
               ? '${entries.length}경기 동안 개인 기록은 $playerGoals골 $playerAssists도움입니다. $direction'
               : 'Across ${entries.length} matches you produced $playerGoals goals and $playerAssists assists. $direction',
-        ),
-      ],
-    );
-  }
-}
-
-class _TrainingSummaryCard extends StatelessWidget {
-  final List<TrainingEntry> entries;
-
-  const _TrainingSummaryCard({required this.entries});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final trainingCount = entries.length;
-    final totalMinutes = entries.fold<int>(
-      0,
-      (sum, entry) => sum + entry.durationMinutes,
-    );
-    final avgIntensity = entries.isEmpty
-        ? 0
-        : (entries.fold<int>(0, (sum, entry) => sum + entry.intensity) /
-                entries.length)
-            .toStringAsFixed(1);
-    final avgCondition = entries.isEmpty
-        ? 0
-        : (entries.fold<int>(0, (sum, entry) => sum + entry.mood) /
-                entries.length)
-            .toStringAsFixed(1);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionTitle(icon: Icons.analytics_outlined, title: l10n.statsSummary),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _MetricCard(
-              label: l10n.statsTotalSessions,
-              value: Localizations.localeOf(context).languageCode == 'ko'
-                  ? '$trainingCount회'
-                  : '$trainingCount',
-            ),
-            _MetricCard(
-              label: l10n.statsTotalMinutes,
-              value: _formatMinutesAsTime(
-                totalMinutes,
-                isKo: Localizations.localeOf(context).languageCode == 'ko',
-              ),
-            ),
-            _MetricCard(label: l10n.statsAvgIntensity, value: '$avgIntensity'),
-            _MetricCard(label: l10n.statsAvgCondition, value: '$avgCondition'),
-          ],
         ),
       ],
     );
