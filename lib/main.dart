@@ -20,6 +20,7 @@ import 'application/drive_backup_service.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/app_splash_screen.dart';
 import 'presentation/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -151,14 +152,32 @@ class _EntryGate extends StatefulWidget {
 }
 
 class _EntryGateState extends State<_EntryGate> {
+  bool _showSplash = true;
+
   @override
   Widget build(BuildContext context) {
-    return HomeScreen(
-      trainingService: widget.trainingService,
-      optionRepository: widget.optionRepository,
-      localeService: widget.localeService,
-      settingsService: widget.settingsService,
-      driveBackupService: widget.driveBackupService,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      child: _showSplash
+          ? AppSplashScreen(
+              key: const ValueKey('app-splash'),
+              onCompleted: () {
+                if (!mounted) {
+                  return;
+                }
+                setState(() => _showSplash = false);
+              },
+            )
+          : HomeScreen(
+              key: const ValueKey('home-screen'),
+              trainingService: widget.trainingService,
+              optionRepository: widget.optionRepository,
+              localeService: widget.localeService,
+              settingsService: widget.settingsService,
+              driveBackupService: widget.driveBackupService,
+            ),
     );
   }
 }
