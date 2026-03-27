@@ -5,7 +5,7 @@ import 'package:football_note/presentation/screens/app_splash_screen.dart';
 import '../helpers/test_asset_bundle.dart';
 
 void main() {
-  testWidgets('AppSplashScreen renders abstract splash and completes', (
+  testWidgets('AppSplashScreen renders tunnel-to-pitch splash and completes', (
     tester,
   ) async {
     var completed = false;
