@@ -3,7 +3,6 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_motion.dart';
 
@@ -82,14 +81,17 @@ class _AppSplashScreenState extends State<AppSplashScreen>
             animation: _controller,
             builder: (context, _) {
               final t = reduceMotion ? 1.0 : _controller.value;
-              final ballEntry = Curves.easeOutCubic.transform(
+              final coreEntry = Curves.easeOutCubic.transform(
                 const Interval(0.0, 0.46).transform(t),
               );
-              final ringBurst = Curves.easeOutCubic.transform(
+              final waveBurst = Curves.easeOutCubic.transform(
                 const Interval(0.18, 0.68).transform(t),
               );
-              final shardBurst = Curves.easeOut.transform(
+              final arcSweep = Curves.easeOutCubic.transform(
                 const Interval(0.14, 0.62).transform(t),
+              );
+              final ribbonFlow = Curves.easeInOutCubic.transform(
+                const Interval(0.08, 0.82).transform(t),
               );
               final flash = Curves.easeOut.transform(
                 const Interval(0.22, 0.34).transform(t),
@@ -99,17 +101,17 @@ class _AppSplashScreenState extends State<AppSplashScreen>
               );
 
               final opacity = 1.0 - exitFade;
-              final ballScale = lerpDouble(0.28, 1.0, ballEntry)!;
-              final ballRotation = lerpDouble(-0.9, 0.0, ballEntry)!;
-              final ballLift = lerpDouble(56, 0, ballEntry)!;
-              final ballGlow = lerpDouble(0.0, 1.0, ringBurst)!;
+              final coreScale = lerpDouble(0.48, 1.0, coreEntry)!;
+              final coreRotation = lerpDouble(-0.42, 0.18, ribbonFlow)!;
+              final coreLift = lerpDouble(44, 0, coreEntry)!;
+              final energyGlow = lerpDouble(0.0, 1.0, waveBurst)!;
 
               return Opacity(
                 opacity: opacity.clamp(0.0, 1.0),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final size = constraints.biggest;
-                    final sphereSize = min(size.width * 0.56, 260.0);
+                    final artworkSize = min(size.width * 0.62, 296.0);
 
                     return Stack(
                       fit: StackFit.expand,
@@ -119,61 +121,41 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                             painter: _SplashBackgroundPainter(
                               progress: t,
                               flash: flash,
-                              ringBurst: ringBurst,
+                              waveBurst: waveBurst,
+                              ribbonFlow: ribbonFlow,
                             ),
                           ),
                         ),
                         Center(
                           child: Transform.translate(
-                            offset: Offset(0, ballLift),
+                            offset: Offset(0, coreLift),
                             child: Transform.rotate(
-                              angle: ballRotation,
+                              angle: coreRotation,
                               child: Transform.scale(
-                                scale: ballScale,
+                                scale: coreScale,
                                 child: SizedBox(
-                                  width: sphereSize,
-                                  height: sphereSize,
+                                  width: artworkSize,
+                                  height: artworkSize,
                                   child: Stack(
                                     alignment: Alignment.center,
                                     children: [
                                       IgnorePointer(
                                         child: CustomPaint(
-                                          size: Size.square(sphereSize),
-                                          painter: _ImpactHaloPainter(
-                                            glow: ballGlow,
-                                            ringBurst: ringBurst,
-                                            shardBurst: shardBurst,
+                                          size: Size.square(artworkSize),
+                                          painter: _PulseFieldPainter(
+                                            glow: energyGlow,
+                                            waveBurst: waveBurst,
+                                            arcSweep: arcSweep,
+                                            ribbonFlow: ribbonFlow,
                                           ),
                                         ),
                                       ),
-                                      DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: const Color(0xFF5EEAD4)
-                                                  .withValues(
-                                                    alpha:
-                                                        0.18 +
-                                                        (ballGlow * 0.16),
-                                                  ),
-                                              blurRadius: 48 + (ballGlow * 28),
-                                              spreadRadius: 2 + (ballGlow * 6),
-                                            ),
-                                            BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.34,
-                                              ),
-                                              blurRadius: 36,
-                                              offset: const Offset(0, 16),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: SvgPicture.asset(
-                                            'assets/images/splash_ball.svg',
-                                          ),
+                                      CustomPaint(
+                                        size: Size.square(artworkSize),
+                                        painter: _EnergyCorePainter(
+                                          glow: energyGlow,
+                                          waveBurst: waveBurst,
+                                          arcSweep: arcSweep,
                                         ),
                                       ),
                                     ],
@@ -199,12 +181,14 @@ class _AppSplashScreenState extends State<AppSplashScreen>
 class _SplashBackgroundPainter extends CustomPainter {
   final double progress;
   final double flash;
-  final double ringBurst;
+  final double waveBurst;
+  final double ribbonFlow;
 
   const _SplashBackgroundPainter({
     required this.progress,
     required this.flash,
-    required this.ringBurst,
+    required this.waveBurst,
+    required this.ribbonFlow,
   });
 
   @override
@@ -215,8 +199,8 @@ class _SplashBackgroundPainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF5EEAD4).withValues(alpha: 0.26 * ringBurst),
-          const Color(0xFF22D3EE).withValues(alpha: 0.12 * ringBurst),
+          const Color(0xFF5EEAD4).withValues(alpha: 0.24 * waveBurst),
+          const Color(0xFF22D3EE).withValues(alpha: 0.12 * waveBurst),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: center, radius: baseRadius * 3.4));
@@ -242,11 +226,10 @@ class _SplashBackgroundPainter extends CustomPainter {
       final endRadius = lerpDouble(
         startRadius + 54,
         startRadius + 124,
-        ringBurst,
+        waveBurst,
       )!;
       final start = center + Offset(cos(angle), sin(angle)) * startRadius;
-      final end =
-          center +
+      final end = center +
           Offset(cos(angle), sin(angle)) * endRadius +
           Offset(-sin(angle), cos(angle)) * (wave * 9);
 
@@ -254,8 +237,49 @@ class _SplashBackgroundPainter extends CustomPainter {
         ..strokeWidth = i.isEven ? 3.2 : 1.8
         ..color =
             (i % 3 == 0 ? const Color(0xFFF8FAFC) : const Color(0xFF67E8F9))
-                .withValues(alpha: 0.08 + (ringBurst * 0.18));
+                .withValues(alpha: 0.08 + (waveBurst * 0.18));
       canvas.drawLine(start, end, streakPaint);
+    }
+
+    final ribbonPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 3; i++) {
+      final radius = baseRadius * (1.95 + (i * 0.42));
+      final horizontalDrift = lerpDouble(
+        -size.width * 0.18,
+        size.width * 0.18,
+        ribbonFlow,
+      )!;
+      final path = Path();
+      for (var step = 0; step <= 48; step++) {
+        final x = (step / 48) * size.width;
+        final normalizedX = (x / size.width) - 0.5;
+        final y = center.dy +
+            (sin(
+                  (normalizedX * pi * (1.4 + (i * 0.32))) +
+                      (progress * pi * (1.1 + (i * 0.22))),
+                ) *
+                radius *
+                (0.18 + (i * 0.04))) +
+            (horizontalDrift * (0.16 - (i * 0.04)));
+        if (step == 0) {
+          path.moveTo(x, y);
+        } else {
+          path.lineTo(x, y);
+        }
+      }
+      ribbonPaint
+        ..strokeWidth = 1.4 + (i * 0.8)
+        ..shader = LinearGradient(
+          colors: [
+            Colors.transparent,
+            (i == 1 ? const Color(0xFFFDE68A) : const Color(0xFF67E8F9))
+                .withValues(alpha: 0.0 + (waveBurst * 0.22)),
+            Colors.transparent,
+          ],
+        ).createShader(Offset.zero & size);
+      canvas.drawPath(path, ribbonPaint);
     }
   }
 
@@ -263,64 +287,173 @@ class _SplashBackgroundPainter extends CustomPainter {
   bool shouldRepaint(covariant _SplashBackgroundPainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.flash != flash ||
-        oldDelegate.ringBurst != ringBurst;
+        oldDelegate.waveBurst != waveBurst ||
+        oldDelegate.ribbonFlow != ribbonFlow;
   }
 }
 
-class _ImpactHaloPainter extends CustomPainter {
+class _PulseFieldPainter extends CustomPainter {
   final double glow;
-  final double ringBurst;
-  final double shardBurst;
+  final double waveBurst;
+  final double arcSweep;
+  final double ribbonFlow;
 
-  const _ImpactHaloPainter({
+  const _PulseFieldPainter({
     required this.glow,
-    required this.ringBurst,
-    required this.shardBurst,
+    required this.waveBurst,
+    required this.arcSweep,
+    required this.ribbonFlow,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final radius = size.width * 0.31;
+    final radius = size.width * 0.28;
 
     final ringPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     for (var i = 0; i < 3; i++) {
-      final radiusScale = 1.1 + (i * 0.18) + (ringBurst * (0.2 + (i * 0.08)));
+      final radiusScale = 1.0 + (i * 0.24) + (waveBurst * (0.18 + (i * 0.08)));
       ringPaint
-        ..strokeWidth = i == 0 ? 4 : 2.2
+        ..strokeWidth = i == 0 ? 3.8 : 2.0
         ..color = (i == 0 ? const Color(0xFFF8FAFC) : const Color(0xFF5EEAD4))
             .withValues(alpha: (0.28 - (i * 0.06)) * glow);
       canvas.drawCircle(center, radius * radiusScale, ringPaint);
     }
 
-    final shardPaint = Paint()
+    final arcPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    const shardAngles = [-1.18, -0.62, -0.14, 0.4, 0.95, 1.54, 2.18, 2.82];
-    for (var i = 0; i < shardAngles.length; i++) {
-      final angle = shardAngles[i];
-      final start =
-          center +
-          Offset(cos(angle), sin(angle)) *
-              (radius * (1.1 + (i.isEven ? 0.04 : 0.0)));
-      final end =
-          center +
-          Offset(cos(angle), sin(angle)) *
-              (radius * (1.28 + (shardBurst * (0.48 + ((i % 3) * 0.08)))));
-      shardPaint
-        ..strokeWidth = i.isEven ? 3.6 : 2.0
-        ..color = (i.isEven ? const Color(0xFFFDE68A) : const Color(0xFF7DD3FC))
-            .withValues(alpha: 0.16 + (shardBurst * 0.34));
-      canvas.drawLine(start, end, shardPaint);
+    for (var i = 0; i < 4; i++) {
+      final arcRect = Rect.fromCircle(
+        center: center,
+        radius: radius * (1.08 + (i * 0.18) + (waveBurst * 0.08)),
+      );
+      final startAngle =
+          (-pi / 2) + (i * 0.72) + (ribbonFlow * (0.48 + (i * 0.08)));
+      final sweepAngle = (pi * (0.34 + (i * 0.08))) * arcSweep;
+      arcPaint
+        ..strokeWidth = i.isEven ? 4.0 : 2.4
+        ..color = (i.isEven ? const Color(0xFF7DD3FC) : const Color(0xFFFDE68A))
+            .withValues(alpha: 0.16 + (arcSweep * 0.24));
+      canvas.drawArc(arcRect, startAngle, sweepAngle, false, arcPaint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _ImpactHaloPainter oldDelegate) {
+  bool shouldRepaint(covariant _PulseFieldPainter oldDelegate) {
     return oldDelegate.glow != glow ||
-        oldDelegate.ringBurst != ringBurst ||
-        oldDelegate.shardBurst != shardBurst;
+        oldDelegate.waveBurst != waveBurst ||
+        oldDelegate.arcSweep != arcSweep ||
+        oldDelegate.ribbonFlow != ribbonFlow;
+  }
+}
+
+class _EnergyCorePainter extends CustomPainter {
+  final double glow;
+  final double waveBurst;
+  final double arcSweep;
+
+  const _EnergyCorePainter({
+    required this.glow,
+    required this.waveBurst,
+    required this.arcSweep,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.width * 0.2;
+
+    final shadowPaint = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 28)
+      ..color = const Color(0xFF5EEAD4).withValues(alpha: 0.22 + (glow * 0.18));
+    canvas.drawCircle(center, radius * 1.36, shadowPaint);
+
+    final coreRect = Rect.fromCircle(center: center, radius: radius);
+    final corePaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFF8FAFC).withValues(alpha: 0.98),
+          const Color(0xFFBAE6FD).withValues(alpha: 0.94),
+          const Color(0xFF22D3EE).withValues(alpha: 0.78 + (waveBurst * 0.12)),
+          const Color(0xFF0F172A).withValues(alpha: 0.88),
+        ],
+        stops: const [0.0, 0.18, 0.56, 1.0],
+      ).createShader(coreRect);
+    canvas.drawCircle(center, radius, corePaint);
+
+    final shardPaint = Paint()..style = PaintingStyle.fill;
+    const angles = [-1.9, -1.1, -0.35, 0.42, 1.18, 1.94, 2.72];
+    for (var i = 0; i < angles.length; i++) {
+      final angle = angles[i];
+      final shardCenter = center +
+          Offset(cos(angle), sin(angle)) * (radius * (0.82 + ((i % 3) * 0.08)));
+      final tangent = Offset(-sin(angle), cos(angle));
+      final normal = Offset(cos(angle), sin(angle));
+      final length = radius * (0.26 + ((i % 2) * 0.08) + (arcSweep * 0.08));
+      final width = radius * (0.08 + ((i % 3) * 0.015));
+      final path = Path()
+        ..moveTo(
+          shardCenter.dx + (normal.dx * length),
+          shardCenter.dy + (normal.dy * length),
+        )
+        ..lineTo(
+          shardCenter.dx + (tangent.dx * width),
+          shardCenter.dy + (tangent.dy * width),
+        )
+        ..lineTo(
+          shardCenter.dx - (normal.dx * length * 0.48),
+          shardCenter.dy - (normal.dy * length * 0.48),
+        )
+        ..lineTo(
+          shardCenter.dx - (tangent.dx * width),
+          shardCenter.dy - (tangent.dy * width),
+        )
+        ..close();
+      shardPaint.color =
+          (i.isEven ? const Color(0xFFF8FAFC) : const Color(0xFFFDE68A))
+              .withValues(alpha: 0.42 + (waveBurst * 0.18));
+      canvas.drawPath(path, shardPaint);
+    }
+
+    final cutPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..shader = LinearGradient(
+        colors: [
+          Colors.transparent,
+          const Color(0xFFF8FAFC).withValues(alpha: 0.46 + (glow * 0.18)),
+          Colors.transparent,
+        ],
+      ).createShader(
+        Rect.fromCenter(
+          center: center,
+          width: radius * 2.2,
+          height: radius * 1.6,
+        ),
+      );
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius * 0.7),
+      -1.1,
+      1.9,
+      false,
+      cutPaint..strokeWidth = 2.2,
+    );
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius * 0.48),
+      2.2,
+      1.4,
+      false,
+      cutPaint..strokeWidth = 1.6,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _EnergyCorePainter oldDelegate) {
+    return oldDelegate.glow != glow ||
+        oldDelegate.waveBurst != waveBurst ||
+        oldDelegate.arcSweep != arcSweep;
   }
 }
