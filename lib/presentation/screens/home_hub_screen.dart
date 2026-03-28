@@ -1098,47 +1098,214 @@ class _PriorityActionCard extends StatelessWidget {
   }
 
   (String, String, IconData) _copy() {
+    int pick(List<(String, String, IconData)> options, int salt) {
+      final now = DateTime.now();
+      final seed = (now.year * 10000) +
+          (now.month * 100) +
+          now.day +
+          (data.weeklyTrainingCount * 7) +
+          (data.streakDays * 13) +
+          (data.todayPlanCount * 17) +
+          salt;
+      return seed.abs() % options.length;
+    }
+
     switch (data.focusSignal) {
       case 'log_today':
-        return (
-          isKo
-              ? '오늘 기록 전, 남은 계획을 먼저 확인하세요.'
-              : 'Check the remaining plans before logging today.',
-          isKo ? '계획 보기' : 'Open plans',
-          Icons.event_note_outlined,
-        );
+        final options = <(String, String, IconData)>[
+          (
+            isKo
+                ? '오늘 기록 전, 남은 계획을 먼저 확인하세요.'
+                : 'Check the remaining plans before logging today.',
+            isKo ? '계획 보기' : 'Open plans',
+            Icons.event_note_outlined,
+          ),
+          (
+            isKo
+                ? '기록부터 열기 전에 오늘 예정된 훈련을 짧게 점검해 보세요.'
+                : 'Before logging, quickly review your planned sessions today.',
+            isKo ? '오늘 계획' : 'Today plans',
+            Icons.today_outlined,
+          ),
+          (
+            isKo
+                ? '지금 해야 할 훈련이 남아 있으면 먼저 체크하고 시작해요.'
+                : 'If any session is still pending, check it first and start.',
+            isKo ? '남은 계획' : 'Pending plans',
+            Icons.checklist_rtl_outlined,
+          ),
+          (
+            isKo
+                ? '훈련 기록 품질은 계획 확인부터 시작됩니다. 먼저 훑어보세요.'
+                : 'Higher quality logs start with checking the plan first.',
+            isKo ? '일정 확인' : 'Review schedule',
+            Icons.schedule_outlined,
+          ),
+          (
+            isKo
+                ? '오늘 할 일을 먼저 정리하면 기록이 더 간결해집니다.'
+                : 'Clarifying today tasks first makes your logs cleaner.',
+            isKo ? '할 일 확인' : 'Check tasks',
+            Icons.fact_check_outlined,
+          ),
+        ];
+        return options[pick(options, 11)];
       case 'add_session':
-        return (
-          isKo
-              ? '주간 흐름을 보고 다음 세션을 추가하세요.'
-              : 'Review the weekly flow before adding another session.',
-          isKo ? '주간 통계 보기' : 'Open weekly stats',
-          Icons.bar_chart_outlined,
-        );
+        final options = <(String, String, IconData)>[
+          (
+            isKo
+                ? '주간 흐름을 보고 다음 세션을 추가하세요.'
+                : 'Review the weekly flow before adding another session.',
+            isKo ? '주간 통계 보기' : 'Open weekly stats',
+            Icons.bar_chart_outlined,
+          ),
+          (
+            isKo
+                ? '이번 주 누락된 구간을 확인하고 다음 훈련을 채워보세요.'
+                : 'Find this week gaps and fill them with your next session.',
+            isKo ? '누락 확인' : 'Find gaps',
+            Icons.insights_outlined,
+          ),
+          (
+            isKo
+                ? '연속 훈련 흐름을 이어가려면 지금 다음 세션을 잡는 게 좋아요.'
+                : 'To keep momentum, set the next session now.',
+            isKo ? '다음 세션' : 'Next session',
+            Icons.trending_up_outlined,
+          ),
+          (
+            isKo
+                ? '주간 밸런스를 보고 부족한 유형 훈련을 추가해보세요.'
+                : 'Check weekly balance and add the missing type of session.',
+            isKo ? '밸런스 보기' : 'View balance',
+            Icons.balance_outlined,
+          ),
+          (
+            isKo
+                ? '지금 한 번 더 세션을 잡아두면 주말 몰아치기를 줄일 수 있어요.'
+                : 'Adding one session now prevents weekend overload.',
+            isKo ? '세션 추가' : 'Add session',
+            Icons.add_task_outlined,
+          ),
+        ];
+        return options[pick(options, 23)];
       case 'add_minutes':
-        return (
-          isKo
-              ? '다음 훈련 길이는 보드에서 먼저 잡아두세요.'
-              : 'Shape the next longer session on the board first.',
-          isKo ? '훈련판 열기' : 'Open board',
-          Icons.developer_board_outlined,
-        );
+        final options = <(String, String, IconData)>[
+          (
+            isKo
+                ? '다음 훈련 길이는 보드에서 먼저 잡아두세요.'
+                : 'Shape the next longer session on the board first.',
+            isKo ? '훈련판 열기' : 'Open board',
+            Icons.developer_board_outlined,
+          ),
+          (
+            isKo
+                ? '시간을 늘리고 싶다면 보드에서 흐름 3단계만 먼저 설계해보세요.'
+                : 'If you want longer minutes, sketch 3 phases on the board first.',
+            isKo ? '보드 설계' : 'Sketch flow',
+            Icons.route_outlined,
+          ),
+          (
+            isKo
+                ? '보드에 시작-전개-마무리만 잡아도 훈련 시간이 자연스럽게 늘어요.'
+                : 'Defining start-build-finish on board naturally extends session time.',
+            isKo ? '흐름 만들기' : 'Build sequence',
+            Icons.schema_outlined,
+          ),
+          (
+            isKo
+                ? '오늘은 보드 한 장으로 훈련 길이 목표를 먼저 고정해보세요.'
+                : 'Lock today time target with one board layout first.',
+            isKo ? '목표 고정' : 'Lock target',
+            Icons.push_pin_outlined,
+          ),
+          (
+            isKo
+                ? '긴 훈련은 즉흥보다 설계가 중요해요. 보드부터 열어보세요.'
+                : 'Long sessions need structure. Open board before starting.',
+            isKo ? '보드 먼저' : 'Board first',
+            Icons.view_quilt_outlined,
+          ),
+        ];
+        return options[pick(options, 37)];
       case 'recovery':
-        return (
-          isKo
-              ? '최근 컨디션 흐름을 보고 강도를 조절하세요.'
-              : 'Review the recent condition trend before adjusting load.',
-          isKo ? '주간 통계 보기' : 'Open weekly stats',
-          Icons.monitor_heart_outlined,
-        );
+        final options = <(String, String, IconData)>[
+          (
+            isKo
+                ? '최근 컨디션 흐름을 보고 강도를 조절하세요.'
+                : 'Review the recent condition trend before adjusting load.',
+            isKo ? '주간 통계 보기' : 'Open weekly stats',
+            Icons.monitor_heart_outlined,
+          ),
+          (
+            isKo
+                ? '회복 지표를 보고 오늘 강도를 한 단계 조정해 보세요.'
+                : 'Check recovery signals and tune today intensity by one level.',
+            isKo ? '회복 확인' : 'Check recovery',
+            Icons.health_and_safety_outlined,
+          ),
+          (
+            isKo
+                ? '컨디션이 흔들리면 양보다 품질로 전환하는 게 좋습니다.'
+                : 'If condition dips, shift from volume to quality.',
+            isKo ? '컨디션 보기' : 'View condition',
+            Icons.favorite_outline,
+          ),
+          (
+            isKo
+                ? '회복 흐름 점검 후 세션 길이를 재조정해 보세요.'
+                : 'After recovery review, rebalance session duration.',
+            isKo ? '흐름 점검' : 'Review trend',
+            Icons.query_stats_outlined,
+          ),
+          (
+            isKo
+                ? '강도 조절은 데이터 기반이 가장 안전해요. 통계를 확인하세요.'
+                : 'Data-first load adjustment is safest. Open stats.',
+            isKo ? '통계 열기' : 'Open stats',
+            Icons.stacked_line_chart_outlined,
+          ),
+        ];
+        return options[pick(options, 53)];
       default:
-        return (
-          isKo
-              ? '보상 확인 후 다음 훈련 흐름을 바로 잡아보세요.'
-              : 'Review rewards, then shape the next training flow.',
-          isKo ? '레벨 가이드' : 'Level guide',
-          Icons.military_tech_outlined,
-        );
+        final options = <(String, String, IconData)>[
+          (
+            isKo
+                ? '보상 확인 후 다음 훈련 흐름을 바로 잡아보세요.'
+                : 'Review rewards, then shape the next training flow.',
+            isKo ? '레벨 가이드' : 'Level guide',
+            Icons.military_tech_outlined,
+          ),
+          (
+            isKo
+                ? '지금 성장 포인트를 확인하고 오늘 목표를 짧게 정해보세요.'
+                : 'Check growth points and set a short goal for today.',
+            isKo ? '성장 보기' : 'View growth',
+            Icons.auto_graph_outlined,
+          ),
+          (
+            isKo
+                ? '레벨 진행 상황을 보면 다음 훈련 우선순위가 선명해집니다.'
+                : 'Level progress clarifies your next training priority.',
+            isKo ? '진행 확인' : 'Check progress',
+            Icons.flag_circle_outlined,
+          ),
+          (
+            isKo
+                ? '보상 화면에서 다음 동기 포인트를 잡아보세요.'
+                : 'Use reward view to lock your next motivation point.',
+            isKo ? '보상 보기' : 'Open rewards',
+            Icons.emoji_events_outlined,
+          ),
+          (
+            isKo
+                ? '오늘은 레벨 가이드를 보고 훈련 방향을 1개만 정해보세요.'
+                : 'Open level guide and choose one training direction today.',
+            isKo ? '가이드 열기' : 'Open guide',
+            Icons.explore_outlined,
+          ),
+        ];
+        return options[pick(options, 71)];
     }
   }
 }
