@@ -2951,7 +2951,6 @@ class _DiaryFortune {
     final lines = <String>[
       ...bodyLines,
       ...luckyInfoLines,
-      if (recommendation.trim().isNotEmpty) recommendation.trim(),
     ];
     if (lines.isEmpty) return '';
     if (lines.length == 1) return lines.first;
@@ -2962,10 +2961,6 @@ class _DiaryFortune {
     final lines = <String>[
       ...bodyLines,
       ...luckyInfoLines,
-      if (recommendation.trim().isNotEmpty)
-        isKo
-            ? '다음 한 걸음: ${recommendation.trim()}'
-            : 'Next step: ${recommendation.trim()}',
     ];
     return lines.join('\n');
   }
@@ -2984,7 +2979,7 @@ class _DiaryFortune {
     final generated = _GeneratedDiaryFortuneText.fromEntry(entry, isKo);
     return _DiaryFortune(
       entryDate: entry.date,
-      bodyLines: [...bodyLines, ...generated.bodyLines],
+      bodyLines: bodyLines,
       luckyInfoLines: [...luckyInfoLines, ...generated.luckyInfoLines],
       recommendation: entry.fortuneRecommendation.trim().isNotEmpty
           ? entry.fortuneRecommendation
