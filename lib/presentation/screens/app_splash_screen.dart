@@ -17,8 +17,8 @@ class AppSplashScreen extends StatefulWidget {
 
 class _AppSplashScreenState extends State<AppSplashScreen>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 340);
-  static const _reducedMotionDelay = Duration(milliseconds: 80);
+  static const _duration = Duration(milliseconds: 2000);
+  static const _reducedMotionDelay = Duration(milliseconds: 600);
 
   late final AnimationController _controller;
   Timer? _completionTimer;
