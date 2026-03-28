@@ -151,6 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _resultChip(
                                 label:
                                     '${isKo ? 'MBTI' : 'MBTI'} · ${mbtiSummary.title.trim()}',
+                                onTap: () => _openProfileTestsScreen(context),
                               ),
                             if (positionSummary.title.trim().isNotEmpty)
                               _resultChip(
@@ -283,19 +284,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _resultChip({required String label}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
+  Widget _resultChip({required String label, VoidCallback? onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.w700,
-            ),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
       ),
     );
   }
