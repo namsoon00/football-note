@@ -1137,32 +1137,178 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final weakest =
         recap.weakestCategory?.label(isKo) ?? (isKo ? '기본기' : 'basics');
     final reviewCount = _resumeSummary.pendingWrongCount;
-    return [
+    final now = DateTime.now();
+    final accuracy =
+        _questions.isEmpty ? 0.0 : (_score / _questions.length).clamp(0.0, 1.0);
+    final avgSeconds =
+        _answerCount == 0 ? 8.0 : (_responseMillisSum / _answerCount) / 1000;
+    final timeoutRate = _questions.isEmpty
+        ? 0.0
+        : (_timeouts / _questions.length).clamp(0.0, 1.0);
+    final seedBase = (_score * 31) +
+        (_timeouts * 17) +
+        (_bestStreak * 13) +
+        (_bestComboRun * 7) +
+        (_wrongIds.length * 5) +
+        (_mode.index * 3) +
+        (now.month * 37) +
+        now.day;
+
+    int pickIndex(int length, int salt) {
+      if (length <= 1) return 0;
+      return (seedBase + salt).abs() % length;
+    }
+
+    _QuizSuggestionItem pickItem(List<_QuizSuggestionItem> items, int salt) {
+      return items[pickIndex(items.length, salt)];
+    }
+
+    final focusPool = <_QuizSuggestionItem>[
       _QuizSuggestionItem(
         icon: Icons.center_focus_strong_outlined,
-        title: isKo ? '$weakest 집중 세트' : '$weakest focus set',
+        title: isKo ? '$weakest 5문제 압축' : '$weakest 5Q compression',
         body: isKo
-            ? '$weakest 카테고리만 짧게 다시 풀면 바로 체감이 오는 구간입니다.'
-            : 'A short retry centered on $weakest should give the quickest lift.',
+            ? '지금은 범위를 넓히기보다 $weakest 문제 5개를 연속으로 잡는 게 가장 빠릅니다.'
+            : 'Right now, 5 straight questions in $weakest is the fastest gain.',
       ),
+      _QuizSuggestionItem(
+        icon: Icons.track_changes_outlined,
+        title: isKo ? '$weakest 한 번 더' : 'One more on $weakest',
+        body: isKo
+            ? '$weakest만 다시 풀고 끝내면, 다음 세션 첫 3문제 정확도가 확실히 올라갑니다.'
+            : 'A short $weakest rerun boosts the first 3 questions next session.',
+      ),
+      _QuizSuggestionItem(
+        icon: Icons.flag_outlined,
+        title: isKo ? '$weakest 기준 세우기' : 'Set a $weakest baseline',
+        body: isKo
+            ? '$weakest 카테고리에서 3연속 정답만 먼저 만들고 난도를 올려보세요.'
+            : 'Build a 3-correct streak in $weakest, then raise difficulty.',
+      ),
+    ];
+
+    final reviewPool = <_QuizSuggestionItem>[
       _QuizSuggestionItem(
         icon: Icons.rule_folder_outlined,
-        title: isKo ? '오답 복습 큐 정리' : 'Clear the review queue',
+        title: isKo ? '오답 큐 우선 정리' : 'Clear review queue first',
         body: reviewCount > 0
             ? (isKo
-                ? '지금 복습 대기 중인 $reviewCount문제를 정리하면 내일 세트의 완성도가 올라갑니다.'
-                : 'Clearing the $reviewCount queued review questions will sharpen tomorrow’s set.')
+                ? '복습 대기 $reviewCount문제를 먼저 비우면 다음 세트의 체감 난이도가 내려갑니다.'
+                : 'Clearing $reviewCount queued misses lowers the felt difficulty next run.')
             : (isKo
-                ? '이번 세션 오답은 자동으로 복습 큐에 들어갔습니다. 내일 다시 확인해보세요.'
-                : 'This session’s misses were added to the delayed review queue for tomorrow.'),
+                ? '이번 오답은 복습 큐로 저장됐어요. 다음 세션 시작 전에 3개만 확인해보세요.'
+                : 'Misses are queued for review. Check just 3 before the next session.'),
       ),
       _QuizSuggestionItem(
-        icon: Icons.bolt_outlined,
-        title: isKo ? '재도전 동선' : 'Best replay path',
+        icon: Icons.replay_circle_filled_outlined,
+        title: isKo ? '오답 3개 재도전' : 'Retry 3 missed questions',
         body: isKo
-            ? '집중 모드 한 번 뒤에 챌린지 모드로 넘어가면 다시 풀어도 덜 지루하고 성장이 잘 보입니다.'
-            : 'Run one focus set first, then move into challenge mode for a less repetitive replay.',
+            ? '틀린 문제를 전부 보지 말고, 오늘은 핵심 오답 3개만 정확히 잡아보세요.'
+            : 'Skip full review. Lock in the top 3 misses today.',
       ),
+      _QuizSuggestionItem(
+        icon: Icons.fact_check_outlined,
+        title: isKo ? '정답 근거 말하기' : 'Explain the answer out loud',
+        body: isKo
+            ? '오답 복습할 때 정답만 보지 말고, 왜 맞는지 한 문장으로 말해보세요.'
+            : 'During review, speak one sentence on why the answer is right.',
+      ),
+    ];
+
+    final tempoPool = <_QuizSuggestionItem>[
+      _QuizSuggestionItem(
+        icon: Icons.bolt_outlined,
+        title: isKo ? '속도 리듬 조정' : 'Tune your response tempo',
+        body: avgSeconds >= 7.0
+            ? (isKo
+                ? '답을 확신한 뒤 2초 안에 선택하는 루틴으로 평균 응답 시간을 줄여보세요.'
+                : 'After confidence, commit within 2 seconds to cut response time.')
+            : (isKo
+                ? '지금 속도는 좋습니다. 동일 속도에서 오답률만 낮추는 데 집중해보세요.'
+                : 'Speed is strong. Keep tempo and target fewer mistakes.'),
+      ),
+      _QuizSuggestionItem(
+        icon: Icons.timer_outlined,
+        title: isKo ? '타임아웃 줄이기' : 'Cut timeout risk',
+        body: timeoutRate >= 0.18
+            ? (isKo
+                ? '타임아웃이 잦아요. 확신이 낮으면 먼저 소거법으로 2개부터 지워보세요.'
+                : 'Timeouts are frequent. Use elimination quickly to remove 2 options first.')
+            : (isKo
+                ? '타임아웃 관리가 좋아요. 이제 첫 반응의 정확도를 높여보세요.'
+                : 'Timeout control is solid. Now improve first-response accuracy.'),
+      ),
+      _QuizSuggestionItem(
+        icon: Icons.speed_outlined,
+        title: isKo ? '10초 루틴' : '10-second routine',
+        body: isKo
+            ? '문제 읽기 4초, 판단 4초, 확인 2초 루틴으로 속도와 정확도를 함께 잡아보세요.'
+            : 'Use a 4-4-2 routine: read 4s, decide 4s, verify 2s.',
+      ),
+    ];
+
+    final pathPool = <_QuizSuggestionItem>[
+      _QuizSuggestionItem(
+        icon: Icons.route_outlined,
+        title: isKo ? '다음 플레이 순서' : 'Next session path',
+        body: isKo
+            ? '약점 집중 1세트 후 챌린지 1세트로 이어가면 지루함 없이 성장이 보입니다.'
+            : 'One focus set then one challenge set gives cleaner progression.',
+      ),
+      _QuizSuggestionItem(
+        icon: Icons.sports_soccer_outlined,
+        title: isKo ? '실전 전환 루트' : 'Match-transfer route',
+        body: isKo
+            ? '오늘 퀴즈에서 틀린 장면을 훈련노트에 1줄로 남기면 실전 연결이 빨라집니다.'
+            : 'Write one missed scenario in your note to transfer faster to play.',
+      ),
+      _QuizSuggestionItem(
+        icon: Icons.auto_graph_outlined,
+        title: isKo ? '누적 성장 루트' : 'Stacked growth route',
+        body: isKo
+            ? '오늘은 정확도, 내일은 속도처럼 하루 목표를 나누면 체감 성장폭이 커집니다.'
+            : 'Split goals by day (accuracy today, speed tomorrow) for clearer gains.',
+      ),
+    ];
+
+    final confidencePool = <_QuizSuggestionItem>[
+      _QuizSuggestionItem(
+        icon: Icons.workspace_premium_outlined,
+        title: isKo ? '현재 폼 평가' : 'Current form check',
+        body: accuracy >= 0.8
+            ? (isKo
+                ? '지금은 상위 구간입니다. 새 문제를 늘리기보다 실수 1개 줄이기에 집중하세요.'
+                : 'You are in a high band. Prioritize reducing one mistake.')
+            : accuracy >= 0.6
+                ? (isKo
+                    ? '중간 구간입니다. 약점 카테고리 집중이 성장을 가장 빠르게 만듭니다.'
+                    : 'Mid band now. Weak-category focus gives the fastest lift.')
+                : (isKo
+                    ? '기초 재정렬 구간입니다. 짧게 자주 풀어 리듬부터 회복하세요.'
+                    : 'Rebuild phase. Go short and frequent to recover rhythm.'),
+      ),
+      _QuizSuggestionItem(
+        icon: Icons.psychology_alt_outlined,
+        title: isKo ? '판단 습관 점검' : 'Decision habit check',
+        body: isKo
+            ? '헷갈리는 문제는 답을 바꾸기보다 첫 판단 근거를 먼저 확인해보세요.'
+            : 'On tricky items, verify your first rationale before switching answers.',
+      ),
+      _QuizSuggestionItem(
+        icon: Icons.lightbulb_outline,
+        title: isKo ? '오늘의 핵심 한 줄' : 'One-line takeaway',
+        body: isKo
+            ? '오늘 가장 자주 헷갈린 포인트를 한 줄로 남기면 재발률이 크게 줄어듭니다.'
+            : 'Keep one line on your most repeated confusion to cut repeat errors.',
+      ),
+    ];
+
+    return [
+      pickItem(focusPool, 11),
+      pickItem(reviewPool, 29),
+      pickItem(tempoPool, 47),
+      pickItem(pathPool, 71),
+      pickItem(confidencePool, 97),
     ];
   }
 
