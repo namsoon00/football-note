@@ -17,8 +17,8 @@ class AppSplashScreen extends StatefulWidget {
 
 class _AppSplashScreenState extends State<AppSplashScreen>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 1280);
-  static const _reducedMotionDelay = Duration(milliseconds: 420);
+  static const _duration = Duration(milliseconds: 760);
+  static const _reducedMotionDelay = Duration(milliseconds: 240);
 
   late final AnimationController _controller;
   Timer? _completionTimer;
@@ -70,22 +70,22 @@ class _AppSplashScreenState extends State<AppSplashScreen>
         builder: (context, _) {
           final t = reducedMotion ? 1.0 : _controller.value;
           final doorOpen = Curves.easeInOutCubic.transform(
-            const Interval(0.02, 0.58).transform(t),
+            const Interval(0.0, 0.54).transform(t),
           );
           final gateZoom = Curves.easeInExpo.transform(
-            const Interval(0.0, 0.74).transform(t),
+            const Interval(0.0, 0.66).transform(t),
           );
           final lightBurst = Curves.easeOutCubic.transform(
-            const Interval(0.08, 0.86).transform(t),
+            const Interval(0.06, 0.78).transform(t),
           );
           final fieldReveal = Curves.easeOutCubic.transform(
-            const Interval(0.1, 0.92).transform(t),
+            const Interval(0.08, 0.84).transform(t),
           );
           final rush = Curves.easeInCubic.transform(
-            const Interval(0.0, 0.76).transform(t),
+            const Interval(0.0, 0.68).transform(t),
           );
           final fadeOut = Curves.easeIn.transform(
-            const Interval(0.87, 1.0).transform(t),
+            const Interval(0.76, 1.0).transform(t),
           );
 
           return Opacity(
@@ -130,9 +130,8 @@ class _GateSplashPainter extends CustomPainter {
     final rect = Offset.zero & size;
     _paintBackdrop(canvas, rect);
 
-    final sway = sin(progress * pi * 5.0) * size.width * 0.005 * (1 - rush);
     final gateCenter = Offset(
-      (size.width * 0.5) + sway,
+      size.width * 0.5,
       lerpDouble(size.height * 0.56, size.height * 0.46, rush)!,
     );
     final gateWidth =
