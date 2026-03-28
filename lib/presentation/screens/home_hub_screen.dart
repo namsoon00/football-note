@@ -212,7 +212,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     ],
                     const SizedBox(height: 12),
                     _PriorityActionCard(
-                      data: data,
                       focusSignal: priorityFocusSignal,
                       l10n: AppLocalizations.of(context)!,
                       isKo: isKo,
@@ -226,11 +225,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         AppLocalizations.of(context)!,
                       ),
                       weatherLoading: _weatherLoading,
-                      onWeatherRefresh: () =>
-                          _loadHomeWeather(requestPermission: true),
                       onPrimaryTap: _trackedPriorityAction(
                         priorityFocusSignal,
-                        priorityFocusSignal == 'log_today'
+                        priorityFocusSignal == 'weather'
+                            ? () => _loadHomeWeather(requestPermission: true)
+                            : priorityFocusSignal == 'log_today'
                             ? widget.onOpenPlans
                             : priorityFocusSignal == 'add_session'
                             ? widget.onOpenWeeklyStats
@@ -647,6 +646,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   List<String> _priorityFocusCandidates(_HomeHubData data) {
     final ordered = <String>[
       data.focusSignal,
+      if (data.focusSignal != 'weather') 'weather',
       if (data.focusSignal != 'log_today') 'log_today',
       if (data.focusSignal != 'add_session') 'add_session',
       if (data.focusSignal != 'add_minutes') 'add_minutes',
@@ -1329,7 +1329,6 @@ class _DailyFlowCard extends StatelessWidget {
 }
 
 class _PriorityActionCard extends StatelessWidget {
-  final _HomeHubData data;
   final String focusSignal;
   final AppLocalizations l10n;
   final bool isKo;
@@ -1337,11 +1336,9 @@ class _PriorityActionCard extends StatelessWidget {
   final String weatherSummary;
   final String weatherSuggestion;
   final bool weatherLoading;
-  final VoidCallback onWeatherRefresh;
   final VoidCallback? onPrimaryTap;
 
   const _PriorityActionCard({
-    required this.data,
     required this.focusSignal,
     required this.l10n,
     required this.isKo,
@@ -1349,15 +1346,13 @@ class _PriorityActionCard extends StatelessWidget {
     required this.weatherSummary,
     required this.weatherSuggestion,
     required this.weatherLoading,
-    required this.onWeatherRefresh,
     required this.onPrimaryTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final (message, buttonLabel, icon) = _copy();
-    final hasWeather = weatherSummary.trim().isNotEmpty;
+    final (message, buttonLabel, icon, supportingText) = _copy();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1391,13 +1386,31 @@ class _PriorityActionCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  message,
-                  maxLines: 2,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    height: 1.25,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      maxLines: 2,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.25,
+                      ),
+                    ),
+                    if (supportingText != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        supportingText,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          height: 1.35,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
@@ -1420,111 +1433,25 @@ class _PriorityActionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.52),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.cloud_outlined,
-                    color: theme.colorScheme.primary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.homeWeatherTitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            weatherLocation,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        weatherLoading
-                            ? l10n.homeWeatherLoading
-                            : hasWeather
-                            ? weatherSummary
-                            : l10n.homeWeatherUnavailable,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        weatherSuggestion,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          height: 1.35,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filledTonal(
-                  onPressed: weatherLoading ? null : onWeatherRefresh,
-                  tooltip: l10n.homeWeatherLoad,
-                  icon: Icon(
-                    hasWeather
-                        ? Icons.refresh_rounded
-                        : Icons.my_location_rounded,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
 
-  (String, String, IconData) _copy() {
+  (String, String, IconData, String?) _copy() {
+    final hasWeather = weatherSummary.trim().isNotEmpty;
     switch (focusSignal) {
+      case 'weather':
+        return (
+          weatherLoading
+              ? l10n.homeWeatherLoading
+              : hasWeather
+              ? '${l10n.homeWeatherTitle} · $weatherLocation'
+              : l10n.homeWeatherUnavailable,
+          l10n.homeWeatherLoad,
+          hasWeather ? Icons.cloud_outlined : Icons.my_location_rounded,
+          hasWeather ? '$weatherSummary\n$weatherSuggestion' : null,
+        );
       case 'log_today':
         return (
           isKo
@@ -1532,6 +1459,7 @@ class _PriorityActionCard extends StatelessWidget {
               : 'Check the remaining plans before logging today.',
           isKo ? '계획 보기' : 'Open plans',
           Icons.event_note_outlined,
+          null,
         );
       case 'add_session':
         return (
@@ -1540,6 +1468,7 @@ class _PriorityActionCard extends StatelessWidget {
               : 'Review the weekly flow before adding another session.',
           isKo ? '주간 통계 보기' : 'Open weekly stats',
           Icons.bar_chart_outlined,
+          null,
         );
       case 'add_minutes':
         return (
@@ -1548,6 +1477,7 @@ class _PriorityActionCard extends StatelessWidget {
               : 'Shape the next longer session on the board first.',
           isKo ? '훈련판 열기' : 'Open board',
           Icons.developer_board_outlined,
+          null,
         );
       case 'recovery':
         return (
@@ -1556,6 +1486,7 @@ class _PriorityActionCard extends StatelessWidget {
               : 'Review the recent condition trend before adjusting load.',
           isKo ? '주간 통계 보기' : 'Open weekly stats',
           Icons.monitor_heart_outlined,
+          null,
         );
       default:
         return (
@@ -1564,6 +1495,7 @@ class _PriorityActionCard extends StatelessWidget {
               : 'Review rewards, then shape the next training flow.',
           isKo ? '레벨 가이드' : 'Level guide',
           Icons.military_tech_outlined,
+          null,
         );
     }
   }
