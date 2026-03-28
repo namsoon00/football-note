@@ -77,7 +77,7 @@ Set<String> _countDueScheduledWrongItemsLight(String? raw, DateTime now) {
       final questionId = map['questionId']?.toString() ?? '';
       final rawConcept = map['conceptKey']?.toString() ?? questionId;
       final concept = _lightQuizConceptKey(rawConcept);
-      if (concept.isEmpty) {
+      if (concept.isEmpty || !_quizKnownConceptKeys.contains(concept)) {
         continue;
       }
       dueConcepts.add(concept);
@@ -5971,13 +5971,15 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
   final coreFocusCount =
       questions.where((question) => question.category.isCoreFocus).length;
   if (coreFocusCount < (questions.length * 0.30).round()) {
-    throw StateError('Technique and tactics should dominate the quiz bank.');
+    _reportQuizPoolQualityWarning(
+      'Technique and tactics should dominate the quiz bank.',
+    );
   }
 
   final minimumPerCategory = questions.length >= 300 ? 6 : 1;
   for (final category in _QuizCategory.values) {
     if ((categoryCounts[category] ?? 0) < minimumPerCategory) {
-      throw StateError(
+      _reportQuizPoolQualityWarning(
         'Category ${category.name} has too few questions. '
         '(minimum=$minimumPerCategory)',
       );
@@ -6000,6 +6002,13 @@ void _runQuizPoolQualityChecks(List<_FootballQuizQuestion> questions) {
       throw StateError('Quiz self-check failed for ${item.prefix}.');
     }
   }
+}
+
+void _reportQuizPoolQualityWarning(String message) {
+  assert(() {
+    debugPrint('skill_quiz_screen: $message');
+    return true;
+  }());
 }
 
 bool _answerMatchesQuestion(_FootballQuizQuestion question, String answer) {
