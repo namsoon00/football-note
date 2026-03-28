@@ -105,6 +105,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   Timer? _speedTimer;
   int _speedLeft = _speedLimitSec;
   _AnswerFx _answerFx = _AnswerFx.none;
+  int _suggestionRound = 0;
+  final Set<String> _seenSuggestionIds = <String>{};
 
   @override
   void initState() {
@@ -341,6 +343,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _wrongIds.clear();
       _speedLeft = _speedLimitSec;
       _answerFx = _AnswerFx.none;
+      _suggestionRound = 0;
+      _seenSuggestionIds.clear();
     });
     _shortAnswerController.clear();
     _pendingResumeSnapshot = null;
@@ -939,7 +943,12 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         : ((_responseMillisSum / _answerCount) / 1000).toStringAsFixed(1);
     final recap = _buildResultRecap();
     final categoryStats = _sessionCategoryStats();
-    final suggestions = _buildSuggestionItems(recap, isKo);
+    final suggestions = _buildSuggestionItems(
+      recap,
+      isKo,
+      round: _suggestionRound,
+      excludedIds: _seenSuggestionIds,
+    );
     final wrongQuestions = _questions
         .where((question) => _wrongIds.contains(question.id))
         .toList(growable: false);
@@ -1080,6 +1089,26 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             child: _SuggestionCard(data: item),
           ),
         ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () {
+              setState(() {
+                final currentIds = suggestions.map((item) => item.id).toSet();
+                if (_seenSuggestionIds.length >= 15) {
+                  _seenSuggestionIds
+                    ..clear()
+                    ..addAll(currentIds);
+                } else {
+                  _seenSuggestionIds.addAll(currentIds);
+                }
+                _suggestionRound += 1;
+              });
+            },
+            icon: const Icon(Icons.refresh_outlined),
+            label: Text(isKo ? '다른 제안 보기' : 'Show other suggestions'),
+          ),
+        ),
         const SizedBox(height: 8),
         if (wrongQuestions.isNotEmpty) ...[
           Text(
@@ -1132,8 +1161,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
   List<_QuizSuggestionItem> _buildSuggestionItems(
     _QuizResultRecap recap,
-    bool isKo,
-  ) {
+    bool isKo, {
+    required int round,
+    required Set<String> excludedIds,
+  }) {
     final weakest =
         recap.weakestCategory?.label(isKo) ?? (isKo ? '기본기' : 'basics');
     final reviewCount = _resumeSummary.pendingWrongCount;
@@ -1160,11 +1191,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     }
 
     _QuizSuggestionItem pickItem(List<_QuizSuggestionItem> items, int salt) {
-      return items[pickIndex(items.length, salt)];
+      final start = pickIndex(items.length, salt + (round * 23));
+      for (var i = 0; i < items.length; i++) {
+        final candidate = items[(start + i) % items.length];
+        if (!excludedIds.contains(candidate.id)) {
+          return candidate;
+        }
+      }
+      return items[start];
     }
 
     final focusPool = <_QuizSuggestionItem>[
       _QuizSuggestionItem(
+        id: 'focus_compression',
         icon: Icons.center_focus_strong_outlined,
         title: isKo ? '$weakest 5문제 압축' : '$weakest 5Q compression',
         body: isKo
@@ -1172,6 +1211,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             : 'Right now, 5 straight questions in $weakest is the fastest gain.',
       ),
       _QuizSuggestionItem(
+        id: 'focus_one_more',
         icon: Icons.track_changes_outlined,
         title: isKo ? '$weakest 한 번 더' : 'One more on $weakest',
         body: isKo
@@ -1179,6 +1219,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             : 'A short $weakest rerun boosts the first 3 questions next session.',
       ),
       _QuizSuggestionItem(
+        id: 'focus_baseline',
         icon: Icons.flag_outlined,
         title: isKo ? '$weakest 기준 세우기' : 'Set a $weakest baseline',
         body: isKo
@@ -1189,6 +1230,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     final reviewPool = <_QuizSuggestionItem>[
       _QuizSuggestionItem(
+        id: 'review_queue_first',
         icon: Icons.rule_folder_outlined,
         title: isKo ? '오답 큐 우선 정리' : 'Clear review queue first',
         body: reviewCount > 0
@@ -1200,6 +1242,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 : 'Misses are queued for review. Check just 3 before the next session.'),
       ),
       _QuizSuggestionItem(
+        id: 'review_retry_three',
         icon: Icons.replay_circle_filled_outlined,
         title: isKo ? '오답 3개 재도전' : 'Retry 3 missed questions',
         body: isKo
@@ -1207,6 +1250,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             : 'Skip full review. Lock in the top 3 misses today.',
       ),
       _QuizSuggestionItem(
+        id: 'review_explain_aloud',
         icon: Icons.fact_check_outlined,
         title: isKo ? '정답 근거 말하기' : 'Explain the answer out loud',
         body: isKo
@@ -1217,6 +1261,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     final tempoPool = <_QuizSuggestionItem>[
       _QuizSuggestionItem(
+        id: 'tempo_adjust',
         icon: Icons.bolt_outlined,
         title: isKo ? '속도 리듬 조정' : 'Tune your response tempo',
         body: avgSeconds >= 7.0
@@ -1228,6 +1273,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 : 'Speed is strong. Keep tempo and target fewer mistakes.'),
       ),
       _QuizSuggestionItem(
+        id: 'tempo_timeout_cut',
         icon: Icons.timer_outlined,
         title: isKo ? '타임아웃 줄이기' : 'Cut timeout risk',
         body: timeoutRate >= 0.18
@@ -1239,6 +1285,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                 : 'Timeout control is solid. Now improve first-response accuracy.'),
       ),
       _QuizSuggestionItem(
+        id: 'tempo_10sec_routine',
         icon: Icons.speed_outlined,
         title: isKo ? '10초 루틴' : '10-second routine',
         body: isKo
@@ -1249,6 +1296,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     final pathPool = <_QuizSuggestionItem>[
       _QuizSuggestionItem(
+        id: 'path_focus_then_challenge',
         icon: Icons.route_outlined,
         title: isKo ? '다음 플레이 순서' : 'Next session path',
         body: isKo
@@ -1256,6 +1304,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             : 'One focus set then one challenge set gives cleaner progression.',
       ),
       _QuizSuggestionItem(
+        id: 'path_match_transfer',
         icon: Icons.sports_soccer_outlined,
         title: isKo ? '실전 전환 루트' : 'Match-transfer route',
         body: isKo
@@ -1263,6 +1312,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             : 'Write one missed scenario in your note to transfer faster to play.',
       ),
       _QuizSuggestionItem(
+        id: 'path_stacked_growth',
         icon: Icons.auto_graph_outlined,
         title: isKo ? '누적 성장 루트' : 'Stacked growth route',
         body: isKo
@@ -1273,6 +1323,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     final confidencePool = <_QuizSuggestionItem>[
       _QuizSuggestionItem(
+        id: 'confidence_form_check',
         icon: Icons.workspace_premium_outlined,
         title: isKo ? '현재 폼 평가' : 'Current form check',
         body: accuracy >= 0.8
@@ -1288,6 +1339,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                     : 'Rebuild phase. Go short and frequent to recover rhythm.'),
       ),
       _QuizSuggestionItem(
+        id: 'confidence_habit_check',
         icon: Icons.psychology_alt_outlined,
         title: isKo ? '판단 습관 점검' : 'Decision habit check',
         body: isKo
@@ -1295,6 +1347,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             : 'On tricky items, verify your first rationale before switching answers.',
       ),
       _QuizSuggestionItem(
+        id: 'confidence_one_line',
         icon: Icons.lightbulb_outline,
         title: isKo ? '오늘의 핵심 한 줄' : 'One-line takeaway',
         body: isKo
@@ -1417,6 +1470,8 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _combo = 0;
       _momentum = 0;
       _speedLeft = _speedLimitSec;
+      _suggestionRound = 0;
+      _seenSuggestionIds.clear();
     });
     _shortAnswerController.clear();
   }
@@ -3040,11 +3095,13 @@ class _ResultMetricChip extends StatelessWidget {
 }
 
 class _QuizSuggestionItem {
+  final String id;
   final IconData icon;
   final String title;
   final String body;
 
   const _QuizSuggestionItem({
+    required this.id,
     required this.icon,
     required this.title,
     required this.body,
