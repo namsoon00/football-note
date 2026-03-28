@@ -24,6 +24,8 @@ import '../widgets/tab_screen_title.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
 class NewsScreen extends StatefulWidget {
+  static const String openedItemsKey = 'news_opened_items_v1';
+
   final TrainingService trainingService;
   final LocaleService localeService;
   final OptionRepository optionRepository;
@@ -1001,12 +1003,57 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       }
     }
     await _recordSourceOpen(article);
+    await _recordOpenedArticle(article);
     await launchUrl(
       uri,
       mode: LaunchMode.inAppBrowserView,
       browserConfiguration: const BrowserConfiguration(showTitle: true),
     );
   }
+
+  Future<void> _recordOpenedArticle(NewsArticle article) async {
+    final link = article.link.trim();
+    if (link.isEmpty) return;
+    final items = <Map<String, dynamic>>[];
+    final raw =
+        widget.optionRepository.getValue<String>(NewsScreen.openedItemsKey);
+    if (raw != null && raw.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is List) {
+          for (final item in decoded) {
+            if (item is Map<String, dynamic>) {
+              items.add(item);
+            } else if (item is Map) {
+              items.add(item.cast<String, dynamic>());
+            }
+          }
+        }
+      } catch (_) {
+        // Ignore malformed payload.
+      }
+    }
+    final id = _openedNewsId(link);
+    final next = items
+        .where((item) => (item['id']?.toString() ?? '') != id)
+        .toList(growable: true);
+    next.insert(0, <String, dynamic>{
+      'id': id,
+      'title': article.title.trim(),
+      'link': link,
+      'source': article.source.trim(),
+      'openedAt': DateTime.now().toIso8601String(),
+    });
+    if (next.length > 300) {
+      next.removeRange(300, next.length);
+    }
+    await widget.optionRepository.setValue(
+      NewsScreen.openedItemsKey,
+      jsonEncode(next),
+    );
+  }
+
+  String _openedNewsId(String link) => Uri.encodeComponent(link);
 
   String _displayTitle(NewsArticle article, bool isKo) {
     if (!isKo || !_titleTranslateEnabled) return article.title;
