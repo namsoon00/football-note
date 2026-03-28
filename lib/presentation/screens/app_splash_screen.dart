@@ -17,8 +17,8 @@ class AppSplashScreen extends StatefulWidget {
 
 class _AppSplashScreenState extends State<AppSplashScreen>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 1650);
-  static const _reducedMotionDelay = Duration(milliseconds: 450);
+  static const _duration = Duration(milliseconds: 1850);
+  static const _reducedMotionDelay = Duration(milliseconds: 420);
 
   late final AnimationController _controller;
   Timer? _completionTimer;
@@ -56,49 +56,45 @@ class _AppSplashScreenState extends State<AppSplashScreen>
   }
 
   void _complete() {
-    if (_completed || !mounted) {
-      return;
-    }
+    if (_completed || !mounted) return;
     _completed = true;
     widget.onCompleted();
   }
 
   @override
   Widget build(BuildContext context) {
-    final reduceMotion = AppMotion.reduceMotion(context);
-
+    final reducedMotion = AppMotion.reduceMotion(context);
     return Scaffold(
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
-          final t = reduceMotion ? 1.0 : _controller.value;
-          final lightRise = Curves.easeIn.transform(
-            const Interval(0.08, 0.78).transform(t),
+          final t = reducedMotion ? 1.0 : _controller.value;
+          final doorOpen = Curves.easeInOutCubic.transform(
+            const Interval(0.08, 0.7).transform(t),
+          );
+          final gateZoom = Curves.easeOutQuart.transform(
+            const Interval(0.0, 0.82).transform(t),
+          );
+          final lightBurst = Curves.easeOut.transform(
+            const Interval(0.22, 0.9).transform(t),
           );
           final fieldReveal = Curves.easeOutCubic.transform(
-            const Interval(0.22, 0.88).transform(t),
+            const Interval(0.18, 0.94).transform(t),
           );
-          final playerAdvance = Curves.easeInOutCubic.transform(
-            const Interval(0.0, 0.72).transform(t),
-          );
-          final haze = Curves.easeOut.transform(
-            const Interval(0.28, 0.82).transform(t),
-          );
-          final exitFade = Curves.easeIn.transform(
-            const Interval(0.82, 1.0).transform(t),
+          final fadeOut = Curves.easeIn.transform(
+            const Interval(0.84, 1.0).transform(t),
           );
 
           return Opacity(
-            opacity: 1.0 - exitFade,
-            child: SizedBox.expand(
-              child: CustomPaint(
-                painter: _TunnelSplashPainter(
-                  progress: t,
-                  lightRise: lightRise,
-                  fieldReveal: fieldReveal,
-                  playerAdvance: playerAdvance,
-                  haze: haze,
-                ),
+            opacity: 1 - fadeOut,
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: _GateSplashPainter(
+                progress: t,
+                doorOpen: doorOpen,
+                gateZoom: gateZoom,
+                lightBurst: lightBurst,
+                fieldReveal: fieldReveal,
               ),
             ),
           );
@@ -108,403 +104,268 @@ class _AppSplashScreenState extends State<AppSplashScreen>
   }
 }
 
-class _TunnelSplashPainter extends CustomPainter {
+class _GateSplashPainter extends CustomPainter {
   final double progress;
-  final double lightRise;
+  final double doorOpen;
+  final double gateZoom;
+  final double lightBurst;
   final double fieldReveal;
-  final double playerAdvance;
-  final double haze;
 
-  const _TunnelSplashPainter({
+  const _GateSplashPainter({
     required this.progress,
-    required this.lightRise,
+    required this.doorOpen,
+    required this.gateZoom,
+    required this.lightBurst,
     required this.fieldReveal,
-    required this.playerAdvance,
-    required this.haze,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final center = Offset(size.width / 2, size.height * 0.5);
-    final gateWidth = size.width * 0.36;
-    final gateHeight = size.height * 0.54;
+    _paintBackdrop(canvas, rect);
+
+    final gateCenter = Offset(size.width * 0.5, size.height * 0.48);
+    final gateWidth =
+        lerpDouble(size.width * 0.24, size.width * 2.05, gateZoom)!;
+    final gateHeight =
+        lerpDouble(size.height * 0.36, size.height * 1.7, gateZoom)!;
+
     final gateRect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height * 0.45),
+      center: gateCenter,
       width: gateWidth,
       height: gateHeight,
     );
 
-    _paintBackdrop(canvas, rect, gateRect);
-    _paintTunnel(canvas, size, gateRect);
-    _paintField(canvas, size, gateRect);
-    _paintPlayer(canvas, size, gateRect);
-    _paintAtmosphere(canvas, rect, gateRect, center);
+    final frameStroke = max(4.0, size.shortestSide * 0.016);
+    final openingWidth = gateRect.width * (0.16 + (doorOpen * 0.82));
+    final openingRect = Rect.fromCenter(
+      center: gateRect.center,
+      width: openingWidth,
+      height: gateRect.height * 0.92,
+    );
+
+    _paintFieldInside(canvas, size, openingRect);
+    _paintLight(canvas, size, openingRect);
+    _paintGateFrame(canvas, gateRect, frameStroke);
+    _paintDoorPanels(canvas, gateRect, openingRect);
+    _paintAtmosphere(canvas, rect, openingRect);
   }
 
-  void _paintBackdrop(Canvas canvas, Rect rect, Rect gateRect) {
-    final background = Paint()
-      ..shader = LinearGradient(
+  void _paintBackdrop(Canvas canvas, Rect rect) {
+    final night = Paint()
+      ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Color.lerp(
-            const Color(0xFF020304),
-            const Color(0xFF173B2E),
-            fieldReveal * 0.32,
-          )!,
-          Color.lerp(
-            const Color(0xFF05080B),
-            const Color(0xFF0E241F),
-            lightRise * 0.24,
-          )!,
-          Color.lerp(
-            const Color(0xFF070A0E),
-            const Color(0xFF10251A),
-            fieldReveal * 0.4,
-          )!,
+          Color(0xFF04070B),
+          Color(0xFF081018),
+          Color(0xFF03070C),
         ],
       ).createShader(rect);
-    canvas.drawRect(rect, background);
-
-    final beamPaint = Paint()
-      ..shader = RadialGradient(
-        center: const Alignment(0, -0.18),
-        radius: 1.05,
-        colors: [
-          Colors.white.withValues(alpha: 0.08 + (lightRise * 0.42)),
-          const Color(
-            0xFFE8FFBE,
-          ).withValues(alpha: 0.04 + (fieldReveal * 0.18)),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.26, 1.0],
-      ).createShader(rect);
-    canvas.drawRect(rect, beamPaint);
-
-    final floorShadow = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.transparent,
-          Colors.black.withValues(alpha: 0.14),
-          Colors.black.withValues(alpha: 0.42 - (fieldReveal * 0.18)),
-        ],
-      ).createShader(rect);
-    canvas.drawRect(rect, floorShadow);
-
-    final lintelPaint = Paint()
-      ..color = const Color(0xFF11161B).withValues(alpha: 0.9);
-    canvas.drawRect(
-      Rect.fromLTWH(
-        gateRect.left - sizePadding(rect.width, 0.02),
-        0,
-        gateRect.width + sizePadding(rect.width, 0.04),
-        gateRect.top,
-      ),
-      lintelPaint,
-    );
-  }
-
-  void _paintTunnel(Canvas canvas, Size size, Rect gateRect) {
-    final wallPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [
-          const Color(0xFF050608),
-          const Color(0xFF11151A).withValues(alpha: 0.94),
-          const Color(0xFF050608),
-        ],
-      ).createShader(Offset.zero & size);
-
-    final leftWall = Path()
-      ..moveTo(0, 0)
-      ..lineTo(gateRect.left, gateRect.top)
-      ..lineTo(gateRect.left, gateRect.bottom)
-      ..lineTo(0, size.height)
-      ..close();
-    final rightWall = Path()
-      ..moveTo(size.width, 0)
-      ..lineTo(gateRect.right, gateRect.top)
-      ..lineTo(gateRect.right, gateRect.bottom)
-      ..lineTo(size.width, size.height)
-      ..close();
-    canvas.drawPath(leftWall, wallPaint);
-    canvas.drawPath(rightWall, wallPaint);
-
-    final tunnelFrame = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = max(4, size.width * 0.012)
-      ..color = const Color(0xFF171C20).withValues(alpha: 0.96);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        gateRect.inflate(size.width * 0.012),
-        const Radius.circular(18),
-      ),
-      tunnelFrame,
-    );
-
-    final thresholdPaint = Paint()
-      ..shader =
-          LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF101214).withValues(alpha: 0.0),
-              const Color(0xFF080A0D).withValues(alpha: 0.82),
-            ],
-          ).createShader(
-            Rect.fromLTWH(
-              0,
-              gateRect.bottom - size.height * 0.1,
-              size.width,
-              size.height * 0.2,
-            ),
-          );
-    canvas.drawRect(
-      Rect.fromLTWH(
-        0,
-        gateRect.bottom - size.height * 0.1,
-        size.width,
-        size.height * 0.2,
-      ),
-      thresholdPaint,
-    );
-  }
-
-  void _paintField(Canvas canvas, Size size, Rect gateRect) {
-    final fieldRect = gateRect.deflate(gateRect.width * 0.04);
-    final grassTop = lerpDouble(
-      fieldRect.bottom - fieldRect.height * 0.16,
-      fieldRect.top + fieldRect.height * 0.32,
-      fieldReveal,
-    )!;
-    final grassRect = Rect.fromLTRB(
-      fieldRect.left,
-      grassTop,
-      fieldRect.right,
-      fieldRect.bottom,
-    );
-
-    final skyPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color.lerp(const Color(0xFFF8F4D6), Colors.white, lightRise * 0.8)!,
-          Color.lerp(
-            const Color(0xFFCFF3AD),
-            const Color(0xFFE8FFCC),
-            fieldReveal,
-          )!,
-          const Color(0xFF7FBF66),
-        ],
-      ).createShader(fieldRect);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(fieldRect, const Radius.circular(12)),
-      skyPaint,
-    );
-
-    final grassPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Color.lerp(
-            const Color(0xFF5A993A),
-            const Color(0xFF89D55B),
-            fieldReveal,
-          )!,
-          Color.lerp(
-            const Color(0xFF255A1D),
-            const Color(0xFF397D26),
-            fieldReveal,
-          )!,
-        ],
-      ).createShader(grassRect);
-    canvas.drawRect(grassRect, grassPaint);
-
-    final stripePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.16 + (fieldReveal * 0.2))
-      ..strokeWidth = max(1.2, size.width * 0.003)
-      ..style = PaintingStyle.stroke;
-    final midY = lerpDouble(
-      grassRect.center.dy + grassRect.height * 0.08,
-      grassRect.top + grassRect.height * 0.38,
-      fieldReveal,
-    )!;
-    canvas.drawLine(
-      Offset(grassRect.left, midY),
-      Offset(grassRect.right, midY),
-      stripePaint,
-    );
-    canvas.drawCircle(
-      Offset(grassRect.center.dx, midY),
-      grassRect.width * 0.08,
-      stripePaint,
-    );
-
-    final glowPaint = Paint()
-      ..shader = RadialGradient(
-        center: Alignment(0, lerpDouble(0.18, -0.42, lightRise)!),
-        radius: 0.92,
-        colors: [
-          Colors.white.withValues(alpha: 0.38 + (lightRise * 0.3)),
-          const Color(
-            0xFFF9FFD7,
-          ).withValues(alpha: 0.18 + (fieldReveal * 0.16)),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.28, 1.0],
-      ).createShader(fieldRect.inflate(size.width * 0.14));
-    canvas.drawRect(fieldRect.inflate(size.width * 0.14), glowPaint);
-  }
-
-  void _paintPlayer(Canvas canvas, Size size, Rect gateRect) {
-    final playerScale = lerpDouble(1.0, 0.72, playerAdvance)!;
-    final playerY = lerpDouble(
-      gateRect.bottom - gateRect.height * 0.12,
-      gateRect.bottom - gateRect.height * 0.22,
-      playerAdvance,
-    )!;
-    final playerX = gateRect.center.dx - gateRect.width * 0.04;
-    final silhouette = const Color(
-      0xFF020303,
-    ).withValues(alpha: lerpDouble(0.88, 0.26, lightRise)!);
-    final line = Paint()
-      ..color = silhouette
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = max(2.0, size.width * 0.01) * playerScale;
-    final fill = Paint()..color = silhouette;
-
-    final headCenter = Offset(
-      playerX,
-      playerY - size.height * 0.12 * playerScale,
-    );
-    canvas.drawCircle(headCenter, size.width * 0.026 * playerScale, fill);
-
-    final shoulder = Offset(
-      playerX,
-      playerY - size.height * 0.078 * playerScale,
-    );
-    final hip = Offset(playerX, playerY - size.height * 0.02 * playerScale);
-    canvas.drawLine(shoulder, hip, line);
-    canvas.drawLine(
-      shoulder,
-      Offset(
-        playerX - size.width * 0.04 * playerScale,
-        playerY - size.height * 0.038 * playerScale,
-      ),
-      line,
-    );
-    canvas.drawLine(
-      shoulder,
-      Offset(
-        playerX + size.width * 0.045 * playerScale,
-        playerY - size.height * 0.018 * playerScale,
-      ),
-      line,
-    );
-    canvas.drawLine(
-      hip,
-      Offset(
-        playerX - size.width * 0.03 * playerScale,
-        playerY + size.height * 0.07 * playerScale,
-      ),
-      line,
-    );
-    canvas.drawLine(
-      hip,
-      Offset(
-        playerX + size.width * 0.05 * playerScale,
-        playerY + size.height * 0.058 * playerScale,
-      ),
-      line,
-    );
-
-    final ballCenter = Offset(
-      playerX + size.width * 0.075 * playerScale,
-      playerY + size.height * 0.07 * playerScale,
-    );
-    canvas.drawCircle(ballCenter, size.width * 0.018 * playerScale, fill);
-  }
-
-  void _paintAtmosphere(
-    Canvas canvas,
-    Rect rect,
-    Rect gateRect,
-    Offset center,
-  ) {
-    final mist = Paint()
-      ..shader = RadialGradient(
-        center: Alignment(0, 0.22 - (progress * 0.38)),
-        radius: 1.0,
-        colors: [
-          Colors.white.withValues(alpha: 0.0),
-          Colors.white.withValues(alpha: haze * 0.12),
-          Colors.white.withValues(alpha: haze * 0.18),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.48, 0.72, 1.0],
-      ).createShader(rect);
-    canvas.drawRect(rect, mist);
-
-    final dust = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = max(1.2, rect.width * 0.004);
-    for (var i = 0; i < 9; i++) {
-      final dx =
-          gateRect.center.dx -
-          gateRect.width * 0.22 +
-          (i * gateRect.width * 0.055);
-      final drift = sin((progress * pi * 2.0) + (i * 0.7)) * rect.height * 0.01;
-      final dy =
-          gateRect.top +
-          gateRect.height * (0.18 + ((i % 4) * 0.09)) -
-          (haze * rect.height * 0.05) +
-          drift;
-      dust.color = Colors.white.withValues(alpha: 0.05 + (haze * 0.12));
-      canvas.drawPoints(PointMode.points, [Offset(dx, dy)], dust);
-    }
+    canvas.drawRect(rect, night);
 
     final vignette = Paint()
       ..shader = RadialGradient(
-        center: Alignment.center,
-        radius: 0.98,
+        center: const Alignment(0, -0.08),
+        radius: 1.08,
         colors: [
           Colors.transparent,
-          Colors.black.withValues(alpha: 0.12),
-          Colors.black.withValues(alpha: 0.42 - (fieldReveal * 0.18)),
+          Colors.black.withValues(alpha: 0.34),
+          Colors.black.withValues(alpha: 0.72),
         ],
-        stops: const [0.48, 0.78, 1.0],
+        stops: const [0.5, 0.84, 1.0],
       ).createShader(rect);
     canvas.drawRect(rect, vignette);
-
-    final flarePaint = Paint()
-      ..shader =
-          RadialGradient(
-            radius: 0.36,
-            colors: [
-              Colors.white.withValues(alpha: 0.12 + (lightRise * 0.18)),
-              Colors.transparent,
-            ],
-          ).createShader(
-            Rect.fromCircle(center: center, radius: rect.width * 0.28),
-          );
-    canvas.drawCircle(center, rect.width * 0.28, flarePaint);
   }
 
-  double sizePadding(double value, double ratio) => value * ratio;
+  void _paintGateFrame(Canvas canvas, Rect gateRect, double frameStroke) {
+    final frameRect = gateRect.inflate(frameStroke * 0.66);
+    final frame = RRect.fromRectAndRadius(
+      frameRect,
+      Radius.circular(frameStroke * 2.3),
+    );
+    final framePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = frameStroke
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          const Color(0xFF1C252E).withValues(alpha: 0.95),
+          const Color(0xFF0E141A).withValues(alpha: 0.96),
+        ],
+      ).createShader(frameRect);
+    canvas.drawRRect(frame, framePaint);
+
+    final innerGlow = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = frameStroke * 0.52
+      ..color = Colors.white.withValues(alpha: 0.06 + (lightBurst * 0.16));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        gateRect.deflate(frameStroke * 0.4),
+        Radius.circular(frameStroke * 1.8),
+      ),
+      innerGlow,
+    );
+  }
+
+  void _paintDoorPanels(Canvas canvas, Rect gateRect, Rect openingRect) {
+    final leftDoor = Rect.fromLTRB(
+      gateRect.left,
+      gateRect.top,
+      openingRect.left,
+      gateRect.bottom,
+    );
+    final rightDoor = Rect.fromLTRB(
+      openingRect.right,
+      gateRect.top,
+      gateRect.right,
+      gateRect.bottom,
+    );
+
+    final panelPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF0F171E), Color(0xFF080E13)],
+      ).createShader(gateRect);
+    canvas.drawRect(leftDoor, panelPaint);
+    canvas.drawRect(rightDoor, panelPaint);
+
+    final edgeGlow = Paint()
+      ..color = Colors.white.withValues(alpha: 0.06 + (lightBurst * 0.1))
+      ..strokeWidth = max(1.2, gateRect.width * 0.0032)
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(leftDoor.topRight, leftDoor.bottomRight, edgeGlow);
+    canvas.drawLine(rightDoor.topLeft, rightDoor.bottomLeft, edgeGlow);
+  }
+
+  void _paintFieldInside(Canvas canvas, Size size, Rect openingRect) {
+    canvas.save();
+    canvas.clipRRect(
+      RRect.fromRectAndRadius(
+        openingRect,
+        Radius.circular(max(6, openingRect.width * 0.03)),
+      ),
+    );
+
+    final fieldBase = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color.lerp(
+              const Color(0xFF0D2315), const Color(0xFF1F6B35), fieldReveal)!,
+          Color.lerp(
+              const Color(0xFF0B1D11), const Color(0xFF2D8C41), fieldReveal)!,
+        ],
+      ).createShader(openingRect);
+    canvas.drawRect(openingRect, fieldBase);
+
+    const stripeCount = 7;
+    final stripeHeight = openingRect.height / stripeCount;
+    for (var i = 0; i < stripeCount; i++) {
+      if (i.isOdd) continue;
+      final y = openingRect.top + (i * stripeHeight);
+      final stripeRect = Rect.fromLTWH(
+        openingRect.left,
+        y,
+        openingRect.width,
+        stripeHeight,
+      );
+      canvas.drawRect(
+        stripeRect,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.03 + (fieldReveal * 0.05)),
+      );
+    }
+
+    final linePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.54 + (fieldReveal * 0.36))
+      ..strokeWidth = max(1.4, openingRect.width * 0.007)
+      ..style = PaintingStyle.stroke;
+
+    final centerY = openingRect.center.dy + (openingRect.height * 0.16);
+    canvas.drawLine(
+      Offset(openingRect.left, centerY),
+      Offset(openingRect.right, centerY),
+      linePaint,
+    );
+    canvas.drawCircle(
+      Offset(openingRect.center.dx, centerY),
+      openingRect.width * 0.14,
+      linePaint,
+    );
+
+    canvas.restore();
+  }
+
+  void _paintLight(Canvas canvas, Size size, Rect openingRect) {
+    final glowRect = Rect.fromCenter(
+      center: Offset(
+          openingRect.center.dx, openingRect.center.dy - size.height * 0.02),
+      width: openingRect.width * 2.6,
+      height: openingRect.height * 1.9,
+    );
+
+    final source = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(0, -0.08),
+        radius: 0.92,
+        colors: [
+          Colors.white.withValues(alpha: 0.16 + (lightBurst * 0.56)),
+          const Color(0xFFF7FFC8).withValues(alpha: 0.1 + (lightBurst * 0.26)),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.42, 1.0],
+      ).createShader(glowRect)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 24 + (lightBurst * 12));
+    canvas.drawOval(glowRect, source);
+
+    final beam = Path()
+      ..moveTo(openingRect.left, openingRect.bottom)
+      ..lineTo(openingRect.right, openingRect.bottom)
+      ..lineTo(size.width * 0.82, size.height)
+      ..lineTo(size.width * 0.18, size.height)
+      ..close();
+    canvas.drawPath(
+      beam,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: 0.14 + (lightBurst * 0.22)),
+            Colors.transparent,
+          ],
+        ).createShader(Offset.zero & size),
+    );
+  }
+
+  void _paintAtmosphere(Canvas canvas, Rect rect, Rect openingRect) {
+    final dust = Paint()
+      ..shader = RadialGradient(
+        center: Alignment(
+          ((openingRect.center.dx / rect.width) * 2) - 1,
+          ((openingRect.center.dy / rect.height) * 2) - 1,
+        ),
+        radius: 1.15,
+        colors: [
+          Colors.white.withValues(alpha: 0.0),
+          Colors.white.withValues(alpha: 0.04 + (progress * 0.06)),
+          Colors.transparent,
+        ],
+      ).createShader(rect);
+    canvas.drawRect(rect, dust);
+  }
 
   @override
-  bool shouldRepaint(covariant _TunnelSplashPainter oldDelegate) {
+  bool shouldRepaint(covariant _GateSplashPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.lightRise != lightRise ||
-        oldDelegate.fieldReveal != fieldReveal ||
-        oldDelegate.playerAdvance != playerAdvance ||
-        oldDelegate.haze != haze;
+        oldDelegate.doorOpen != doorOpen ||
+        oldDelegate.gateZoom != gateZoom ||
+        oldDelegate.lightBurst != lightBurst ||
+        oldDelegate.fieldReveal != fieldReveal;
   }
 }
