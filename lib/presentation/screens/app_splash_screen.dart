@@ -136,9 +136,9 @@ class _GateSplashPainter extends CustomPainter {
       lerpDouble(size.height * 0.56, size.height * 0.46, rush)!,
     );
     final gateWidth =
-        lerpDouble(size.width * 0.2, size.width * 2.35, gateZoom)!;
+        lerpDouble(size.width * 1.08, size.width * 2.55, gateZoom)!;
     final gateHeight =
-        lerpDouble(size.height * 0.3, size.height * 2.02, gateZoom)!;
+        lerpDouble(size.height * 1.22, size.height * 2.3, gateZoom)!;
 
     final gateRect = Rect.fromCenter(
       center: gateCenter,
@@ -147,7 +147,8 @@ class _GateSplashPainter extends CustomPainter {
     );
 
     final frameStroke = max(4.0, size.shortestSide * 0.016);
-    final openingWidth = gateRect.width * (0.16 + (doorOpen * 0.82));
+    final openingWidth =
+        lerpDouble(size.width * 0.008, gateRect.width * 0.9, doorOpen)!;
     final openingRect = Rect.fromCenter(
       center: gateRect.center,
       width: openingWidth,
@@ -157,6 +158,7 @@ class _GateSplashPainter extends CustomPainter {
     _paintFieldInside(canvas, size, openingRect);
     _paintLight(canvas, size, openingRect);
     _paintSpeedLines(canvas, size, openingRect);
+    _paintCenterSplit(canvas, size, gateRect, openingRect);
     _paintGateFrame(canvas, gateRect, frameStroke);
     _paintDoorPanels(canvas, gateRect, openingRect);
     _paintAtmosphere(canvas, rect, openingRect);
@@ -250,6 +252,39 @@ class _GateSplashPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
     canvas.drawLine(leftDoor.topRight, leftDoor.bottomRight, edgeGlow);
     canvas.drawLine(rightDoor.topLeft, rightDoor.bottomLeft, edgeGlow);
+  }
+
+  void _paintCenterSplit(
+    Canvas canvas,
+    Size size,
+    Rect gateRect,
+    Rect openingRect,
+  ) {
+    final splitProgress = (openingRect.width / gateRect.width).clamp(0.0, 1.0);
+    final seamAlpha = (1.0 - splitProgress).clamp(0.0, 1.0);
+    if (seamAlpha <= 0.0) return;
+
+    final seamX = gateRect.center.dx;
+    final seamRect = Rect.fromLTWH(
+      seamX - (size.width * 0.012),
+      gateRect.top,
+      size.width * 0.024,
+      gateRect.height,
+    );
+    canvas.drawRect(
+      seamRect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: 0.05 + (0.25 * seamAlpha)),
+            Colors.white.withValues(alpha: 0.12 + (0.32 * seamAlpha)),
+            Colors.white.withValues(alpha: 0.05 + (0.22 * seamAlpha)),
+          ],
+        ).createShader(seamRect)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
   }
 
   void _paintFieldInside(Canvas canvas, Size size, Rect openingRect) {
