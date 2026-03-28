@@ -1,5 +1,3 @@
-// ignore_for_file: unused_element
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -4266,11 +4264,7 @@ List<_OxFactSeed> _buildOxSeedPool300() {
 }
 
 List<_McqSeed> _buildMcqSeedPool300() {
-  return <_McqSeed>[
-    ..._mcqSeeds(),
-    ..._matchSenseExpansionMcqSeeds(),
-    ..._generatedGlobalFootballMcqSeeds(),
-  ];
+  return <_McqSeed>[..._mcqSeeds(), ..._generatedGlobalFootballMcqSeeds()];
 }
 
 List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
@@ -4294,6 +4288,7 @@ List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
   }).toList(growable: false);
   return <_ShortAnswerSeed>[
     ...seeded,
+    ..._generatedGlobalFootballShortAnswerSeeds(),
   ];
 }
 
@@ -4441,434 +4436,61 @@ List<_McqSeed> _generatedGlobalFootballMcqSeeds() {
     );
   }
 
+  final termFacts = _footballTermBank();
+  final termPool = termFacts
+      .map((item) => _KoEnPair(ko: item.koTerm, en: item.enTerm))
+      .toList(growable: false);
+  for (var i = 0; i < termFacts.length; i++) {
+    final term = termFacts[i];
+    final correct = _KoEnPair(ko: term.koTerm, en: term.enTerm);
+    final options = _buildOptionsFromPool(
+      pool: termPool,
+      correct: correct,
+      seed: i * 29 + 5,
+    );
+    generated.add(
+      _McqSeed(
+        id: 'gen_term_en_${term.id}',
+        difficulty: term.difficulty,
+        category: term.category,
+        koStem: '다음 용어의 영어 표현으로 맞는 것은? "${term.koTerm}"',
+        enStem: 'Which English term matches "${term.koTerm}"?',
+        options: options,
+        correctIndex: _correctIndexFromOptions(
+          options: options,
+          correct: correct,
+        ),
+        koExplain: '"${term.koTerm}"는 영어로 "${term.enTerm}"라고 합니다.',
+        enExplain: '"${term.koTerm}" is expressed as "${term.enTerm}".',
+        koNextPoint: '용어를 실제 경기 장면과 연결해 익히세요.',
+        enNextPoint: 'Connect each term to real match scenes.',
+      ),
+    );
+  }
+
   return generated;
 }
 
-List<_McqSeed> _matchSenseExpansionMcqSeeds() {
-  return const [
-    _McqSeed(
-      id: 'pressing_cover_shadow_lane',
-      difficulty: 3,
-      category: _QuizCategory.tactics,
-      koStem: '압박하러 나갈 때 커버 섀도를 잘 쓰는 가장 큰 이유는?',
-      enStem:
-          'What is the main value of using a cover shadow while stepping to press?',
-      options: [
-        _FootballQuizOption(
-          koText: '공과 함께 다음 패스길도 함께 가리기 위해',
-          enText: 'To block the ball and the next passing lane together',
+List<_ShortAnswerSeed> _generatedGlobalFootballShortAnswerSeeds() {
+  final termFacts = _footballTermBank();
+  return termFacts
+      .map(
+        (term) => _ShortAnswerSeed(
+          id: 'gen_sa_term_${term.id}',
+          conceptKey: 'gen_sa_term_${term.id}',
+          difficulty: term.difficulty,
+          category: term.category,
+          koPrompt: '축구 용어 "${term.koTerm}"의 영어를 입력하세요.',
+          enPrompt: 'Type the English term for "${term.koTerm}".',
+          acceptedAnswers: <String>[term.enTerm, term.enTerm.toLowerCase()],
+          koExplain: '"${term.koTerm}"의 영어 표현은 "${term.enTerm}"입니다.',
+          enExplain:
+              'The English term for "${term.koTerm}" is "${term.enTerm}".',
+          koNextPoint: '용어를 말로 설명하면서 다시 확인해보세요.',
+          enNextPoint: 'Try explaining the term aloud once more.',
         ),
-        _FootballQuizOption(
-          koText: '반칙을 더 쉽게 만들기 위해',
-          enText: 'To make fouls easier to commit',
-        ),
-        _FootballQuizOption(
-          koText: '심판 시야에서 사라지기 위해',
-          enText: 'To disappear from the referee’s sight',
-        ),
-        _FootballQuizOption(
-          koText: '무조건 가로채기만 노리기 위해',
-          enText: 'To think only about an interception',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '좋은 압박은 공 소유자와 다음 연결을 함께 제한합니다.',
-      enExplain:
-          'Effective pressing limits both the ball carrier and the next pass.',
-      koNextPoint: '압박은 뛰는 속도보다 접근 각도가 중요합니다.',
-      enNextPoint: 'Pressing depends on the approach angle as much as speed.',
-    ),
-    _McqSeed(
-      id: 'underlap_best_moment',
-      difficulty: 3,
-      category: _QuizCategory.tactics,
-      koStem: '언더래핑이 특히 잘 통하는 장면으로 가장 알맞은 것은?',
-      enStem: 'In which situation does an underlapping run often work best?',
-      options: [
-        _FootballQuizOption(
-          koText: '윙어가 바깥쪽 수비를 붙잡고 있을 때',
-          enText: 'When the winger occupies the defender on the outside',
-        ),
-        _FootballQuizOption(
-          koText: '공이 이미 경기장 밖에 있을 때',
-          enText: 'When the ball is already out of play',
-        ),
-        _FootballQuizOption(
-          koText: '모든 선수가 같은 높이에 멈춰 있을 때',
-          enText: 'When every player is frozen on the same line',
-        ),
-        _FootballQuizOption(
-          koText: '골키퍼가 공을 손에 들고 있을 때',
-          enText: 'When the goalkeeper is holding the ball',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '바깥쪽 시선을 끌어낸 뒤 안쪽 침투가 언더래핑의 핵심입니다.',
-      enExplain:
-          'Underlaps work well when the outside lane is occupied and the inside lane opens.',
-      koNextPoint: '오버래핑과 언더래핑의 차이를 장면으로 구분하세요.',
-      enNextPoint: 'Differentiate overlap and underlap by match pictures.',
-    ),
-    _McqSeed(
-      id: 'blindside_run_reason',
-      difficulty: 3,
-      category: _QuizCategory.positions,
-      koStem: '수비수의 블라인드사이드로 침투하는 움직임이 좋은 이유는?',
-      enStem: 'Why is a blindside run behind a defender so effective?',
-      options: [
-        _FootballQuizOption(
-          koText: '수비수가 공과 러너를 동시에 보기 어렵기 때문에',
-          enText: 'Because the defender struggles to see both ball and runner',
-        ),
-        _FootballQuizOption(
-          koText: '항상 오프사이드가 사라지기 때문에',
-          enText: 'Because offside always disappears',
-        ),
-        _FootballQuizOption(
-          koText: '패스가 느려져도 상관없기 때문에',
-          enText: 'Because pass timing no longer matters',
-        ),
-        _FootballQuizOption(
-          koText: '반칙을 자동으로 얻기 때문에',
-          enText: 'Because it automatically wins a foul',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '시야 사각에서 움직이면 수비의 체크 타이밍이 늦어집니다.',
-      enExplain:
-          'Runs from the blindside delay the defender’s visual check and reaction.',
-      koNextPoint: '침투는 속도만이 아니라 타이밍과 출발 위치가 중요합니다.',
-      enNextPoint:
-          'Runs depend on timing and starting position, not only speed.',
-    ),
-    _McqSeed(
-      id: 'rest_defense_reason',
-      difficulty: 3,
-      category: _QuizCategory.tactics,
-      koStem: '공격 중에도 리스트 디펜스를 남겨두는 가장 큰 이유는?',
-      enStem:
-          'What is the main reason for keeping a rest-defense structure while attacking?',
-      options: [
-        _FootballQuizOption(
-          koText: '볼을 잃었을 때 바로 역습을 제어하기 위해',
-          enText: 'To control the counter immediately after losing the ball',
-        ),
-        _FootballQuizOption(
-          koText: '공격 숫자를 줄여 찬스를 없애기 위해',
-          enText: 'To reduce attacking numbers and remove chances',
-        ),
-        _FootballQuizOption(
-          koText: '항상 오프사이드를 만들기 위해',
-          enText: 'To create offside in every situation',
-        ),
-        _FootballQuizOption(
-          koText: '심판과 더 가까워지기 위해',
-          enText: 'To stand closer to the referee',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '좋은 공격 팀은 공을 잃은 뒤 첫 수비도 함께 준비합니다.',
-      enExplain:
-          'Good attacking teams prepare their first defensive moment before the turnover.',
-      koNextPoint: '공격 배치는 전환 순간까지 함께 설계해야 합니다.',
-      enNextPoint:
-          'Attacking structures should be designed with transition in mind.',
-    ),
-    _McqSeed(
-      id: 'cutback_zone_best',
-      difficulty: 2,
-      category: _QuizCategory.tactics,
-      koStem: '측면 깊은 지역까지 침투한 뒤 컷백이 자주 위협적인 이유는?',
-      enStem: 'Why is a cutback often dangerous after reaching the byline?',
-      options: [
-        _FootballQuizOption(
-          koText: '수비가 자기 골문 쪽으로 달리며 몸 방향이 무너지기 쉬워서',
-          enText:
-              'Because defenders often lose body shape while running toward goal',
-        ),
-        _FootballQuizOption(
-          koText: '오프사이드가 완전히 없어져서',
-          enText: 'Because offside completely disappears',
-        ),
-        _FootballQuizOption(
-          koText: '슈팅이 항상 노마크가 되어서',
-          enText: 'Because the shot is always unmarked',
-        ),
-        _FootballQuizOption(
-          koText: '골키퍼가 공을 손으로 잡지 못해서',
-          enText: 'Because the goalkeeper is not allowed to use hands',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '컷백은 수비가 골문을 향해 후퇴할 때 균형을 무너뜨리기 좋습니다.',
-      enExplain:
-          'Cutbacks punish defenders who are retreating toward their own goal.',
-      koNextPoint: '크로스 높이뿐 아니라 전달 각도도 함께 보세요.',
-      enNextPoint: 'Read not only cross height but also the delivery angle.',
-    ),
-    _McqSeed(
-      id: 'set_piece_second_ball',
-      difficulty: 2,
-      category: _QuizCategory.training,
-      koStem: '세트피스 훈련에서 세컨드볼 위치를 미리 정하는 이유는?',
-      enStem:
-          'Why is it useful to pre-assign second-ball positions in set-piece training?',
-      options: [
-        _FootballQuizOption(
-          koText: '흐른 공에 먼저 반응해 다음 찬스를 이어가기 위해',
-          enText: 'To attack loose balls first and continue the chance',
-        ),
-        _FootballQuizOption(
-          koText: '한 번 실패하면 수비로 돌아가지 않기 위해',
-          enText: 'To avoid recovering after the first action',
-        ),
-        _FootballQuizOption(
-          koText: '키커만 편하게 쉬게 하기 위해',
-          enText: 'To let only the taker rest',
-        ),
-        _FootballQuizOption(
-          koText: '공이 멈출 때까지 기다리기 위해',
-          enText: 'To wait until the ball stops moving',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '세트피스의 두 번째 장면까지 준비해야 진짜 찬스로 이어집니다.',
-      enExplain:
-          'Set-pieces become more dangerous when the second phase is also prepared.',
-      koNextPoint: '세트피스는 첫 터치와 두 번째 액션을 함께 설계하세요.',
-      enNextPoint: 'Design both the first contact and the second action.',
-    ),
-    _McqSeed(
-      id: 'counterattack_final_pass',
-      difficulty: 2,
-      category: _QuizCategory.tactics,
-      koStem: '역습 상황에서 마지막 패스를 너무 일찍 넣으면 자주 생기는 문제는?',
-      enStem:
-          'What often happens if the final pass in a counter is played too early?',
-      options: [
-        _FootballQuizOption(
-          koText: '받는 선수가 아직 속도와 위치를 만들기 전에 공이 끊긴다',
-          enText:
-              'The pass is cut out before the runner gains position and speed',
-        ),
-        _FootballQuizOption(
-          koText: '자동으로 페널티킥이 선언된다',
-          enText: 'A penalty is automatically awarded',
-        ),
-        _FootballQuizOption(
-          koText: '역습은 항상 더 빨라진다',
-          enText: 'The counter always becomes faster',
-        ),
-        _FootballQuizOption(
-          koText: '상대 수비가 뒤로 뛰지 못한다',
-          enText: 'The defenders can no longer recover',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '역습은 속도뿐 아니라 패스 타이밍이 찬스 품질을 결정합니다.',
-      enExplain:
-          'Counter-attacks depend on the timing of the pass as much as raw speed.',
-      koNextPoint: '빨리 전진하는 것과 서두르는 것은 다릅니다.',
-      enNextPoint: 'Going forward quickly is different from rushing.',
-    ),
-    _McqSeed(
-      id: 'goalkeeper_near_post_angle',
-      difficulty: 2,
-      category: _QuizCategory.positions,
-      koStem: '골키퍼가 니어포스트를 먼저 의식해야 하는 가장 큰 이유는?',
-      enStem:
-          'Why does a goalkeeper usually protect the near post first in many angles?',
-      options: [
-        _FootballQuizOption(
-          koText: '가까운 쪽을 닫아 슈터의 쉬운 선택지를 줄이기 위해',
-          enText: 'To remove the shooter’s easiest close-side option',
-        ),
-        _FootballQuizOption(
-          koText: '항상 먼 쪽은 막을 필요가 없어서',
-          enText: 'Because the far post never needs protection',
-        ),
-        _FootballQuizOption(
-          koText: '골키퍼는 중앙 이동을 할 수 없어서',
-          enText: 'Because goalkeepers cannot move centrally',
-        ),
-        _FootballQuizOption(
-          koText: '수비수가 공을 손으로 잡기 위해서',
-          enText: 'So defenders can catch the ball',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '니어포스트를 열어두면 슈터가 가장 쉬운 코스를 바로 보게 됩니다.',
-      enExplain:
-          'Leaving the near post open gives the shooter a very direct option.',
-      koNextPoint: '골키퍼 위치는 슛 각도와 몸 방향을 함께 읽어야 합니다.',
-      enNextPoint:
-          'Goalkeeper positioning should read both angle and body shape.',
-    ),
-    _McqSeed(
-      id: 'midfielder_receive_between_lines',
-      difficulty: 3,
-      category: _QuizCategory.positions,
-      koStem: '중앙 미드필더가 라인 사이에서 받을 때 가장 먼저 체크해야 할 것은?',
-      enStem:
-          'What should a central midfielder check first when receiving between the lines?',
-      options: [
-        _FootballQuizOption(
-          koText: '뒤 압박과 다음 전진 방향',
-          enText: 'The pressure behind and the next forward direction',
-        ),
-        _FootballQuizOption(
-          koText: '관중의 반응',
-          enText: 'The crowd reaction',
-        ),
-        _FootballQuizOption(
-          koText: '벤치 위치만',
-          enText: 'Only the bench location',
-        ),
-        _FootballQuizOption(
-          koText: '유니폼 주름',
-          enText: 'The wrinkles in the shirt',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '라인 사이 수령은 턴과 압박 회피 정보가 먼저 필요합니다.',
-      enExplain:
-          'Receiving between lines first requires information about pressure and the turn.',
-      koNextPoint: '받기 전 스캔이 라인 사이 플레이의 전제입니다.',
-      enNextPoint: 'Scanning before the touch is essential between the lines.',
-    ),
-    _McqSeed(
-      id: 'winger_isolation_best',
-      difficulty: 2,
-      category: _QuizCategory.positions,
-      koStem: '윙어를 1대1 고립 상황으로 만들어 주는 공격의 장점은?',
-      enStem:
-          'What is the attacking value of isolating a winger in a 1v1 situation?',
-      options: [
-        _FootballQuizOption(
-          koText: '개인 돌파와 수비 흔들기로 찬스 확률을 높일 수 있어서',
-          enText:
-              'It raises the chance of beating a defender and creating an opening',
-        ),
-        _FootballQuizOption(
-          koText: '모든 공격 속도가 자동으로 느려져서',
-          enText: 'It automatically slows every attack',
-        ),
-        _FootballQuizOption(
-          koText: '패스 옵션을 모두 없애기 위해서',
-          enText: 'It removes every passing option',
-        ),
-        _FootballQuizOption(
-          koText: '측면에서는 득점이 두 배라서',
-          enText: 'Because goals on the wing count double',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '좋은 윙어 고립은 개인 능력을 장면의 중심으로 끌어냅니다.',
-      enExplain:
-          'A well-created isolation lets the winger’s individual quality decide the action.',
-      koNextPoint: '고립은 패스 각도와 공간 확보가 먼저 준비돼야 합니다.',
-      enNextPoint:
-          'Isolation starts with spacing and the pass before the duel.',
-    ),
-    _McqSeed(
-      id: 'big_match_magazine_fun',
-      difficulty: 1,
-      category: _QuizCategory.fun,
-      koStem: '경기나 잡지 분석을 재미있게 보는 가장 좋은 습관으로 알맞은 것은?',
-      enStem:
-          'Which habit is most useful for enjoying matches and tactical magazine pieces?',
-      options: [
-        _FootballQuizOption(
-          koText: '공만 보지 말고 공 없는 움직임도 함께 보기',
-          enText: 'Watching off-ball movement instead of only the ball',
-        ),
-        _FootballQuizOption(
-          koText: '스코어만 보고 장면은 건너뛰기',
-          enText: 'Skipping the action and checking only the score',
-        ),
-        _FootballQuizOption(
-          koText: '항상 하이라이트 마지막 10초만 보기',
-          enText: 'Watching only the last 10 seconds of highlights',
-        ),
-        _FootballQuizOption(
-          koText: '주심만 계속 따라보기',
-          enText: 'Tracking only the referee all match',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '축구 재미는 공 없는 움직임과 구조를 읽을 때 훨씬 커집니다.',
-      enExplain:
-          'Football becomes more enjoyable when you also read off-ball movement and structure.',
-      koNextPoint: '한 장면에서 볼, 러너, 수비 라인을 함께 보는 연습을 하세요.',
-      enNextPoint:
-          'Train your eyes to read the ball, runner, and defensive line together.',
-    ),
-    _McqSeed(
-      id: 'game_management_throw_in',
-      difficulty: 2,
-      category: _QuizCategory.rules,
-      koStem: '리드 상황에서 스로인을 빨리 재개할지 잠시 안정시킬지 결정할 때 먼저 봐야 할 것은?',
-      enStem:
-          'When leading, what should you read first before deciding to restart a throw quickly or settle the game?',
-      options: [
-        _FootballQuizOption(
-          koText: '팀 간격과 위험 대비 이득',
-          enText: 'Team spacing and the risk-versus-reward balance',
-        ),
-        _FootballQuizOption(
-          koText: '관중 함성 크기',
-          enText: 'The loudness of the crowd',
-        ),
-        _FootballQuizOption(
-          koText: '잔디 색상',
-          enText: 'The color of the grass',
-        ),
-        _FootballQuizOption(
-          koText: '전광판 밝기',
-          enText: 'The brightness of the scoreboard',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '경기 운영은 규칙 지식보다 상황 판단과 위험 관리가 중요합니다.',
-      enExplain:
-          'Game management depends on risk reading as much as knowing the law.',
-      koNextPoint: '재개도 스코어와 진형을 읽고 선택하세요.',
-      enNextPoint: 'Choose restarts by reading both the score and shape.',
-    ),
-    _McqSeed(
-      id: 'transition_scan_before_intercept',
-      difficulty: 3,
-      category: _QuizCategory.technique,
-      koStem: '볼을 가로챈 직후 첫 시선이 중요한 이유로 가장 알맞은 것은?',
-      enStem: 'Why is the first scan right after an interception so important?',
-      options: [
-        _FootballQuizOption(
-          koText: '바로 전진할지 안정시킬지 다음 그림을 정할 수 있어서',
-          enText:
-              'It helps decide whether to attack immediately or secure possession',
-        ),
-        _FootballQuizOption(
-          koText: '오프사이드를 없애기 위해',
-          enText: 'To remove offside from the game',
-        ),
-        _FootballQuizOption(
-          koText: '반칙을 자동 취소하기 위해',
-          enText: 'To cancel fouls automatically',
-        ),
-        _FootballQuizOption(
-          koText: '심판 허락 없이 손으로 잡기 위해',
-          enText: 'To pick the ball up without permission',
-        ),
-      ],
-      correctIndex: 0,
-      koExplain: '가로챈 뒤 첫 스캔이 역습과 소유 유지의 질을 가릅니다.',
-      enExplain:
-          'The first scan after a regain shapes the quality of either the counter or ball retention.',
-      koNextPoint: '수비 후 첫 패스도 훈련 주제로 따로 가져가세요.',
-      enNextPoint:
-          'Train the first pass after regaining possession as its own theme.',
-    ),
-  ];
+      )
+      .toList(growable: false);
 }
 
 List<_FootballQuizOption> _buildOptionsFromPool({
@@ -5738,6 +5360,592 @@ List<
       enName: 'UEFA Women Champions League',
       koOrganizer: 'UEFA',
       enOrganizer: 'UEFA',
+    ),
+  ];
+}
+
+List<
+    ({
+      String id,
+      String koTerm,
+      String enTerm,
+      _QuizCategory category,
+      int difficulty,
+    })> _footballTermBank() {
+  return const [
+    (
+      id: 'first_touch',
+      koTerm: '퍼스트 터치',
+      enTerm: 'first touch',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'scanning',
+      koTerm: '스캐닝',
+      enTerm: 'scanning',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'body_feint',
+      koTerm: '바디 페인트',
+      enTerm: 'body feint',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'step_over',
+      koTerm: '스텝오버',
+      enTerm: 'step-over',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'nutmeg',
+      koTerm: '넛메그',
+      enTerm: 'nutmeg',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'cutback',
+      koTerm: '컷백',
+      enTerm: 'cutback',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'overlap',
+      koTerm: '오버래핑',
+      enTerm: 'overlap',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'underlap',
+      koTerm: '언더래핑',
+      enTerm: 'underlap',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'through_pass',
+      koTerm: '스루패스',
+      enTerm: 'through pass',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'switch_play',
+      koTerm: '전환 패스',
+      enTerm: 'switch of play',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'pressing_trigger',
+      koTerm: '압박 트리거',
+      enTerm: 'pressing trigger',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'counter_pressing',
+      koTerm: '카운터프레싱',
+      enTerm: 'counter-pressing',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'low_block',
+      koTerm: '로우 블록',
+      enTerm: 'low block',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'high_line',
+      koTerm: '하이 라인',
+      enTerm: 'high line',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'offside_trap',
+      koTerm: '오프사이드 트랩',
+      enTerm: 'offside trap',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'half_space',
+      koTerm: '하프스페이스',
+      enTerm: 'half-space',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'third_man_run',
+      koTerm: '서드맨 런',
+      enTerm: 'third-man run',
+      category: _QuizCategory.tactics,
+      difficulty: 3,
+    ),
+    (
+      id: 'one_two',
+      koTerm: '원투 패스',
+      enTerm: 'one-two pass',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'ball_shielding',
+      koTerm: '볼 키핑',
+      enTerm: 'ball shielding',
+      category: _QuizCategory.technique,
+      difficulty: 2,
+    ),
+    (
+      id: 'jockeying',
+      koTerm: '조키잉',
+      enTerm: 'jockeying',
+      category: _QuizCategory.technique,
+      difficulty: 2,
+    ),
+    (
+      id: 'interception',
+      koTerm: '인터셉트',
+      enTerm: 'interception',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'man_marking',
+      koTerm: '맨마킹',
+      enTerm: 'man marking',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'zonal_marking',
+      koTerm: '지역 방어',
+      enTerm: 'zonal marking',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'build_up',
+      koTerm: '빌드업',
+      enTerm: 'build-up',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'transition',
+      koTerm: '전환',
+      enTerm: 'transition',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'final_third',
+      koTerm: '파이널 서드',
+      enTerm: 'final third',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'set_piece',
+      koTerm: '세트피스',
+      enTerm: 'set piece',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'near_post_run',
+      koTerm: '니어포스트 런',
+      enTerm: 'near-post run',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'far_post_run',
+      koTerm: '파포스트 런',
+      enTerm: 'far-post run',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'crossing',
+      koTerm: '크로스',
+      enTerm: 'crossing',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'volley',
+      koTerm: '발리슛',
+      enTerm: 'volley',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'half_volley',
+      koTerm: '하프 발리',
+      enTerm: 'half-volley',
+      category: _QuizCategory.technique,
+      difficulty: 2,
+    ),
+    (
+      id: 'chest_control',
+      koTerm: '가슴 트래핑',
+      enTerm: 'chest control',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'instep_pass',
+      koTerm: '인사이드 패스',
+      enTerm: 'inside-foot pass',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'outside_pass',
+      koTerm: '아웃사이드 패스',
+      enTerm: 'outside-foot pass',
+      category: _QuizCategory.technique,
+      difficulty: 2,
+    ),
+    (
+      id: 'weak_foot',
+      koTerm: '약발 훈련',
+      enTerm: 'weak-foot training',
+      category: _QuizCategory.training,
+      difficulty: 2,
+    ),
+    (
+      id: 'recovery_run',
+      koTerm: '리커버리 런',
+      enTerm: 'recovery run',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'compactness',
+      koTerm: '압축성',
+      enTerm: 'compactness',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'line_breaking_pass',
+      koTerm: '라인브레이킹 패스',
+      enTerm: 'line-breaking pass',
+      category: _QuizCategory.tactics,
+      difficulty: 3,
+    ),
+    (
+      id: 'progressive_pass',
+      koTerm: '전진 패스',
+      enTerm: 'progressive pass',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'diagonal_run',
+      koTerm: '대각선 침투',
+      enTerm: 'diagonal run',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'blind_side_run',
+      koTerm: '블라인드사이드 런',
+      enTerm: 'blind-side run',
+      category: _QuizCategory.tactics,
+      difficulty: 3,
+    ),
+    (
+      id: 'decoy_run',
+      koTerm: '유인 침투',
+      enTerm: 'decoy run',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'hold_up_play',
+      koTerm: '포스트 플레이',
+      enTerm: 'hold-up play',
+      category: _QuizCategory.technique,
+      difficulty: 2,
+    ),
+    (
+      id: 'target_man',
+      koTerm: '타깃맨',
+      enTerm: 'target man',
+      category: _QuizCategory.positions,
+      difficulty: 1,
+    ),
+    (
+      id: 'false_nine',
+      koTerm: '가짜 9번',
+      enTerm: 'false nine',
+      category: _QuizCategory.positions,
+      difficulty: 2,
+    ),
+    (
+      id: 'inverted_winger',
+      koTerm: '인버티드 윙어',
+      enTerm: 'inverted winger',
+      category: _QuizCategory.positions,
+      difficulty: 2,
+    ),
+    (
+      id: 'sweeper_keeper',
+      koTerm: '스위퍼 키퍼',
+      enTerm: 'sweeper-keeper',
+      category: _QuizCategory.positions,
+      difficulty: 2,
+    ),
+    (
+      id: 'claim_cross',
+      koTerm: '크로스 캐치',
+      enTerm: 'claim the cross',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'goal_kick_routine',
+      koTerm: '골킥 루틴',
+      enTerm: 'goal-kick routine',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'press_resistance',
+      koTerm: '압박 저항',
+      enTerm: 'press resistance',
+      category: _QuizCategory.technique,
+      difficulty: 2,
+    ),
+    (
+      id: 'rondo',
+      koTerm: '론도',
+      enTerm: 'rondo',
+      category: _QuizCategory.training,
+      difficulty: 1,
+    ),
+    (
+      id: 'small_sided_game',
+      koTerm: '소형 게임',
+      enTerm: 'small-sided game',
+      category: _QuizCategory.training,
+      difficulty: 1,
+    ),
+    (
+      id: 'finishing_drill',
+      koTerm: '피니시 훈련',
+      enTerm: 'finishing drill',
+      category: _QuizCategory.training,
+      difficulty: 1,
+    ),
+    (
+      id: 'agility_ladder',
+      koTerm: '래더 훈련',
+      enTerm: 'agility ladder',
+      category: _QuizCategory.training,
+      difficulty: 1,
+    ),
+    (
+      id: 'plyometric',
+      koTerm: '플라이오메트릭',
+      enTerm: 'plyometric',
+      category: _QuizCategory.training,
+      difficulty: 2,
+    ),
+    (
+      id: 'dynamic_stretch',
+      koTerm: '동적 스트레칭',
+      enTerm: 'dynamic stretching',
+      category: _QuizCategory.training,
+      difficulty: 1,
+    ),
+    (
+      id: 'cool_down',
+      koTerm: '쿨다운',
+      enTerm: 'cool-down',
+      category: _QuizCategory.training,
+      difficulty: 1,
+    ),
+    (
+      id: 'hydration',
+      koTerm: '수분 보충',
+      enTerm: 'hydration',
+      category: _QuizCategory.nutrition,
+      difficulty: 1,
+    ),
+    (
+      id: 'glycogen',
+      koTerm: '글리코겐 회복',
+      enTerm: 'glycogen recovery',
+      category: _QuizCategory.nutrition,
+      difficulty: 2,
+    ),
+    (
+      id: 'sleep_routine',
+      koTerm: '수면 루틴',
+      enTerm: 'sleep routine',
+      category: _QuizCategory.nutrition,
+      difficulty: 1,
+    ),
+    (
+      id: 'mental_reset',
+      koTerm: '멘탈 리셋',
+      enTerm: 'mental reset',
+      category: _QuizCategory.mindset,
+      difficulty: 1,
+    ),
+    (
+      id: 'visualization',
+      koTerm: '시각화',
+      enTerm: 'visualization',
+      category: _QuizCategory.mindset,
+      difficulty: 2,
+    ),
+    (
+      id: 'communication_cue',
+      koTerm: '커뮤니케이션 큐',
+      enTerm: 'communication cue',
+      category: _QuizCategory.mindset,
+      difficulty: 2,
+    ),
+    (
+      id: 'check_shoulder',
+      koTerm: '숄더 체크',
+      enTerm: 'check shoulder',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'back_foot_receive',
+      koTerm: '백풋 리시브',
+      enTerm: 'receive on back foot',
+      category: _QuizCategory.technique,
+      difficulty: 2,
+    ),
+    (
+      id: 'open_body',
+      koTerm: '오픈 바디',
+      enTerm: 'open body',
+      category: _QuizCategory.technique,
+      difficulty: 1,
+    ),
+    (
+      id: 'tempo_control',
+      koTerm: '템포 조절',
+      enTerm: 'tempo control',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'width',
+      koTerm: '폭 활용',
+      enTerm: 'width',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'depth',
+      koTerm: '깊이 활용',
+      enTerm: 'depth',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'numerical_superiority',
+      koTerm: '수적 우위',
+      enTerm: 'numerical superiority',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'rest_defense',
+      koTerm: '레스트 디펜스',
+      enTerm: 'rest defense',
+      category: _QuizCategory.tactics,
+      difficulty: 3,
+    ),
+    (
+      id: 'second_ball',
+      koTerm: '세컨드볼',
+      enTerm: 'second ball',
+      category: _QuizCategory.tactics,
+      difficulty: 2,
+    ),
+    (
+      id: 'counter_attack',
+      koTerm: '역습',
+      enTerm: 'counter-attack',
+      category: _QuizCategory.tactics,
+      difficulty: 1,
+    ),
+    (
+      id: 'overload_isolate',
+      koTerm: '오버로드 투 아이솔레이트',
+      enTerm: 'overload to isolate',
+      category: _QuizCategory.tactics,
+      difficulty: 3,
+    ),
+    (
+      id: 'cover_shadow',
+      koTerm: '커버 섀도우',
+      enTerm: 'cover shadow',
+      category: _QuizCategory.tactics,
+      difficulty: 3,
+    ),
+    (
+      id: 'press_backward',
+      koTerm: '백패스 압박 트리거',
+      enTerm: 'back-pass pressing trigger',
+      category: _QuizCategory.tactics,
+      difficulty: 3,
+    ),
+    (
+      id: 'dead_ball',
+      koTerm: '데드볼 상황',
+      enTerm: 'dead-ball situation',
+      category: _QuizCategory.rules,
+      difficulty: 1,
+    ),
+    (
+      id: 'advantage',
+      koTerm: '어드밴티지',
+      enTerm: 'advantage rule',
+      category: _QuizCategory.rules,
+      difficulty: 2,
+    ),
+    (
+      id: 'bookable_offense',
+      koTerm: '경고성 파울',
+      enTerm: 'bookable offense',
+      category: _QuizCategory.rules,
+      difficulty: 2,
+    ),
+    (
+      id: 'red_card_offense',
+      koTerm: '퇴장성 파울',
+      enTerm: 'red-card offense',
+      category: _QuizCategory.rules,
+      difficulty: 2,
+    ),
+    (
+      id: 'added_time',
+      koTerm: '추가시간',
+      enTerm: 'added time',
+      category: _QuizCategory.rules,
+      difficulty: 1,
     ),
   ];
 }
