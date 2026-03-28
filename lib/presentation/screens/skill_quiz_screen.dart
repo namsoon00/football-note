@@ -113,7 +113,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   void initState() {
     super.initState();
-    _allQuestions = _buildFootballQuizPool();
+    _allQuestions = _footballQuizPoolCache;
     _questionMap = {
       for (final question in _allQuestions) question.id: question,
       for (final question in _allQuestions) ..._legacyQuestionAliases(question),
@@ -6021,7 +6021,7 @@ String _canonicalQuizConceptKey(String raw) {
 
 final Map<String, String> _quizConceptKeyByQuestionId = () {
   final map = <String, String>{};
-  for (final question in _buildFootballQuizPool()) {
+  for (final question in _footballQuizPoolCache) {
     map[question.id] = question.conceptKey;
     for (final entry in _legacyQuestionAliases(question).entries) {
       map[entry.key] = entry.value.conceptKey;
@@ -6035,7 +6035,7 @@ final Set<String> _quizKnownConceptKeys =
 
 final Map<String, _FootballQuizQuestion> _quizQuestionById = () {
   final map = <String, _FootballQuizQuestion>{};
-  for (final question in _buildFootballQuizPool()) {
+  for (final question in _footballQuizPoolCache) {
     map[question.id] = question;
     for (final entry in _legacyQuestionAliases(question).entries) {
       map[entry.key] = entry.value;
@@ -6046,11 +6046,14 @@ final Map<String, _FootballQuizQuestion> _quizQuestionById = () {
 
 final Map<String, _FootballQuizQuestion> _quizQuestionByConcept = () {
   final map = <String, _FootballQuizQuestion>{};
-  for (final question in _buildFootballQuizPool()) {
+  for (final question in _footballQuizPoolCache) {
     map.putIfAbsent(question.conceptKey, () => question);
   }
   return map;
 }();
+
+final List<_FootballQuizQuestion> _footballQuizPoolCache =
+    List<_FootballQuizQuestion>.unmodifiable(_buildFootballQuizPool());
 
 String _quizConceptKeyForQuestionId(String raw) {
   if (raw.isEmpty) return raw;
