@@ -89,6 +89,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ).loadRewardStatuses();
     final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
     final positionSummary = _positionResultSummary(_positionTestResult, isKo);
+    final compactProfileTags = <Widget>[
+      if (mbtiSummary.title.trim().isNotEmpty)
+        _resultChip(
+          label:
+              '${isKo ? 'MBTI' : 'MBTI'} ${mbtiSummary.title.split('·').first.trim()}',
+          onTap: () => _openProfileTestsScreen(context),
+        ),
+      if (positionSummary.title.trim().isNotEmpty)
+        _resultChip(
+          label:
+              '${isKo ? '포지션' : 'Position'} ${positionSummary.title.split('·').first.trim()}',
+        ),
+    ];
     // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
@@ -140,30 +153,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _genderLabel(_gender, isKo),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      if (mbtiSummary.title.trim().isNotEmpty ||
-                          positionSummary.title.trim().isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            if (mbtiSummary.title.trim().isNotEmpty)
-                              _resultChip(
-                                label:
-                                    '${isKo ? 'MBTI' : 'MBTI'} · ${mbtiSummary.title.trim()}',
-                                onTap: () => _openProfileTestsScreen(context),
-                              ),
-                            if (positionSummary.title.trim().isNotEmpty)
-                              _resultChip(
-                                label:
-                                    '${isKo ? '포지션' : 'Position'} · ${positionSummary.title.trim()}',
-                              ),
-                          ],
-                        ),
-                      ],
                     ],
                   ),
                 ),
+                if (compactProfileTags.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 132),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        for (var i = 0; i < compactProfileTags.length; i++) ...[
+                          compactProfileTags[i],
+                          if (i != compactProfileTags.length - 1)
+                            const SizedBox(height: 6),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
                 if (_photoPath.isNotEmpty)
                   IconButton(
                     tooltip: isKo ? '사진 삭제' : 'Remove photo',
