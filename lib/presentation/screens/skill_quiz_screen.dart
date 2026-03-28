@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -4436,61 +4438,12 @@ List<_McqSeed> _generatedGlobalFootballMcqSeeds() {
     );
   }
 
-  final termFacts = _footballTermBank();
-  final termPool = termFacts
-      .map((item) => _KoEnPair(ko: item.koTerm, en: item.enTerm))
-      .toList(growable: false);
-  for (var i = 0; i < termFacts.length; i++) {
-    final term = termFacts[i];
-    final correct = _KoEnPair(ko: term.koTerm, en: term.enTerm);
-    final options = _buildOptionsFromPool(
-      pool: termPool,
-      correct: correct,
-      seed: i * 29 + 5,
-    );
-    generated.add(
-      _McqSeed(
-        id: 'gen_term_en_${term.id}',
-        difficulty: term.difficulty,
-        category: term.category,
-        koStem: '다음 용어의 영어 표현으로 맞는 것은? "${term.koTerm}"',
-        enStem: 'Which English term matches "${term.koTerm}"?',
-        options: options,
-        correctIndex: _correctIndexFromOptions(
-          options: options,
-          correct: correct,
-        ),
-        koExplain: '"${term.koTerm}"는 영어로 "${term.enTerm}"라고 합니다.',
-        enExplain: '"${term.koTerm}" is expressed as "${term.enTerm}".',
-        koNextPoint: '용어를 실제 경기 장면과 연결해 익히세요.',
-        enNextPoint: 'Connect each term to real match scenes.',
-      ),
-    );
-  }
-
   return generated;
 }
 
 List<_ShortAnswerSeed> _generatedGlobalFootballShortAnswerSeeds() {
-  final termFacts = _footballTermBank();
-  return termFacts
-      .map(
-        (term) => _ShortAnswerSeed(
-          id: 'gen_sa_term_${term.id}',
-          conceptKey: 'gen_sa_term_${term.id}',
-          difficulty: term.difficulty,
-          category: term.category,
-          koPrompt: '축구 용어 "${term.koTerm}"의 영어를 입력하세요.',
-          enPrompt: 'Type the English term for "${term.koTerm}".',
-          acceptedAnswers: <String>[term.enTerm, term.enTerm.toLowerCase()],
-          koExplain: '"${term.koTerm}"의 영어 표현은 "${term.enTerm}"입니다.',
-          enExplain:
-              'The English term for "${term.koTerm}" is "${term.enTerm}".',
-          koNextPoint: '용어를 말로 설명하면서 다시 확인해보세요.',
-          enNextPoint: 'Try explaining the term aloud once more.',
-        ),
-      )
-      .toList(growable: false);
+  // Term-translation quiz type removed by product request.
+  return const <_ShortAnswerSeed>[];
 }
 
 List<_FootballQuizOption> _buildOptionsFromPool({
