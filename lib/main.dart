@@ -60,15 +60,11 @@ Future<void> main() async {
     trainingRepository,
     backupService: backupService,
   );
-  await backupService.autoBackupDaily();
   final reminderService = TrainingPlanReminderService(
     optionRepository,
     settingsService,
   );
   final badgeService = TrainingPlanBadgeService(optionRepository);
-  await reminderService.initialize();
-  await reminderService.syncAll(entries: await trainingService.allEntries());
-  await badgeService.syncFromStorage();
   settingsService.addListener(() {
     unawaited(reminderService.syncSettingsDrivenReminders());
   });
@@ -82,6 +78,39 @@ Future<void> main() async {
       driveBackupService: backupService,
     ),
   );
+
+  unawaited(
+    _warmStartupServices(
+      backupService: backupService,
+      reminderService: reminderService,
+      badgeService: badgeService,
+      trainingService: trainingService,
+    ),
+  );
+}
+
+Future<void> _warmStartupServices({
+  required BackupService backupService,
+  required TrainingPlanReminderService reminderService,
+  required TrainingPlanBadgeService badgeService,
+  required TrainingService trainingService,
+}) async {
+  try {
+    await backupService.autoBackupDaily();
+  } catch (_) {
+    // Ignore startup backup failures and keep app entry responsive.
+  }
+  try {
+    await reminderService.initialize();
+    await reminderService.syncAll(entries: await trainingService.allEntries());
+  } catch (_) {
+    // Reminder sync can recover on later app interactions.
+  }
+  try {
+    await badgeService.syncFromStorage();
+  } catch (_) {
+    // Badge sync is non-critical for first frame.
+  }
 }
 
 class FootballNoteApp extends StatelessWidget {
