@@ -527,12 +527,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (customDiary.hasContent) ...[
-                    IconButton(
+                    _buildDiaryActionIconButton(
                       key: ValueKey(
                           'diary-delete-${_dayStorageToken(day.date)}'),
                       onPressed: () => _confirmDeleteDiary(day.date),
                       tooltip: _isKo ? '삭제' : 'Delete',
-                      color: Theme.of(context).colorScheme.error,
+                      foregroundColor: Theme.of(context).colorScheme.error,
                       icon: const Icon(
                         Icons.delete_outline,
                         size: 20,
@@ -540,7 +540,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     ),
                     const SizedBox(width: 4),
                   ],
-                  IconButton(
+                  _buildDiaryActionIconButton(
                     key: ValueKey('diary-edit-${_dayStorageToken(day.date)}'),
                     onPressed: () => _openDiaryComposer(day, customDiary),
                     tooltip: _isKo ? '작성' : 'Compose',
@@ -557,6 +557,32 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDiaryActionIconButton({
+    required Key key,
+    required VoidCallback onPressed,
+    required String tooltip,
+    required Widget icon,
+    Color? foregroundColor,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final resolvedColor = foregroundColor ?? colorScheme.onSurfaceVariant;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: resolvedColor.withValues(alpha: 0.28),
+        ),
+      ),
+      child: IconButton(
+        key: key,
+        onPressed: onPressed,
+        tooltip: tooltip,
+        color: resolvedColor,
+        icon: icon,
       ),
     );
   }
