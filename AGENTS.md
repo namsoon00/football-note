@@ -19,3 +19,8 @@
   - Scope: code changes, verify, branch merge, main push, optional issue close.
 - Build agent: `./scripts/build_agent.sh` (or `./scripts/cli.sh build ...`)
   - Scope: build/release artifacts only (iOS/Android), no code edits and no git writes.
+
+## Localization (Mandatory)
+- All user-facing text must be added through the localization files under `lib/l10n/` and accessed through generated localization classes.
+- Do not introduce new hardcoded UI strings in screens, widgets, dialogs, snackbars, buttons, labels, or tooltips, even if only English/Korean exists today.
+- When adding or changing copy, update every supported ARB file consistently so the app remains ready for additional locales later.
