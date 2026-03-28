@@ -509,7 +509,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final customDiary = _customDiaryForDay(day.date);
     final sectionTitle = customDiary.title.trim().isNotEmpty
         ? customDiary.title.trim()
-        : (_isKo ? '다이어리' : 'Diary');
+        : (_isKo ? '제목을 입력해 주세요' : 'Please enter a title');
     return _DiaryScrollPage(
       onReachedEnd: () {},
       onPullDownToDismiss: widget.embeddedInHomeTab
@@ -604,12 +604,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           Text(
             customDiary.story.trim().isNotEmpty
                 ? customDiary.story.trim()
-                : (_isKo
-                    ? '오늘 훈련 핵심을 한 줄로 남겨보세요.'
-                    : 'Write one key point from today.'),
+                : (_isKo ? '본문을 입력해 주세요' : 'Please enter the body text'),
             key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
             style: _theme.textTheme.bodyLarge?.copyWith(
-              color: _headlineInk,
+              color: customDiary.story.trim().isNotEmpty
+                  ? _headlineInk
+                  : _bodyInk.withValues(alpha: 0.78),
               height: 1.72,
             ),
           ),
@@ -2352,10 +2352,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         key: const ValueKey('diary-title-field'),
                         controller: titleController,
                         textInputAction: TextInputAction.next,
-                        labelText: _isKo ? '제목' : 'Title',
-                        hintText: _isKo
-                            ? '예: 비 온 날 끝까지 이어진 패스 감각'
-                            : 'Ex: Passing rhythm that lasted through the rain',
+                        labelText: titleController.text.trim().isEmpty
+                            ? (_isKo ? '제목을 입력해 주세요' : 'Please enter a title')
+                            : (_isKo ? '제목' : 'Title'),
+                        hintText: titleController.text.trim().isEmpty
+                            ? (_isKo
+                                ? '예: 비 온 날 끝까지 이어진 패스 감각'
+                                : 'Ex: Passing rhythm that lasted through the rain')
+                            : '',
                       ),
                       const SizedBox(height: 12),
                       buildVoiceField(
@@ -2363,8 +2367,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         controller: storyController,
                         minLines: 7,
                         maxLines: 12,
-                        labelText: _isKo ? '본문 시작' : 'Opening body',
-                        hintText: _defaultStoryPrompt(day),
+                        labelText: storyController.text.trim().isEmpty
+                            ? (_isKo
+                                ? '본문을 입력해 주세요'
+                                : 'Please enter the body text')
+                            : (_isKo ? '본문 시작' : 'Opening body'),
+                        hintText: storyController.text.trim().isEmpty
+                            ? _defaultStoryPrompt(day)
+                            : '',
                         alignLabelWithHint: true,
                       ),
                       const SizedBox(height: 20),
