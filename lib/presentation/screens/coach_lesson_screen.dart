@@ -22,6 +22,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/shared_tab_header.dart';
+import '../widgets/training_board_sketch.dart';
 import 'news_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -550,6 +551,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .map((sticker) => _resolveRecordSticker(sticker, day))
         .whereType<_DiaryRecordStickerViewData>()
         .toList(growable: false);
+    final fortuneRecordStickers = recordStickers
+        .where((sticker) => sticker.kind == _DiaryRecordStickerKind.fortune)
+        .toList(growable: false);
+    final topRecordStickers = recordStickers
+        .where((sticker) => sticker.kind != _DiaryRecordStickerKind.fortune)
+        .toList(growable: false);
     final customTitle = customDiary.title.trim();
     return _buildPaperCard(
       title: customTitle.isEmpty ? null : customTitle,
@@ -561,10 +568,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (recordStickers.isNotEmpty) ...[
-            ...recordStickers.map(_buildRecordStickerCard),
-            const SizedBox(height: 6),
-          ],
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+            decoration: BoxDecoration(
+              color: _tileSurface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _paperEdge),
+            ),
+            child: Text(
+              customDiary.story.trim().isNotEmpty
+                  ? customDiary.story.trim()
+                  : (_isKo
+                      ? '오늘 훈련 핵심을 한 줄로 남겨보세요.'
+                      : 'Write one key point from today.'),
+              key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
+              style: _theme.textTheme.bodyLarge?.copyWith(
+                color: _headlineInk,
+                height: 1.72,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
           if (stickers.isNotEmpty) ...[
             Wrap(
               spacing: 8,
@@ -603,27 +628,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ),
             const SizedBox(height: 14),
           ],
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-            decoration: BoxDecoration(
-              color: _tileSurface,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _paperEdge),
-            ),
-            child: Text(
-              customDiary.story.trim().isNotEmpty
-                  ? customDiary.story.trim()
-                  : (_isKo
-                      ? '오늘 훈련 핵심을 한 줄로 남겨보세요.'
-                      : 'Write one key point from today.'),
-              key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
-              style: _theme.textTheme.bodyLarge?.copyWith(
-                color: _headlineInk,
-                height: 1.72,
-              ),
-            ),
-          ),
+          if (topRecordStickers.isNotEmpty) ...[
+            ...topRecordStickers.map(_buildRecordStickerCard),
+            const SizedBox(height: 6),
+          ],
+          if (fortuneRecordStickers.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...fortuneRecordStickers.map(_buildRecordStickerCard),
+          ],
           const SizedBox(height: 14),
           if (!customDiary.hasContent && todoSeeds.isNotEmpty) ...[
             ...todoSeeds.take(3).map(
@@ -677,6 +689,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Widget _buildRecordStickerCard(_DiaryRecordStickerViewData sticker) {
+    final hasBoardPreview = sticker.boardPage != null;
     return Container(
       key: ValueKey('diary-record-sticker-${sticker.id}'),
       width: double.infinity,
@@ -713,6 +726,18 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               height: 1.5,
             ),
           ),
+          if (hasBoardPreview) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 150,
+              width: double.infinity,
+              child: TrainingBoardSketch(
+                page: sticker.boardPage!,
+                borderRadius: 14,
+                showItemCountBadge: false,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1166,6 +1191,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         if (entry == null) return null;
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.training,
           title: _isKo
               ? '훈련 스티커 · ${entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type}'
               : 'Training sticker · ${entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type}',
@@ -1182,6 +1208,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         if (entry == null) return null;
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.match,
           title: _isKo
               ? '시합 스티커${entry.opponentTeam.trim().isEmpty ? '' : ' · ${entry.opponentTeam.trim()}전'}'
               : 'Match sticker${entry.opponentTeam.trim().isEmpty ? '' : ' · vs ${entry.opponentTeam.trim()}'}',
@@ -1197,6 +1224,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         if (plan == null) return null;
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.plan,
           title: _isKo
               ? '계획 스티커 · ${plan.category}'
               : 'Plan sticker · ${plan.category}',
@@ -1221,6 +1249,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         final fortune = _DiaryFortune.fromEntry(entry, _isKo);
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.fortune,
           title: _isKo ? '운세 스티커 · $label' : 'Fortune sticker · $label',
           summary: fortune.composeText(_isKo),
           icon: Icons.auto_awesome_outlined,
@@ -1237,6 +1266,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.board,
           title: _isKo
               ? '훈련보드 스티커 · ${board.title}'
               : 'Board sticker · ${board.title}',
@@ -1247,12 +1277,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   : 'Movement and idea captured on this board'),
           icon: Icons.dashboard_customize_outlined,
           tint: const Color(0xFF4A7CCF),
+          boardPage: layout.pages.isNotEmpty ? layout.pages.first : null,
         );
       case _DiaryRecordStickerKind.conditioning:
         final dayToken = _dayStorageToken(day.date);
         if (sticker.refId != dayToken) return null;
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.conditioning,
           title: _isKo ? '줄넘기/리프팅 스티커' : 'Jump rope/lifting sticker',
           summary: _conditioningSummary(day),
           icon: Icons.sports_gymnastics_outlined,
@@ -2716,17 +2748,21 @@ class _DiaryRecordStickerData {
 
 class _DiaryRecordStickerViewData {
   final String id;
+  final _DiaryRecordStickerKind kind;
   final String title;
   final String summary;
   final IconData icon;
   final Color tint;
+  final TrainingMethodPage? boardPage;
 
   const _DiaryRecordStickerViewData({
     required this.id,
+    required this.kind,
     required this.title,
     required this.summary,
     required this.icon,
     required this.tint,
+    this.boardPage,
   });
 }
 
