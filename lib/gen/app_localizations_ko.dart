@@ -699,4 +699,105 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get gameGuideCharPinkTag => '예측';
+
+  @override
+  String get hideKeyboard => '키보드 내리기';
+
+  @override
+  String get diaryTitlePlaceholder => '제목을 입력해 주세요';
+
+  @override
+  String get diaryCustomEmotionLabel => '감정 직접 만들기';
+
+  @override
+  String get diaryCustomEmotionHint => '원하는 감정을 직접 스티커로 추가해 보세요';
+
+  @override
+  String get diaryCustomEmotionAdd => '감정 추가';
+
+  @override
+  String diaryExpandNewsStickers(int count) {
+    return '소식 스티커 전체 보기 ($count)';
+  }
+
+  @override
+  String get diaryCollapseNewsStickers => '소식 스티커 접기';
+
+  @override
+  String get homeWeatherTitle => '날씨 코치';
+
+  @override
+  String get homeWeatherSubtitle => '현재 날씨를 보고 오늘 훈련 강도를 조절해 보세요.';
+
+  @override
+  String get homeWeatherLoad => '현재 위치 날씨 불러오기';
+
+  @override
+  String get homeWeatherLoading => '현재 위치 날씨를 불러오는 중...';
+
+  @override
+  String get homeWeatherUnavailable => '위치 권한을 허용하면 이곳에 날씨와 훈련 제안이 표시됩니다.';
+
+  @override
+  String get homeWeatherPermissionNeeded => '현재 위치 날씨를 불러오려면 위치 권한이 필요합니다.';
+
+  @override
+  String get homeWeatherLoadFailed => '현재 위치 날씨를 불러오지 못했어요.';
+
+  @override
+  String get homeWeatherLocationUnknown => '현재 위치';
+
+  @override
+  String get homeWeatherSuggestionTitle => '추천 훈련 포인트';
+
+  @override
+  String get homeWeatherSuggestionClear =>
+      '야외에서 퍼스트 터치, 패스 리듬, 짧은 스프린트 세트를 소화하기 좋은 날씨예요.';
+
+  @override
+  String get homeWeatherSuggestionCloudy =>
+      '컨디션이 안정적이라 전술 패턴 연습과 템포 유지 훈련을 길게 가져가기 좋습니다.';
+
+  @override
+  String get homeWeatherSuggestionRain =>
+      '실내 볼 터치, 벽 패스, 밸런스와 코어 중심 훈련으로 전환하는 편이 좋습니다.';
+
+  @override
+  String get homeWeatherSuggestionSnow => '실내 코디네이션, 가동성, 가벼운 기술 반복 위주로 가져가세요.';
+
+  @override
+  String get homeWeatherSuggestionStorm =>
+      '안전을 우선하고 회복, 영상 복기, 짧은 실내 활성화 운동으로 조정하세요.';
+
+  @override
+  String get homeWeatherSuggestionHot =>
+      '훈련량을 줄이고 회복 시간을 늘리면서 수분 보충과 기술 완성도에 집중하세요.';
+
+  @override
+  String get homeWeatherSuggestionCold =>
+      '워밍업 시간을 더 확보한 뒤 터치 감각부터 올리면서 강도를 천천히 끌어올리세요.';
+
+  @override
+  String get weatherLabelDefault => '날씨';
+
+  @override
+  String get weatherLabelClear => '맑음';
+
+  @override
+  String get weatherLabelCloudy => '구름';
+
+  @override
+  String get weatherLabelFog => '안개';
+
+  @override
+  String get weatherLabelDrizzle => '이슬비';
+
+  @override
+  String get weatherLabelRain => '비';
+
+  @override
+  String get weatherLabelSnow => '눈';
+
+  @override
+  String get weatherLabelThunderstorm => '천둥번개';
 }

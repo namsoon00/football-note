@@ -233,5 +233,43 @@
   "gameGuideCharRedTag": "마크",
   "gameGuideCharPinkTitle": "핑크 고스트 - READ",
   "gameGuideCharPinkSubtitle": "리시버 예측 차단",
-  "gameGuideCharPinkTag": "예측"
+  "gameGuideCharPinkTag": "예측",
+  "hideKeyboard": "키보드 내리기",
+  "diaryTitlePlaceholder": "제목을 입력해 주세요",
+  "diaryCustomEmotionLabel": "감정 직접 만들기",
+  "diaryCustomEmotionHint": "원하는 감정을 직접 스티커로 추가해 보세요",
+  "diaryCustomEmotionAdd": "감정 추가",
+  "diaryExpandNewsStickers": "소식 스티커 전체 보기 ({count})",
+  "@diaryExpandNewsStickers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryCollapseNewsStickers": "소식 스티커 접기",
+  "homeWeatherTitle": "날씨 코치",
+  "homeWeatherSubtitle": "현재 날씨를 보고 오늘 훈련 강도를 조절해 보세요.",
+  "homeWeatherLoad": "현재 위치 날씨 불러오기",
+  "homeWeatherLoading": "현재 위치 날씨를 불러오는 중...",
+  "homeWeatherUnavailable": "위치 권한을 허용하면 이곳에 날씨와 훈련 제안이 표시됩니다.",
+  "homeWeatherPermissionNeeded": "현재 위치 날씨를 불러오려면 위치 권한이 필요합니다.",
+  "homeWeatherLoadFailed": "현재 위치 날씨를 불러오지 못했어요.",
+  "homeWeatherLocationUnknown": "현재 위치",
+  "homeWeatherSuggestionTitle": "추천 훈련 포인트",
+  "homeWeatherSuggestionClear": "야외에서 퍼스트 터치, 패스 리듬, 짧은 스프린트 세트를 소화하기 좋은 날씨예요.",
+  "homeWeatherSuggestionCloudy": "컨디션이 안정적이라 전술 패턴 연습과 템포 유지 훈련을 길게 가져가기 좋습니다.",
+  "homeWeatherSuggestionRain": "실내 볼 터치, 벽 패스, 밸런스와 코어 중심 훈련으로 전환하는 편이 좋습니다.",
+  "homeWeatherSuggestionSnow": "실내 코디네이션, 가동성, 가벼운 기술 반복 위주로 가져가세요.",
+  "homeWeatherSuggestionStorm": "안전을 우선하고 회복, 영상 복기, 짧은 실내 활성화 운동으로 조정하세요.",
+  "homeWeatherSuggestionHot": "훈련량을 줄이고 회복 시간을 늘리면서 수분 보충과 기술 완성도에 집중하세요.",
+  "homeWeatherSuggestionCold": "워밍업 시간을 더 확보한 뒤 터치 감각부터 올리면서 강도를 천천히 끌어올리세요.",
+  "weatherLabelDefault": "날씨",
+  "weatherLabelClear": "맑음",
+  "weatherLabelCloudy": "구름",
+  "weatherLabelFog": "안개",
+  "weatherLabelDrizzle": "이슬비",
+  "weatherLabelRain": "비",
+  "weatherLabelSnow": "눈",
+  "weatherLabelThunderstorm": "천둥번개"
 }

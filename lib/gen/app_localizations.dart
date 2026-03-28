@@ -1423,6 +1423,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'READ'**
   String get gameGuideCharPinkTag;
+
+  /// No description provided for @hideKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide keyboard'**
+  String get hideKeyboard;
+
+  /// No description provided for @diaryTitlePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a title'**
+  String get diaryTitlePlaceholder;
+
+  /// No description provided for @diaryCustomEmotionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your own emotion'**
+  String get diaryCustomEmotionLabel;
+
+  /// No description provided for @diaryCustomEmotionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a mood sticker in your own words'**
+  String get diaryCustomEmotionHint;
+
+  /// No description provided for @diaryCustomEmotionAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add emotion'**
+  String get diaryCustomEmotionAdd;
+
+  /// No description provided for @diaryExpandNewsStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all news stickers ({count})'**
+  String diaryExpandNewsStickers(int count);
+
+  /// No description provided for @diaryCollapseNewsStickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse news stickers'**
+  String get diaryCollapseNewsStickers;
+
+  /// No description provided for @homeWeatherTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather coach'**
+  String get homeWeatherTitle;
+
+  /// No description provided for @homeWeatherSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check local conditions and adjust training focus.'**
+  String get homeWeatherSubtitle;
+
+  /// No description provided for @homeWeatherLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Load local weather'**
+  String get homeWeatherLoad;
+
+  /// No description provided for @homeWeatherLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading local weather...'**
+  String get homeWeatherLoading;
+
+  /// No description provided for @homeWeatherUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather info is ready here once location access is allowed.'**
+  String get homeWeatherUnavailable;
+
+  /// No description provided for @homeWeatherPermissionNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow location access to load local weather.'**
+  String get homeWeatherPermissionNeeded;
+
+  /// No description provided for @homeWeatherLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load local weather.'**
+  String get homeWeatherLoadFailed;
+
+  /// No description provided for @homeWeatherLocationUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Current location'**
+  String get homeWeatherLocationUnknown;
+
+  /// No description provided for @homeWeatherSuggestionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested training focus'**
+  String get homeWeatherSuggestionTitle;
+
+  /// No description provided for @homeWeatherSuggestionClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Good time for outdoor first-touch work, passing rhythm, and short sprint sets.'**
+  String get homeWeatherSuggestionClear;
+
+  /// No description provided for @homeWeatherSuggestionCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the stable conditions for tactical pattern work and longer tempo drills.'**
+  String get homeWeatherSuggestionCloudy;
+
+  /// No description provided for @homeWeatherSuggestionRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift to indoor touches, wall passing, and balance or core work.'**
+  String get homeWeatherSuggestionRain;
+
+  /// No description provided for @homeWeatherSuggestionSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Prioritize indoor coordination, mobility, and light technical repetitions.'**
+  String get homeWeatherSuggestionSnow;
+
+  /// No description provided for @homeWeatherSuggestionStorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it safe with recovery, video review, and short indoor activation.'**
+  String get homeWeatherSuggestionStorm;
+
+  /// No description provided for @homeWeatherSuggestionHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce volume, extend recovery, and focus on technique with hydration breaks.'**
+  String get homeWeatherSuggestionHot;
+
+  /// No description provided for @homeWeatherSuggestionCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend extra time warming up, then build intensity gradually with tight touches.'**
+  String get homeWeatherSuggestionCold;
+
+  /// No description provided for @weatherLabelDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get weatherLabelDefault;
+
+  /// No description provided for @weatherLabelClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get weatherLabelClear;
+
+  /// No description provided for @weatherLabelCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloudy'**
+  String get weatherLabelCloudy;
+
+  /// No description provided for @weatherLabelFog.
+  ///
+  /// In en, this message translates to:
+  /// **'Fog'**
+  String get weatherLabelFog;
+
+  /// No description provided for @weatherLabelDrizzle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drizzle'**
+  String get weatherLabelDrizzle;
+
+  /// No description provided for @weatherLabelRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get weatherLabelRain;
+
+  /// No description provided for @weatherLabelSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Snow'**
+  String get weatherLabelSnow;
+
+  /// No description provided for @weatherLabelThunderstorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Thunderstorm'**
+  String get weatherLabelThunderstorm;
 }
 
 class _AppLocalizationsDelegate
