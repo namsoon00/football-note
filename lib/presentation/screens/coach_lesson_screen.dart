@@ -507,6 +507,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Widget _buildDiaryPage(_DiaryDayData day) {
     final customDiary = _customDiaryForDay(day.date);
+    final sectionTitle = customDiary.title.trim().isNotEmpty
+        ? customDiary.title.trim()
+        : (_isKo ? '다이어리' : 'Diary');
     return _DiaryScrollPage(
       onReachedEnd: () {},
       onPullDownToDismiss: widget.embeddedInHomeTab
@@ -519,7 +522,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildDiarySection(
-              title: _isKo ? '오늘의 일기' : 'Today diary entry',
+              title: sectionTitle,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -528,7 +531,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       key: ValueKey(
                           'diary-delete-${_dayStorageToken(day.date)}'),
                       onPressed: () => _confirmDeleteDiary(day.date),
-                      icon: const Icon(Icons.delete_outline, size: 18),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                       label: Text(_isKo ? '삭제' : 'Delete'),
                     ),
                     const SizedBox(width: 8),
@@ -573,9 +583,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final topRecordStickers = recordStickers
         .where((sticker) => sticker.kind != _DiaryRecordStickerKind.fortune)
         .toList(growable: false);
-    final customTitle = customDiary.title.trim();
+    final newsRecordStickers = topRecordStickers
+        .where((sticker) => sticker.kind == _DiaryRecordStickerKind.news)
+        .toList(growable: false);
+    final normalTopRecordStickers = topRecordStickers
+        .where((sticker) => sticker.kind != _DiaryRecordStickerKind.news)
+        .toList(growable: false);
+    const maxVisibleNewsStickers = 3;
+    final visibleNewsRecordStickers =
+        newsRecordStickers.take(maxVisibleNewsStickers).toList(growable: false);
+    final hiddenNewsCount =
+        newsRecordStickers.length - visibleNewsRecordStickers.length;
     return _buildPaperCard(
-      title: customTitle.isEmpty ? null : customTitle,
+      title: null,
       subtitle: customDiary.updatedAt == null
           ? (_isKo ? '핵심만 간단히 기록해보세요.' : 'Keep it short and clear.')
           : (_isKo
@@ -584,25 +604,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-            decoration: BoxDecoration(
-              color: _tileSurface,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _paperEdge),
-            ),
-            child: Text(
-              customDiary.story.trim().isNotEmpty
-                  ? customDiary.story.trim()
-                  : (_isKo
-                      ? '오늘 훈련 핵심을 한 줄로 남겨보세요.'
-                      : 'Write one key point from today.'),
-              key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
-              style: _theme.textTheme.bodyLarge?.copyWith(
-                color: _headlineInk,
-                height: 1.72,
-              ),
+          Text(
+            customDiary.story.trim().isNotEmpty
+                ? customDiary.story.trim()
+                : (_isKo
+                    ? '오늘 훈련 핵심을 한 줄로 남겨보세요.'
+                    : 'Write one key point from today.'),
+            key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
+            style: _theme.textTheme.bodyLarge?.copyWith(
+              color: _headlineInk,
+              height: 1.72,
             ),
           ),
           const SizedBox(height: 14),
@@ -644,8 +655,25 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ),
             const SizedBox(height: 14),
           ],
-          if (topRecordStickers.isNotEmpty) ...[
-            ...topRecordStickers.map(_buildRecordStickerCard),
+          if (normalTopRecordStickers.isNotEmpty) ...[
+            ...normalTopRecordStickers.map(_buildRecordStickerCard),
+            const SizedBox(height: 6),
+          ],
+          if (visibleNewsRecordStickers.isNotEmpty) ...[
+            ...visibleNewsRecordStickers.map(_buildRecordStickerCard),
+            if (hiddenNewsCount > 0)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  _isKo
+                      ? '소식 스티커 $hiddenNewsCount개는 접어두었어요.'
+                      : '$hiddenNewsCount news stickers are collapsed.',
+                  style: _theme.textTheme.bodySmall?.copyWith(
+                    color: _bodyInk,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             const SizedBox(height: 6),
           ],
           if (fortuneRecordStickers.isNotEmpty) ...[
@@ -1064,7 +1092,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Future<void> _confirmDeleteDiary(DateTime date) async {
     final token = _dayStorageToken(date);
-    if (!_customDiaryEntries.containsKey(token)) return;
+    final removedDiary = _customDiaryEntries[token];
+    if (removedDiary == null) return;
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -1102,9 +1131,44 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     await _persistCustomDiaryEntries();
     if (!mounted) return;
     setState(() {});
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(_isKo ? '다이어리를 삭제했어요.' : 'Diary deleted.'),
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: _isKo ? '되돌리기' : 'Undo',
+            onPressed: () {
+              unawaited(_undoDeleteDiary(date, removedDiary));
+            },
+          ),
+        ),
+      );
+  }
+
+  Future<void> _undoDeleteDiary(
+    DateTime date,
+    _CustomDiaryEntryData restoredDiary,
+  ) async {
+    final token = _dayStorageToken(date);
+    _customDiaryEntries[token] = restoredDiary;
+    final dayToken = CoachLessonScreen.todayViewedDayToken(date);
+    final todayToken = CoachLessonScreen.todayViewedDayToken(DateTime.now());
+    if (dayToken == todayToken) {
+      _lastCompletedDiaryToken = dayToken;
+      await widget.optionRepository.setValue(
+        CoachLessonScreen.todayViewedDiaryDayKey,
+        dayToken,
+      );
+    }
+    await _persistCustomDiaryEntries();
+    if (!mounted) return;
+    setState(() {});
     AppFeedback.showSuccess(
       context,
-      text: _isKo ? '다이어리를 삭제했어요.' : 'Diary deleted.',
+      text: _isKo ? '삭제를 되돌렸어요.' : 'Restored deleted diary.',
     );
   }
 
@@ -1718,7 +1782,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   List<_DiaryTodoSeed> _newsTodoSeedsForDay(DateTime day) {
-    final openedItems = _openedNewsForDay(day);
+    const maxNewsSeeds = 6;
+    final openedItems = _openedNewsForDay(day).take(maxNewsSeeds).toList(
+          growable: false,
+        );
     return openedItems
         .map(
           (item) => _DiaryTodoSeed(
