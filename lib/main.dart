@@ -182,31 +182,38 @@ class _EntryGate extends StatefulWidget {
 
 class _EntryGateState extends State<_EntryGate> {
   bool _showSplash = true;
+  late final HomeScreen _homeScreen;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeScreen = HomeScreen(
+      key: const ValueKey('home-screen'),
+      trainingService: widget.trainingService,
+      optionRepository: widget.optionRepository,
+      localeService: widget.localeService,
+      settingsService: widget.settingsService,
+      driveBackupService: widget.driveBackupService,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 280),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      child: _showSplash
-          ? AppSplashScreen(
-              key: const ValueKey('app-splash'),
-              onCompleted: () {
-                if (!mounted) {
-                  return;
-                }
-                setState(() => _showSplash = false);
-              },
-            )
-          : HomeScreen(
-              key: const ValueKey('home-screen'),
-              trainingService: widget.trainingService,
-              optionRepository: widget.optionRepository,
-              localeService: widget.localeService,
-              settingsService: widget.settingsService,
-              driveBackupService: widget.driveBackupService,
-            ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        _homeScreen,
+        if (_showSplash)
+          AppSplashScreen(
+            key: const ValueKey('app-splash'),
+            onCompleted: () {
+              if (!mounted) {
+                return;
+              }
+              setState(() => _showSplash = false);
+            },
+          ),
+      ],
     );
   }
 }
