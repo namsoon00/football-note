@@ -17,7 +17,7 @@ class AppSplashScreen extends StatefulWidget {
 
 class _AppSplashScreenState extends State<AppSplashScreen>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 1850);
+  static const _duration = Duration(milliseconds: 1280);
   static const _reducedMotionDelay = Duration(milliseconds: 420);
 
   late final AnimationController _controller;
@@ -70,19 +70,22 @@ class _AppSplashScreenState extends State<AppSplashScreen>
         builder: (context, _) {
           final t = reducedMotion ? 1.0 : _controller.value;
           final doorOpen = Curves.easeInOutCubic.transform(
-            const Interval(0.08, 0.7).transform(t),
+            const Interval(0.02, 0.58).transform(t),
           );
-          final gateZoom = Curves.easeOutQuart.transform(
-            const Interval(0.0, 0.82).transform(t),
+          final gateZoom = Curves.easeInExpo.transform(
+            const Interval(0.0, 0.74).transform(t),
           );
-          final lightBurst = Curves.easeOut.transform(
-            const Interval(0.22, 0.9).transform(t),
+          final lightBurst = Curves.easeOutCubic.transform(
+            const Interval(0.08, 0.86).transform(t),
           );
           final fieldReveal = Curves.easeOutCubic.transform(
-            const Interval(0.18, 0.94).transform(t),
+            const Interval(0.1, 0.92).transform(t),
+          );
+          final rush = Curves.easeInCubic.transform(
+            const Interval(0.0, 0.76).transform(t),
           );
           final fadeOut = Curves.easeIn.transform(
-            const Interval(0.84, 1.0).transform(t),
+            const Interval(0.87, 1.0).transform(t),
           );
 
           return Opacity(
@@ -95,6 +98,7 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                 gateZoom: gateZoom,
                 lightBurst: lightBurst,
                 fieldReveal: fieldReveal,
+                rush: rush,
               ),
             ),
           );
@@ -110,6 +114,7 @@ class _GateSplashPainter extends CustomPainter {
   final double gateZoom;
   final double lightBurst;
   final double fieldReveal;
+  final double rush;
 
   const _GateSplashPainter({
     required this.progress,
@@ -117,6 +122,7 @@ class _GateSplashPainter extends CustomPainter {
     required this.gateZoom,
     required this.lightBurst,
     required this.fieldReveal,
+    required this.rush,
   });
 
   @override
@@ -124,11 +130,15 @@ class _GateSplashPainter extends CustomPainter {
     final rect = Offset.zero & size;
     _paintBackdrop(canvas, rect);
 
-    final gateCenter = Offset(size.width * 0.5, size.height * 0.48);
+    final sway = sin(progress * pi * 5.0) * size.width * 0.005 * (1 - rush);
+    final gateCenter = Offset(
+      (size.width * 0.5) + sway,
+      lerpDouble(size.height * 0.56, size.height * 0.46, rush)!,
+    );
     final gateWidth =
-        lerpDouble(size.width * 0.24, size.width * 2.05, gateZoom)!;
+        lerpDouble(size.width * 0.2, size.width * 2.35, gateZoom)!;
     final gateHeight =
-        lerpDouble(size.height * 0.36, size.height * 1.7, gateZoom)!;
+        lerpDouble(size.height * 0.3, size.height * 2.02, gateZoom)!;
 
     final gateRect = Rect.fromCenter(
       center: gateCenter,
@@ -146,6 +156,7 @@ class _GateSplashPainter extends CustomPainter {
 
     _paintFieldInside(canvas, size, openingRect);
     _paintLight(canvas, size, openingRect);
+    _paintSpeedLines(canvas, size, openingRect);
     _paintGateFrame(canvas, gateRect, frameStroke);
     _paintDoorPanels(canvas, gateRect, openingRect);
     _paintAtmosphere(canvas, rect, openingRect);
@@ -343,6 +354,28 @@ class _GateSplashPainter extends CustomPainter {
     );
   }
 
+  void _paintSpeedLines(Canvas canvas, Size size, Rect openingRect) {
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = max(1.2, size.width * 0.0026)
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.8);
+
+    for (var i = 0; i < 9; i++) {
+      final ratio = (i + 1) / 10;
+      final x = lerpDouble(
+        openingRect.left - (size.width * 0.2),
+        openingRect.right + (size.width * 0.2),
+        ratio,
+      )!;
+      final y0 = openingRect.bottom - (size.height * 0.04 * ratio);
+      final y1 = size.height + (size.height * 0.08 * ratio);
+      linePaint.color = Colors.white
+          .withValues(alpha: (0.02 + (rush * 0.2)) * (1 - ratio * 0.5));
+      canvas.drawLine(Offset(x, y0), Offset(x, y1), linePaint);
+    }
+  }
+
   void _paintAtmosphere(Canvas canvas, Rect rect, Rect openingRect) {
     final dust = Paint()
       ..shader = RadialGradient(
@@ -366,6 +399,7 @@ class _GateSplashPainter extends CustomPainter {
         oldDelegate.doorOpen != doorOpen ||
         oldDelegate.gateZoom != gateZoom ||
         oldDelegate.lightBurst != lightBurst ||
-        oldDelegate.fieldReveal != fieldReveal;
+        oldDelegate.fieldReveal != fieldReveal ||
+        oldDelegate.rush != rush;
   }
 }
