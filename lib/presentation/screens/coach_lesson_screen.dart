@@ -524,7 +524,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 children: [
                   if (customDiary.hasContent) ...[
                     OutlinedButton.icon(
-                      key: ValueKey('diary-delete-${_dayStorageToken(day.date)}'),
+                      key: ValueKey(
+                          'diary-delete-${_dayStorageToken(day.date)}'),
                       onPressed: () => _confirmDeleteDiary(day.date),
                       icon: const Icon(Icons.delete_outline, size: 18),
                       label: Text(_isKo ? '삭제' : 'Delete'),
@@ -1339,6 +1340,24 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           tint: const Color(0xFF4A7CCF),
           boardPage: layout.pages.isNotEmpty ? layout.pages.first : null,
         );
+      case _DiaryRecordStickerKind.news:
+        final openedNews = _openedNewsForDay(day.date);
+        final item = openedNews.cast<_DiaryOpenedNewsItem?>().firstWhere(
+              (entry) => entry?.id == sticker.refId,
+              orElse: () => null,
+            );
+        if (item == null) return null;
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.news,
+          title:
+              _isKo ? '소식 스티커 · ${item.title}' : 'News sticker · ${item.title}',
+          summary: _isKo
+              ? '${item.source.isEmpty ? '출처 없음' : item.source} · ${_formatTime(item.openedAt)}'
+              : '${item.source.isEmpty ? 'Unknown source' : item.source} · ${_formatTime(item.openedAt)}',
+          icon: Icons.article_outlined,
+          tint: const Color(0xFF7A4ED8),
+        );
       case _DiaryRecordStickerKind.conditioning:
         final dayToken = _dayStorageToken(day.date);
         if (sticker.refId != dayToken) return null;
@@ -1540,6 +1559,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ...day.trainingEntries.map(_fortuneTodoSeed),
       ...day.matchEntries.map(_matchTodoSeed),
       ...day.boards.map(_boardTodoSeed),
+      ..._newsTodoSeedsForDay(day.date),
     ];
     if (_hasConditioningRecord(day)) {
       seeds.add(_conditioningTodoSeed(day));
@@ -1694,6 +1714,60 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       recordKind: _DiaryRecordStickerKind.conditioning,
       recordRefId: dayToken,
     );
+  }
+
+  List<_DiaryTodoSeed> _newsTodoSeedsForDay(DateTime day) {
+    final openedItems = _openedNewsForDay(day);
+    return openedItems
+        .map(
+          (item) => _DiaryTodoSeed(
+            id: 'news-${item.id}',
+            title: _isKo ? '소식 · ${item.title}' : 'News · ${item.title}',
+            summary: _isKo
+                ? '${item.source.isEmpty ? '출처 없음' : item.source} · ${_formatTime(item.openedAt)}'
+                : '${item.source.isEmpty ? 'Unknown source' : item.source} · ${_formatTime(item.openedAt)}',
+            storySentence: _isKo
+                ? '${item.title} 기사를 읽고 기억하고 싶은 포인트를 한 줄로 남긴다.'
+                : 'Write one point you want to keep from "${item.title}".',
+            sectionTitle: _isKo ? '오늘 본 소식' : 'Today news',
+            sectionBody: _isKo
+                ? '${item.source.isEmpty ? '출처 없음' : item.source} 기사: ${item.title}'
+                : '${item.source.isEmpty ? 'Unknown source' : item.source} article: ${item.title}',
+            icon: Icons.article_outlined,
+            recordKind: _DiaryRecordStickerKind.news,
+            recordRefId: item.id,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  List<_DiaryOpenedNewsItem> _openedNewsForDay(DateTime day) {
+    final target = _normalizeDay(day);
+    final raw =
+        widget.optionRepository.getValue<String>(NewsScreen.openedItemsKey);
+    if (raw == null || raw.trim().isEmpty) {
+      return const <_DiaryOpenedNewsItem>[];
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const <_DiaryOpenedNewsItem>[];
+      final items = decoded
+          .whereType<Map>()
+          .map((map) =>
+              _DiaryOpenedNewsItem.fromMap(map.cast<String, dynamic>()))
+          .where(
+            (item) =>
+                _normalizeDay(item.openedAt).year == target.year &&
+                _normalizeDay(item.openedAt).month == target.month &&
+                _normalizeDay(item.openedAt).day == target.day,
+          )
+          .toList(growable: false);
+      final sorted = [...items]
+        ..sort((a, b) => b.openedAt.compareTo(a.openedAt));
+      return sorted;
+    } catch (_) {
+      return const <_DiaryOpenedNewsItem>[];
+    }
   }
 
   String _conditioningSummary(_DiaryDayData day) {
@@ -2771,12 +2845,46 @@ class _DiaryTodoSeed {
   });
 }
 
+class _DiaryOpenedNewsItem {
+  final String id;
+  final String title;
+  final String source;
+  final String link;
+  final DateTime openedAt;
+
+  const _DiaryOpenedNewsItem({
+    required this.id,
+    required this.title,
+    required this.source,
+    required this.link,
+    required this.openedAt,
+  });
+
+  factory _DiaryOpenedNewsItem.fromMap(Map<String, dynamic> map) {
+    final link = (map['link'] as String?)?.trim() ?? '';
+    final id = (map['id'] as String?)?.trim().isNotEmpty == true
+        ? (map['id'] as String).trim()
+        : Uri.encodeComponent(link);
+    return _DiaryOpenedNewsItem(
+      id: id,
+      title: (map['title'] as String?)?.trim().isNotEmpty == true
+          ? (map['title'] as String).trim()
+          : (link.isNotEmpty ? link : 'News'),
+      source: (map['source'] as String?)?.trim() ?? '',
+      link: link,
+      openedAt: DateTime.tryParse((map['openedAt'] as String?) ?? '') ??
+          DateTime.now(),
+    );
+  }
+}
+
 enum _DiaryRecordStickerKind {
   training,
   match,
   plan,
   fortune,
   board,
+  news,
   conditioning,
 }
 
