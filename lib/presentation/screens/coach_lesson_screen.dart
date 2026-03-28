@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../application/backup_service.dart';
@@ -1808,6 +1809,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
     final titleController = TextEditingController(text: initialData.title);
     final storyController = TextEditingController(text: initialData.story);
+    final speech = stt.SpeechToText();
+    var speechInitialized = false;
+    var speechAvailable = false;
+    var listeningSession = 0;
+    var isListening = false;
+    TextEditingController? listeningController;
+    var sessionRecognizedWords = '';
+    var sessionCommitted = false;
+    var composerActive = true;
     final stickerPaletteIds =
         _DiaryStickerPalette.values.map((sticker) => sticker.id).toSet();
     final initialStickerIds =
@@ -1924,6 +1934,178 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         final bottomInset = MediaQuery.of(context).viewInsets.bottom;
         return StatefulBuilder(
           builder: (context, setModalState) {
+            Future<bool> ensureSpeechInitialized() async {
+              if (speechInitialized) return speechAvailable;
+              speechInitialized = true;
+              speechAvailable = await speech.initialize(
+                onStatus: (status) {
+                  if (!composerActive || !mounted) return;
+                  if (!isListening) return;
+                  if (status == 'done' || status == 'notListening') {
+                    if (listeningController != null &&
+                        !sessionCommitted &&
+                        sessionRecognizedWords.trim().isNotEmpty) {
+                      final recognized = sessionRecognizedWords.trim();
+                      final currentText = listeningController!.text;
+                      final isKoreanLocale = _isKo;
+                      final needsSpacing = !isKoreanLocale &&
+                          currentText.isNotEmpty &&
+                          !RegExp(r'\s$').hasMatch(currentText);
+                      final separator = needsSpacing ? ' ' : '';
+                      final nextText =
+                          '$currentText$separator${recognized.trim()}';
+                      try {
+                        listeningController!.value =
+                            listeningController!.value.copyWith(
+                          text: nextText,
+                          selection:
+                              TextSelection.collapsed(offset: nextText.length),
+                          composing: TextRange.empty,
+                        );
+                      } on FlutterError {
+                        // Ignore late callback after field teardown.
+                      }
+                      sessionCommitted = true;
+                    }
+                    if (!composerActive) return;
+                    setModalState(() {
+                      isListening = false;
+                      listeningController = null;
+                      sessionRecognizedWords = '';
+                      sessionCommitted = false;
+                    });
+                  }
+                },
+                onError: (_) {
+                  if (!composerActive || !mounted) return;
+                  setModalState(() {
+                    isListening = false;
+                    listeningController = null;
+                    sessionRecognizedWords = '';
+                    sessionCommitted = false;
+                  });
+                },
+              );
+              return speechAvailable;
+            }
+
+            Future<void> toggleListening(
+              TextEditingController controller,
+            ) async {
+              if (!composerActive || !mounted) return;
+              if (isListening) {
+                listeningSession++;
+                final wasListeningForSameController =
+                    listeningController == controller;
+                final controllerToCommit = listeningController;
+                final recognizedToCommit = sessionRecognizedWords;
+                final shouldCommit = !sessionCommitted;
+                if (composerActive) {
+                  setModalState(() {
+                    isListening = false;
+                    listeningController = null;
+                    sessionRecognizedWords = '';
+                    sessionCommitted = false;
+                  });
+                }
+                await speech.cancel();
+                if (!composerActive || !mounted) return;
+                if (wasListeningForSameController) {
+                  if (shouldCommit &&
+                      controllerToCommit != null &&
+                      recognizedToCommit.trim().isNotEmpty) {
+                    final normalized = recognizedToCommit.trim();
+                    final currentText = controllerToCommit.text;
+                    final needsSpacing = !_isKo &&
+                        currentText.isNotEmpty &&
+                        !RegExp(r'\s$').hasMatch(currentText);
+                    final separator = needsSpacing ? ' ' : '';
+                    final nextText = '$currentText$separator$normalized';
+                    try {
+                      controllerToCommit.value =
+                          controllerToCommit.value.copyWith(
+                        text: nextText,
+                        selection:
+                            TextSelection.collapsed(offset: nextText.length),
+                        composing: TextRange.empty,
+                      );
+                    } on FlutterError {
+                      return;
+                    }
+                    sessionCommitted = true;
+                  }
+                  return;
+                }
+              }
+
+              final available = await ensureSpeechInitialized();
+              if (!available) {
+                if (!mounted || !context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _isKo
+                          ? '이 기기에서는 음성 입력을 사용할 수 없어요.'
+                          : 'Voice input is not available on this device.',
+                    ),
+                  ),
+                );
+                return;
+              }
+              final nextSession = ++listeningSession;
+              setModalState(() {
+                isListening = true;
+                listeningController = controller;
+                sessionRecognizedWords = '';
+                sessionCommitted = false;
+              });
+              if (!composerActive || !mounted) return;
+              final localeId = _isKo ? 'ko_KR' : null;
+              await speech.listen(
+                localeId: localeId,
+                onResult: (result) {
+                  if (!composerActive || !mounted) return;
+                  if (nextSession != listeningSession) return;
+                  final recognized = result.recognizedWords.trim();
+                  if (recognized.isEmpty) return;
+                  sessionRecognizedWords = recognized;
+                },
+              );
+            }
+
+            Widget buildVoiceField({
+              required Key key,
+              required TextEditingController controller,
+              required String labelText,
+              required String hintText,
+              TextInputAction? textInputAction,
+              int minLines = 1,
+              int? maxLines = 1,
+              bool alignLabelWithHint = false,
+            }) {
+              final isListeningForField =
+                  isListening && listeningController == controller;
+              return TextField(
+                key: key,
+                controller: controller,
+                textInputAction: textInputAction,
+                minLines: minLines,
+                maxLines: maxLines,
+                decoration: InputDecoration(
+                  labelText: labelText,
+                  hintText: hintText,
+                  alignLabelWithHint: alignLabelWithHint,
+                  suffixIcon: IconButton(
+                    tooltip: _isKo ? '음성 입력' : 'Voice input',
+                    onPressed: () => toggleListening(controller),
+                    icon: Icon(
+                      isListeningForField ? Icons.mic : Icons.mic_none,
+                    ),
+                  ),
+                ),
+              );
+            }
+
             return PopScope(
               canPop: false,
               onPopInvokedWithResult: (didPop, __) {
@@ -2058,30 +2240,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ),
                       ],
                       const SizedBox(height: 16),
-                      TextField(
-                        key: const ValueKey('diary-title-field'),
-                        controller: titleController,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(
-                          labelText: _isKo ? '제목' : 'Title',
-                          hintText: _isKo
-                              ? '예: 비 온 날 끝까지 이어진 패스 감각'
-                              : 'Ex: Passing rhythm that lasted through the rain',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        key: const ValueKey('diary-story-field'),
-                        controller: storyController,
-                        minLines: 7,
-                        maxLines: 12,
-                        decoration: InputDecoration(
-                          labelText: _isKo ? '본문 시작' : 'Opening body',
-                          hintText: _defaultStoryPrompt(day),
-                          alignLabelWithHint: true,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
                       Text(
                         _isKo ? '감정 스티커' : 'Mood sticker',
                         style: _theme.textTheme.titleMedium?.copyWith(
@@ -2122,6 +2280,26 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                               ),
                             )
                             .toList(growable: false),
+                      ),
+                      const SizedBox(height: 16),
+                      buildVoiceField(
+                        key: const ValueKey('diary-title-field'),
+                        controller: titleController,
+                        textInputAction: TextInputAction.next,
+                        labelText: _isKo ? '제목' : 'Title',
+                        hintText: _isKo
+                            ? '예: 비 온 날 끝까지 이어진 패스 감각'
+                            : 'Ex: Passing rhythm that lasted through the rain',
+                      ),
+                      const SizedBox(height: 12),
+                      buildVoiceField(
+                        key: const ValueKey('diary-story-field'),
+                        controller: storyController,
+                        minLines: 7,
+                        maxLines: 12,
+                        labelText: _isKo ? '본문 시작' : 'Opening body',
+                        hintText: _defaultStoryPrompt(day),
+                        alignLabelWithHint: true,
                       ),
                       const SizedBox(height: 20),
                       Row(
@@ -2185,6 +2363,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       },
     );
 
+    composerActive = false;
+    if (isListening) {
+      await speech.cancel();
+    }
     titleController.dispose();
     storyController.dispose();
 
