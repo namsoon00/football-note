@@ -615,7 +615,6 @@ class _HomeHubData {
         quizCompletedAt.day == now.day;
     final reviewedTodayDiary =
         viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
-    final syncedQuizAndDiaryToday = quizCompletedToday && reviewedTodayDiary;
     final loggedBoardToday = boards.isNotEmpty &&
         boards.first.updatedAt.year == now.year &&
         boards.first.updatedAt.month == now.month &&
@@ -637,8 +636,8 @@ class _HomeHubData {
       loggedTrainingToday: loggedTrainingToday,
       loggedLiftingToday: loggedLiftingToday,
       loggedJumpRopeToday: loggedJumpRopeToday,
-      reviewedTodayDiary: syncedQuizAndDiaryToday,
-      quizCompletedToday: syncedQuizAndDiaryToday,
+      reviewedTodayDiary: reviewedTodayDiary,
+      quizCompletedToday: quizCompletedToday,
       loggedBoardToday: loggedBoardToday,
       quizResumeSummary: quizResumeSummary,
     );
