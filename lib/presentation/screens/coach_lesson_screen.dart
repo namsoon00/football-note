@@ -523,6 +523,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (customDiary.title.trim().isNotEmpty) ...[
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 180),
+                      child: Text(
+                        customDiary.title.trim(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _theme.textTheme.labelLarge?.copyWith(
+                          color: _headlineInk,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   if (customDiary.hasContent) ...[
                     _buildDiaryActionIconButton(
                       key: ValueKey(
@@ -624,16 +639,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _DiaryInlineEditor(
-            key: ValueKey('diary-inline-${_dayStorageToken(day.date)}'),
-            isKo: _isKo,
-            title: customDiary.title,
-            story: customDiary.story,
-            headlineInk: _headlineInk,
-            bodyInk: _bodyInk,
-            paperEdge: _paperEdge,
-            onChanged: (title, story) =>
-                _saveInlineDiaryText(day.date, title: title, story: story),
+          Text(
+            customDiary.story.trim().isNotEmpty
+                ? customDiary.story.trim()
+                : (_isKo ? '본문을 입력해 주세요' : 'Please enter the body text'),
+            key: ValueKey('diary-story-${_dayStorageToken(day.date)}'),
+            style: _theme.textTheme.bodyLarge?.copyWith(
+              color: customDiary.story.trim().isNotEmpty
+                  ? _headlineInk
+                  : _bodyInk.withValues(alpha: 0.78),
+              height: 1.72,
+            ),
           ),
           const SizedBox(height: 14),
           if (stickers.isNotEmpty) ...[
@@ -1106,22 +1122,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         context,
         text: _isKo ? '다이어리를 저장했어요.' : 'Diary saved.',
       );
-    }
-  }
-
-  Future<void> _saveInlineDiaryText(
-    DateTime date, {
-    required String title,
-    required String story,
-  }) async {
-    final current = _customDiaryForDay(date);
-    if (current.title == title && current.story == story) {
-      return;
-    }
-    final next = current.copyWith(title: title, story: story);
-    await _saveCustomDiary(date, next, showFeedback: false);
-    if (next.hasContent) {
-      await _markDiaryCompletedIfNeeded(date);
     }
   }
 
@@ -2618,153 +2618,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _isKo
         ? DateFormat('a h:mm', 'ko').format(date)
         : DateFormat('h:mm a', 'en').format(date);
-  }
-}
-
-class _DiaryInlineEditor extends StatefulWidget {
-  final bool isKo;
-  final String title;
-  final String story;
-  final Color headlineInk;
-  final Color bodyInk;
-  final Color paperEdge;
-  final Future<void> Function(String title, String story) onChanged;
-
-  const _DiaryInlineEditor({
-    super.key,
-    required this.isKo,
-    required this.title,
-    required this.story,
-    required this.headlineInk,
-    required this.bodyInk,
-    required this.paperEdge,
-    required this.onChanged,
-  });
-
-  @override
-  State<_DiaryInlineEditor> createState() => _DiaryInlineEditorState();
-}
-
-class _DiaryInlineEditorState extends State<_DiaryInlineEditor> {
-  late final TextEditingController _titleController;
-  late final TextEditingController _storyController;
-  Timer? _saveDebounce;
-  bool _syncingFromWidget = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.title);
-    _storyController = TextEditingController(text: widget.story);
-    _titleController.addListener(_handleTextChanged);
-    _storyController.addListener(_handleTextChanged);
-  }
-
-  @override
-  void didUpdateWidget(covariant _DiaryInlineEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _syncController(_titleController, widget.title);
-    _syncController(_storyController, widget.story);
-  }
-
-  void _syncController(TextEditingController controller, String nextValue) {
-    if (controller.text == nextValue) return;
-    _syncingFromWidget = true;
-    controller.value = controller.value.copyWith(
-      text: nextValue,
-      selection: TextSelection.collapsed(offset: nextValue.length),
-      composing: TextRange.empty,
-    );
-    _syncingFromWidget = false;
-  }
-
-  void _handleTextChanged() {
-    if (_syncingFromWidget) return;
-    _saveDebounce?.cancel();
-    _saveDebounce = Timer(const Duration(milliseconds: 420), _flushSave);
-  }
-
-  void _flushSave() {
-    unawaited(widget.onChanged(_titleController.text, _storyController.text));
-  }
-
-  @override
-  void dispose() {
-    if (_saveDebounce?.isActive ?? false) {
-      _flushSave();
-    }
-    _saveDebounce?.cancel();
-    _titleController.removeListener(_handleTextChanged);
-    _storyController.removeListener(_handleTextChanged);
-    _titleController.dispose();
-    _storyController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          key: const ValueKey('diary-inline-title-field'),
-          controller: _titleController,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            hintText: widget.isKo ? '제목을 입력해 주세요' : 'Please enter a title',
-            hintStyle: theme.textTheme.bodyMedium?.copyWith(
-              color: widget.bodyInk.withValues(alpha: 0.7),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: widget.paperEdge),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: widget.paperEdge),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: widget.headlineInk.withValues(alpha: 0.42),
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
-          ),
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: widget.headlineInk,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          key: const ValueKey('diary-inline-story-field'),
-          controller: _storyController,
-          minLines: 5,
-          maxLines: null,
-          decoration: InputDecoration(
-            hintText:
-                widget.isKo ? '본문을 입력해 주세요' : 'Please enter the body text',
-            alignLabelWithHint: true,
-            hintStyle: theme.textTheme.bodyMedium?.copyWith(
-              color: widget.bodyInk.withValues(alpha: 0.7),
-            ),
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            contentPadding: const EdgeInsets.fromLTRB(2, 4, 2, 8),
-          ),
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: widget.headlineInk,
-            height: 1.72,
-          ),
-        ),
-      ],
-    );
   }
 }
 
