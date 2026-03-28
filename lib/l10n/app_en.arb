@@ -233,5 +233,43 @@
   "gameGuideCharRedTag": "MARK",
   "gameGuideCharPinkTitle": "Pink Ghost - READ",
   "gameGuideCharPinkSubtitle": "Anticipates receiver route",
-  "gameGuideCharPinkTag": "READ"
+  "gameGuideCharPinkTag": "READ",
+  "hideKeyboard": "Hide keyboard",
+  "diaryTitlePlaceholder": "Please enter a title",
+  "diaryCustomEmotionLabel": "Create your own emotion",
+  "diaryCustomEmotionHint": "Add a mood sticker in your own words",
+  "diaryCustomEmotionAdd": "Add emotion",
+  "diaryExpandNewsStickers": "Show all news stickers ({count})",
+  "@diaryExpandNewsStickers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryCollapseNewsStickers": "Collapse news stickers",
+  "homeWeatherTitle": "Weather coach",
+  "homeWeatherSubtitle": "Check local conditions and adjust training focus.",
+  "homeWeatherLoad": "Load local weather",
+  "homeWeatherLoading": "Loading local weather...",
+  "homeWeatherUnavailable": "Weather info is ready here once location access is allowed.",
+  "homeWeatherPermissionNeeded": "Allow location access to load local weather.",
+  "homeWeatherLoadFailed": "Failed to load local weather.",
+  "homeWeatherLocationUnknown": "Current location",
+  "homeWeatherSuggestionTitle": "Suggested training focus",
+  "homeWeatherSuggestionClear": "Good time for outdoor first-touch work, passing rhythm, and short sprint sets.",
+  "homeWeatherSuggestionCloudy": "Use the stable conditions for tactical pattern work and longer tempo drills.",
+  "homeWeatherSuggestionRain": "Shift to indoor touches, wall passing, and balance or core work.",
+  "homeWeatherSuggestionSnow": "Prioritize indoor coordination, mobility, and light technical repetitions.",
+  "homeWeatherSuggestionStorm": "Keep it safe with recovery, video review, and short indoor activation.",
+  "homeWeatherSuggestionHot": "Reduce volume, extend recovery, and focus on technique with hydration breaks.",
+  "homeWeatherSuggestionCold": "Spend extra time warming up, then build intensity gradually with tight touches.",
+  "weatherLabelDefault": "Weather",
+  "weatherLabelClear": "Clear",
+  "weatherLabelCloudy": "Cloudy",
+  "weatherLabelFog": "Fog",
+  "weatherLabelDrizzle": "Drizzle",
+  "weatherLabelRain": "Rain",
+  "weatherLabelSnow": "Snow",
+  "weatherLabelThunderstorm": "Thunderstorm"
 }

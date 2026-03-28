@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
@@ -77,11 +80,19 @@ class HomeHubScreen extends StatefulWidget {
 class _HomeHubScreenState extends State<HomeHubScreen> {
   static const String _priorityFocusOverrideKey =
       'home_priority_focus_override_v1';
+  bool _weatherLoading = false;
+  String _weatherLocation = '';
+  String _weatherSummary = '';
+  int? _weatherCode;
+  double? _weatherTemperature;
 
   @override
   void initState() {
     super.initState();
     NewsBadgeService.refresh(widget.optionRepository);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_loadHomeWeather(requestPermission: false));
+    });
   }
 
   @override
@@ -170,6 +181,23 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                       levelState: levelState,
                       isKo: isKo,
                       onTap: _openLevelGuide,
+                    ),
+                    const SizedBox(height: 12),
+                    _HomeWeatherCard(
+                      l10n: AppLocalizations.of(context)!,
+                      location: _weatherLocation.trim().isEmpty
+                          ? AppLocalizations.of(
+                              context,
+                            )!
+                              .homeWeatherLocationUnknown
+                          : _weatherLocation.trim(),
+                      summary: _weatherSummary.trim(),
+                      suggestion: _weatherTrainingSuggestion(
+                        AppLocalizations.of(context)!,
+                      ),
+                      loading: _weatherLoading,
+                      onRefresh: () =>
+                          _loadHomeWeather(requestPermission: true),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -278,6 +306,222 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _loadHomeWeather({required bool requestPermission}) async {
+    if (_weatherLoading || !mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    setState(() => _weatherLoading = true);
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied && requestPermission) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (requestPermission && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.homeWeatherPermissionNeeded)),
+          );
+        }
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
+      );
+      final place = await _resolvePlaceName(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        isKo: isKo,
+      );
+      final weather = await _fetchCurrentWeather(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        l10n: l10n,
+      );
+      if (!mounted) return;
+      setState(() {
+        _weatherLocation = place;
+        _weatherCode = weather.code;
+        _weatherSummary = weather.summary;
+        _weatherTemperature = weather.temperature;
+      });
+    } catch (_) {
+      if (requestPermission && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.homeWeatherLoadFailed)));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _weatherLoading = false);
+      }
+    }
+  }
+
+  Future<String> _resolvePlaceName({
+    required double latitude,
+    required double longitude,
+    required bool isKo,
+  }) async {
+    final uri = Uri.https('geocoding-api.open-meteo.com', '/v1/reverse', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'count': '1',
+      'language': isKo ? 'ko' : 'en',
+    });
+    final response = await http.get(uri);
+    if (response.statusCode != 200) return '';
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) return '';
+    final results = decoded['results'];
+    if (results is! List || results.isEmpty) return '';
+    final first = results.first;
+    if (first is! Map<String, dynamic>) return '';
+    final city = (first['city'] ?? first['name'] ?? '').toString().trim();
+    final region = (first['admin1'] ?? '').toString().trim();
+    final country = (first['country'] ?? '').toString().trim();
+    final parts = <String>[
+      if (city.isNotEmpty) city,
+      if (region.isNotEmpty && region != city) region,
+      if (country.isNotEmpty) country,
+    ];
+    return parts.take(2).join(', ');
+  }
+
+  Future<_HomeWeatherSnapshot> _fetchCurrentWeather({
+    required double latitude,
+    required double longitude,
+    required AppLocalizations l10n,
+  }) async {
+    final uri = Uri.https('api.open-meteo.com', '/v1/forecast', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'temperature_2m,weather_code',
+      'timezone': 'auto',
+    });
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      return const _HomeWeatherSnapshot(summary: '');
+    }
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      return const _HomeWeatherSnapshot(summary: '');
+    }
+    final current = decoded['current'];
+    if (current is! Map<String, dynamic>) {
+      return const _HomeWeatherSnapshot(summary: '');
+    }
+    final temp = (current['temperature_2m'] as num?)?.toDouble();
+    final code = (current['weather_code'] as num?)?.toInt();
+    final weatherText = _weatherLabelFromCode(code, l10n);
+    final summary = temp == null
+        ? weatherText
+        : '$weatherText ${temp.toStringAsFixed(1)}°C';
+    return _HomeWeatherSnapshot(
+      code: code,
+      temperature: temp,
+      summary: summary,
+    );
+  }
+
+  String _weatherLabelFromCode(int? code, AppLocalizations l10n) {
+    switch (code) {
+      case 0:
+        return l10n.weatherLabelClear;
+      case 1:
+      case 2:
+      case 3:
+        return l10n.weatherLabelCloudy;
+      case 45:
+      case 48:
+        return l10n.weatherLabelFog;
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+        return l10n.weatherLabelDrizzle;
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return l10n.weatherLabelRain;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return l10n.weatherLabelSnow;
+      case 95:
+      case 96:
+      case 99:
+        return l10n.weatherLabelThunderstorm;
+      default:
+        return l10n.weatherLabelDefault;
+    }
+  }
+
+  String _weatherTrainingSuggestion(AppLocalizations l10n) {
+    if (_weatherSummary.trim().isEmpty) {
+      return l10n.homeWeatherUnavailable;
+    }
+    final temperature = _weatherTemperature;
+    if (temperature != null && temperature >= 28) {
+      return l10n.homeWeatherSuggestionHot;
+    }
+    if (temperature != null && temperature <= 2) {
+      return l10n.homeWeatherSuggestionCold;
+    }
+    switch (_weatherCode) {
+      case 0:
+        return l10n.homeWeatherSuggestionClear;
+      case 1:
+      case 2:
+      case 3:
+      case 45:
+      case 48:
+        return l10n.homeWeatherSuggestionCloudy;
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return l10n.homeWeatherSuggestionRain;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return l10n.homeWeatherSuggestionSnow;
+      case 95:
+      case 96:
+      case 99:
+        return l10n.homeWeatherSuggestionStorm;
+      default:
+        return l10n.homeWeatherSuggestionCloudy;
+    }
   }
 
   static List<_DashboardPlan> _loadPlans(OptionRepository optionRepository) {
@@ -1795,6 +2039,164 @@ class _TodoChip extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HomeWeatherSnapshot {
+  final int? code;
+  final double? temperature;
+  final String summary;
+
+  const _HomeWeatherSnapshot({
+    this.code,
+    this.temperature,
+    required this.summary,
+  });
+}
+
+class _HomeWeatherCard extends StatelessWidget {
+  final AppLocalizations l10n;
+  final String location;
+  final String summary;
+  final String suggestion;
+  final bool loading;
+  final VoidCallback onRefresh;
+
+  const _HomeWeatherCard({
+    required this.l10n,
+    required this.location,
+    required this.summary,
+    required this.suggestion,
+    required this.loading,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final hasWeather = summary.trim().isNotEmpty;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF123E66).withValues(alpha: 0.96),
+            const Color(0xFF2E7FA7).withValues(alpha: 0.92),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.cloud_outlined,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.homeWeatherTitle,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.homeWeatherSubtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.84),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            location,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: Colors.white.withValues(alpha: 0.86),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            loading
+                ? l10n.homeWeatherLoading
+                : hasWeather
+                    ? summary
+                    : l10n.homeWeatherUnavailable,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              height: 1.15,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.homeWeatherSuggestionTitle,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.86),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  suggestion,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          FilledButton.tonalIcon(
+            onPressed: loading ? null : onRefresh,
+            icon: Icon(
+              hasWeather ? Icons.refresh_rounded : Icons.my_location_rounded,
+            ),
+            label: Text(l10n.homeWeatherLoad),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: scheme.primary,
+            ),
+          ),
+        ],
       ),
     );
   }

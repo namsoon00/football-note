@@ -707,4 +707,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameGuideCharPinkTag => 'READ';
+
+  @override
+  String get hideKeyboard => 'Hide keyboard';
+
+  @override
+  String get diaryTitlePlaceholder => 'Please enter a title';
+
+  @override
+  String get diaryCustomEmotionLabel => 'Create your own emotion';
+
+  @override
+  String get diaryCustomEmotionHint => 'Add a mood sticker in your own words';
+
+  @override
+  String get diaryCustomEmotionAdd => 'Add emotion';
+
+  @override
+  String diaryExpandNewsStickers(int count) {
+    return 'Show all news stickers ($count)';
+  }
+
+  @override
+  String get diaryCollapseNewsStickers => 'Collapse news stickers';
+
+  @override
+  String get homeWeatherTitle => 'Weather coach';
+
+  @override
+  String get homeWeatherSubtitle =>
+      'Check local conditions and adjust training focus.';
+
+  @override
+  String get homeWeatherLoad => 'Load local weather';
+
+  @override
+  String get homeWeatherLoading => 'Loading local weather...';
+
+  @override
+  String get homeWeatherUnavailable =>
+      'Weather info is ready here once location access is allowed.';
+
+  @override
+  String get homeWeatherPermissionNeeded =>
+      'Allow location access to load local weather.';
+
+  @override
+  String get homeWeatherLoadFailed => 'Failed to load local weather.';
+
+  @override
+  String get homeWeatherLocationUnknown => 'Current location';
+
+  @override
+  String get homeWeatherSuggestionTitle => 'Suggested training focus';
+
+  @override
+  String get homeWeatherSuggestionClear =>
+      'Good time for outdoor first-touch work, passing rhythm, and short sprint sets.';
+
+  @override
+  String get homeWeatherSuggestionCloudy =>
+      'Use the stable conditions for tactical pattern work and longer tempo drills.';
+
+  @override
+  String get homeWeatherSuggestionRain =>
+      'Shift to indoor touches, wall passing, and balance or core work.';
+
+  @override
+  String get homeWeatherSuggestionSnow =>
+      'Prioritize indoor coordination, mobility, and light technical repetitions.';
+
+  @override
+  String get homeWeatherSuggestionStorm =>
+      'Keep it safe with recovery, video review, and short indoor activation.';
+
+  @override
+  String get homeWeatherSuggestionHot =>
+      'Reduce volume, extend recovery, and focus on technique with hydration breaks.';
+
+  @override
+  String get homeWeatherSuggestionCold =>
+      'Spend extra time warming up, then build intensity gradually with tight touches.';
+
+  @override
+  String get weatherLabelDefault => 'Weather';
+
+  @override
+  String get weatherLabelClear => 'Clear';
+
+  @override
+  String get weatherLabelCloudy => 'Cloudy';
+
+  @override
+  String get weatherLabelFog => 'Fog';
+
+  @override
+  String get weatherLabelDrizzle => 'Drizzle';
+
+  @override
+  String get weatherLabelRain => 'Rain';
+
+  @override
+  String get weatherLabelSnow => 'Snow';
+
+  @override
+  String get weatherLabelThunderstorm => 'Thunderstorm';
 }
