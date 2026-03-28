@@ -1222,9 +1222,41 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           title: _isKo ? '운세 스티커 · $label' : 'Fortune sticker · $label',
-          summary: fortune.summaryText,
+          summary: fortune.composeText(_isKo),
           icon: Icons.auto_awesome_outlined,
           tint: const Color(0xFF9B51E0),
+        );
+      case _DiaryRecordStickerKind.board:
+        final board = day.boards.cast<TrainingBoard?>().firstWhere(
+              (item) => item?.id == sticker.refId,
+              orElse: () => null,
+            );
+        if (board == null) return null;
+        final layout = TrainingMethodLayout.decode(board.layoutJson);
+        final boardMemo =
+            layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          title: _isKo
+              ? '훈련보드 스티커 · ${board.title}'
+              : 'Board sticker · ${board.title}',
+          summary: boardMemo.isNotEmpty
+              ? boardMemo
+              : (_isKo
+                  ? '이 보드에서 기록한 움직임과 아이디어'
+                  : 'Movement and idea captured on this board'),
+          icon: Icons.dashboard_customize_outlined,
+          tint: const Color(0xFF4A7CCF),
+        );
+      case _DiaryRecordStickerKind.conditioning:
+        final dayToken = _dayStorageToken(day.date);
+        if (sticker.refId != dayToken) return null;
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          title: _isKo ? '줄넘기/리프팅 스티커' : 'Jump rope/lifting sticker',
+          summary: _conditioningSummary(day),
+          icon: Icons.sports_gymnastics_outlined,
+          tint: const Color(0xFF2F8F6A),
         );
     }
   }
@@ -1418,23 +1450,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ...day.boards.map(_boardTodoSeed),
     ];
     if (_hasConditioningRecord(day)) {
-      seeds.add(
-        _DiaryTodoSeed(
-          id: 'conditioning-${_dayStorageToken(day.date)}',
-          title: _isKo ? '줄넘기와 리프팅' : 'Jump rope and lifting',
-          summary: _isKo
-              ? '반복 기록과 몸 감각을 한 문단으로 묶어 적기 좋아요.'
-              : 'A good block for repetition counts and body feel in one paragraph.',
-          storySentence: _isKo
-              ? '줄넘기와 리프팅을 하면서 몸이 어떻게 풀렸는지부터 적어 본다.'
-              : 'Start with how the body opened up during jump rope and lifting.',
-          sectionTitle: _isKo ? '몸 풀린 순간' : 'Body wake-up',
-          sectionBody: _isKo
-              ? '반복 수와 함께 몸이 가벼워진 순간을 남긴다.'
-              : 'Keep the moment the body felt lighter together with the counts.',
-          icon: Icons.sports_gymnastics_outlined,
-        ),
-      );
+      seeds.add(_conditioningTodoSeed(day));
     }
     if (_hasRecoveryRecord(day)) {
       seeds.add(
@@ -1564,7 +1580,54 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       sectionTitle: _isKo ? '${board.title} 메모' : '${board.title} note',
       sectionBody: body,
       icon: Icons.dashboard_customize_outlined,
+      recordKind: _DiaryRecordStickerKind.board,
+      recordRefId: board.id,
     );
+  }
+
+  _DiaryTodoSeed _conditioningTodoSeed(_DiaryDayData day) {
+    final dayToken = _dayStorageToken(day.date);
+    return _DiaryTodoSeed(
+      id: 'conditioning-$dayToken',
+      title: _isKo ? '줄넘기와 리프팅' : 'Jump rope and lifting',
+      summary: _conditioningSummary(day),
+      storySentence: _isKo
+          ? '줄넘기와 리프팅을 하면서 몸이 어떻게 풀렸는지부터 적어 본다.'
+          : 'Start with how the body opened up during jump rope and lifting.',
+      sectionTitle: _isKo ? '몸 풀린 순간' : 'Body wake-up',
+      sectionBody: _isKo
+          ? '반복 수와 함께 몸이 가벼워진 순간을 남긴다.'
+          : 'Keep the moment the body felt lighter together with the counts.',
+      icon: Icons.sports_gymnastics_outlined,
+      recordKind: _DiaryRecordStickerKind.conditioning,
+      recordRefId: dayToken,
+    );
+  }
+
+  String _conditioningSummary(_DiaryDayData day) {
+    final totalLifting = day.entries.fold<int>(
+      0,
+      (sum, entry) =>
+          sum +
+          entry.liftingByPart.values.fold<int>(0, (acc, value) => acc + value),
+    );
+    final totalJumpCount = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeCount,
+    );
+    final totalJumpMinutes = day.entries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.jumpRopeMinutes,
+    );
+    final notes = day.entries
+        .map((entry) => entry.jumpRopeNote.trim())
+        .where((text) => text.isNotEmpty)
+        .toList(growable: false);
+    final noteText = notes.isEmpty ? '' : notes.first;
+    if (_isKo) {
+      return '리프팅 $totalLifting회 · 줄넘기 $totalJumpCount회/$totalJumpMinutes분${noteText.isEmpty ? '' : ' · $noteText'}';
+    }
+    return 'Lifting $totalLifting reps · Jump rope $totalJumpCount reps/$totalJumpMinutes min${noteText.isEmpty ? '' : ' · $noteText'}';
   }
 
   Future<void> _openDiaryComposer(
@@ -2616,7 +2679,14 @@ class _DiaryTodoSeed {
   });
 }
 
-enum _DiaryRecordStickerKind { training, match, plan, fortune }
+enum _DiaryRecordStickerKind {
+  training,
+  match,
+  plan,
+  fortune,
+  board,
+  conditioning,
+}
 
 class _DiaryRecordStickerData {
   final _DiaryRecordStickerKind kind;

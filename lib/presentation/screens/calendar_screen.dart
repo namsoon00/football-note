@@ -180,7 +180,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _setCalendarFormat(CalendarFormat format) async {
     if (_calendarFormat == format) return;
-    setState(() => _calendarFormat = format);
+    setState(() {
+      _calendarFormat = format;
+      _focusedDay = _selectedDay ?? _focusedDay;
+    });
     await widget.optionRepository.setValue(
       _calendarFormatKey,
       _serializeCalendarFormat(format),
@@ -356,6 +359,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     TableCalendar<TrainingEntry>(
+                                      key: ValueKey(
+                                        'calendar-${_calendarFormat.name}',
+                                      ),
                                       locale: Localizations.localeOf(
                                         context,
                                       ).toString(),
@@ -363,6 +369,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       firstDay: DateTime(2022),
                                       lastDay: DateTime(2032),
                                       sixWeekMonthsEnforced: false,
+                                      availableCalendarFormats: const {
+                                        CalendarFormat.twoWeeks: '2W',
+                                        CalendarFormat.month: '1M',
+                                      },
                                       rowHeight: 44,
                                       daysOfWeekHeight: 20,
                                       calendarFormat: _calendarFormat,
