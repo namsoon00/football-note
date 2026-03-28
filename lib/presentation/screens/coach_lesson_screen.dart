@@ -1167,8 +1167,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   lastDay: lastDay,
                   focusedDay: focusedDay,
                   calendarFormat: CalendarFormat.month,
+                  rowHeight: 42,
+                  daysOfWeekHeight: 18,
                   availableGestures: AvailableGestures.horizontalSwipe,
                   startingDayOfWeek: StartingDayOfWeek.monday,
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    headerPadding: EdgeInsets.symmetric(vertical: 6),
+                    leftChevronPadding: EdgeInsets.zero,
+                    rightChevronPadding: EdgeInsets.zero,
+                  ),
                   selectedDayPredicate: (day) =>
                       picked != null && isSameDay(day, picked),
                   onDaySelected: (selected, focused) {
@@ -2402,8 +2411,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   lastDay: days.first.date,
                   focusedDay: focusedDay,
                   calendarFormat: CalendarFormat.month,
+                  rowHeight: 42,
+                  daysOfWeekHeight: 18,
                   availableGestures: AvailableGestures.horizontalSwipe,
                   startingDayOfWeek: StartingDayOfWeek.monday,
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    headerPadding: EdgeInsets.symmetric(vertical: 6),
+                    leftChevronPadding: EdgeInsets.zero,
+                    rightChevronPadding: EdgeInsets.zero,
+                  ),
                   selectedDayPredicate: (day) =>
                       isSameDay(day, selectedDay) ||
                       (picked != null && isSameDay(day, picked)),
