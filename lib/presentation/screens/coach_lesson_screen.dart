@@ -527,32 +527,29 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (customDiary.hasContent) ...[
-                    OutlinedButton.icon(
+                    IconButton(
                       key: ValueKey(
                           'diary-delete-${_dayStorageToken(day.date)}'),
                       onPressed: () => _confirmDeleteDiary(day.date),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.error,
-                      ),
-                      icon: Icon(
+                      tooltip: _isKo ? '삭제' : 'Delete',
+                      color: Theme.of(context).colorScheme.error,
+                      icon: const Icon(
                         Icons.delete_outline,
-                        size: 18,
-                        color: Theme.of(context).colorScheme.error,
+                        size: 20,
                       ),
-                      label: Text(_isKo ? '삭제' : 'Delete'),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                   ],
-                  OutlinedButton.icon(
+                  IconButton(
                     key: ValueKey('diary-edit-${_dayStorageToken(day.date)}'),
                     onPressed: () => _openDiaryComposer(day, customDiary),
+                    tooltip: _isKo ? '작성' : 'Compose',
                     icon: Icon(
                       customDiary.hasContent
                           ? Icons.edit_note_outlined
                           : Icons.add_circle_outline,
-                      size: 18,
+                      size: 20,
                     ),
-                    label: Text(_isKo ? '작성' : 'Compose'),
                   ),
                 ],
               ),
