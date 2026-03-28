@@ -75,6 +75,9 @@ class HomeHubScreen extends StatefulWidget {
 }
 
 class _HomeHubScreenState extends State<HomeHubScreen> {
+  static const String _priorityFocusOverrideKey =
+      'home_priority_focus_override_v1';
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +125,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   widget.optionRepository,
                 ),
               );
+              final priorityFocusSignal = _resolvePriorityFocusSignal(data);
               final reminderUnreadCount = TrainingPlanReminderService(
                 widget.optionRepository,
                 widget.settingsService,
@@ -199,16 +203,17 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     const SizedBox(height: 12),
                     _PriorityActionCard(
                       data: data,
+                      focusSignal: priorityFocusSignal,
                       isKo: isKo,
-                      onPrimaryTap: _trackedAction(
-                        'priority_action',
-                        data.focusSignal == 'log_today'
+                      onPrimaryTap: _trackedPriorityAction(
+                        priorityFocusSignal,
+                        priorityFocusSignal == 'log_today'
                             ? widget.onOpenPlans
-                            : data.focusSignal == 'add_session'
+                            : priorityFocusSignal == 'add_session'
                                 ? widget.onOpenWeeklyStats
-                                : data.focusSignal == 'add_minutes'
+                                : priorityFocusSignal == 'add_minutes'
                                     ? widget.onQuickBoard
-                                    : data.focusSignal == 'recovery'
+                                    : priorityFocusSignal == 'recovery'
                                         ? widget.onOpenWeeklyStats
                                         : _openLevelGuide,
                       ),
@@ -387,6 +392,71 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       'home_action_last_tap_at_v1',
       DateTime.now().toIso8601String(),
     );
+  }
+
+  String _resolvePriorityFocusSignal(_HomeHubData data) {
+    final rawOverride =
+        widget.optionRepository.getValue<String>(_priorityFocusOverrideKey) ??
+            '';
+    final candidates = _priorityFocusCandidates(data);
+    if (rawOverride.isNotEmpty && candidates.contains(rawOverride)) {
+      return rawOverride;
+    }
+    return data.focusSignal;
+  }
+
+  List<String> _priorityFocusCandidates(_HomeHubData data) {
+    final ordered = <String>[
+      data.focusSignal,
+      if (data.focusSignal != 'log_today') 'log_today',
+      if (data.focusSignal != 'add_session') 'add_session',
+      if (data.focusSignal != 'add_minutes') 'add_minutes',
+      if (data.focusSignal != 'recovery') 'recovery',
+      if (data.focusSignal != 'upgrade_quality') 'upgrade_quality',
+    ];
+    return ordered.toSet().toList(growable: false);
+  }
+
+  VoidCallback? _trackedPriorityAction(
+    String focusSignal,
+    VoidCallback? action,
+  ) {
+    if (action == null) return null;
+    return () {
+      unawaited(_trackHomeActionTap('priority_action'));
+      unawaited(_advancePriorityFocusSignal(focusSignal));
+      action();
+    };
+  }
+
+  Future<void> _advancePriorityFocusSignal(String currentFocusSignal) async {
+    final entries = await widget.trainingService.allEntries();
+    final boardsById = TrainingBoardService(widget.optionRepository).boardMap();
+    final boards = boardsById.values.toList(growable: false)
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final data = _HomeHubData.build(
+      entries: entries.where((entry) => !entry.isMatch).toList(growable: false)
+        ..sort(TrainingEntry.compareByRecentCreated),
+      plans: _loadPlans(widget.optionRepository),
+      boards: boards,
+      quizCompletedAt: _loadQuizCompletedAt(widget.optionRepository),
+      viewedDiaryDayToken: widget.optionRepository.getValue<String>(
+        CoachLessonScreen.todayViewedDiaryDayKey,
+      ),
+      quizResumeSummary: SkillQuizScreen.loadResumeSummary(
+        widget.optionRepository,
+      ),
+    );
+    final candidates = _priorityFocusCandidates(data);
+    final currentIndex = candidates.indexOf(currentFocusSignal);
+    final nextIndex =
+        currentIndex < 0 ? 0 : (currentIndex + 1) % candidates.length;
+    await widget.optionRepository.setValue(
+      _priorityFocusOverrideKey,
+      candidates[nextIndex],
+    );
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _openTodayEntryOrCreate(_HomeHubData data) {
@@ -1017,11 +1087,13 @@ class _DailyFlowCard extends StatelessWidget {
 
 class _PriorityActionCard extends StatelessWidget {
   final _HomeHubData data;
+  final String focusSignal;
   final bool isKo;
   final VoidCallback? onPrimaryTap;
 
   const _PriorityActionCard({
     required this.data,
+    required this.focusSignal,
     required this.isKo,
     required this.onPrimaryTap,
   });
@@ -1098,7 +1170,7 @@ class _PriorityActionCard extends StatelessWidget {
   }
 
   (String, String, IconData) _copy() {
-    switch (data.focusSignal) {
+    switch (focusSignal) {
       case 'log_today':
         return (
           isKo
