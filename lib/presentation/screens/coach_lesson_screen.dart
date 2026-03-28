@@ -2750,21 +2750,30 @@ class _DiaryInlineEditorState extends State<_DiaryInlineEditor> {
             hintText:
                 widget.isKo ? '본문을 입력해 주세요' : 'Please enter the body text',
             alignLabelWithHint: true,
+            filled: true,
+            fillColor: widget.bodyInk.withValues(alpha: 0.035),
             hintStyle: theme.textTheme.bodyMedium?.copyWith(
               color: widget.bodyInk.withValues(alpha: 0.7),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: widget.paperEdge),
+              borderSide: BorderSide(
+                color: widget.headlineInk.withValues(alpha: 0.2),
+                width: 1.2,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: widget.paperEdge),
+              borderSide: BorderSide(
+                color: widget.headlineInk.withValues(alpha: 0.2),
+                width: 1.2,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
                 color: widget.headlineInk.withValues(alpha: 0.42),
+                width: 1.4,
               ),
             ),
             contentPadding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
