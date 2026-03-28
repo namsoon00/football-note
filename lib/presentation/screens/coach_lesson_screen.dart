@@ -2201,110 +2201,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           height: 1.5,
                         ),
                       ),
-                      if (todoSeeds.isNotEmpty) ...[
-                        const SizedBox(height: 18),
-                        Text(
-                          _isKo ? '오늘 기록에서 가져오기' : 'Pull from today records',
-                          style: _theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        ...todoSeeds.map(
-                          (seed) => Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                            decoration: BoxDecoration(
-                              color: _tileSurface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: _paperEdge),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      seed.icon,
-                                      size: 18,
-                                      color: _accentInk,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        seed.title,
-                                        style: _theme.textTheme.labelLarge
-                                            ?.copyWith(
-                                          color: _headlineInk,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  seed.summary,
-                                  style: _theme.textTheme.bodySmall?.copyWith(
-                                    color: _bodyInk,
-                                    height: 1.45,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    if (seed.recordKind != null &&
-                                        seed.recordRefId != null)
-                                      Builder(
-                                        builder: (context) {
-                                          final recordStorageId =
-                                              recordStorageIdFromSeed(seed)!;
-                                          return FilterChip(
-                                            key: ValueKey(
-                                              'diary-record-sticker-${seed.id}',
-                                            ),
-                                            label: Text(
-                                              selectedRecordStickerIds.contains(
-                                                recordStorageId,
-                                              )
-                                                  ? (_isKo
-                                                      ? '스티커 추가됨'
-                                                      : 'Sticker added')
-                                                  : (_isKo
-                                                      ? '기록 스티커로 붙이기'
-                                                      : 'Pin as sticker'),
-                                            ),
-                                            avatar: Icon(
-                                              Icons.push_pin_outlined,
-                                              size: 18,
-                                              color: _accentInk,
-                                            ),
-                                            selected: selectedRecordStickerIds
-                                                .contains(recordStorageId),
-                                            onSelected: (selected) {
-                                              setModalState(() {
-                                                if (selected) {
-                                                  selectedRecordStickerIds.add(
-                                                    recordStorageId,
-                                                  );
-                                                } else {
-                                                  selectedRecordStickerIds
-                                                      .remove(recordStorageId);
-                                                }
-                                              });
-                                            },
-                                          );
-                                        },
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
                       const SizedBox(height: 16),
                       Text(
                         _isKo ? '감정 스티커' : 'Mood sticker',
@@ -2347,6 +2243,104 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             )
                             .toList(growable: false),
                       ),
+                      if (todoSeeds.isNotEmpty) ...[
+                        const SizedBox(height: 18),
+                        Text(
+                          _isKo ? '오늘 기록에서 가져오기' : 'Pull from today records',
+                          style: _theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ...todoSeeds.map(
+                          (seed) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      seed.icon,
+                                      size: 18,
+                                      color: _accentInk,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        seed.title,
+                                        style: _theme.textTheme.labelLarge
+                                            ?.copyWith(
+                                          color: _headlineInk,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  seed.summary,
+                                  style: _theme.textTheme.bodySmall?.copyWith(
+                                    color: _bodyInk,
+                                    height: 1.45,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                if (seed.recordKind != null &&
+                                    seed.recordRefId != null)
+                                  Builder(
+                                    builder: (context) {
+                                      final recordStorageId =
+                                          recordStorageIdFromSeed(seed)!;
+                                      return FilterChip(
+                                        key: ValueKey(
+                                          'diary-record-sticker-${seed.id}',
+                                        ),
+                                        label: Text(
+                                          selectedRecordStickerIds.contains(
+                                            recordStorageId,
+                                          )
+                                              ? (_isKo
+                                                  ? '스티커 추가됨'
+                                                  : 'Sticker added')
+                                              : (_isKo
+                                                  ? '기록 스티커로 붙이기'
+                                                  : 'Pin as sticker'),
+                                        ),
+                                        avatar: Icon(
+                                          Icons.push_pin_outlined,
+                                          size: 18,
+                                          color: _accentInk,
+                                        ),
+                                        selected: selectedRecordStickerIds
+                                            .contains(recordStorageId),
+                                        onSelected: (selected) {
+                                          setModalState(() {
+                                            if (selected) {
+                                              selectedRecordStickerIds.add(
+                                                recordStorageId,
+                                              );
+                                            } else {
+                                              selectedRecordStickerIds.remove(
+                                                recordStorageId,
+                                              );
+                                            }
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ),
+                                const SizedBox(height: 8),
+                                Divider(
+                                  height: 1,
+                                  color: _paperEdge.withValues(alpha: 0.45),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       buildVoiceField(
                         key: const ValueKey('diary-title-field'),
