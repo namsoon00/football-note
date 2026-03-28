@@ -4438,6 +4438,8 @@ List<_McqSeed> _generatedGlobalFootballMcqSeeds() {
     );
   }
 
+  // Term-translation quiz type removed by product request.
+
   return generated;
 }
 
