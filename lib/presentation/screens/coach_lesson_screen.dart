@@ -1303,16 +1303,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               orElse: () => null,
             );
         if (entry == null) return null;
-        final label = entry.program.trim().isNotEmpty
-            ? entry.program.trim()
-            : (entry.type.trim().isNotEmpty
-                ? entry.type.trim()
-                : (_isKo ? '훈련' : 'Training'));
         final fortune = _DiaryFortune.fromEntry(entry, _isKo);
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.fortune,
-          title: _isKo ? '운세 스티커 · $label' : 'Fortune sticker · $label',
+          title: _isKo ? '운세 스티커' : 'Fortune sticker',
           summary: fortune.composeText(_isKo),
           icon: Icons.auto_awesome_outlined,
           tint: const Color(0xFF9B51E0),
@@ -1627,19 +1622,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   _DiaryTodoSeed _fortuneTodoSeed(TrainingEntry entry) {
-    final label = entry.program.trim().isNotEmpty
-        ? entry.program.trim()
-        : (entry.type.trim().isNotEmpty
-            ? entry.type.trim()
-            : (_isKo ? '훈련' : 'Training'));
     final fortune = _DiaryFortune.fromEntry(entry, _isKo);
     final storyText = fortune.composeText(_isKo);
     return _DiaryTodoSeed(
       id: 'fortune-${entry.createdAt.millisecondsSinceEpoch}',
-      title: _isKo ? '운세 · $label' : 'Fortune · $label',
+      title: _isKo ? '운세' : 'Fortune',
       summary: fortune.summaryText,
       storySentence: storyText,
-      sectionTitle: _isKo ? '$label 운세' : '$label fortune',
+      sectionTitle: _isKo ? '운세' : 'Fortune',
       sectionBody: storyText,
       icon: Icons.auto_awesome_outlined,
       recordKind: _DiaryRecordStickerKind.fortune,
