@@ -34,14 +34,10 @@ class SkillQuizScreen extends StatefulWidget {
     final session = _QuizSessionSnapshot.tryParse(
       optionRepository.getValue<String>(sessionKey),
     );
-    final pending = _normalizeScheduledWrongItems(
-      optionRepository.getValue<String>(pendingWrongScheduleKey),
-    );
     final now = DateTime.now();
-    final pendingDueCount = _resolveDueReviewQuestionsFromSchedule(
-      pending.where((item) => !item.dueAt.isAfter(now)),
-      _quizQuestionById,
-      _quizQuestionByConcept,
+    final pendingDueCount = _countDueScheduledWrongItemsLight(
+      optionRepository.getValue<String>(pendingWrongScheduleKey),
+      now,
     ).length;
 
     final rawCompletedAt = optionRepository.getValue<String>(completionKey);
@@ -64,6 +60,41 @@ class SkillQuizScreen extends StatefulWidget {
 
   @override
   State<SkillQuizScreen> createState() => _SkillQuizScreenState();
+}
+
+Set<String> _countDueScheduledWrongItemsLight(String? raw, DateTime now) {
+  if (raw == null || raw.trim().isEmpty) return const <String>{};
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) return const <String>{};
+    final dueConcepts = <String>{};
+    for (final item in decoded.whereType<Map>()) {
+      final map = item.cast<String, dynamic>();
+      final dueAt = DateTime.tryParse(map['dueAt']?.toString() ?? '');
+      if (dueAt == null || dueAt.isAfter(now)) {
+        continue;
+      }
+      final questionId = map['questionId']?.toString() ?? '';
+      final rawConcept = map['conceptKey']?.toString() ?? questionId;
+      final concept = _lightQuizConceptKey(rawConcept);
+      if (concept.isEmpty) {
+        continue;
+      }
+      dueConcepts.add(concept);
+    }
+    return dueConcepts;
+  } catch (_) {
+    return const <String>{};
+  }
+}
+
+String _lightQuizConceptKey(String raw) {
+  if (raw.isEmpty) return raw;
+  return _canonicalQuizConceptKey(
+    raw
+        .replaceFirst(RegExp(r'^(ox|mcq|sa)_'), '')
+        .replaceFirst(RegExp(r'_[0-9]+(?:_[0-9]+_[tf])?$'), ''),
+  );
 }
 
 class _SkillQuizScreenState extends State<SkillQuizScreen> {
