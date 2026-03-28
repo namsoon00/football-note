@@ -519,16 +519,30 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           children: [
             _buildDiarySection(
               title: _isKo ? '오늘의 일기' : 'Today diary entry',
-              trailing: OutlinedButton.icon(
-                key: ValueKey('diary-edit-${_dayStorageToken(day.date)}'),
-                onPressed: () => _openDiaryComposer(day, customDiary),
-                icon: Icon(
-                  customDiary.hasContent
-                      ? Icons.edit_note_outlined
-                      : Icons.add_circle_outline,
-                  size: 18,
-                ),
-                label: Text(_isKo ? '작성' : 'Compose'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (customDiary.hasContent) ...[
+                    OutlinedButton.icon(
+                      key: ValueKey('diary-delete-${_dayStorageToken(day.date)}'),
+                      onPressed: () => _confirmDeleteDiary(day.date),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: Text(_isKo ? '삭제' : 'Delete'),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  OutlinedButton.icon(
+                    key: ValueKey('diary-edit-${_dayStorageToken(day.date)}'),
+                    onPressed: () => _openDiaryComposer(day, customDiary),
+                    icon: Icon(
+                      customDiary.hasContent
+                          ? Icons.edit_note_outlined
+                          : Icons.add_circle_outline,
+                      size: 18,
+                    ),
+                    label: Text(_isKo ? '작성' : 'Compose'),
+                  ),
+                ],
               ),
               child: _buildCustomDiaryCard(day, customDiary),
             ),
@@ -1043,6 +1057,52 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     AppFeedback.showSuccess(
       context,
       text: _isKo ? '다이어리를 저장했어요.' : 'Diary saved.',
+    );
+  }
+
+  Future<void> _confirmDeleteDiary(DateTime date) async {
+    final token = _dayStorageToken(date);
+    if (!_customDiaryEntries.containsKey(token)) return;
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(_isKo ? '다이어리 삭제' : 'Delete diary'),
+        content: Text(
+          _isKo ? '이 날짜의 다이어리를 삭제할까요?' : 'Delete this day diary?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(_isKo ? '취소' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(_isKo ? '삭제' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+    if (shouldDelete != true) return;
+    _customDiaryEntries.remove(token);
+    final dayToken = CoachLessonScreen.todayViewedDayToken(date);
+    if (_lastCompletedDiaryToken == dayToken) {
+      _lastCompletedDiaryToken = null;
+    }
+    final completedToken = widget.optionRepository.getValue<String>(
+      CoachLessonScreen.todayViewedDiaryDayKey,
+    );
+    if (completedToken == dayToken) {
+      await widget.optionRepository.setValue(
+        CoachLessonScreen.todayViewedDiaryDayKey,
+        '',
+      );
+    }
+    await _persistCustomDiaryEntries();
+    if (!mounted) return;
+    setState(() {});
+    AppFeedback.showSuccess(
+      context,
+      text: _isKo ? '다이어리를 삭제했어요.' : 'Diary deleted.',
     );
   }
 
