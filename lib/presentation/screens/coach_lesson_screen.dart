@@ -1343,11 +1343,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               orElse: () => null,
             );
         if (item == null) return null;
+        final displayTitle = item.displayTitle(_isKo);
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.news,
           title:
-              _isKo ? '소식 스티커 · ${item.title}' : 'News sticker · ${item.title}',
+              _isKo ? '소식 스티커 · $displayTitle' : 'News sticker · $displayTitle',
           summary: _isKo
               ? '${item.source.isEmpty ? '출처 없음' : item.source} · ${_formatTime(item.openedAt)}'
               : '${item.source.isEmpty ? 'Unknown source' : item.source} · ${_formatTime(item.openedAt)}',
@@ -1713,17 +1714,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .map(
           (item) => _DiaryTodoSeed(
             id: 'news-${item.id}',
-            title: _isKo ? '소식 · ${item.title}' : 'News · ${item.title}',
+            title: _isKo
+                ? '소식 · ${item.displayTitle(true)}'
+                : 'News · ${item.displayTitle(false)}',
             summary: _isKo
                 ? '${item.source.isEmpty ? '출처 없음' : item.source} · ${_formatTime(item.openedAt)}'
                 : '${item.source.isEmpty ? 'Unknown source' : item.source} · ${_formatTime(item.openedAt)}',
             storySentence: _isKo
-                ? '${item.title} 기사를 읽고 기억하고 싶은 포인트를 한 줄로 남긴다.'
-                : 'Write one point you want to keep from "${item.title}".',
+                ? '${item.displayTitle(true)} 기사를 읽고 기억하고 싶은 포인트를 한 줄로 남긴다.'
+                : 'Write one point you want to keep from "${item.displayTitle(false)}".',
             sectionTitle: _isKo ? '오늘 본 소식' : 'Today news',
             sectionBody: _isKo
-                ? '${item.source.isEmpty ? '출처 없음' : item.source} 기사: ${item.title}'
-                : '${item.source.isEmpty ? 'Unknown source' : item.source} article: ${item.title}',
+                ? '${item.source.isEmpty ? '출처 없음' : item.source} 기사: ${item.displayTitle(true)}'
+                : '${item.source.isEmpty ? 'Unknown source' : item.source} article: ${item.displayTitle(false)}',
             icon: Icons.article_outlined,
             recordKind: _DiaryRecordStickerKind.news,
             recordRefId: item.id,
@@ -3023,6 +3026,7 @@ class _DiaryTodoSeed {
 class _DiaryOpenedNewsItem {
   final String id;
   final String title;
+  final String titleKo;
   final String source;
   final String link;
   final DateTime openedAt;
@@ -3030,10 +3034,16 @@ class _DiaryOpenedNewsItem {
   const _DiaryOpenedNewsItem({
     required this.id,
     required this.title,
+    required this.titleKo,
     required this.source,
     required this.link,
     required this.openedAt,
   });
+
+  String displayTitle(bool isKo) {
+    if (isKo && titleKo.trim().isNotEmpty) return titleKo.trim();
+    return title.trim();
+  }
 
   factory _DiaryOpenedNewsItem.fromMap(Map<String, dynamic> map) {
     final link = (map['link'] as String?)?.trim() ?? '';
@@ -3045,6 +3055,7 @@ class _DiaryOpenedNewsItem {
       title: (map['title'] as String?)?.trim().isNotEmpty == true
           ? (map['title'] as String).trim()
           : (link.isNotEmpty ? link : 'News'),
+      titleKo: (map['titleKo'] as String?)?.trim() ?? '',
       source: (map['source'] as String?)?.trim() ?? '',
       link: link,
       openedAt: DateTime.tryParse((map['openedAt'] as String?) ?? '') ??

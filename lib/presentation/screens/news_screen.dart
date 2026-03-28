@@ -1014,6 +1014,16 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Future<void> _recordOpenedArticle(NewsArticle article) async {
     final link = article.link.trim();
     if (link.isEmpty) return;
+    final openedAt = DateTime.now();
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final rawTitle = article.title.trim();
+    var titleKo = _translatedTitlesByLink[link]?.trim() ?? '';
+    if (isKo &&
+        rawTitle.isNotEmpty &&
+        titleKo.isEmpty &&
+        !RegExp(r'[가-힣]').hasMatch(rawTitle)) {
+      titleKo = await _translateToKorean(rawTitle);
+    }
     final items = <Map<String, dynamic>>[];
     final raw =
         widget.optionRepository.getValue<String>(NewsScreen.openedItemsKey);
@@ -1033,16 +1043,15 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         // Ignore malformed payload.
       }
     }
-    final id = _openedNewsId(link);
-    final next = items
-        .where((item) => (item['id']?.toString() ?? '') != id)
-        .toList(growable: true);
+    final id = _openedNewsId(link, openedAt);
+    final next = items.toList(growable: true);
     next.insert(0, <String, dynamic>{
       'id': id,
-      'title': article.title.trim(),
+      'title': rawTitle,
+      'titleKo': titleKo,
       'link': link,
       'source': article.source.trim(),
-      'openedAt': DateTime.now().toIso8601String(),
+      'openedAt': openedAt.toIso8601String(),
     });
     if (next.length > 300) {
       next.removeRange(300, next.length);
@@ -1053,7 +1062,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     );
   }
 
-  String _openedNewsId(String link) => Uri.encodeComponent(link);
+  String _openedNewsId(String link, DateTime openedAt) =>
+      '${Uri.encodeComponent(link)}::${openedAt.microsecondsSinceEpoch}';
 
   String _displayTitle(NewsArticle article, bool isKo) {
     if (!isKo || !_titleTranslateEnabled) return article.title;
