@@ -2367,8 +2367,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (isListening) {
       await speech.cancel();
     }
-    titleController.dispose();
-    storyController.dispose();
+    listeningController = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      titleController.dispose();
+      storyController.dispose();
+    });
 
     if (result == null) return;
     await _saveCustomDiary(day.date, result);
