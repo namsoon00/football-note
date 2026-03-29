@@ -2356,21 +2356,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ].toList(growable: false),
                       ),
                       const SizedBox(height: 16),
-                      buildVoiceField(
-                        key: const ValueKey('diary-title-field'),
-                        controller: titleController,
-                        textInputAction: TextInputAction.next,
-                        labelText: titleController.text.trim().isEmpty
-                            ? _l10n.diaryTitlePlaceholder
-                            : (_isKo ? '제목' : 'Title'),
-                        hintText: titleController.text.trim().isEmpty
-                            ? (_isKo
-                                ? '예: 비 온 날 끝까지 이어진 패스 감각'
-                                : 'Ex: Passing rhythm that lasted through the rain')
-                            : '',
-                      ),
                       if (diaryWeather.isNotEmpty) ...[
-                        const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -2403,7 +2389,37 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 10),
                       ],
+                      buildVoiceField(
+                        key: const ValueKey('diary-title-field'),
+                        controller: titleController,
+                        textInputAction: TextInputAction.next,
+                        labelText: titleController.text.trim().isEmpty
+                            ? _l10n.diaryTitlePlaceholder
+                            : (_isKo ? '제목' : 'Title'),
+                        hintText: titleController.text.trim().isEmpty
+                            ? (_isKo
+                                ? '예: 비 온 날 끝까지 이어진 패스 감각'
+                                : 'Ex: Passing rhythm that lasted through the rain')
+                            : '',
+                      ),
+                      const SizedBox(height: 12),
+                      buildVoiceField(
+                        key: const ValueKey('diary-story-field'),
+                        controller: storyController,
+                        minLines: 7,
+                        maxLines: 12,
+                        labelText: storyController.text.trim().isEmpty
+                            ? (_isKo
+                                ? '본문을 입력해 주세요'
+                                : 'Please enter the body text')
+                            : (_isKo ? '본문 시작' : 'Opening body'),
+                        hintText: storyController.text.trim().isEmpty
+                            ? _defaultStoryPrompt(day)
+                            : '',
+                        alignLabelWithHint: true,
+                      ),
                       if (todoSeeds.isNotEmpty) ...[
                         const SizedBox(height: 18),
                         Text(
@@ -2524,22 +2540,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      buildVoiceField(
-                        key: const ValueKey('diary-story-field'),
-                        controller: storyController,
-                        minLines: 7,
-                        maxLines: 12,
-                        labelText: storyController.text.trim().isEmpty
-                            ? (_isKo
-                                ? '본문을 입력해 주세요'
-                                : 'Please enter the body text')
-                            : (_isKo ? '본문 시작' : 'Opening body'),
-                        hintText: storyController.text.trim().isEmpty
-                            ? _defaultStoryPrompt(day)
-                            : '',
-                        alignLabelWithHint: true,
-                      ),
                       const SizedBox(height: 20),
                       Row(
                         children: [
