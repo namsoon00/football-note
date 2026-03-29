@@ -1565,6 +1565,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       minLines: minLines,
       maxLines: maxLines,
       enabled: enabled,
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => FocusScope.of(context).unfocus(),
       keyboardType:
           keyboardType ?? (maxLines == null ? TextInputType.multiline : null),
       style: TextStyle(
