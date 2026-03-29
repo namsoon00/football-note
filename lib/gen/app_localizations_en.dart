@@ -769,6 +769,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Check local weather and air quality for your current location.';
 
   @override
+  String get homeWeatherTomorrowTitle => 'Tomorrow\'s weather';
+
+  @override
+  String get homeWeatherWeeklyTitle => 'Weekly weather';
+
+  @override
+  String get homeWeatherCacheHint =>
+      'Recently fetched weather is reused for 10 minutes.';
+
+  @override
+  String get homeWeatherDailyHighLow => 'High/Low';
+
+  @override
+  String get homeWeatherTomorrowFallback =>
+      'Tomorrow\'s forecast is not available yet.';
+
+  @override
   String get homeWeatherTemperatureRange => 'High/Low';
 
   @override
