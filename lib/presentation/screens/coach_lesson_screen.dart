@@ -1978,6 +1978,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ...initialSelectedRecordStickerIds,
     };
     var isClosingFlowRunning = false;
+    var showAllMoodStickers = false;
 
     _CustomDiaryEntryData buildDraftData() {
       return _CustomDiaryEntryData(
@@ -2261,6 +2262,47 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   orElse: () => '',
                 )
                 .trim();
+            const compactMoodStickerCount = 8;
+            const favoriteMoodStickerIds = <String>[
+              'smile',
+              'star',
+              'heart',
+              'fire',
+              'cool',
+              'boot',
+              'trophy',
+              'note',
+            ];
+            final paletteById = <String, _DiaryStickerPalette>{
+              for (final sticker in _DiaryStickerPalette.values) sticker.id: sticker,
+            };
+            final orderedMoodStickers = <_DiaryStickerPalette>[
+              ...favoriteMoodStickerIds
+                  .map((id) => paletteById[id])
+                  .whereType<_DiaryStickerPalette>(),
+              ..._DiaryStickerPalette.values.where(
+                (sticker) => !favoriteMoodStickerIds.contains(sticker.id),
+              ),
+            ];
+            final compactMoodStickers = orderedMoodStickers
+                .take(compactMoodStickerCount)
+                .toList(growable: false);
+            final compactIds = compactMoodStickers
+                .map((sticker) => sticker.id)
+                .toSet();
+            final selectedHiddenMoodStickers = orderedMoodStickers
+                .where(
+                  (sticker) =>
+                      selectedStickerIds.contains(sticker.id) &&
+                      !compactIds.contains(sticker.id),
+                )
+                .toList(growable: false);
+            final visibleMoodStickers = showAllMoodStickers
+                ? orderedMoodStickers
+                : <_DiaryStickerPalette>[
+                    ...compactMoodStickers,
+                    ...selectedHiddenMoodStickers,
+                  ];
 
             return PopScope(
               canPop: false,
@@ -2303,7 +2345,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          ..._DiaryStickerPalette.values.map(
+                          ...visibleMoodStickers.map(
                             (sticker) => FilterChip(
                               key: ValueKey('diary-sticker-${sticker.id}'),
                               label: Text(
@@ -2355,6 +2397,30 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                               ),
                         ].toList(growable: false),
                       ),
+                      if (orderedMoodStickers.length > compactMoodStickerCount)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                setModalState(() {
+                                  showAllMoodStickers = !showAllMoodStickers;
+                                });
+                              },
+                              icon: Icon(
+                                showAllMoodStickers
+                                    ? Icons.expand_less_rounded
+                                    : Icons.expand_more_rounded,
+                              ),
+                              label: Text(
+                                showAllMoodStickers
+                                    ? (_isKo ? '접기' : 'Collapse')
+                                    : (_isKo ? '더보기' : 'Show more'),
+                              ),
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 16),
                       if (diaryWeather.isNotEmpty) ...[
                         Container(
