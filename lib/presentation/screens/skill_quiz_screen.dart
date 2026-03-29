@@ -4308,15 +4308,22 @@ List<_FootballQuizQuestion> _deduplicateQuestionsByConcept(
 }
 
 List<_OxFactSeed> _buildOxSeedPool300() {
-  return _oxFacts();
+  return <_OxFactSeed>[..._oxFacts(), ..._historyAndFifaRecordOxFacts()];
 }
 
 List<_McqSeed> _buildMcqSeedPool300() {
-  return <_McqSeed>[..._mcqSeeds(), ..._generatedGlobalFootballMcqSeeds()];
+  return <_McqSeed>[
+    ..._mcqSeeds(),
+    ..._historyAndFifaRecordMcqSeeds(),
+    ..._generatedGlobalFootballMcqSeeds(),
+  ];
 }
 
 List<_ShortAnswerSeed> _buildShortAnswerSeedPool300() {
-  final keywords = _shortAnswerKnowledgeSeeds();
+  final keywords = <_ShortAnswerKnowledgeSeed>[
+    ..._shortAnswerKnowledgeSeeds(),
+    ..._historyAndFifaRecordShortAnswerSeeds(),
+  ];
   final seeded = keywords
       .asMap()
       .entries
@@ -4496,6 +4503,149 @@ List<_McqSeed> _generatedGlobalFootballMcqSeeds() {
 List<_ShortAnswerSeed> _generatedGlobalFootballShortAnswerSeeds() {
   // Term-translation quiz type removed by product request.
   return const <_ShortAnswerSeed>[];
+}
+
+List<_OxFactSeed> _historyAndFifaRecordOxFacts() {
+  return const [
+    _OxFactSeed(
+      id: 'fifa_world_cup_1930',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koTrueStatement: '첫 FIFA 월드컵은 1930년에 열렸다.',
+      enTrueStatement: 'The first FIFA World Cup was held in 1930.',
+      koFalseStatement: '첫 FIFA 월드컵은 1950년에 시작됐다.',
+      enFalseStatement: 'The first FIFA World Cup began in 1950.',
+      koExplain: 'FIFA 월드컵의 첫 대회는 1930년 우루과이에서 열렸습니다.',
+      enExplain: 'The inaugural FIFA World Cup took place in Uruguay in 1930.',
+      koNextPoint: '역사 문제는 연도와 개최국을 함께 묶어 기억하세요.',
+      enNextPoint:
+          'Link the year with the host nation when studying history questions.',
+    ),
+    _OxFactSeed(
+      id: 'jules_rimet_current_trophy',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koTrueStatement: '지금도 월드컵 우승팀은 쥘 리메 트로피를 받는다.',
+      enTrueStatement:
+          'World Cup champions still receive the Jules Rimet Trophy today.',
+      koFalseStatement: '현재 월드컵 우승 트로피는 1974년부터 쓰인 새 트로피다.',
+      enFalseStatement:
+          'The current World Cup trophy is the newer design introduced in 1974.',
+      koExplain: '쥘 리메 트로피는 1970년까지 사용됐고, 이후에는 현재의 FIFA 월드컵 트로피가 쓰입니다.',
+      enExplain:
+          'The Jules Rimet Trophy was used through 1970, after which the current FIFA World Cup Trophy took over.',
+      koNextPoint: '대회 역사에서는 우승국뿐 아니라 트로피 변화도 함께 보세요.',
+      enNextPoint:
+          'In tournament history, study trophy changes alongside champions.',
+    ),
+  ];
+}
+
+List<_McqSeed> _historyAndFifaRecordMcqSeeds() {
+  return const [
+    _McqSeed(
+      id: 'world_cup_most_titles',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '남자 FIFA 월드컵 최다 우승 국가로 알려진 팀은 어디일까요?',
+      enStem:
+          'Which team is known for winning the most men’s FIFA World Cup titles?',
+      options: [
+        _FootballQuizOption(koText: '브라질', enText: 'Brazil'),
+        _FootballQuizOption(koText: '독일', enText: 'Germany'),
+        _FootballQuizOption(koText: '아르헨티나', enText: 'Argentina'),
+        _FootballQuizOption(koText: '이탈리아', enText: 'Italy'),
+      ],
+      correctIndex: 0,
+      koExplain: '브라질은 남자 FIFA 월드컵 최다 우승 기록을 가진 대표팀으로 잘 알려져 있습니다.',
+      enExplain:
+          'Brazil is widely recognized as the national team with the most men’s FIFA World Cup titles.',
+      koNextPoint: '월드컵 기록은 우승 횟수와 우승 연도를 함께 정리하세요.',
+      enNextPoint:
+          'Track World Cup records by pairing title counts with winning years.',
+    ),
+    _McqSeed(
+      id: 'first_world_cup_host',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koStem: '1930년 첫 FIFA 월드컵 개최국은 어디였을까요?',
+      enStem: 'Which country hosted the first FIFA World Cup in 1930?',
+      options: [
+        _FootballQuizOption(koText: '우루과이', enText: 'Uruguay'),
+        _FootballQuizOption(koText: '브라질', enText: 'Brazil'),
+        _FootballQuizOption(koText: '이탈리아', enText: 'Italy'),
+        _FootballQuizOption(koText: '프랑스', enText: 'France'),
+      ],
+      correctIndex: 0,
+      koExplain: '첫 FIFA 월드컵은 1930년 우루과이에서 개최됐습니다.',
+      enExplain: 'The first FIFA World Cup was hosted by Uruguay in 1930.',
+      koNextPoint: '개최국과 초대 우승국을 연결해 보면 역사 흐름이 더 잘 보입니다.',
+      enNextPoint:
+          'Connect the host and first champion to understand the historical flow better.',
+    ),
+    _McqSeed(
+      id: 'fifa_world_cup_trophy_name',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '1974년부터 월드컵 우승팀에 수여되는 현재 트로피 이름은 무엇일까요?',
+      enStem:
+          'What is the name of the current trophy awarded to World Cup champions since 1974?',
+      options: [
+        _FootballQuizOption(
+          koText: 'FIFA 월드컵 트로피',
+          enText: 'FIFA World Cup Trophy',
+        ),
+        _FootballQuizOption(koText: '쥘 리메 트로피', enText: 'Jules Rimet Trophy'),
+        _FootballQuizOption(koText: '골든볼', enText: 'Golden Ball'),
+        _FootballQuizOption(koText: '인터콘티넨털 컵', enText: 'Intercontinental Cup'),
+      ],
+      correctIndex: 0,
+      koExplain: '1974년부터는 쥘 리메 트로피 대신 현재의 FIFA 월드컵 트로피가 수여됩니다.',
+      enExplain:
+          'Since 1974, the FIFA World Cup Trophy has been awarded instead of the Jules Rimet Trophy.',
+      koNextPoint: '트로피 이름 변화는 대회 역사 흐름을 잡는 데 유용합니다.',
+      enNextPoint:
+          'Trophy-name changes are useful anchors for learning tournament history.',
+    ),
+  ];
+}
+
+List<_ShortAnswerKnowledgeSeed> _historyAndFifaRecordShortAnswerSeeds() {
+  return const [
+    _ShortAnswerKnowledgeSeed(
+      id: 'first_world_cup_year',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koClue: '첫 FIFA 월드컵이 열린 연도. 숫자 네 자리로 쓰세요',
+      enClue: 'Year of the first FIFA World Cup. Answer with four digits',
+      acceptedAnswers: ['1930'],
+      koExplain: '정답은 "1930"입니다. FIFA 월드컵 역사는 우루과이에서 시작됐습니다.',
+      enExplain:
+          'The answer is "1930." FIFA World Cup history began in Uruguay.',
+      koNextPoint: '축구 역사 문제는 연도와 장소를 함께 묶어서 익히세요.',
+      enNextPoint:
+          'Study football history by pairing landmark years with locations.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'jules_rimet',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koClue: '1970년까지 월드컵 우승팀에 수여되던 트로피 이름',
+      enClue: 'Name of the trophy awarded to World Cup champions through 1970',
+      acceptedAnswers: [
+        '쥘 리메 트로피',
+        '쥘리메 트로피',
+        'jules rimet trophy',
+        'julesrimettrophy',
+      ],
+      koExplain: '정답은 "쥘 리메 트로피"입니다. 이후에는 현재의 FIFA 월드컵 트로피가 사용됩니다.',
+      enExplain:
+          'The answer is "Jules Rimet Trophy." It was later replaced by the current FIFA World Cup Trophy.',
+      koNextPoint: '트로피 이름은 시대 구분 포인트로 활용할 수 있습니다.',
+      enNextPoint:
+          'Trophy names can act as useful markers for separating eras.',
+    ),
+  ];
 }
 
 List<_FootballQuizOption> _buildOptionsFromPool({
