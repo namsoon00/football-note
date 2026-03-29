@@ -1514,6 +1514,12 @@ abstract class AppLocalizations {
   /// **'Current location'**
   String get homeWeatherLocationUnknown;
 
+  /// No description provided for @homeWeatherCountryKorea.
+  ///
+  /// In en, this message translates to:
+  /// **'Korea'**
+  String get homeWeatherCountryKorea;
+
   /// No description provided for @homeWeatherDetailsTitle.
   ///
   /// In en, this message translates to:
@@ -1669,6 +1675,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spend extra time warming up, then build intensity gradually with tight touches.'**
   String get homeWeatherSuggestionCold;
+
+  /// No description provided for @homeWeatherSuggestionAirCaution.
+  ///
+  /// In en, this message translates to:
+  /// **'Air quality is poor, so reduce outdoor load and switch to indoor technical or recovery work if possible.'**
+  String get homeWeatherSuggestionAirCaution;
+
+  /// No description provided for @homeWeatherSuggestionAirWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'If you train outside, shorten hard intervals and monitor your breathing because the air quality is not fully stable.'**
+  String get homeWeatherSuggestionAirWatch;
 
   /// No description provided for @weatherLabelDefault.
   ///

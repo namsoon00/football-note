@@ -110,6 +110,30 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                       value: _formatTemperature(_apparentTemperature),
                       icon: Icons.thermostat_auto_outlined,
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _AirQualityCard(
+                  title: l10n.homeWeatherAirQualityTitle,
+                  status: '${l10n.homeWeatherAqi} · ${_aqiLevel(l10n, _aqi).label}',
+                  aqiLabel: l10n.homeWeatherAqi,
+                  aqiValue: _aqi == null ? '--' : '$_aqi',
+                  aqiStatus: _aqiLevel(l10n, _aqi).label,
+                  aqiLevel: _aqiLevel(l10n, _aqi).level,
+                  pm10Label: l10n.homeWeatherPm10,
+                  pm10Value: _formatParticles(_pm10),
+                  pm10Status: _pm10Level(l10n, _pm10).label,
+                  pm10Level: _pm10Level(l10n, _pm10).level,
+                  pm25Label: l10n.homeWeatherPm25,
+                  pm25Value: _formatParticles(_pm25),
+                  pm25Status: _pm25Level(l10n, _pm25).label,
+                  pm25Level: _pm25Level(l10n, _pm25).level,
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
                     _MetricCard(
                       label: l10n.homeWeatherHumidity,
                       value: _formatPercent(_humidity),
@@ -133,21 +157,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _AirQualityCard(
-                  title: l10n.homeWeatherAirQualityTitle,
-                  status: '${l10n.homeWeatherAqi} · ${_aqiLevel(l10n, _aqi).label}',
-                  aqiLabel: l10n.homeWeatherAqi,
-                  aqiValue: _aqi == null ? '--' : '$_aqi',
-                  aqiStatus: _aqiLevel(l10n, _aqi).label,
-                  aqiLevel: _aqiLevel(l10n, _aqi).level,
-                  pm10Label: l10n.homeWeatherPm10,
-                  pm10Value: _formatParticles(_pm10),
-                  pm10Status: _pm10Level(l10n, _pm10).label,
-                  pm10Level: _pm10Level(l10n, _pm10).level,
-                  pm25Label: l10n.homeWeatherPm25,
-                  pm25Value: _formatParticles(_pm25),
-                  pm25Status: _pm25Level(l10n, _pm25).label,
-                  pm25Level: _pm25Level(l10n, _pm25).level,
+                _TrainingGuideCard(
+                  title: l10n.homeWeatherSuggestionTitle,
+                  suggestion: _buildTrainingSuggestion(l10n),
                 ),
               ],
             ],
@@ -189,6 +201,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         latitude: position.latitude,
         longitude: position.longitude,
         isKo: isKo,
+        koreaLabel: l10n.homeWeatherCountryKorea,
       );
       final snapshot = await _fetchWeatherSnapshot(
         latitude: position.latitude,
@@ -228,6 +241,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double latitude,
     required double longitude,
     required bool isKo,
+    required String koreaLabel,
   }) async {
     final uri = Uri.https('geocoding-api.open-meteo.com', '/v1/reverse', {
       'latitude': latitude.toString(),
@@ -246,6 +260,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final city = (first['city'] ?? first['name'] ?? '').toString().trim();
     final region = (first['admin1'] ?? '').toString().trim();
     final country = (first['country'] ?? '').toString().trim();
+    if (_isKoreaCountry(country)) {
+      if (city.isNotEmpty) return '$city, $koreaLabel';
+      if (region.isNotEmpty) return '$region, $koreaLabel';
+      return koreaLabel;
+    }
     final parts = <String>[
       if (city.isNotEmpty) city,
       if (region.isNotEmpty && region != city) region,
@@ -372,6 +391,15 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       return (value.first as num?)?.toDouble();
     }
     return null;
+  }
+
+  bool _isKoreaCountry(String country) {
+    final normalized = country.trim().toLowerCase();
+    return normalized == 'south korea' ||
+        normalized == 'korea' ||
+        normalized == 'republic of korea' ||
+        country == '대한민국' ||
+        country == '한국';
   }
 
   _AirLevelLabel _aqiLevel(AppLocalizations l10n, int? value) {
@@ -507,6 +535,78 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _formatParticles(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} µg/m³';
+
+  String _buildTrainingSuggestion(AppLocalizations l10n) {
+    final suggestions = <String>[_baseTrainingSuggestion(l10n)];
+    final apparentTemperature = _apparentTemperature;
+    if (apparentTemperature != null) {
+      if (apparentTemperature >= 30) {
+        suggestions.add(l10n.homeWeatherSuggestionHot);
+      } else if (apparentTemperature <= 5) {
+        suggestions.add(l10n.homeWeatherSuggestionCold);
+      }
+    }
+
+    final airLevel = _worstAirQualityLevel();
+    if (airLevel.index >= _AirQualityLevel.sensitive.index) {
+      suggestions.add(l10n.homeWeatherSuggestionAirCaution);
+    } else if (airLevel == _AirQualityLevel.moderate) {
+      suggestions.add(l10n.homeWeatherSuggestionAirWatch);
+    }
+
+    return suggestions.join(' ');
+  }
+
+  String _baseTrainingSuggestion(AppLocalizations l10n) {
+    switch (_weatherCode) {
+      case 0:
+        return l10n.homeWeatherSuggestionClear;
+      case 1:
+      case 2:
+      case 3:
+      case 45:
+      case 48:
+        return l10n.homeWeatherSuggestionCloudy;
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return l10n.homeWeatherSuggestionRain;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return l10n.homeWeatherSuggestionSnow;
+      case 95:
+      case 96:
+      case 99:
+        return l10n.homeWeatherSuggestionStorm;
+      default:
+        return l10n.homeWeatherSuggestionCloudy;
+    }
+  }
+
+  _AirQualityLevel _worstAirQualityLevel() {
+    final levels = [
+      _aqiLevel(AppLocalizations.of(context)!, _aqi).level,
+      _pm10Level(AppLocalizations.of(context)!, _pm10).level,
+      _pm25Level(AppLocalizations.of(context)!, _pm25).level,
+    ];
+    return levels.reduce(
+      (current, next) => current.index >= next.index ? current : next,
+    );
+  }
 
   IconData _weatherIcon(int? code) {
     switch (code) {
@@ -759,6 +859,47 @@ class _AirQualityCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrainingGuideCard extends StatelessWidget {
+  final String title;
+  final String suggestion;
+
+  const _TrainingGuideCard({required this.title, required this.suggestion});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            suggestion,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

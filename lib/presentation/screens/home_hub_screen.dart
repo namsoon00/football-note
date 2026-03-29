@@ -330,6 +330,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         latitude: position.latitude,
         longitude: position.longitude,
         isKo: isKo,
+        koreaLabel: l10n.homeWeatherCountryKorea,
       );
       final weather = await _fetchCurrentWeather(
         latitude: position.latitude,
@@ -359,6 +360,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     required double latitude,
     required double longitude,
     required bool isKo,
+    required String koreaLabel,
   }) async {
     final uri = Uri.https('geocoding-api.open-meteo.com', '/v1/reverse', {
       'latitude': latitude.toString(),
@@ -377,12 +379,26 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     final city = (first['city'] ?? first['name'] ?? '').toString().trim();
     final region = (first['admin1'] ?? '').toString().trim();
     final country = (first['country'] ?? '').toString().trim();
+    if (_isKoreaCountry(country)) {
+      if (city.isNotEmpty) return '$city, $koreaLabel';
+      if (region.isNotEmpty) return '$region, $koreaLabel';
+      return koreaLabel;
+    }
     final parts = <String>[
       if (city.isNotEmpty) city,
       if (region.isNotEmpty && region != city) region,
       if (country.isNotEmpty) country,
     ];
     return parts.take(2).join(', ');
+  }
+
+  bool _isKoreaCountry(String country) {
+    final normalized = country.trim().toLowerCase();
+    return normalized == 'south korea' ||
+        normalized == 'korea' ||
+        normalized == 'republic of korea' ||
+        country == '대한민국' ||
+        country == '한국';
   }
 
   Future<_HomeWeatherSnapshot> _fetchCurrentWeather({
