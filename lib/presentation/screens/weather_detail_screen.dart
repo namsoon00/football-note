@@ -924,40 +924,49 @@ class _AirQualityMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = _airQualityPalette(theme, level);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: palette.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
+    return SizedBox(
+      height: 124,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: palette.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: palette.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: theme.textTheme.titleSmall?.copyWith(
+            const Spacer(),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 color: palette.foreground,
               ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            status,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: palette.foreground,
-              fontWeight: FontWeight.w800,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              status,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: palette.foreground,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -993,6 +1002,53 @@ class _AirQualityPalette {
 }
 
 _AirQualityPalette _airQualityPalette(ThemeData theme, _AirQualityLevel level) {
+  final isDark = theme.brightness == Brightness.dark;
+  if (isDark) {
+    switch (level) {
+      case _AirQualityLevel.good:
+        return const _AirQualityPalette(
+          background: Color(0xFF0D2B1A),
+          border: Color(0xFF2F8A54),
+          foreground: Color(0xFFA6E9C0),
+        );
+      case _AirQualityLevel.moderate:
+        return const _AirQualityPalette(
+          background: Color(0xFF2D260E),
+          border: Color(0xFF9B7A2F),
+          foreground: Color(0xFFF3D585),
+        );
+      case _AirQualityLevel.sensitive:
+        return const _AirQualityPalette(
+          background: Color(0xFF2D1F10),
+          border: Color(0xFFB67933),
+          foreground: Color(0xFFFFC37A),
+        );
+      case _AirQualityLevel.unhealthy:
+        return const _AirQualityPalette(
+          background: Color(0xFF32191A),
+          border: Color(0xFFB45353),
+          foreground: Color(0xFFFFADAD),
+        );
+      case _AirQualityLevel.veryUnhealthy:
+        return const _AirQualityPalette(
+          background: Color(0xFF2A1A33),
+          border: Color(0xFF8F63B8),
+          foreground: Color(0xFFD6B7F4),
+        );
+      case _AirQualityLevel.hazardous:
+        return const _AirQualityPalette(
+          background: Color(0xFF351426),
+          border: Color(0xFFB64F81),
+          foreground: Color(0xFFFFAED1),
+        );
+      case _AirQualityLevel.unknown:
+        return _AirQualityPalette(
+          background: theme.colorScheme.surfaceContainerHigh,
+          border: theme.colorScheme.outlineVariant,
+          foreground: theme.colorScheme.onSurfaceVariant,
+        );
+    }
+  }
   switch (level) {
     case _AirQualityLevel.good:
       return const _AirQualityPalette(

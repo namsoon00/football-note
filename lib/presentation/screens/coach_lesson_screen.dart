@@ -2253,6 +2253,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               );
             }
 
+            final diaryWeather = day.trainingEntries
+                .map((entry) => _extractWeatherFromNotes(entry.notes))
+                .firstWhere(
+                  (weather) => weather.trim().isNotEmpty,
+                  orElse: () => '',
+                )
+                .trim();
+
             return PopScope(
               canPop: false,
               onPopInvokedWithResult: (didPop, __) {
@@ -2346,6 +2354,55 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                               ),
                         ].toList(growable: false),
                       ),
+                      const SizedBox(height: 16),
+                      buildVoiceField(
+                        key: const ValueKey('diary-title-field'),
+                        controller: titleController,
+                        textInputAction: TextInputAction.next,
+                        labelText: titleController.text.trim().isEmpty
+                            ? _l10n.diaryTitlePlaceholder
+                            : (_isKo ? '제목' : 'Title'),
+                        hintText: titleController.text.trim().isEmpty
+                            ? (_isKo
+                                ? '예: 비 온 날 끝까지 이어진 패스 감각'
+                                : 'Ex: Passing rhythm that lasted through the rain')
+                            : '',
+                      ),
+                      if (diaryWeather.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _tileSurface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: _paperEdge),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.wb_cloudy_outlined,
+                                size: 16,
+                                color: _accentInk,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _isKo ? '날씨 $diaryWeather' : 'Weather $diaryWeather',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: _theme.textTheme.bodySmall?.copyWith(
+                                    color: _bodyInk,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       if (todoSeeds.isNotEmpty) ...[
                         const SizedBox(height: 18),
                         Text(
@@ -2466,20 +2523,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 16),
-                      buildVoiceField(
-                        key: const ValueKey('diary-title-field'),
-                        controller: titleController,
-                        textInputAction: TextInputAction.next,
-                        labelText: titleController.text.trim().isEmpty
-                            ? _l10n.diaryTitlePlaceholder
-                            : (_isKo ? '제목' : 'Title'),
-                        hintText: titleController.text.trim().isEmpty
-                            ? (_isKo
-                                ? '예: 비 온 날 끝까지 이어진 패스 감각'
-                                : 'Ex: Passing rhythm that lasted through the rain')
-                            : '',
-                      ),
                       const SizedBox(height: 12),
                       buildVoiceField(
                         key: const ValueKey('diary-story-field'),
