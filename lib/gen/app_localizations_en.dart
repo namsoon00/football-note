@@ -759,6 +759,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherLocationUnknown => 'Current location';
 
   @override
+  String get homeWeatherCountryKorea => 'Korea';
+
+  @override
   String get homeWeatherDetailsTitle => 'Weather details';
 
   @override
@@ -843,6 +846,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeWeatherSuggestionCold =>
       'Spend extra time warming up, then build intensity gradually with tight touches.';
+
+  @override
+  String get homeWeatherSuggestionAirCaution =>
+      'Air quality is poor, so reduce outdoor load and switch to indoor technical or recovery work if possible.';
+
+  @override
+  String get homeWeatherSuggestionAirWatch =>
+      'If you train outside, shorten hard intervals and monitor your breathing because the air quality is not fully stable.';
 
   @override
   String get weatherLabelDefault => 'Weather';

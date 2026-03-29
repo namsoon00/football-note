@@ -748,6 +748,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherLocationUnknown => '현재 위치';
 
   @override
+  String get homeWeatherCountryKorea => '한국';
+
+  @override
   String get homeWeatherDetailsTitle => '상세 날씨';
 
   @override
@@ -830,6 +833,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get homeWeatherSuggestionCold =>
       '워밍업 시간을 더 확보한 뒤 터치 감각부터 올리면서 강도를 천천히 끌어올리세요.';
+
+  @override
+  String get homeWeatherSuggestionAirCaution =>
+      '대기질이 좋지 않으니 야외 고강도는 줄이고 가능하면 실내 기술 훈련이나 회복 세션으로 전환하세요.';
+
+  @override
+  String get homeWeatherSuggestionAirWatch =>
+      '실외 훈련이 필요하면 고강도 구간을 짧게 가져가고 호흡 상태를 자주 확인하세요.';
 
   @override
   String get weatherLabelDefault => '날씨';
