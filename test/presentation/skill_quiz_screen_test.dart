@@ -46,6 +46,32 @@ void main() {
     },
   );
 
+  testWidgets(
+    'quiz library can find newly added history and FIFA record items',
+    (WidgetTester tester) async {
+      final repository = _MemoryOptionRepository();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SkillQuizScreen(optionRepository: repository),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('전체 문제 보기'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), '쥘 리메');
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('쥘 리메'), findsWidgets);
+      expect(find.textContaining('1970년까지'), findsWidgets);
+    },
+  );
+
   testWidgets('skill quiz restores saved general football question session', (
     WidgetTester tester,
   ) async {
@@ -111,8 +137,9 @@ void main() {
             'questionId': 'ox_offside_own_half_0_0_t',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -130,12 +157,14 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds = (jsonDecode(
-      repository.getValue<String>(
-        SkillQuizScreen.dailyQuestionsKey,
-      )!,
-    ) as List<dynamic>)
-        .cast<String>();
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
     expect(savedIds, hasLength(10));
   });
 
@@ -151,15 +180,17 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
@@ -177,12 +208,14 @@ void main() {
     await tester.tap(find.text('오늘의 문제'));
     await tester.pumpAndSettle();
 
-    final savedIds = (jsonDecode(
-      repository.getValue<String>(
-        SkillQuizScreen.dailyQuestionsKey,
-      )!,
-    ) as List<dynamic>)
-        .cast<String>();
+    final savedIds =
+        (jsonDecode(
+                  repository.getValue<String>(
+                    SkillQuizScreen.dailyQuestionsKey,
+                  )!,
+                )
+                as List<dynamic>)
+            .cast<String>();
 
     final duplicateConceptIds = savedIds
         .where((id) => id.contains('support_angle'))
@@ -202,22 +235,25 @@ void main() {
             'questionId': 'ox_support_angle_15',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'mcq_support_angle_best_10',
             'dueAt': now.subtract(const Duration(hours: 12)).toIso8601String(),
             'wrongCount': 2,
-            'lastWrongAt':
-                now.subtract(const Duration(hours: 18)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(hours: 18))
+                .toIso8601String(),
           },
           <String, dynamic>{
             'questionId': 'missing_question',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 3)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 3))
+                .toIso8601String(),
           },
         ]),
       );
@@ -258,8 +294,9 @@ void main() {
             'conceptKey': 'support_angle',
             'dueAt': now.subtract(const Duration(days: 1)).toIso8601String(),
             'wrongCount': 1,
-            'lastWrongAt':
-                now.subtract(const Duration(days: 2)).toIso8601String(),
+            'lastWrongAt': now
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
           },
         ]),
       );
