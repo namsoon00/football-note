@@ -1471,9 +1471,7 @@ class _TodayWeatherButton extends StatelessWidget {
             ? weatherSummary
             : l10n.homeWeatherTitle;
     final subtitle = hasWeather
-        ? (weatherLocation.isEmpty
-            ? l10n.homeWeatherLocationUnknown
-            : weatherLocation)
+        ? (weatherLocation.isEmpty ? '' : weatherLocation)
         : l10n.homeWeatherDetailsTitle;
     return Material(
       color: Colors.transparent,
