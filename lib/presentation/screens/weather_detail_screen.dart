@@ -59,8 +59,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     final hasWeather = _summary.isNotEmpty;
+    final airLevel = _aqiLevel(l10n, _aqi);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
       body: AppBackground(
@@ -68,87 +68,53 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              Text(
-                l10n.homeWeatherDetailsSubtitle,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.homeWeatherCacheHint,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: _loading
-                    ? null
-                    : () => _loadWeather(requestPermission: true),
-                icon: _loading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2.2),
-                      )
-                    : const Icon(Icons.my_location_rounded),
-                label: Text(
-                  _loading ? l10n.homeWeatherLoading : l10n.homeWeatherLoad,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _HeroWeatherCard(
+              _CompactWeatherHeaderCard(
                 title: hasWeather ? _summary : l10n.homeWeatherUnavailable,
                 subtitle: _location.isEmpty
                     ? l10n.homeWeatherLocationUnknown
                     : _location,
+                helper: l10n.homeWeatherCacheHint,
                 icon: _weatherIcon(_weatherCode),
+                loading: _loading,
+                buttonLabel:
+                    _loading ? l10n.homeWeatherLoading : l10n.homeWeatherLoad,
+                onRefresh: _loading
+                    ? null
+                    : () => _loadWeather(requestPermission: true),
+                metrics: hasWeather
+                    ? [
+                        _CompactMetricData(
+                          label: l10n.homeWeatherTemperatureRange,
+                          value: _formatRange(_temperatureMax, _temperatureMin),
+                          icon: Icons.device_thermostat_outlined,
+                        ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherFeelsLike,
+                          value: _formatTemperature(_apparentTemperature),
+                          icon: Icons.thermostat_auto_outlined,
+                        ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherHumidity,
+                          value: _formatPercent(_humidity),
+                          icon: Icons.water_drop_outlined,
+                        ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherWindSpeed,
+                          value: _formatWind(_windSpeed),
+                          icon: Icons.air_rounded,
+                        ),
+                      ]
+                    : const <_CompactMetricData>[],
               ),
               if (hasWeather) ...[
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _MetricCard(
-                      label: l10n.homeWeatherTemperatureRange,
-                      value: _formatRange(_temperatureMax, _temperatureMin),
-                      icon: Icons.device_thermostat_outlined,
-                    ),
-                    _MetricCard(
-                      label: l10n.homeWeatherFeelsLike,
-                      value: _formatTemperature(_apparentTemperature),
-                      icon: Icons.thermostat_auto_outlined,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _TomorrowWeatherCard(
-                  title: l10n.homeWeatherTomorrowTitle,
-                  highLowLabel: l10n.homeWeatherDailyHighLow,
-                  precipitationLabel: l10n.homeWeatherPrecipitation,
-                  windLabel: l10n.homeWeatherWindSpeed,
-                  forecast: _dailyForecasts.length > 1
-                      ? _dailyForecasts[1]
-                      : null,
-                  fallback: l10n.homeWeatherTomorrowFallback,
-                  formatRange: _formatRange,
-                  formatMillimeter: _formatMillimeter,
-                  formatWind: _formatWind,
-                  iconForCode: _weatherIcon,
-                ),
                 const SizedBox(height: 16),
                 _AirQualityCard(
                   title: l10n.homeWeatherAirQualityTitle,
-                  status:
-                      '${l10n.homeWeatherAqi} · ${_aqiLevel(l10n, _aqi).label}',
+                  status: '${l10n.homeWeatherAqi} · ${airLevel.label}',
                   aqiLabel: l10n.homeWeatherAqi,
                   aqiValue: _aqi == null ? '--' : '$_aqi',
-                  aqiStatus: _aqiLevel(l10n, _aqi).label,
-                  aqiLevel: _aqiLevel(l10n, _aqi).level,
+                  aqiStatus: airLevel.label,
+                  aqiLevel: airLevel.level,
                   pm10Label: l10n.homeWeatherPm10,
                   pm10Value: _formatParticles(_pm10),
                   pm10Status: _pm10Level(l10n, _pm10).label,
@@ -159,37 +125,22 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   pm25Level: _pm25Level(l10n, _pm25).level,
                 ),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _MetricCard(
-                      label: l10n.homeWeatherHumidity,
-                      value: _formatPercent(_humidity),
-                      icon: Icons.water_drop_outlined,
-                    ),
-                    _MetricCard(
-                      label: l10n.homeWeatherPrecipitation,
-                      value: _formatMillimeter(_precipitation),
-                      icon: Icons.grain_outlined,
-                    ),
-                    _MetricCard(
-                      label: l10n.homeWeatherWindSpeed,
-                      value: _formatWind(_windSpeed),
-                      icon: Icons.air_rounded,
-                    ),
-                    _MetricCard(
-                      label: l10n.homeWeatherUvIndex,
-                      value: _formatUv(_uvIndexMax),
-                      icon: Icons.wb_sunny_outlined,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _WeeklyWeatherCard(
+                _ForecastOverviewCard(
+                  tomorrowTitle: l10n.homeWeatherTomorrowTitle,
                   title: l10n.homeWeatherWeeklyTitle,
+                  highLowLabel: l10n.homeWeatherDailyHighLow,
+                  precipitationLabel: l10n.homeWeatherPrecipitation,
+                  windLabel: l10n.homeWeatherWindSpeed,
+                  uvLabel: l10n.homeWeatherUvIndex,
+                  currentPrecipitation: _formatMillimeter(_precipitation),
+                  currentUv: _formatUv(_uvIndexMax),
+                  tomorrowForecast:
+                      _dailyForecasts.length > 1 ? _dailyForecasts[1] : null,
+                  tomorrowFallback: l10n.homeWeatherTomorrowFallback,
                   forecasts: _dailyForecasts,
                   formatRange: _formatRange,
+                  formatMillimeter: _formatMillimeter,
+                  formatWind: _formatWind,
                   iconForCode: _weatherIcon,
                 ),
                 const SizedBox(height: 16),
@@ -330,11 +281,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     });
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'current': 'pm10,pm2_5,us_aqi',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
     final responses = await Future.wait([
       http.get(weatherUri),
       http.get(airQualityUri),
@@ -372,8 +323,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return _WeatherDetailsSnapshot(
       summary: summary,
       weatherCode: weatherCode,
-      apparentTemperature: (current['apparent_temperature'] as num?)
-          ?.toDouble(),
+      apparentTemperature:
+          (current['apparent_temperature'] as num?)?.toDouble(),
       humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
       precipitation: (current['precipitation'] as num?)?.toDouble(),
       windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
@@ -762,15 +713,37 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 }
 
-class _HeroWeatherCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
+class _CompactMetricData {
+  final String label;
+  final String value;
   final IconData icon;
 
-  const _HeroWeatherCard({
+  const _CompactMetricData({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+}
+
+class _CompactWeatherHeaderCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String helper;
+  final IconData icon;
+  final bool loading;
+  final String buttonLabel;
+  final VoidCallback? onRefresh;
+  final List<_CompactMetricData> metrics;
+
+  const _CompactWeatherHeaderCard({
     required this.title,
     required this.subtitle,
+    required this.helper,
     required this.icon,
+    required this.loading,
+    required this.buttonLabel,
+    required this.onRefresh,
+    required this.metrics,
   });
 
   @override
@@ -781,47 +754,96 @@ class _HeroWeatherCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primaryContainer.withValues(alpha: 0.92),
-            theme.colorScheme.secondaryContainer.withValues(alpha: 0.84),
+            theme.colorScheme.primaryContainer.withValues(alpha: 0.95),
+            theme.colorScheme.secondaryContainer.withValues(alpha: 0.82),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withValues(alpha: 0.42),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Icon(icon, size: 28, color: theme.colorScheme.primary),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.42),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
+                child: Icon(icon, size: 30, color: theme.colorScheme.primary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  helper,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
+                    height: 1.4,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              FilledButton.icon(
+                onPressed: onRefresh,
+                icon: loading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2.0),
+                      )
+                    : const Icon(Icons.my_location_rounded),
+                label: Text(buttonLabel),
+              ),
+            ],
           ),
+          if (metrics.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: metrics
+                  .map(
+                    (metric) => _MetricCard(
+                      label: metric.label,
+                      value: metric.value,
+                      icon: metric.icon,
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
         ],
       ),
     );
@@ -843,33 +865,51 @@ class _MetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SizedBox(
-      width: 164,
+      width: 156,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.92),
+          color: theme.colorScheme.surface.withValues(alpha: 0.84),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Icon(icon, size: 18, color: theme.colorScheme.primary),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(icon, size: 18, color: theme.colorScheme.primary),
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w900,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -1019,25 +1059,35 @@ class _TrainingGuideCard extends StatelessWidget {
   }
 }
 
-class _TomorrowWeatherCard extends StatelessWidget {
+class _ForecastOverviewCard extends StatelessWidget {
+  final String tomorrowTitle;
   final String title;
   final String highLowLabel;
   final String precipitationLabel;
   final String windLabel;
-  final _DailyWeatherForecast? forecast;
-  final String fallback;
+  final String uvLabel;
+  final String currentPrecipitation;
+  final String currentUv;
+  final _DailyWeatherForecast? tomorrowForecast;
+  final String tomorrowFallback;
+  final List<_DailyWeatherForecast> forecasts;
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
   final String Function(double?) formatWind;
   final IconData Function(int?) iconForCode;
 
-  const _TomorrowWeatherCard({
+  const _ForecastOverviewCard({
+    required this.tomorrowTitle,
     required this.title,
     required this.highLowLabel,
     required this.precipitationLabel,
     required this.windLabel,
-    required this.forecast,
-    required this.fallback,
+    required this.uvLabel,
+    required this.currentPrecipitation,
+    required this.currentUv,
+    required this.tomorrowForecast,
+    required this.tomorrowFallback,
+    required this.forecasts,
     required this.formatRange,
     required this.formatMillimeter,
     required this.formatWind,
@@ -1047,7 +1097,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final forecast = this.forecast;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1061,116 +1110,38 @@ class _TomorrowWeatherCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
+            tomorrowTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
             ),
           ),
           const SizedBox(height: 12),
-          if (forecast == null)
-            Text(
-              fallback,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
+          _TomorrowWeatherCard(
+            title: tomorrowTitle,
+            highLowLabel: highLowLabel,
+            precipitationLabel: precipitationLabel,
+            windLabel: windLabel,
+            forecast: tomorrowForecast,
+            fallback: tomorrowFallback,
+            formatRange: formatRange,
+            formatMillimeter: formatMillimeter,
+            formatWind: formatWind,
+            iconForCode: iconForCode,
+            embedded: true,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _InlineMetricChip(
+                label: precipitationLabel,
+                value: currentPrecipitation,
               ),
-            )
-          else
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    iconForCode(forecast.weatherCode),
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        forecast.label,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        forecast.summary,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          _InlineMetricChip(
-                            label: highLowLabel,
-                            value: formatRange(
-                              forecast.temperatureMax,
-                              forecast.temperatureMin,
-                            ),
-                          ),
-                          _InlineMetricChip(
-                            label: precipitationLabel,
-                            value: formatMillimeter(forecast.precipitationSum),
-                          ),
-                          _InlineMetricChip(
-                            label: windLabel,
-                            value: formatWind(forecast.windSpeedMax),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WeeklyWeatherCard extends StatelessWidget {
-  final String title;
-  final List<_DailyWeatherForecast> forecasts;
-  final String Function(double?, double?) formatRange;
-  final IconData Function(int?) iconForCode;
-
-  const _WeeklyWeatherCard({
-    required this.title,
-    required this.forecasts,
-    required this.formatRange,
-    required this.iconForCode,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+              _InlineMetricChip(label: uvLabel, value: currentUv),
+            ],
+          ),
+          const SizedBox(height: 18),
           Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -1192,6 +1163,136 @@ class _WeeklyWeatherCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _TomorrowWeatherCard extends StatelessWidget {
+  final String title;
+  final String highLowLabel;
+  final String precipitationLabel;
+  final String windLabel;
+  final _DailyWeatherForecast? forecast;
+  final String fallback;
+  final String Function(double?, double?) formatRange;
+  final String Function(double?) formatMillimeter;
+  final String Function(double?) formatWind;
+  final IconData Function(int?) iconForCode;
+  final bool embedded;
+
+  const _TomorrowWeatherCard({
+    required this.title,
+    required this.highLowLabel,
+    required this.precipitationLabel,
+    required this.windLabel,
+    required this.forecast,
+    required this.fallback,
+    required this.formatRange,
+    required this.formatMillimeter,
+    required this.formatWind,
+    required this.iconForCode,
+    this.embedded = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final forecast = this.forecast;
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!embedded) ...[
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (forecast == null)
+          Text(
+            fallback,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          )
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  iconForCode(forecast.weatherCode),
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      forecast.label,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      forecast.summary,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        _InlineMetricChip(
+                          label: highLowLabel,
+                          value: formatRange(
+                            forecast.temperatureMax,
+                            forecast.temperatureMin,
+                          ),
+                        ),
+                        _InlineMetricChip(
+                          label: precipitationLabel,
+                          value: formatMillimeter(forecast.precipitationSum),
+                        ),
+                        _InlineMetricChip(
+                          label: windLabel,
+                          value: formatWind(forecast.windSpeedMax),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+    if (embedded) return body;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: body,
     );
   }
 }
