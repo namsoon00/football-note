@@ -748,6 +748,60 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherLocationUnknown => '현재 위치';
 
   @override
+  String get homeWeatherDetailsTitle => '상세 날씨';
+
+  @override
+  String get homeWeatherDetailsSubtitle => '현재 위치 기준 날씨와 대기질을 확인하세요.';
+
+  @override
+  String get homeWeatherTemperatureRange => '최고/최저';
+
+  @override
+  String get homeWeatherFeelsLike => '체감 온도';
+
+  @override
+  String get homeWeatherHumidity => '습도';
+
+  @override
+  String get homeWeatherPrecipitation => '강수량';
+
+  @override
+  String get homeWeatherWindSpeed => '풍속';
+
+  @override
+  String get homeWeatherUvIndex => '자외선';
+
+  @override
+  String get homeWeatherAirQualityTitle => '대기질';
+
+  @override
+  String get homeWeatherPm10 => '미세먼지 PM10';
+
+  @override
+  String get homeWeatherPm25 => '초미세먼지 PM2.5';
+
+  @override
+  String get homeWeatherAqi => 'AQI';
+
+  @override
+  String get homeWeatherStatusGood => '좋음';
+
+  @override
+  String get homeWeatherStatusModerate => '보통';
+
+  @override
+  String get homeWeatherStatusSensitive => '민감군 주의';
+
+  @override
+  String get homeWeatherStatusUnhealthy => '나쁨';
+
+  @override
+  String get homeWeatherStatusVeryUnhealthy => '매우 나쁨';
+
+  @override
+  String get homeWeatherStatusHazardous => '위험';
+
+  @override
   String get homeWeatherSuggestionTitle => '추천 훈련 포인트';
 
   @override
@@ -800,4 +854,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get weatherLabelThunderstorm => '천둥번개';
+
+  @override
+  String get diaryStickerTraining => '훈련';
+
+  @override
+  String get diaryStickerMatch => '시합';
+
+  @override
+  String get diaryStickerPlan => '계획';
+
+  @override
+  String get diaryStickerFortune => '운세';
+
+  @override
+  String get diaryStickerBoard => '훈련보드';
+
+  @override
+  String get diaryStickerNews => '소식';
+
+  @override
+  String get diaryStickerConditioning => '줄넘기/리프팅';
+
+  @override
+  String get diaryNewsOpenFailed => '기사를 열지 못했어요.';
 }

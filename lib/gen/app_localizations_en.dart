@@ -759,6 +759,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherLocationUnknown => 'Current location';
 
   @override
+  String get homeWeatherDetailsTitle => 'Weather details';
+
+  @override
+  String get homeWeatherDetailsSubtitle =>
+      'Check local weather and air quality for your current location.';
+
+  @override
+  String get homeWeatherTemperatureRange => 'High/Low';
+
+  @override
+  String get homeWeatherFeelsLike => 'Feels like';
+
+  @override
+  String get homeWeatherHumidity => 'Humidity';
+
+  @override
+  String get homeWeatherPrecipitation => 'Precipitation';
+
+  @override
+  String get homeWeatherWindSpeed => 'Wind';
+
+  @override
+  String get homeWeatherUvIndex => 'UV index';
+
+  @override
+  String get homeWeatherAirQualityTitle => 'Air quality';
+
+  @override
+  String get homeWeatherPm10 => 'PM10';
+
+  @override
+  String get homeWeatherPm25 => 'PM2.5';
+
+  @override
+  String get homeWeatherAqi => 'AQI';
+
+  @override
+  String get homeWeatherStatusGood => 'Good';
+
+  @override
+  String get homeWeatherStatusModerate => 'Moderate';
+
+  @override
+  String get homeWeatherStatusSensitive => 'Unhealthy for sensitive groups';
+
+  @override
+  String get homeWeatherStatusUnhealthy => 'Unhealthy';
+
+  @override
+  String get homeWeatherStatusVeryUnhealthy => 'Very unhealthy';
+
+  @override
+  String get homeWeatherStatusHazardous => 'Hazardous';
+
+  @override
   String get homeWeatherSuggestionTitle => 'Suggested training focus';
 
   @override
@@ -812,4 +867,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherLabelThunderstorm => 'Thunderstorm';
+
+  @override
+  String get diaryStickerTraining => 'Training';
+
+  @override
+  String get diaryStickerMatch => 'Match';
+
+  @override
+  String get diaryStickerPlan => 'Plan';
+
+  @override
+  String get diaryStickerFortune => 'Fortune';
+
+  @override
+  String get diaryStickerBoard => 'Board';
+
+  @override
+  String get diaryStickerNews => 'News';
+
+  @override
+  String get diaryStickerConditioning => 'Jump rope/lifting';
+
+  @override
+  String get diaryNewsOpenFailed => 'Failed to open the article.';
 }

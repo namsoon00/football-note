@@ -1514,6 +1514,114 @@ abstract class AppLocalizations {
   /// **'Current location'**
   String get homeWeatherLocationUnknown;
 
+  /// No description provided for @homeWeatherDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather details'**
+  String get homeWeatherDetailsTitle;
+
+  /// No description provided for @homeWeatherDetailsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check local weather and air quality for your current location.'**
+  String get homeWeatherDetailsSubtitle;
+
+  /// No description provided for @homeWeatherTemperatureRange.
+  ///
+  /// In en, this message translates to:
+  /// **'High/Low'**
+  String get homeWeatherTemperatureRange;
+
+  /// No description provided for @homeWeatherFeelsLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Feels like'**
+  String get homeWeatherFeelsLike;
+
+  /// No description provided for @homeWeatherHumidity.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get homeWeatherHumidity;
+
+  /// No description provided for @homeWeatherPrecipitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation'**
+  String get homeWeatherPrecipitation;
+
+  /// No description provided for @homeWeatherWindSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind'**
+  String get homeWeatherWindSpeed;
+
+  /// No description provided for @homeWeatherUvIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'UV index'**
+  String get homeWeatherUvIndex;
+
+  /// No description provided for @homeWeatherAirQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Air quality'**
+  String get homeWeatherAirQualityTitle;
+
+  /// No description provided for @homeWeatherPm10.
+  ///
+  /// In en, this message translates to:
+  /// **'PM10'**
+  String get homeWeatherPm10;
+
+  /// No description provided for @homeWeatherPm25.
+  ///
+  /// In en, this message translates to:
+  /// **'PM2.5'**
+  String get homeWeatherPm25;
+
+  /// No description provided for @homeWeatherAqi.
+  ///
+  /// In en, this message translates to:
+  /// **'AQI'**
+  String get homeWeatherAqi;
+
+  /// No description provided for @homeWeatherStatusGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get homeWeatherStatusGood;
+
+  /// No description provided for @homeWeatherStatusModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get homeWeatherStatusModerate;
+
+  /// No description provided for @homeWeatherStatusSensitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Unhealthy for sensitive groups'**
+  String get homeWeatherStatusSensitive;
+
+  /// No description provided for @homeWeatherStatusUnhealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Unhealthy'**
+  String get homeWeatherStatusUnhealthy;
+
+  /// No description provided for @homeWeatherStatusVeryUnhealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Very unhealthy'**
+  String get homeWeatherStatusVeryUnhealthy;
+
+  /// No description provided for @homeWeatherStatusHazardous.
+  ///
+  /// In en, this message translates to:
+  /// **'Hazardous'**
+  String get homeWeatherStatusHazardous;
+
   /// No description provided for @homeWeatherSuggestionTitle.
   ///
   /// In en, this message translates to:
@@ -1609,6 +1717,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thunderstorm'**
   String get weatherLabelThunderstorm;
+
+  /// No description provided for @diaryStickerTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get diaryStickerTraining;
+
+  /// No description provided for @diaryStickerMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get diaryStickerMatch;
+
+  /// No description provided for @diaryStickerPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get diaryStickerPlan;
+
+  /// No description provided for @diaryStickerFortune.
+  ///
+  /// In en, this message translates to:
+  /// **'Fortune'**
+  String get diaryStickerFortune;
+
+  /// No description provided for @diaryStickerBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get diaryStickerBoard;
+
+  /// No description provided for @diaryStickerNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get diaryStickerNews;
+
+  /// No description provided for @diaryStickerConditioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope/lifting'**
+  String get diaryStickerConditioning;
+
+  /// No description provided for @diaryNewsOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to open the article.'**
+  String get diaryNewsOpenFailed;
 }
 
 class _AppLocalizationsDelegate
