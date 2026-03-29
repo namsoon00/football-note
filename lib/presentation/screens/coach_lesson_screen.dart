@@ -2235,7 +2235,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               return TextField(
                 key: key,
                 controller: controller,
-                textInputAction: textInputAction,
+                textInputAction: textInputAction ?? TextInputAction.done,
+                onSubmitted: (_) => FocusScope.of(context).unfocus(),
                 minLines: minLines,
                 maxLines: maxLines,
                 decoration: InputDecoration(
