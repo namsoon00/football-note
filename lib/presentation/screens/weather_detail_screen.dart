@@ -135,13 +135,19 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 const SizedBox(height: 16),
                 _AirQualityCard(
                   title: l10n.homeWeatherAirQualityTitle,
-                  status: _aqiStatus(l10n, _aqi),
+                  status: '${l10n.homeWeatherAqi} · ${_aqiLevel(l10n, _aqi).label}',
                   aqiLabel: l10n.homeWeatherAqi,
                   aqiValue: _aqi == null ? '--' : '$_aqi',
+                  aqiStatus: _aqiLevel(l10n, _aqi).label,
+                  aqiLevel: _aqiLevel(l10n, _aqi).level,
                   pm10Label: l10n.homeWeatherPm10,
                   pm10Value: _formatParticles(_pm10),
+                  pm10Status: _pm10Level(l10n, _pm10).label,
+                  pm10Level: _pm10Level(l10n, _pm10).level,
                   pm25Label: l10n.homeWeatherPm25,
                   pm25Value: _formatParticles(_pm25),
+                  pm25Status: _pm25Level(l10n, _pm25).label,
+                  pm25Level: _pm25Level(l10n, _pm25).level,
                 ),
               ],
             ],
@@ -368,14 +374,115 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return null;
   }
 
-  String _aqiStatus(AppLocalizations l10n, int? value) {
-    if (value == null) return '--';
-    if (value <= 50) return l10n.homeWeatherStatusGood;
-    if (value <= 100) return l10n.homeWeatherStatusModerate;
-    if (value <= 150) return l10n.homeWeatherStatusSensitive;
-    if (value <= 200) return l10n.homeWeatherStatusUnhealthy;
-    if (value <= 300) return l10n.homeWeatherStatusVeryUnhealthy;
-    return l10n.homeWeatherStatusHazardous;
+  _AirLevelLabel _aqiLevel(AppLocalizations l10n, int? value) {
+    if (value == null) {
+      return const _AirLevelLabel('--', _AirQualityLevel.unknown);
+    }
+    if (value <= 50) {
+      return _AirLevelLabel(l10n.homeWeatherStatusGood, _AirQualityLevel.good);
+    }
+    if (value <= 100) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusModerate,
+        _AirQualityLevel.moderate,
+      );
+    }
+    if (value <= 150) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusSensitive,
+        _AirQualityLevel.sensitive,
+      );
+    }
+    if (value <= 200) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusUnhealthy,
+        _AirQualityLevel.unhealthy,
+      );
+    }
+    if (value <= 300) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusVeryUnhealthy,
+        _AirQualityLevel.veryUnhealthy,
+      );
+    }
+    return _AirLevelLabel(
+      l10n.homeWeatherStatusHazardous,
+      _AirQualityLevel.hazardous,
+    );
+  }
+
+  _AirLevelLabel _pm10Level(AppLocalizations l10n, double? value) {
+    if (value == null) {
+      return const _AirLevelLabel('--', _AirQualityLevel.unknown);
+    }
+    if (value <= 30) {
+      return _AirLevelLabel(l10n.homeWeatherStatusGood, _AirQualityLevel.good);
+    }
+    if (value <= 80) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusModerate,
+        _AirQualityLevel.moderate,
+      );
+    }
+    if (value <= 150) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusSensitive,
+        _AirQualityLevel.sensitive,
+      );
+    }
+    if (value <= 250) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusUnhealthy,
+        _AirQualityLevel.unhealthy,
+      );
+    }
+    if (value <= 350) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusVeryUnhealthy,
+        _AirQualityLevel.veryUnhealthy,
+      );
+    }
+    return _AirLevelLabel(
+      l10n.homeWeatherStatusHazardous,
+      _AirQualityLevel.hazardous,
+    );
+  }
+
+  _AirLevelLabel _pm25Level(AppLocalizations l10n, double? value) {
+    if (value == null) {
+      return const _AirLevelLabel('--', _AirQualityLevel.unknown);
+    }
+    if (value <= 15) {
+      return _AirLevelLabel(l10n.homeWeatherStatusGood, _AirQualityLevel.good);
+    }
+    if (value <= 35) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusModerate,
+        _AirQualityLevel.moderate,
+      );
+    }
+    if (value <= 75) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusSensitive,
+        _AirQualityLevel.sensitive,
+      );
+    }
+    if (value <= 115) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusUnhealthy,
+        _AirQualityLevel.unhealthy,
+      );
+    }
+    if (value <= 150) {
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusVeryUnhealthy,
+        _AirQualityLevel.veryUnhealthy,
+      );
+    }
+    return _AirLevelLabel(
+      l10n.homeWeatherStatusHazardous,
+      _AirQualityLevel.hazardous,
+    );
   }
 
   String _formatTemperature(double? value) =>
@@ -565,20 +672,32 @@ class _AirQualityCard extends StatelessWidget {
   final String status;
   final String aqiLabel;
   final String aqiValue;
+  final String aqiStatus;
+  final _AirQualityLevel aqiLevel;
   final String pm10Label;
   final String pm10Value;
+  final String pm10Status;
+  final _AirQualityLevel pm10Level;
   final String pm25Label;
   final String pm25Value;
+  final String pm25Status;
+  final _AirQualityLevel pm25Level;
 
   const _AirQualityCard({
     required this.title,
     required this.status,
     required this.aqiLabel,
     required this.aqiValue,
+    required this.aqiStatus,
+    required this.aqiLevel,
     required this.pm10Label,
     required this.pm10Value,
+    required this.pm10Status,
+    required this.pm10Level,
     required this.pm25Label,
     required this.pm25Value,
+    required this.pm25Status,
+    required this.pm25Level,
   });
 
   @override
@@ -614,15 +733,30 @@ class _AirQualityCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _AirQualityMetric(label: aqiLabel, value: aqiValue),
+                child: _AirQualityMetric(
+                  label: aqiLabel,
+                  value: aqiValue,
+                  status: aqiStatus,
+                  level: aqiLevel,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _AirQualityMetric(label: pm10Label, value: pm10Value),
+                child: _AirQualityMetric(
+                  label: pm10Label,
+                  value: pm10Value,
+                  status: pm10Status,
+                  level: pm10Level,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _AirQualityMetric(label: pm25Label, value: pm25Value),
+                child: _AirQualityMetric(
+                  label: pm25Label,
+                  value: pm25Value,
+                  status: pm25Status,
+                  level: pm25Level,
+                ),
               ),
             ],
           ),
@@ -635,17 +769,26 @@ class _AirQualityCard extends StatelessWidget {
 class _AirQualityMetric extends StatelessWidget {
   final String label;
   final String value;
+  final String status;
+  final _AirQualityLevel level;
 
-  const _AirQualityMetric({required this.label, required this.value});
+  const _AirQualityMetric({
+    required this.label,
+    required this.value,
+    required this.status,
+    required this.level,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = _airQualityPalette(theme, level);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.34),
+        color: palette.background,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: palette.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -661,12 +804,97 @@ class _AirQualityMetric extends StatelessWidget {
           Text(
             value,
             style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w900,
+                color: palette.foreground,
+              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            status,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: palette.foreground,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+enum _AirQualityLevel {
+  unknown,
+  good,
+  moderate,
+  sensitive,
+  unhealthy,
+  veryUnhealthy,
+  hazardous,
+}
+
+class _AirLevelLabel {
+  final String label;
+  final _AirQualityLevel level;
+
+  const _AirLevelLabel(this.label, this.level);
+}
+
+class _AirQualityPalette {
+  final Color background;
+  final Color border;
+  final Color foreground;
+
+  const _AirQualityPalette({
+    required this.background,
+    required this.border,
+    required this.foreground,
+  });
+}
+
+_AirQualityPalette _airQualityPalette(ThemeData theme, _AirQualityLevel level) {
+  switch (level) {
+    case _AirQualityLevel.good:
+      return const _AirQualityPalette(
+        background: Color(0xFFE7F7EC),
+        border: Color(0xFF6FC38A),
+        foreground: Color(0xFF1C6B3D),
+      );
+    case _AirQualityLevel.moderate:
+      return const _AirQualityPalette(
+        background: Color(0xFFFFF6DE),
+        border: Color(0xFFE6C15A),
+        foreground: Color(0xFF8A6A07),
+      );
+    case _AirQualityLevel.sensitive:
+      return const _AirQualityPalette(
+        background: Color(0xFFFFF0DF),
+        border: Color(0xFFF0A860),
+        foreground: Color(0xFF9B5B17),
+      );
+    case _AirQualityLevel.unhealthy:
+      return const _AirQualityPalette(
+        background: Color(0xFFFDE8E8),
+        border: Color(0xFFE07A7A),
+        foreground: Color(0xFF9B2E2E),
+      );
+    case _AirQualityLevel.veryUnhealthy:
+      return const _AirQualityPalette(
+        background: Color(0xFFF2E8FA),
+        border: Color(0xFFB089D9),
+        foreground: Color(0xFF64358E),
+      );
+    case _AirQualityLevel.hazardous:
+      return const _AirQualityPalette(
+        background: Color(0xFFFFE3F0),
+        border: Color(0xFFE06AA3),
+        foreground: Color(0xFF8E1E57),
+      );
+    case _AirQualityLevel.unknown:
+      return _AirQualityPalette(
+        background: theme.colorScheme.surfaceContainerHighest,
+        border: theme.colorScheme.outlineVariant,
+        foreground: theme.colorScheme.onSurfaceVariant,
+      );
   }
 }
 
