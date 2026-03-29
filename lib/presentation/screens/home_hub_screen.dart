@@ -199,7 +199,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           l10n: AppLocalizations.of(context)!,
                           weatherLoading: _weatherLoading,
                           weatherSummary: _weatherSummary.trim(),
-                          weatherLocation: _weatherLocation.trim(),
                           onTap: _openWeatherDetails,
                         ),
                       ],
@@ -1450,14 +1449,12 @@ class _TodayWeatherButton extends StatelessWidget {
   final AppLocalizations l10n;
   final bool weatherLoading;
   final String weatherSummary;
-  final String weatherLocation;
   final VoidCallback onTap;
 
   const _TodayWeatherButton({
     required this.l10n,
     required this.weatherLoading,
     required this.weatherSummary,
-    required this.weatherLocation,
     required this.onTap,
   });
 
@@ -1470,16 +1467,13 @@ class _TodayWeatherButton extends StatelessWidget {
         : hasWeather
             ? weatherSummary
             : l10n.homeWeatherTitle;
-    final subtitle = hasWeather
-        ? (weatherLocation.isEmpty ? '' : weatherLocation)
-        : l10n.homeWeatherDetailsTitle;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface.withValues(alpha: 0.88),
             borderRadius: BorderRadius.circular(16),
@@ -1504,31 +1498,17 @@ class _TodayWeatherButton extends StatelessWidget {
                   hasWeather ? Icons.wb_cloudy_outlined : Icons.cloud_outlined,
                   size: 18,
                   color: theme.colorScheme.primary,
-                ),
+              ),
               const SizedBox(width: 8),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 132),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                constraints: const BoxConstraints(maxWidth: 110),
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
