@@ -1532,6 +1532,36 @@ abstract class AppLocalizations {
   /// **'Check local weather and air quality for your current location.'**
   String get homeWeatherDetailsSubtitle;
 
+  /// No description provided for @homeWeatherTomorrowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s weather'**
+  String get homeWeatherTomorrowTitle;
+
+  /// No description provided for @homeWeatherWeeklyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly weather'**
+  String get homeWeatherWeeklyTitle;
+
+  /// No description provided for @homeWeatherCacheHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently fetched weather is reused for 10 minutes.'**
+  String get homeWeatherCacheHint;
+
+  /// No description provided for @homeWeatherDailyHighLow.
+  ///
+  /// In en, this message translates to:
+  /// **'High/Low'**
+  String get homeWeatherDailyHighLow;
+
+  /// No description provided for @homeWeatherTomorrowFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s forecast is not available yet.'**
+  String get homeWeatherTomorrowFallback;
+
   /// No description provided for @homeWeatherTemperatureRange.
   ///
   /// In en, this message translates to:

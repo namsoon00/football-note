@@ -757,6 +757,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherDetailsSubtitle => '현재 위치 기준 날씨와 대기질을 확인하세요.';
 
   @override
+  String get homeWeatherTomorrowTitle => '내일 상세 날씨';
+
+  @override
+  String get homeWeatherWeeklyTitle => '주간 날씨';
+
+  @override
+  String get homeWeatherCacheHint => '최근 가져온 데이터를 10분 동안 다시 사용합니다.';
+
+  @override
+  String get homeWeatherDailyHighLow => '최고/최저';
+
+  @override
+  String get homeWeatherTomorrowFallback => '내일 예보가 아직 없어요.';
+
+  @override
   String get homeWeatherTemperatureRange => '최고/최저';
 
   @override
