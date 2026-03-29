@@ -15,6 +15,28 @@ Future<void> showLevelUpCelebrationDialog(
   final hasCustomRewardName = rewardName.isNotEmpty;
   final hasReward = reward != null && hasCustomRewardName;
   final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+  final gradientColors = isDark
+      ? const <Color>[
+          Color(0xFF3A2D16),
+          Color(0xFF4A2B2B),
+          Color(0xFF2D334A),
+        ]
+      : const <Color>[
+          Color(0xFFFFF1B8),
+          Color(0xFFFFD36E),
+          Color(0xFFFF9F68),
+        ];
+  final primaryTextColor = isDark ? const Color(0xFFFFF1D6) : const Color(0xFF5C2E00);
+  final secondaryTextColor =
+      isDark ? const Color(0xFFFFDCA8) : const Color(0xFF6F3C00);
+  final infoBackground =
+      isDark ? const Color(0xFF1D1F2A) : Colors.white.withValues(alpha: 0.74);
+  final rewardBackground =
+      isDark ? const Color(0x33242A3D) : const Color(0xFF5C2E00).withValues(alpha: 0.10);
+  final rewardBorder =
+      isDark ? const Color(0x66A88BFF) : const Color(0xFF5C2E00).withValues(alpha: 0.18);
+  final actionButtonColor = isDark ? const Color(0xFF6B6CFF) : const Color(0xFF5C2E00);
   await showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -38,12 +60,8 @@ Future<void> showLevelUpCelebrationDialog(
             child: Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: <Color>[
-                    Color(0xFFFFF1B8),
-                    Color(0xFFFFD36E),
-                    Color(0xFFFF9F68),
-                  ],
+                gradient: LinearGradient(
+                  colors: gradientColors,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -65,7 +83,7 @@ Future<void> showLevelUpCelebrationDialog(
                     isKo ? '레벨 업!' : 'Level up!',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF5C2E00),
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -76,7 +94,7 @@ Future<void> showLevelUpCelebrationDialog(
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF5C2E00),
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -89,7 +107,7 @@ Future<void> showLevelUpCelebrationDialog(
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF6F3C00),
+                      color: secondaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -100,7 +118,7 @@ Future<void> showLevelUpCelebrationDialog(
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.74),
+                      color: infoBackground,
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Text(
@@ -110,7 +128,7 @@ Future<void> showLevelUpCelebrationDialog(
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF5C2E00),
+                        color: primaryTextColor,
                       ),
                     ),
                   ),
@@ -120,13 +138,9 @@ Future<void> showLevelUpCelebrationDialog(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF5C2E00).withValues(alpha: 0.10),
+                        color: rewardBackground,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(
-                            0xFF5C2E00,
-                          ).withValues(alpha: 0.18),
-                        ),
+                        border: Border.all(color: rewardBorder),
                       ),
                       child: Column(
                         children: [
@@ -134,7 +148,7 @@ Future<void> showLevelUpCelebrationDialog(
                             isKo ? '선물 받기' : 'Reward',
                             style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFF5C2E00),
+                              color: primaryTextColor,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -145,7 +159,7 @@ Future<void> showLevelUpCelebrationDialog(
                             textAlign: TextAlign.center,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: const Color(0xFF5C2E00),
+                              color: primaryTextColor,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -153,7 +167,7 @@ Future<void> showLevelUpCelebrationDialog(
                             isKo ? reward.descriptionKo : reward.descriptionEn,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: const Color(0xFF6F3C00),
+                              color: secondaryTextColor,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -178,7 +192,7 @@ Future<void> showLevelUpCelebrationDialog(
                             onClaimReward?.call();
                           },
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF5C2E00),
+                            backgroundColor: actionButtonColor,
                             foregroundColor: Colors.white,
                           ),
                           child: Text(
