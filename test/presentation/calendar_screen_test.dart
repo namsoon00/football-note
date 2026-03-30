@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/locale_service.dart';
+import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/infrastructure/hive_option_repository.dart';
@@ -24,6 +26,7 @@ void main() {
   late Box<TrainingEntry> trainingBox;
   late Box optionBox;
   late TrainingService trainingService;
+  late MealLogService mealLogService;
   late HiveOptionRepository optionRepository;
   late LocaleService localeService;
   late SettingsService settingsService;
@@ -43,6 +46,7 @@ void main() {
           supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: CalendarScreen(
             trainingService: trainingService,
+            mealLogService: mealLogService,
             localeService: localeService,
             optionRepository: optionRepository,
             settingsService: settingsService,
@@ -69,6 +73,7 @@ void main() {
     await optionBox.clear();
     trainingService = TrainingService(HiveTrainingRepository(trainingBox));
     optionRepository = HiveOptionRepository(optionBox);
+    mealLogService = MealLogService(optionRepository);
     localeService = LocaleService(optionRepository)..load();
     settingsService = SettingsService(optionRepository)..load();
   });
@@ -171,8 +176,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('훈련 노트'), findsOneWidget);
+    expect(find.text('식사 기록'), findsOneWidget);
     expect(find.text('훈련 계획'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
+  });
+
+  testWidgets('독립 식사 기록은 선택한 날짜 타임라인에 표시된다', (tester) async {
+    final today = DateTime.now();
+    await mealLogService.save(
+      MealEntry(
+        date: DateTime(today.year, today.month, today.day),
+        breakfastRiceBowls: 1,
+        lunchRiceBowls: 0.5,
+        dinnerRiceBowls: 1,
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    expect(find.text('식사 기록'), findsWidgets);
+    expect(find.textContaining('아침 1공기'), findsOneWidget);
   });
 
   testWidgets('캘린더 상단바는 홈과 동일하게 다이어리 버튼을 숨긴다', (tester) async {

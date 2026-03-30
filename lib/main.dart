@@ -17,6 +17,7 @@ import 'application/locale_service.dart';
 import 'application/settings_service.dart';
 import 'application/backup_service.dart';
 import 'application/drive_backup_service.dart';
+import 'application/meal_log_service.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
@@ -49,6 +50,7 @@ Future<void> main() async {
   localeService.load();
   final settingsService = SettingsService(optionRepository);
   settingsService.load();
+  final mealLogService = MealLogService(optionRepository);
   const webClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
   final driveBackupRepository = DriveBackupService(
     trainingBox,
@@ -72,6 +74,7 @@ Future<void> main() async {
   runApp(
     FootballNoteApp(
       trainingService: trainingService,
+      mealLogService: mealLogService,
       optionRepository: optionRepository,
       localeService: localeService,
       settingsService: settingsService,
@@ -115,6 +118,7 @@ Future<void> _warmStartupServices({
 
 class FootballNoteApp extends StatelessWidget {
   final TrainingService trainingService;
+  final MealLogService mealLogService;
   final OptionRepository optionRepository;
   final LocaleService localeService;
   final SettingsService settingsService;
@@ -123,6 +127,7 @@ class FootballNoteApp extends StatelessWidget {
   const FootballNoteApp({
     super.key,
     required this.trainingService,
+    required this.mealLogService,
     required this.optionRepository,
     required this.localeService,
     required this.settingsService,
@@ -150,6 +155,7 @@ class FootballNoteApp extends StatelessWidget {
           ],
           home: _EntryGate(
             trainingService: trainingService,
+            mealLogService: mealLogService,
             optionRepository: optionRepository,
             localeService: localeService,
             settingsService: settingsService,
@@ -163,6 +169,7 @@ class FootballNoteApp extends StatelessWidget {
 
 class _EntryGate extends StatefulWidget {
   final TrainingService trainingService;
+  final MealLogService mealLogService;
   final OptionRepository optionRepository;
   final LocaleService localeService;
   final SettingsService settingsService;
@@ -170,6 +177,7 @@ class _EntryGate extends StatefulWidget {
 
   const _EntryGate({
     required this.trainingService,
+    required this.mealLogService,
     required this.optionRepository,
     required this.localeService,
     required this.settingsService,
@@ -190,6 +198,7 @@ class _EntryGateState extends State<_EntryGate> {
     _homeScreen = HomeScreen(
       key: const ValueKey('home-screen'),
       trainingService: widget.trainingService,
+      mealLogService: widget.mealLogService,
       optionRepository: widget.optionRepository,
       localeService: widget.localeService,
       settingsService: widget.settingsService,

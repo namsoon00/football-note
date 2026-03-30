@@ -743,6 +743,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _scheduleAutoSave();
   }
 
+  // ignore: unused_element
   Widget _buildMealRoutineCard(AppLocalizations l10n) {
     final theme = Theme.of(context);
     final mealStatus = _mealCoachingService.statusForEntry(
@@ -915,6 +916,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             child: DropdownButtonFormField<int>(
               initialValue: done ? riceBowls : 0,
               items: MealCoachingService.riceBowlOptions
+                  .where((value) => value == value.truncateToDouble())
+                  .map((value) => value.toInt())
                   .map(
                     (value) => DropdownMenuItem<int>(
                       value: value,
@@ -1686,8 +1689,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildMealRoutineCard(l10n),
                     const SizedBox(height: 20),
                     if (isEdit)
                       Column(

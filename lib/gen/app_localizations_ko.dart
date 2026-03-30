@@ -1100,4 +1100,67 @@ class AppLocalizationsKo extends AppLocalizations {
   String mealCompactSkipped(String label) {
     return '$label 미기록';
   }
+
+  @override
+  String mealRiceBowlsValue(String count) {
+    return '$count공기';
+  }
+
+  @override
+  String get mealLogScreenTitle => '식사 기록';
+
+  @override
+  String get mealLogDateLabel => '기록 날짜';
+
+  @override
+  String get mealLogDatePickerHelp => '식사 기록 날짜 선택';
+
+  @override
+  String get mealSaveAction => '식사 기록 저장';
+
+  @override
+  String get mealDeleteAction => '식사 기록 삭제';
+
+  @override
+  String get mealDeleteConfirmBody => '이 날짜의 식사 기록을 삭제할까요?';
+
+  @override
+  String get mealSavedFeedback => '식사 기록을 저장했어요.';
+
+  @override
+  String get mealDeletedFeedback => '식사 기록을 삭제했어요.';
+
+  @override
+  String get mealLogXpSourceLabel => '식사 기록';
+
+  @override
+  String mealAverageExpectedValue(String value) {
+    return '평균 기대치 $value공기';
+  }
+
+  @override
+  String mealAverageActualValue(String value) {
+    return '평균 실제 $value공기';
+  }
+
+  @override
+  String get mealStatsEmpty => '선택한 기간에 식사 기록이 없습니다.';
+
+  @override
+  String get mealStatsSectionTitle => '식사 기록';
+
+  @override
+  String get mealStatsLoggedDays => '기록 일수';
+
+  @override
+  String get mealStatsExpectedAverage => '평균 기대치';
+
+  @override
+  String get mealStatsActualAverage => '평균 실제';
+
+  @override
+  String get mealStatsBestDay => '최고 섭취';
+
+  @override
+  String get mealStatsNoTrainingOrMealEntries => '선택한 기간에 훈련 기록과 식사 기록이 없습니다.';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../application/backup_service.dart';
@@ -114,6 +115,7 @@ class LandingScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => HomeScreen(
                         trainingService: trainingService,
+                        mealLogService: MealLogService(optionRepository),
                         optionRepository: optionRepository,
                         localeService: localeService,
                         settingsService: settingsService,

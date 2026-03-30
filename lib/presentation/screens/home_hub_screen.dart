@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_coaching_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
@@ -17,6 +18,7 @@ import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/entities/training_board.dart';
+import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
@@ -37,6 +39,7 @@ import 'weather_detail_screen.dart';
 
 class HomeHubScreen extends StatefulWidget {
   final TrainingService trainingService;
+  final MealLogService mealLogService;
   final LocaleService localeService;
   final OptionRepository optionRepository;
   final SettingsService settingsService;
@@ -45,6 +48,7 @@ class HomeHubScreen extends StatefulWidget {
   final VoidCallback? onQuickPlan;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickQuiz;
+  final VoidCallback? onQuickMeal;
   final VoidCallback? onQuickBoard;
   final VoidCallback onOpenPlans;
   final VoidCallback onOpenLogs;
@@ -57,6 +61,7 @@ class HomeHubScreen extends StatefulWidget {
   const HomeHubScreen({
     super.key,
     required this.trainingService,
+    required this.mealLogService,
     required this.localeService,
     required this.optionRepository,
     required this.settingsService,
@@ -65,6 +70,7 @@ class HomeHubScreen extends StatefulWidget {
     this.onQuickPlan,
     this.onQuickMatch,
     this.onQuickQuiz,
+    this.onQuickMeal,
     this.onQuickBoard,
     required this.onOpenPlans,
     required this.onOpenLogs,
@@ -113,198 +119,216 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries =
-                  (snapshot.data ?? const <TrainingEntry>[])
-                      .where((entry) => !entry.isMatch)
-                      .toList()
-                    ..sort(TrainingEntry.compareByRecentCreated);
-              final isKo = Localizations.localeOf(context).languageCode == 'ko';
-              final boardsById = TrainingBoardService(
-                widget.optionRepository,
-              ).boardMap();
-              final boards = boardsById.values.toList(growable: false)
-                ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-              final levelState = PlayerLevelService(
-                widget.optionRepository,
-              ).loadState();
-              final data = _HomeHubData.build(
-                entries: allEntries,
-                plans: _loadPlans(widget.optionRepository),
-                boards: boards,
-                quizCompletedAt: _loadQuizCompletedAt(widget.optionRepository),
-                viewedDiaryDayToken: widget.optionRepository.getValue<String>(
-                  CoachLessonScreen.todayViewedDiaryDayKey,
-                ),
-                quizResumeSummary: SkillQuizScreen.loadResumeSummary(
-                  widget.optionRepository,
-                ),
-              );
-              final priorityFocusSignal = _resolvePriorityFocusSignal(data);
-              final reminderUnreadCount = TrainingPlanReminderService(
-                widget.optionRepository,
-                widget.settingsService,
-              ).unreadReminderCountSync();
+              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
+                  .where((entry) => !entry.isMatch)
+                  .toList()
+                ..sort(TrainingEntry.compareByRecentCreated);
+              return StreamBuilder<List<MealEntry>>(
+                stream: widget.mealLogService.watchEntries(),
+                builder: (context, mealSnapshot) {
+                  final isKo =
+                      Localizations.localeOf(context).languageCode == 'ko';
+                  final boardsById = TrainingBoardService(
+                    widget.optionRepository,
+                  ).boardMap();
+                  final boards = boardsById.values.toList(growable: false)
+                    ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+                  final levelState = PlayerLevelService(
+                    widget.optionRepository,
+                  ).loadState();
+                  final mealEntries = widget.mealLogService.mergedEntries(
+                    directEntries: mealSnapshot.data ?? const <MealEntry>[],
+                    legacyEntries: allEntries,
+                  );
+                  final data = _HomeHubData.build(
+                    entries: allEntries,
+                    mealEntries: mealEntries,
+                    plans: _loadPlans(widget.optionRepository),
+                    boards: boards,
+                    quizCompletedAt: _loadQuizCompletedAt(
+                      widget.optionRepository,
+                    ),
+                    viewedDiaryDayToken:
+                        widget.optionRepository.getValue<String>(
+                      CoachLessonScreen.todayViewedDiaryDayKey,
+                    ),
+                    quizResumeSummary: SkillQuizScreen.loadResumeSummary(
+                      widget.optionRepository,
+                    ),
+                  );
+                  final priorityFocusSignal = _resolvePriorityFocusSignal(data);
+                  final reminderUnreadCount = TrainingPlanReminderService(
+                    widget.optionRepository,
+                    widget.settingsService,
+                  ).unreadReminderCountSync();
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ValueListenableBuilder<int>(
-                      valueListenable: NewsBadgeService.listenable(
-                        widget.optionRepository,
-                      ),
-                      builder: (context, newsCount, _) {
-                        return Builder(
-                          builder: (context) => SharedTabHeader(
-                            padding: EdgeInsets.zero,
-                            onLeadingTap: () =>
-                                Scaffold.of(context).openDrawer(),
-                            profilePhotoSource:
-                                widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
-                            onNewsTap: _openNews,
-                            newsBadgeCount: newsCount,
-                            onQuizTap: _openQuizShortcut,
-                            onProfileTap: () => _openProfile(context),
-                            onNotificationTap: _openNotifications,
-                            notificationBadgeCount: reminderUnreadCount,
-                            onSettingsTap: () => _openSettings(context),
-                          ),
-                        );
-                      },
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                    const SizedBox(height: 12),
-                    _LevelHeroCard(
-                      levelState: levelState,
-                      isKo: isKo,
-                      onTap: _openLevelGuide,
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: Text(
-                            isKo ? '오늘의 홈' : 'Today Home',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.w900),
+                        ValueListenableBuilder<int>(
+                          valueListenable: NewsBadgeService.listenable(
+                            widget.optionRepository,
+                          ),
+                          builder: (context, newsCount, _) {
+                            return Builder(
+                              builder: (context) => SharedTabHeader(
+                                padding: EdgeInsets.zero,
+                                onLeadingTap: () =>
+                                    Scaffold.of(context).openDrawer(),
+                                profilePhotoSource:
+                                    widget.optionRepository.getValue<String>(
+                                          'profile_photo_url',
+                                        ) ??
+                                        '',
+                                onNewsTap: _openNews,
+                                newsBadgeCount: newsCount,
+                                onQuizTap: _openQuizShortcut,
+                                onProfileTap: () => _openProfile(context),
+                                onNotificationTap: _openNotifications,
+                                notificationBadgeCount: reminderUnreadCount,
+                                onSettingsTap: () => _openSettings(context),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        _LevelHeroCard(
+                          levelState: levelState,
+                          isKo: isKo,
+                          onTap: _openLevelGuide,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isKo ? '오늘의 홈' : 'Today Home',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _TodayWeatherButton(
+                              l10n: AppLocalizations.of(context)!,
+                              weatherLoading: _weatherLoading,
+                              weatherSummary: _weatherSummary.trim(),
+                              onTap: _openWeatherDetails,
+                            ),
+                          ],
+                        ),
+                        if (data.todayPlanCount > 0) ...[
+                          const SizedBox(height: 8),
+                          _TodayPlanHighlightCard(
+                            isKo: isKo,
+                            count: data.todayPlanCount,
+                            onTap: widget.onOpenPlans,
+                          ),
+                        ] else if (data.upcomingPlanDays.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          _PlanDaysCard(
+                            isKo: isKo,
+                            days: data.upcomingPlanDays,
+                            onTap: widget.onOpenPlans,
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        _PriorityActionCard(
+                          focusSignal: priorityFocusSignal,
+                          isKo: isKo,
+                          onPrimaryTap: _trackedPriorityAction(
+                            priorityFocusSignal,
+                            priorityFocusSignal == 'log_today'
+                                ? widget.onOpenPlans
+                                : priorityFocusSignal == 'add_session'
+                                    ? widget.onOpenWeeklyStats
+                                    : priorityFocusSignal == 'add_minutes'
+                                        ? widget.onQuickBoard
+                                        : priorityFocusSignal == 'recovery'
+                                            ? widget.onOpenWeeklyStats
+                                            : _openLevelGuide,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        _TodayWeatherButton(
+                        const SizedBox(height: 12),
+                        _DailyFlowCard(
+                          data: data,
+                          isKo: isKo,
                           l10n: AppLocalizations.of(context)!,
-                          weatherLoading: _weatherLoading,
-                          weatherSummary: _weatherSummary.trim(),
-                          onTap: _openWeatherDetails,
+                          onLog: _trackedAction(
+                            'daily_flow_log',
+                            widget.onCreate,
+                          ),
+                          onLifting: _trackedAction(
+                            'daily_flow_lifting',
+                            () => _openTodayEntryOrCreate(data),
+                          ),
+                          onJumpRope: _trackedAction(
+                            'daily_flow_jump_rope',
+                            () => _openTodayEntryOrCreate(data),
+                          ),
+                          onQuiz: _trackedAction(
+                            'daily_flow_quiz',
+                            widget.onQuickQuiz,
+                          ),
+                          onReview: _trackedAction(
+                            'daily_flow_review',
+                            widget.onOpenDiary,
+                          ),
+                          onBoard: _trackedAction(
+                            'daily_flow_board',
+                            () => _openTodayBoardSketch(data),
+                          ),
+                          onMeal: _trackedAction(
+                            'daily_flow_meal',
+                            widget.onQuickMeal,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _MealCoachCard(
+                          data: data,
+                          isKo: isKo,
+                          mealCoachingService: _mealCoachingService,
+                          onTap: _trackedAction(
+                            'meal_coach_open',
+                            widget.onQuickMeal,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _QuickActionGrid(
+                          isKo: isKo,
+                          onQuickMatch: _trackedAction(
+                            'quick_create_match',
+                            widget.onQuickMatch,
+                          ),
+                          onQuickPlan: _trackedAction(
+                            'quick_create_plan',
+                            widget.onQuickPlan,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _ContinueCard(
+                          data: data,
+                          isKo: isKo,
+                          onContinueQuiz: widget.onQuickQuiz,
+                          onContinueTraining: data.latestTrainingEntry == null
+                              ? widget.onCreate
+                              : () => widget.onEdit(data.latestTrainingEntry!),
+                          onContinueMatch: widget.onQuickMatch,
+                          onContinuePlan: widget.onOpenPlans,
+                          onContinueBoard: data.latestBoard == null
+                              ? widget.onQuickBoard
+                              : () => _openBoard(context, data.latestBoard!),
                         ),
                       ],
                     ),
-                    if (data.todayPlanCount > 0) ...[
-                      const SizedBox(height: 8),
-                      _TodayPlanHighlightCard(
-                        isKo: isKo,
-                        count: data.todayPlanCount,
-                        onTap: widget.onOpenPlans,
-                      ),
-                    ] else if (data.upcomingPlanDays.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      _PlanDaysCard(
-                        isKo: isKo,
-                        days: data.upcomingPlanDays,
-                        onTap: widget.onOpenPlans,
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    _PriorityActionCard(
-                      focusSignal: priorityFocusSignal,
-                      isKo: isKo,
-                      onPrimaryTap: _trackedPriorityAction(
-                        priorityFocusSignal,
-                        priorityFocusSignal == 'log_today'
-                            ? widget.onOpenPlans
-                            : priorityFocusSignal == 'add_session'
-                            ? widget.onOpenWeeklyStats
-                            : priorityFocusSignal == 'add_minutes'
-                            ? widget.onQuickBoard
-                            : priorityFocusSignal == 'recovery'
-                            ? widget.onOpenWeeklyStats
-                            : _openLevelGuide,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _DailyFlowCard(
-                      data: data,
-                      isKo: isKo,
-                      l10n: AppLocalizations.of(context)!,
-                      onLog: _trackedAction('daily_flow_log', widget.onCreate),
-                      onLifting: _trackedAction(
-                        'daily_flow_lifting',
-                        () => _openTodayEntryOrCreate(data),
-                      ),
-                      onJumpRope: _trackedAction(
-                        'daily_flow_jump_rope',
-                        () => _openTodayEntryOrCreate(data),
-                      ),
-                      onQuiz: _trackedAction(
-                        'daily_flow_quiz',
-                        widget.onQuickQuiz,
-                      ),
-                      onReview: _trackedAction(
-                        'daily_flow_review',
-                        widget.onOpenDiary,
-                      ),
-                      onBoard: _trackedAction(
-                        'daily_flow_board',
-                        () => _openTodayBoardSketch(data),
-                      ),
-                      onMeal: _trackedAction(
-                        'daily_flow_meal',
-                        () => _openTodayEntryOrCreate(data),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _MealCoachCard(
-                      data: data,
-                      isKo: isKo,
-                      mealCoachingService: _mealCoachingService,
-                      onTap: _trackedAction(
-                        'meal_coach_open',
-                        () => _openTodayEntryOrCreate(data),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _QuickActionGrid(
-                      isKo: isKo,
-                      onQuickMatch: _trackedAction(
-                        'quick_create_match',
-                        widget.onQuickMatch,
-                      ),
-                      onQuickPlan: _trackedAction(
-                        'quick_create_plan',
-                        widget.onQuickPlan,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _ContinueCard(
-                      data: data,
-                      isKo: isKo,
-                      onContinueQuiz: widget.onQuickQuiz,
-                      onContinueTraining: data.latestTrainingEntry == null
-                          ? widget.onCreate
-                          : () => widget.onEdit(data.latestTrainingEntry!),
-                      onContinueMatch: widget.onQuickMatch,
-                      onContinuePlan: widget.onOpenPlans,
-                      onContinueBoard: data.latestBoard == null
-                          ? widget.onQuickBoard
-                          : () => _openBoard(context, data.latestBoard!),
-                    ),
-                  ],
-                ),
+                  );
+                },
               );
             },
           ),
@@ -619,7 +643,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _resolvePriorityFocusSignal(_HomeHubData data) {
     final rawOverride =
         widget.optionRepository.getValue<String>(_priorityFocusOverrideKey) ??
-        '';
+            '';
     final candidates = _priorityFocusCandidates(data);
     if (rawOverride.isNotEmpty && candidates.contains(rawOverride)) {
       return rawOverride;
@@ -653,12 +677,18 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   Future<void> _advancePriorityFocusSignal(String currentFocusSignal) async {
     final entries = await widget.trainingService.allEntries();
+    final trainingEntries = entries.where((entry) => !entry.isMatch).toList(
+          growable: false,
+        )..sort(TrainingEntry.compareByRecentCreated);
+    final mealEntries = widget.mealLogService.mergedEntries(
+      legacyEntries: trainingEntries,
+    );
     final boardsById = TrainingBoardService(widget.optionRepository).boardMap();
     final boards = boardsById.values.toList(growable: false)
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     final data = _HomeHubData.build(
-      entries: entries.where((entry) => !entry.isMatch).toList(growable: false)
-        ..sort(TrainingEntry.compareByRecentCreated),
+      entries: trainingEntries,
+      mealEntries: mealEntries,
       plans: _loadPlans(widget.optionRepository),
       boards: boards,
       quizCompletedAt: _loadQuizCompletedAt(widget.optionRepository),
@@ -671,9 +701,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
     final candidates = _priorityFocusCandidates(data);
     final currentIndex = candidates.indexOf(currentFocusSignal);
-    final nextIndex = currentIndex < 0
-        ? 0
-        : (currentIndex + 1) % candidates.length;
+    final nextIndex =
+        currentIndex < 0 ? 0 : (currentIndex + 1) % candidates.length;
     await widget.optionRepository.setValue(
       _priorityFocusOverrideKey,
       candidates[nextIndex],
@@ -753,7 +782,7 @@ class _HomeHubData {
   final bool reviewedTodayDiary;
   final bool quizCompletedToday;
   final bool loggedBoardToday;
-  final TrainingEntry? todayEntry;
+  final MealEntry? todayMealEntry;
   final SkillQuizResumeSummary quizResumeSummary;
 
   const _HomeHubData({
@@ -776,12 +805,13 @@ class _HomeHubData {
     required this.reviewedTodayDiary,
     required this.quizCompletedToday,
     required this.loggedBoardToday,
-    required this.todayEntry,
+    required this.todayMealEntry,
     required this.quizResumeSummary,
   });
 
   factory _HomeHubData.build({
     required List<TrainingEntry> entries,
+    required List<MealEntry> mealEntries,
     required List<_DashboardPlan> plans,
     required List<TrainingBoard> boards,
     required DateTime? quizCompletedAt,
@@ -804,41 +834,49 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final latestCreatedTrainingEntry = entries
-        .where((entry) {
-          final createdDay = DateTime(
-            entry.createdAt.year,
-            entry.createdAt.month,
-            entry.createdAt.day,
-          );
-          return createdDay == today;
-        })
-        .fold<TrainingEntry?>(
-          null,
-          (latest, entry) =>
-              latest == null || entry.createdAt.isAfter(latest.createdAt)
+    final latestCreatedTrainingEntry = entries.where((entry) {
+      final createdDay = DateTime(
+        entry.createdAt.year,
+        entry.createdAt.month,
+        entry.createdAt.day,
+      );
+      return createdDay == today;
+    }).fold<TrainingEntry?>(
+      null,
+      (latest, entry) =>
+          latest == null || entry.createdAt.isAfter(latest.createdAt)
               ? entry
               : latest,
-        );
-    final todayEntries = entries
-        .where((entry) {
-          final day = DateTime(
-            entry.date.year,
-            entry.date.month,
-            entry.date.day,
-          );
-          return day == today;
-        })
-        .toList(growable: false);
+    );
+    final todayEntries = entries.where((entry) {
+      final day = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
+      return day == today;
+    }).toList(growable: false);
     final loggedTrainingToday = todayEntries.isNotEmpty;
     final loggedLiftingToday = todayEntries.any(
       (entry) => entry.liftingByPart.values.any((value) => value > 0),
     );
     final loggedJumpRopeToday = todayEntries.any(_hasCompletedJumpRope);
-    final todayEntry = todayEntries.isEmpty ? null : todayEntries.first;
-    final loggedMealsToday = todayEntries.any(
-      (entry) => entry.breakfastDone || entry.lunchDone || entry.dinnerDone,
+    final todayMealEntry = mealEntries.where((entry) {
+      final day = DateTime(
+        entry.date.year,
+        entry.date.month,
+        entry.date.day,
+      );
+      return day == today;
+    }).fold<MealEntry?>(
+      null,
+      (latest, entry) =>
+          latest == null || entry.createdAt.isAfter(latest.createdAt)
+              ? entry
+              : latest,
     );
+    final loggedMealsToday =
+        todayMealEntry != null && todayMealEntry.hasRecords;
 
     final entryDays = entries
         .map(
@@ -887,9 +925,8 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.mood,
     );
-    final averageMood = weeklyEntries.isEmpty
-        ? 0
-        : totalMood / weeklyEntries.length;
+    final averageMood =
+        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
 
     String strongest;
     String focus;
@@ -915,15 +952,13 @@ class _HomeHubData {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedToday =
-        quizCompletedAt != null &&
+    final quizCompletedToday = quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
     final reviewedTodayDiary =
         viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
-    final loggedBoardToday =
-        boards.isNotEmpty &&
+    final loggedBoardToday = boards.isNotEmpty &&
         boards.first.updatedAt.year == now.year &&
         boards.first.updatedAt.month == now.month &&
         boards.first.updatedAt.day == now.day;
@@ -948,7 +983,7 @@ class _HomeHubData {
       reviewedTodayDiary: reviewedTodayDiary,
       quizCompletedToday: quizCompletedToday,
       loggedBoardToday: loggedBoardToday,
-      todayEntry: todayEntry,
+      todayMealEntry: todayMealEntry,
       quizResumeSummary: quizResumeSummary,
     );
   }
@@ -961,8 +996,7 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      scheduledAt:
-          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -1039,8 +1073,8 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                     Text(
                       isKo ? '오늘의 훈련 계획' : 'Today training plan',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1048,9 +1082,10 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                           ? '등록된 계획 $count개를 바로 확인하세요.'
                           : 'Open your $count saved plans for today.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ],
                 ),
@@ -1062,9 +1097,9 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                   Text(
                     isKo ? '계획 보기' : 'Open plans',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w900,
-                    ),
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
                   Icon(
                     Icons.chevron_right,
@@ -1143,7 +1178,9 @@ class _LevelHeroCard extends StatelessWidget {
                               ),
                               child: Text(
                                 'Lv.${levelState.level}',
-                                style: Theme.of(context).textTheme.labelLarge
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -1159,7 +1196,9 @@ class _LevelHeroCard extends StatelessWidget {
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -1178,11 +1217,11 @@ class _LevelHeroCard extends StatelessWidget {
                           isKo
                               ? '다음까지 ${levelState.xpToNextLevel}XP'
                               : '${levelState.xpToNextLevel} XP left',
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.92),
-                                fontWeight: FontWeight.w700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.92),
+                                    fontWeight: FontWeight.w700,
+                                  ),
                         ),
                       ],
                     ),
@@ -1254,16 +1293,16 @@ class _DailyFlowCard extends StatelessWidget {
                 child: Text(
                   isKo ? '오늘 할 일' : 'Today tasks',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
               Text(
                 isKo ? '$completedCount/7 완료' : '$completedCount/7 done',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w900,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
             ],
           ),
@@ -1356,10 +1395,10 @@ class _MealCoachCardState extends State<_MealCoachCard> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final entry = widget.data.todayEntry;
+    final entry = widget.data.todayMealEntry;
     final status = entry == null
         ? null
-        : widget.mealCoachingService.statusForEntry(entry);
+        : widget.mealCoachingService.statusForMealEntry(entry);
     final suggestions = _suggestions(l10n, status);
     final suggestion = suggestions[_suggestionIndex % suggestions.length];
 
@@ -1462,13 +1501,13 @@ class _MealCoachCardState extends State<_MealCoachCard> {
       return l10n.homeMealCoachNoEntry;
     }
     final breakfast = status.breakfastDone
-        ? l10n.mealRiceBowls(status.breakfastRiceBowls)
+        ? l10n.mealRiceBowlsValue(_formatMealBowls(status.breakfastRiceBowls))
         : l10n.mealSkipped;
     final lunch = status.lunchDone
-        ? l10n.mealRiceBowls(status.lunchRiceBowls)
+        ? l10n.mealRiceBowlsValue(_formatMealBowls(status.lunchRiceBowls))
         : l10n.mealSkipped;
     final dinner = status.dinnerDone
-        ? l10n.mealRiceBowls(status.dinnerRiceBowls)
+        ? l10n.mealRiceBowlsValue(_formatMealBowls(status.dinnerRiceBowls))
         : l10n.mealSkipped;
     return l10n.homeMealCoachSummary(
       l10n.mealBreakfast,
@@ -1536,6 +1575,12 @@ class _MealCoachCardState extends State<_MealCoachCard> {
     if (completed >= 3) return l10n.mealXpFull;
     if (completed >= 2) return l10n.mealXpPartial;
     return l10n.mealXpNeutral;
+  }
+
+  String _formatMealBowls(double bowls) {
+    return bowls == bowls.truncateToDouble()
+        ? bowls.toStringAsFixed(0)
+        : bowls.toStringAsFixed(1);
   }
 }
 
@@ -1710,8 +1755,8 @@ class _TodayWeatherButton extends StatelessWidget {
     final title = weatherLoading
         ? l10n.homeWeatherLoading
         : hasWeather
-        ? weatherSummary
-        : l10n.homeWeatherTitle;
+            ? weatherSummary
+            : l10n.homeWeatherTitle;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1797,8 +1842,8 @@ class _PlanDaysCard extends StatelessWidget {
     final whenText = remainingDays <= 0
         ? (isKo ? '오늘' : 'Today')
         : remainingDays == 1
-        ? (isKo ? '내일' : 'Tomorrow')
-        : (isKo ? '$remainingDays일 뒤' : 'In $remainingDays days');
+            ? (isKo ? '내일' : 'Tomorrow')
+            : (isKo ? '$remainingDays일 뒤' : 'In $remainingDays days');
 
     return Material(
       color: Colors.transparent,
@@ -1844,9 +1889,9 @@ class _PlanDaysCard extends StatelessWidget {
                     Text(
                       isKo ? '다음 훈련' : 'Next training',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1856,8 +1901,8 @@ class _PlanDaysCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1867,9 +1912,10 @@ class _PlanDaysCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ],
                 ),
@@ -1965,8 +2011,7 @@ class _ContinueCard extends StatelessWidget {
     final quizSummary = data.quizResumeSummary;
     final hasQuizSession = quizSummary.hasActiveSession;
     final latestTrainingEntry = data.latestTrainingEntry;
-    final latestTrainingIsToday =
-        latestTrainingEntry != null &&
+    final latestTrainingIsToday = latestTrainingEntry != null &&
         DateTime(
               latestTrainingEntry.date.year,
               latestTrainingEntry.date.month,
@@ -1981,13 +2026,13 @@ class _ContinueCard extends StatelessWidget {
             );
     final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-              ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
-              : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
+            ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
+            : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
         : (isKo ? '새 퀴즈 시작' : 'Start quiz');
     final quizSubtitle = hasQuizSession
         ? (isKo
-              ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
-              : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
+            ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
+            : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
         : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
     final items = <_ContinueItemData>[
       if (latestTrainingIsToday)
@@ -2024,15 +2069,15 @@ class _ContinueCard extends StatelessWidget {
           title: isKo ? '최근 훈련보드' : 'Recent training board',
           subtitle: data.latestBoard == null
               ? (isKo
-                    ? '스케치 ${data.boardCount}개'
-                    : '${data.boardCount} sketches')
+                  ? '스케치 ${data.boardCount}개'
+                  : '${data.boardCount} sketches')
               : data.latestBoardUpdatedAt == null
-              ? (isKo
-                    ? '스케치 ${data.boardCount}개'
-                    : '${data.boardCount} sketches')
-              : (isKo
-                    ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
-                    : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
+                  ? (isKo
+                      ? '스케치 ${data.boardCount}개'
+                      : '${data.boardCount} sketches')
+                  : (isKo
+                      ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
+                      : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
           buttonLabel: isKo ? '바로 수정' : 'Edit now',
           onPressed: onContinueBoard,
         ),
@@ -2125,8 +2170,8 @@ class _ContinueItem extends StatelessWidget {
                     Text(
                       item.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -2140,9 +2185,9 @@ class _ContinueItem extends StatelessWidget {
               Text(
                 item.buttonLabel,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(width: 2),
               Icon(
@@ -2213,10 +2258,10 @@ class _QuickActionButton extends StatelessWidget {
                       forceStrutHeight: true,
                     ),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize: 14,
-                      height: 1.05,
-                      fontWeight: FontWeight.w900,
-                    ),
+                          fontSize: 14,
+                          height: 1.05,
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
                 ),
               ],
@@ -2277,9 +2322,9 @@ class _HomeLevelIllustration extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
             ),
           ),
@@ -2341,10 +2386,10 @@ class _TodoChip extends StatelessWidget {
                     forceStrutHeight: true,
                   ),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize: 14,
-                    height: 1.05,
-                    fontWeight: FontWeight.w900,
-                  ),
+                        fontSize: 14,
+                        height: 1.05,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
             ],

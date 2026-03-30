@@ -404,5 +404,45 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mealRiceBowlsValue": "{count} bowl(s)",
+  "@mealRiceBowlsValue": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogScreenTitle": "Meal log",
+  "mealLogDateLabel": "Log date",
+  "mealLogDatePickerHelp": "Select meal log date",
+  "mealSaveAction": "Save meal log",
+  "mealDeleteAction": "Delete meal log",
+  "mealDeleteConfirmBody": "Delete this day's meal log?",
+  "mealSavedFeedback": "Meal log saved.",
+  "mealDeletedFeedback": "Meal log deleted.",
+  "mealLogXpSourceLabel": "Meal log",
+  "mealAverageExpectedValue": "Expected average {value} bowl(s)",
+  "@mealAverageExpectedValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mealAverageActualValue": "Actual average {value} bowl(s)",
+  "@mealAverageActualValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mealStatsEmpty": "No meal entries in the selected period.",
+  "mealStatsSectionTitle": "Meal Logs",
+  "mealStatsLoggedDays": "Logged days",
+  "mealStatsExpectedAverage": "Expected avg",
+  "mealStatsActualAverage": "Actual avg",
+  "mealStatsBestDay": "Best day",
+  "mealStatsNoTrainingOrMealEntries": "No training or meal entries in the selected period."
 }

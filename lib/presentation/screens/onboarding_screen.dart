@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../application/training_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../application/locale_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../application/settings_service.dart';
 import 'home_screen.dart';
 import '../widgets/airbnb/onboarding_page.dart';
@@ -84,6 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   MaterialPageRoute(
                     builder: (_) => HomeScreen(
                       trainingService: widget.trainingService,
+                      mealLogService: MealLogService(widget.optionRepository),
                       optionRepository: widget.optionRepository,
                       localeService: widget.localeService,
                       settingsService: widget.settingsService,

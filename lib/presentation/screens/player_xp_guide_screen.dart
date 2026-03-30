@@ -52,6 +52,11 @@ class PlayerXpGuideScreen extends StatelessWidget {
                 : 'Missing lifting or jump rope costs XP',
             xpLabel: isKo ? '-10 XP씩' : '-10 XP each',
           ),
+          _XpGuideItem(
+            icon: Icons.rice_bowl_outlined,
+            title: isKo ? '식사 기록 저장' : 'Meal log saved',
+            xpLabel: isKo ? '+5 XP / +15 XP' : '+5 XP / +15 XP',
+          ),
         ],
       ),
       _XpGuideSection(
@@ -78,9 +83,8 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.repeat_outlined,
             title: isKo ? '묶음 계획 생성 보너스' : 'Plan series bonus',
-            xpLabel: isKo
-                ? '+5 XP씩 추가 (최대 +20 XP)'
-                : '+5 XP each (up to +20 XP)',
+            xpLabel:
+                isKo ? '+5 XP씩 추가 (최대 +20 XP)' : '+5 XP each (up to +20 XP)',
           ),
         ],
       ),
