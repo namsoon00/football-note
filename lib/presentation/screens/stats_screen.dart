@@ -1644,23 +1644,28 @@ class _MealTrendCard extends StatelessWidget {
       days.add(cursor);
     }
 
-    final mealByDay = <String, double>{};
+    final mealByDay = <String, MealEntry>{};
     for (final entry in mealEntries) {
-      mealByDay[_dayToken(entry.date)] = entry.totalRiceBowls;
+      mealByDay[_dayToken(entry.date)] = entry;
     }
-
-    final mealValues = days
-        .map((day) => mealByDay[_dayToken(day)] ?? 0)
-        .toList(growable: false);
-    final maxMeal = mealValues.fold<double>(
+    final maxMeal = mealByDay.values.fold<double>(
       MealLogService.expectedBowlsPerDay,
-      math.max,
+      (maxValue, entry) => math.max(maxValue, entry.totalRiceBowls),
     );
     final chartMaxY = math.max(3.5, (maxMeal + 0.5).ceilToDouble());
     final labelStride = math.max(1, (days.length / 6).ceil());
-
-    final mealSpots = <FlSpot>[
-      for (var i = 0; i < days.length; i++) FlSpot(i.toDouble(), mealValues[i]),
+    const breakfastColor = Color(0xFFF59E0B);
+    const lunchColor = Color(0xFFD97706);
+    const dinnerColor = Color(0xFF92400E);
+    final barGroups = <BarChartGroupData>[
+      for (var i = 0; i < days.length; i++)
+        _buildMealBarGroup(
+          index: i,
+          entry: mealByDay[_dayToken(days[i])],
+          breakfastColor: breakfastColor,
+          lunchColor: lunchColor,
+          dinnerColor: dinnerColor,
+        ),
     ];
 
     final totalBowls = mealEntries.fold<double>(
@@ -1719,8 +1724,8 @@ class _MealTrendCard extends StatelessWidget {
         const SizedBox(height: 14),
         SizedBox(
           height: 220,
-          child: LineChart(
-            LineChartData(
+          child: BarChart(
+            BarChartData(
               minY: 0,
               maxY: chartMaxY,
               gridData: FlGridData(
@@ -1734,24 +1739,30 @@ class _MealTrendCard extends StatelessWidget {
                 ),
               ),
               borderData: FlBorderData(show: false),
-              lineTouchData: LineTouchData(
+              barTouchData: BarTouchData(
                 handleBuiltInTouches: true,
-                touchTooltipData: LineTouchTooltipData(
+                touchTooltipData: BarTouchTooltipData(
                   fitInsideHorizontally: true,
                   fitInsideVertically: true,
-                  getTooltipItems: (spots) => spots
-                      .map((spot) {
-                        final day = days[spot.x.toInt()];
-                        return LineTooltipItem(
-                          '${day.month}/${day.day}\n${l10n.mealShortLabel} ${_formatBowls(spot.y)}',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        );
-                      })
-                      .toList(growable: false),
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final entry = mealByDay[_dayToken(days[group.x.toInt()])];
+                    final day = days[group.x.toInt()];
+                    final breakfast = entry?.breakfastRiceBowls ?? 0;
+                    final lunch = entry?.lunchRiceBowls ?? 0;
+                    final dinner = entry?.dinnerRiceBowls ?? 0;
+                    return BarTooltipItem(
+                      '${day.month}/${day.day}\n'
+                      '${l10n.mealBreakfast} ${_formatBowls(breakfast)}\n'
+                      '${l10n.mealLunch} ${_formatBowls(lunch)}\n'
+                      '${l10n.mealDinner} ${_formatBowls(dinner)}\n'
+                      '${l10n.mealShortLabel} ${_formatBowls(rod.toY)}',
+                      const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    );
+                  },
                 ),
               ),
               titlesData: FlTitlesData(
@@ -1796,24 +1807,57 @@ class _MealTrendCard extends StatelessWidget {
                   ),
                 ),
               ),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: mealSpots,
-                  isCurved: false,
-                  color: const Color(0xFFB45309),
-                  barWidth: 3,
-                  dotData: const FlDotData(show: true),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: const Color(0xFFB45309).withValues(alpha: 0.12),
-                  ),
-                ),
-              ],
+              barGroups: barGroups,
+              alignment: BarChartAlignment.spaceAround,
             ),
           ),
         ),
         const SizedBox(height: 8),
-        _LegendDot(color: const Color(0xFFB45309), label: l10n.mealShortLabel),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            _LegendDot(color: breakfastColor, label: l10n.mealBreakfast),
+            _LegendDot(color: lunchColor, label: l10n.mealLunch),
+            _LegendDot(color: dinnerColor, label: l10n.mealDinner),
+          ],
+        ),
+      ],
+    );
+  }
+
+  BarChartGroupData _buildMealBarGroup({
+    required int index,
+    required MealEntry? entry,
+    required Color breakfastColor,
+    required Color lunchColor,
+    required Color dinnerColor,
+  }) {
+    final breakfast = entry?.breakfastRiceBowls ?? 0;
+    final lunch = entry?.lunchRiceBowls ?? 0;
+    final dinner = entry?.dinnerRiceBowls ?? 0;
+    final hasValue = breakfast > 0 || lunch > 0 || dinner > 0;
+    return BarChartGroupData(
+      x: index,
+      barRods: [
+        BarChartRodData(
+          toY: hasValue ? breakfast + lunch + dinner : 0,
+          width: 18,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+          color: breakfastColor.withValues(alpha: 0.2),
+          rodStackItems: [
+            if (breakfast > 0)
+              BarChartRodStackItem(0, breakfast, breakfastColor),
+            if (lunch > 0)
+              BarChartRodStackItem(breakfast, breakfast + lunch, lunchColor),
+            if (dinner > 0)
+              BarChartRodStackItem(
+                breakfast + lunch,
+                breakfast + lunch + dinner,
+                dinnerColor,
+              ),
+          ],
+        ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/gen/app_localizations.dart';
@@ -247,6 +248,10 @@ void main() {
     expect(find.textContaining('평균 기대치 3공기'), findsOneWidget);
     expect(find.textContaining('평균 실제 2.5공기'), findsOneWidget);
     expect(find.text('식사 그래프'), findsOneWidget);
+    expect(find.byType(BarChart), findsOneWidget);
+    expect(find.text('아침'), findsWidgets);
+    expect(find.text('점심'), findsWidgets);
+    expect(find.text('저녁'), findsWidgets);
     expect(find.text('몸무게(kg)'), findsWidgets);
   });
 }
