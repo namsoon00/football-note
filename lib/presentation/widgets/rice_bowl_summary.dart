@@ -11,6 +11,8 @@ class RiceBowlSummaryCard extends StatelessWidget {
   final Color? backgroundColor;
   final Color? borderColor;
   final Color? accentColor;
+  final bool compact;
+  final VoidCallback? onTap;
 
   const RiceBowlSummaryCard({
     super.key,
@@ -21,6 +23,8 @@ class RiceBowlSummaryCard extends StatelessWidget {
     this.backgroundColor,
     this.borderColor,
     this.accentColor,
+    this.compact = false,
+    this.onTap,
   });
 
   @override
@@ -31,7 +35,7 @@ class RiceBowlSummaryCard extends StatelessWidget {
     final surface =
         backgroundColor ?? theme.colorScheme.surface.withValues(alpha: 0.9);
     final edge = borderColor ?? accent.withValues(alpha: 0.18);
-    return Container(
+    final card = Container(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
@@ -45,13 +49,17 @@ class RiceBowlSummaryCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: compact ? 30 : 34,
+                height: compact ? 30 : 34,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(compact ? 10 : 11),
                 ),
-                child: Icon(Icons.rice_bowl_outlined, color: accent, size: 20),
+                child: Icon(
+                  Icons.rice_bowl_outlined,
+                  color: accent,
+                  size: compact ? 18 : 20,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -60,9 +68,11 @@ class RiceBowlSummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                      style:
+                          (compact
+                                  ? theme.textTheme.titleSmall
+                                  : theme.textTheme.titleMedium)
+                              ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                     if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
                       const SizedBox(height: 2),
@@ -78,9 +88,14 @@ class RiceBowlSummaryCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onTap != null)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: compact ? 10 : 14),
           Row(
             children: [
               Expanded(
@@ -88,27 +103,39 @@ class RiceBowlSummaryCard extends StatelessWidget {
                   label: l10n.mealBreakfast,
                   bowls: entry?.breakfastRiceBowls ?? 0,
                   accentColor: accent,
+                  compact: compact,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: compact ? 8 : 10),
               Expanded(
                 child: _RiceBowlMealItem(
                   label: l10n.mealLunch,
                   bowls: entry?.lunchRiceBowls ?? 0,
                   accentColor: accent,
+                  compact: compact,
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: compact ? 8 : 10),
               Expanded(
                 child: _RiceBowlMealItem(
                   label: l10n.mealDinner,
                   bowls: entry?.dinnerRiceBowls ?? 0,
                   accentColor: accent,
+                  compact: compact,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+    if (onTap == null) return card;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: card,
       ),
     );
   }
@@ -176,15 +203,10 @@ class _RiceBowlMealItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final normalized = bowls <= 0
-        ? 0.0
-        : bowls < 1
-        ? 0.5
-        : 1.0;
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 10,
-        vertical: compact ? 8 : 10,
+        horizontal: compact ? 6 : 10,
+        vertical: compact ? 6 : 10,
       ),
       decoration: BoxDecoration(
         color: accentColor.withValues(alpha: compact ? 0.06 : 0.08),
@@ -197,21 +219,39 @@ class _RiceBowlMealItem extends StatelessWidget {
             label,
             style: theme.textTheme.labelLarge?.copyWith(
               fontWeight: FontWeight.w800,
+              fontSize: compact ? 11 : null,
             ),
           ),
-          SizedBox(height: compact ? 6 : 8),
-          _RiceBowlIcon(fillLevel: normalized, accentColor: accentColor),
-          SizedBox(height: compact ? 6 : 8),
+          SizedBox(height: compact ? 2 : 8),
+          compact
+              ? _RiceBowlStack(value: bowls, accentColor: accentColor)
+              : _RiceBowlIcon(
+                  fillLevel: bowls <= 0
+                      ? 0.0
+                      : bowls < 1
+                      ? 0.5
+                      : 1.0,
+                  accentColor: accentColor,
+                ),
+          SizedBox(height: compact ? 2 : 8),
           Text(
-            _bowlsLabel(context, bowls),
+            compact ? _compactBowlsLabel(bowls) : _bowlsLabel(context, bowls),
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
+              fontSize: compact ? 11 : null,
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _compactBowlsLabel(double value) {
+    if (value <= 0) return '-';
+    return value == value.truncateToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(1);
   }
 
   String _bowlsLabel(BuildContext context, double value) {
@@ -223,6 +263,46 @@ class _RiceBowlMealItem extends StatelessWidget {
       return l10n.homeRiceBowlHalf;
     }
     return l10n.homeRiceBowlFull;
+  }
+}
+
+class _RiceBowlStack extends StatelessWidget {
+  final double value;
+  final Color accentColor;
+
+  const _RiceBowlStack({required this.value, required this.accentColor});
+
+  @override
+  Widget build(BuildContext context) {
+    if (value <= 0) {
+      return Opacity(
+        opacity: 0.45,
+        child: _RiceBowlIcon(fillLevel: 0, accentColor: accentColor),
+      );
+    }
+
+    final bowlCount = value < 1 ? 1 : value.ceil().clamp(1, 3);
+    return SizedBox(
+      width: 42,
+      height: 32,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
+        children: [
+          for (var i = 0; i < bowlCount; i++)
+            Positioned(
+              bottom: (i * 7).toDouble(),
+              child: Opacity(
+                opacity: 1 - (i * 0.12),
+                child: _RiceBowlIcon(
+                  fillLevel: i == 0 && value < 1 ? 0.5 : 1,
+                  accentColor: accentColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 

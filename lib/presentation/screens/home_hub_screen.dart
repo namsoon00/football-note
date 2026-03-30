@@ -211,9 +211,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           title: AppLocalizations.of(
                             context,
                           )!.homeRiceBowlTitle,
-                          subtitle: AppLocalizations.of(
-                            context,
-                          )!.homeRiceBowlSubtitle,
+                          compact: true,
+                          onTap: widget.onQuickMeal,
                           backgroundColor: Theme.of(
                             context,
                           ).colorScheme.surface.withValues(alpha: 0.86),
