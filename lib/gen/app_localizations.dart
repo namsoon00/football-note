@@ -1805,7 +1805,7 @@ abstract class AppLocalizations {
   /// No description provided for @diaryStickerMeal.
   ///
   /// In en, this message translates to:
-  /// **'Meal'**
+  /// **'Rice bowl'**
   String get diaryStickerMeal;
 
   /// No description provided for @diaryStickerConditioning.
@@ -2252,6 +2252,12 @@ abstract class AppLocalizations {
   /// **'Meal Trend'**
   String get mealStatsTrendTitle;
 
+  /// No description provided for @mealStatsTodayRiceBowlTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest rice bowls'**
+  String get mealStatsTodayRiceBowlTitle;
+
   /// No description provided for @mealStatsLoggedDays.
   ///
   /// In en, this message translates to:
@@ -2281,6 +2287,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Days with weight records are linked on the same chart.'**
   String get mealStatsWeightLinkedHint;
+
+  /// No description provided for @homeRiceBowlTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s rice bowls'**
+  String get homeRiceBowlTitle;
+
+  /// No description provided for @homeRiceBowlSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See full bowls, half bowls, and skipped bowls at a glance.'**
+  String get homeRiceBowlSubtitle;
+
+  /// No description provided for @homeRiceBowlFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full bowl'**
+  String get homeRiceBowlFull;
+
+  /// No description provided for @homeRiceBowlHalf.
+  ///
+  /// In en, this message translates to:
+  /// **'Half bowl'**
+  String get homeRiceBowlHalf;
+
+  /// No description provided for @homeRiceBowlEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get homeRiceBowlEmpty;
+
+  /// No description provided for @fortuneDialogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A short reading for today.'**
+  String get fortuneDialogSubtitle;
 
   /// No description provided for @mealStatsNoTrainingOrMealEntries.
   ///

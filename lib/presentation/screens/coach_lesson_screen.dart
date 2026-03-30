@@ -26,6 +26,7 @@ import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/rice_bowl_summary.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/training_board_sketch.dart';
 import 'news_screen.dart';
@@ -804,13 +805,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           const SizedBox(height: 6),
           Text(
             sticker.summary,
-            maxLines: isNewsSticker ? 3 : null,
-            overflow: isNewsSticker ? TextOverflow.ellipsis : null,
+            maxLines: isNewsSticker ? 3 : 2,
+            overflow: TextOverflow.ellipsis,
             style: _theme.textTheme.bodyMedium?.copyWith(
               color: _bodyInk,
               height: 1.5,
             ),
           ),
+          if (sticker.kind == _DiaryRecordStickerKind.meal &&
+              sticker.mealEntry != null) ...[
+            const SizedBox(height: 10),
+            RiceBowlInlineSummary(
+              entry: sticker.mealEntry,
+              accentColor: sticker.tint,
+            ),
+          ],
           if (hasBoardPreview) ...[
             const SizedBox(height: 10),
             SizedBox(
@@ -1573,6 +1582,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           summary: _mealSummary(mealEntry),
           icon: Icons.rice_bowl_outlined,
           tint: const Color(0xFFB45309),
+          mealEntry: mealEntry,
         );
       case _DiaryRecordStickerKind.conditioning:
         final dayToken = _dayStorageToken(day.date);
@@ -3562,6 +3572,7 @@ class _DiaryRecordStickerViewData {
   final Color tint;
   final TrainingMethodPage? boardPage;
   final String? link;
+  final MealEntry? mealEntry;
 
   const _DiaryRecordStickerViewData({
     required this.id,
@@ -3572,6 +3583,7 @@ class _DiaryRecordStickerViewData {
     required this.tint,
     this.boardPage,
     this.link,
+    this.mealEntry,
   });
 }
 
