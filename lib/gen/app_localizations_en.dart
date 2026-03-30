@@ -915,7 +915,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerNews => 'News';
 
   @override
+  String get diaryStickerMeal => 'Meal';
+
+  @override
   String get diaryStickerConditioning => 'Jump rope/lifting';
+
+  @override
+  String get diaryMealStorySentence =>
+      'Look back on what you ate today and note how the meal volume connected to body condition.';
+
+  @override
+  String get diaryMealSectionTitle => 'Meal note';
+
+  @override
+  String get diaryMealSectionBody =>
+      'Keep the three meals, rice amount, and body feel in one short note.';
 
   @override
   String get diaryNewsOpenFailed => 'Failed to open the article.';
@@ -1169,6 +1183,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealStatsSectionTitle => 'Meal Logs';
 
   @override
+  String get mealStatsTrendTitle => 'Meal Trend';
+
+  @override
   String get mealStatsLoggedDays => 'Logged days';
 
   @override
@@ -1179,6 +1196,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealStatsBestDay => 'Best day';
+
+  @override
+  String get mealStatsWeightLinkedHint =>
+      'Days with weight records are linked on the same chart.';
 
   @override
   String get mealStatsNoTrainingOrMealEntries =>

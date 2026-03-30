@@ -1802,11 +1802,35 @@ abstract class AppLocalizations {
   /// **'News'**
   String get diaryStickerNews;
 
+  /// No description provided for @diaryStickerMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal'**
+  String get diaryStickerMeal;
+
   /// No description provided for @diaryStickerConditioning.
   ///
   /// In en, this message translates to:
   /// **'Jump rope/lifting'**
   String get diaryStickerConditioning;
+
+  /// No description provided for @diaryMealStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Look back on what you ate today and note how the meal volume connected to body condition.'**
+  String get diaryMealStorySentence;
+
+  /// No description provided for @diaryMealSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal note'**
+  String get diaryMealSectionTitle;
+
+  /// No description provided for @diaryMealSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the three meals, rice amount, and body feel in one short note.'**
+  String get diaryMealSectionBody;
 
   /// No description provided for @diaryNewsOpenFailed.
   ///
@@ -2222,6 +2246,12 @@ abstract class AppLocalizations {
   /// **'Meal Logs'**
   String get mealStatsSectionTitle;
 
+  /// No description provided for @mealStatsTrendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal Trend'**
+  String get mealStatsTrendTitle;
+
   /// No description provided for @mealStatsLoggedDays.
   ///
   /// In en, this message translates to:
@@ -2245,6 +2275,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Best day'**
   String get mealStatsBestDay;
+
+  /// No description provided for @mealStatsWeightLinkedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Days with weight records are linked on the same chart.'**
+  String get mealStatsWeightLinkedHint;
 
   /// No description provided for @mealStatsNoTrainingOrMealEntries.
   ///
