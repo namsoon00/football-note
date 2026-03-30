@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
+import 'package:football_note/application/meal_log_service.dart';
+import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/infrastructure/hive_training_repository.dart';
 import 'package:football_note/application/training_service.dart';
@@ -21,6 +23,7 @@ void main() {
   late Directory tempDir;
   late Box<TrainingEntry> box;
   late TrainingService service;
+  late MealLogService mealLogService;
   late LocaleService localeService;
   late SettingsService settingsService;
   late Box optionBox;
@@ -32,6 +35,7 @@ void main() {
     box = await Hive.openBox<TrainingEntry>('training_entries');
     optionBox = await Hive.openBox('options');
     service = TrainingService(HiveTrainingRepository(box));
+    mealLogService = MealLogService(HiveOptionRepository(optionBox));
     localeService = LocaleService(HiveOptionRepository(optionBox))..load();
     settingsService = SettingsService(HiveOptionRepository(optionBox))..load();
   });
@@ -74,6 +78,7 @@ void main() {
           supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: StatsScreen(
             trainingService: service,
+            mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
             optionRepository: HiveOptionRepository(optionBox),
@@ -130,6 +135,7 @@ void main() {
           supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: StatsScreen(
             trainingService: service,
+            mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
             optionRepository: HiveOptionRepository(optionBox),
@@ -167,6 +173,7 @@ void main() {
           supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
           home: StatsScreen(
             trainingService: service,
+            mealLogService: mealLogService,
             localeService: localeService,
             onCreate: () {},
             optionRepository: HiveOptionRepository(optionBox),
@@ -182,5 +189,49 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('3/16~3/22'), findsOneWidget);
+  });
+
+  testWidgets('Stats screen shows meal averages from standalone logs', (
+    WidgetTester tester,
+  ) async {
+    await box.clear();
+    await optionBox.clear();
+    await mealLogService.save(
+      MealEntry(
+        date: DateTime.now(),
+        breakfastRiceBowls: 1,
+        lunchRiceBowls: 0.5,
+        dinnerRiceBowls: 1,
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('식사 기록'), findsOneWidget);
+    expect(find.textContaining('평균 기대치 3공기'), findsOneWidget);
+    expect(find.textContaining('평균 실제 2.5공기'), findsOneWidget);
   });
 }

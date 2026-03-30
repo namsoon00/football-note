@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../domain/entities/meal_entry.dart';
 import 'meal_coaching_service.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
@@ -75,9 +76,8 @@ class PlayerLevelService {
     final reasons = <String>[];
     var gainedXp = 0;
     final entryDay = _normalizeDay(entry.date);
-    final existingTrainingEntries = existingEntries
-        .where((item) => !item.isMatch)
-        .toList(growable: false);
+    final existingTrainingEntries =
+        existingEntries.where((item) => !item.isMatch).toList(growable: false);
     final sameDayEntries = existingTrainingEntries
         .where((item) => _normalizeDay(item.date) == entryDay)
         .toList(growable: false);
@@ -100,8 +100,7 @@ class PlayerLevelService {
       gainedXp -= 10;
       reasons.add('lifting_missed');
     }
-    final jumpRopeDone =
-        entry.jumpRopeCount > 0 ||
+    final jumpRopeDone = entry.jumpRopeCount > 0 ||
         entry.jumpRopeMinutes > 0 ||
         entry.jumpRopeNote.trim().isNotEmpty;
     if (!jumpRopeDone) {
@@ -131,9 +130,8 @@ class PlayerLevelService {
     final beforeWeeklyCount = existingTrainingEntries
         .where((item) => _isSameWeek(item.date, entryDay))
         .length;
-    final afterWeeklyCount = updatedEntries
-        .where((item) => _isSameWeek(item.date, entryDay))
-        .length;
+    final afterWeeklyCount =
+        updatedEntries.where((item) => _isSameWeek(item.date, entryDay)).length;
     if (beforeWeeklyCount < 3 && afterWeeklyCount >= 3) {
       gainedXp += 40;
       reasons.add('weekly_3');
@@ -155,9 +153,8 @@ class PlayerLevelService {
         beforeLevel: before.level,
         afterLevel: after.level,
         category: PlayerXpHistoryCategory.training,
-        label: entry.program.trim().isNotEmpty
-            ? entry.program.trim()
-            : entry.type,
+        label:
+            entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type,
         reasons: reasons,
       ),
     );
@@ -223,6 +220,51 @@ class PlayerLevelService {
         label: updatedEntry.program.trim().isNotEmpty
             ? updatedEntry.program.trim()
             : updatedEntry.type,
+        reasons: reasons,
+      ),
+    );
+    return PlayerLevelAward(
+      gainedXp: gainedXp,
+      before: before,
+      after: after,
+      reasons: reasons,
+    );
+  }
+
+  Future<PlayerLevelAward> awardForMealLog({
+    MealEntry? previousEntry,
+    required MealEntry updatedEntry,
+  }) async {
+    final before = loadState();
+    final previousMealXp = previousEntry == null
+        ? 0
+        : _mealCoachingService.xpValueForMealEntry(previousEntry);
+    final updatedMealXp = _mealCoachingService.xpValueForMealEntry(
+      updatedEntry,
+    );
+    final gainedXp = updatedMealXp - previousMealXp;
+    if (gainedXp <= 0) {
+      return PlayerLevelAward(
+        gainedXp: 0,
+        before: before,
+        after: before,
+        reasons: const <String>[],
+      );
+    }
+    final reason = _mealCoachingService.xpReasonForMealEntry(updatedEntry);
+    final reasons = reason.isEmpty ? const <String>[] : <String>[reason];
+    final nextTotal = before.totalXp + gainedXp;
+    await _options.setValue(totalXpKey, nextTotal);
+    final after = PlayerLevelState.fromXp(nextTotal);
+    await _appendXpHistory(
+      PlayerXpHistoryEntry(
+        awardedAt: updatedEntry.createdAt,
+        deltaXp: gainedXp,
+        totalXp: nextTotal,
+        beforeLevel: before.level,
+        afterLevel: after.level,
+        category: PlayerXpHistoryCategory.meal,
+        label: '',
         reasons: reasons,
       ),
     );
@@ -677,12 +719,11 @@ class PlayerLevelService {
 
   int _calculateTrainingStreak(List<TrainingEntry> entries) {
     if (entries.isEmpty) return 0;
-    final days =
-        entries
-            .map((entry) => _normalizeDay(entry.date))
-            .toSet()
-            .toList(growable: false)
-          ..sort((a, b) => b.compareTo(a));
+    final days = entries
+        .map((entry) => _normalizeDay(entry.date))
+        .toSet()
+        .toList(growable: false)
+      ..sort((a, b) => b.compareTo(a));
     var streak = 0;
     var cursor = days.first;
     for (final day in days) {
@@ -772,11 +813,9 @@ class PlayerLevelState {
 
   factory PlayerLevelState.fromXp(int totalXp) {
     var level = 1;
-    for (
-      var index = 0;
-      index < PlayerLevelService._levelThresholds.length;
-      index++
-    ) {
+    for (var index = 0;
+        index < PlayerLevelService._levelThresholds.length;
+        index++) {
       final threshold = PlayerLevelService._levelThresholds[index];
       if (totalXp >= threshold) {
         level = index + 1;
@@ -784,9 +823,9 @@ class PlayerLevelState {
     }
     final currentLevelXp =
         PlayerLevelService._levelThresholds[(level - 1).clamp(
-          0,
-          PlayerLevelService._levelThresholds.length - 1,
-        )];
+      0,
+      PlayerLevelService._levelThresholds.length - 1,
+    )];
     final nextLevelXp = level >= PlayerLevelService._levelThresholds.length
         ? currentLevelXp + 260
         : PlayerLevelService._levelThresholds[level];
@@ -861,7 +900,7 @@ class PlayerLevelRewardClaim {
   });
 }
 
-enum PlayerXpHistoryCategory { training, quiz, plan, board, diary }
+enum PlayerXpHistoryCategory { training, meal, quiz, plan, board, diary }
 
 class PlayerXpHistoryEntry {
   final DateTime awardedAt;
@@ -886,8 +925,7 @@ class PlayerXpHistoryEntry {
 
   factory PlayerXpHistoryEntry.fromMap(Map<String, dynamic> map) {
     return PlayerXpHistoryEntry(
-      awardedAt:
-          DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
+      awardedAt: DateTime.tryParse(map['awardedAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
       deltaXp: (map['deltaXp'] as num?)?.toInt() ?? 0,
       totalXp: (map['totalXp'] as num?)?.toInt() ?? 0,
@@ -898,8 +936,7 @@ class PlayerXpHistoryEntry {
         orElse: () => PlayerXpHistoryCategory.training,
       ),
       label: map['label']?.toString() ?? '',
-      reasons:
-          (map['reasons'] as List?)
+      reasons: (map['reasons'] as List?)
               ?.map((item) => item.toString())
               .toList(growable: false) ??
           const <String>[],

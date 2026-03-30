@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../../application/training_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../../application/locale_service.dart';
@@ -12,6 +13,7 @@ import 'calendar_screen.dart';
 import 'logs_screen.dart';
 import 'stats_screen.dart';
 import 'entry_form_screen.dart';
+import 'meal_log_screen.dart';
 import '../widgets/app_page_route.dart';
 import 'skill_quiz_screen.dart';
 import 'home_hub_screen.dart';
@@ -20,6 +22,7 @@ import 'coach_lesson_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final TrainingService trainingService;
+  final MealLogService mealLogService;
   final OptionRepository optionRepository;
   final LocaleService localeService;
   final SettingsService settingsService;
@@ -30,6 +33,7 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.trainingService,
+    required this.mealLogService,
     required this.optionRepository,
     required this.localeService,
     required this.settingsService,
@@ -66,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = <Widget>[
       HomeHubScreen(
         trainingService: widget.trainingService,
+        mealLogService: widget.mealLogService,
         localeService: widget.localeService,
         optionRepository: widget.optionRepository,
         settingsService: widget.settingsService,
@@ -76,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onQuickMatch: () =>
             _openCalendarQuickCreate(CalendarQuickCreateAction.match),
         onQuickQuiz: _openQuiz,
+        onQuickMeal: () => _openMealLog(initialDate: DateTime.now()),
         onQuickBoard: _openTrainingBoards,
         onOpenPlans: _openPlans,
         onOpenLogs: () => _onDestinationSelected(1),
@@ -101,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       CalendarScreen(
         trainingService: widget.trainingService,
+        mealLogService: widget.mealLogService,
         localeService: widget.localeService,
         optionRepository: widget.optionRepository,
         settingsService: widget.settingsService,
@@ -108,8 +115,8 @@ class _HomeScreenState extends State<HomeScreen> {
         initialSelectedDay: _calendarSelectedDay,
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
-        quickCreateAction:
-            _pendingCalendarQuickCreateAction ??
+        onCreateMeal: () => _openMealLog(initialDate: _calendarSelectedDay),
+        quickCreateAction: _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
@@ -118,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       StatsScreen(
         trainingService: widget.trainingService,
+        mealLogService: widget.mealLogService,
         localeService: widget.localeService,
         onCreate: _openCreate,
         optionRepository: widget.optionRepository,
@@ -304,6 +312,22 @@ class _HomeScreenState extends State<HomeScreen> {
           driveBackupService: widget.driveBackupService,
           initialDate: initialDate,
           initialOpenTrainingBoardEditor: initialOpenTrainingBoardEditor,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openMealLog({DateTime? initialDate}) async {
+    final normalizedDate = initialDate ?? DateTime.now();
+    final existingEntry = widget.mealLogService.entryForDay(normalizedDate);
+    await _pushPageSafely(
+      AppPageRoute(
+        builder: (_) => MealLogScreen(
+          mealLogService: widget.mealLogService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          initialDate: normalizedDate,
+          initialEntry: existingEntry,
         ),
       ),
     );

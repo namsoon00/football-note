@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../application/benchmark_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/training_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../application/training_plan_reminder_service.dart';
+import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/entities/player_profile.dart';
 import '../widgets/app_background.dart';
@@ -28,6 +30,7 @@ import 'notification_center_screen.dart';
 
 class StatsScreen extends StatefulWidget {
   final TrainingService trainingService;
+  final MealLogService mealLogService;
   final LocaleService localeService;
   final VoidCallback onCreate;
   final OptionRepository optionRepository;
@@ -39,6 +42,7 @@ class StatsScreen extends StatefulWidget {
   const StatsScreen({
     super.key,
     required this.trainingService,
+    required this.mealLogService,
     required this.localeService,
     required this.onCreate,
     required this.optionRepository,
@@ -121,6 +125,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 return _buildStatsContent(
                   context,
                   entries: const [],
+                  mealEntries: const <MealEntry>[],
                   isKo: isKo,
                   topMessage: isKo
                       ? '통계를 불러오는 중 문제가 발생했어요.'
@@ -132,22 +137,30 @@ class _StatsScreenState extends State<StatsScreen> {
                 return _buildLoadingState(context, isKo);
               }
               final entries = snapshot.data ?? const <TrainingEntry>[];
-              try {
-                return _buildStatsContent(
-                  context,
-                  entries: entries,
-                  isKo: isKo,
-                );
-              } catch (_) {
-                return _buildStatsContent(
-                  context,
-                  entries: entries,
-                  isKo: isKo,
-                  topMessage: isKo
-                      ? '일부 통계 계산에 실패해 기본 화면으로 표시합니다.'
-                      : 'Some stats failed to compute, showing fallback view.',
-                );
-              }
+              return StreamBuilder<List<MealEntry>>(
+                stream: widget.mealLogService.watchEntries(),
+                builder: (context, mealSnapshot) {
+                  final mealEntries = mealSnapshot.data ?? const <MealEntry>[];
+                  try {
+                    return _buildStatsContent(
+                      context,
+                      entries: entries,
+                      mealEntries: mealEntries,
+                      isKo: isKo,
+                    );
+                  } catch (_) {
+                    return _buildStatsContent(
+                      context,
+                      entries: entries,
+                      mealEntries: mealEntries,
+                      isKo: isKo,
+                      topMessage: isKo
+                          ? '일부 통계 계산에 실패해 기본 화면으로 표시합니다.'
+                          : 'Some stats failed to compute, showing fallback view.',
+                    );
+                  }
+                },
+              );
             },
           ),
         ),
@@ -167,6 +180,7 @@ class _StatsScreenState extends State<StatsScreen> {
   Widget _buildStatsContent(
     BuildContext context, {
     required List<TrainingEntry> entries,
+    required List<MealEntry> mealEntries,
     required bool isKo,
     String? topMessage,
   }) {
@@ -200,6 +214,17 @@ class _StatsScreenState extends State<StatsScreen> {
         .toList(growable: false);
     final trainingEntries = filteredEntries
         .where((entry) => !entry.isMatch)
+        .toList(growable: false);
+    final filteredMealEntries = widget.mealLogService
+        .mergedEntries(
+          directEntries: mealEntries,
+          legacyEntries: filteredEntries,
+        )
+        .where(
+          (entry) =>
+              !entry.date.isBefore(rangeStart) &&
+              entry.date.isBefore(rangeEndExclusive),
+        )
         .toList(growable: false);
     final matchEntries =
         filteredEntries.where((entry) => entry.isMatch).toList(growable: false);
@@ -285,6 +310,7 @@ class _StatsScreenState extends State<StatsScreen> {
               soccerYears: soccerYears,
               canShowAverage: canShowAverage,
               trainingEntries: trainingEntries,
+              mealEntries: filteredMealEntries,
               plansInRange: plansInRange,
             )
           else
@@ -332,28 +358,31 @@ class _StatsScreenState extends State<StatsScreen> {
     required int? soccerYears,
     required bool canShowAverage,
     required List<TrainingEntry> trainingEntries,
+    required List<MealEntry> mealEntries,
     required List<_StatsPlanLite> plansInRange,
   }) {
-    if (trainingEntries.isEmpty) {
+    if (trainingEntries.isEmpty && mealEntries.isEmpty) {
       return _InlineNotice(
-        text: isKo
-            ? '선택한 기간에 훈련 기록이 없습니다.'
-            : 'No training entries in the selected period.',
+        text: AppLocalizations.of(context)!.mealStatsNoTrainingOrMealEntries,
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StatsPanel(
-          child: _TrainingOverviewSection(
-            entries: trainingEntries,
-            plans: plansInRange,
-            isKo: isKo,
-            range: _selectedRange,
+        if (trainingEntries.isNotEmpty) ...[
+          _StatsPanel(
+            child: _TrainingOverviewSection(
+              entries: trainingEntries,
+              plans: plansInRange,
+              isKo: isKo,
+              range: _selectedRange,
+            ),
           ),
-        ),
-        const SizedBox(height: 18),
+          const SizedBox(height: 18),
+        ],
+        _StatsPanel(child: _MealSummaryCard(entries: mealEntries)),
+        if (trainingEntries.isNotEmpty) ...[const SizedBox(height: 18)],
         if (!canShowAverage) ...[
           _InlineNotice(
             text: isKo
@@ -372,44 +401,46 @@ class _StatsScreenState extends State<StatsScreen> {
           ),
           const SizedBox(height: 12),
         ],
-        _StatsPanel(
-          child: _TargetGrowthChart(
-            entries: trainingEntries,
-            ageYears: ageYears,
-            soccerYears: soccerYears,
-            isKo: isKo,
-            showAverage: canShowAverage,
-            range: _selectedRange,
+        if (trainingEntries.isNotEmpty) ...[
+          _StatsPanel(
+            child: _TargetGrowthChart(
+              entries: trainingEntries,
+              ageYears: ageYears,
+              soccerYears: soccerYears,
+              isKo: isKo,
+              showAverage: canShowAverage,
+              range: _selectedRange,
+            ),
           ),
-        ),
-        const SizedBox(height: 18),
-        _StatsPanel(
-          child: _BodyAndLiftingBenchmarkCard(
-            entries: trainingEntries,
-            profile: profile,
-            ageYears: ageYears,
-            isKo: isKo,
-            benchmarkService: _benchmarkService,
-            showAverage: canShowAverage,
-            onReferenceTap: canShowAverage
-                ? () => _openAverageBenchmark(
-                      context,
-                      trainingEntries,
-                      ageYears,
-                      soccerYears,
-                    )
-                : null,
+          const SizedBox(height: 18),
+          _StatsPanel(
+            child: _BodyAndLiftingBenchmarkCard(
+              entries: trainingEntries,
+              profile: profile,
+              ageYears: ageYears,
+              isKo: isKo,
+              benchmarkService: _benchmarkService,
+              showAverage: canShowAverage,
+              onReferenceTap: canShowAverage
+                  ? () => _openAverageBenchmark(
+                        context,
+                        trainingEntries,
+                        ageYears,
+                        soccerYears,
+                      )
+                  : null,
+            ),
           ),
-        ),
-        const SizedBox(height: 18),
-        _StatsPanel(child: _LiftingSummaryCard(entries: trainingEntries)),
-        const SizedBox(height: 18),
-        _StatsPanel(
-          child: _JumpRopeSummaryCard(
-            entries: trainingEntries,
-            range: _selectedRange,
+          const SizedBox(height: 18),
+          _StatsPanel(child: _LiftingSummaryCard(entries: trainingEntries)),
+          const SizedBox(height: 18),
+          _StatsPanel(
+            child: _JumpRopeSummaryCard(
+              entries: trainingEntries,
+              range: _selectedRange,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -1417,12 +1448,19 @@ class _TrainingOverviewSection extends StatelessWidget {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final activeDays = entries
-        .map((entry) =>
-            DateTime(entry.date.year, entry.date.month, entry.date.day))
+        .map(
+          (entry) =>
+              DateTime(entry.date.year, entry.date.month, entry.date.day),
+        )
         .toSet();
     final plannedDays = plans
-        .map((plan) => DateTime(plan.scheduledAt.year, plan.scheduledAt.month,
-            plan.scheduledAt.day))
+        .map(
+          (plan) => DateTime(
+            plan.scheduledAt.year,
+            plan.scheduledAt.month,
+            plan.scheduledAt.day,
+          ),
+        )
         .toSet();
     final completedPlanDays = plannedDays.where(activeDays.contains).length;
     final executionRate = plannedDays.isEmpty
@@ -1484,21 +1522,13 @@ class _TrainingOverviewSection extends StatelessWidget {
                     ? (isKo ? '계획 없음' : 'No plan')
                     : '$executionRate%',
               ),
-              _MetricCard(
-                label: isKo ? '집중 분야' : 'Focus',
-                value: focus,
-              ),
+              _MetricCard(label: isKo ? '집중 분야' : 'Focus', value: focus),
             ];
             return Wrap(
               spacing: 10,
               runSpacing: 10,
               children: cards
-                  .map(
-                    (card) => SizedBox(
-                      width: cardWidth,
-                      child: card,
-                    ),
-                  )
+                  .map((card) => SizedBox(width: cardWidth, child: card))
                   .toList(growable: false),
             );
           },
@@ -1564,14 +1594,78 @@ class _TrainingOverviewSection extends StatelessWidget {
   }
 }
 
+class _MealSummaryCard extends StatelessWidget {
+  final List<MealEntry> entries;
+
+  const _MealSummaryCard({required this.entries});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    if (entries.isEmpty) {
+      return _InlineNotice(text: l10n.mealStatsEmpty);
+    }
+    final totalBowls = entries.fold<double>(
+      0,
+      (sum, entry) => sum + entry.totalRiceBowls,
+    );
+    final averageActual = totalBowls / entries.length;
+    const expectedAverage = MealLogService.expectedBowlsPerDay;
+    final bestDay = entries.reduce(
+      (best, current) =>
+          current.totalRiceBowls > best.totalRiceBowls ? current : best,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+          icon: Icons.rice_bowl_outlined,
+          title: l10n.mealStatsSectionTitle,
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _MetricCard(
+              label: l10n.mealStatsLoggedDays,
+              value: isKo ? '${entries.length}일' : '${entries.length}',
+            ),
+            _MetricCard(
+              label: l10n.mealStatsExpectedAverage,
+              value: l10n.mealAverageExpectedValue(
+                _formatBowls(expectedAverage),
+              ),
+            ),
+            _MetricCard(
+              label: l10n.mealStatsActualAverage,
+              value: l10n.mealAverageActualValue(_formatBowls(averageActual)),
+            ),
+            _MetricCard(
+              label: l10n.mealStatsBestDay,
+              value:
+                  '${bestDay.date.month}/${bestDay.date.day} · ${_formatBowls(bestDay.totalRiceBowls)}',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  String _formatBowls(double bowls) {
+    return bowls == bowls.truncateToDouble()
+        ? bowls.toStringAsFixed(0)
+        : bowls.toStringAsFixed(1);
+  }
+}
+
 class _MatchOverviewSection extends StatelessWidget {
   final List<TrainingEntry> entries;
   final bool isKo;
 
-  const _MatchOverviewSection({
-    required this.entries,
-    required this.isKo,
-  });
+  const _MatchOverviewSection({required this.entries, required this.isKo});
 
   @override
   Widget build(BuildContext context) {
@@ -1837,16 +1931,16 @@ class _InsightMiniCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   value,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        height: 1.45,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(height: 1.45),
                 ),
               ],
             ),
@@ -1997,8 +2091,9 @@ String _topPhrase(
 
 int _currentTrainingStreak(List<TrainingEntry> entries) {
   final workedDays = entries
-      .map((entry) =>
-          DateTime(entry.date.year, entry.date.month, entry.date.day))
+      .map(
+        (entry) => DateTime(entry.date.year, entry.date.month, entry.date.day),
+      )
       .toSet()
       .toList(growable: false)
     ..sort((a, b) => b.compareTo(a));

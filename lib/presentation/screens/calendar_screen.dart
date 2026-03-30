@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/locale_service.dart';
 import '../../application/news_badge_service.dart';
@@ -18,6 +19,7 @@ import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_plan_badge_service.dart';
 import '../../application/training_plan_series_builder.dart';
 import '../../application/training_service.dart';
+import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
@@ -32,8 +34,9 @@ import 'settings_screen.dart';
 import 'news_screen.dart';
 import 'skill_quiz_screen.dart';
 import 'notification_center_screen.dart';
+import 'meal_log_screen.dart';
 
-enum _CalendarCreateAction { entry, plan, match }
+enum _CalendarCreateAction { entry, meal, plan, match }
 
 enum CalendarQuickCreateAction { plan, match }
 
@@ -41,6 +44,7 @@ enum _PlanEditScope { single, afterThis, series }
 
 class CalendarScreen extends StatefulWidget {
   final TrainingService trainingService;
+  final MealLogService mealLogService;
   final LocaleService localeService;
   final OptionRepository optionRepository;
   final SettingsService settingsService;
@@ -48,6 +52,7 @@ class CalendarScreen extends StatefulWidget {
   final DateTime? initialSelectedDay;
   final ValueChanged<TrainingEntry> onEdit;
   final VoidCallback? onCreate;
+  final VoidCallback? onCreateMeal;
   final ValueChanged<DateTime>? onSelectedDayChanged;
   final CalendarQuickCreateAction? quickCreateAction;
   final VoidCallback? onQuickCreateHandled;
@@ -55,6 +60,7 @@ class CalendarScreen extends StatefulWidget {
   const CalendarScreen({
     super.key,
     required this.trainingService,
+    required this.mealLogService,
     required this.localeService,
     required this.optionRepository,
     required this.settingsService,
@@ -62,6 +68,7 @@ class CalendarScreen extends StatefulWidget {
     this.initialSelectedDay,
     required this.onEdit,
     this.onCreate,
+    this.onCreateMeal,
     this.onSelectedDayChanged,
     this.quickCreateAction,
     this.onQuickCreateHandled,
@@ -255,400 +262,476 @@ class _CalendarScreenState extends State<CalendarScreen> {
             builder: (context, snapshot) {
               final isKo = Localizations.localeOf(context).languageCode == 'ko';
               final entries = snapshot.data ?? [];
-              final entryMap = _groupByDay(entries);
-              final planMap = _groupPlansByDay(_plans);
-              final holidayMap = isKo
-                  ? _buildKoreanHolidayMap(DateTime(2022), DateTime(2032))
-                  : const <DateTime, String>{};
-              final selected = _normalizeDay(_selectedDay ?? _focusedDay);
-              final dayEntries = entryMap[selected] ?? const <TrainingEntry>[];
-              final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
-              final hasDaySchedule =
-                  dayEntries.isNotEmpty || dayPlans.isNotEmpty;
-              final isCalendarExpanded =
-                  hasDaySchedule ? _calendarExpanded : true;
-              final selectedHolidayName = holidayMap[selected];
-              final reminderUnreadCount = TrainingPlanReminderService(
-                widget.optionRepository,
-                widget.settingsService,
-              ).unreadReminderCountSync();
+              return StreamBuilder<List<MealEntry>>(
+                stream: widget.mealLogService.watchEntries(),
+                builder: (context, mealSnapshot) {
+                  final mealEntries = widget.mealLogService.mergedEntries(
+                    directEntries: mealSnapshot.data ?? const <MealEntry>[],
+                    legacyEntries: entries,
+                  );
+                  final mealEntryMap = _groupMealEntriesByDay(mealEntries);
+                  final entryMap = _groupByDay(entries);
+                  final planMap = _groupPlansByDay(_plans);
+                  final holidayMap = isKo
+                      ? _buildKoreanHolidayMap(DateTime(2022), DateTime(2032))
+                      : const <DateTime, String>{};
+                  final selected = _normalizeDay(_selectedDay ?? _focusedDay);
+                  final dayEntries =
+                      entryMap[selected] ?? const <TrainingEntry>[];
+                  final dayMealEntry = mealEntryMap[selected];
+                  final dayPlans = planMap[selected] ?? const <_TrainingPlan>[];
+                  final hasDaySchedule = dayEntries.isNotEmpty ||
+                      dayPlans.isNotEmpty ||
+                      dayMealEntry != null;
+                  final isCalendarExpanded =
+                      hasDaySchedule ? _calendarExpanded : true;
+                  final selectedHolidayName = holidayMap[selected];
+                  final reminderUnreadCount = TrainingPlanReminderService(
+                    widget.optionRepository,
+                    widget.settingsService,
+                  ).unreadReminderCountSync();
 
-              return Column(
-                children: [
-                  ValueListenableBuilder<int>(
-                    valueListenable: NewsBadgeService.listenable(
-                      widget.optionRepository,
-                    ),
-                    builder: (context, newsCount, _) => Builder(
-                      builder: (context) => SharedTabHeader(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                        onLeadingTap: () => Scaffold.of(context).openDrawer(),
-                        onNewsTap: () => _openNews(context),
-                        newsBadgeCount: newsCount,
-                        onQuizTap: () => _openQuiz(context),
-                        onNotificationTap: () => _openNotifications(context),
-                        notificationBadgeCount: reminderUnreadCount,
-                        profilePhotoSource:
-                            widget.optionRepository.getValue<String>(
-                                  'profile_photo_url',
-                                ) ??
-                                '',
-                        onProfileTap: () => _openProfile(context),
-                        onSettingsTap: () => _openSettings(context),
-                        title: AppLocalizations.of(context)!.calendar,
-                        titleTrailing: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          alignment: WrapAlignment.end,
-                          children: [
-                            _CalendarHeaderChipButton(
-                              label: isKo ? '2주' : '2W',
-                              selected:
-                                  _calendarFormat == CalendarFormat.twoWeeks,
-                              onPressed: () =>
-                                  _setCalendarFormat(CalendarFormat.twoWeeks),
-                            ),
-                            _CalendarHeaderChipButton(
-                              label: isKo ? '1개월' : '1M',
-                              selected: _calendarFormat == CalendarFormat.month,
-                              onPressed: () =>
-                                  _setCalendarFormat(CalendarFormat.month),
-                            ),
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                                minimumSize: const Size(72, 40),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 8,
-                                ),
-                              ),
-                              onPressed: () {
-                                final today = _normalizeDay(DateTime.now());
-                                setState(() {
-                                  _selectedDay = today;
-                                  _focusedDay = today;
-                                });
-                                widget.onSelectedDayChanged?.call(today);
-                              },
-                              icon: const Icon(Icons.today_outlined, size: 18),
-                              label: Text(
-                                Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? '오늘'
-                                    : 'Today',
-                              ),
-                            ),
-                          ],
+                  return Column(
+                    children: [
+                      ValueListenableBuilder<int>(
+                        valueListenable: NewsBadgeService.listenable(
+                          widget.optionRepository,
                         ),
-                      ),
-                    ),
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    child: isCalendarExpanded
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: WatchCartCard(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(8, 2, 8, 10),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    TableCalendar<TrainingEntry>(
-                                      key: ValueKey(
-                                        'calendar-${_calendarFormat.name}',
-                                      ),
-                                      locale: Localizations.localeOf(
-                                        context,
-                                      ).toString(),
-                                      focusedDay: _focusedDay,
-                                      firstDay: DateTime(2022),
-                                      lastDay: DateTime(2032),
-                                      sixWeekMonthsEnforced: false,
-                                      availableCalendarFormats: const {
-                                        CalendarFormat.twoWeeks: '2W',
-                                        CalendarFormat.month: '1M',
-                                      },
-                                      rowHeight: 44,
-                                      daysOfWeekHeight: 20,
-                                      calendarFormat: _calendarFormat,
-                                      onPageChanged: (focusedDay) {
-                                        _focusedDay = focusedDay;
-                                      },
-                                      selectedDayPredicate: (day) =>
-                                          isSameDay(day, _selectedDay),
-                                      onDaySelected: (selectedDay, focusedDay) {
-                                        setState(() {
-                                          _selectedDay = selectedDay;
-                                          _focusedDay = focusedDay;
-                                        });
-                                        widget.onSelectedDayChanged?.call(
-                                          _normalizeDay(selectedDay),
-                                        );
-                                      },
-                                      holidayPredicate: (day) =>
-                                          isKo &&
-                                          holidayMap.containsKey(
-                                            _normalizeDay(day),
-                                          ),
-                                      calendarBuilders: CalendarBuilders(
-                                        defaultBuilder:
-                                            (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          final dayEntries = entryMap[key] ??
-                                              const <TrainingEntry>[];
-                                          return _CalendarStatusDayCell(
-                                            dayNumber: day.day,
-                                            hasTraining: _hasTrainingForDay(
-                                              dayEntries,
-                                            ),
-                                            hasMatch: _hasMatchForDay(
-                                              dayEntries,
-                                            ),
-                                            hasPlan: (planMap[key] ??
-                                                    const <_TrainingPlan>[])
-                                                .isNotEmpty,
-                                            isSelected: isSameDay(
-                                              day,
-                                              _selectedDay,
-                                            ),
-                                            isToday: isSameDay(
-                                              day,
-                                              DateTime.now(),
-                                            ),
-                                            isHoliday: isKo &&
-                                                holidayMap.containsKey(key),
-                                          );
-                                        },
-                                        todayBuilder:
-                                            (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          final dayEntries = entryMap[key] ??
-                                              const <TrainingEntry>[];
-                                          return _CalendarStatusDayCell(
-                                            dayNumber: day.day,
-                                            hasTraining: _hasTrainingForDay(
-                                              dayEntries,
-                                            ),
-                                            hasMatch: _hasMatchForDay(
-                                              dayEntries,
-                                            ),
-                                            hasPlan: (planMap[key] ??
-                                                    const <_TrainingPlan>[])
-                                                .isNotEmpty,
-                                            isSelected: isSameDay(
-                                              day,
-                                              _selectedDay,
-                                            ),
-                                            isToday: true,
-                                            isHoliday: isKo &&
-                                                holidayMap.containsKey(key),
-                                          );
-                                        },
-                                        selectedBuilder:
-                                            (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          final dayEntries = entryMap[key] ??
-                                              const <TrainingEntry>[];
-                                          return _CalendarStatusDayCell(
-                                            dayNumber: day.day,
-                                            hasTraining: _hasTrainingForDay(
-                                              dayEntries,
-                                            ),
-                                            hasMatch: _hasMatchForDay(
-                                              dayEntries,
-                                            ),
-                                            hasPlan: (planMap[key] ??
-                                                    const <_TrainingPlan>[])
-                                                .isNotEmpty,
-                                            isSelected: true,
-                                            isToday: isSameDay(
-                                              day,
-                                              DateTime.now(),
-                                            ),
-                                            isHoliday: isKo &&
-                                                holidayMap.containsKey(key),
-                                          );
-                                        },
-                                        holidayBuilder:
-                                            (context, day, focusedDay) {
-                                          final key = _normalizeDay(day);
-                                          final dayEntries = entryMap[key] ??
-                                              const <TrainingEntry>[];
-                                          return _CalendarStatusDayCell(
-                                            dayNumber: day.day,
-                                            hasTraining: _hasTrainingForDay(
-                                              dayEntries,
-                                            ),
-                                            hasMatch: _hasMatchForDay(
-                                              dayEntries,
-                                            ),
-                                            hasPlan: (planMap[key] ??
-                                                    const <_TrainingPlan>[])
-                                                .isNotEmpty,
-                                            isSelected: isSameDay(
-                                              day,
-                                              _selectedDay,
-                                            ),
-                                            isToday: isSameDay(
-                                              day,
-                                              DateTime.now(),
-                                            ),
-                                            isHoliday: true,
-                                          );
-                                        },
-                                      ),
-                                      calendarStyle: CalendarStyle(
-                                        outsideDaysVisible: false,
-                                        defaultTextStyle: TextStyle(
-                                          fontSize: _calendarDayNumberFontSize,
-                                          fontWeight: FontWeight.w700,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
-                                        ),
-                                        weekendTextStyle: TextStyle(
-                                          fontSize: _calendarDayNumberFontSize,
-                                          fontWeight: FontWeight.w700,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
-                                        ),
-                                        outsideTextStyle: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.35),
-                                        ),
-                                        todayTextStyle: TextStyle(
-                                          fontSize: _calendarDayNumberFontSize,
-                                          fontWeight: FontWeight.w800,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
-                                        ),
-                                        selectedTextStyle: TextStyle(
-                                          fontSize: _calendarDayNumberFontSize,
-                                          fontWeight: FontWeight.w800,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
-                                        ),
-                                        holidayTextStyle: TextStyle(
-                                          fontSize: _calendarDayNumberFontSize,
-                                          color: Colors.red.shade500,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      headerStyle: const HeaderStyle(
-                                        formatButtonVisible: false,
-                                        titleCentered: true,
-                                        titleTextStyle: TextStyle(
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                        headerPadding: EdgeInsets.fromLTRB(
-                                          0,
-                                          0,
-                                          0,
-                                          6,
-                                        ),
-                                      ),
+                        builder: (context, newsCount, _) => Builder(
+                          builder: (context) => SharedTabHeader(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                            onLeadingTap: () =>
+                                Scaffold.of(context).openDrawer(),
+                            onNewsTap: () => _openNews(context),
+                            newsBadgeCount: newsCount,
+                            onQuizTap: () => _openQuiz(context),
+                            onNotificationTap: () =>
+                                _openNotifications(context),
+                            notificationBadgeCount: reminderUnreadCount,
+                            profilePhotoSource:
+                                widget.optionRepository.getValue<String>(
+                                      'profile_photo_url',
+                                    ) ??
+                                    '',
+                            onProfileTap: () => _openProfile(context),
+                            onSettingsTap: () => _openSettings(context),
+                            title: AppLocalizations.of(context)!.calendar,
+                            titleTrailing: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              alignment: WrapAlignment.end,
+                              children: [
+                                _CalendarHeaderChipButton(
+                                  label: isKo ? '2주' : '2W',
+                                  selected: _calendarFormat ==
+                                      CalendarFormat.twoWeeks,
+                                  onPressed: () => _setCalendarFormat(
+                                    CalendarFormat.twoWeeks,
+                                  ),
+                                ),
+                                _CalendarHeaderChipButton(
+                                  label: isKo ? '1개월' : '1M',
+                                  selected:
+                                      _calendarFormat == CalendarFormat.month,
+                                  onPressed: () =>
+                                      _setCalendarFormat(CalendarFormat.month),
+                                ),
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    minimumSize: const Size(72, 40),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 8,
                                     ),
-                                    const SizedBox(height: 6),
-                                  ],
+                                  ),
+                                  onPressed: () {
+                                    final today = _normalizeDay(DateTime.now());
+                                    setState(() {
+                                      _selectedDay = today;
+                                      _focusedDay = today;
+                                    });
+                                    widget.onSelectedDayChanged?.call(today);
+                                  },
+                                  icon: const Icon(
+                                    Icons.today_outlined,
+                                    size: 18,
+                                  ),
+                                  label: Text(
+                                    Localizations.localeOf(
+                                              context,
+                                            ).languageCode ==
+                                            'ko'
+                                        ? '오늘'
+                                        : 'Today',
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6, bottom: 2),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: hasDaySchedule
-                            ? () => _setCalendarExpanded(!isCalendarExpanded)
-                            : null,
-                        borderRadius: BorderRadius.circular(999),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                isCalendarExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                Localizations.localeOf(context).languageCode ==
-                                        'ko'
-                                    ? (isCalendarExpanded
-                                        ? '캘린더 접기'
-                                        : '캘린더 펼치기')
-                                    : (isCalendarExpanded
-                                        ? 'Collapse calendar'
-                                        : 'Expand calendar'),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Expanded(
-                    child: _DayTimeline(
-                      holidayName: selectedHolidayName,
-                      dayPlans: dayPlans,
-                      dayEntries: dayEntries,
-                      onEditEntry: (entry) {
-                        if (entry.isMatch) {
-                          unawaited(
-                            _openMatchSheet(
-                              day: entry.date,
-                              editingEntry: entry,
-                              entries: entries,
-                            ),
-                          );
-                          return;
-                        }
-                        widget.onEdit(entry);
-                      },
-                      onEditPlan: (plan) => _openPlanSheet(
-                        day: plan.scheduledAt,
-                        editingPlan: plan,
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        child: isCalendarExpanded
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: WatchCartCard(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      8,
+                                      2,
+                                      8,
+                                      10,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TableCalendar<TrainingEntry>(
+                                          key: ValueKey(
+                                            'calendar-${_calendarFormat.name}',
+                                          ),
+                                          locale: Localizations.localeOf(
+                                            context,
+                                          ).toString(),
+                                          focusedDay: _focusedDay,
+                                          firstDay: DateTime(2022),
+                                          lastDay: DateTime(2032),
+                                          sixWeekMonthsEnforced: false,
+                                          availableCalendarFormats: const {
+                                            CalendarFormat.twoWeeks: '2W',
+                                            CalendarFormat.month: '1M',
+                                          },
+                                          rowHeight: 44,
+                                          daysOfWeekHeight: 20,
+                                          calendarFormat: _calendarFormat,
+                                          onPageChanged: (focusedDay) {
+                                            _focusedDay = focusedDay;
+                                          },
+                                          selectedDayPredicate: (day) =>
+                                              isSameDay(day, _selectedDay),
+                                          onDaySelected:
+                                              (selectedDay, focusedDay) {
+                                            setState(() {
+                                              _selectedDay = selectedDay;
+                                              _focusedDay = focusedDay;
+                                            });
+                                            widget.onSelectedDayChanged?.call(
+                                              _normalizeDay(
+                                                selectedDay,
+                                              ),
+                                            );
+                                          },
+                                          holidayPredicate: (day) =>
+                                              isKo &&
+                                              holidayMap.containsKey(
+                                                _normalizeDay(day),
+                                              ),
+                                          calendarBuilders: CalendarBuilders(
+                                            defaultBuilder:
+                                                (context, day, focusedDay) {
+                                              final key = _normalizeDay(
+                                                day,
+                                              );
+                                              final dayEntries =
+                                                  entryMap[key] ??
+                                                      const <TrainingEntry>[];
+                                              return _CalendarStatusDayCell(
+                                                dayNumber: day.day,
+                                                hasTraining: _hasTrainingForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasMeal:
+                                                    mealEntryMap[key] != null,
+                                                hasMatch: _hasMatchForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasPlan: (planMap[key] ??
+                                                        const <_TrainingPlan>[])
+                                                    .isNotEmpty,
+                                                isSelected: isSameDay(
+                                                  day,
+                                                  _selectedDay,
+                                                ),
+                                                isToday: isSameDay(
+                                                  day,
+                                                  DateTime.now(),
+                                                ),
+                                                isHoliday: isKo &&
+                                                    holidayMap.containsKey(
+                                                      key,
+                                                    ),
+                                              );
+                                            },
+                                            todayBuilder:
+                                                (context, day, focusedDay) {
+                                              final key = _normalizeDay(
+                                                day,
+                                              );
+                                              final dayEntries =
+                                                  entryMap[key] ??
+                                                      const <TrainingEntry>[];
+                                              return _CalendarStatusDayCell(
+                                                dayNumber: day.day,
+                                                hasTraining: _hasTrainingForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasMeal:
+                                                    mealEntryMap[key] != null,
+                                                hasMatch: _hasMatchForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasPlan: (planMap[key] ??
+                                                        const <_TrainingPlan>[])
+                                                    .isNotEmpty,
+                                                isSelected: isSameDay(
+                                                  day,
+                                                  _selectedDay,
+                                                ),
+                                                isToday: true,
+                                                isHoliday: isKo &&
+                                                    holidayMap.containsKey(
+                                                      key,
+                                                    ),
+                                              );
+                                            },
+                                            selectedBuilder:
+                                                (context, day, focusedDay) {
+                                              final key = _normalizeDay(
+                                                day,
+                                              );
+                                              final dayEntries =
+                                                  entryMap[key] ??
+                                                      const <TrainingEntry>[];
+                                              return _CalendarStatusDayCell(
+                                                dayNumber: day.day,
+                                                hasTraining: _hasTrainingForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasMeal:
+                                                    mealEntryMap[key] != null,
+                                                hasMatch: _hasMatchForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasPlan: (planMap[key] ??
+                                                        const <_TrainingPlan>[])
+                                                    .isNotEmpty,
+                                                isSelected: true,
+                                                isToday: isSameDay(
+                                                  day,
+                                                  DateTime.now(),
+                                                ),
+                                                isHoliday: isKo &&
+                                                    holidayMap.containsKey(
+                                                      key,
+                                                    ),
+                                              );
+                                            },
+                                            holidayBuilder:
+                                                (context, day, focusedDay) {
+                                              final key = _normalizeDay(
+                                                day,
+                                              );
+                                              final dayEntries =
+                                                  entryMap[key] ??
+                                                      const <TrainingEntry>[];
+                                              return _CalendarStatusDayCell(
+                                                dayNumber: day.day,
+                                                hasTraining: _hasTrainingForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasMeal:
+                                                    mealEntryMap[key] != null,
+                                                hasMatch: _hasMatchForDay(
+                                                  dayEntries,
+                                                ),
+                                                hasPlan: (planMap[key] ??
+                                                        const <_TrainingPlan>[])
+                                                    .isNotEmpty,
+                                                isSelected: isSameDay(
+                                                  day,
+                                                  _selectedDay,
+                                                ),
+                                                isToday: isSameDay(
+                                                  day,
+                                                  DateTime.now(),
+                                                ),
+                                                isHoliday: true,
+                                              );
+                                            },
+                                          ),
+                                          calendarStyle: CalendarStyle(
+                                            outsideDaysVisible: false,
+                                            defaultTextStyle: TextStyle(
+                                              fontSize:
+                                                  _calendarDayNumberFontSize,
+                                              fontWeight: FontWeight.w700,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
+                                            ),
+                                            weekendTextStyle: TextStyle(
+                                              fontSize:
+                                                  _calendarDayNumberFontSize,
+                                              fontWeight: FontWeight.w700,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
+                                            ),
+                                            outsideTextStyle: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.35),
+                                            ),
+                                            todayTextStyle: TextStyle(
+                                              fontSize:
+                                                  _calendarDayNumberFontSize,
+                                              fontWeight: FontWeight.w800,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
+                                            ),
+                                            selectedTextStyle: TextStyle(
+                                              fontSize:
+                                                  _calendarDayNumberFontSize,
+                                              fontWeight: FontWeight.w800,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary,
+                                            ),
+                                            holidayTextStyle: TextStyle(
+                                              fontSize:
+                                                  _calendarDayNumberFontSize,
+                                              color: Colors.red.shade500,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          headerStyle: const HeaderStyle(
+                                            formatButtonVisible: false,
+                                            titleCentered: true,
+                                            titleTextStyle: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                            headerPadding: EdgeInsets.fromLTRB(
+                                              0,
+                                              0,
+                                              0,
+                                              6,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
                       ),
-                      onMovePlan: _movePlanSchedule,
-                      onDeleteEntry: _confirmDeleteEntry,
-                      onDeletePlan: _confirmDeletePlan,
-                      onListScrollUp: () {
-                        if (hasDaySchedule && isCalendarExpanded) {
-                          _setCalendarExpanded(false);
-                        }
-                      },
-                      onListReachedBottom: () {
-                        if (hasDaySchedule && !isCalendarExpanded) {
-                          _setCalendarExpanded(true);
-                        }
-                      },
-                    ),
-                  ),
-                ],
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 2),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: hasDaySchedule
+                                ? () =>
+                                    _setCalendarExpanded(!isCalendarExpanded)
+                                : null,
+                            borderRadius: BorderRadius.circular(999),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    isCalendarExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    Localizations.localeOf(
+                                              context,
+                                            ).languageCode ==
+                                            'ko'
+                                        ? (isCalendarExpanded
+                                            ? '캘린더 접기'
+                                            : '캘린더 펼치기')
+                                        : (isCalendarExpanded
+                                            ? 'Collapse calendar'
+                                            : 'Expand calendar'),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: _DayTimeline(
+                          holidayName: selectedHolidayName,
+                          dayPlans: dayPlans,
+                          dayEntries: dayEntries,
+                          dayMealEntry: dayMealEntry,
+                          onEditEntry: (entry) {
+                            if (entry.isMatch) {
+                              unawaited(
+                                _openMatchSheet(
+                                  day: entry.date,
+                                  editingEntry: entry,
+                                  entries: entries,
+                                ),
+                              );
+                              return;
+                            }
+                            widget.onEdit(entry);
+                          },
+                          onEditPlan: (plan) => _openPlanSheet(
+                            day: plan.scheduledAt,
+                            editingPlan: plan,
+                          ),
+                          onEditMealEntry: (entry) {
+                            unawaited(
+                              _openMealLog(day: entry.date, entry: entry),
+                            );
+                          },
+                          onMovePlan: _movePlanSchedule,
+                          onDeleteEntry: _confirmDeleteEntry,
+                          onDeleteMealEntry: _confirmDeleteMealEntry,
+                          onDeletePlan: _confirmDeletePlan,
+                          onListScrollUp: () {
+                            if (hasDaySchedule && isCalendarExpanded) {
+                              _setCalendarExpanded(false);
+                            }
+                          },
+                          onListReachedBottom: () {
+                            if (hasDaySchedule && !isCalendarExpanded) {
+                              _setCalendarExpanded(true);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),
@@ -670,6 +753,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _showCreateActionSheet(List<TrainingEntry> entries) async {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final selectedDay = _selectedDay ?? _focusedDay;
     final action = await _showModalBottomSheetSafely<_CalendarCreateAction>(
       showDragHandle: true,
@@ -682,6 +766,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
               title: Text(isKo ? '훈련 노트' : 'Training note'),
               onTap: () =>
                   Navigator.of(context).pop(_CalendarCreateAction.entry),
+            ),
+            ListTile(
+              leading: const Icon(Icons.rice_bowl_outlined),
+              title: Text(l10n.mealLogScreenTitle),
+              onTap: () =>
+                  Navigator.of(context).pop(_CalendarCreateAction.meal),
             ),
             ListTile(
               leading: const Icon(Icons.add_alarm_outlined),
@@ -760,6 +850,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       case _CalendarCreateAction.entry:
         widget.onCreate?.call();
         break;
+      case _CalendarCreateAction.meal:
+        await _openMealLog(day: selectedDay);
+        break;
       case _CalendarCreateAction.plan:
         await _openPlanSheet(day: selectedDay);
         break;
@@ -767,6 +860,48 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await _openMatchSheet(day: selectedDay, entries: entries);
         break;
     }
+  }
+
+  Future<void> _openMealLog({required DateTime day, MealEntry? entry}) async {
+    if (!mounted) return;
+    final existingEntry = entry ?? widget.mealLogService.entryForDay(day);
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MealLogScreen(
+          mealLogService: widget.mealLogService,
+          optionRepository: widget.optionRepository,
+          settingsService: widget.settingsService,
+          initialDate: day,
+          initialEntry: existingEntry,
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _confirmDeleteMealEntry(MealEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.mealDeleteAction),
+        content: Text(l10n.mealDeleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.mealDeleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return false;
+    await widget.mealLogService.deleteDay(entry.date);
+    if (!mounted) return true;
+    AppFeedback.showSuccess(context, text: l10n.mealDeletedFeedback);
+    return true;
   }
 
   Future<void> _createQuickTemplatePlan({
@@ -2162,6 +2297,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return map;
   }
 
+  Map<DateTime, MealEntry> _groupMealEntriesByDay(List<MealEntry> entries) {
+    final Map<DateTime, MealEntry> map = {};
+    for (final entry in entries) {
+      map[_normalizeDay(entry.date)] = entry;
+    }
+    return map;
+  }
+
   DateTime _normalizeDay(DateTime day) =>
       DateTime(day.year, day.month, day.day);
 
@@ -2259,6 +2402,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 class _CalendarStatusDayCell extends StatelessWidget {
   final int dayNumber;
   final bool hasTraining;
+  final bool hasMeal;
   final bool hasMatch;
   final bool hasPlan;
   final bool isSelected;
@@ -2268,6 +2412,7 @@ class _CalendarStatusDayCell extends StatelessWidget {
   const _CalendarStatusDayCell({
     required this.dayNumber,
     required this.hasTraining,
+    required this.hasMeal,
     required this.hasMatch,
     required this.hasPlan,
     required this.isSelected,
@@ -2321,9 +2466,11 @@ class _CalendarStatusDayCell extends StatelessWidget {
               children: [
                 _CalendarMarkerStrip(
                   hasTraining: hasTraining,
+                  hasMeal: hasMeal,
                   hasMatch: hasMatch,
                   hasPlan: hasPlan,
                   trainingColor: const Color(0xFF0FA968),
+                  mealColor: const Color(0xFFB45309),
                   matchColor: const Color(0xFF2F80ED),
                   planColor: const Color(0xFFE3A008),
                   dayNumber: dayNumber,
@@ -2380,18 +2527,22 @@ class _CalendarHeaderChipButton extends StatelessWidget {
 
 class _CalendarMarkerStrip extends StatelessWidget {
   final bool hasTraining;
+  final bool hasMeal;
   final bool hasMatch;
   final bool hasPlan;
   final Color trainingColor;
+  final Color mealColor;
   final Color matchColor;
   final Color planColor;
   final int dayNumber;
 
   const _CalendarMarkerStrip({
     required this.hasTraining,
+    required this.hasMeal,
     required this.hasMatch,
     required this.hasPlan,
     required this.trainingColor,
+    required this.mealColor,
     required this.matchColor,
     required this.planColor,
     required this.dayNumber,
@@ -2409,7 +2560,14 @@ class _CalendarMarkerStrip extends StatelessWidget {
               key: Key('calendar_day_training_marker_$dayNumber'),
               color: trainingColor,
             ),
-          if (hasTraining && (hasMatch || hasPlan)) const SizedBox(width: 3),
+          if (hasTraining && (hasMeal || hasMatch || hasPlan))
+            const SizedBox(width: 3),
+          if (hasMeal)
+            _CalendarMarkerSegment(
+              key: Key('calendar_day_meal_marker_$dayNumber'),
+              color: mealColor,
+            ),
+          if (hasMeal && (hasMatch || hasPlan)) const SizedBox(width: 3),
           if (hasMatch)
             _CalendarMarkerSegment(
               key: Key('calendar_day_match_marker_$dayNumber'),
@@ -2471,10 +2629,13 @@ class _DayTimeline extends StatelessWidget {
   final String? holidayName;
   final List<_TrainingPlan> dayPlans;
   final List<TrainingEntry> dayEntries;
+  final MealEntry? dayMealEntry;
   final ValueChanged<TrainingEntry> onEditEntry;
+  final ValueChanged<MealEntry> onEditMealEntry;
   final ValueChanged<_TrainingPlan> onEditPlan;
   final ValueChanged<_TrainingPlan> onMovePlan;
   final Future<bool> Function(TrainingEntry) onDeleteEntry;
+  final Future<bool> Function(MealEntry) onDeleteMealEntry;
   final ValueChanged<_TrainingPlan> onDeletePlan;
   final VoidCallback onListScrollUp;
   final VoidCallback onListReachedBottom;
@@ -2483,10 +2644,13 @@ class _DayTimeline extends StatelessWidget {
     this.holidayName,
     required this.dayPlans,
     required this.dayEntries,
+    required this.dayMealEntry,
     required this.onEditEntry,
+    required this.onEditMealEntry,
     required this.onEditPlan,
     required this.onMovePlan,
     required this.onDeleteEntry,
+    required this.onDeleteMealEntry,
     required this.onDeletePlan,
     required this.onListScrollUp,
     required this.onListReachedBottom,
@@ -2505,7 +2669,8 @@ class _DayTimeline extends StatelessWidget {
         sortedEntries.where((entry) => !entry.isMatch).toList(growable: false);
     if (sortedPlans.isEmpty &&
         sortedMatchEntries.isEmpty &&
-        sortedTrainingEntries.isEmpty) {
+        sortedTrainingEntries.isEmpty &&
+        dayMealEntry == null) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2673,6 +2838,40 @@ class _DayTimeline extends StatelessWidget {
                     onTap: () => onEditEntry(entry),
                   ),
                 ),
+              ),
+            ),
+          ],
+          if (dayMealEntry != null) ...[
+            if (sortedTrainingEntries.isNotEmpty ||
+                sortedMatchEntries.isNotEmpty ||
+                sortedPlans.isNotEmpty)
+              const SizedBox(height: 12),
+            _SectionLabel(
+              title: AppLocalizations.of(context)!.mealLogScreenTitle,
+              icon: Icons.rice_bowl_outlined,
+            ),
+            const SizedBox(height: 8),
+            Dismissible(
+              key: ValueKey(
+                'meal-entry-${dayMealEntry!.date.millisecondsSinceEpoch}',
+              ),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (_) => onDeleteMealEntry(dayMealEntry!),
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+              ),
+              child: _MealEntryTile(
+                entry: dayMealEntry!,
+                onTap: () => onEditMealEntry(dayMealEntry!),
               ),
             ),
           ],
@@ -2921,6 +3120,58 @@ class _EntryTile extends StatelessWidget {
       );
     }
     return parts.join(' · ');
+  }
+}
+
+class _MealEntryTile extends StatelessWidget {
+  final MealEntry entry;
+  final VoidCallback onTap;
+
+  const _MealEntryTile({required this.entry, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return WatchCartCard(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        leading: CircleAvatar(
+          radius: 16,
+          backgroundColor: const Color(0xFFB45309).withValues(alpha: 0.14),
+          child: const Icon(Icons.rice_bowl_outlined, size: 16),
+        ),
+        title: Text(
+          l10n.mealLogScreenTitle,
+          style: _calendarTimelineTitleStyle(context),
+        ),
+        subtitle: Text(
+          _mealSummary(l10n, entry),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: _calendarTimelineSubtitleStyle(context),
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  String _mealSummary(AppLocalizations l10n, MealEntry entry) {
+    final parts = <String>[
+      _mealLine(l10n, l10n.mealBreakfast, entry.breakfastRiceBowls),
+      _mealLine(l10n, l10n.mealLunch, entry.lunchRiceBowls),
+      _mealLine(l10n, l10n.mealDinner, entry.dinnerRiceBowls),
+    ];
+    return parts.join(' · ');
+  }
+
+  String _mealLine(AppLocalizations l10n, String label, double bowls) {
+    if (bowls <= 0) return l10n.mealCompactSkipped(label);
+    final count = bowls == bowls.truncateToDouble()
+        ? bowls.toStringAsFixed(0)
+        : bowls.toStringAsFixed(1);
+    return '$label ${l10n.mealRiceBowlsValue(count)}';
   }
 }
 

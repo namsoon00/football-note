@@ -1,14 +1,34 @@
+import '../domain/entities/meal_entry.dart';
 import '../domain/entities/training_entry.dart';
 
 class MealCoachingService {
   const MealCoachingService();
 
-  static const List<int> riceBowlOptions = <int>[0, 1, 2, 3];
+  static const List<double> riceBowlOptions = <double>[
+    0,
+    0.5,
+    1,
+    1.5,
+    2,
+    2.5,
+    3,
+  ];
 
   MealStatus statusForEntry(TrainingEntry entry) => MealStatus.fromEntry(entry);
 
+  MealStatus statusForMealEntry(MealEntry entry) =>
+      MealStatus.fromMealEntry(entry);
+
   int xpValueForEntry(TrainingEntry entry) {
     final status = MealStatus.fromEntry(entry);
+    return xpValueForStatus(status);
+  }
+
+  int xpValueForMealEntry(MealEntry entry) {
+    return xpValueForStatus(MealStatus.fromMealEntry(entry));
+  }
+
+  int xpValueForStatus(MealStatus status) {
     if (status.completedMeals >= 3) return 15;
     if (status.completedMeals >= 2) return 5;
     return 0;
@@ -16,6 +36,14 @@ class MealCoachingService {
 
   String xpReasonForEntry(TrainingEntry entry) {
     final status = MealStatus.fromEntry(entry);
+    return xpReasonForStatus(status);
+  }
+
+  String xpReasonForMealEntry(MealEntry entry) {
+    return xpReasonForStatus(MealStatus.fromMealEntry(entry));
+  }
+
+  String xpReasonForStatus(MealStatus status) {
     if (status.completedMeals >= 3) return 'meal_full_day';
     if (status.completedMeals >= 2) return 'meal_two_plus';
     return '';
@@ -24,11 +52,11 @@ class MealCoachingService {
 
 class MealStatus {
   final bool breakfastDone;
-  final int breakfastRiceBowls;
+  final double breakfastRiceBowls;
   final bool lunchDone;
-  final int lunchRiceBowls;
+  final double lunchRiceBowls;
   final bool dinnerDone;
-  final int dinnerRiceBowls;
+  final double dinnerRiceBowls;
 
   const MealStatus({
     required this.breakfastDone,
@@ -42,10 +70,21 @@ class MealStatus {
   factory MealStatus.fromEntry(TrainingEntry entry) {
     return MealStatus(
       breakfastDone: entry.breakfastDone,
-      breakfastRiceBowls: entry.breakfastRiceBowls,
+      breakfastRiceBowls: entry.breakfastRiceBowls.toDouble(),
       lunchDone: entry.lunchDone,
-      lunchRiceBowls: entry.lunchRiceBowls,
+      lunchRiceBowls: entry.lunchRiceBowls.toDouble(),
       dinnerDone: entry.dinnerDone,
+      dinnerRiceBowls: entry.dinnerRiceBowls.toDouble(),
+    );
+  }
+
+  factory MealStatus.fromMealEntry(MealEntry entry) {
+    return MealStatus(
+      breakfastDone: entry.breakfastRiceBowls > 0,
+      breakfastRiceBowls: entry.breakfastRiceBowls,
+      lunchDone: entry.lunchRiceBowls > 0,
+      lunchRiceBowls: entry.lunchRiceBowls,
+      dinnerDone: entry.dinnerRiceBowls > 0,
       dinnerRiceBowls: entry.dinnerRiceBowls,
     );
   }
@@ -53,16 +92,16 @@ class MealStatus {
   int get completedMeals =>
       <bool>[breakfastDone, lunchDone, dinnerDone].where((done) => done).length;
 
-  int get totalRiceBowls =>
+  double get totalRiceBowls =>
       _effectiveBowls(breakfastDone, breakfastRiceBowls) +
       _effectiveBowls(lunchDone, lunchRiceBowls) +
       _effectiveBowls(dinnerDone, dinnerRiceBowls);
 
-  int get maxRiceBowls => <int>[
-    _effectiveBowls(breakfastDone, breakfastRiceBowls),
-    _effectiveBowls(lunchDone, lunchRiceBowls),
-    _effectiveBowls(dinnerDone, dinnerRiceBowls),
-  ].reduce((a, b) => a > b ? a : b);
+  double get maxRiceBowls => <double>[
+        _effectiveBowls(breakfastDone, breakfastRiceBowls),
+        _effectiveBowls(lunchDone, lunchRiceBowls),
+        _effectiveBowls(dinnerDone, dinnerRiceBowls),
+      ].reduce((a, b) => a > b ? a : b);
 
-  static int _effectiveBowls(bool done, int bowls) => done ? bowls : 0;
+  static double _effectiveBowls(bool done, double bowls) => done ? bowls : 0;
 }

@@ -171,9 +171,9 @@ class _XpHistorySummaryCard extends StatelessWidget {
           Text(
             isKo ? '최근 경험치 흐름' : 'Recent XP flow',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -272,9 +272,8 @@ class _XpHistoryTimelineRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final positive = item.deltaXp >= 0;
-    final accent = positive
-        ? theme.colorScheme.primary
-        : theme.colorScheme.error;
+    final accent =
+        positive ? theme.colorScheme.primary : theme.colorScheme.error;
     final deltaText = positive ? '+${item.deltaXp} XP' : '${item.deltaXp} XP';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,8 +362,8 @@ class _XpHistoryTimelineRow extends StatelessWidget {
                       label: item.leveledUp
                           ? 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}'
                           : (isKo
-                                ? 'Lv.${item.afterLevel} 유지'
-                                : 'Stayed at Lv.${item.afterLevel}'),
+                              ? 'Lv.${item.afterLevel} 유지'
+                              : 'Stayed at Lv.${item.afterLevel}'),
                     ),
                   ],
                 ),
@@ -406,9 +405,8 @@ class _XpHistoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final positive = item.deltaXp >= 0;
     final deltaText = positive ? '+${item.deltaXp} XP' : '${item.deltaXp} XP';
-    final accent = positive
-        ? theme.colorScheme.primary
-        : theme.colorScheme.error;
+    final accent =
+        positive ? theme.colorScheme.primary : theme.colorScheme.error;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -463,18 +461,17 @@ class _XpHistoryCard extends StatelessWidget {
             runSpacing: 8,
             children: [
               _HistoryPill(
-                label: isKo
-                    ? '누적 ${item.totalXp} XP'
-                    : '${item.totalXp} XP total',
+                label:
+                    isKo ? '누적 ${item.totalXp} XP' : '${item.totalXp} XP total',
               ),
               _HistoryPill(
                 label: item.leveledUp
                     ? (isKo
-                          ? 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}'
-                          : 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}')
+                        ? 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}'
+                        : 'Lv.${item.beforeLevel} -> Lv.${item.afterLevel}')
                     : (isKo
-                          ? 'Lv.${item.afterLevel} 유지'
-                          : 'Stayed at Lv.${item.afterLevel}'),
+                        ? 'Lv.${item.afterLevel} 유지'
+                        : 'Stayed at Lv.${item.afterLevel}'),
               ),
             ],
           ),
@@ -500,6 +497,8 @@ class _XpHistoryCard extends StatelessWidget {
         final label = item.label.trim();
         if (label.isEmpty) return isKo ? '훈련 기록 저장' : 'Training log';
         return isKo ? '훈련 기록 · $label' : 'Training log · $label';
+      case PlayerXpHistoryCategory.meal:
+        return isKo ? '식사 기록 저장' : 'Meal log saved';
       case PlayerXpHistoryCategory.quiz:
         return isKo ? '퀴즈 완료' : 'Quiz completion';
       case PlayerXpHistoryCategory.plan:
@@ -535,6 +534,10 @@ class _XpHistoryCard extends StatelessWidget {
         return isKo ? '리프팅 추가 기록' : 'lifting added';
       case 'jump_rope_added':
         return isKo ? '줄넘기 추가 기록' : 'jump rope added';
+      case 'meal_two_plus':
+        return isKo ? '두 끼 이상' : '2+ meals';
+      case 'meal_full_day':
+        return isKo ? '세 끼 완료' : '3 meals complete';
       case 'streak_3':
         return isKo ? '3일 연속' : '3-day streak';
       case 'streak_7':
@@ -609,9 +612,9 @@ class _HistoryReasonChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w800,
-        ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }

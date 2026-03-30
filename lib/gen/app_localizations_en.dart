@@ -1119,4 +1119,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String mealCompactSkipped(String label) {
     return '$label skipped';
   }
+
+  @override
+  String mealRiceBowlsValue(String count) {
+    return '$count bowl(s)';
+  }
+
+  @override
+  String get mealLogScreenTitle => 'Meal log';
+
+  @override
+  String get mealLogDateLabel => 'Log date';
+
+  @override
+  String get mealLogDatePickerHelp => 'Select meal log date';
+
+  @override
+  String get mealSaveAction => 'Save meal log';
+
+  @override
+  String get mealDeleteAction => 'Delete meal log';
+
+  @override
+  String get mealDeleteConfirmBody => 'Delete this day\'s meal log?';
+
+  @override
+  String get mealSavedFeedback => 'Meal log saved.';
+
+  @override
+  String get mealDeletedFeedback => 'Meal log deleted.';
+
+  @override
+  String get mealLogXpSourceLabel => 'Meal log';
+
+  @override
+  String mealAverageExpectedValue(String value) {
+    return 'Expected average $value bowl(s)';
+  }
+
+  @override
+  String mealAverageActualValue(String value) {
+    return 'Actual average $value bowl(s)';
+  }
+
+  @override
+  String get mealStatsEmpty => 'No meal entries in the selected period.';
+
+  @override
+  String get mealStatsSectionTitle => 'Meal Logs';
+
+  @override
+  String get mealStatsLoggedDays => 'Logged days';
+
+  @override
+  String get mealStatsExpectedAverage => 'Expected avg';
+
+  @override
+  String get mealStatsActualAverage => 'Actual avg';
+
+  @override
+  String get mealStatsBestDay => 'Best day';
+
+  @override
+  String get mealStatsNoTrainingOrMealEntries =>
+      'No training or meal entries in the selected period.';
 }

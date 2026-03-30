@@ -3,6 +3,7 @@ import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
 import '../../application/backup_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../screens/entry_form_screen.dart';
 import '../screens/home_screen.dart';
@@ -238,6 +239,7 @@ class AppDrawer extends StatelessWidget {
       MaterialPageRoute(
         builder: (_) => HomeScreen(
           trainingService: trainingService,
+          mealLogService: MealLogService(optionRepository),
           optionRepository: optionRepository,
           localeService: localeService,
           settingsService: settingsService,

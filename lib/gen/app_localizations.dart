@@ -2137,6 +2137,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{label} skipped'**
   String mealCompactSkipped(String label);
+
+  /// No description provided for @mealRiceBowlsValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bowl(s)'**
+  String mealRiceBowlsValue(String count);
+
+  /// No description provided for @mealLogScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal log'**
+  String get mealLogScreenTitle;
+
+  /// No description provided for @mealLogDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Log date'**
+  String get mealLogDateLabel;
+
+  /// No description provided for @mealLogDatePickerHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Select meal log date'**
+  String get mealLogDatePickerHelp;
+
+  /// No description provided for @mealSaveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save meal log'**
+  String get mealSaveAction;
+
+  /// No description provided for @mealDeleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete meal log'**
+  String get mealDeleteAction;
+
+  /// No description provided for @mealDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this day\'s meal log?'**
+  String get mealDeleteConfirmBody;
+
+  /// No description provided for @mealSavedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal log saved.'**
+  String get mealSavedFeedback;
+
+  /// No description provided for @mealDeletedFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal log deleted.'**
+  String get mealDeletedFeedback;
+
+  /// No description provided for @mealLogXpSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal log'**
+  String get mealLogXpSourceLabel;
+
+  /// No description provided for @mealAverageExpectedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected average {value} bowl(s)'**
+  String mealAverageExpectedValue(String value);
+
+  /// No description provided for @mealAverageActualValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual average {value} bowl(s)'**
+  String mealAverageActualValue(String value);
+
+  /// No description provided for @mealStatsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No meal entries in the selected period.'**
+  String get mealStatsEmpty;
+
+  /// No description provided for @mealStatsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal Logs'**
+  String get mealStatsSectionTitle;
+
+  /// No description provided for @mealStatsLoggedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged days'**
+  String get mealStatsLoggedDays;
+
+  /// No description provided for @mealStatsExpectedAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected avg'**
+  String get mealStatsExpectedAverage;
+
+  /// No description provided for @mealStatsActualAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual avg'**
+  String get mealStatsActualAverage;
+
+  /// No description provided for @mealStatsBestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Best day'**
+  String get mealStatsBestDay;
+
+  /// No description provided for @mealStatsNoTrainingOrMealEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No training or meal entries in the selected period.'**
+  String get mealStatsNoTrainingOrMealEntries;
 }
 
 class _AppLocalizationsDelegate

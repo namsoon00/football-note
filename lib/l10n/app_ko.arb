@@ -404,5 +404,45 @@
         "type": "String"
       }
     }
-  }
+  },
+  "mealRiceBowlsValue": "{count}공기",
+  "@mealRiceBowlsValue": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogScreenTitle": "식사 기록",
+  "mealLogDateLabel": "기록 날짜",
+  "mealLogDatePickerHelp": "식사 기록 날짜 선택",
+  "mealSaveAction": "식사 기록 저장",
+  "mealDeleteAction": "식사 기록 삭제",
+  "mealDeleteConfirmBody": "이 날짜의 식사 기록을 삭제할까요?",
+  "mealSavedFeedback": "식사 기록을 저장했어요.",
+  "mealDeletedFeedback": "식사 기록을 삭제했어요.",
+  "mealLogXpSourceLabel": "식사 기록",
+  "mealAverageExpectedValue": "평균 기대치 {value}공기",
+  "@mealAverageExpectedValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mealAverageActualValue": "평균 실제 {value}공기",
+  "@mealAverageActualValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "mealStatsEmpty": "선택한 기간에 식사 기록이 없습니다.",
+  "mealStatsSectionTitle": "식사 기록",
+  "mealStatsLoggedDays": "기록 일수",
+  "mealStatsExpectedAverage": "평균 기대치",
+  "mealStatsActualAverage": "평균 실제",
+  "mealStatsBestDay": "최고 섭취",
+  "mealStatsNoTrainingOrMealEntries": "선택한 기간에 훈련 기록과 식사 기록이 없습니다."
 }
