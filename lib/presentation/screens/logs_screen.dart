@@ -6,6 +6,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:intl/intl.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
+import '../../application/meal_coaching_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/shared_tab_header.dart';
@@ -87,6 +88,7 @@ class _LogsScreenState extends State<LogsScreen> {
   List<String> _programOptions = [];
   static const int _pageSize = 20;
   int _visibleCount = _pageSize;
+  final MealCoachingService _mealCoachingService = const MealCoachingService();
 
   @override
   void initState() {
@@ -149,13 +151,13 @@ class _LogsScreenState extends State<LogsScreen> {
     _layout = savedLayout == 'list' ? _LogsLayout.list : _LogsLayout.card;
     _statusFilter =
         widget.optionRepository.getValue<String>(_statusFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _locationFilter =
         widget.optionRepository.getValue<String>(_locationFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _programFilter =
         widget.optionRepository.getValue<String>(_programFilterKey) ??
-            _allFilterValue;
+        _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
   }
@@ -177,10 +179,9 @@ class _LogsScreenState extends State<LogsScreen> {
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
               final sourceEntries = snapshot.data ?? const <TrainingEntry>[];
-              final allEntries = sourceEntries
-                  .where((entry) => !entry.isMatch)
-                  .toList()
-                ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries =
+                  sourceEntries.where((entry) => !entry.isMatch).toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
               if (allEntries.isEmpty) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
@@ -234,9 +235,9 @@ class _LogsScreenState extends State<LogsScreen> {
                             notificationBadgeCount: reminderUnreadCount,
                             profilePhotoSource:
                                 widget.optionRepository.getValue<String>(
-                                      'profile_photo_url',
-                                    ) ??
-                                    '',
+                                  'profile_photo_url',
+                                ) ??
+                                '',
                             onProfileTap: () => _openProfile(context),
                             onSettingsTap: () => _openSettings(context),
                             title:
@@ -251,12 +252,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardListIcon: Icons.edit_note_outlined,
                         boardListLabel:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 스케치 리스트'
-                                : 'Training sketch list',
+                            ? '훈련 스케치 리스트'
+                            : 'Training sketch list',
                         boardListTitle:
                             Localizations.localeOf(context).languageCode == 'ko'
-                                ? '훈련 스케치'
-                                : 'Sketches',
+                            ? '훈련 스케치'
+                            : 'Sketches',
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
@@ -278,13 +279,15 @@ class _LogsScreenState extends State<LogsScreen> {
                                 ),
                                 child: _buildEmptyState(
                                   title: l10n.noEntries,
-                                  subtitle: Localizations.localeOf(
+                                  subtitle:
+                                      Localizations.localeOf(
                                             context,
                                           ).languageCode ==
                                           'ko'
                                       ? '첫 훈련기록을 남기고 흐름을 시작해보세요.'
                                       : 'Create your first training note to start the flow.',
-                                  actionLabel: Localizations.localeOf(
+                                  actionLabel:
+                                      Localizations.localeOf(
                                             context,
                                           ).languageCode ==
                                           'ko'
@@ -294,153 +297,146 @@ class _LogsScreenState extends State<LogsScreen> {
                                 ),
                               )
                             : visibleEntries.isEmpty
-                                ? Padding(
-                                    key: const ValueKey('logs-empty-filtered'),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 24,
+                            ? Padding(
+                                key: const ValueKey('logs-empty-filtered'),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 24,
+                                ),
+                                child: _buildEmptyState(
+                                  title: l10n.noResults,
+                                  subtitle:
+                                      Localizations.localeOf(
+                                            context,
+                                          ).languageCode ==
+                                          'ko'
+                                      ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
+                                      : 'Reset filters to see more entries.',
+                                  actionLabel: l10n.filterReset,
+                                  onPressed: () async {
+                                    const reset = _LogFilters(
+                                      status: _allFilterValue,
+                                      location: _allFilterValue,
+                                      program: _allFilterValue,
+                                      injuryOnly: false,
+                                    );
+                                    setState(() {
+                                      _statusFilter = reset.status;
+                                      _locationFilter = reset.location;
+                                      _programFilter = reset.program;
+                                      _injuryOnly = reset.injuryOnly;
+                                      _resetPagination();
+                                    });
+                                    await _persistFilters(reset);
+                                  },
+                                ),
+                              )
+                            : _layout == _LogsLayout.card
+                            ? MasonryGridView.count(
+                                key: const ValueKey('logs-card-view'),
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                itemCount: visibleEntries.length,
+                                itemBuilder: (context, index) {
+                                  final entry = visibleEntries[index];
+                                  final row = Dismissible(
+                                    key: ValueKey(
+                                      'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
                                     ),
-                                    child: _buildEmptyState(
-                                      title: l10n.noResults,
-                                      subtitle: Localizations.localeOf(
-                                                context,
-                                              ).languageCode ==
-                                              'ko'
-                                          ? '필터를 초기화하면 더 많은 기록을 볼 수 있어요.'
-                                          : 'Reset filters to see more entries.',
-                                      actionLabel: l10n.filterReset,
-                                      onPressed: () async {
-                                        const reset = _LogFilters(
-                                          status: _allFilterValue,
-                                          location: _allFilterValue,
-                                          program: _allFilterValue,
-                                          injuryOnly: false,
-                                        );
-                                        setState(() {
-                                          _statusFilter = reset.status;
-                                          _locationFilter = reset.location;
-                                          _programFilter = reset.program;
-                                          _injuryOnly = reset.injuryOnly;
-                                          _resetPagination();
-                                        });
-                                        await _persistFilters(reset);
-                                      },
-                                    ),
-                                  )
-                                : _layout == _LogsLayout.card
-                                    ? MasonryGridView.count(
-                                        key: const ValueKey('logs-card-view'),
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        crossAxisCount: 2,
-                                        mainAxisSpacing: 8,
-                                        crossAxisSpacing: 8,
-                                        itemCount: visibleEntries.length,
-                                        itemBuilder: (context, index) {
-                                          final entry = visibleEntries[index];
-                                          final row = Dismissible(
-                                            key: ValueKey(
-                                              'logs-card-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
-                                            ),
-                                            direction:
-                                                DismissDirection.endToStart,
-                                            confirmDismiss: (_) =>
-                                                _confirmDelete(context, entry),
-                                            background: Container(
-                                              alignment: Alignment.centerRight,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 14,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.errorContainer,
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                              ),
-                                              child: Icon(
-                                                Icons.delete_outline,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onErrorContainer,
-                                              ),
-                                            ),
-                                            child: _EntryCard(
-                                              entry: entry,
-                                              boardsById: boardsById,
-                                              onEdit: () => _onEntryTap(entry),
-                                            ),
-                                          );
-                                          if (AppMotion.reduceMotion(context)) {
-                                            return row;
-                                          }
-                                          return FadeInUp(
-                                            delay: Duration(
-                                              milliseconds:
-                                                  (index * 24).clamp(0, 240),
-                                            ),
-                                            duration: AppMotion.base(context),
-                                            child: row,
-                                          );
-                                        },
-                                      )
-                                    : ListView.separated(
-                                        key: const ValueKey('logs-list-view'),
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        itemCount: visibleEntries.length,
-                                        separatorBuilder: (_, __) =>
-                                            const SizedBox(height: 8),
-                                        itemBuilder: (context, index) {
-                                          final entry = visibleEntries[index];
-                                          final row = Dismissible(
-                                            key: ValueKey(
-                                              'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
-                                            ),
-                                            direction:
-                                                DismissDirection.endToStart,
-                                            confirmDismiss: (_) =>
-                                                _confirmDelete(context, entry),
-                                            background: Container(
-                                              alignment: Alignment.centerRight,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 14,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.errorContainer,
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                              ),
-                                              child: Icon(
-                                                Icons.delete_outline,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.onErrorContainer,
-                                              ),
-                                            ),
-                                            child: _EntryListItem(
-                                              entry: entry,
-                                              onEdit: () => _onEntryTap(entry),
-                                            ),
-                                          );
-                                          if (AppMotion.reduceMotion(context)) {
-                                            return row;
-                                          }
-                                          return FadeInUp(
-                                            delay: Duration(
-                                              milliseconds:
-                                                  (index * 20).clamp(0, 220),
-                                            ),
-                                            duration: AppMotion.base(context),
-                                            child: row,
-                                          );
-                                        },
+                                    direction: DismissDirection.endToStart,
+                                    confirmDismiss: (_) =>
+                                        _confirmDelete(context, entry),
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
                                       ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.errorContainer,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Icon(
+                                        Icons.delete_outline,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onErrorContainer,
+                                      ),
+                                    ),
+                                    child: _EntryCard(
+                                      entry: entry,
+                                      mealCoachingService: _mealCoachingService,
+                                      boardsById: boardsById,
+                                      onEdit: () => _onEntryTap(entry),
+                                    ),
+                                  );
+                                  if (AppMotion.reduceMotion(context)) {
+                                    return row;
+                                  }
+                                  return FadeInUp(
+                                    delay: Duration(
+                                      milliseconds: (index * 24).clamp(0, 240),
+                                    ),
+                                    duration: AppMotion.base(context),
+                                    child: row,
+                                  );
+                                },
+                              )
+                            : ListView.separated(
+                                key: const ValueKey('logs-list-view'),
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: visibleEntries.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 8),
+                                itemBuilder: (context, index) {
+                                  final entry = visibleEntries[index];
+                                  final row = Dismissible(
+                                    key: ValueKey(
+                                      'logs-list-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
+                                    ),
+                                    direction: DismissDirection.endToStart,
+                                    confirmDismiss: (_) =>
+                                        _confirmDelete(context, entry),
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.errorContainer,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Icon(
+                                        Icons.delete_outline,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onErrorContainer,
+                                      ),
+                                    ),
+                                    child: _EntryListItem(
+                                      entry: entry,
+                                      mealCoachingService: _mealCoachingService,
+                                      onEdit: () => _onEntryTap(entry),
+                                    ),
+                                  );
+                                  if (AppMotion.reduceMotion(context)) {
+                                    return row;
+                                  }
+                                  return FadeInUp(
+                                    delay: Duration(
+                                      milliseconds: (index * 20).clamp(0, 220),
+                                    ),
+                                    duration: AppMotion.base(context),
+                                    child: row,
+                                  );
+                                },
+                              ),
                       ),
                       if (visibleEntries.length < entries.length)
                         Padding(
@@ -620,6 +616,9 @@ class _LogsScreenState extends State<LogsScreen> {
         entry.improvements,
         entry.nextGoal,
         entry.jumpRopeNote,
+        if (entry.breakfastDone) 'breakfast ${entry.breakfastRiceBowls}',
+        if (entry.lunchDone) 'lunch ${entry.lunchRiceBowls}',
+        if (entry.dinnerDone) 'dinner ${entry.dinnerRiceBowls}',
         entry.notes,
         entry.goal,
         entry.feedback,
@@ -790,8 +789,9 @@ class _LogsScreenState extends State<LogsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -1084,11 +1084,13 @@ class _LogFilters {
 
 class _EntryCard extends StatelessWidget {
   final TrainingEntry entry;
+  final MealCoachingService mealCoachingService;
   final Map<String, TrainingBoard> boardsById;
   final VoidCallback onEdit;
 
   const _EntryCard({
     required this.entry,
+    required this.mealCoachingService,
     required this.boardsById,
     required this.onEdit,
   });
@@ -1109,16 +1111,22 @@ class _EntryCard extends StatelessWidget {
       durationText,
       secondaryText,
     ].where((part) => part.trim().isNotEmpty).join(' · ');
-    final focusText = _buildListFocusText(entry);
+    final focusText = _buildListFocusText(
+      entry,
+      l10n,
+      mealCoachingService: mealCoachingService,
+    );
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final boardIds = TrainingBoardLinkCodec.decodeBoardIds(entry.drills);
     final linkedBoards = boardIds
         .map((id) => boardsById[id])
         .whereType<TrainingBoard>()
         .toList(growable: false);
-    final legacyLayout =
-        linkedBoards.isEmpty ? TrainingMethodLayout.decode(entry.drills) : null;
-    final hasTrainingBoard = linkedBoards.isNotEmpty ||
+    final legacyLayout = linkedBoards.isEmpty
+        ? TrainingMethodLayout.decode(entry.drills)
+        : null;
+    final hasTrainingBoard =
+        linkedBoards.isNotEmpty ||
         (legacyLayout != null &&
             legacyLayout.pages.any((page) => page.items.isNotEmpty));
 
@@ -1179,9 +1187,14 @@ class _EntryCard extends StatelessWidget {
 
 class _EntryListItem extends StatelessWidget {
   final TrainingEntry entry;
+  final MealCoachingService mealCoachingService;
   final VoidCallback onEdit;
 
-  const _EntryListItem({required this.entry, required this.onEdit});
+  const _EntryListItem({
+    required this.entry,
+    required this.mealCoachingService,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1191,7 +1204,11 @@ class _EntryListItem extends StatelessWidget {
     final durationText = entry.durationMinutes > 0
         ? l10n.minutes(entry.durationMinutes)
         : l10n.durationNotSet;
-    final focusText = _buildListFocusText(entry);
+    final focusText = _buildListFocusText(
+      entry,
+      l10n,
+      mealCoachingService: mealCoachingService,
+    );
     final focusTextColor = Theme.of(context).colorScheme.primary;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final titleText = [
@@ -1385,9 +1402,26 @@ String _entrySecondaryText(TrainingEntry entry, {required bool isKo}) {
   return parts.join(' · ');
 }
 
-String _buildListFocusText(TrainingEntry entry) {
+String _buildListFocusText(
+  TrainingEntry entry,
+  AppLocalizations l10n, {
+  required MealCoachingService mealCoachingService,
+}) {
   if (entry.opponentTeam.trim().isNotEmpty) {
     return entry.opponentTeam.trim();
+  }
+  final mealStatus = mealCoachingService.statusForEntry(entry);
+  if (mealStatus.completedMeals > 0) {
+    final breakfast = entry.breakfastDone
+        ? l10n.mealCompactSummary(l10n.mealBreakfast, entry.breakfastRiceBowls)
+        : l10n.mealCompactSkipped(l10n.mealBreakfast);
+    final lunch = entry.lunchDone
+        ? l10n.mealCompactSummary(l10n.mealLunch, entry.lunchRiceBowls)
+        : l10n.mealCompactSkipped(l10n.mealLunch);
+    final dinner = entry.dinnerDone
+        ? l10n.mealCompactSummary(l10n.mealDinner, entry.dinnerRiceBowls)
+        : l10n.mealCompactSkipped(l10n.mealDinner);
+    return '$breakfast · $lunch · $dinner';
   }
   if (entry.goalFocuses.isNotEmpty) {
     return entry.goalFocuses.join(', ');

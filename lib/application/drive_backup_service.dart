@@ -746,6 +746,12 @@ class DriveBackupService implements BackupRepository {
     'playerAssists': entry.playerAssists,
     'minutesPlayed': entry.minutesPlayed,
     'matchLocation': entry.matchLocation,
+    'breakfastDone': entry.breakfastDone,
+    'breakfastRiceBowls': entry.breakfastRiceBowls,
+    'lunchDone': entry.lunchDone,
+    'lunchRiceBowls': entry.lunchRiceBowls,
+    'dinnerDone': entry.dinnerDone,
+    'dinnerRiceBowls': entry.dinnerRiceBowls,
   };
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
@@ -822,6 +828,12 @@ class DriveBackupService implements BackupRepository {
       playerAssists: (map['playerAssists'] as num?)?.toInt(),
       minutesPlayed: (map['minutesPlayed'] as num?)?.toInt(),
       matchLocation: map['matchLocation'] as String? ?? '',
+      breakfastDone: map['breakfastDone'] as bool? ?? false,
+      breakfastRiceBowls: (map['breakfastRiceBowls'] as num?)?.toInt() ?? 0,
+      lunchDone: map['lunchDone'] as bool? ?? false,
+      lunchRiceBowls: (map['lunchRiceBowls'] as num?)?.toInt() ?? 0,
+      dinnerDone: map['dinnerDone'] as bool? ?? false,
+      dinnerRiceBowls: (map['dinnerRiceBowls'] as num?)?.toInt() ?? 0,
     );
   }
 }
