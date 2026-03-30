@@ -919,4 +919,204 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diaryNewsOpenFailed => 'Failed to open the article.';
+
+  @override
+  String get mealRoutineTitle => 'Eating is training too';
+
+  @override
+  String get mealRoutineSubtitle =>
+      'Skip calorie math and just log three meals with rice bowl count.';
+
+  @override
+  String get mealBreakfast => 'Breakfast';
+
+  @override
+  String get mealLunch => 'Lunch';
+
+  @override
+  String get mealDinner => 'Dinner';
+
+  @override
+  String get mealShortLabel => 'Meals';
+
+  @override
+  String get mealDone => 'Done';
+
+  @override
+  String get mealSkipped => 'Skipped';
+
+  @override
+  String get mealRiceNone => '0 bowls';
+
+  @override
+  String mealRiceBowls(int count) {
+    return '$count bowl(s)';
+  }
+
+  @override
+  String get mealRiceLabel => 'Rice';
+
+  @override
+  String get mealCoachHeadlinePerfect => 'Three meals are on track.';
+
+  @override
+  String get mealCoachHeadlineAlmost => 'One more meal finishes the routine.';
+
+  @override
+  String get mealCoachHeadlineNeedsMore =>
+      'The meal routine needs more structure.';
+
+  @override
+  String get mealCoachHeadlineStart => 'Treat meals as training today.';
+
+  @override
+  String get mealCoachBodySteady =>
+      'Meal timing and rice volume look steady. It is a good day to hold tempo in the next session.';
+
+  @override
+  String get mealCoachBodyThreeMeals =>
+      'You logged all three meals. Next step is keeping rice portions from swinging too much meal to meal.';
+
+  @override
+  String get mealCoachBodyTwoMealsSolid =>
+      'Two meals are solid. Lock the missing meal to a fixed time to stabilize recovery.';
+
+  @override
+  String get mealCoachBodyTwoMealsLight =>
+      'Two meals are logged, but volume is light. Start by anchoring the next meal at one bowl.';
+
+  @override
+  String get mealCoachBodyOneMeal =>
+      'Only one meal is recorded. Add another meal before worrying about training quality today.';
+
+  @override
+  String get mealCoachBodyZeroMeal =>
+      'Start by checking off the three meals. Missing fewer meals matters more than detailed math.';
+
+  @override
+  String get mealXpFull => '3 meals complete +15 XP';
+
+  @override
+  String get mealXpPartial => '2+ meals +5 XP';
+
+  @override
+  String get mealXpNeutral => 'One meal or less gives no bonus';
+
+  @override
+  String get homeMealCoachTitle => 'Meal coach';
+
+  @override
+  String get homeMealCoachRecordAction => 'Log meals today';
+
+  @override
+  String get homeMealCoachOtherSuggestions => 'Show other suggestions';
+
+  @override
+  String get homeMealCoachHeadlinePerfect => 'Complete';
+
+  @override
+  String get homeMealCoachHeadlineAlmost => 'Almost there';
+
+  @override
+  String get homeMealCoachHeadlineNeedsMore => 'Needs work';
+
+  @override
+  String get homeMealCoachHeadlineStart => 'Not started';
+
+  @override
+  String get homeMealCoachNoEntry =>
+      'There is no training note for today yet. Start by logging the meals you ate.';
+
+  @override
+  String homeMealCoachSummary(
+      String breakfastLabel,
+      String breakfastValue,
+      String lunchLabel,
+      String lunchValue,
+      String dinnerLabel,
+      String dinnerValue) {
+    return '$breakfastLabel $breakfastValue · $lunchLabel $lunchValue · $dinnerLabel $dinnerValue';
+  }
+
+  @override
+  String get homeMealCoachSuggestionStart1 =>
+      'Stabilize the one meal you skip most often first.';
+
+  @override
+  String get homeMealCoachSuggestionStart2 =>
+      'When you start logging, meal count matters more than calories.';
+
+  @override
+  String get homeMealCoachSuggestionStart3 =>
+      'Log the first meal today, then repeat that time tomorrow.';
+
+  @override
+  String get homeMealCoachSuggestionOne1 =>
+      'Only one meal is logged. Fix the next meal to a clear time so it is not missed.';
+
+  @override
+  String get homeMealCoachSuggestionOne2 =>
+      'If you ate, add the rice volume too. The next coaching step gets much easier.';
+
+  @override
+  String get homeMealCoachSuggestionOne3 =>
+      'Today, adding meals matters more than finishing quiz or diary.';
+
+  @override
+  String get homeMealCoachSuggestionTwoLight1 =>
+      'Two meals are logged, but the volume is light. Aim for at least one full bowl in the next meal.';
+
+  @override
+  String get homeMealCoachSuggestionTwoLight2 =>
+      'Do not replace the missing meal with random snacks. Keep it as a real meal slot.';
+
+  @override
+  String get homeMealCoachSuggestionTwoLight3 =>
+      'Meal count is acceptable. Now build a repeatable rice benchmark too.';
+
+  @override
+  String get homeMealCoachSuggestionTwoSolid1 =>
+      'The two-meal rhythm is good. Fix the missing meal in the same time window each day.';
+
+  @override
+  String get homeMealCoachSuggestionTwoSolid2 =>
+      'Since the meal rhythm was decent today, also note how your body felt after training.';
+
+  @override
+  String get homeMealCoachSuggestionTwoSolid3 =>
+      'If two meals are stable, the third is mostly a scheduling problem.';
+
+  @override
+  String get homeMealCoachSuggestionThree1 =>
+      'You logged all three meals. Next, reduce the portion gap across meals.';
+
+  @override
+  String get homeMealCoachSuggestionThree2 =>
+      'On a full three-meal day, pair it with diary to finish the recovery routine.';
+
+  @override
+  String get homeMealCoachSuggestionThree3 =>
+      'The rhythm is steady, so also track how light or heavy your movement felt.';
+
+  @override
+  String get homeMealCoachSuggestionSteady1 =>
+      'Meal timing and volume were stable. You can focus on holding training tempo next.';
+
+  @override
+  String get homeMealCoachSuggestionSteady2 =>
+      'Energy refill looked good today. Add a short note about how your body responded.';
+
+  @override
+  String get homeMealCoachSuggestionSteady3 =>
+      'Now that meals are stable, the next suggestion is linking sleep and diary review.';
+
+  @override
+  String mealCompactSummary(String label, int count) {
+    return '$label $count bowl(s)';
+  }
+
+  @override
+  String mealCompactSkipped(String label) {
+    return '$label skipped';
+  }
 }

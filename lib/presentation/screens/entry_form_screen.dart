@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../application/local_fortune_service.dart';
+import '../../application/meal_coaching_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/player_level_service.dart';
 import '../../application/training_plan_reminder_service.dart';
@@ -77,6 +78,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _jumpRopeNoteController = TextEditingController();
   final _speech = stt.SpeechToText();
   final _fortuneService = LocalFortuneService();
+  final _mealCoachingService = const MealCoachingService();
   late final TrainingBoardService _trainingBoardService;
   TextEditingController? _listeningController;
   String _sessionRecognizedWords = '';
@@ -116,6 +118,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   bool _liftingEnabled = false;
   bool _jumpRopeEnabled = false;
   bool _fortuneEnabled = false;
+  bool _breakfastDone = false;
+  int _breakfastRiceBowls = 0;
+  bool _lunchDone = false;
+  int _lunchRiceBowls = 0;
+  bool _dinnerDone = false;
+  int _dinnerRiceBowls = 0;
   String _location = '';
   final List<String> _imagePaths = [];
   bool _weatherLoading = false;
@@ -254,6 +262,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           entry.jumpRopeMinutes > 0 ? entry.jumpRopeMinutes.toString() : '';
       _jumpRopeEnabled = entry.jumpRopeEnabled;
       _jumpRopeNoteController.text = entry.jumpRopeNote;
+      _breakfastDone = entry.breakfastDone;
+      _breakfastRiceBowls = entry.breakfastRiceBowls.clamp(0, 3);
+      _lunchDone = entry.lunchDone;
+      _lunchRiceBowls = entry.lunchRiceBowls.clamp(0, 3);
+      _dinnerDone = entry.dinnerDone;
+      _dinnerRiceBowls = entry.dinnerRiceBowls.clamp(0, 3);
       _fortuneEnabled = entry.fortuneComment.trim().isNotEmpty;
       _weatherSummary = _extractWeatherFromNotes(entry.notes);
       if (_linkedBoardIds.isEmpty && entry.drills.trim().isNotEmpty) {
@@ -280,6 +294,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _linkedBoardIds.clear();
       _syncDrillsPayloadFromBoardLinks();
       _jumpRopeEnabled = false;
+      _breakfastDone = false;
+      _breakfastRiceBowls = 0;
+      _lunchDone = false;
+      _lunchRiceBowls = 0;
+      _dinnerDone = false;
+      _dinnerRiceBowls = 0;
       _fortuneEnabled = false;
       _weatherSummary = '';
       unawaited(_applyLatestEntryDefaults());
@@ -375,6 +395,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _jumpRopeMinutesController.text.trim(),
       _jumpRopeEnabled.toString(),
       _jumpRopeNoteController.text.trim(),
+      _breakfastDone.toString(),
+      _breakfastRiceBowls.toString(),
+      _lunchDone.toString(),
+      _lunchRiceBowls.toString(),
+      _dinnerDone.toString(),
+      _dinnerRiceBowls.toString(),
       linkedIds.join(','),
       selectedGoals.join(','),
       _liftChestController.text.trim(),
@@ -715,6 +741,237 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         ..addAll(working);
     });
     _scheduleAutoSave();
+  }
+
+  Widget _buildMealRoutineCard(AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final mealStatus = _mealCoachingService.statusForEntry(
+      TrainingEntry(
+        date: _date,
+        durationMinutes: _durationMinutes,
+        intensity: _intensity,
+        type: _type,
+        mood: _mood,
+        injury: _injury,
+        notes: '',
+        location: _location,
+        breakfastDone: _breakfastDone,
+        breakfastRiceBowls: _breakfastDone ? _breakfastRiceBowls : 0,
+        lunchDone: _lunchDone,
+        lunchRiceBowls: _lunchDone ? _lunchRiceBowls : 0,
+        dinnerDone: _dinnerDone,
+        dinnerRiceBowls: _dinnerDone ? _dinnerRiceBowls : 0,
+      ),
+    );
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.mealRoutineTitle,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(l10n.mealRoutineSubtitle, style: theme.textTheme.bodySmall),
+          const SizedBox(height: 12),
+          _buildMealRow(
+            l10n: l10n,
+            label: l10n.mealBreakfast,
+            done: _breakfastDone,
+            riceBowls: _breakfastRiceBowls,
+            onDoneChanged: (value) {
+              setState(() {
+                _breakfastDone = value;
+                if (!value) _breakfastRiceBowls = 0;
+              });
+              _scheduleAutoSave();
+            },
+            onRiceBowlsChanged: (value) {
+              setState(() => _breakfastRiceBowls = value);
+              _scheduleAutoSave();
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildMealRow(
+            l10n: l10n,
+            label: l10n.mealLunch,
+            done: _lunchDone,
+            riceBowls: _lunchRiceBowls,
+            onDoneChanged: (value) {
+              setState(() {
+                _lunchDone = value;
+                if (!value) _lunchRiceBowls = 0;
+              });
+              _scheduleAutoSave();
+            },
+            onRiceBowlsChanged: (value) {
+              setState(() => _lunchRiceBowls = value);
+              _scheduleAutoSave();
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildMealRow(
+            l10n: l10n,
+            label: l10n.mealDinner,
+            done: _dinnerDone,
+            riceBowls: _dinnerRiceBowls,
+            onDoneChanged: (value) {
+              setState(() {
+                _dinnerDone = value;
+                if (!value) _dinnerRiceBowls = 0;
+              });
+              _scheduleAutoSave();
+            },
+            onRiceBowlsChanged: (value) {
+              setState(() => _dinnerRiceBowls = value);
+              _scheduleAutoSave();
+            },
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.42),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _mealCoachingHeadline(l10n, mealStatus),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _mealCoachingBody(l10n, mealStatus),
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _mealXpLabel(l10n, mealStatus.completedMeals),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMealRow({
+    required AppLocalizations l10n,
+    required String label,
+    required bool done,
+    required int riceBowls,
+    required ValueChanged<bool> onDoneChanged,
+    required ValueChanged<int> onRiceBowlsChanged,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                FilterChip(
+                  selected: done,
+                  onSelected: onDoneChanged,
+                  label: Text(done ? l10n.mealDone : l10n.mealSkipped),
+                  avatar: Icon(
+                    done
+                        ? Icons.check_circle_outline
+                        : Icons.radio_button_unchecked,
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 130,
+            child: DropdownButtonFormField<int>(
+              initialValue: done ? riceBowls : 0,
+              items: MealCoachingService.riceBowlOptions
+                  .map(
+                    (value) => DropdownMenuItem<int>(
+                      value: value,
+                      child: Text(
+                        value == 0
+                            ? l10n.mealRiceNone
+                            : l10n.mealRiceBowls(value),
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+              onChanged:
+                  done ? (value) => onRiceBowlsChanged(value ?? 0) : null,
+              decoration: InputDecoration(
+                labelText: l10n.mealRiceLabel,
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _mealCoachingHeadline(AppLocalizations l10n, MealStatus status) {
+    return switch (status.completedMeals) {
+      3 => l10n.mealCoachHeadlinePerfect,
+      2 => l10n.mealCoachHeadlineAlmost,
+      1 => l10n.mealCoachHeadlineNeedsMore,
+      _ => l10n.mealCoachHeadlineStart,
+    };
+  }
+
+  String _mealCoachingBody(AppLocalizations l10n, MealStatus status) {
+    if (status.completedMeals >= 3 && status.totalRiceBowls >= 5) {
+      return l10n.mealCoachBodySteady;
+    }
+    if (status.completedMeals >= 3) {
+      return l10n.mealCoachBodyThreeMeals;
+    }
+    if (status.completedMeals == 2 && status.totalRiceBowls >= 3) {
+      return l10n.mealCoachBodyTwoMealsSolid;
+    }
+    if (status.completedMeals == 2) {
+      return l10n.mealCoachBodyTwoMealsLight;
+    }
+    if (status.completedMeals == 1) {
+      return l10n.mealCoachBodyOneMeal;
+    }
+    return l10n.mealCoachBodyZeroMeal;
+  }
+
+  String _mealXpLabel(AppLocalizations l10n, int completedMeals) {
+    if (completedMeals >= 3) return l10n.mealXpFull;
+    if (completedMeals >= 2) return l10n.mealXpPartial;
+    return l10n.mealXpNeutral;
   }
 
   @override
@@ -1429,6 +1686,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    _buildMealRoutineCard(l10n),
                     const SizedBox(height: 20),
                     if (isEdit)
                       Column(
@@ -2123,6 +2382,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           : 0,
       jumpRopeEnabled: _jumpRopeEnabled,
       jumpRopeNote: _jumpRopeEnabled ? _jumpRopeNoteController.text.trim() : '',
+      breakfastDone: _breakfastDone,
+      breakfastRiceBowls: _breakfastDone ? _breakfastRiceBowls : 0,
+      lunchDone: _lunchDone,
+      lunchRiceBowls: _lunchDone ? _lunchRiceBowls : 0,
+      dinnerDone: _dinnerDone,
+      dinnerRiceBowls: _dinnerDone ? _dinnerRiceBowls : 0,
     );
     final fortune = _fortuneService.generateResult(
       entry: draft,
@@ -2263,6 +2528,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         jumpRopeMinutes: jumpRopeMinutes,
         jumpRopeEnabled: _jumpRopeEnabled,
         jumpRopeNote: jumpRopeNote,
+        breakfastDone: _breakfastDone,
+        breakfastRiceBowls: _breakfastDone ? _breakfastRiceBowls : 0,
+        lunchDone: _lunchDone,
+        lunchRiceBowls: _lunchDone ? _lunchRiceBowls : 0,
+        dinnerDone: _dinnerDone,
+        dinnerRiceBowls: _dinnerDone ? _dinnerRiceBowls : 0,
       );
       final generatedFortune = _fortuneService.generateResult(
         entry: draftEntry,
@@ -2321,6 +2592,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         playerGoals: draftEntry.playerGoals,
         playerAssists: draftEntry.playerAssists,
         minutesPlayed: draftEntry.minutesPlayed,
+        breakfastDone: draftEntry.breakfastDone,
+        breakfastRiceBowls: draftEntry.breakfastRiceBowls,
+        lunchDone: draftEntry.lunchDone,
+        lunchRiceBowls: draftEntry.lunchRiceBowls,
+        dinnerDone: draftEntry.dinnerDone,
+        dinnerRiceBowls: draftEntry.dinnerRiceBowls,
       );
 
       final playerLevelService = PlayerLevelService(widget.optionRepository);

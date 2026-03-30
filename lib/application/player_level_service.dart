@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'meal_coaching_service.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/option_repository.dart';
 
@@ -57,6 +58,7 @@ class PlayerLevelService {
       );
 
   final OptionRepository _options;
+  final MealCoachingService _mealCoachingService = const MealCoachingService();
 
   PlayerLevelService(this._options);
 
@@ -105,6 +107,12 @@ class PlayerLevelService {
     if (!jumpRopeDone) {
       gainedXp -= 10;
       reasons.add('jump_rope_missed');
+    }
+    final mealXp = _mealCoachingService.xpValueForEntry(entry);
+    final mealReason = _mealCoachingService.xpReasonForEntry(entry);
+    if (mealXp != 0 && mealReason.isNotEmpty) {
+      gainedXp += mealXp;
+      reasons.add(mealReason);
     }
 
     final updatedEntries = <TrainingEntry>[...existingTrainingEntries, entry];
@@ -181,6 +189,15 @@ class PlayerLevelService {
     if (!previousJumpRopeDone && updatedJumpRopeDone) {
       gainedXp += 10;
       reasons.add('jump_rope_added');
+    }
+    final previousMealXp = _mealCoachingService.xpValueForEntry(previousEntry);
+    final updatedMealXp = _mealCoachingService.xpValueForEntry(updatedEntry);
+    if (updatedMealXp > previousMealXp) {
+      gainedXp += updatedMealXp - previousMealXp;
+      final mealReason = _mealCoachingService.xpReasonForEntry(updatedEntry);
+      if (mealReason.isNotEmpty) {
+        reasons.add(mealReason);
+      }
     }
 
     if (gainedXp == 0) {

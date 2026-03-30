@@ -904,4 +904,200 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get diaryNewsOpenFailed => '기사를 열지 못했어요.';
+
+  @override
+  String get mealRoutineTitle => '먹는 것도 훈련이다';
+
+  @override
+  String get mealRoutineSubtitle => '복잡한 칼로리 대신 세 끼와 밥 양을 간단히 기록하세요.';
+
+  @override
+  String get mealBreakfast => '아침';
+
+  @override
+  String get mealLunch => '점심';
+
+  @override
+  String get mealDinner => '저녁';
+
+  @override
+  String get mealShortLabel => '식사';
+
+  @override
+  String get mealDone => '먹음';
+
+  @override
+  String get mealSkipped => '미기록';
+
+  @override
+  String get mealRiceNone => '0공기';
+
+  @override
+  String mealRiceBowls(int count) {
+    return '$count공기';
+  }
+
+  @override
+  String get mealRiceLabel => '밥 양';
+
+  @override
+  String get mealCoachHeadlinePerfect => '세 끼 루틴이 좋습니다.';
+
+  @override
+  String get mealCoachHeadlineAlmost => '한 끼만 더 챙기면 됩니다.';
+
+  @override
+  String get mealCoachHeadlineNeedsMore => '식사 루틴을 더 채워야 합니다.';
+
+  @override
+  String get mealCoachHeadlineStart => '오늘은 식사부터 훈련으로 묶어보세요.';
+
+  @override
+  String get mealCoachBodySteady =>
+      '세 끼와 밥 양이 안정적입니다. 다음 훈련에서는 템포 유지에 집중해도 좋습니다.';
+
+  @override
+  String get mealCoachBodyThreeMeals =>
+      '세 끼를 챙겼습니다. 다음 단계는 끼니마다 밥 양을 너무 들쭉날쭉하지 않게 맞추는 것입니다.';
+
+  @override
+  String get mealCoachBodyTwoMealsSolid =>
+      '두 끼는 잘 챙겼습니다. 빠진 한 끼를 고정 시간에 붙이면 회복 흐름이 더 좋아집니다.';
+
+  @override
+  String get mealCoachBodyTwoMealsLight =>
+      '두 끼를 먹었지만 양이 얇습니다. 다음 식사 한 끼는 한 그릇 기준부터 세워보세요.';
+
+  @override
+  String get mealCoachBodyOneMeal =>
+      '한 끼만 기록됐습니다. 오늘은 훈련 강도보다 끼니 수를 늘리는 것이 먼저입니다.';
+
+  @override
+  String get mealCoachBodyZeroMeal =>
+      '세 끼 체크부터 다시 시작하세요. 계산보다 끼니를 놓치지 않는 루틴이 우선입니다.';
+
+  @override
+  String get mealXpFull => '세 끼 완료 +15 XP';
+
+  @override
+  String get mealXpPartial => '두 끼 이상 +5 XP';
+
+  @override
+  String get mealXpNeutral => '한 끼 이하 기록은 보너스 없음';
+
+  @override
+  String get homeMealCoachTitle => '식사 코치';
+
+  @override
+  String get homeMealCoachRecordAction => '오늘 식사 기록';
+
+  @override
+  String get homeMealCoachOtherSuggestions => '다른 제안 보기';
+
+  @override
+  String get homeMealCoachHeadlinePerfect => '완료';
+
+  @override
+  String get homeMealCoachHeadlineAlmost => '거의 완료';
+
+  @override
+  String get homeMealCoachHeadlineNeedsMore => '보완 필요';
+
+  @override
+  String get homeMealCoachHeadlineStart => '시작 전';
+
+  @override
+  String get homeMealCoachNoEntry => '오늘 훈련노트가 아직 없습니다. 오늘 먹은 끼니부터 먼저 남겨보세요.';
+
+  @override
+  String homeMealCoachSummary(
+      String breakfastLabel,
+      String breakfastValue,
+      String lunchLabel,
+      String lunchValue,
+      String dinnerLabel,
+      String dinnerValue) {
+    return '$breakfastLabel $breakfastValue · $lunchLabel $lunchValue · $dinnerLabel $dinnerValue';
+  }
+
+  @override
+  String get homeMealCoachSuggestionStart1 =>
+      '아침, 점심, 저녁 중 가장 자주 빠지는 끼니 하나만 먼저 고정하세요.';
+
+  @override
+  String get homeMealCoachSuggestionStart2 => '기록을 시작할 때는 칼로리보다 세 끼 체크가 우선입니다.';
+
+  @override
+  String get homeMealCoachSuggestionStart3 =>
+      '오늘 첫 식사를 남기고 내일 같은 시간에 다시 이어가 보세요.';
+
+  @override
+  String get homeMealCoachSuggestionOne1 =>
+      '한 끼만 기록됐습니다. 다음 끼니는 시간을 정해서 놓치지 않게 하세요.';
+
+  @override
+  String get homeMealCoachSuggestionOne2 =>
+      '먹었다면 밥 양도 같이 적어 두세요. 다음 코칭이 훨씬 쉬워집니다.';
+
+  @override
+  String get homeMealCoachSuggestionOne3 =>
+      '오늘은 퀴즈나 다이어리보다 끼니 수를 늘리는 것이 우선입니다.';
+
+  @override
+  String get homeMealCoachSuggestionTwoLight1 =>
+      '두 끼를 먹었지만 양이 적습니다. 다음 한 끼는 최소 한 그릇을 목표로 잡아보세요.';
+
+  @override
+  String get homeMealCoachSuggestionTwoLight2 =>
+      '빠진 한 끼를 간식으로 대체하지 말고 식사 시간으로 고정해 보세요.';
+
+  @override
+  String get homeMealCoachSuggestionTwoLight3 =>
+      '식사 수는 괜찮습니다. 이제 밥 양 기준을 함께 만들 차례입니다.';
+
+  @override
+  String get homeMealCoachSuggestionTwoSolid1 =>
+      '두 끼 흐름은 좋습니다. 빠진 한 끼를 같은 시간대에 붙이면 회복이 더 안정됩니다.';
+
+  @override
+  String get homeMealCoachSuggestionTwoSolid2 =>
+      '오늘은 식사 리듬을 지킨 만큼 훈련 메모에 몸 상태도 같이 남겨보세요.';
+
+  @override
+  String get homeMealCoachSuggestionTwoSolid3 =>
+      '두 끼가 안정적이면 세 끼 완성은 시간 고정 문제에 가깝습니다.';
+
+  @override
+  String get homeMealCoachSuggestionThree1 =>
+      '세 끼를 챙겼습니다. 다음은 끼니별 밥 양 편차를 줄여보세요.';
+
+  @override
+  String get homeMealCoachSuggestionThree2 =>
+      '세 끼를 지킨 날은 다이어리까지 묶어 회복 루틴 완성도를 높여보세요.';
+
+  @override
+  String get homeMealCoachSuggestionThree3 =>
+      '기록이 안정적이니 다음 훈련에서는 움직임 가벼움도 같이 체크해 보세요.';
+
+  @override
+  String get homeMealCoachSuggestionSteady1 =>
+      '세 끼와 밥 양이 안정적입니다. 다음 훈련 템포 유지에 집중해도 됩니다.';
+
+  @override
+  String get homeMealCoachSuggestionSteady2 =>
+      '오늘은 에너지 채우기가 좋았습니다. 훈련 후 느낌을 메모로 남겨보세요.';
+
+  @override
+  String get homeMealCoachSuggestionSteady3 =>
+      '식사 루틴이 잡혔으니 다른 제안은 회복 수면과 다이어리 연결입니다.';
+
+  @override
+  String mealCompactSummary(String label, int count) {
+    return '$label $count공기';
+  }
+
+  @override
+  String mealCompactSkipped(String label) {
+    return '$label 미기록';
+  }
 }

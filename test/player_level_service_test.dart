@@ -135,6 +135,39 @@ void main() {
     expect(history.first.reasons, contains('log'));
   });
 
+  test('meal logging adds training xp bonus', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 100);
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForTrainingLog(
+      entry: TrainingEntry(
+        date: DateTime(2026, 3, 18, 18),
+        durationMinutes: 55,
+        intensity: 4,
+        type: '패스',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '운동장',
+        liftingByPart: const {'inside': 20},
+        jumpRopeCount: 120,
+        jumpRopeEnabled: true,
+        breakfastDone: true,
+        breakfastRiceBowls: 1,
+        lunchDone: true,
+        lunchRiceBowls: 1,
+        dinnerDone: true,
+        dinnerRiceBowls: 2,
+      ),
+      existingEntries: const [],
+    );
+
+    expect(award.gainedXp, 45);
+    expect(award.reasons, contains('meal_full_day'));
+    expect(service.loadState().totalXp, 145);
+  });
+
   test(
     'training log update restores xp for newly added lifting and jump rope',
     () async {
@@ -181,6 +214,47 @@ void main() {
       expect(history, hasLength(1));
       expect(history.first.label, '원터치 패스');
       expect(history.first.reasons, contains('lifting_added'));
+    },
+  );
+
+  test(
+    'training log update awards meal bonus when meal records are added',
+    () async {
+      final repository = _MemoryOptionRepository()
+        ..seed(PlayerLevelService.totalXpKey, 100);
+      final service = PlayerLevelService(repository);
+
+      final award = await service.awardForTrainingLogUpdate(
+        previousEntry: TrainingEntry(
+          date: DateTime(2026, 3, 18, 18),
+          durationMinutes: 55,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+        ),
+        updatedEntry: TrainingEntry(
+          date: DateTime(2026, 3, 18, 18),
+          createdAt: DateTime(2026, 3, 18, 19),
+          durationMinutes: 55,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '',
+          location: '운동장',
+          breakfastDone: true,
+          breakfastRiceBowls: 1,
+          lunchDone: true,
+          lunchRiceBowls: 1,
+        ),
+      );
+
+      expect(award.gainedXp, 5);
+      expect(award.reasons, contains('meal_two_plus'));
+      expect(service.loadState().totalXp, 105);
     },
   );
 

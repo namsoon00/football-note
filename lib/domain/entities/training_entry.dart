@@ -128,6 +128,24 @@ class TrainingEntry extends HiveObject {
   @HiveField(47)
   final String matchLocation;
 
+  @HiveField(48)
+  final bool breakfastDone;
+
+  @HiveField(49)
+  final int breakfastRiceBowls;
+
+  @HiveField(50)
+  final bool lunchDone;
+
+  @HiveField(51)
+  final int lunchRiceBowls;
+
+  @HiveField(52)
+  final bool dinnerDone;
+
+  @HiveField(53)
+  final int dinnerRiceBowls;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -171,6 +189,12 @@ class TrainingEntry extends HiveObject {
     this.playerAssists,
     this.minutesPlayed,
     this.matchLocation = '',
+    this.breakfastDone = false,
+    this.breakfastRiceBowls = 0,
+    this.lunchDone = false,
+    this.lunchRiceBowls = 0,
+    this.dinnerDone = false,
+    this.dinnerRiceBowls = 0,
   }) : createdAt = createdAt ?? DateTime.now();
 
   String get effectiveMatchLocation =>
@@ -268,13 +292,19 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       playerAssists: (fields[45] as num?)?.toInt(),
       minutesPlayed: (fields[46] as num?)?.toInt(),
       matchLocation: (fields[47] as String?) ?? '',
+      breakfastDone: (fields[48] as bool?) ?? false,
+      breakfastRiceBowls: (fields[49] as num?)?.toInt() ?? 0,
+      lunchDone: (fields[50] as bool?) ?? false,
+      lunchRiceBowls: (fields[51] as num?)?.toInt() ?? 0,
+      dinnerDone: (fields[52] as bool?) ?? false,
+      dinnerRiceBowls: (fields[53] as num?)?.toInt() ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(42)
+      ..writeByte(48)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -358,6 +388,18 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(46)
       ..write(obj.minutesPlayed)
       ..writeByte(47)
-      ..write(obj.matchLocation);
+      ..write(obj.matchLocation)
+      ..writeByte(48)
+      ..write(obj.breakfastDone)
+      ..writeByte(49)
+      ..write(obj.breakfastRiceBowls)
+      ..writeByte(50)
+      ..write(obj.lunchDone)
+      ..writeByte(51)
+      ..write(obj.lunchRiceBowls)
+      ..writeByte(52)
+      ..write(obj.dinnerDone)
+      ..writeByte(53)
+      ..write(obj.dinnerRiceBowls);
   }
 }

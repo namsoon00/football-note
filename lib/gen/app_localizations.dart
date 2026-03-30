@@ -1813,6 +1813,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to open the article.'**
   String get diaryNewsOpenFailed;
+
+  /// No description provided for @mealRoutineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Eating is training too'**
+  String get mealRoutineTitle;
+
+  /// No description provided for @mealRoutineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip calorie math and just log three meals with rice bowl count.'**
+  String get mealRoutineSubtitle;
+
+  /// No description provided for @mealBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get mealBreakfast;
+
+  /// No description provided for @mealLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get mealLunch;
+
+  /// No description provided for @mealDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get mealDinner;
+
+  /// No description provided for @mealShortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals'**
+  String get mealShortLabel;
+
+  /// No description provided for @mealDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get mealDone;
+
+  /// No description provided for @mealSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get mealSkipped;
+
+  /// No description provided for @mealRiceNone.
+  ///
+  /// In en, this message translates to:
+  /// **'0 bowls'**
+  String get mealRiceNone;
+
+  /// No description provided for @mealRiceBowls.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bowl(s)'**
+  String mealRiceBowls(int count);
+
+  /// No description provided for @mealRiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rice'**
+  String get mealRiceLabel;
+
+  /// No description provided for @mealCoachHeadlinePerfect.
+  ///
+  /// In en, this message translates to:
+  /// **'Three meals are on track.'**
+  String get mealCoachHeadlinePerfect;
+
+  /// No description provided for @mealCoachHeadlineAlmost.
+  ///
+  /// In en, this message translates to:
+  /// **'One more meal finishes the routine.'**
+  String get mealCoachHeadlineAlmost;
+
+  /// No description provided for @mealCoachHeadlineNeedsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'The meal routine needs more structure.'**
+  String get mealCoachHeadlineNeedsMore;
+
+  /// No description provided for @mealCoachHeadlineStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Treat meals as training today.'**
+  String get mealCoachHeadlineStart;
+
+  /// No description provided for @mealCoachBodySteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal timing and rice volume look steady. It is a good day to hold tempo in the next session.'**
+  String get mealCoachBodySteady;
+
+  /// No description provided for @mealCoachBodyThreeMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'You logged all three meals. Next step is keeping rice portions from swinging too much meal to meal.'**
+  String get mealCoachBodyThreeMeals;
+
+  /// No description provided for @mealCoachBodyTwoMealsSolid.
+  ///
+  /// In en, this message translates to:
+  /// **'Two meals are solid. Lock the missing meal to a fixed time to stabilize recovery.'**
+  String get mealCoachBodyTwoMealsSolid;
+
+  /// No description provided for @mealCoachBodyTwoMealsLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Two meals are logged, but volume is light. Start by anchoring the next meal at one bowl.'**
+  String get mealCoachBodyTwoMealsLight;
+
+  /// No description provided for @mealCoachBodyOneMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one meal is recorded. Add another meal before worrying about training quality today.'**
+  String get mealCoachBodyOneMeal;
+
+  /// No description provided for @mealCoachBodyZeroMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Start by checking off the three meals. Missing fewer meals matters more than detailed math.'**
+  String get mealCoachBodyZeroMeal;
+
+  /// No description provided for @mealXpFull.
+  ///
+  /// In en, this message translates to:
+  /// **'3 meals complete +15 XP'**
+  String get mealXpFull;
+
+  /// No description provided for @mealXpPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'2+ meals +5 XP'**
+  String get mealXpPartial;
+
+  /// No description provided for @mealXpNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'One meal or less gives no bonus'**
+  String get mealXpNeutral;
+
+  /// No description provided for @homeMealCoachTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal coach'**
+  String get homeMealCoachTitle;
+
+  /// No description provided for @homeMealCoachRecordAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Log meals today'**
+  String get homeMealCoachRecordAction;
+
+  /// No description provided for @homeMealCoachOtherSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show other suggestions'**
+  String get homeMealCoachOtherSuggestions;
+
+  /// No description provided for @homeMealCoachHeadlinePerfect.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get homeMealCoachHeadlinePerfect;
+
+  /// No description provided for @homeMealCoachHeadlineAlmost.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost there'**
+  String get homeMealCoachHeadlineAlmost;
+
+  /// No description provided for @homeMealCoachHeadlineNeedsMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get homeMealCoachHeadlineNeedsMore;
+
+  /// No description provided for @homeMealCoachHeadlineStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get homeMealCoachHeadlineStart;
+
+  /// No description provided for @homeMealCoachNoEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no training note for today yet. Start by logging the meals you ate.'**
+  String get homeMealCoachNoEntry;
+
+  /// No description provided for @homeMealCoachSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{breakfastLabel} {breakfastValue} · {lunchLabel} {lunchValue} · {dinnerLabel} {dinnerValue}'**
+  String homeMealCoachSummary(
+      String breakfastLabel,
+      String breakfastValue,
+      String lunchLabel,
+      String lunchValue,
+      String dinnerLabel,
+      String dinnerValue);
+
+  /// No description provided for @homeMealCoachSuggestionStart1.
+  ///
+  /// In en, this message translates to:
+  /// **'Stabilize the one meal you skip most often first.'**
+  String get homeMealCoachSuggestionStart1;
+
+  /// No description provided for @homeMealCoachSuggestionStart2.
+  ///
+  /// In en, this message translates to:
+  /// **'When you start logging, meal count matters more than calories.'**
+  String get homeMealCoachSuggestionStart2;
+
+  /// No description provided for @homeMealCoachSuggestionStart3.
+  ///
+  /// In en, this message translates to:
+  /// **'Log the first meal today, then repeat that time tomorrow.'**
+  String get homeMealCoachSuggestionStart3;
+
+  /// No description provided for @homeMealCoachSuggestionOne1.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one meal is logged. Fix the next meal to a clear time so it is not missed.'**
+  String get homeMealCoachSuggestionOne1;
+
+  /// No description provided for @homeMealCoachSuggestionOne2.
+  ///
+  /// In en, this message translates to:
+  /// **'If you ate, add the rice volume too. The next coaching step gets much easier.'**
+  String get homeMealCoachSuggestionOne2;
+
+  /// No description provided for @homeMealCoachSuggestionOne3.
+  ///
+  /// In en, this message translates to:
+  /// **'Today, adding meals matters more than finishing quiz or diary.'**
+  String get homeMealCoachSuggestionOne3;
+
+  /// No description provided for @homeMealCoachSuggestionTwoLight1.
+  ///
+  /// In en, this message translates to:
+  /// **'Two meals are logged, but the volume is light. Aim for at least one full bowl in the next meal.'**
+  String get homeMealCoachSuggestionTwoLight1;
+
+  /// No description provided for @homeMealCoachSuggestionTwoLight2.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not replace the missing meal with random snacks. Keep it as a real meal slot.'**
+  String get homeMealCoachSuggestionTwoLight2;
+
+  /// No description provided for @homeMealCoachSuggestionTwoLight3.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal count is acceptable. Now build a repeatable rice benchmark too.'**
+  String get homeMealCoachSuggestionTwoLight3;
+
+  /// No description provided for @homeMealCoachSuggestionTwoSolid1.
+  ///
+  /// In en, this message translates to:
+  /// **'The two-meal rhythm is good. Fix the missing meal in the same time window each day.'**
+  String get homeMealCoachSuggestionTwoSolid1;
+
+  /// No description provided for @homeMealCoachSuggestionTwoSolid2.
+  ///
+  /// In en, this message translates to:
+  /// **'Since the meal rhythm was decent today, also note how your body felt after training.'**
+  String get homeMealCoachSuggestionTwoSolid2;
+
+  /// No description provided for @homeMealCoachSuggestionTwoSolid3.
+  ///
+  /// In en, this message translates to:
+  /// **'If two meals are stable, the third is mostly a scheduling problem.'**
+  String get homeMealCoachSuggestionTwoSolid3;
+
+  /// No description provided for @homeMealCoachSuggestionThree1.
+  ///
+  /// In en, this message translates to:
+  /// **'You logged all three meals. Next, reduce the portion gap across meals.'**
+  String get homeMealCoachSuggestionThree1;
+
+  /// No description provided for @homeMealCoachSuggestionThree2.
+  ///
+  /// In en, this message translates to:
+  /// **'On a full three-meal day, pair it with diary to finish the recovery routine.'**
+  String get homeMealCoachSuggestionThree2;
+
+  /// No description provided for @homeMealCoachSuggestionThree3.
+  ///
+  /// In en, this message translates to:
+  /// **'The rhythm is steady, so also track how light or heavy your movement felt.'**
+  String get homeMealCoachSuggestionThree3;
+
+  /// No description provided for @homeMealCoachSuggestionSteady1.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal timing and volume were stable. You can focus on holding training tempo next.'**
+  String get homeMealCoachSuggestionSteady1;
+
+  /// No description provided for @homeMealCoachSuggestionSteady2.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy refill looked good today. Add a short note about how your body responded.'**
+  String get homeMealCoachSuggestionSteady2;
+
+  /// No description provided for @homeMealCoachSuggestionSteady3.
+  ///
+  /// In en, this message translates to:
+  /// **'Now that meals are stable, the next suggestion is linking sleep and diary review.'**
+  String get homeMealCoachSuggestionSteady3;
+
+  /// No description provided for @mealCompactSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {count} bowl(s)'**
+  String mealCompactSummary(String label, int count);
+
+  /// No description provided for @mealCompactSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} skipped'**
+  String mealCompactSkipped(String label);
 }
 
 class _AppLocalizationsDelegate
