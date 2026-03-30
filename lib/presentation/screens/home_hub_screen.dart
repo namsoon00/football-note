@@ -25,6 +25,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/player_level_visuals.dart';
+import '../widgets/rice_bowl_summary.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'profile_screen.dart';
@@ -203,6 +204,19 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           levelState: levelState,
                           isKo: isKo,
                           onTap: _openLevelGuide,
+                        ),
+                        const SizedBox(height: 10),
+                        RiceBowlSummaryCard(
+                          entry: data.todayMealEntry,
+                          title: AppLocalizations.of(
+                            context,
+                          )!.homeRiceBowlTitle,
+                          subtitle: AppLocalizations.of(
+                            context,
+                          )!.homeRiceBowlSubtitle,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surface.withValues(alpha: 0.86),
                         ),
                         const SizedBox(height: 12),
                         Row(

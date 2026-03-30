@@ -915,7 +915,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerNews => 'News';
 
   @override
-  String get diaryStickerMeal => 'Meal';
+  String get diaryStickerMeal => 'Rice bowl';
 
   @override
   String get diaryStickerConditioning => 'Jump rope/lifting';
@@ -1186,6 +1186,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealStatsTrendTitle => 'Meal Trend';
 
   @override
+  String get mealStatsTodayRiceBowlTitle => 'Latest rice bowls';
+
+  @override
   String get mealStatsLoggedDays => 'Logged days';
 
   @override
@@ -1200,6 +1203,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mealStatsWeightLinkedHint =>
       'Days with weight records are linked on the same chart.';
+
+  @override
+  String get homeRiceBowlTitle => 'Today\'s rice bowls';
+
+  @override
+  String get homeRiceBowlSubtitle =>
+      'See full bowls, half bowls, and skipped bowls at a glance.';
+
+  @override
+  String get homeRiceBowlFull => 'Full bowl';
+
+  @override
+  String get homeRiceBowlHalf => 'Half bowl';
+
+  @override
+  String get homeRiceBowlEmpty => 'Skipped';
+
+  @override
+  String get fortuneDialogSubtitle => 'A short reading for today.';
 
   @override
   String get mealStatsNoTrainingOrMealEntries =>

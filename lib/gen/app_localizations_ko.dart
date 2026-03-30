@@ -900,7 +900,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerNews => '소식';
 
   @override
-  String get diaryStickerMeal => '식사';
+  String get diaryStickerMeal => '공기밥';
 
   @override
   String get diaryStickerConditioning => '줄넘기/리프팅';
@@ -1166,6 +1166,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealStatsTrendTitle => '식사 그래프';
 
   @override
+  String get mealStatsTodayRiceBowlTitle => '최근 기록 공기밥';
+
+  @override
   String get mealStatsLoggedDays => '기록 일수';
 
   @override
@@ -1179,6 +1182,24 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealStatsWeightLinkedHint => '몸무게를 남긴 날에는 식사량과 함께 그래프에 연결됩니다.';
+
+  @override
+  String get homeRiceBowlTitle => '오늘 먹은 공기밥';
+
+  @override
+  String get homeRiceBowlSubtitle => '가득 찬 공기밥, 반공기, 안 먹은 공기밥을 한눈에 봐요.';
+
+  @override
+  String get homeRiceBowlFull => '한 공기';
+
+  @override
+  String get homeRiceBowlHalf => '반 공기';
+
+  @override
+  String get homeRiceBowlEmpty => '안 먹음';
+
+  @override
+  String get fortuneDialogSubtitle => '오늘 흐름을 짧게 읽어보세요.';
 
   @override
   String get mealStatsNoTrainingOrMealEntries => '선택한 기간에 훈련 기록과 식사 기록이 없습니다.';

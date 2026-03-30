@@ -134,10 +134,16 @@ class _GateSplashPainter extends CustomPainter {
       size.width * 0.5,
       lerpDouble(size.height * 0.56, size.height * 0.46, rush)!,
     );
-    final gateWidth =
-        lerpDouble(size.width * 1.08, size.width * 2.55, gateZoom)!;
-    final gateHeight =
-        lerpDouble(size.height * 1.22, size.height * 2.3, gateZoom)!;
+    final gateWidth = lerpDouble(
+      size.width * 1.08,
+      size.width * 2.55,
+      gateZoom,
+    )!;
+    final gateHeight = lerpDouble(
+      size.height * 1.22,
+      size.height * 2.3,
+      gateZoom,
+    )!;
 
     final gateRect = Rect.fromCenter(
       center: gateCenter,
@@ -146,8 +152,11 @@ class _GateSplashPainter extends CustomPainter {
     );
 
     final frameStroke = max(4.0, size.shortestSide * 0.016);
-    final openingWidth =
-        lerpDouble(size.width * 0.008, gateRect.width * 0.9, doorOpen)!;
+    final openingWidth = lerpDouble(
+      size.width * 0.008,
+      gateRect.width * 0.9,
+      doorOpen,
+    )!;
     final openingRect = Rect.fromCenter(
       center: gateRect.center,
       width: openingWidth,
@@ -168,11 +177,7 @@ class _GateSplashPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFF04070B),
-          Color(0xFF081018),
-          Color(0xFF03070C),
-        ],
+        colors: [Color(0xFF04070B), Color(0xFF081018), Color(0xFF03070C)],
       ).createShader(rect);
     canvas.drawRect(rect, night);
 
@@ -301,9 +306,15 @@ class _GateSplashPainter extends CustomPainter {
         end: Alignment.bottomCenter,
         colors: [
           Color.lerp(
-              const Color(0xFF0D2315), const Color(0xFF1F6B35), fieldReveal)!,
+            const Color(0xFF0D2315),
+            const Color(0xFF1F6B35),
+            fieldReveal,
+          )!,
           Color.lerp(
-              const Color(0xFF0B1D11), const Color(0xFF2D8C41), fieldReveal)!,
+            const Color(0xFF0B1D11),
+            const Color(0xFF2D8C41),
+            fieldReveal,
+          )!,
         ],
       ).createShader(openingRect);
     canvas.drawRect(openingRect, fieldBase);
@@ -331,7 +342,7 @@ class _GateSplashPainter extends CustomPainter {
       ..strokeWidth = max(1.4, openingRect.width * 0.007)
       ..style = PaintingStyle.stroke;
 
-    final centerY = openingRect.center.dy + (openingRect.height * 0.16);
+    final centerY = openingRect.center.dy;
     canvas.drawLine(
       Offset(openingRect.left, centerY),
       Offset(openingRect.right, centerY),
@@ -349,7 +360,9 @@ class _GateSplashPainter extends CustomPainter {
   void _paintLight(Canvas canvas, Size size, Rect openingRect) {
     final glowRect = Rect.fromCenter(
       center: Offset(
-          openingRect.center.dx, openingRect.center.dy - size.height * 0.02),
+        openingRect.center.dx,
+        openingRect.center.dy - size.height * 0.02,
+      ),
       width: openingRect.width * 2.6,
       height: openingRect.height * 1.9,
     );
@@ -404,8 +417,9 @@ class _GateSplashPainter extends CustomPainter {
       )!;
       final y0 = openingRect.bottom - (size.height * 0.04 * ratio);
       final y1 = size.height + (size.height * 0.08 * ratio);
-      linePaint.color = Colors.white
-          .withValues(alpha: (0.02 + (rush * 0.2)) * (1 - ratio * 0.5));
+      linePaint.color = Colors.white.withValues(
+        alpha: (0.02 + (rush * 0.2)) * (1 - ratio * 0.5),
+      );
       canvas.drawLine(Offset(x, y0), Offset(x, y1), linePaint);
     }
   }
