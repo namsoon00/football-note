@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/locale_service.dart';
+import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
@@ -17,6 +18,7 @@ import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
 import '../../domain/entities/training_board.dart';
+import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_board_link_codec.dart';
@@ -37,6 +39,7 @@ class CoachLessonScreen extends StatefulWidget {
 
   final OptionRepository optionRepository;
   final TrainingService? trainingService;
+  final MealLogService? mealLogService;
   final LocaleService? localeService;
   final SettingsService? settingsService;
   final BackupService? driveBackupService;
@@ -46,6 +49,7 @@ class CoachLessonScreen extends StatefulWidget {
     super.key,
     required this.optionRepository,
     this.trainingService,
+    this.mealLogService,
     this.localeService,
     this.settingsService,
     this.driveBackupService,
@@ -99,7 +103,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     super.initState();
     _selectedThemeId =
         widget.optionRepository.getValue<String>(_diaryThemeKey) ??
-            _DiaryThemePalette.notebook.id;
+        _DiaryThemePalette.notebook.id;
     _customDiaryEntries = _loadCustomDiaryEntries();
     NewsBadgeService.refresh(widget.optionRepository);
   }
@@ -112,10 +116,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final stream = widget.trainingService?.watchEntries() ??
+    final stream =
+        widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
+    final mealStream =
+        widget.mealLogService?.watchEntries() ??
+        Stream<List<MealEntry>>.value(const <MealEntry>[]);
     final showBack = !widget.embeddedInHomeTab;
-    final canOpenDrawer = !showBack &&
+    final canOpenDrawer =
+        !showBack &&
         widget.trainingService != null &&
         widget.localeService != null &&
         widget.settingsService != null;
@@ -149,139 +158,163 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: stream,
             builder: (context, snapshot) {
-              final entries = [...(snapshot.data ?? const <TrainingEntry>[])]
-                ..sort(TrainingEntry.compareByRecentCreated);
-              final entriesByDay = _groupEntriesByDay(entries);
-              final plans = _loadPlans();
-              final plansByDay = _groupPlansByDay(plans);
-              final boardMap = TrainingBoardService(
-                widget.optionRepository,
-              ).boardMap();
-              final days = _buildDays(
-                entriesByDay: entriesByDay,
-                plansByDay: plansByDay,
-                boardMap: boardMap,
-              );
-              if (days.isEmpty) {
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                  children: [
-                    _buildEmptyCard(
-                      onCreateDiary: () => _openNewDiaryComposer(
-                        entriesByDay: entriesByDay,
-                        plansByDay: plansByDay,
-                        boardMap: boardMap,
-                      ),
-                    ),
-                  ],
-                );
-              }
-
-              final selectedIndex = _selectedDayIndex.clamp(0, days.length - 1);
-              if (selectedIndex != _selectedDayIndex) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!mounted) return;
-                  setState(() => _selectedDayIndex = selectedIndex);
-                  if (_pageController.hasClients) {
-                    _pageController.jumpToPage(selectedIndex);
+              return StreamBuilder<List<MealEntry>>(
+                stream: mealStream,
+                builder: (context, mealSnapshot) {
+                  final entries = [
+                    ...(snapshot.data ?? const <TrainingEntry>[]),
+                  ]..sort(TrainingEntry.compareByRecentCreated);
+                  final entriesByDay = _groupEntriesByDay(entries);
+                  final mealEntries =
+                      widget.mealLogService?.mergedEntries(
+                        directEntries: mealSnapshot.data ?? const <MealEntry>[],
+                        legacyEntries: entries,
+                      ) ??
+                      const <MealEntry>[];
+                  final mealEntriesByDay = _groupMealEntriesByDay(mealEntries);
+                  final plans = _loadPlans();
+                  final plansByDay = _groupPlansByDay(plans);
+                  final boardMap = TrainingBoardService(
+                    widget.optionRepository,
+                  ).boardMap();
+                  final days = _buildDays(
+                    entriesByDay: entriesByDay,
+                    mealEntriesByDay: mealEntriesByDay,
+                    plansByDay: plansByDay,
+                    boardMap: boardMap,
+                  );
+                  if (days.isEmpty) {
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      children: [
+                        _buildEmptyCard(
+                          onCreateDiary: () => _openNewDiaryComposer(
+                            entriesByDay: entriesByDay,
+                            mealEntriesByDay: mealEntriesByDay,
+                            plansByDay: plansByDay,
+                            boardMap: boardMap,
+                          ),
+                        ),
+                      ],
+                    );
                   }
-                });
-              }
-              final selectedDay = days[selectedIndex];
 
-              return Column(
-                children: [
-                  ValueListenableBuilder<int>(
-                    valueListenable: NewsBadgeService.listenable(
-                      widget.optionRepository,
-                    ),
-                    builder: (context, newsCount, _) => Builder(
-                      builder: (headerContext) => SharedTabHeader(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                        onLeadingTap: showBack
-                            ? () => Navigator.of(context).maybePop()
-                            : canOpenDrawer
+                  final selectedIndex = _selectedDayIndex.clamp(
+                    0,
+                    days.length - 1,
+                  );
+                  if (selectedIndex != _selectedDayIndex) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      setState(() => _selectedDayIndex = selectedIndex);
+                      if (_pageController.hasClients) {
+                        _pageController.jumpToPage(selectedIndex);
+                      }
+                    });
+                  }
+                  final selectedDay = days[selectedIndex];
+
+                  return Column(
+                    children: [
+                      ValueListenableBuilder<int>(
+                        valueListenable: NewsBadgeService.listenable(
+                          widget.optionRepository,
+                        ),
+                        builder: (context, newsCount, _) => Builder(
+                          builder: (headerContext) => SharedTabHeader(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                            onLeadingTap: showBack
+                                ? () => Navigator.of(context).maybePop()
+                                : canOpenDrawer
                                 ? () => Scaffold.of(headerContext).openDrawer()
                                 : null,
-                        leadingIcon: showBack ? Icons.arrow_back : Icons.menu,
-                        leadingTooltip: _isKo
-                            ? (showBack ? '뒤로가기' : '메뉴')
-                            : (showBack ? 'Back' : 'Menu'),
-                        onNewsTap: widget.trainingService != null &&
+                            leadingIcon: showBack
+                                ? Icons.arrow_back
+                                : Icons.menu,
+                            leadingTooltip: _isKo
+                                ? (showBack ? '뒤로가기' : '메뉴')
+                                : (showBack ? 'Back' : 'Menu'),
+                            onNewsTap:
+                                widget.trainingService != null &&
+                                    widget.localeService != null &&
+                                    widget.settingsService != null
+                                ? _openNews
+                                : null,
+                            newsBadgeCount: newsCount,
+                            onQuizTap:
+                                widget.trainingService != null &&
+                                    widget.localeService != null &&
+                                    widget.settingsService != null
+                                ? _openQuiz
+                                : null,
+                            onProfileTap: _openProfile,
+                            onNotificationTap: widget.settingsService != null
+                                ? _openNotifications
+                                : null,
+                            notificationBadgeCount: reminderUnreadCount,
+                            onSettingsTap:
                                 widget.localeService != null &&
-                                widget.settingsService != null
-                            ? _openNews
-                            : null,
-                        newsBadgeCount: newsCount,
-                        onQuizTap: widget.trainingService != null &&
-                                widget.localeService != null &&
-                                widget.settingsService != null
-                            ? _openQuiz
-                            : null,
-                        onProfileTap: _openProfile,
-                        onNotificationTap: widget.settingsService != null
-                            ? _openNotifications
-                            : null,
-                        notificationBadgeCount: reminderUnreadCount,
-                        onSettingsTap: widget.localeService != null &&
-                                widget.settingsService != null
-                            ? _openSettings
-                            : _openProfile,
-                        profilePhotoSource: profilePhotoSource,
-                        title: _isKo ? '다이어리' : 'Diary',
-                        titleTrailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: _showThemePicker,
-                              icon: const Icon(
-                                Icons.palette_outlined,
-                                size: 18,
-                              ),
-                              label: Text(_isKo ? '테마' : 'Theme'),
+                                    widget.settingsService != null
+                                ? _openSettings
+                                : _openProfile,
+                            profilePhotoSource: profilePhotoSource,
+                            title: _isKo ? '다이어리' : 'Diary',
+                            titleTrailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                OutlinedButton.icon(
+                                  onPressed: _showThemePicker,
+                                  icon: const Icon(
+                                    Icons.palette_outlined,
+                                    size: 18,
+                                  ),
+                                  label: Text(_isKo ? '테마' : 'Theme'),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton.icon(
+                                  onPressed: () => _openNewDiaryComposer(
+                                    entriesByDay: entriesByDay,
+                                    mealEntriesByDay: mealEntriesByDay,
+                                    plansByDay: plansByDay,
+                                    boardMap: boardMap,
+                                  ),
+                                  icon: const Icon(
+                                    Icons.add_circle_outline,
+                                    size: 18,
+                                  ),
+                                  label: Text(_isKo ? '새 다이어리' : 'New diary'),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            OutlinedButton.icon(
-                              onPressed: () => _openNewDiaryComposer(
-                                entriesByDay: entriesByDay,
-                                plansByDay: plansByDay,
-                                boardMap: boardMap,
-                              ),
-                              icon: const Icon(
-                                Icons.add_circle_outline,
-                                size: 18,
-                              ),
-                              label: Text(_isKo ? '새 다이어리' : 'New diary'),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: _buildPagerCard(
-                      days: days,
-                      dayCount: days.length,
-                      selectedIndex: selectedIndex,
-                      selectedLabel: _formatDiaryDate(selectedDay.date),
-                    ),
-                  ),
-                  Expanded(
-                    child: PageView.builder(
-                      key: const ValueKey('diary-page-view'),
-                      controller: _pageController,
-                      itemCount: days.length,
-                      onPageChanged: (index) {
-                        if (_selectedDayIndex == index) return;
-                        setState(() => _selectedDayIndex = index);
-                      },
-                      itemBuilder: (context, index) {
-                        return _buildDiaryPage(days[index]);
-                      },
-                    ),
-                  ),
-                ],
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                        child: _buildPagerCard(
+                          days: days,
+                          dayCount: days.length,
+                          selectedIndex: selectedIndex,
+                          selectedLabel: _formatDiaryDate(selectedDay.date),
+                        ),
+                      ),
+                      Expanded(
+                        child: PageView.builder(
+                          key: const ValueKey('diary-page-view'),
+                          controller: _pageController,
+                          itemCount: days.length,
+                          onPageChanged: (index) {
+                            if (_selectedDayIndex == index) return;
+                            setState(() => _selectedDayIndex = index);
+                          },
+                          itemBuilder: (context, index) {
+                            return _buildDiaryPage(days[index]);
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),
@@ -327,11 +360,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           textAlign: TextAlign.center,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: _headlineInk,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: _headlineInk,
+                                fontWeight: FontWeight.w900,
+                              ),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -482,7 +515,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final award = await PlayerLevelService(
       widget.optionRepository,
     ).awardForDiaryCreated(createdAt: date);
-    final settingsService = widget.settingsService ??
+    final settingsService =
+        widget.settingsService ??
         (SettingsService(widget.optionRepository)..load());
     await TrainingPlanReminderService(
       widget.optionRepository,
@@ -618,8 +652,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       subtitle: customDiary.updatedAt == null
           ? (_isKo ? '핵심만 간단히 기록해보세요.' : 'Keep it short and clear.')
           : (_isKo
-              ? '마지막 저장 ${DateFormat('M.d HH:mm', 'ko').format(customDiary.updatedAt!)}'
-              : 'Last saved ${DateFormat('MMM d HH:mm', 'en').format(customDiary.updatedAt!)}'),
+                ? '마지막 저장 ${DateFormat('M.d HH:mm', 'ko').format(customDiary.updatedAt!)}'
+                : 'Last saved ${DateFormat('MMM d HH:mm', 'en').format(customDiary.updatedAt!)}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -688,7 +722,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
           const SizedBox(height: 14),
           if (!customDiary.hasContent && todoSeeds.isNotEmpty) ...[
-            ...todoSeeds.take(3).map(
+            ...todoSeeds
+                .take(3)
+                .map(
                   (seed) => Container(
                     width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 10),
@@ -935,7 +971,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     Widget? trailing,
     required Widget child,
   }) {
-    final hasHeader = (title?.trim().isNotEmpty ?? false) ||
+    final hasHeader =
+        (title?.trim().isNotEmpty ?? false) ||
         (subtitle?.trim().isNotEmpty ?? false) ||
         trailing != null;
     return Container(
@@ -956,9 +993,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         if (title != null && title.trim().isNotEmpty)
                           Text(
                             title,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   color: _headlineInk,
                                   fontWeight: FontWeight.w900,
@@ -968,9 +1003,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           const SizedBox(height: 4),
                           Text(
                             subtitle,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: _bodyInk, height: 1.45),
                           ),
                         ],
@@ -1024,8 +1057,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return grouped;
   }
 
+  Map<DateTime, MealEntry> _groupMealEntriesByDay(List<MealEntry> entries) {
+    final grouped = <DateTime, MealEntry>{};
+    for (final entry in entries) {
+      final day = _normalizeDay(entry.date);
+      final previous = grouped[day];
+      if (previous == null || entry.createdAt.isAfter(previous.createdAt)) {
+        grouped[day] = entry;
+      }
+    }
+    return grouped;
+  }
+
   List<_DiaryDayData> _buildDays({
     required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, MealEntry> mealEntriesByDay,
     required Map<DateTime, List<_DiaryPlan>> plansByDay,
     required Map<String, TrainingBoard> boardMap,
   }) {
@@ -1034,23 +1080,26 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .whereType<DateTime>()
         .map(_normalizeDay)
         .toSet();
-    final days = diaryDates
-        .map(
-          (day) => _buildDiaryDayData(
-            day: day,
-            entriesByDay: entriesByDay,
-            plansByDay: plansByDay,
-            boardMap: boardMap,
-          ),
-        )
-        .toList(growable: false)
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final days =
+        diaryDates
+            .map(
+              (day) => _buildDiaryDayData(
+                day: day,
+                entriesByDay: entriesByDay,
+                mealEntriesByDay: mealEntriesByDay,
+                plansByDay: plansByDay,
+                boardMap: boardMap,
+              ),
+            )
+            .toList(growable: false)
+          ..sort((a, b) => b.date.compareTo(a.date));
     return days;
   }
 
   _DiaryDayData _buildDiaryDayData({
     required DateTime day,
     required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, MealEntry> mealEntriesByDay,
     required Map<DateTime, List<_DiaryPlan>> plansByDay,
     required Map<String, TrainingBoard> boardMap,
   }) {
@@ -1065,6 +1114,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return _DiaryDayData(
       date: day,
       entries: [...dayEntries]..sort((a, b) => a.date.compareTo(b.date)),
+      mealEntry: mealEntriesByDay[day],
       plans: [...(plansByDay[day] ?? const <_DiaryPlan>[])]
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
       boards: linkedBoards.values.toList(growable: false)
@@ -1241,11 +1291,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Future<void> _openNewDiaryComposer({
     required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, MealEntry> mealEntriesByDay,
     required Map<DateTime, List<_DiaryPlan>> plansByDay,
     required Map<String, TrainingBoard> boardMap,
   }) async {
     final today = _normalizeDay(DateTime.now());
-    final initialDate = _customDiaryEntries.keys
+    final initialDate =
+        _customDiaryEntries.keys
             .map(DateTime.tryParse)
             .whereType<DateTime>()
             .map(_normalizeDay)
@@ -1274,6 +1326,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       markerMap
           .putIfAbsent(normalized, () => <_DiaryMarkerType>{})
           .add(_DiaryMarkerType.plan);
+    }
+    for (final day in mealEntriesByDay.keys) {
+      final normalized = _normalizeDay(day);
+      markerMap
+          .putIfAbsent(normalized, () => <_DiaryMarkerType>{})
+          .add(_DiaryMarkerType.meal);
     }
     for (final token in _customDiaryEntries.keys) {
       final parsed = DateTime.tryParse(token);
@@ -1366,6 +1424,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final day = _buildDiaryDayData(
       day: normalized,
       entriesByDay: entriesByDay,
+      mealEntriesByDay: mealEntriesByDay,
       plansByDay: plansByDay,
       boardMap: boardMap,
     );
@@ -1373,6 +1432,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     if (!mounted) return;
     final orderedDays = _buildDays(
       entriesByDay: entriesByDay,
+      mealEntriesByDay: mealEntriesByDay,
       plansByDay: plansByDay,
       boardMap: boardMap,
     );
@@ -1392,13 +1452,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     switch (sticker.kind) {
       case _DiaryRecordStickerKind.training:
         final entry = day.trainingEntries.cast<TrainingEntry?>().firstWhere(
-              (item) =>
-                  '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
-              orElse: () => null,
-            );
+          (item) =>
+              '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
+          orElse: () => null,
+        );
         if (entry == null) return null;
-        final primaryLabel =
-            entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type;
+        final primaryLabel = entry.program.trim().isNotEmpty
+            ? entry.program.trim()
+            : entry.type;
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.training,
@@ -1409,10 +1470,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         );
       case _DiaryRecordStickerKind.match:
         final entry = day.matchEntries.cast<TrainingEntry?>().firstWhere(
-              (item) =>
-                  '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
-              orElse: () => null,
-            );
+          (item) =>
+              '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
+          orElse: () => null,
+        );
         if (entry == null) return null;
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
@@ -1420,17 +1481,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           title: entry.opponentTeam.trim().isEmpty
               ? _l10n.diaryStickerMatch
               : _isKo
-                  ? '${_l10n.diaryStickerMatch} · ${entry.opponentTeam.trim()}전'
-                  : '${_l10n.diaryStickerMatch} · vs ${entry.opponentTeam.trim()}',
+              ? '${_l10n.diaryStickerMatch} · ${entry.opponentTeam.trim()}전'
+              : '${_l10n.diaryStickerMatch} · vs ${entry.opponentTeam.trim()}',
           summary: _matchSummary(entry),
           icon: Icons.sports_soccer_outlined,
           tint: const Color(0xFF2E6ECF),
         );
       case _DiaryRecordStickerKind.plan:
         final plan = day.plans.cast<_DiaryPlan?>().firstWhere(
-              (item) => item?.id == sticker.refId,
-              orElse: () => null,
-            );
+          (item) => item?.id == sticker.refId,
+          orElse: () => null,
+        );
         if (plan == null) return null;
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
@@ -1444,10 +1505,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         );
       case _DiaryRecordStickerKind.fortune:
         final entry = day.trainingEntries.cast<TrainingEntry?>().firstWhere(
-              (item) =>
-                  '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
-              orElse: () => null,
-            );
+          (item) =>
+              '${item?.createdAt.millisecondsSinceEpoch}' == sticker.refId,
+          orElse: () => null,
+        );
         if (entry == null) return null;
         final fortune = _DiaryFortune.fromEntry(entry, _isKo);
         return _DiaryRecordStickerViewData(
@@ -1460,13 +1521,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         );
       case _DiaryRecordStickerKind.board:
         final board = day.boards.cast<TrainingBoard?>().firstWhere(
-              (item) => item?.id == sticker.refId,
-              orElse: () => null,
-            );
+          (item) => item?.id == sticker.refId,
+          orElse: () => null,
+        );
         if (board == null) return null;
         final layout = TrainingMethodLayout.decode(board.layoutJson);
-        final boardMemo =
-            layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
+        final boardMemo = layout.pages.isNotEmpty
+            ? layout.pages.first.methodText.trim()
+            : '';
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.board,
@@ -1474,8 +1536,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           summary: boardMemo.isNotEmpty
               ? boardMemo
               : (_isKo
-                  ? '이 보드에서 기록한 움직임과 아이디어'
-                  : 'Movement and idea captured on this board'),
+                    ? '이 보드에서 기록한 움직임과 아이디어'
+                    : 'Movement and idea captured on this board'),
           icon: Icons.dashboard_customize_outlined,
           tint: const Color(0xFF4A7CCF),
           boardPage: layout.pages.isNotEmpty ? layout.pages.first : null,
@@ -1483,9 +1545,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       case _DiaryRecordStickerKind.news:
         final openedNews = _openedNewsForDay(day.date);
         final item = openedNews.cast<_DiaryOpenedNewsItem?>().firstWhere(
-              (entry) => entry?.id == sticker.refId,
-              orElse: () => null,
-            );
+          (entry) => entry?.id == sticker.refId,
+          orElse: () => null,
+        );
         if (item == null) return null;
         final displayTitle = item.displayTitle(_isKo);
         return _DiaryRecordStickerViewData(
@@ -1498,6 +1560,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           icon: Icons.article_outlined,
           tint: const Color(0xFF7A4ED8),
           link: item.link,
+        );
+      case _DiaryRecordStickerKind.meal:
+        final mealEntry = day.mealEntry;
+        if (mealEntry == null || sticker.refId != _dayStorageToken(day.date)) {
+          return null;
+        }
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.meal,
+          title: _l10n.diaryStickerMeal,
+          summary: _mealSummary(mealEntry),
+          icon: Icons.rice_bowl_outlined,
+          tint: const Color(0xFFB45309),
         );
       case _DiaryRecordStickerKind.conditioning:
         final dayToken = _dayStorageToken(day.date);
@@ -1699,6 +1774,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ...day.trainingEntries.map(_trainingTodoSeed),
       ...day.trainingEntries.map(_fortuneTodoSeed),
       ...day.matchEntries.map(_matchTodoSeed),
+      if (day.mealEntry != null) _mealTodoSeed(day.mealEntry!),
       ...day.boards.map(_boardTodoSeed),
       ..._newsTodoSeedsForDay(day.date),
     ];
@@ -1750,8 +1826,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   _DiaryTodoSeed _trainingTodoSeed(TrainingEntry entry) {
-    final label =
-        entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type;
+    final label = entry.program.trim().isNotEmpty
+        ? entry.program.trim()
+        : entry.type;
     final summaryText = _trainingSummary(entry);
     return _DiaryTodoSeed(
       id: 'training-${entry.createdAt.millisecondsSinceEpoch}',
@@ -1763,6 +1840,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       icon: Icons.fitness_center_outlined,
       recordKind: _DiaryRecordStickerKind.training,
       recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
+    );
+  }
+
+  _DiaryTodoSeed _mealTodoSeed(MealEntry entry) {
+    return _DiaryTodoSeed(
+      id: 'meal-${_dayStorageToken(entry.date)}',
+      title: _l10n.diaryStickerMeal,
+      summary: _mealSummary(entry),
+      storySentence: _l10n.diaryMealStorySentence,
+      sectionTitle: _l10n.diaryMealSectionTitle,
+      sectionBody: _l10n.diaryMealSectionBody,
+      icon: Icons.rice_bowl_outlined,
+      recordKind: _DiaryRecordStickerKind.meal,
+      recordRefId: _dayStorageToken(entry.date),
     );
   }
 
@@ -1799,8 +1890,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       sectionBody: entry.notes.trim().isNotEmpty
           ? entry.notes.trim()
           : (_isKo
-              ? '시합에서 가장 크게 남은 흐름을 적는다.'
-              : 'Write the flow that stayed most from the match.'),
+                ? '시합에서 가장 크게 남은 흐름을 적는다.'
+                : 'Write the flow that stayed most from the match.'),
       icon: Icons.sports_soccer_outlined,
       recordKind: _DiaryRecordStickerKind.match,
       recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
@@ -1809,21 +1900,22 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   _DiaryTodoSeed _boardTodoSeed(TrainingBoard board) {
     final layout = TrainingMethodLayout.decode(board.layoutJson);
-    final boardMemo =
-        layout.pages.isNotEmpty ? layout.pages.first.methodText.trim() : '';
+    final boardMemo = layout.pages.isNotEmpty
+        ? layout.pages.first.methodText.trim()
+        : '';
     final body = boardMemo.isNotEmpty
         ? (_isKo ? '보드 메모: $boardMemo' : 'Board note: $boardMemo')
         : (_isKo
-            ? '이 보드에서 남기고 싶은 움직임과 아이디어를 적는다.'
-            : 'Write the movement or idea you want to keep from this board.');
+              ? '이 보드에서 남기고 싶은 움직임과 아이디어를 적는다.'
+              : 'Write the movement or idea you want to keep from this board.');
     return _DiaryTodoSeed(
       id: 'board-${board.id}',
       title: _isKo ? '훈련보드 · ${board.title}' : 'Board · ${board.title}',
       summary: boardMemo.isNotEmpty
           ? boardMemo
           : (_isKo
-              ? '전술 아이디어를 일기로 옮길 수 있어요.'
-              : 'Pull the tactic idea into the diary.'),
+                ? '전술 아이디어를 일기로 옮길 수 있어요.'
+                : 'Pull the tactic idea into the diary.'),
       storySentence: body,
       sectionTitle: _isKo ? '${board.title} 메모' : '${board.title} note',
       sectionBody: body,
@@ -1850,6 +1942,23 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       recordKind: _DiaryRecordStickerKind.conditioning,
       recordRefId: dayToken,
     );
+  }
+
+  String _mealSummary(MealEntry entry) {
+    final values = <String>[
+      _mealLine(_l10n.mealBreakfast, entry.breakfastRiceBowls),
+      _mealLine(_l10n.mealLunch, entry.lunchRiceBowls),
+      _mealLine(_l10n.mealDinner, entry.dinnerRiceBowls),
+    ];
+    return values.join(' · ');
+  }
+
+  String _mealLine(String label, double bowls) {
+    if (bowls <= 0) return _l10n.mealCompactSkipped(label);
+    final count = bowls == bowls.truncateToDouble()
+        ? bowls.toStringAsFixed(0)
+        : bowls.toStringAsFixed(1);
+    return '$label ${_l10n.mealRiceBowlsValue(count)}';
   }
 
   List<_DiaryTodoSeed> _newsTodoSeedsForDay(DateTime day) {
@@ -1968,8 +2077,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         )
         .toSet();
     final selectedStickerIds = <String>{...initialSelectedStickerIds};
-    final selectableRecordStorageIds =
-        todoSeeds.map(recordStorageIdFromSeed).whereType<String>().toSet();
+    final selectableRecordStorageIds = todoSeeds
+        .map(recordStorageIdFromSeed)
+        .whereType<String>()
+        .toSet();
     final initialSelectedRecordStickerIds = initialData.recordStickers
         .map((sticker) => sticker.storageId)
         .where(selectableRecordStorageIds.contains)
@@ -2094,21 +2205,22 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       final recognized = sessionRecognizedWords.trim();
                       final currentText = listeningController!.text;
                       final isKoreanLocale = _isKo;
-                      final needsSpacing = !isKoreanLocale &&
+                      final needsSpacing =
+                          !isKoreanLocale &&
                           currentText.isNotEmpty &&
                           !RegExp(r'\s$').hasMatch(currentText);
                       final separator = needsSpacing ? ' ' : '';
                       final nextText =
                           '$currentText$separator${recognized.trim()}';
                       try {
-                        listeningController!.value =
-                            listeningController!.value.copyWith(
-                          text: nextText,
-                          selection: TextSelection.collapsed(
-                            offset: nextText.length,
-                          ),
-                          composing: TextRange.empty,
-                        );
+                        listeningController!.value = listeningController!.value
+                            .copyWith(
+                              text: nextText,
+                              selection: TextSelection.collapsed(
+                                offset: nextText.length,
+                              ),
+                              composing: TextRange.empty,
+                            );
                       } on FlutterError {
                         // Ignore late callback after field teardown.
                       }
@@ -2163,20 +2275,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       recognizedToCommit.trim().isNotEmpty) {
                     final normalized = recognizedToCommit.trim();
                     final currentText = controllerToCommit.text;
-                    final needsSpacing = !_isKo &&
+                    final needsSpacing =
+                        !_isKo &&
                         currentText.isNotEmpty &&
                         !RegExp(r'\s$').hasMatch(currentText);
                     final separator = needsSpacing ? ' ' : '';
                     final nextText = '$currentText$separator$normalized';
                     try {
-                      controllerToCommit.value =
-                          controllerToCommit.value.copyWith(
-                        text: nextText,
-                        selection: TextSelection.collapsed(
-                          offset: nextText.length,
-                        ),
-                        composing: TextRange.empty,
-                      );
+                      controllerToCommit.value = controllerToCommit.value
+                          .copyWith(
+                            text: nextText,
+                            selection: TextSelection.collapsed(
+                              offset: nextText.length,
+                            ),
+                            composing: TextRange.empty,
+                          );
                     } on FlutterError {
                       return;
                     }
@@ -2274,7 +2387,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               'note',
             ];
             final paletteById = <String, _DiaryStickerPalette>{
-              for (final sticker in _DiaryStickerPalette.values) sticker.id: sticker,
+              for (final sticker in _DiaryStickerPalette.values)
+                sticker.id: sticker,
             };
             final orderedMoodStickers = <_DiaryStickerPalette>[
               ...favoriteMoodStickerIds
@@ -2443,7 +2557,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  _isKo ? '날씨 $diaryWeather' : 'Weather $diaryWeather',
+                                  _isKo
+                                      ? '날씨 $diaryWeather'
+                                      : 'Weather $diaryWeather',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: _theme.textTheme.bodySmall?.copyWith(
@@ -2466,8 +2582,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             : (_isKo ? '제목' : 'Title'),
                         hintText: titleController.text.trim().isEmpty
                             ? (_isKo
-                                ? '예: 비 온 날 끝까지 이어진 패스 감각'
-                                : 'Ex: Passing rhythm that lasted through the rain')
+                                  ? '예: 비 온 날 끝까지 이어진 패스 감각'
+                                  : 'Ex: Passing rhythm that lasted through the rain')
                             : '',
                       ),
                       const SizedBox(height: 12),
@@ -2478,8 +2594,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         maxLines: 12,
                         labelText: storyController.text.trim().isEmpty
                             ? (_isKo
-                                ? '본문을 입력해 주세요'
-                                : 'Please enter the body text')
+                                  ? '본문을 입력해 주세요'
+                                  : 'Please enter the body text')
                             : (_isKo ? '본문 시작' : 'Opening body'),
                         hintText: storyController.text.trim().isEmpty
                             ? _defaultStoryPrompt(day)
@@ -2518,19 +2634,21 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                     Expanded(
                                       child: Text(
                                         seed.title,
-                                        maxLines: seed.recordKind ==
+                                        maxLines:
+                                            seed.recordKind ==
                                                 _DiaryRecordStickerKind.news
                                             ? 2
                                             : null,
-                                        overflow: seed.recordKind ==
+                                        overflow:
+                                            seed.recordKind ==
                                                 _DiaryRecordStickerKind.news
                                             ? TextOverflow.ellipsis
                                             : null,
                                         style: _theme.textTheme.labelLarge
                                             ?.copyWith(
-                                          color: _headlineInk,
-                                          fontWeight: FontWeight.w800,
-                                        ),
+                                              color: _headlineInk,
+                                              fontWeight: FontWeight.w800,
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -2538,11 +2656,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                 const SizedBox(height: 6),
                                 Text(
                                   seed.summary,
-                                  maxLines: seed.recordKind ==
+                                  maxLines:
+                                      seed.recordKind ==
                                           _DiaryRecordStickerKind.news
                                       ? 2
                                       : null,
-                                  overflow: seed.recordKind ==
+                                  overflow:
+                                      seed.recordKind ==
                                           _DiaryRecordStickerKind.news
                                       ? TextOverflow.ellipsis
                                       : null,
@@ -2568,14 +2688,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                             ),
                                             label: Text(
                                               selectedRecordStickerIds.contains(
-                                                recordStorageId,
-                                              )
+                                                    recordStorageId,
+                                                  )
                                                   ? (_isKo
-                                                      ? '스티커 추가됨'
-                                                      : 'Sticker added')
+                                                        ? '스티커 추가됨'
+                                                        : 'Sticker added')
                                                   : (_isKo
-                                                      ? '기록 스티커로 붙이기'
-                                                      : 'Pin as sticker'),
+                                                        ? '기록 스티커로 붙이기'
+                                                        : 'Pin as sticker'),
                                             ),
                                             avatar: Icon(
                                               Icons.push_pin_outlined,
@@ -2754,6 +2874,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     }
                     if (diaryDay.plans.isNotEmpty) {
                       markers.add(_DiaryMarkerType.plan);
+                    }
+                    if (diaryDay.mealEntry != null) {
+                      markers.add(_DiaryMarkerType.meal);
                     }
                     return markers;
                   },
@@ -3108,7 +3231,8 @@ class _DiaryScrollPageState extends State<_DiaryScrollPage> {
         if (onPullDownToDismiss == null) return false;
         if (_dismissTriggered) return false;
 
-        final atTop = !_controller.hasClients ||
+        final atTop =
+            !_controller.hasClients ||
             _controller.position.pixels <=
                 _controller.position.minScrollExtent + 0.5;
 
@@ -3140,7 +3264,7 @@ class _DiaryScrollPageState extends State<_DiaryScrollPage> {
   }
 }
 
-enum _DiaryMarkerType { diary, training, match, plan }
+enum _DiaryMarkerType { diary, training, match, plan, meal }
 
 extension on _DiaryMarkerType {
   Color get color {
@@ -3153,6 +3277,8 @@ extension on _DiaryMarkerType {
         return const Color(0xFF2E6ECF);
       case _DiaryMarkerType.plan:
         return const Color(0xFF97754A);
+      case _DiaryMarkerType.meal:
+        return const Color(0xFFB45309);
     }
   }
 }
@@ -3160,12 +3286,14 @@ extension on _DiaryMarkerType {
 class _DiaryDayData {
   final DateTime date;
   final List<TrainingEntry> entries;
+  final MealEntry? mealEntry;
   final List<_DiaryPlan> plans;
   final List<TrainingBoard> boards;
 
   const _DiaryDayData({
     required this.date,
     required this.entries,
+    required this.mealEntry,
     required this.plans,
     required this.boards,
   });
@@ -3197,13 +3325,13 @@ class _CustomDiaryEntryData {
   });
 
   const _CustomDiaryEntryData.empty()
-      : title = '',
-        story = '',
-        sections = const <_CustomDiarySectionData>[],
-        moodId = _DiaryMoodPreset.calmId,
-        recordStickers = const <_DiaryRecordStickerData>[],
-        stickers = const <String>[],
-        updatedAt = null;
+    : title = '',
+      story = '',
+      sections = const <_CustomDiarySectionData>[],
+      moodId = _DiaryMoodPreset.calmId,
+      recordStickers = const <_DiaryRecordStickerData>[],
+      stickers = const <String>[],
+      updatedAt = null;
 
   bool get hasContent =>
       title.trim().isNotEmpty ||
@@ -3235,16 +3363,16 @@ class _CustomDiaryEntryData {
   }
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'title': title,
-        'story': story,
-        'sections': sections.map((section) => section.toMap()).toList(),
-        'moodId': moodId,
-        'recordStickers': recordStickers
-            .map((sticker) => sticker.toMap())
-            .toList(growable: false),
-        'stickers': stickers,
-        if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
-      };
+    'title': title,
+    'story': story,
+    'sections': sections.map((section) => section.toMap()).toList(),
+    'moodId': moodId,
+    'recordStickers': recordStickers
+        .map((sticker) => sticker.toMap())
+        .toList(growable: false),
+    'stickers': stickers,
+    if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
+  };
 
   factory _CustomDiaryEntryData.fromMap(Map<String, dynamic> map) {
     final migratedSections = <_CustomDiarySectionData>[
@@ -3290,7 +3418,8 @@ class _CustomDiaryEntryData {
             ),
           )
           .toList(growable: false),
-      stickers: (map['stickers'] as List?)
+      stickers:
+          (map['stickers'] as List?)
               ?.map((value) => value.toString())
               .where((value) => value.trim().isNotEmpty)
               .toList(growable: false) ??
@@ -3309,9 +3438,9 @@ class _CustomDiarySectionData {
   bool get hasContent => title.trim().isNotEmpty || body.trim().isNotEmpty;
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'title': title,
-        'body': body,
-      };
+    'title': title,
+    'body': body,
+  };
 
   factory _CustomDiarySectionData.fromMap(Map<String, dynamic> map) {
     return _CustomDiarySectionData(
@@ -3380,7 +3509,8 @@ class _DiaryOpenedNewsItem {
       titleKo: (map['titleKo'] as String?)?.trim() ?? '',
       source: (map['source'] as String?)?.trim() ?? '',
       link: link,
-      openedAt: DateTime.tryParse((map['openedAt'] as String?) ?? '') ??
+      openedAt:
+          DateTime.tryParse((map['openedAt'] as String?) ?? '') ??
           DateTime.now(),
     );
   }
@@ -3393,6 +3523,7 @@ enum _DiaryRecordStickerKind {
   fortune,
   board,
   news,
+  meal,
   conditioning,
 }
 
@@ -3405,9 +3536,9 @@ class _DiaryRecordStickerData {
   String get storageId => '${kind.name}:$refId';
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'kind': kind.name,
-        'refId': refId,
-      };
+    'kind': kind.name,
+    'refId': refId,
+  };
 
   factory _DiaryRecordStickerData.fromMap(Map<String, dynamic> map) {
     final kindName = (map['kind'] as String?) ?? '';
@@ -3741,8 +3872,9 @@ class _DiaryFortune {
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty)
         .toList(growable: false);
-    final luckyInfoLines =
-        allLines.where(_isLuckyInfoLine).toList(growable: false);
+    final luckyInfoLines = allLines
+        .where(_isLuckyInfoLine)
+        .toList(growable: false);
     final bodyLines = allLines
         .where((line) => !_isLuckyInfoLine(line))
         .toList(growable: false);
@@ -3798,10 +3930,10 @@ class _GeneratedDiaryFortuneText {
     final jumpMetric = entry.jumpRopeCount > 0
         ? (isKo ? '${entry.jumpRopeCount}회' : '${entry.jumpRopeCount} reps')
         : (entry.jumpRopeMinutes > 0
-            ? (isKo
-                ? '${entry.jumpRopeMinutes}분'
-                : '${entry.jumpRopeMinutes} min')
-            : (isKo ? '기록 준비' : 'prep'));
+              ? (isKo
+                    ? '${entry.jumpRopeMinutes}분'
+                    : '${entry.jumpRopeMinutes} min')
+              : (isKo ? '기록 준비' : 'prep'));
     final focus = entry.type.trim().isNotEmpty
         ? entry.type.trim()
         : (isKo ? '훈련' : 'training');
@@ -3940,22 +4072,22 @@ class _GeneratedDiaryFortuneText {
 
   static List<String> _conditionTemplates(String conditionBand, bool isKo) =>
       isKo
-          ? <String>[
-              '$conditionBand 신호가 보여서 몸의 반응을 읽으며 움직이기 좋았어요.',
-              '$conditionBand 단계여서 판단과 터치의 간격을 차분히 맞출 수 있었어요.',
-              '$conditionBand 기준으로 보아도 오늘은 감각을 잃지 않고 이어 간 편이에요.',
-              '$conditionBand 상태라서 작은 흔들림도 빨리 알아차릴 수 있었어요.',
-              '$conditionBand 흐름을 유지한 덕분에 기록 전체가 무너지지 않았어요.',
-              '$conditionBand 날에는 무리보다 정리가 중요했는데, 오늘 메모가 그 균형을 보여줘요.',
-            ]
-          : <String>[
-              'With $conditionBand signals, it was easier to read the body and move with it.',
-              'At $conditionBand, the spacing between decisions and touches stayed calm.',
-              'Even by a $conditionBand standard, the day held onto its feel without falling apart.',
-              'Being in $conditionBand made it easier to notice small slips early.',
-              'Keeping a $conditionBand flow helped the full log stay intact.',
-              'On a $conditionBand day, clean organization mattered more than forcing it, and the note shows that balance.',
-            ];
+      ? <String>[
+          '$conditionBand 신호가 보여서 몸의 반응을 읽으며 움직이기 좋았어요.',
+          '$conditionBand 단계여서 판단과 터치의 간격을 차분히 맞출 수 있었어요.',
+          '$conditionBand 기준으로 보아도 오늘은 감각을 잃지 않고 이어 간 편이에요.',
+          '$conditionBand 상태라서 작은 흔들림도 빨리 알아차릴 수 있었어요.',
+          '$conditionBand 흐름을 유지한 덕분에 기록 전체가 무너지지 않았어요.',
+          '$conditionBand 날에는 무리보다 정리가 중요했는데, 오늘 메모가 그 균형을 보여줘요.',
+        ]
+      : <String>[
+          'With $conditionBand signals, it was easier to read the body and move with it.',
+          'At $conditionBand, the spacing between decisions and touches stayed calm.',
+          'Even by a $conditionBand standard, the day held onto its feel without falling apart.',
+          'Being in $conditionBand made it easier to notice small slips early.',
+          'Keeping a $conditionBand flow helped the full log stay intact.',
+          'On a $conditionBand day, clean organization mattered more than forcing it, and the note shows that balance.',
+        ];
 
   static List<String> _effortTemplates(String intensityBand, bool isKo) => isKo
       ? <String>[
@@ -4053,24 +4185,23 @@ class _GeneratedDiaryFortuneText {
     String liftingState,
     String jumpState,
     bool isKo,
-  ) =>
-      isKo
-          ? <String>[
-              '행운 루틴: $focus 전에 $jumpState로 발 리듬을 먼저 깨워 보세요.',
-              '행운 포인트: $liftingState처럼 반복 횟수가 보이는 루틴이 오늘 감각을 오래 붙잡아 줘요.',
-              '행운 타이밍: $focus 시작 전 5분은 호흡을 고르고 박자를 맞추는 시간이 좋아요.',
-              '행운 키워드: 첫 터치, 시선 정리, 그리고 $jumpState.',
-              '행운 메모: $focus 장면은 짧은 준비 루틴과 함께할 때 더 선명해져요.',
-              '행운 연결: $liftingState 뒤에 메인 훈련을 이어가면 감각이 더 또렷해질 수 있어요.',
-            ]
-          : <String>[
-              'Lucky routine: wake the feet up with $jumpState before $focus.',
-              'Lucky point: routines with visible counts like $liftingState help the feel last longer today.',
-              'Lucky timing: the five minutes before $focus are good for settling breath and rhythm.',
-              'Lucky keywords: first touch, scanning, and $jumpState.',
-              'Lucky note: $focus becomes clearer when it starts with a short prep routine.',
-              'Lucky link: the feel may sharpen if the main session follows $liftingState.',
-            ];
+  ) => isKo
+      ? <String>[
+          '행운 루틴: $focus 전에 $jumpState로 발 리듬을 먼저 깨워 보세요.',
+          '행운 포인트: $liftingState처럼 반복 횟수가 보이는 루틴이 오늘 감각을 오래 붙잡아 줘요.',
+          '행운 타이밍: $focus 시작 전 5분은 호흡을 고르고 박자를 맞추는 시간이 좋아요.',
+          '행운 키워드: 첫 터치, 시선 정리, 그리고 $jumpState.',
+          '행운 메모: $focus 장면은 짧은 준비 루틴과 함께할 때 더 선명해져요.',
+          '행운 연결: $liftingState 뒤에 메인 훈련을 이어가면 감각이 더 또렷해질 수 있어요.',
+        ]
+      : <String>[
+          'Lucky routine: wake the feet up with $jumpState before $focus.',
+          'Lucky point: routines with visible counts like $liftingState help the feel last longer today.',
+          'Lucky timing: the five minutes before $focus are good for settling breath and rhythm.',
+          'Lucky keywords: first touch, scanning, and $jumpState.',
+          'Lucky note: $focus becomes clearer when it starts with a short prep routine.',
+          'Lucky link: the feel may sharpen if the main session follows $liftingState.',
+        ];
 
   static List<String> _recommendationTemplates({
     required bool isKo,
@@ -4131,9 +4262,11 @@ class _DiaryPlan {
 
   factory _DiaryPlan.fromMap(Map<String, dynamic> map) {
     return _DiaryPlan(
-      id: map['id']?.toString() ??
+      id:
+          map['id']?.toString() ??
           DateTime.now().microsecondsSinceEpoch.toString(),
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
       category: map['category']?.toString() ?? '',
       durationMinutes: (map['durationMinutes'] as num?)?.toInt() ?? 60,

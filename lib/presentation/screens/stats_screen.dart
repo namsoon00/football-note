@@ -441,6 +441,16 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
         ],
+        if (mealEntries.isNotEmpty) ...[
+          if (trainingEntries.isNotEmpty) const SizedBox(height: 18),
+          _StatsPanel(
+            child: _MealTrendCard(
+              mealEntries: mealEntries,
+              trainingEntries: trainingEntries,
+              range: _selectedRange,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1655,6 +1665,266 @@ class _MealSummaryCard extends StatelessWidget {
   }
 
   String _formatBowls(double bowls) {
+    return bowls == bowls.truncateToDouble()
+        ? bowls.toStringAsFixed(0)
+        : bowls.toStringAsFixed(1);
+  }
+}
+
+class _MealTrendCard extends StatelessWidget {
+  final List<MealEntry> mealEntries;
+  final List<TrainingEntry> trainingEntries;
+  final DateTimeRange range;
+
+  const _MealTrendCard({
+    required this.mealEntries,
+    required this.trainingEntries,
+    required this.range,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dayStart = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final dayEnd = DateTime(range.end.year, range.end.month, range.end.day);
+    final days = <DateTime>[];
+    for (var cursor = dayStart;
+        !cursor.isAfter(dayEnd);
+        cursor = cursor.add(const Duration(days: 1))) {
+      days.add(cursor);
+    }
+
+    final mealByDay = <String, double>{};
+    for (final entry in mealEntries) {
+      mealByDay[_dayToken(entry.date)] = entry.totalRiceBowls;
+    }
+
+    final weightByDay = <String, double>{};
+    final sortedTrainingEntries = [...trainingEntries]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    for (final entry in sortedTrainingEntries) {
+      final weight = entry.weightKg;
+      if (weight == null) continue;
+      weightByDay[_dayToken(entry.date)] = weight;
+    }
+
+    final mealValues = days
+        .map((day) => mealByDay[_dayToken(day)] ?? 0)
+        .toList(growable: false);
+    final maxMeal = mealValues.fold<double>(
+      MealLogService.expectedBowlsPerDay,
+      math.max,
+    );
+    final chartMaxY = math.max(3.5, (maxMeal + 0.5).ceilToDouble());
+    final labelStride = math.max(1, (days.length / 6).ceil());
+
+    final mealSpots = <FlSpot>[
+      for (var i = 0; i < days.length; i++) FlSpot(i.toDouble(), mealValues[i]),
+    ];
+
+    final weightValues = weightByDay.values.toList(growable: false);
+    final hasWeight = weightValues.isNotEmpty;
+    final minWeight =
+        hasWeight ? weightValues.reduce(math.min).toDouble() : 0.0;
+    final maxWeight =
+        hasWeight ? weightValues.reduce(math.max).toDouble() : 0.0;
+    final weightRange =
+        hasWeight ? math.max(0.5, maxWeight - minWeight).toDouble() : 1.0;
+    final weightSpots = <FlSpot>[
+      for (var i = 0; i < days.length; i++)
+        if (weightByDay[_dayToken(days[i])] case final weight?)
+          FlSpot(
+            i.toDouble(),
+            _mapWeightToMealAxis(weight, minWeight, weightRange, chartMaxY),
+          ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+          icon: Icons.monitor_weight_outlined,
+          title: l10n.mealStatsTrendTitle,
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 220,
+          child: LineChart(
+            LineChartData(
+              minY: 0,
+              maxY: chartMaxY,
+              gridData: FlGridData(
+                drawVerticalLine: false,
+                horizontalInterval: 1,
+                getDrawingHorizontalLine: (value) => FlLine(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outline.withValues(alpha: 0.16),
+                  strokeWidth: 1,
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              lineTouchData: LineTouchData(
+                handleBuiltInTouches: true,
+                touchTooltipData: LineTouchTooltipData(
+                  fitInsideHorizontally: true,
+                  fitInsideVertically: true,
+                  getTooltipItems: (spots) => spots.map((spot) {
+                    final day = days[spot.x.toInt()];
+                    if (spot.barIndex == 0) {
+                      return LineTooltipItem(
+                        '${day.month}/${day.day}\n${l10n.mealShortLabel} ${_formatBowls(spot.y)}',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      );
+                    }
+                    final weight = weightByDay[_dayToken(day)];
+                    return LineTooltipItem(
+                      '${day.month}/${day.day}\n${l10n.weight} ${weight?.toStringAsFixed(1) ?? '-'}',
+                      const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    );
+                  }).toList(growable: false),
+                ),
+              ),
+              titlesData: FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 32,
+                    interval: 1,
+                    getTitlesWidget: (value, meta) => Text(
+                      _formatBowls(value),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ),
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: hasWeight,
+                    reservedSize: 40,
+                    interval: chartMaxY / 3,
+                    getTitlesWidget: (value, meta) => Text(
+                      _formatWeightAxis(
+                        value,
+                        minWeight,
+                        weightRange,
+                        chartMaxY,
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      final index = value.toInt();
+                      if (index < 0 || index >= days.length) {
+                        return const SizedBox.shrink();
+                      }
+                      if (index % labelStride != 0 &&
+                          index != days.length - 1) {
+                        return const SizedBox.shrink();
+                      }
+                      final day = days[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          '${day.month}/${day.day}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                  spots: mealSpots,
+                  isCurved: false,
+                  color: const Color(0xFFB45309),
+                  barWidth: 3,
+                  dotData: const FlDotData(show: true),
+                  belowBarData: BarAreaData(
+                    show: true,
+                    color: const Color(0xFFB45309).withValues(alpha: 0.12),
+                  ),
+                ),
+                if (hasWeight)
+                  LineChartBarData(
+                    spots: weightSpots,
+                    isCurved: true,
+                    color: const Color(0xFF2563EB),
+                    barWidth: 3,
+                    dotData: const FlDotData(show: true),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            _LegendDot(
+              color: const Color(0xFFB45309),
+              label: l10n.mealShortLabel,
+            ),
+            if (hasWeight)
+              _LegendDot(color: const Color(0xFF2563EB), label: l10n.weight),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.mealStatsWeightLinkedHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
+  static String _dayToken(DateTime day) {
+    return '${day.year.toString().padLeft(4, '0')}-'
+        '${day.month.toString().padLeft(2, '0')}-'
+        '${day.day.toString().padLeft(2, '0')}';
+  }
+
+  static double _mapWeightToMealAxis(
+    double weight,
+    double minWeight,
+    double weightRange,
+    double chartMaxY,
+  ) {
+    return ((weight - minWeight) / weightRange) * chartMaxY;
+  }
+
+  static String _formatWeightAxis(
+    double value,
+    double minWeight,
+    double weightRange,
+    double chartMaxY,
+  ) {
+    if (chartMaxY <= 0) return '';
+    final weight = minWeight + ((value / chartMaxY) * weightRange);
+    return weight.toStringAsFixed(1);
+  }
+
+  static String _formatBowls(double bowls) {
     return bowls == bowls.truncateToDouble()
         ? bowls.toStringAsFixed(0)
         : bowls.toStringAsFixed(1);

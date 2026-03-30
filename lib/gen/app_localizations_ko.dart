@@ -900,7 +900,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerNews => '소식';
 
   @override
+  String get diaryStickerMeal => '식사';
+
+  @override
   String get diaryStickerConditioning => '줄넘기/리프팅';
+
+  @override
+  String get diaryMealStorySentence =>
+      '오늘 먹은 흐름을 돌아보며 식사량이 몸 상태와 어떻게 이어졌는지 적어 본다.';
+
+  @override
+  String get diaryMealSectionTitle => '오늘 식사 메모';
+
+  @override
+  String get diaryMealSectionBody => '세 끼와 밥 양, 몸 느낌의 연결을 간단히 남긴다.';
 
   @override
   String get diaryNewsOpenFailed => '기사를 열지 못했어요.';
@@ -1150,6 +1163,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealStatsSectionTitle => '식사 기록';
 
   @override
+  String get mealStatsTrendTitle => '식사 그래프';
+
+  @override
   String get mealStatsLoggedDays => '기록 일수';
 
   @override
@@ -1160,6 +1176,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealStatsBestDay => '최고 섭취';
+
+  @override
+  String get mealStatsWeightLinkedHint => '몸무게를 남긴 날에는 식사량과 함께 그래프에 연결됩니다.';
 
   @override
   String get mealStatsNoTrainingOrMealEntries => '선택한 기간에 훈련 기록과 식사 기록이 없습니다.';

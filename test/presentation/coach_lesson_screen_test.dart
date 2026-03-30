@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/training_service.dart';
+import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
@@ -27,6 +29,15 @@ void main() {
         'training_boards_v1',
         '[{"id":"board-1","title":"측면 전개 보드","layoutJson":"{\\"version\\":1,\\"pages\\":[{\\"name\\":\\"측면 전개\\",\\"methodText\\":\\"측면에서 2:1 패턴 확인\\",\\"items\\":[{\\"type\\":\\"player\\",\\"x\\":0.2,\\"y\\":0.5,\\"size\\":32,\\"rotationDeg\\":0,\\"colorValue\\":4294967295}],\\"strokes\\":[],\\"playerPath\\":[{\\"x\\":0.2,\\"y\\":0.5},{\\"x\\":0.55,\\"y\\":0.4}],\\"ballPath\\":[{\\"x\\":0.25,\\"y\\":0.5},{\\"x\\":0.6,\\"y\\":0.45}]}]}","createdAt":"2026-03-14T10:00:00.000","updatedAt":"2026-03-15T20:00:00.000"}]',
       );
+    final mealLogService = MealLogService(optionRepository);
+    await mealLogService.save(
+      MealEntry(
+        date: DateTime(2026, 3, 15),
+        breakfastRiceBowls: 1,
+        lunchRiceBowls: 1,
+        dinnerRiceBowls: 0.5,
+      ),
+    );
     final trainingService = TrainingService(
       _FakeTrainingRepository(<TrainingEntry>[
         TrainingEntry(
@@ -113,6 +124,7 @@ void main() {
           home: CoachLessonScreen(
             optionRepository: optionRepository,
             trainingService: trainingService,
+            mealLogService: mealLogService,
           ),
         ),
       ),
@@ -146,6 +158,7 @@ void main() {
     expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
     expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
     expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
+    expect(find.text('식사'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
 
     await tester.tapAt(const Offset(20, 20));

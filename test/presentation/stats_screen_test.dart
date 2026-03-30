@@ -196,6 +196,19 @@ void main() {
   ) async {
     await box.clear();
     await optionBox.clear();
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 40,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+        weightKg: 44.2,
+      ),
+    );
     await mealLogService.save(
       MealEntry(
         date: DateTime.now(),
@@ -233,5 +246,7 @@ void main() {
     expect(find.text('식사 기록'), findsOneWidget);
     expect(find.textContaining('평균 기대치 3공기'), findsOneWidget);
     expect(find.textContaining('평균 실제 2.5공기'), findsOneWidget);
+    expect(find.text('식사 그래프'), findsOneWidget);
+    expect(find.text('몸무게(kg)'), findsWidgets);
   });
 }

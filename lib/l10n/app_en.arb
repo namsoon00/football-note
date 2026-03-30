@@ -304,7 +304,11 @@
   "diaryStickerFortune": "Fortune",
   "diaryStickerBoard": "Board",
   "diaryStickerNews": "News",
+  "diaryStickerMeal": "Meal",
   "diaryStickerConditioning": "Jump rope/lifting",
+  "diaryMealStorySentence": "Look back on what you ate today and note how the meal volume connected to body condition.",
+  "diaryMealSectionTitle": "Meal note",
+  "diaryMealSectionBody": "Keep the three meals, rice amount, and body feel in one short note.",
   "diaryNewsOpenFailed": "Failed to open the article.",
   "mealRoutineTitle": "Eating is training too",
   "mealRoutineSubtitle": "Skip calorie math and just log three meals with rice bowl count.",
@@ -440,9 +444,11 @@
   },
   "mealStatsEmpty": "No meal entries in the selected period.",
   "mealStatsSectionTitle": "Meal Logs",
+  "mealStatsTrendTitle": "Meal Trend",
   "mealStatsLoggedDays": "Logged days",
   "mealStatsExpectedAverage": "Expected avg",
   "mealStatsActualAverage": "Actual avg",
   "mealStatsBestDay": "Best day",
+  "mealStatsWeightLinkedHint": "Days with weight records are linked on the same chart.",
   "mealStatsNoTrainingOrMealEntries": "No training or meal entries in the selected period."
 }
