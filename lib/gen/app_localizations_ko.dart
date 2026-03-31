@@ -1180,7 +1180,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String mealAverageActualValue(String value) {
-    return '평균 실제 $value공기';
+    return '$value공기';
   }
 
   @override
@@ -1190,7 +1190,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mealStatsSectionTitle => '식사 기록';
 
   @override
-  String get mealStatsTrendTitle => '식사 그래프';
+  String get mealStatsTrendTitle => '식사 흐름';
 
   @override
   String get mealStatsTodayRiceBowlTitle => '최근 기록 공기밥';
@@ -1206,6 +1206,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealStatsBestDay => '최고 섭취';
+
+  @override
+  String get mealIncreaseAction => '공기 추가';
+
+  @override
+  String get mealDecreaseAction => '공기 줄이기';
 
   @override
   String get mealStatsWeightLinkedHint => '몸무게를 남긴 날에는 식사량과 함께 그래프에 연결됩니다.';

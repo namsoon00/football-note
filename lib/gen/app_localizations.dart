@@ -2285,7 +2285,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealAverageActualValue.
   ///
   /// In en, this message translates to:
-  /// **'Actual average {value} bowl(s)'**
+  /// **'{value} bowl(s)'**
   String mealAverageActualValue(String value);
 
   /// No description provided for @mealStatsEmpty.
@@ -2303,7 +2303,7 @@ abstract class AppLocalizations {
   /// No description provided for @mealStatsTrendTitle.
   ///
   /// In en, this message translates to:
-  /// **'Meal Trend'**
+  /// **'Meal Flow'**
   String get mealStatsTrendTitle;
 
   /// No description provided for @mealStatsTodayRiceBowlTitle.
@@ -2335,6 +2335,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Best day'**
   String get mealStatsBestDay;
+
+  /// No description provided for @mealIncreaseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add bowl'**
+  String get mealIncreaseAction;
+
+  /// No description provided for @mealDecreaseAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove bowl'**
+  String get mealDecreaseAction;
 
   /// No description provided for @mealStatsWeightLinkedHint.
   ///

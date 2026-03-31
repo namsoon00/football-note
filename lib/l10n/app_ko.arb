@@ -443,7 +443,7 @@
       }
     }
   },
-  "mealAverageActualValue": "평균 실제 {value}공기",
+  "mealAverageActualValue": "{value}공기",
   "@mealAverageActualValue": {
     "placeholders": {
       "value": {
@@ -453,12 +453,14 @@
   },
   "mealStatsEmpty": "선택한 기간에 식사 기록이 없습니다.",
   "mealStatsSectionTitle": "식사 기록",
-  "mealStatsTrendTitle": "식사 그래프",
+  "mealStatsTrendTitle": "식사 흐름",
   "mealStatsTodayRiceBowlTitle": "최근 기록 공기밥",
   "mealStatsLoggedDays": "기록 일수",
   "mealStatsExpectedAverage": "평균 기대치",
   "mealStatsActualAverage": "평균 실제",
   "mealStatsBestDay": "최고 섭취",
+  "mealIncreaseAction": "공기 추가",
+  "mealDecreaseAction": "공기 줄이기",
   "mealStatsWeightLinkedHint": "몸무게를 남긴 날에는 식사량과 함께 그래프에 연결됩니다.",
   "homeRiceBowlTitle": "오늘 먹은 공기밥",
   "homeRiceBowlSubtitle": "가득 찬 공기밥, 반공기, 안 먹은 공기밥을 한눈에 봐요.",

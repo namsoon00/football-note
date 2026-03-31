@@ -78,7 +78,12 @@ void main() {
 
     expect(find.text('저장'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('meal-breakfast-option-1.5')));
+    final increment = find.byKey(const ValueKey('meal-breakfast-increment'));
+    await tester.tap(increment);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(increment);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(increment);
     await tester.pump(const Duration(milliseconds: 400));
 
     final saved = mealLogService.entryForDay(day);
