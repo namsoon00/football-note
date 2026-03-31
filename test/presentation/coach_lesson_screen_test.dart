@@ -157,6 +157,8 @@ void main() {
 
     expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
     expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
+    expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsOneWidget);
+    expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
     expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
     expect(find.text('식사'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);

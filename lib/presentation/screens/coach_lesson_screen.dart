@@ -779,6 +779,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final hasBoardPreview = sticker.boardPage != null;
     final isNewsSticker = sticker.kind == _DiaryRecordStickerKind.news;
     final isMealSticker = sticker.kind == _DiaryRecordStickerKind.meal;
+    final isFortuneSticker = sticker.kind == _DiaryRecordStickerKind.fortune;
     final content = Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
@@ -811,8 +812,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             const SizedBox(height: 6),
             Text(
               sticker.summary,
-              maxLines: isNewsSticker ? 3 : 2,
-              overflow: TextOverflow.ellipsis,
+              maxLines: isNewsSticker ? 3 : (isFortuneSticker ? null : 2),
+              overflow: isFortuneSticker ? null : TextOverflow.ellipsis,
               style: _theme.textTheme.bodyMedium?.copyWith(
                 color: _bodyInk,
                 height: 1.5,

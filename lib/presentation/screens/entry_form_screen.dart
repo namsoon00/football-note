@@ -2702,7 +2702,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       if (!mounted) return;
       final fortuneToShow = shouldShowFortuneOnSave
           ? generatedFortune.fortuneText
-          : fortuneComment;
+          : '';
       if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
         await _showFortuneRevealDialog(fortuneToShow);
         if (!mounted) return;
