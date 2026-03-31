@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -37,6 +39,10 @@ class _MealLogScreenState extends State<MealLogScreen> {
   double _breakfastRiceBowls = 0;
   double _lunchRiceBowls = 0;
   double _dinnerRiceBowls = 0;
+  MealEntry? _persistedEntry;
+  Timer? _autoSaveTimer;
+  bool _saveInProgress = false;
+  bool _disposed = false;
 
   @override
   void initState() {
@@ -57,6 +63,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
     _breakfastRiceBowls = initialEntry?.breakfastRiceBowls ?? 0;
     _lunchRiceBowls = initialEntry?.lunchRiceBowls ?? 0;
     _dinnerRiceBowls = initialEntry?.dinnerRiceBowls ?? 0;
+    _persistedEntry = initialEntry;
   }
 
   @override
@@ -104,29 +111,35 @@ class _MealLogScreenState extends State<MealLogScreen> {
               ),
               const SizedBox(height: 12),
               _MealSelectorCard(
+                mealKey: 'breakfast',
                 label: l10n.mealBreakfast,
                 value: _breakfastRiceBowls,
                 l10n: l10n,
                 onChanged: (value) {
                   setState(() => _breakfastRiceBowls = value);
+                  _scheduleAutoSave();
                 },
               ),
               const SizedBox(height: 10),
               _MealSelectorCard(
+                mealKey: 'lunch',
                 label: l10n.mealLunch,
                 value: _lunchRiceBowls,
                 l10n: l10n,
                 onChanged: (value) {
                   setState(() => _lunchRiceBowls = value);
+                  _scheduleAutoSave();
                 },
               ),
               const SizedBox(height: 10),
               _MealSelectorCard(
+                mealKey: 'dinner',
                 label: l10n.mealDinner,
                 value: _dinnerRiceBowls,
                 l10n: l10n,
                 onChanged: (value) {
                   setState(() => _dinnerRiceBowls = value);
+                  _scheduleAutoSave();
                 },
               ),
               const SizedBox(height: 12),
@@ -171,12 +184,6 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: _save,
-                icon: const Icon(Icons.save_outlined),
-                label: Text(l10n.mealSaveAction),
-              ),
             ],
           ),
         ),
@@ -197,12 +204,24 @@ class _MealLogScreenState extends State<MealLogScreen> {
     setState(() {
       _date = DateTime(picked.year, picked.month, picked.day);
     });
+    _scheduleAutoSave();
+  }
+
+  void _scheduleAutoSave() {
+    if (_saveInProgress || _disposed) return;
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted || _disposed) return;
+      unawaited(_save());
+    });
   }
 
   Future<void> _save() async {
+    if (_saveInProgress || _disposed) return;
+    _saveInProgress = true;
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final previousEntry = widget.initialEntry;
+    final previousEntry = _persistedEntry;
     final entry = MealEntry(
       date: _date,
       breakfastRiceBowls: _breakfastRiceBowls,
@@ -210,33 +229,46 @@ class _MealLogScreenState extends State<MealLogScreen> {
       dinnerRiceBowls: _dinnerRiceBowls,
       createdAt: previousEntry?.createdAt ?? DateTime.now(),
     );
-    await widget.mealLogService.save(entry);
-    final levelService = PlayerLevelService(widget.optionRepository);
-    final award = await levelService.awardForMealLog(
-      previousEntry: previousEntry,
-      updatedEntry: entry,
-    );
-    final reminderService = TrainingPlanReminderService(
-      widget.optionRepository,
-      widget.settingsService,
-    );
-    if (award.gainedXp > 0) {
-      await reminderService.showXpGainAlert(
-        gainedXp: award.gainedXp,
-        totalXp: award.after.totalXp,
-        isKo: isKo,
-        sourceLabel: l10n.mealLogXpSourceLabel,
-      );
-      if (award.didLevelUp) {
-        await reminderService.showLevelUpAlert(
-          level: award.after.level,
-          isKo: isKo,
-        );
+    try {
+      final previousDay = previousEntry == null
+          ? null
+          : DateTime(
+              previousEntry.date.year,
+              previousEntry.date.month,
+              previousEntry.date.day,
+            );
+      final nextDay = DateTime(_date.year, _date.month, _date.day);
+      if (previousDay != null && previousDay != nextDay) {
+        await widget.mealLogService.deleteDay(previousDay);
       }
+      await widget.mealLogService.save(entry);
+      _persistedEntry = entry.hasRecords ? entry : null;
+      final levelService = PlayerLevelService(widget.optionRepository);
+      final award = await levelService.awardForMealLog(
+        previousEntry: previousEntry,
+        updatedEntry: entry,
+      );
+      final reminderService = TrainingPlanReminderService(
+        widget.optionRepository,
+        widget.settingsService,
+      );
+      if (award.gainedXp > 0) {
+        await reminderService.showXpGainAlert(
+          gainedXp: award.gainedXp,
+          totalXp: award.after.totalXp,
+          isKo: isKo,
+          sourceLabel: l10n.mealLogXpSourceLabel,
+        );
+        if (award.didLevelUp) {
+          await reminderService.showLevelUpAlert(
+            level: award.after.level,
+            isKo: isKo,
+          );
+        }
+      }
+    } finally {
+      _saveInProgress = false;
     }
-    if (!mounted) return;
-    AppFeedback.showSuccess(context, text: l10n.mealSavedFeedback);
-    Navigator.of(context).pop(entry);
   }
 
   Future<void> _delete() async {
@@ -263,6 +295,13 @@ class _MealLogScreenState extends State<MealLogScreen> {
     if (!mounted) return;
     AppFeedback.showSuccess(context, text: l10n.mealDeletedFeedback);
     Navigator.of(context).pop(true);
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _autoSaveTimer?.cancel();
+    super.dispose();
   }
 
   String _headline(AppLocalizations l10n, MealStatus status) {
@@ -309,12 +348,14 @@ class _MealLogScreenState extends State<MealLogScreen> {
 }
 
 class _MealSelectorCard extends StatelessWidget {
+  final String mealKey;
   final String label;
   final double value;
   final AppLocalizations l10n;
   final ValueChanged<double> onChanged;
 
   const _MealSelectorCard({
+    required this.mealKey,
     required this.label,
     required this.value,
     required this.l10n,
@@ -353,13 +394,19 @@ class _MealSelectorCard extends StatelessWidget {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: MealCoachingService.riceBowlOptions.map((option) {
-                return ChoiceChip(
-                  selected: option == value,
-                  label: Text(_labelForValue(option)),
-                  onSelected: (_) => onChanged(option),
-                );
-              }).toList(growable: false),
+              children: MealCoachingService.riceBowlOptions
+                  .map((option) {
+                    return _RiceBowlAmountButton(
+                      key: ValueKey(
+                        'meal-$mealKey-option-${option.toStringAsFixed(1)}',
+                      ),
+                      value: option,
+                      selected: option == value,
+                      label: _labelForValue(option),
+                      onTap: () => onChanged(option),
+                    );
+                  })
+                  .toList(growable: false),
             ),
           ],
         ),
@@ -373,6 +420,105 @@ class _MealSelectorCard extends StatelessWidget {
         ? value.toStringAsFixed(0)
         : value.toStringAsFixed(1);
     return l10n.mealRiceBowlsValue(countText);
+  }
+}
+
+class _RiceBowlAmountButton extends StatelessWidget {
+  final double value;
+  final bool selected;
+  final String label;
+  final VoidCallback onTap;
+
+  const _RiceBowlAmountButton({
+    super.key,
+    required this.value,
+    required this.selected,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          width: 94,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? accent.withValues(alpha: 0.12)
+                : theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? accent
+                  : theme.colorScheme.outline.withValues(alpha: 0.2),
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List<Widget>.generate(3, (index) {
+                  final fill = (value - index).clamp(0, 1).toDouble();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 1),
+                    child: _RiceBowlLevelIcon(fillLevel: fill, color: accent),
+                  );
+                }),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: selected ? accent : theme.colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RiceBowlLevelIcon extends StatelessWidget {
+  final double fillLevel;
+  final Color color;
+
+  const _RiceBowlLevelIcon({required this.fillLevel, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 18.0;
+    final clampedFill = fillLevel.clamp(0, 1).toDouble();
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.rice_bowl_outlined, size: size, color: color),
+          if (clampedFill > 0)
+            ClipRect(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                heightFactor: clampedFill,
+                child: Icon(Icons.rice_bowl, size: size, color: color),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
