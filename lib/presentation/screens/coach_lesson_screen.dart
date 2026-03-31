@@ -626,7 +626,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .whereType<_DiaryStickerChipData>()
         .toList(growable: false);
     final recordStickers = customDiary.recordStickers
-        .where((sticker) => sticker.kind != _DiaryRecordStickerKind.fortune)
         .map((sticker) => _resolveRecordSticker(sticker, day))
         .whereType<_DiaryRecordStickerViewData>()
         .toList(growable: false);
@@ -769,7 +768,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 10),
         child: FortuneCard(
-          sections: const FortuneSections(bodyLines: [], luckyInfoLines: []),
+          sections: FortuneSections(
+            bodyLines: fortune.bodyLines,
+            luckyInfoLines: fortune.luckyInfoLines,
+          ),
           title: sticker.title,
           subtitle: _formatDiaryDate(fortune.entryDate),
           luckyInfoTitle: _l10n.fortuneDialogLuckyInfoTitle,
@@ -782,6 +784,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           luckyInfoCount: _l10n.fortuneDialogLuckyInfoCount(
             fortune.luckyInfoLines.length,
           ),
+          recommendationTitle: _l10n.fortuneDialogRecommendationTitle,
+          recommendation: fortune.recommendation.trim(),
           encouragement: fortune.recommendation.trim().isEmpty
               ? null
               : fortune.recommendation.trim(),

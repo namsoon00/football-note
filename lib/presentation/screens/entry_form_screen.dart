@@ -2799,6 +2799,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               isKo: isKo,
               sections: sections,
               l10n: l10n,
+              recommendation: recommendation,
+              recommendedProgram: recommendedProgram,
             ),
           );
         }
@@ -2813,6 +2815,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               isKo: isKo,
               sections: sections,
               l10n: l10n,
+              recommendation: recommendation,
+              recommendedProgram: recommendedProgram,
             ),
           ),
         );
@@ -2824,6 +2828,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required bool isKo,
     required FortuneSections sections,
     required AppLocalizations l10n,
+    required String recommendation,
+    required String recommendedProgram,
   }) {
     final dialogMaxHeight = MediaQuery.sizeOf(context).height * 0.82;
     final localeName = Localizations.localeOf(context).toLanguageTag();
@@ -2854,6 +2860,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             ),
             poolSizeLabel: l10n.fortuneDialogPoolSizeLabel,
             poolSizeValue: l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
+            recommendedProgramTitle: l10n.fortuneDialogRecommendedProgramTitle,
+            recommendedProgram: recommendedProgram,
+            recommendationTitle: l10n.fortuneDialogRecommendationTitle,
+            recommendation: recommendation,
+            encouragement: l10n.fortuneDialogEncouragement,
             actionLabel: l10n.fortuneDialogAction,
             isKo: isKo,
             onActionPressed: () =>
