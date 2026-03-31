@@ -100,6 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _resultChip(
           label:
               '${isKo ? '포지션' : 'Position'} ${positionSummary.title.split('·').first.trim()}',
+          onTap: () => _openProfileTestsScreen(context),
         ),
     ];
     // ignore: deprecated_member_use

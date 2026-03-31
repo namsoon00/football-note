@@ -35,9 +35,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   int? _weatherCode;
   double? _apparentTemperature;
   double? _humidity;
-  double? _precipitation;
   double? _windSpeed;
-  double? _uvIndexMax;
   double? _temperatureMax;
   double? _temperatureMin;
   double? _pm10;
@@ -61,6 +59,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final hasWeather = _summary.isNotEmpty;
     final airLevel = _aqiLevel(l10n, _aqi);
+    final pm10Level = _pm10Level(l10n, _pm10);
+    final pm25Level = _pm25Level(l10n, _pm25);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
       body: AppBackground(
@@ -110,37 +110,54 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 const SizedBox(height: 16),
                 _AirQualityCard(
                   title: l10n.homeWeatherAirQualityTitle,
-                  status: '${l10n.homeWeatherAqi} · ${airLevel.label}',
-                  aqiLabel: l10n.homeWeatherAqi,
+                  subtitle: l10n.homeWeatherAirQualitySubtitle,
+                  status: airLevel.label,
+                  aqiLabel: l10n.homeWeatherAqiLabel,
+                  aqiDescription: l10n.homeWeatherAqiDescription,
                   aqiValue: _aqi == null ? '--' : '$_aqi',
                   aqiStatus: airLevel.label,
                   aqiLevel: airLevel.level,
                   pm10Label: l10n.homeWeatherPm10,
                   pm10Value: _formatParticles(_pm10),
-                  pm10Status: _pm10Level(l10n, _pm10).label,
-                  pm10Level: _pm10Level(l10n, _pm10).level,
+                  pm10Status: pm10Level.label,
+                  pm10Level: pm10Level.level,
                   pm25Label: l10n.homeWeatherPm25,
                   pm25Value: _formatParticles(_pm25),
-                  pm25Status: _pm25Level(l10n, _pm25).label,
-                  pm25Level: _pm25Level(l10n, _pm25).level,
+                  pm25Status: pm25Level.label,
+                  pm25Level: pm25Level.level,
+                  scaleLabels: <String>[
+                    l10n.homeWeatherAqiScaleGood,
+                    l10n.homeWeatherAqiScaleModerate,
+                    l10n.homeWeatherAqiScaleSensitive,
+                  ],
                 ),
                 const SizedBox(height: 16),
-                _ForecastOverviewCard(
-                  tomorrowTitle: l10n.homeWeatherTomorrowTitle,
-                  title: l10n.homeWeatherWeeklyTitle,
+                _TomorrowWeatherCard(
+                  title: l10n.homeWeatherTomorrowTitle,
+                  conditionLabel: l10n.homeWeatherTomorrowCondition,
                   highLowLabel: l10n.homeWeatherDailyHighLow,
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
                   uvLabel: l10n.homeWeatherUvIndex,
-                  currentPrecipitation: _formatMillimeter(_precipitation),
-                  currentUv: _formatUv(_uvIndexMax),
                   tomorrowForecast:
                       _dailyForecasts.length > 1 ? _dailyForecasts[1] : null,
                   tomorrowFallback: l10n.homeWeatherTomorrowFallback,
-                  forecasts: _dailyForecasts,
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
                   formatWind: _formatWind,
+                  formatUv: _formatUv,
+                  iconForCode: _weatherIcon,
+                ),
+                const SizedBox(height: 16),
+                _WeeklyForecastCard(
+                  title: l10n.homeWeatherWeeklyTitle,
+                  dateLabel: l10n.homeWeatherWeeklyDateLabel,
+                  conditionLabel: l10n.homeWeatherWeeklyConditionLabel,
+                  highLowLabel: l10n.homeWeatherDailyHighLow,
+                  precipitationLabel: l10n.homeWeatherPrecipitation,
+                  forecasts: _dailyForecasts.skip(1).toList(growable: false),
+                  formatRange: _formatRange,
+                  formatMillimeter: _formatMillimeter,
                   iconForCode: _weatherIcon,
                 ),
                 const SizedBox(height: 16),
@@ -317,7 +334,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         : '$weatherText ${temperature.toStringAsFixed(1)}°C';
     final dailyMax = _firstDailyNumber(daily['temperature_2m_max']);
     final dailyMin = _firstDailyNumber(daily['temperature_2m_min']);
-    final uvIndexMax = _firstDailyNumber(daily['uv_index_max']);
     final forecasts = _buildDailyForecasts(daily, l10n);
 
     return _WeatherDetailsSnapshot(
@@ -326,9 +342,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       apparentTemperature:
           (current['apparent_temperature'] as num?)?.toDouble(),
       humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
-      precipitation: (current['precipitation'] as num?)?.toDouble(),
       windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
-      uvIndexMax: uvIndexMax,
       temperatureMax: dailyMax,
       temperatureMin: dailyMin,
       pm10: (airCurrent['pm10'] as num?)?.toDouble(),
@@ -344,9 +358,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _weatherCode = snapshot.weatherCode;
     _apparentTemperature = snapshot.apparentTemperature;
     _humidity = snapshot.humidity;
-    _precipitation = snapshot.precipitation;
     _windSpeed = snapshot.windSpeed;
-    _uvIndexMax = snapshot.uvIndexMax;
     _temperatureMax = snapshot.temperatureMax;
     _temperatureMin = snapshot.temperatureMin;
     _pm10 = snapshot.pm10;
@@ -414,6 +426,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final minTemps = daily['temperature_2m_min'];
     final precipitationSums = daily['precipitation_sum'];
     final maxWinds = daily['wind_speed_10m_max'];
+    final uvIndexMax = daily['uv_index_max'];
     if (times is! List) return const <_DailyWeatherForecast>[];
 
     final forecasts = <_DailyWeatherForecast>[];
@@ -425,13 +438,15 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       forecasts.add(
         _DailyWeatherForecast(
           date: date,
-          label: _formatForecastDay(date, l10n),
+          label: _formatForecastDate(date),
+          weekdayLabel: _formatForecastWeekday(date),
           weatherCode: weatherCode,
           summary: _weatherLabelFromCode(weatherCode, l10n),
           temperatureMax: _numberAt(maxTemps, index)?.toDouble(),
           temperatureMin: _numberAt(minTemps, index)?.toDouble(),
           precipitationSum: _numberAt(precipitationSums, index)?.toDouble(),
           windSpeedMax: _numberAt(maxWinds, index)?.toDouble(),
+          uvIndexMax: _numberAt(uvIndexMax, index)?.toDouble(),
         ),
       );
     }
@@ -443,18 +458,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return values[index] as num?;
   }
 
-  String _formatForecastDay(DateTime date, AppLocalizations l10n) {
-    final today = DateTime.now();
-    final localDate = DateTime(date.year, date.month, date.day);
-    final localToday = DateTime(today.year, today.month, today.day);
-    final diff = localDate.difference(localToday).inDays;
-    if (diff == 0) {
-      return MaterialLocalizations.of(context).formatShortDate(localDate);
-    }
-    return DateFormat.MMMd(
-      Localizations.localeOf(context).toLanguageTag(),
-    ).format(localDate);
-  }
+  String _formatForecastDate(DateTime date) => DateFormat.MMMd(
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
+
+  String _formatForecastWeekday(DateTime date) => DateFormat.E(
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   bool _isKoreaCountry(String country) {
     final normalized = country.trim().toLowerCase();
@@ -921,8 +931,10 @@ class _MetricCard extends StatelessWidget {
 
 class _AirQualityCard extends StatelessWidget {
   final String title;
+  final String subtitle;
   final String status;
   final String aqiLabel;
+  final String aqiDescription;
   final String aqiValue;
   final String aqiStatus;
   final _AirQualityLevel aqiLevel;
@@ -934,11 +946,14 @@ class _AirQualityCard extends StatelessWidget {
   final String pm25Value;
   final String pm25Status;
   final _AirQualityLevel pm25Level;
+  final List<String> scaleLabels;
 
   const _AirQualityCard({
     required this.title,
+    required this.subtitle,
     required this.status,
     required this.aqiLabel,
+    required this.aqiDescription,
     required this.aqiValue,
     required this.aqiStatus,
     required this.aqiLevel,
@@ -950,6 +965,7 @@ class _AirQualityCard extends StatelessWidget {
     required this.pm25Value,
     required this.pm25Status,
     required this.pm25Level,
+    required this.scaleLabels,
   });
 
   @override
@@ -975,10 +991,64 @@ class _AirQualityCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            status,
+            subtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w800,
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _StatusBadge(label: status, level: aqiLevel),
+              for (final scaleLabel in scaleLabels)
+                _NeutralInfoChip(label: scaleLabel),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  aqiLabel,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(
+                      aqiValue,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: _airQualityPalette(theme, aqiLevel).foreground,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    _StatusBadge(label: aqiStatus, level: aqiLevel),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  aqiDescription,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -1059,38 +1129,166 @@ class _TrainingGuideCard extends StatelessWidget {
   }
 }
 
-class _ForecastOverviewCard extends StatelessWidget {
-  final String tomorrowTitle;
+class _TomorrowWeatherCard extends StatelessWidget {
   final String title;
+  final String conditionLabel;
   final String highLowLabel;
   final String precipitationLabel;
   final String windLabel;
   final String uvLabel;
-  final String currentPrecipitation;
-  final String currentUv;
   final _DailyWeatherForecast? tomorrowForecast;
   final String tomorrowFallback;
-  final List<_DailyWeatherForecast> forecasts;
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
   final String Function(double?) formatWind;
+  final String Function(double?) formatUv;
   final IconData Function(int?) iconForCode;
 
-  const _ForecastOverviewCard({
-    required this.tomorrowTitle,
+  const _TomorrowWeatherCard({
     required this.title,
+    required this.conditionLabel,
     required this.highLowLabel,
     required this.precipitationLabel,
     required this.windLabel,
     required this.uvLabel,
-    required this.currentPrecipitation,
-    required this.currentUv,
     required this.tomorrowForecast,
     required this.tomorrowFallback,
-    required this.forecasts,
     required this.formatRange,
     required this.formatMillimeter,
     required this.formatWind,
+    required this.formatUv,
+    required this.iconForCode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final forecast = tomorrowForecast;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: forecast == null
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  tomorrowFallback,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${forecast.weekdayLabel} · ${forecast.label}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Icon(
+                        iconForCode(forecast.weatherCode),
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _LabeledMetricRow(
+                  label: conditionLabel,
+                  value: forecast.summary,
+                  emphasized: true,
+                ),
+                const SizedBox(height: 10),
+                _LabeledMetricRow(
+                  label: highLowLabel,
+                  value: formatRange(
+                    forecast.temperatureMax,
+                    forecast.temperatureMin,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _LabeledMetricRow(
+                  label: precipitationLabel,
+                  value: formatMillimeter(forecast.precipitationSum),
+                ),
+                const SizedBox(height: 10),
+                _LabeledMetricRow(
+                  label: windLabel,
+                  value: formatWind(forecast.windSpeedMax),
+                ),
+                const SizedBox(height: 10),
+                _LabeledMetricRow(
+                  label: uvLabel,
+                  value: formatUv(forecast.uvIndexMax),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _WeeklyForecastCard extends StatelessWidget {
+  final String title;
+  final String dateLabel;
+  final String conditionLabel;
+  final String highLowLabel;
+  final String precipitationLabel;
+  final List<_DailyWeatherForecast> forecasts;
+  final String Function(double?, double?) formatRange;
+  final String Function(double?) formatMillimeter;
+  final IconData Function(int?) iconForCode;
+
+  const _WeeklyForecastCard({
+    required this.title,
+    required this.dateLabel,
+    required this.conditionLabel,
+    required this.highLowLabel,
+    required this.precipitationLabel,
+    required this.forecasts,
+    required this.formatRange,
+    required this.formatMillimeter,
     required this.iconForCode,
   });
 
@@ -1110,39 +1308,6 @@ class _ForecastOverviewCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            tomorrowTitle,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _TomorrowWeatherCard(
-            title: tomorrowTitle,
-            highLowLabel: highLowLabel,
-            precipitationLabel: precipitationLabel,
-            windLabel: windLabel,
-            forecast: tomorrowForecast,
-            fallback: tomorrowFallback,
-            formatRange: formatRange,
-            formatMillimeter: formatMillimeter,
-            formatWind: formatWind,
-            iconForCode: iconForCode,
-            embedded: true,
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _InlineMetricChip(
-                label: precipitationLabel,
-                value: currentPrecipitation,
-              ),
-              _InlineMetricChip(label: uvLabel, value: currentUv),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w900,
@@ -1151,11 +1316,16 @@ class _ForecastOverviewCard extends StatelessWidget {
           const SizedBox(height: 12),
           for (final forecast in forecasts) ...[
             _WeeklyForecastRow(
+              dateLabel: dateLabel,
+              conditionLabel: conditionLabel,
+              highLowLabel: highLowLabel,
+              precipitationLabel: precipitationLabel,
               forecast: forecast,
               range: formatRange(
                 forecast.temperatureMax,
                 forecast.temperatureMin,
               ),
+              precipitation: formatMillimeter(forecast.precipitationSum),
               icon: iconForCode(forecast.weatherCode),
             ),
             if (!identical(forecast, forecasts.last))
@@ -1167,145 +1337,108 @@ class _ForecastOverviewCard extends StatelessWidget {
   }
 }
 
-class _TomorrowWeatherCard extends StatelessWidget {
-  final String title;
+class _WeeklyForecastRow extends StatelessWidget {
+  final String dateLabel;
+  final String conditionLabel;
   final String highLowLabel;
   final String precipitationLabel;
-  final String windLabel;
-  final _DailyWeatherForecast? forecast;
-  final String fallback;
-  final String Function(double?, double?) formatRange;
-  final String Function(double?) formatMillimeter;
-  final String Function(double?) formatWind;
-  final IconData Function(int?) iconForCode;
-  final bool embedded;
+  final _DailyWeatherForecast forecast;
+  final String range;
+  final String precipitation;
+  final IconData icon;
 
-  const _TomorrowWeatherCard({
-    required this.title,
+  const _WeeklyForecastRow({
+    required this.dateLabel,
+    required this.conditionLabel,
     required this.highLowLabel,
     required this.precipitationLabel,
-    required this.windLabel,
     required this.forecast,
-    required this.fallback,
-    required this.formatRange,
-    required this.formatMillimeter,
-    required this.formatWind,
-    required this.iconForCode,
-    this.embedded = false,
+    required this.range,
+    required this.precipitation,
+    required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final forecast = this.forecast;
-    final body = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!embedded) ...[
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (forecast == null)
-          Text(
-            fallback,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          )
-        else
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  iconForCode(forecast.weatherCode),
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      forecast.label,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      forecast.summary,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        _InlineMetricChip(
-                          label: highLowLabel,
-                          value: formatRange(
-                            forecast.temperatureMax,
-                            forecast.temperatureMin,
-                          ),
-                        ),
-                        _InlineMetricChip(
-                          label: precipitationLabel,
-                          value: formatMillimeter(forecast.precipitationSum),
-                        ),
-                        _InlineMetricChip(
-                          label: windLabel,
-                          value: formatWind(forecast.windSpeedMax),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-      ],
-    );
-    if (embedded) return body;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: body,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  forecast.weekdayLabel,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$dateLabel ${forecast.label}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$conditionLabel ${forecast.summary}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$highLowLabel $range',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$precipitationLabel $precipitation',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _WeeklyForecastRow extends StatelessWidget {
-  final _DailyWeatherForecast forecast;
-  final String range;
-  final IconData icon;
+class _LabeledMetricRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool emphasized;
 
-  const _WeeklyForecastRow({
-    required this.forecast,
-    required this.range,
-    required this.icon,
+  const _LabeledMetricRow({
+    required this.label,
+    required this.value,
+    this.emphasized = false,
   });
 
   @override
@@ -1313,71 +1446,77 @@ class _WeeklyForecastRow extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        SizedBox(
-          width: 66,
-          child: Text(
-            forecast.label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
-        const SizedBox(width: 10),
         Expanded(
           child: Text(
-            forecast.summary,
+            label,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
         const SizedBox(width: 12),
         Text(
-          range,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          value,
+          textAlign: TextAlign.right,
+          style: (emphasized
+                  ? theme.textTheme.titleSmall
+                  : theme.textTheme.bodyMedium)
+              ?.copyWith(fontWeight: FontWeight.w800),
         ),
       ],
     );
   }
 }
 
-class _InlineMetricChip extends StatelessWidget {
+class _NeutralInfoChip extends StatelessWidget {
   final String label;
-  final String value;
 
-  const _InlineMetricChip({required this.label, required this.value});
+  const _NeutralInfoChip({required this.label});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(999),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final _AirQualityLevel level;
+
+  const _StatusBadge({required this.label, required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = _airQualityPalette(theme, level);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: palette.background,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: palette.border),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: palette.foreground,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -1576,9 +1715,7 @@ class _WeatherDetailsSnapshot {
   final int? weatherCode;
   final double? apparentTemperature;
   final double? humidity;
-  final double? precipitation;
   final double? windSpeed;
-  final double? uvIndexMax;
   final double? temperatureMax;
   final double? temperatureMin;
   final double? pm10;
@@ -1591,9 +1728,7 @@ class _WeatherDetailsSnapshot {
     this.weatherCode,
     this.apparentTemperature,
     this.humidity,
-    this.precipitation,
     this.windSpeed,
-    this.uvIndexMax,
     this.temperatureMax,
     this.temperatureMin,
     this.pm10,
@@ -1606,22 +1741,26 @@ class _WeatherDetailsSnapshot {
 class _DailyWeatherForecast {
   final DateTime date;
   final String label;
+  final String weekdayLabel;
   final int? weatherCode;
   final String summary;
   final double? temperatureMax;
   final double? temperatureMin;
   final double? precipitationSum;
   final double? windSpeedMax;
+  final double? uvIndexMax;
 
   const _DailyWeatherForecast({
     required this.date,
     required this.label,
+    required this.weekdayLabel,
     required this.weatherCode,
     required this.summary,
     this.temperatureMax,
     this.temperatureMin,
     this.precipitationSum,
     this.windSpeedMax,
+    this.uvIndexMax,
   });
 }
 

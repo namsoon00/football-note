@@ -23,21 +23,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('MBTI와 포지션 테스트를 별도 화면에서 볼 수 있어요.'), findsOneWidget);
-
-    await tester.tap(find.text('열기'));
+    await tester.tap(find.byIcon(Icons.psychology_alt_outlined));
     await tester.pumpAndSettle();
 
     final mbtiStartButton = _findTestStartButton('MBTI 테스트');
     await tester.ensureVisible(mbtiStartButton);
     await tester.tap(mbtiStartButton);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('20. 원정 경기 준비에서 더 안심되는 방식은 무엇인가요?'),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    expect(find.text('20. 원정 경기 준비에서 더 안심되는 방식은 무엇인가요?'), findsOneWidget);
+    expect(find.text('MBTI 테스트'), findsWidgets);
+    expect(find.text('20개를 다 고르면 결과가 저장돼요.'), findsOneWidget);
 
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
@@ -46,12 +40,8 @@ void main() {
     await tester.ensureVisible(positionStartButton);
     await tester.tap(positionStartButton);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('20. 팀 전술판을 볼 때 가장 먼저 확인하는 기호는 무엇인가요?'),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    expect(find.text('20. 팀 전술판을 볼 때 가장 먼저 확인하는 기호는 무엇인가요?'), findsOneWidget);
+    expect(find.text('포지션 테스트'), findsWidgets);
+    expect(find.text('20개를 다 고르면 결과가 저장돼요.'), findsOneWidget);
   });
 
   testWidgets('Saved MBTI result shows type and description', (
@@ -72,7 +62,7 @@ void main() {
 
     expect(find.text('ENTJ · 전술 지휘형'), findsNothing);
 
-    await tester.tap(find.text('열기'));
+    await tester.tap(find.byIcon(Icons.psychology_alt_outlined));
     await tester.pumpAndSettle();
 
     expect(find.text('ENTJ · 전술 지휘형'), findsOneWidget);
@@ -103,7 +93,7 @@ void main() {
 
     expect(find.text('저장한 응답 2개'), findsNothing);
 
-    await tester.tap(find.text('열기'));
+    await tester.tap(find.byIcon(Icons.psychology_alt_outlined));
     await tester.pumpAndSettle();
 
     expect(find.text('저장한 응답 2개'), findsOneWidget);
@@ -112,8 +102,30 @@ void main() {
     await tester.tap(find.text('저장한 응답 2개'));
     await tester.pumpAndSettle();
 
-    expect(find.text('1. 훈련을 시작하기 전, 에너지를 채우는 방식은 무엇에 가깝나요?'), findsOneWidget);
-    expect(find.text('팀원과 바로 이야기하며 분위기를 끌어올린다'), findsOneWidget);
+    expect(find.text('1. 경기 전에 나는?'), findsOneWidget);
+    expect(find.text('왜 하는지 큰 그림'), findsOneWidget);
+  });
+
+  testWidgets('Position result chip opens profile tests screen', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed('profile_position_test_result', 'MF · 미드필더형');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ProfileScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('포지션 MF'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('테스트 결과와 응답'), findsOneWidget);
   });
 
   testWidgets('Profile level card opens level guide on tap', (

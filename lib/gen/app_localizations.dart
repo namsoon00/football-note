@@ -1604,6 +1604,12 @@ abstract class AppLocalizations {
   /// **'Air quality'**
   String get homeWeatherAirQualityTitle;
 
+  /// No description provided for @homeWeatherAirQualitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower numbers usually mean easier breathing outdoors.'**
+  String get homeWeatherAirQualitySubtitle;
+
   /// No description provided for @homeWeatherPm10.
   ///
   /// In en, this message translates to:
@@ -1621,6 +1627,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AQI'**
   String get homeWeatherAqi;
+
+  /// No description provided for @homeWeatherAqiLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Air quality index'**
+  String get homeWeatherAqiLabel;
+
+  /// No description provided for @homeWeatherAqiDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'AQI is a simple score that shows how clean the air feels.'**
+  String get homeWeatherAqiDescription;
+
+  /// No description provided for @homeWeatherAqiScaleGood.
+  ///
+  /// In en, this message translates to:
+  /// **'0-50 good'**
+  String get homeWeatherAqiScaleGood;
+
+  /// No description provided for @homeWeatherAqiScaleModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'51-100 moderate'**
+  String get homeWeatherAqiScaleModerate;
+
+  /// No description provided for @homeWeatherAqiScaleSensitive.
+  ///
+  /// In en, this message translates to:
+  /// **'101+ caution'**
+  String get homeWeatherAqiScaleSensitive;
+
+  /// No description provided for @homeWeatherTomorrowCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get homeWeatherTomorrowCondition;
+
+  /// No description provided for @homeWeatherWeeklyDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get homeWeatherWeeklyDateLabel;
+
+  /// No description provided for @homeWeatherWeeklyConditionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast'**
+  String get homeWeatherWeeklyConditionLabel;
 
   /// No description provided for @homeWeatherStatusGood.
   ///
