@@ -1783,32 +1783,51 @@ class _MealTrendCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
+        Row(
           children: [
-            _LegendDot(color: breakfastColor, label: l10n.mealBreakfast),
-            _LegendDot(color: lunchColor, label: l10n.mealLunch),
-            _LegendDot(color: dinnerColor, label: l10n.mealDinner),
+            Expanded(
+              child: Center(
+                child: _LegendDot(
+                  color: breakfastColor,
+                  label: l10n.mealBreakfast,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: _LegendDot(color: lunchColor, label: l10n.mealLunch),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: _LegendDot(color: dinnerColor, label: l10n.mealDinner),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Row(
           children: [
-            _CompactMetricChip(
-              label: l10n.mealStatsLoggedDays,
-              value: '${mealEntries.length}',
+            Expanded(
+              child: _CompactMetricChip(
+                label: l10n.mealStatsLoggedDays,
+                value: '${mealEntries.length}',
+              ),
             ),
-            _CompactMetricChip(
-              label: l10n.mealStatsActualAverage,
-              value: l10n.mealAverageActualValue(_formatBowls(averageActual)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _CompactMetricChip(
+                label: l10n.mealStatsActualAverage,
+                value: l10n.mealAverageActualValue(_formatBowls(averageActual)),
+              ),
             ),
-            _CompactMetricChip(
-              label: l10n.mealStatsBestDay,
-              value:
-                  '${bestDay.date.month}/${bestDay.date.day} · ${_formatBowls(bestDay.totalRiceBowls)}',
+            const SizedBox(width: 8),
+            Expanded(
+              child: _CompactMetricChip(
+                label: l10n.mealStatsBestDay,
+                value:
+                    '${bestDay.date.month}/${bestDay.date.day} · ${_formatBowls(bestDay.totalRiceBowls)}',
+              ),
             ),
           ],
         ),
@@ -1875,7 +1894,6 @@ class _CompactMetricChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      constraints: const BoxConstraints(minWidth: 110),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -1885,21 +1903,28 @@ class _CompactMetricChip extends StatelessWidget {
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w800,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],

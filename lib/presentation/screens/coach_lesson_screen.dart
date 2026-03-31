@@ -778,48 +778,52 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Widget _buildRecordStickerCard(_DiaryRecordStickerViewData sticker) {
     final hasBoardPreview = sticker.boardPage != null;
     final isNewsSticker = sticker.kind == _DiaryRecordStickerKind.news;
+    final isMealSticker = sticker.kind == _DiaryRecordStickerKind.meal;
     final content = Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(sticker.icon, size: 18, color: sticker.tint),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  sticker.title,
-                  maxLines: isNewsSticker ? 2 : null,
-                  overflow: isNewsSticker ? TextOverflow.ellipsis : null,
-                  style: _theme.textTheme.labelLarge?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w800,
+          if (!isMealSticker) ...[
+            Row(
+              children: [
+                Icon(sticker.icon, size: 18, color: sticker.tint),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    sticker.title,
+                    maxLines: isNewsSticker ? 2 : null,
+                    overflow: isNewsSticker ? TextOverflow.ellipsis : null,
+                    style: _theme.textTheme.labelLarge?.copyWith(
+                      color: _headlineInk,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
-              ),
-              if (isNewsSticker)
-                Icon(Icons.open_in_new_rounded, size: 18, color: sticker.tint),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            sticker.summary,
-            maxLines: isNewsSticker ? 3 : 2,
-            overflow: TextOverflow.ellipsis,
-            style: _theme.textTheme.bodyMedium?.copyWith(
-              color: _bodyInk,
-              height: 1.5,
+                if (isNewsSticker)
+                  Icon(
+                    Icons.open_in_new_rounded,
+                    size: 18,
+                    color: sticker.tint,
+                  ),
+              ],
             ),
-          ),
-          if (sticker.kind == _DiaryRecordStickerKind.meal &&
-              sticker.mealEntry != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
+            Text(
+              sticker.summary,
+              maxLines: isNewsSticker ? 3 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: _theme.textTheme.bodyMedium?.copyWith(
+                color: _bodyInk,
+                height: 1.5,
+              ),
+            ),
+          ],
+          if (isMealSticker && sticker.mealEntry != null)
             RiceBowlInlineSummary(
               entry: sticker.mealEntry,
               accentColor: sticker.tint,
             ),
-          ],
           if (hasBoardPreview) ...[
             const SizedBox(height: 10),
             SizedBox(

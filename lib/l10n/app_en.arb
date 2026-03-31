@@ -443,7 +443,7 @@
       }
     }
   },
-  "mealAverageActualValue": "Actual average {value} bowl(s)",
+  "mealAverageActualValue": "{value} bowl(s)",
   "@mealAverageActualValue": {
     "placeholders": {
       "value": {
@@ -453,12 +453,14 @@
   },
   "mealStatsEmpty": "No meal entries in the selected period.",
   "mealStatsSectionTitle": "Meal Logs",
-  "mealStatsTrendTitle": "Meal Trend",
+  "mealStatsTrendTitle": "Meal Flow",
   "mealStatsTodayRiceBowlTitle": "Latest rice bowls",
   "mealStatsLoggedDays": "Logged days",
   "mealStatsExpectedAverage": "Expected avg",
   "mealStatsActualAverage": "Actual avg",
   "mealStatsBestDay": "Best day",
+  "mealIncreaseAction": "Add bowl",
+  "mealDecreaseAction": "Remove bowl",
   "mealStatsWeightLinkedHint": "Days with weight records are linked on the same chart.",
   "homeRiceBowlTitle": "Today's rice bowls",
   "homeRiceBowlSubtitle": "See full bowls, half bowls, and skipped bowls at a glance.",

@@ -365,51 +365,75 @@ class _MealSelectorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+    final accent = theme.colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: accent.withValues(alpha: 0.16)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(Icons.rice_bowl_outlined, color: accent, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                Text(
-                  _labelForValue(value),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
+              ),
+              Text(
+                _labelForValue(value),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: MealCoachingService.riceBowlOptions
-                  .map((option) {
-                    return _RiceBowlAmountButton(
-                      key: ValueKey(
-                        'meal-$mealKey-option-${option.toStringAsFixed(1)}',
-                      ),
-                      value: option,
-                      selected: option == value,
-                      label: _labelForValue(option),
-                      onTap: () => onChanged(option),
-                    );
-                  })
-                  .toList(growable: false),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _MealBowlPreview(value: value, accent: accent),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                children: [
+                  _MealAdjustButton(
+                    key: ValueKey('meal-$mealKey-increment'),
+                    tooltip: l10n.mealIncreaseAction,
+                    icon: Icons.add_rounded,
+                    enabled: _nextValue(value) != value,
+                    onTap: () => onChanged(_nextValue(value)),
+                  ),
+                  const SizedBox(height: 8),
+                  _MealAdjustButton(
+                    key: ValueKey('meal-$mealKey-decrement'),
+                    tooltip: l10n.mealDecreaseAction,
+                    icon: Icons.remove_rounded,
+                    enabled: _previousValue(value) != value,
+                    onTap: () => onChanged(_previousValue(value)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -421,19 +445,85 @@ class _MealSelectorCard extends StatelessWidget {
         : value.toStringAsFixed(1);
     return l10n.mealRiceBowlsValue(countText);
   }
+
+  double _nextValue(double current) {
+    final currentIndex = MealCoachingService.riceBowlOptions.indexOf(current);
+    if (currentIndex < 0 ||
+        currentIndex >= MealCoachingService.riceBowlOptions.length - 1) {
+      return current;
+    }
+    return MealCoachingService.riceBowlOptions[currentIndex + 1];
+  }
+
+  double _previousValue(double current) {
+    final currentIndex = MealCoachingService.riceBowlOptions.indexOf(current);
+    if (currentIndex <= 0) return current;
+    return MealCoachingService.riceBowlOptions[currentIndex - 1];
+  }
 }
 
-class _RiceBowlAmountButton extends StatelessWidget {
+class _MealBowlPreview extends StatelessWidget {
   final double value;
-  final bool selected;
-  final String label;
+  final Color accent;
+
+  const _MealBowlPreview({required this.value, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withValues(alpha: 0.14)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List<Widget>.generate(3, (index) {
+              final fill = (value - index).clamp(0, 1).toDouble();
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: _RiceBowlLevelIcon(
+                  fillLevel: fill,
+                  color: accent,
+                  size: 28,
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value <= 0
+                ? AppLocalizations.of(context)!.homeRiceBowlEmpty
+                : value == value.truncateToDouble()
+                ? value.toStringAsFixed(0)
+                : value.toStringAsFixed(1),
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MealAdjustButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final bool enabled;
   final VoidCallback onTap;
 
-  const _RiceBowlAmountButton({
+  const _MealAdjustButton({
     super.key,
-    required this.value,
-    required this.selected,
-    required this.label,
+    required this.tooltip,
+    required this.icon,
+    required this.enabled,
     required this.onTap,
   });
 
@@ -441,49 +531,33 @@ class _RiceBowlAmountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Ink(
-          width: 94,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          decoration: BoxDecoration(
-            color: selected
-                ? accent.withValues(alpha: 0.12)
-                : theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected
-                  ? accent
-                  : theme.colorScheme.outline.withValues(alpha: 0.2),
-              width: selected ? 1.6 : 1,
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(14),
+          child: Ink(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: enabled
+                  ? accent.withValues(alpha: 0.12)
+                  : theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: enabled
+                    ? accent.withValues(alpha: 0.24)
+                    : theme.colorScheme.outline.withValues(alpha: 0.14),
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List<Widget>.generate(3, (index) {
-                  final fill = (value - index).clamp(0, 1).toDouble();
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 1),
-                    child: _RiceBowlLevelIcon(fillLevel: fill, color: accent),
-                  );
-                }),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: selected ? accent : theme.colorScheme.onSurface,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+            child: Icon(
+              icon,
+              color: enabled
+                  ? accent
+                  : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
           ),
         ),
       ),
@@ -494,12 +568,16 @@ class _RiceBowlAmountButton extends StatelessWidget {
 class _RiceBowlLevelIcon extends StatelessWidget {
   final double fillLevel;
   final Color color;
+  final double size;
 
-  const _RiceBowlLevelIcon({required this.fillLevel, required this.color});
+  const _RiceBowlLevelIcon({
+    required this.fillLevel,
+    required this.color,
+    this.size = 18,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const size = 18.0;
     final clampedFill = fillLevel.clamp(0, 1).toDouble();
     return SizedBox(
       width: size,

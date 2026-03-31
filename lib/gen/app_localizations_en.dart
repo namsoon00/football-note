@@ -1202,7 +1202,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mealAverageActualValue(String value) {
-    return 'Actual average $value bowl(s)';
+    return '$value bowl(s)';
   }
 
   @override
@@ -1212,7 +1212,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealStatsSectionTitle => 'Meal Logs';
 
   @override
-  String get mealStatsTrendTitle => 'Meal Trend';
+  String get mealStatsTrendTitle => 'Meal Flow';
 
   @override
   String get mealStatsTodayRiceBowlTitle => 'Latest rice bowls';
@@ -1228,6 +1228,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealStatsBestDay => 'Best day';
+
+  @override
+  String get mealIncreaseAction => 'Add bowl';
+
+  @override
+  String get mealDecreaseAction => 'Remove bowl';
 
   @override
   String get mealStatsWeightLinkedHint =>
