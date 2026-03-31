@@ -24,10 +24,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabStats => 'Stats';
 
   @override
+  String get tabDiary => 'Diary';
+
+  @override
   String get tabNews => 'Today News';
 
   @override
   String get tabGame => 'Mini Game';
+
+  @override
+  String get drawerMainScreens => 'Main screens';
+
+  @override
+  String get drawerQuickAdd => 'Quick add';
+
+  @override
+  String get drawerToolsContent => 'Tools and content';
+
+  @override
+  String get drawerTrainingPlan => 'Training plan';
+
+  @override
+  String get drawerMatch => 'Match';
+
+  @override
+  String get drawerAddTrainingSketch => 'Add training sketch';
+
+  @override
+  String get drawerNotifications => 'Notifications';
+
+  @override
+  String get drawerQuiz => 'Quiz';
 
   @override
   String get addEntry => 'Add Entry';
@@ -1260,6 +1287,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fortuneDialogSubtitle => 'A short reading for today.';
+
+  @override
+  String get fortuneDialogOverviewTitle => 'Fortune overview';
+
+  @override
+  String get fortuneDialogOverallFortuneLabel => 'Overall fortune';
+
+  @override
+  String get fortuneDialogLuckyInfoLabel => 'Lucky info';
+
+  @override
+  String fortuneDialogOverallFortuneCount(int count) {
+    return '$count lines';
+  }
+
+  @override
+  String fortuneDialogLuckyInfoCount(int count) {
+    return '$count items';
+  }
 
   @override
   String get fortuneDialogLuckyInfoTitle => 'Lucky info';

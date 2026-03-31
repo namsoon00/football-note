@@ -36,7 +36,6 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     return Drawer(
       child: SafeArea(
         child: ListView(
@@ -53,10 +52,10 @@ class AppDrawer extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Text(
-                isKo ? '주요 화면' : 'Main screens',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                l10n.drawerMainScreens,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             _NavTile(
@@ -83,9 +82,15 @@ class AppDrawer extends StatelessWidget {
               selected: currentIndex == 3,
               onTap: () => _navigateTo(context, 3),
             ),
+            _NavTile(
+              icon: Icons.auto_stories_outlined,
+              label: l10n.tabDiary,
+              selected: currentIndex == 4,
+              onTap: () => _navigateTo(context, 4),
+            ),
             const SizedBox(height: 4),
             _DrawerSection(
-              title: isKo ? '빠른 추가' : 'Quick add',
+              title: l10n.drawerQuickAdd,
               icon: Icons.add_circle_outline,
               initiallyExpanded: true,
               children: [
@@ -109,7 +114,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 _DrawerActionTile(
                   icon: Icons.event_note_outlined,
-                  label: isKo ? '훈련 계획' : 'Training plan',
+                  label: l10n.drawerTrainingPlan,
                   onTap: () => _navigateTo(
                     context,
                     2,
@@ -118,7 +123,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 _DrawerActionTile(
                   icon: Icons.sports_soccer_outlined,
-                  label: isKo ? '시합' : 'Match',
+                  label: l10n.drawerMatch,
                   onTap: () => _navigateTo(
                     context,
                     2,
@@ -127,7 +132,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 _DrawerActionTile(
                   icon: Icons.developer_board_outlined,
-                  label: isKo ? '훈련 스케치' : 'Add training sketch',
+                  label: l10n.drawerAddTrainingSketch,
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
@@ -144,7 +149,7 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
             _DrawerSection(
-              title: isKo ? '도구와 콘텐츠' : 'Tools and content',
+              title: l10n.drawerToolsContent,
               icon: Icons.dashboard_customize_outlined,
               children: [
                 _DrawerActionTile(
@@ -168,7 +173,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 _DrawerActionTile(
                   icon: Icons.notifications_outlined,
-                  label: isKo ? '알림' : 'Notifications',
+                  label: l10n.drawerNotifications,
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
@@ -183,14 +188,13 @@ class AppDrawer extends StatelessWidget {
                 ),
                 _DrawerActionTile(
                   icon: Icons.quiz_outlined,
-                  label: isKo ? '퀴즈' : 'Quiz',
+                  label: l10n.drawerQuiz,
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => SkillQuizScreen(
-                          optionRepository: optionRepository,
-                        ),
+                        builder: (_) =>
+                            SkillQuizScreen(optionRepository: optionRepository),
                       ),
                     );
                   },
@@ -198,7 +202,7 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
             _DrawerSection(
-              title: isKo ? '설정' : 'Settings',
+              title: l10n.settings,
               icon: Icons.settings_outlined,
               children: [
                 _DrawerActionTile(

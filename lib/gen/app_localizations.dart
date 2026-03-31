@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Stats'**
   String get tabStats;
 
+  /// No description provided for @tabDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'Diary'**
+  String get tabDiary;
+
   /// No description provided for @tabNews.
   ///
   /// In en, this message translates to:
@@ -139,6 +145,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mini Game'**
   String get tabGame;
+
+  /// No description provided for @drawerMainScreens.
+  ///
+  /// In en, this message translates to:
+  /// **'Main screens'**
+  String get drawerMainScreens;
+
+  /// No description provided for @drawerQuickAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick add'**
+  String get drawerQuickAdd;
+
+  /// No description provided for @drawerToolsContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools and content'**
+  String get drawerToolsContent;
+
+  /// No description provided for @drawerTrainingPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Training plan'**
+  String get drawerTrainingPlan;
+
+  /// No description provided for @drawerMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get drawerMatch;
+
+  /// No description provided for @drawerAddTrainingSketch.
+  ///
+  /// In en, this message translates to:
+  /// **'Add training sketch'**
+  String get drawerAddTrainingSketch;
+
+  /// No description provided for @drawerNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get drawerNotifications;
+
+  /// No description provided for @drawerQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz'**
+  String get drawerQuiz;
 
   /// No description provided for @addEntry.
   ///
@@ -2395,6 +2449,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A short reading for today.'**
   String get fortuneDialogSubtitle;
+
+  /// No description provided for @fortuneDialogOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fortune overview'**
+  String get fortuneDialogOverviewTitle;
+
+  /// No description provided for @fortuneDialogOverallFortuneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall fortune'**
+  String get fortuneDialogOverallFortuneLabel;
+
+  /// No description provided for @fortuneDialogLuckyInfoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lucky info'**
+  String get fortuneDialogLuckyInfoLabel;
+
+  /// No description provided for @fortuneDialogOverallFortuneCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lines'**
+  String fortuneDialogOverallFortuneCount(int count);
+
+  /// No description provided for @fortuneDialogLuckyInfoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String fortuneDialogLuckyInfoCount(int count);
 
   /// No description provided for @fortuneDialogLuckyInfoTitle.
   ///

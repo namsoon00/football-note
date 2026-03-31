@@ -27,6 +27,7 @@ import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/rice_bowl_summary.dart';
+import '../widgets/fortune_card.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/training_board_sketch.dart';
 import 'news_screen.dart';
@@ -146,7 +147,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               localeService: widget.localeService!,
               settingsService: widget.settingsService!,
               driveBackupService: widget.driveBackupService,
-              currentIndex: 0,
+              currentIndex: 4,
             )
           : null,
       body: _DiaryNotebookBackground(
@@ -780,6 +781,37 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final isNewsSticker = sticker.kind == _DiaryRecordStickerKind.news;
     final isMealSticker = sticker.kind == _DiaryRecordStickerKind.meal;
     final isFortuneSticker = sticker.kind == _DiaryRecordStickerKind.fortune;
+    if (isFortuneSticker && sticker.fortune != null) {
+      final fortune = sticker.fortune!;
+      return Container(
+        key: ValueKey('diary-record-sticker-${sticker.id}'),
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 10),
+        child: FortuneCard(
+          sections: FortuneSections(
+            bodyLines: fortune.bodyLines,
+            luckyInfoLines: fortune.luckyInfoLines,
+          ),
+          title: sticker.title,
+          subtitle: _formatDiaryDate(fortune.entryDate),
+          luckyInfoTitle: _l10n.fortuneDialogLuckyInfoTitle,
+          overviewTitle: _l10n.fortuneDialogOverviewTitle,
+          overallFortuneLabel: _l10n.fortuneDialogOverallFortuneLabel,
+          overallFortuneCount: _l10n.fortuneDialogOverallFortuneCount(
+            fortune.bodyLines.length,
+          ),
+          luckyInfoLabel: _l10n.fortuneDialogLuckyInfoLabel,
+          luckyInfoCount: _l10n.fortuneDialogLuckyInfoCount(
+            fortune.luckyInfoLines.length,
+          ),
+          encouragement: fortune.recommendation.trim().isEmpty
+              ? null
+              : fortune.recommendation.trim(),
+          isKo: _isKo,
+          compact: true,
+        ),
+      );
+    }
     final content = Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
@@ -1532,6 +1564,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           summary: fortune.composeText(_isKo),
           icon: Icons.auto_awesome_outlined,
           tint: const Color(0xFF9B51E0),
+          fortune: fortune,
         );
       case _DiaryRecordStickerKind.board:
         final board = day.boards.cast<TrainingBoard?>().firstWhere(
@@ -3578,6 +3611,7 @@ class _DiaryRecordStickerViewData {
   final TrainingMethodPage? boardPage;
   final String? link;
   final MealEntry? mealEntry;
+  final _DiaryFortune? fortune;
 
   const _DiaryRecordStickerViewData({
     required this.id,
@@ -3589,6 +3623,7 @@ class _DiaryRecordStickerViewData {
     this.boardPage,
     this.link,
     this.mealEntry,
+    this.fortune,
   });
 }
 

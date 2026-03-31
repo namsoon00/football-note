@@ -24,10 +24,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabStats => '통계';
 
   @override
+  String get tabDiary => '다이어리';
+
+  @override
   String get tabNews => '오늘의 소식';
 
   @override
   String get tabGame => '미니게임';
+
+  @override
+  String get drawerMainScreens => '주요 화면';
+
+  @override
+  String get drawerQuickAdd => '빠른 추가';
+
+  @override
+  String get drawerToolsContent => '도구와 콘텐츠';
+
+  @override
+  String get drawerTrainingPlan => '훈련 계획';
+
+  @override
+  String get drawerMatch => '시합';
+
+  @override
+  String get drawerAddTrainingSketch => '훈련 스케치';
+
+  @override
+  String get drawerNotifications => '알림';
+
+  @override
+  String get drawerQuiz => '퀴즈';
 
   @override
   String get addEntry => '기록 추가';
@@ -1236,6 +1263,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fortuneDialogSubtitle => '오늘 흐름을 짧게 읽어보세요.';
+
+  @override
+  String get fortuneDialogOverviewTitle => '운세 보기';
+
+  @override
+  String get fortuneDialogOverallFortuneLabel => '전체 운세';
+
+  @override
+  String get fortuneDialogLuckyInfoLabel => '행운 정보';
+
+  @override
+  String fortuneDialogOverallFortuneCount(int count) {
+    return '$count줄';
+  }
+
+  @override
+  String fortuneDialogLuckyInfoCount(int count) {
+    return '$count개';
+  }
 
   @override
   String get fortuneDialogLuckyInfoTitle => '행운 정보';

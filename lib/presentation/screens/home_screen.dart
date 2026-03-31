@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
         embeddedInHomeTab: true,
       ),
     ];
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: NavigationBar(
@@ -159,27 +159,27 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
             selectedIcon: const Icon(Icons.home),
-            label: AppLocalizations.of(context)!.tabHome,
+            label: l10n.tabHome,
           ),
           NavigationDestination(
             icon: const Icon(Icons.list_alt_outlined),
             selectedIcon: const Icon(Icons.list_alt),
-            label: AppLocalizations.of(context)!.tabLogs,
+            label: l10n.tabLogs,
           ),
           NavigationDestination(
             icon: const Icon(Icons.calendar_month_outlined),
             selectedIcon: const Icon(Icons.calendar_month),
-            label: AppLocalizations.of(context)!.tabCalendar,
+            label: l10n.tabCalendar,
           ),
           NavigationDestination(
             icon: const Icon(Icons.bar_chart_outlined),
             selectedIcon: const Icon(Icons.bar_chart),
-            label: AppLocalizations.of(context)!.tabStats,
+            label: l10n.tabStats,
           ),
           NavigationDestination(
             icon: const Icon(Icons.auto_stories_outlined),
             selectedIcon: const Icon(Icons.auto_stories),
-            label: isKo ? '다이어리' : 'Diary',
+            label: l10n.tabDiary,
           ),
         ],
       ),

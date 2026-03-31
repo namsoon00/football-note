@@ -4,8 +4,17 @@
   "tabLogs": "Logs",
   "tabCalendar": "Calendar",
   "tabStats": "Stats",
+  "tabDiary": "Diary",
   "tabNews": "Today News",
   "tabGame": "Mini Game",
+  "drawerMainScreens": "Main screens",
+  "drawerQuickAdd": "Quick add",
+  "drawerToolsContent": "Tools and content",
+  "drawerTrainingPlan": "Training plan",
+  "drawerMatch": "Match",
+  "drawerAddTrainingSketch": "Add training sketch",
+  "drawerNotifications": "Notifications",
+  "drawerQuiz": "Quiz",
   "addEntry": "Add Entry",
   "editEntry": "Edit Entry",
   "save": "Save",
@@ -469,6 +478,25 @@
   "homeRiceBowlEmpty": "Skipped",
   "fortuneDialogTitle": "Today fortune",
   "fortuneDialogSubtitle": "A short reading for today.",
+  "fortuneDialogOverviewTitle": "Fortune overview",
+  "fortuneDialogOverallFortuneLabel": "Overall fortune",
+  "fortuneDialogLuckyInfoLabel": "Lucky info",
+  "fortuneDialogOverallFortuneCount": "{count} lines",
+  "@fortuneDialogOverallFortuneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fortuneDialogLuckyInfoCount": "{count} items",
+  "@fortuneDialogLuckyInfoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "fortuneDialogLuckyInfoTitle": "Lucky info",
   "fortuneDialogEncouragement": "Cheering for your best play today.",
   "fortuneDialogAction": "Nice",

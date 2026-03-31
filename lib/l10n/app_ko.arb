@@ -4,8 +4,17 @@
   "tabLogs": "훈련기록",
   "tabCalendar": "캘린더",
   "tabStats": "통계",
+  "tabDiary": "다이어리",
   "tabNews": "오늘의 소식",
   "tabGame": "미니게임",
+  "drawerMainScreens": "주요 화면",
+  "drawerQuickAdd": "빠른 추가",
+  "drawerToolsContent": "도구와 콘텐츠",
+  "drawerTrainingPlan": "훈련 계획",
+  "drawerMatch": "시합",
+  "drawerAddTrainingSketch": "훈련 스케치",
+  "drawerNotifications": "알림",
+  "drawerQuiz": "퀴즈",
   "addEntry": "기록 추가",
   "editEntry": "기록 수정",
   "save": "저장",
@@ -469,6 +478,25 @@
   "homeRiceBowlEmpty": "안 먹음",
   "fortuneDialogTitle": "오늘의 운세",
   "fortuneDialogSubtitle": "오늘 흐름을 짧게 읽어보세요.",
+  "fortuneDialogOverviewTitle": "운세 보기",
+  "fortuneDialogOverallFortuneLabel": "전체 운세",
+  "fortuneDialogLuckyInfoLabel": "행운 정보",
+  "fortuneDialogOverallFortuneCount": "{count}줄",
+  "@fortuneDialogOverallFortuneCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fortuneDialogLuckyInfoCount": "{count}개",
+  "@fortuneDialogLuckyInfoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "fortuneDialogLuckyInfoTitle": "행운 정보",
   "fortuneDialogEncouragement": "오늘도 멋진 플레이를 응원할게요.",
   "fortuneDialogAction": "좋아요",
