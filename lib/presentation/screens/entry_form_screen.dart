@@ -1113,21 +1113,26 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                 onPressed:
                                     (_saveInProgress || _deleteInProgress)
                                     ? null
-                                    : (isEdit ? _confirmAndDelete : _save),
-                                icon: Icon(
-                                  isEdit
-                                      ? Icons.delete_outline
-                                      : Icons.save_outlined,
-                                  size: 18,
-                                  color: isEdit ? Colors.red : null,
-                                ),
-                                label: Text(
-                                  isEdit ? l10n.deleteEntry : l10n.save,
-                                  style: TextStyle(
-                                    color: isEdit ? Colors.red : null,
+                                    : _save,
+                                icon: const Icon(Icons.save_outlined, size: 18),
+                                label: Text(l10n.save),
+                              ),
+                              if (isEdit)
+                                TextButton.icon(
+                                  onPressed:
+                                      (_saveInProgress || _deleteInProgress)
+                                      ? null
+                                      : _confirmAndDelete,
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    size: 18,
+                                    color: Colors.red,
+                                  ),
+                                  label: Text(
+                                    l10n.deleteEntry,
+                                    style: const TextStyle(color: Colors.red),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ),

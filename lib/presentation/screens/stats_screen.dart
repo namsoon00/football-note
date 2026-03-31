@@ -19,7 +19,6 @@ import '../widgets/app_background.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../widgets/app_drawer.dart';
-import '../widgets/rice_bowl_summary.dart';
 import '../widgets/shared_tab_header.dart';
 import '../../domain/repositories/option_repository.dart';
 import 'average_benchmark_screen.dart';
@@ -1677,9 +1676,6 @@ class _MealTrendCard extends StatelessWidget {
       (best, current) =>
           current.totalRiceBowls > best.totalRiceBowls ? current : best,
     );
-    final sortedEntries = [...mealEntries]
-      ..sort(MealEntry.compareByRecentCreated);
-    final latestEntry = sortedEntries.isEmpty ? null : sortedEntries.first;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1689,37 +1685,11 @@ class _MealTrendCard extends StatelessWidget {
           title: l10n.mealStatsSectionTitle,
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _MetricCard(
-              label: l10n.mealStatsLoggedDays,
-              value: '${mealEntries.length}',
-            ),
-            _MetricCard(
-              label: l10n.mealStatsActualAverage,
-              value: l10n.mealAverageActualValue(_formatBowls(averageActual)),
-            ),
-            _MetricCard(
-              label: l10n.mealStatsBestDay,
-              value:
-                  '${bestDay.date.month}/${bestDay.date.day} · ${_formatBowls(bestDay.totalRiceBowls)}',
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        RiceBowlSummaryCard(
-          entry: latestEntry,
-          title: l10n.mealStatsTodayRiceBowlTitle,
-          subtitle: l10n.mealStatsTrendTitle,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-          backgroundColor: Theme.of(
+        Text(
+          l10n.mealStatsTrendTitle,
+          style: Theme.of(
             context,
-          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-          borderColor: Theme.of(
-            context,
-          ).colorScheme.outline.withValues(alpha: 0.12),
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 14),
         SizedBox(
@@ -1822,6 +1792,26 @@ class _MealTrendCard extends StatelessWidget {
             _LegendDot(color: dinnerColor, label: l10n.mealDinner),
           ],
         ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _CompactMetricChip(
+              label: l10n.mealStatsLoggedDays,
+              value: '${mealEntries.length}',
+            ),
+            _CompactMetricChip(
+              label: l10n.mealStatsActualAverage,
+              value: l10n.mealAverageActualValue(_formatBowls(averageActual)),
+            ),
+            _CompactMetricChip(
+              label: l10n.mealStatsBestDay,
+              value:
+                  '${bestDay.date.month}/${bestDay.date.day} · ${_formatBowls(bestDay.totalRiceBowls)}',
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -1872,6 +1862,49 @@ class _MealTrendCard extends StatelessWidget {
     return bowls == bowls.truncateToDouble()
         ? bowls.toStringAsFixed(0)
         : bowls.toStringAsFixed(1);
+  }
+}
+
+class _CompactMetricChip extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _CompactMetricChip({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(minWidth: 110),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.14),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

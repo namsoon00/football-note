@@ -248,6 +248,8 @@ void main() {
     expect(find.textContaining('평균 기대치 3공기'), findsOneWidget);
     expect(find.textContaining('평균 실제 2.5공기'), findsOneWidget);
     expect(find.text('식사 그래프'), findsOneWidget);
+    expect(find.text('최근 기록 공기밥'), findsNothing);
+    expect(find.text('기록 일수'), findsOneWidget);
     expect(find.byType(BarChart), findsOneWidget);
     expect(find.text('아침'), findsWidgets);
     expect(find.text('점심'), findsWidgets);
