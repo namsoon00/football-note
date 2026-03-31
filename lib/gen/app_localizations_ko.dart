@@ -1232,7 +1232,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeRiceBowlEmpty => '안 먹음';
 
   @override
+  String get fortuneDialogTitle => '오늘의 운세';
+
+  @override
   String get fortuneDialogSubtitle => '오늘 흐름을 짧게 읽어보세요.';
+
+  @override
+  String get fortuneDialogLuckyInfoTitle => '행운 정보';
+
+  @override
+  String get fortuneDialogEncouragement => '오늘도 멋진 플레이를 응원할게요.';
+
+  @override
+  String get fortuneDialogAction => '좋아요';
 
   @override
   String get mealStatsNoTrainingOrMealEntries => '선택한 기간에 훈련 기록과 식사 기록이 없습니다.';

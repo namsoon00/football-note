@@ -2384,11 +2384,35 @@ abstract class AppLocalizations {
   /// **'Skipped'**
   String get homeRiceBowlEmpty;
 
+  /// No description provided for @fortuneDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today fortune'**
+  String get fortuneDialogTitle;
+
   /// No description provided for @fortuneDialogSubtitle.
   ///
   /// In en, this message translates to:
   /// **'A short reading for today.'**
   String get fortuneDialogSubtitle;
+
+  /// No description provided for @fortuneDialogLuckyInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lucky info'**
+  String get fortuneDialogLuckyInfoTitle;
+
+  /// No description provided for @fortuneDialogEncouragement.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheering for your best play today.'**
+  String get fortuneDialogEncouragement;
+
+  /// No description provided for @fortuneDialogAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice'**
+  String get fortuneDialogAction;
 
   /// No description provided for @mealStatsNoTrainingOrMealEntries.
   ///

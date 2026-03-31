@@ -467,6 +467,10 @@
   "homeRiceBowlFull": "Full bowl",
   "homeRiceBowlHalf": "Half bowl",
   "homeRiceBowlEmpty": "Skipped",
+  "fortuneDialogTitle": "Today fortune",
   "fortuneDialogSubtitle": "A short reading for today.",
+  "fortuneDialogLuckyInfoTitle": "Lucky info",
+  "fortuneDialogEncouragement": "Cheering for your best play today.",
+  "fortuneDialogAction": "Nice",
   "mealStatsNoTrainingOrMealEntries": "No training or meal entries in the selected period."
 }
