@@ -2799,11 +2799,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final titleColor = isDark
         ? theme.colorScheme.onSurface
         : theme.colorScheme.onSurface;
-    final lines = fortuneComment
-        .split('\n')
-        .map((line) => line.trim())
-        .where((line) => line.isNotEmpty)
-        .toList(growable: false);
+    final sections = _FortuneDialogSections.fromComment(fortuneComment);
     final reduced = AppMotion.reduceMotion(context);
     await showGeneralDialog<void>(
       context: context,
@@ -2828,9 +2824,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               accentFg: accentFg,
               contentBg: contentBg,
               gradientColors: gradientColors,
-              lines: lines,
+              bodyLines: sections.bodyLines,
+              luckyInfoLines: sections.luckyInfoLines,
               isDark: isDark,
               subtitle: l10n.fortuneDialogSubtitle,
+              title: l10n.fortuneDialogTitle,
+              luckyInfoTitle: l10n.fortuneDialogLuckyInfoTitle,
+              encouragement: l10n.fortuneDialogEncouragement,
+              actionLabel: l10n.fortuneDialogAction,
             ),
           );
         }
@@ -2848,9 +2849,14 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               accentFg: accentFg,
               contentBg: contentBg,
               gradientColors: gradientColors,
-              lines: lines,
+              bodyLines: sections.bodyLines,
+              luckyInfoLines: sections.luckyInfoLines,
               isDark: isDark,
               subtitle: l10n.fortuneDialogSubtitle,
+              title: l10n.fortuneDialogTitle,
+              luckyInfoTitle: l10n.fortuneDialogLuckyInfoTitle,
+              encouragement: l10n.fortuneDialogEncouragement,
+              actionLabel: l10n.fortuneDialogAction,
             ),
           ),
         );
@@ -2865,122 +2871,182 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required Color accentFg,
     required Color contentBg,
     required List<Color> gradientColors,
-    required List<String> lines,
+    required List<String> bodyLines,
+    required List<String> luckyInfoLines,
     required bool isDark,
     required String subtitle,
+    required String title,
+    required String luckyInfoTitle,
+    required String encouragement,
+    required String actionLabel,
   }) {
+    final dialogMaxHeight = MediaQuery.sizeOf(context).height * 0.82;
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradientColors,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 560, maxHeight: dialogMaxHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradientColors,
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: accentBg,
-                    ),
-                    child: Icon(Icons.auto_awesome, color: accentFg),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isKo ? '오늘의 운세' : 'Today fortune',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                color: titleColor,
-                                letterSpacing: 0.3,
-                              ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: titleColor.withValues(alpha: 0.72),
-                                fontStyle: FontStyle.italic,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                decoration: BoxDecoration(
-                  color: contentBg,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    for (var i = 0; i < lines.length; i++)
-                      Container(
-                        width: double.infinity,
-                        margin: EdgeInsets.only(
-                          bottom: i == lines.length - 1 ? 0 : 8,
-                        ),
-                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                        decoration: BoxDecoration(
-                          color: accentBg.withValues(
-                            alpha: isDark ? 0.2 : 0.24,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text(
-                          lines[i],
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                color: titleColor,
-                                height: 1.72,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: accentBg,
                       ),
-                    Text(
-                      isKo
-                          ? '오늘도 멋진 플레이를 응원할게요.'
-                          : 'Cheering for your best play today.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      child: Icon(Icons.auto_awesome, color: accentFg),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: titleColor,
+                                  letterSpacing: 0.3,
+                                ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: titleColor.withValues(alpha: 0.72),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(isKo ? '좋아요' : 'Nice'),
+                const SizedBox(height: 12),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                      decoration: BoxDecoration(
+                        color: contentBg,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var i = 0; i < bodyLines.length; i++)
+                            Container(
+                              width: double.infinity,
+                              margin: EdgeInsets.only(
+                                bottom:
+                                    i == bodyLines.length - 1 &&
+                                        luckyInfoLines.isEmpty
+                                    ? 0
+                                    : 8,
+                              ),
+                              padding: const EdgeInsets.fromLTRB(
+                                12,
+                                10,
+                                12,
+                                10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accentBg.withValues(
+                                  alpha: isDark ? 0.2 : 0.24,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                bodyLines[i],
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: titleColor,
+                                      height: 1.72,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ),
+                          if (luckyInfoLines.isNotEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.fromLTRB(
+                                12,
+                                12,
+                                12,
+                                12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accentBg.withValues(
+                                  alpha: isDark ? 0.24 : 0.3,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    luckyInfoTitle,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: titleColor,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    luckyInfoLines.join('\n'),
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(
+                                          color: titleColor,
+                                          height: 1.72,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          const SizedBox(height: 10),
+                          Text(
+                            encouragement,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(actionLabel),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -3398,6 +3464,52 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   String _liftingText(Map<String, int> liftingByPart, String key) {
     final value = liftingByPart[key] ?? 0;
     return value <= 0 ? '' : value.toString();
+  }
+}
+
+class _FortuneDialogSections {
+  final List<String> bodyLines;
+  final List<String> luckyInfoLines;
+
+  const _FortuneDialogSections({
+    required this.bodyLines,
+    required this.luckyInfoLines,
+  });
+
+  factory _FortuneDialogSections.fromComment(String fortuneComment) {
+    final lines = fortuneComment
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
+    final bodyLines = <String>[];
+    final luckyInfoLines = <String>[];
+    var inLuckySection = false;
+
+    for (final line in lines) {
+      if (_isLuckyInfoHeader(line)) {
+        inLuckySection = true;
+        continue;
+      }
+      if (inLuckySection || _isLuckyInfoLine(line)) {
+        luckyInfoLines.add(line);
+        continue;
+      }
+      bodyLines.add(line);
+    }
+
+    return _FortuneDialogSections(
+      bodyLines: bodyLines,
+      luckyInfoLines: luckyInfoLines,
+    );
+  }
+
+  static bool _isLuckyInfoHeader(String line) {
+    return line == '[행운 정보]' || line == '[Lucky info]';
+  }
+
+  static bool _isLuckyInfoLine(String line) {
+    return line.startsWith('행운 ') || line.startsWith('Lucky ');
   }
 }
 

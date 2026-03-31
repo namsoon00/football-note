@@ -1256,7 +1256,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRiceBowlEmpty => 'Skipped';
 
   @override
+  String get fortuneDialogTitle => 'Today fortune';
+
+  @override
   String get fortuneDialogSubtitle => 'A short reading for today.';
+
+  @override
+  String get fortuneDialogLuckyInfoTitle => 'Lucky info';
+
+  @override
+  String get fortuneDialogEncouragement => 'Cheering for your best play today.';
+
+  @override
+  String get fortuneDialogAction => 'Nice';
 
   @override
   String get mealStatsNoTrainingOrMealEntries =>

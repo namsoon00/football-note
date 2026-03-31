@@ -467,6 +467,10 @@
   "homeRiceBowlFull": "한 공기",
   "homeRiceBowlHalf": "반 공기",
   "homeRiceBowlEmpty": "안 먹음",
+  "fortuneDialogTitle": "오늘의 운세",
   "fortuneDialogSubtitle": "오늘 흐름을 짧게 읽어보세요.",
+  "fortuneDialogLuckyInfoTitle": "행운 정보",
+  "fortuneDialogEncouragement": "오늘도 멋진 플레이를 응원할게요.",
+  "fortuneDialogAction": "좋아요",
   "mealStatsNoTrainingOrMealEntries": "선택한 기간에 훈련 기록과 식사 기록이 없습니다."
 }
