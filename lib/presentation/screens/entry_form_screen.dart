@@ -2786,67 +2786,46 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     String recommendedProgram = '',
   }) async {
     if (fortuneComment.trim().isEmpty) return;
+    if (!mounted || _disposing) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final sections = FortuneSections.fromComment(fortuneComment);
-    final reduced = AppMotion.reduceMotion(context);
-    await showGeneralDialog<void>(
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+    String formattedPoolSize;
+    try {
+      formattedPoolSize = NumberFormat.decimalPattern(
+        localeName,
+      ).format(LocalFortuneService.totalFortunePoolCount);
+    } catch (_) {
+      formattedPoolSize = NumberFormat.decimalPattern(
+        Localizations.localeOf(context).languageCode,
+      ).format(LocalFortuneService.totalFortunePoolCount);
+    }
+    await showDialog<void>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: l10n.fortuneDialogTitle,
-      barrierColor: Colors.black45,
-      transitionDuration: AppMotion.base(context),
-      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
-      transitionBuilder: (context, animation, _, __) {
-        final eased = CurvedAnimation(
-          parent: animation,
-          curve: AppMotion.curveEnter,
-          reverseCurve: AppMotion.curveExit,
-        );
-        if (reduced) {
-          return FadeTransition(
-            opacity: animation,
-            child: _fortuneDialogBody(
-              isKo: isKo,
-              sections: sections,
-              l10n: l10n,
-              recommendation: recommendation,
-              recommendedProgram: recommendedProgram,
-            ),
-          );
-        }
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.08),
-              end: Offset.zero,
-            ).animate(eased),
-            child: _fortuneDialogBody(
-              isKo: isKo,
-              sections: sections,
-              l10n: l10n,
-              recommendation: recommendation,
-              recommendedProgram: recommendedProgram,
-            ),
-          ),
-        );
-      },
+      builder: (dialogContext) => _fortuneDialogBody(
+        contextForClose: dialogContext,
+        isKo: isKo,
+        sections: sections,
+        l10n: l10n,
+        recommendation: recommendation,
+        recommendedProgram: recommendedProgram,
+        formattedPoolSize: formattedPoolSize,
+      ),
     );
   }
 
   Widget _fortuneDialogBody({
+    required BuildContext contextForClose,
     required bool isKo,
     required FortuneSections sections,
     required AppLocalizations l10n,
     required String recommendation,
     required String recommendedProgram,
+    required String formattedPoolSize,
   }) {
     final dialogMaxHeight = MediaQuery.sizeOf(context).height * 0.82;
-    final localeName = Localizations.localeOf(context).toLanguageTag();
-    final formattedPoolSize = NumberFormat.decimalPattern(
-      localeName,
-    ).format(LocalFortuneService.totalFortunePoolCount);
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
       backgroundColor: Colors.transparent,
@@ -2878,8 +2857,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             encouragement: l10n.fortuneDialogEncouragement,
             actionLabel: l10n.fortuneDialogAction,
             isKo: isKo,
-            onActionPressed: () =>
-                Navigator.of(context, rootNavigator: true).pop(),
+            onActionPressed: () => Navigator.of(contextForClose).pop(),
           ),
         ),
       ),
