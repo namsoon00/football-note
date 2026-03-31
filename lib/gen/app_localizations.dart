@@ -2486,6 +2486,18 @@ abstract class AppLocalizations {
   /// **'Lucky info'**
   String get fortuneDialogLuckyInfoTitle;
 
+  /// No description provided for @fortuneDialogRecommendedProgramTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended training'**
+  String get fortuneDialogRecommendedProgramTitle;
+
+  /// No description provided for @fortuneDialogRecommendationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fortune note'**
+  String get fortuneDialogRecommendationTitle;
+
   /// No description provided for @fortuneDialogEncouragement.
   ///
   /// In en, this message translates to:

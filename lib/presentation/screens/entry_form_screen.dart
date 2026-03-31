@@ -2416,7 +2416,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       isKo: isKo,
     );
     if (!mounted) return;
-    await _showFortuneRevealDialog(fortune.fortuneText);
+    await _showFortuneRevealDialog(
+      fortune.fortuneText,
+      recommendation: fortune.recommendationText,
+      recommendedProgram: fortune.recommendedProgram,
+    );
   }
 
   Future<void> _openTrainingBoardEditor() async {
@@ -2705,7 +2709,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
           ? generatedFortune.fortuneText
           : '';
       if (fortuneToShow.trim().isNotEmpty && popAfterSave) {
-        await _showFortuneRevealDialog(fortuneToShow);
+        await _showFortuneRevealDialog(
+          fortuneToShow,
+          recommendation: generatedFortune.recommendationText,
+          recommendedProgram: generatedFortune.recommendedProgram,
+        );
         if (!mounted) return;
       }
       if (popAfterSave && widget.entry == null && levelAward.didLevelUp) {
@@ -2779,7 +2787,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         : '$base $xpText · Reached Lv.${levelAward.after.level} $levelName';
   }
 
-  Future<void> _showFortuneRevealDialog(String fortuneComment) async {
+  Future<void> _showFortuneRevealDialog(
+    String fortuneComment, {
+    String recommendation = '',
+    String recommendedProgram = '',
+  }) async {
     if (fortuneComment.trim().isEmpty) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
@@ -2805,6 +2817,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               isKo: isKo,
               sections: sections,
               l10n: l10n,
+              recommendation: recommendation,
+              recommendedProgram: recommendedProgram,
             ),
           );
         }
@@ -2819,6 +2833,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               isKo: isKo,
               sections: sections,
               l10n: l10n,
+              recommendation: recommendation,
+              recommendedProgram: recommendedProgram,
             ),
           ),
         );
@@ -2830,6 +2846,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required bool isKo,
     required FortuneSections sections,
     required AppLocalizations l10n,
+    required String recommendation,
+    required String recommendedProgram,
   }) {
     final dialogMaxHeight = MediaQuery.sizeOf(context).height * 0.82;
     return Dialog(
@@ -2854,6 +2872,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             luckyInfoCount: l10n.fortuneDialogLuckyInfoCount(
               sections.luckyInfoLines.length,
             ),
+            recommendedProgramTitle: l10n.fortuneDialogRecommendedProgramTitle,
+            recommendedProgram: recommendedProgram,
+            recommendationTitle: l10n.fortuneDialogRecommendationTitle,
+            recommendation: recommendation,
             encouragement: l10n.fortuneDialogEncouragement,
             actionLabel: l10n.fortuneDialogAction,
             isKo: isKo,
