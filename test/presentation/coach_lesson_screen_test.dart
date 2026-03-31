@@ -277,6 +277,7 @@ void main() {
       _FakeTrainingRepository(<TrainingEntry>[
         TrainingEntry(
           date: DateTime(2026, 3, 15, 18, 0),
+          createdAt: DateTime(2026, 3, 15, 18, 0),
           durationMinutes: 45,
           intensity: 4,
           type: '패스',
@@ -284,6 +285,8 @@ void main() {
           injury: false,
           notes: '개인 다이어리 저장 테스트',
           location: '학교 운동장',
+          fortuneComment: '전체 흐름: 템포를 잃지 마세요.\n행운 색상: 하늘색',
+          fortuneRecommendation: '짧은 패스로 리듬을 유지해 보세요.',
         ),
       ]),
     );
@@ -323,38 +326,12 @@ void main() {
       '볼을 받기 전에 고개를 더 자주 들었고, 패스가 끊기지 않아서 기분이 좋았다.',
     );
     await tester.ensureVisible(
-      find.byKey(const ValueKey('diary-add-section-button')),
-    );
-    await tester.tap(find.byKey(const ValueKey('diary-add-section-button')));
-    await tester.pump();
-    await tester.enterText(
-      find.byKey(const ValueKey('diary-section-title-field-0')),
-      '오늘의 하이라이트',
-    );
-    await tester.enterText(
-      find.byKey(const ValueKey('diary-section-body-field-0')),
-      '원터치로 템포를 살린 장면이 가장 좋았다.',
-    );
-    await tester.ensureVisible(
-      find.byKey(const ValueKey('diary-add-section-button')),
-    );
-    await tester.tap(find.byKey(const ValueKey('diary-add-section-button')));
-    await tester.pump();
-    await tester.enterText(
-      find.byKey(const ValueKey('diary-section-title-field-1')),
-      '고마운 순간',
-    );
-    await tester.enterText(
-      find.byKey(const ValueKey('diary-section-body-field-1')),
-      '같이 패스 템포를 맞춰 준 팀원에게 고마웠다.',
-    );
-    await tester.ensureVisible(find.byKey(const ValueKey('diary-mood-proud')));
-    await tester.tap(find.byKey(const ValueKey('diary-mood-proud')));
-    await tester.pump();
-    await tester.ensureVisible(
       find.byKey(const ValueKey('diary-sticker-star')),
     );
     await tester.tap(find.byKey(const ValueKey('diary-sticker-star')));
+    await tester.pump();
+    await tester.ensureVisible(find.textContaining('운세 · 패스'));
+    await tester.tap(find.text('기록 스티커로 붙이기').last);
     await tester.pump();
     await tester.ensureVisible(find.byKey(const ValueKey('diary-save-button')));
     await tester.tap(find.byKey(const ValueKey('diary-save-button')));
@@ -365,19 +342,14 @@ void main() {
       find.byKey(const ValueKey('diary-story-2026-03-15')),
       findsOneWidget,
     );
-    expect(find.text('오늘의 하이라이트'), findsOneWidget);
-    expect(find.textContaining('원터치로 템포를 살린 장면'), findsOneWidget);
-    expect(find.text('고마운 순간'), findsOneWidget);
-    expect(find.textContaining('같이 패스 템포를 맞춰 준 팀원'), findsOneWidget);
-    expect(find.textContaining('오늘의 무드: 뿌듯함'), findsOneWidget);
+    expect(find.textContaining('볼을 받기 전에 고개를 더 자주 들었고'), findsOneWidget);
 
     final raw = optionRepository.getValue<String>('custom_diary_entries_v3');
     expect(raw, isNotNull);
     expect(raw, contains('비 온 날의 패스 노트'));
-    expect(raw, contains('sections'));
     expect(raw, contains('star'));
-    expect(raw, contains('proud'));
     expect(raw, contains('recordStickers'));
+    expect(raw, contains('"kind":"fortune"'));
   });
 
   testWidgets(
