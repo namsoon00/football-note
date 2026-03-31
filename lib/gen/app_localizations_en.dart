@@ -807,6 +807,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherAirQualityTitle => 'Air quality';
 
   @override
+  String get homeWeatherAirQualitySubtitle =>
+      'Lower numbers usually mean easier breathing outdoors.';
+
+  @override
   String get homeWeatherPm10 => 'PM10';
 
   @override
@@ -814,6 +818,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherAqi => 'AQI';
+
+  @override
+  String get homeWeatherAqiLabel => 'Air quality index';
+
+  @override
+  String get homeWeatherAqiDescription =>
+      'AQI is a simple score that shows how clean the air feels.';
+
+  @override
+  String get homeWeatherAqiScaleGood => '0-50 good';
+
+  @override
+  String get homeWeatherAqiScaleModerate => '51-100 moderate';
+
+  @override
+  String get homeWeatherAqiScaleSensitive => '101+ caution';
+
+  @override
+  String get homeWeatherTomorrowCondition => 'Condition';
+
+  @override
+  String get homeWeatherWeeklyDateLabel => 'Date';
+
+  @override
+  String get homeWeatherWeeklyConditionLabel => 'Forecast';
 
   @override
   String get homeWeatherStatusGood => 'Good';

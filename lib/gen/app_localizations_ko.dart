@@ -793,6 +793,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherAirQualityTitle => '대기질';
 
   @override
+  String get homeWeatherAirQualitySubtitle => '숫자가 낮을수록 숨쉬기 편한 공기예요.';
+
+  @override
   String get homeWeatherPm10 => '미세먼지 PM10';
 
   @override
@@ -800,6 +803,30 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherAqi => 'AQI';
+
+  @override
+  String get homeWeatherAqiLabel => '공기질 지수';
+
+  @override
+  String get homeWeatherAqiDescription => 'AQI는 공기 상태를 숫자로 보여주는 값이에요.';
+
+  @override
+  String get homeWeatherAqiScaleGood => '0-50 좋음';
+
+  @override
+  String get homeWeatherAqiScaleModerate => '51-100 보통';
+
+  @override
+  String get homeWeatherAqiScaleSensitive => '101 이상 주의';
+
+  @override
+  String get homeWeatherTomorrowCondition => '날씨 상태';
+
+  @override
+  String get homeWeatherWeeklyDateLabel => '날짜';
+
+  @override
+  String get homeWeatherWeeklyConditionLabel => '예보';
 
   @override
   String get homeWeatherStatusGood => '좋음';
