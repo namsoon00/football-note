@@ -2782,29 +2782,28 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     if (fortuneComment.trim().isEmpty) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final gradientColors = isDark
-        ? const <Color>[Color(0xFF1E2A3A), Color(0xFF25324A), Color(0xFF2F2B45)]
-        : const <Color>[
-            Color(0xFFFFF7E8),
-            Color(0xFFE9F8FF),
-            Color(0xFFF4EDFF),
-          ];
-    final accentBg = isDark ? const Color(0xFF4A3A12) : const Color(0xFFFFD77A);
-    final accentFg = isDark ? const Color(0xFFFFE8A3) : const Color(0xFF6A4E00);
-    final contentBg = isDark
-        ? theme.colorScheme.surface.withValues(alpha: 0.84)
-        : Colors.white.withValues(alpha: 0.78);
-    final titleColor = isDark
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurface;
+    const backdropGradient = <Color>[
+      Color(0xFFFFF6D7),
+      Color(0xFFFFE8C2),
+      Color(0xFFF8F3FF),
+    ];
+    const cardGradient = <Color>[
+      Color(0xFFFFFDF6),
+      Color(0xFFFFF4DB),
+      Color(0xFFFFF9EC),
+    ];
+    const frameColor = Color(0xFFE6C16A);
+    const frameSoftColor = Color(0xFFF7E3A4);
+    const accentColor = Color(0xFFAA7A14);
+    const titleColor = Color(0xFF493116);
+    const bodyColor = Color(0xFF5E4323);
+    const luckyCardColor = Color(0xFFFFF3CC);
     final sections = _FortuneDialogSections.fromComment(fortuneComment);
     final reduced = AppMotion.reduceMotion(context);
     await showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'fortune',
+      barrierLabel: l10n.fortuneDialogTitle,
       barrierColor: Colors.black45,
       transitionDuration: AppMotion.base(context),
       pageBuilder: (_, __, ___) => const SizedBox.shrink(),
@@ -2819,14 +2818,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             opacity: animation,
             child: _fortuneDialogBody(
               isKo: isKo,
+              backdropGradient: backdropGradient,
+              cardGradient: cardGradient,
+              frameColor: frameColor,
+              frameSoftColor: frameSoftColor,
+              accentColor: accentColor,
               titleColor: titleColor,
-              accentBg: accentBg,
-              accentFg: accentFg,
-              contentBg: contentBg,
-              gradientColors: gradientColors,
+              bodyColor: bodyColor,
+              luckyCardColor: luckyCardColor,
               bodyLines: sections.bodyLines,
               luckyInfoLines: sections.luckyInfoLines,
-              isDark: isDark,
               subtitle: l10n.fortuneDialogSubtitle,
               title: l10n.fortuneDialogTitle,
               luckyInfoTitle: l10n.fortuneDialogLuckyInfoTitle,
@@ -2844,14 +2845,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             ).animate(eased),
             child: _fortuneDialogBody(
               isKo: isKo,
+              backdropGradient: backdropGradient,
+              cardGradient: cardGradient,
+              frameColor: frameColor,
+              frameSoftColor: frameSoftColor,
+              accentColor: accentColor,
               titleColor: titleColor,
-              accentBg: accentBg,
-              accentFg: accentFg,
-              contentBg: contentBg,
-              gradientColors: gradientColors,
+              bodyColor: bodyColor,
+              luckyCardColor: luckyCardColor,
               bodyLines: sections.bodyLines,
               luckyInfoLines: sections.luckyInfoLines,
-              isDark: isDark,
               subtitle: l10n.fortuneDialogSubtitle,
               title: l10n.fortuneDialogTitle,
               luckyInfoTitle: l10n.fortuneDialogLuckyInfoTitle,
@@ -2866,14 +2869,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Widget _fortuneDialogBody({
     required bool isKo,
+    required List<Color> backdropGradient,
+    required List<Color> cardGradient,
+    required Color frameColor,
+    required Color frameSoftColor,
+    required Color accentColor,
     required Color titleColor,
-    required Color accentBg,
-    required Color accentFg,
-    required Color contentBg,
-    required List<Color> gradientColors,
+    required Color bodyColor,
+    required Color luckyCardColor,
     required List<String> bodyLines,
     required List<String> luckyInfoLines,
-    required bool isDark,
     required String subtitle,
     required String title,
     required String luckyInfoTitle,
@@ -2883,170 +2888,298 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final dialogMaxHeight = MediaQuery.sizeOf(context).height * 0.82;
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 560, maxHeight: dialogMaxHeight),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(32),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: gradientColors,
+              colors: backdropGradient,
             ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x26000000),
+                blurRadius: 28,
+                offset: Offset(0, 16),
+              ),
+            ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: accentBg,
-                      ),
-                      child: Icon(Icons.auto_awesome, color: accentFg),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: titleColor,
-                                  letterSpacing: 0.3,
-                                ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: titleColor.withValues(alpha: 0.72),
-                                  fontStyle: FontStyle.italic,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+          child: Stack(
+            children: [
+              Positioned(
+                top: 18,
+                right: 20,
+                child: Icon(
+                  Icons.auto_awesome,
+                  color: frameColor.withValues(alpha: 0.32),
+                  size: 54,
                 ),
-                const SizedBox(height: 12),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                      decoration: BoxDecoration(
-                        color: contentBg,
-                        borderRadius: BorderRadius.circular(16),
+              ),
+              Positioned(
+                left: 14,
+                top: 56,
+                child: Icon(
+                  Icons.wb_sunny_outlined,
+                  color: frameColor.withValues(alpha: 0.22),
+                  size: 72,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(color: frameColor, width: 1.6),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: cardGradient,
+                    ),
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: frameSoftColor.withValues(alpha: 0.9),
                       ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 20, 22, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          for (var i = 0; i < bodyLines.length; i++)
-                            Container(
-                              width: double.infinity,
-                              margin: EdgeInsets.only(
-                                bottom:
-                                    i == bodyLines.length - 1 &&
-                                        luckyInfoLines.isEmpty
-                                    ? 0
-                                    : 8,
-                              ),
-                              padding: const EdgeInsets.fromLTRB(
-                                12,
-                                10,
-                                12,
-                                10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: accentBg.withValues(
-                                  alpha: isDark ? 0.2 : 0.24,
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Text(
-                                bodyLines[i],
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(
-                                      color: titleColor,
-                                      height: 1.72,
-                                      fontWeight: FontWeight.w700,
+                          Center(
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withValues(alpha: 0.88),
+                                    border: Border.all(
+                                      color: frameColor,
+                                      width: 1.4,
                                     ),
-                              ),
-                            ),
-                          if (luckyInfoLines.isNotEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.fromLTRB(
-                                12,
-                                12,
-                                12,
-                                12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: accentBg.withValues(
-                                  alpha: isDark ? 0.24 : 0.3,
+                                  ),
+                                  child: Icon(
+                                    Icons.auto_awesome,
+                                    color: accentColor,
+                                    size: 28,
+                                  ),
                                 ),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  title,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        color: titleColor,
+                                        letterSpacing: isKo ? 0.2 : 0.8,
+                                      ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  subtitle,
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: bodyColor.withValues(
+                                          alpha: 0.76,
+                                        ),
+                                        fontStyle: FontStyle.italic,
+                                        height: 1.5,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Flexible(
+                            child: SingleChildScrollView(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    luckyInfoTitle,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          color: titleColor,
-                                          fontWeight: FontWeight.w900,
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      18,
+                                      16,
+                                      18,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.74,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: frameSoftColor.withValues(
+                                          alpha: 0.92,
                                         ),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        for (
+                                          var i = 0;
+                                          i < bodyLines.length;
+                                          i++
+                                        )
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                              bottom: i == bodyLines.length - 1
+                                                  ? 0
+                                                  : 12,
+                                            ),
+                                            child: Text(
+                                              bodyLines[i],
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge
+                                                  ?.copyWith(
+                                                    color: bodyColor,
+                                                    height: 1.78,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    luckyInfoLines.join('\n'),
-                                    style: Theme.of(context).textTheme.bodyLarge
-                                        ?.copyWith(
-                                          color: titleColor,
-                                          height: 1.72,
-                                          fontWeight: FontWeight.w700,
+                                  if (luckyInfoLines.isNotEmpty) ...[
+                                    const SizedBox(height: 14),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.fromLTRB(
+                                        16,
+                                        16,
+                                        16,
+                                        14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: luckyCardColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: frameColor.withValues(
+                                            alpha: 0.72,
+                                          ),
                                         ),
-                                  ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.wb_sunny_outlined,
+                                                color: accentColor,
+                                                size: 18,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                luckyInfoTitle,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall
+                                                    ?.copyWith(
+                                                      color: titleColor,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 10),
+                                          for (
+                                            var i = 0;
+                                            i < luckyInfoLines.length;
+                                            i++
+                                          )
+                                            Padding(
+                                              padding: EdgeInsets.only(
+                                                bottom:
+                                                    i ==
+                                                        luckyInfoLines.length -
+                                                            1
+                                                    ? 0
+                                                    : 8,
+                                              ),
+                                              child: Text(
+                                                luckyInfoLines[i],
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.copyWith(
+                                                      color: bodyColor,
+                                                      height: 1.58,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
-                          const SizedBox(height: 10),
-                          Text(
-                            encouragement,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.66),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              encouragement,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: titleColor,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: FilledButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: accentColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: Text(actionLabel),
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(actionLabel),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
