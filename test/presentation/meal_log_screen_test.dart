@@ -35,6 +35,10 @@ void main() {
     settingsService = SettingsService(optionRepository)..load();
   });
 
+  tearDown(() async {
+    await mealLogService.dispose();
+  });
+
   tearDownAll(() async {
     await optionBox.close();
     await Hive.close();
