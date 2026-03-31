@@ -343,6 +343,9 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('볼을 받기 전에 고개를 더 자주 들었고'), findsOneWidget);
+    expect(find.textContaining('전체 흐름: 템포를 잃지 마세요.'), findsOneWidget);
+    expect(find.textContaining('행운 색상: 하늘색'), findsOneWidget);
+    expect(find.textContaining('짧은 패스로 리듬을 유지해 보세요.'), findsWidgets);
 
     final raw = optionRepository.getValue<String>('custom_diary_entries_v3');
     expect(raw, isNotNull);

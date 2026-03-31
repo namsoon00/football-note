@@ -123,7 +123,7 @@ void main() {
     expect(find.text('open'), findsOneWidget);
   });
 
-  testWidgets('fortune dialog shows pool size without recommendation blocks', (
+  testWidgets('fortune dialog shows pool size and recommendation blocks', (
     WidgetTester tester,
   ) async {
     final original = TrainingEntry(
@@ -174,13 +174,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     await tester.tap(find.text('오늘의 운세'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('오늘의 운세'), findsOneWidget);
     expect(find.text('전체 운세 pool'), findsOneWidget);
     expect(find.text('$formattedPoolSize개'), findsOneWidget);
-    expect(find.text('추천 훈련'), findsNothing);
-    expect(find.text('운세 코멘트'), findsNothing);
-    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsNothing);
+    expect(find.text('추천 훈련'), findsOneWidget);
+    expect(find.text('운세 코멘트'), findsOneWidget);
+    expect(find.text('전진 패스 연계'), findsOneWidget);
+    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsOneWidget);
   });
 }
