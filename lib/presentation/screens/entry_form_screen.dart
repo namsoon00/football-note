@@ -2817,8 +2817,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               isKo: isKo,
               sections: sections,
               l10n: l10n,
-              recommendation: recommendation,
-              recommendedProgram: recommendedProgram,
             ),
           );
         }
@@ -2833,8 +2831,6 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               isKo: isKo,
               sections: sections,
               l10n: l10n,
-              recommendation: recommendation,
-              recommendedProgram: recommendedProgram,
             ),
           ),
         );
@@ -2846,10 +2842,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     required bool isKo,
     required FortuneSections sections,
     required AppLocalizations l10n,
-    required String recommendation,
-    required String recommendedProgram,
   }) {
     final dialogMaxHeight = MediaQuery.sizeOf(context).height * 0.82;
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+    final formattedPoolSize = NumberFormat.decimalPattern(
+      localeName,
+    ).format(LocalFortuneService.totalFortunePoolCount);
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
       backgroundColor: Colors.transparent,
@@ -2872,11 +2870,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             luckyInfoCount: l10n.fortuneDialogLuckyInfoCount(
               sections.luckyInfoLines.length,
             ),
-            recommendedProgramTitle: l10n.fortuneDialogRecommendedProgramTitle,
-            recommendedProgram: recommendedProgram,
-            recommendationTitle: l10n.fortuneDialogRecommendationTitle,
-            recommendation: recommendation,
-            encouragement: l10n.fortuneDialogEncouragement,
+            poolSizeLabel: l10n.fortuneDialogPoolSizeLabel,
+            poolSizeValue: l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
             actionLabel: l10n.fortuneDialogAction,
             isKo: isKo,
             onActionPressed: () => Navigator.of(context).pop(),

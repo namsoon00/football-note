@@ -2486,6 +2486,18 @@ abstract class AppLocalizations {
   /// **'Lucky info'**
   String get fortuneDialogLuckyInfoTitle;
 
+  /// No description provided for @fortuneDialogPoolSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fortune pool'**
+  String get fortuneDialogPoolSizeLabel;
+
+  /// No description provided for @fortuneDialogPoolSizeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} cases'**
+  String fortuneDialogPoolSizeCount(String count);
+
   /// No description provided for @fortuneDialogRecommendedProgramTitle.
   ///
   /// In en, this message translates to:

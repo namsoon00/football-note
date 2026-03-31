@@ -60,6 +60,8 @@ class FortuneCard extends StatelessWidget {
   final String overallFortuneCount;
   final String luckyInfoLabel;
   final String luckyInfoCount;
+  final String? poolSizeLabel;
+  final String? poolSizeValue;
   final String? recommendedProgramTitle;
   final String? recommendedProgram;
   final String? recommendationTitle;
@@ -83,6 +85,8 @@ class FortuneCard extends StatelessWidget {
     required this.luckyInfoLabel,
     required this.luckyInfoCount,
     required this.isKo,
+    this.poolSizeLabel,
+    this.poolSizeValue,
     this.recommendedProgramTitle,
     this.recommendedProgram,
     this.recommendationTitle,
@@ -235,6 +239,8 @@ class FortuneCard extends StatelessWidget {
                           secondLabel: luckyInfoLabel,
                           secondValue: luckyInfoCount,
                           secondFraction: luckyFraction,
+                          thirdLabel: poolSizeLabel,
+                          thirdValue: poolSizeValue,
                           compact: compact,
                         ),
                         SizedBox(height: compact ? 12 : 14),
@@ -343,6 +349,8 @@ class _FortuneOverviewCard extends StatelessWidget {
   final String secondLabel;
   final String secondValue;
   final double secondFraction;
+  final String? thirdLabel;
+  final String? thirdValue;
   final bool compact;
 
   const _FortuneOverviewCard({
@@ -354,6 +362,8 @@ class _FortuneOverviewCard extends StatelessWidget {
     required this.secondLabel,
     required this.secondValue,
     required this.secondFraction,
+    this.thirdLabel,
+    this.thirdValue,
     required this.compact,
   });
 
@@ -386,9 +396,12 @@ class _FortuneOverviewCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: compact ? 10 : 12),
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
             children: [
-              Expanded(
+              SizedBox(
+                width: 156,
                 child: _FortuneOverviewMetric(
                   palette: palette,
                   label: firstLabel,
@@ -396,8 +409,8 @@ class _FortuneOverviewCard extends StatelessWidget {
                   fraction: firstFraction,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
+              SizedBox(
+                width: 156,
                 child: _FortuneOverviewMetric(
                   palette: palette,
                   label: secondLabel,
@@ -405,6 +418,18 @@ class _FortuneOverviewCard extends StatelessWidget {
                   fraction: secondFraction,
                 ),
               ),
+              if (thirdLabel != null &&
+                  thirdValue != null &&
+                  thirdLabel!.trim().isNotEmpty &&
+                  thirdValue!.trim().isNotEmpty)
+                SizedBox(
+                  width: 156,
+                  child: _FortuneOverviewMetric(
+                    palette: palette,
+                    label: thirdLabel!,
+                    value: thirdValue!,
+                  ),
+                ),
             ],
           ),
         ],
@@ -417,13 +442,13 @@ class _FortuneOverviewMetric extends StatelessWidget {
   final _FortunePalette palette;
   final String label;
   final String value;
-  final double fraction;
+  final double? fraction;
 
   const _FortuneOverviewMetric({
     required this.palette,
     required this.label,
     required this.value,
-    required this.fraction,
+    this.fraction,
   });
 
   @override
@@ -454,16 +479,18 @@ class _FortuneOverviewMetric extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              minHeight: 7,
-              value: fraction.clamp(0, 1),
-              backgroundColor: palette.frameColor.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation<Color>(palette.accentColor),
+          if (fraction != null) ...[
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                minHeight: 7,
+                value: fraction!.clamp(0, 1),
+                backgroundColor: palette.frameColor.withValues(alpha: 0.15),
+                valueColor: AlwaysStoppedAnimation<Color>(palette.accentColor),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

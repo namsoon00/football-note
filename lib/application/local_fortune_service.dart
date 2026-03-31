@@ -14,6 +14,8 @@ class LocalFortuneResult {
 }
 
 class LocalFortuneService {
+  static final BigInt totalFortunePoolCount = _calculateTotalFortunePoolCount();
+
   LocalFortuneResult generateResult({
     required TrainingEntry entry,
     required PlayerProfile profile,
@@ -282,6 +284,69 @@ class LocalFortuneService {
       if (third != null) _pick(third, seed + 31),
     ].where((value) => value.trim().isNotEmpty).toList(growable: false);
     return parts.join(separator).replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  static BigInt _calculateTotalFortunePoolCount() {
+    BigInt count(List<String> values) => BigInt.from(values.length);
+    BigInt countSegments(List<String> first, List<String> second, [
+      List<String>? third,
+    ]) {
+      var total = count(first) * count(second);
+      if (third != null) {
+        total *= count(third);
+      }
+      return total;
+    }
+
+    final flowCount = countSegments(
+      _flowOpeningsKo,
+      _flowMiddlesKo,
+      _flowClosingsKo,
+    );
+    final conditionCount = countSegments(
+      _conditionPrefixesKo,
+      _conditionCentersKo,
+      _conditionSuffixesKo,
+    );
+    final readinessCount =
+        (count(_readinessTopKo) +
+            count(_readinessMidKo) +
+            count(_readinessLowKo)) *
+        count(_readinessSuffixKo);
+    final luckyColorCount = countSegments(
+      _luckyColorTonesKo,
+      _luckyColorBasesKo,
+    );
+    final luckyTimeCount = countSegments(
+      _luckyTimePeriodsKo,
+      _luckyTimeWindowsKo,
+    );
+    final luckyObjectCount = countSegments(
+      _luckyObjectModifiersKo,
+      _luckyObjectBasesKo,
+    );
+    final luckySnackCount = countSegments(
+      _luckySnackModifiersKo,
+      _luckySnackBasesKo,
+    );
+    final boostCount = countSegments(
+      _boostOpeningsKo,
+      _boostActionsKo,
+      _boostClosingsKo,
+    );
+    const weeklyTrendCount = 3;
+    const luckyNumberCount = 9;
+
+    return flowCount *
+        conditionCount *
+        readinessCount *
+        luckyColorCount *
+        luckyTimeCount *
+        luckyObjectCount *
+        luckySnackCount *
+        boostCount *
+        BigInt.from(weeklyTrendCount) *
+        BigInt.from(luckyNumberCount);
   }
 }
 

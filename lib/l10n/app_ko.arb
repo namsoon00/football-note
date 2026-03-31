@@ -498,6 +498,15 @@
     }
   },
   "fortuneDialogLuckyInfoTitle": "행운 정보",
+  "fortuneDialogPoolSizeLabel": "전체 운세 pool",
+  "fortuneDialogPoolSizeCount": "{count}개",
+  "@fortuneDialogPoolSizeCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "fortuneDialogRecommendedProgramTitle": "추천 훈련",
   "fortuneDialogRecommendationTitle": "운세 코멘트",
   "fortuneDialogEncouragement": "오늘도 멋진 플레이를 응원할게요.",
