@@ -1287,6 +1287,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => '행운 정보';
 
   @override
+  String get fortuneDialogRecommendedProgramTitle => '추천 훈련';
+
+  @override
+  String get fortuneDialogRecommendationTitle => '운세 코멘트';
+
+  @override
   String get fortuneDialogEncouragement => '오늘도 멋진 플레이를 응원할게요.';
 
   @override

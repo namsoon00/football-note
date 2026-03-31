@@ -498,6 +498,8 @@
     }
   },
   "fortuneDialogLuckyInfoTitle": "행운 정보",
+  "fortuneDialogRecommendedProgramTitle": "추천 훈련",
+  "fortuneDialogRecommendationTitle": "운세 코멘트",
   "fortuneDialogEncouragement": "오늘도 멋진 플레이를 응원할게요.",
   "fortuneDialogAction": "좋아요",
   "mealStatsNoTrainingOrMealEntries": "선택한 기간에 훈련 기록과 식사 기록이 없습니다."

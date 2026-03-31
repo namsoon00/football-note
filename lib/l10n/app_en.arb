@@ -498,6 +498,8 @@
     }
   },
   "fortuneDialogLuckyInfoTitle": "Lucky info",
+  "fortuneDialogRecommendedProgramTitle": "Recommended training",
+  "fortuneDialogRecommendationTitle": "Fortune note",
   "fortuneDialogEncouragement": "Cheering for your best play today.",
   "fortuneDialogAction": "Nice",
   "mealStatsNoTrainingOrMealEntries": "No training or meal entries in the selected period."

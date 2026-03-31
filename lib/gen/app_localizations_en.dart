@@ -1311,6 +1311,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => 'Lucky info';
 
   @override
+  String get fortuneDialogRecommendedProgramTitle => 'Recommended training';
+
+  @override
+  String get fortuneDialogRecommendationTitle => 'Fortune note';
+
+  @override
   String get fortuneDialogEncouragement => 'Cheering for your best play today.';
 
   @override

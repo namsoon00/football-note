@@ -60,6 +60,10 @@ class FortuneCard extends StatelessWidget {
   final String overallFortuneCount;
   final String luckyInfoLabel;
   final String luckyInfoCount;
+  final String? recommendedProgramTitle;
+  final String? recommendedProgram;
+  final String? recommendationTitle;
+  final String? recommendation;
   final String? encouragement;
   final String? actionLabel;
   final bool compact;
@@ -79,6 +83,10 @@ class FortuneCard extends StatelessWidget {
     required this.luckyInfoLabel,
     required this.luckyInfoCount,
     required this.isKo,
+    this.recommendedProgramTitle,
+    this.recommendedProgram,
+    this.recommendationTitle,
+    this.recommendation,
     this.encouragement,
     this.actionLabel,
     this.compact = false,
@@ -246,6 +254,28 @@ class FortuneCard extends StatelessWidget {
                           textStyle: bodyTextStyle,
                           compact: compact,
                           highlighted: true,
+                        ),
+                      ],
+                      if (recommendedProgram != null &&
+                          recommendedProgram!.trim().isNotEmpty) ...[
+                        SizedBox(height: compact ? 12 : 14),
+                        _FortuneSectionCard(
+                          palette: palette,
+                          title: recommendedProgramTitle,
+                          lines: [recommendedProgram!.trim()],
+                          textStyle: bodyTextStyle,
+                          compact: compact,
+                        ),
+                      ],
+                      if (recommendation != null &&
+                          recommendation!.trim().isNotEmpty) ...[
+                        SizedBox(height: compact ? 12 : 14),
+                        _FortuneSectionCard(
+                          palette: palette,
+                          title: recommendationTitle,
+                          lines: [recommendation!.trim()],
+                          textStyle: bodyTextStyle,
+                          compact: compact,
                         ),
                       ],
                       if (encouragement != null &&

@@ -634,19 +634,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .whereType<_DiaryStickerChipData>()
         .toList(growable: false);
     final recordStickers = customDiary.recordStickers
+        .where((sticker) => sticker.kind != _DiaryRecordStickerKind.fortune)
         .map((sticker) => _resolveRecordSticker(sticker, day))
         .whereType<_DiaryRecordStickerViewData>()
         .toList(growable: false);
-    final fortuneRecordStickers = recordStickers
-        .where((sticker) => sticker.kind == _DiaryRecordStickerKind.fortune)
-        .toList(growable: false);
-    final topRecordStickers = recordStickers
-        .where((sticker) => sticker.kind != _DiaryRecordStickerKind.fortune)
-        .toList(growable: false);
-    final newsRecordStickers = topRecordStickers
+    final newsRecordStickers = recordStickers
         .where((sticker) => sticker.kind == _DiaryRecordStickerKind.news)
         .toList(growable: false);
-    final normalTopRecordStickers = topRecordStickers
+    final normalTopRecordStickers = recordStickers
         .where((sticker) => sticker.kind != _DiaryRecordStickerKind.news)
         .toList(growable: false);
     return _buildPaperCard(
@@ -717,10 +712,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           if (newsRecordStickers.isNotEmpty) ...[
             ...newsRecordStickers.map(_buildRecordStickerCard),
             const SizedBox(height: 6),
-          ],
-          if (fortuneRecordStickers.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            ...fortuneRecordStickers.map(_buildRecordStickerCard),
           ],
           const SizedBox(height: 14),
           if (!customDiary.hasContent && todoSeeds.isNotEmpty) ...[
@@ -1820,7 +1811,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final seeds = <_DiaryTodoSeed>[
       ...day.plans.map(_planTodoSeed),
       ...day.trainingEntries.map(_trainingTodoSeed),
-      ...day.trainingEntries.map(_fortuneTodoSeed),
       ...day.matchEntries.map(_matchTodoSeed),
       if (day.mealEntry != null) _mealTodoSeed(day.mealEntry!),
       ...day.boards.map(_boardTodoSeed),
@@ -1902,22 +1892,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       icon: Icons.rice_bowl_outlined,
       recordKind: _DiaryRecordStickerKind.meal,
       recordRefId: _dayStorageToken(entry.date),
-    );
-  }
-
-  _DiaryTodoSeed _fortuneTodoSeed(TrainingEntry entry) {
-    final fortune = _DiaryFortune.fromEntry(entry, _isKo);
-    final storyText = fortune.composeText(_isKo);
-    return _DiaryTodoSeed(
-      id: 'fortune-${entry.createdAt.millisecondsSinceEpoch}',
-      title: _isKo ? '운세' : 'Fortune',
-      summary: fortune.summaryText,
-      storySentence: storyText,
-      sectionTitle: _isKo ? '운세' : 'Fortune',
-      sectionBody: storyText,
-      icon: Icons.auto_awesome_outlined,
-      recordKind: _DiaryRecordStickerKind.fortune,
-      recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
     );
   }
 
