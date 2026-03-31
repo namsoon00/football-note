@@ -1287,6 +1287,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => '행운 정보';
 
   @override
+  String get fortuneDialogPoolSizeLabel => '전체 운세 pool';
+
+  @override
+  String fortuneDialogPoolSizeCount(String count) {
+    return '$count개';
+  }
+
+  @override
   String get fortuneDialogRecommendedProgramTitle => '추천 훈련';
 
   @override

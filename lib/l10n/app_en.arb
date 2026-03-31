@@ -498,6 +498,15 @@
     }
   },
   "fortuneDialogLuckyInfoTitle": "Lucky info",
+  "fortuneDialogPoolSizeLabel": "Fortune pool",
+  "fortuneDialogPoolSizeCount": "{count} cases",
+  "@fortuneDialogPoolSizeCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "fortuneDialogRecommendedProgramTitle": "Recommended training",
   "fortuneDialogRecommendationTitle": "Fortune note",
   "fortuneDialogEncouragement": "Cheering for your best play today.",

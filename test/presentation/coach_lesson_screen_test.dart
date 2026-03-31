@@ -134,7 +134,7 @@ void main() {
     expect(find.text('다이어리'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     expect(find.text('오늘의 응원'), findsNothing);
-    expect(find.text('오늘의 일기'), findsOneWidget);
+    expect(find.text('오늘의 일기'), findsNothing);
     expect(find.text('자기 전 다이어리'), findsNothing);
     expect(find.text('오늘의 운세 노트'), findsNothing);
     expect(find.textContaining('훈련 2개'), findsNothing);
@@ -157,8 +157,9 @@ void main() {
 
     expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
     expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
-    expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsOneWidget);
-    expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
+    expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsNothing);
+    expect(find.textContaining('행운 색상: 에메랄드'), findsNothing);
+    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsOneWidget);
     expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
     expect(find.text('식사'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
@@ -200,7 +201,7 @@ void main() {
 
     expect(find.text('아직 만든 다이어리가 없습니다.'), findsOneWidget);
     expect(
-      find.textContaining('다이어리를 직접 만들기 전에는 페이지를 보여주지 않습니다.'),
+      find.textContaining('날짜를 골라 첫 페이지를 만들면 다이어리가 시작됩니다.'),
       findsOneWidget,
     );
     expect(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/locale_service.dart';
+import 'package:football_note/application/local_fortune_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -12,6 +13,7 @@ import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:football_note/infrastructure/hive_training_repository.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -119,5 +121,66 @@ void main() {
     expect(find.text('오늘의 운세'), findsNothing);
     expect(find.text('오늘 흐름을 짧게 읽어보세요.'), findsNothing);
     expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('fortune dialog shows pool size without recommendation blocks', (
+    WidgetTester tester,
+  ) async {
+    final original = TrainingEntry(
+      date: DateTime(2026, 3, 15, 18),
+      createdAt: DateTime(2026, 3, 15, 18),
+      durationMinutes: 70,
+      intensity: 4,
+      type: '드리블',
+      mood: 4,
+      injury: false,
+      notes: '기존 메모',
+      location: '학교 운동장',
+      program: '볼터치',
+      fortuneComment: '전체 흐름: 작은 노력도 큰 힘이 돼요.\n행운 색상: 에메랄드',
+      fortuneRecommendation: '전진 패스 연계로 리듬을 이어가세요.',
+      fortuneRecommendedProgram: '전진 패스 연계',
+    );
+    await trainingService.add(original);
+    final storedEntry = (await trainingService.allEntries()).single;
+    final formattedPoolSize = NumberFormat.decimalPattern(
+      'ko',
+    ).format(LocalFortuneService.totalFortunePoolCount);
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: EntryFormScreen(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            localeService: localeService,
+            settingsService: settingsService,
+            entry: storedEntry,
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('오늘의 운세'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('오늘의 운세'), findsOneWidget);
+    expect(find.text('전체 운세 pool'), findsOneWidget);
+    expect(find.text('$formattedPoolSize개'), findsOneWidget);
+    expect(find.text('추천 훈련'), findsNothing);
+    expect(find.text('운세 코멘트'), findsNothing);
+    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsNothing);
   });
 }

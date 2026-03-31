@@ -1311,6 +1311,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogLuckyInfoTitle => 'Lucky info';
 
   @override
+  String get fortuneDialogPoolSizeLabel => 'Fortune pool';
+
+  @override
+  String fortuneDialogPoolSizeCount(String count) {
+    return '$count cases';
+  }
+
+  @override
   String get fortuneDialogRecommendedProgramTitle => 'Recommended training';
 
   @override

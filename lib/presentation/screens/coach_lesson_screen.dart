@@ -779,10 +779,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 10),
         child: FortuneCard(
-          sections: FortuneSections(
-            bodyLines: fortune.bodyLines,
-            luckyInfoLines: fortune.luckyInfoLines,
-          ),
+          sections: const FortuneSections(bodyLines: [], luckyInfoLines: []),
           title: sticker.title,
           subtitle: _formatDiaryDate(fortune.entryDate),
           luckyInfoTitle: _l10n.fortuneDialogLuckyInfoTitle,
@@ -800,6 +797,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               : fortune.recommendation.trim(),
           isKo: _isKo,
           compact: true,
+          showOverview: false,
         ),
       );
     }
