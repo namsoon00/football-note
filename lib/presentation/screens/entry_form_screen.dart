@@ -2335,16 +2335,25 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _handleFortuneButtonPressed() async {
+    if (!mounted || _disposing) return;
+    FocusScope.of(context).unfocus();
     if (!_fortuneEnabled) {
-      if (!mounted) return;
       setState(() => _fortuneEnabled = true);
       _scheduleAutoSave();
     }
-    await _showTodayFortuneInNote();
+    try {
+      await _showTodayFortuneInNote(forceShow: true);
+    } catch (_) {
+      if (!mounted || _disposing) return;
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      _showWeatherSnack(
+        isKo ? '운세 화면을 여는 중 문제가 생겼어요.' : 'Failed to open fortune.',
+      );
+    }
   }
 
-  Future<void> _showTodayFortuneInNote() async {
-    if (!_fortuneEnabled) return;
+  Future<void> _showTodayFortuneInNote({bool forceShow = false}) async {
+    if (!_fortuneEnabled && !forceShow) return;
     if (!mounted || _disposing) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final profile = PlayerProfileService(widget.optionRepository).load();
@@ -2403,6 +2412,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       isKo: isKo,
     );
     if (!mounted) return;
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted || _disposing) return;
     await _showFortuneRevealDialog(
       fortune.fortuneText,
       recommendation: fortune.recommendationText,
