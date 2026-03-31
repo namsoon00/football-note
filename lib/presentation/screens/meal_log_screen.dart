@@ -12,6 +12,7 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/rice_bowl_summary.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 class MealLogScreen extends StatefulWidget {
@@ -52,18 +53,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       widget.initialDate.month,
       widget.initialDate.day,
     );
-    final initialEntry = widget.initialEntry;
-    _date = initialEntry == null
-        ? initialDate
-        : DateTime(
-            initialEntry.date.year,
-            initialEntry.date.month,
-            initialEntry.date.day,
-          );
-    _breakfastRiceBowls = initialEntry?.breakfastRiceBowls ?? 0;
-    _lunchRiceBowls = initialEntry?.lunchRiceBowls ?? 0;
-    _dinnerRiceBowls = initialEntry?.dinnerRiceBowls ?? 0;
-    _persistedEntry = initialEntry;
+    _loadEntryForDate(initialDate, initialEntry: widget.initialEntry);
   }
 
   @override
@@ -83,7 +73,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       appBar: AppBar(
         title: Text(l10n.mealLogScreenTitle),
         actions: [
-          if (widget.initialEntry != null)
+          if (_persistedEntry != null)
             IconButton(
               tooltip: l10n.mealDeleteAction,
               onPressed: _delete,
@@ -201,10 +191,12 @@ class _MealLogScreenState extends State<MealLogScreen> {
       helpText: l10n.mealLogDatePickerHelp,
     );
     if (picked == null || !mounted) return;
+    _autoSaveTimer?.cancel();
+    await _save();
+    if (!mounted) return;
     setState(() {
-      _date = DateTime(picked.year, picked.month, picked.day);
+      _loadEntryForDate(DateTime(picked.year, picked.month, picked.day));
     });
-    _scheduleAutoSave();
   }
 
   void _scheduleAutoSave() {
@@ -230,17 +222,6 @@ class _MealLogScreenState extends State<MealLogScreen> {
       createdAt: previousEntry?.createdAt ?? DateTime.now(),
     );
     try {
-      final previousDay = previousEntry == null
-          ? null
-          : DateTime(
-              previousEntry.date.year,
-              previousEntry.date.month,
-              previousEntry.date.day,
-            );
-      final nextDay = DateTime(_date.year, _date.month, _date.day);
-      if (previousDay != null && previousDay != nextDay) {
-        await widget.mealLogService.deleteDay(previousDay);
-      }
       await widget.mealLogService.save(entry);
       _persistedEntry = entry.hasRecords ? entry : null;
       final levelService = PlayerLevelService(widget.optionRepository);
@@ -302,6 +283,19 @@ class _MealLogScreenState extends State<MealLogScreen> {
     _disposed = true;
     _autoSaveTimer?.cancel();
     super.dispose();
+  }
+
+  void _loadEntryForDate(DateTime date, {MealEntry? initialEntry}) {
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+    final entry =
+        initialEntry ?? widget.mealLogService.entryForDay(normalizedDate);
+    _date = entry == null
+        ? normalizedDate
+        : DateTime(entry.date.year, entry.date.month, entry.date.day);
+    _breakfastRiceBowls = entry?.breakfastRiceBowls ?? 0;
+    _lunchRiceBowls = entry?.lunchRiceBowls ?? 0;
+    _dinnerRiceBowls = entry?.dinnerRiceBowls ?? 0;
+    _persistedEntry = entry;
   }
 
   String _headline(AppLocalizations l10n, MealStatus status) {
@@ -483,17 +477,7 @@ class _MealBowlPreview extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List<Widget>.generate(3, (index) {
-              final fill = (value - index).clamp(0, 1).toDouble();
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: _RiceBowlLevelIcon(
-                  fillLevel: fill,
-                  color: accent,
-                  size: 28,
-                ),
-              );
-            }),
+            children: [RiceBowlStackVisual(value: value, accentColor: accent)],
           ),
           const SizedBox(height: 10),
           Text(
@@ -560,41 +544,6 @@ class _MealAdjustButton extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _RiceBowlLevelIcon extends StatelessWidget {
-  final double fillLevel;
-  final Color color;
-  final double size;
-
-  const _RiceBowlLevelIcon({
-    required this.fillLevel,
-    required this.color,
-    this.size = 18,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final clampedFill = fillLevel.clamp(0, 1).toDouble();
-    return SizedBox(
-      width: size,
-      height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(Icons.rice_bowl_outlined, size: size, color: color),
-          if (clampedFill > 0)
-            ClipRect(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                heightFactor: clampedFill,
-                child: Icon(Icons.rice_bowl, size: size, color: color),
-              ),
-            ),
-        ],
       ),
     );
   }

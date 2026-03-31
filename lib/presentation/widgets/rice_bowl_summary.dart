@@ -187,6 +187,50 @@ class RiceBowlInlineSummary extends StatelessWidget {
   }
 }
 
+class RiceBowlStackVisual extends StatelessWidget {
+  final double value;
+  final Color accentColor;
+
+  const RiceBowlStackVisual({
+    super.key,
+    required this.value,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (value <= 0) {
+      return Opacity(
+        opacity: 0.45,
+        child: _RiceBowlIcon(fillLevel: 0, accentColor: accentColor),
+      );
+    }
+
+    final bowlCount = value < 1 ? 1 : value.ceil().clamp(1, 3);
+    return SizedBox(
+      width: 42,
+      height: 32,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
+        children: [
+          for (var i = 0; i < bowlCount; i++)
+            Positioned(
+              bottom: (i * 7).toDouble(),
+              child: Opacity(
+                opacity: 1 - (i * 0.12),
+                child: _RiceBowlIcon(
+                  fillLevel: i == 0 && value < 1 ? 0.5 : 1,
+                  accentColor: accentColor,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _RiceBowlMealItem extends StatelessWidget {
   final String label;
   final double bowls;
@@ -224,7 +268,7 @@ class _RiceBowlMealItem extends StatelessWidget {
           ),
           SizedBox(height: compact ? 2 : 8),
           compact
-              ? _RiceBowlStack(value: bowls, accentColor: accentColor)
+              ? RiceBowlStackVisual(value: bowls, accentColor: accentColor)
               : _RiceBowlIcon(
                   fillLevel: bowls <= 0
                       ? 0.0
@@ -263,46 +307,6 @@ class _RiceBowlMealItem extends StatelessWidget {
       return l10n.homeRiceBowlHalf;
     }
     return l10n.homeRiceBowlFull;
-  }
-}
-
-class _RiceBowlStack extends StatelessWidget {
-  final double value;
-  final Color accentColor;
-
-  const _RiceBowlStack({required this.value, required this.accentColor});
-
-  @override
-  Widget build(BuildContext context) {
-    if (value <= 0) {
-      return Opacity(
-        opacity: 0.45,
-        child: _RiceBowlIcon(fillLevel: 0, accentColor: accentColor),
-      );
-    }
-
-    final bowlCount = value < 1 ? 1 : value.ceil().clamp(1, 3);
-    return SizedBox(
-      width: 42,
-      height: 32,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.bottomCenter,
-        children: [
-          for (var i = 0; i < bowlCount; i++)
-            Positioned(
-              bottom: (i * 7).toDouble(),
-              child: Opacity(
-                opacity: 1 - (i * 0.12),
-                child: _RiceBowlIcon(
-                  fillLevel: i == 0 && value < 1 ? 0.5 : 1,
-                  accentColor: accentColor,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
   }
 }
 

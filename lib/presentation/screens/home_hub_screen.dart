@@ -280,7 +280,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           l10n: AppLocalizations.of(context)!,
                           onLog: _trackedAction(
                             'daily_flow_log',
-                            widget.onCreate,
+                            () => _openTodayEntryOrCreate(data),
                           ),
                           onLifting: _trackedAction(
                             'daily_flow_lifting',

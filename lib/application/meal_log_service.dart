@@ -97,6 +97,10 @@ class MealLogService {
     await _persist(nextEntries);
   }
 
+  Future<void> dispose() async {
+    await _controller.close();
+  }
+
   Future<void> _persist(List<MealEntry> entries) async {
     final payload = jsonEncode(
       entries.map((entry) => entry.toMap()).toList(growable: false),
