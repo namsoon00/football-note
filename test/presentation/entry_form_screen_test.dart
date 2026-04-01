@@ -65,7 +65,7 @@ void main() {
       notes: '기존 메모',
       location: '학교 운동장',
       program: '볼터치',
-      fortuneComment: '전체 흐름: 작은 노력도 큰 힘이 돼요.\n행운 색상: 에메랄드',
+      fortuneComment: '[행운 정보]\n행운 색상: 에메랄드\n행운 시간대: 오전 후반 08:10~08:50',
       fortuneRecommendation: '전진 패스 연계로 리듬을 이어가세요.',
     );
     await trainingService.add(original);
@@ -118,11 +118,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('오늘의 운세'), findsNothing);
-    expect(find.text('오늘 흐름을 짧게 읽어보세요.'), findsNothing);
+    expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
 
-  testWidgets('fortune dialog shows pool size and recommendation blocks', (
+  testWidgets('fortune dialog shows pool size and lucky info only', (
     WidgetTester tester,
   ) async {
     final original = TrainingEntry(
@@ -136,7 +136,7 @@ void main() {
       notes: '기존 메모',
       location: '학교 운동장',
       program: '볼터치',
-      fortuneComment: '전체 흐름: 작은 노력도 큰 힘이 돼요.\n행운 색상: 에메랄드',
+      fortuneComment: '[행운 정보]\n행운 색상: 에메랄드\n행운 시간대: 오전 후반 08:10~08:50',
       fortuneRecommendation: '전진 패스 연계로 리듬을 이어가세요.',
       fortuneRecommendedProgram: '전진 패스 연계',
     );
@@ -175,11 +175,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('오늘의 운세'), findsOneWidget);
+    expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsOneWidget);
     expect(find.text('전체 운세 pool'), findsOneWidget);
     expect(find.text('$formattedPoolSize개'), findsOneWidget);
-    expect(find.text('추천 훈련'), findsOneWidget);
-    expect(find.text('운세 코멘트'), findsOneWidget);
-    expect(find.text('전진 패스 연계'), findsOneWidget);
-    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsOneWidget);
+    expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
+    expect(find.textContaining('행운 시간대: 오전 후반 08:10~08:50'), findsOneWidget);
+    expect(find.text('추천 훈련'), findsNothing);
+    expect(find.text('운세 코멘트'), findsNothing);
   });
 }

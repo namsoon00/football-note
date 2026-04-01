@@ -2447,7 +2447,7 @@ abstract class AppLocalizations {
   /// No description provided for @fortuneDialogSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'A short reading for today.'**
+  /// **'Check today lucky info.'**
   String get fortuneDialogSubtitle;
 
   /// No description provided for @fortuneDialogOverviewTitle.

@@ -103,6 +103,7 @@ class FortuneCard extends StatelessWidget {
     final theme = Theme.of(context);
     final palette = _FortunePalette.fromTheme(theme);
     final total = math.max(sections.totalCount, 1);
+    final hasBodyLines = sections.bodyLines.isNotEmpty;
     final bodyFraction = sections.bodyLines.length / total;
     final luckyFraction = sections.luckyInfoLines.length / total;
     final bodyTextStyle = theme.textTheme.bodyMedium?.copyWith(
@@ -233,9 +234,9 @@ class FortuneCard extends StatelessWidget {
                         _FortuneOverviewCard(
                           palette: palette,
                           title: overviewTitle,
-                          firstLabel: overallFortuneLabel,
-                          firstValue: overallFortuneCount,
-                          firstFraction: bodyFraction,
+                          firstLabel: hasBodyLines ? overallFortuneLabel : null,
+                          firstValue: hasBodyLines ? overallFortuneCount : null,
+                          firstFraction: hasBodyLines ? bodyFraction : null,
                           secondLabel: luckyInfoLabel,
                           secondValue: luckyInfoCount,
                           secondFraction: luckyFraction,
@@ -245,14 +246,15 @@ class FortuneCard extends StatelessWidget {
                         ),
                         SizedBox(height: compact ? 12 : 14),
                       ],
-                      _FortuneSectionCard(
-                        palette: palette,
-                        lines: sections.bodyLines,
-                        textStyle: bodyTextStyle,
-                        compact: compact,
-                      ),
+                      if (hasBodyLines)
+                        _FortuneSectionCard(
+                          palette: palette,
+                          lines: sections.bodyLines,
+                          textStyle: bodyTextStyle,
+                          compact: compact,
+                        ),
                       if (sections.luckyInfoLines.isNotEmpty) ...[
-                        SizedBox(height: compact ? 12 : 14),
+                        if (hasBodyLines) SizedBox(height: compact ? 12 : 14),
                         _FortuneSectionCard(
                           palette: palette,
                           title: luckyInfoTitle,
@@ -343,9 +345,9 @@ class FortuneCard extends StatelessWidget {
 class _FortuneOverviewCard extends StatelessWidget {
   final _FortunePalette palette;
   final String title;
-  final String firstLabel;
-  final String firstValue;
-  final double firstFraction;
+  final String? firstLabel;
+  final String? firstValue;
+  final double? firstFraction;
   final String secondLabel;
   final String secondValue;
   final double secondFraction;
@@ -356,9 +358,9 @@ class _FortuneOverviewCard extends StatelessWidget {
   const _FortuneOverviewCard({
     required this.palette,
     required this.title,
-    required this.firstLabel,
-    required this.firstValue,
-    required this.firstFraction,
+    this.firstLabel,
+    this.firstValue,
+    this.firstFraction,
     required this.secondLabel,
     required this.secondValue,
     required this.secondFraction,
@@ -400,15 +402,19 @@ class _FortuneOverviewCard extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              SizedBox(
-                width: 156,
-                child: _FortuneOverviewMetric(
-                  palette: palette,
-                  label: firstLabel,
-                  value: firstValue,
-                  fraction: firstFraction,
+              if (firstLabel != null &&
+                  firstValue != null &&
+                  firstLabel!.trim().isNotEmpty &&
+                  firstValue!.trim().isNotEmpty)
+                SizedBox(
+                  width: 156,
+                  child: _FortuneOverviewMetric(
+                    palette: palette,
+                    label: firstLabel!,
+                    value: firstValue!,
+                    fraction: firstFraction,
+                  ),
                 ),
-              ),
               SizedBox(
                 width: 156,
                 child: _FortuneOverviewMetric(

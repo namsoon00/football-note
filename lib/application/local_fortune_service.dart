@@ -47,6 +47,8 @@ class LocalFortuneService {
     final boost = _luckyBoost(seed: baseSeed + 41, isKo: isKo);
     final luckyTime = _luckyTime(seed: baseSeed + 71, isKo: isKo);
     final luckyColor = _luckyColor(seed: baseSeed + 73, isKo: isKo);
+    final luckyZone = _luckyZone(seed: baseSeed + 79, isKo: isKo);
+    final luckyCue = _luckyCue(seed: baseSeed + 83, isKo: isKo);
     final luckyNumber = (baseSeed.abs() % 9) + 1;
     final weeklyTrend = _weeklyTrendComment(history: history, isKo: isKo);
     final readiness = _readinessComment(
@@ -62,29 +64,31 @@ class LocalFortuneService {
     );
 
     final fortuneText = isKo
-        ? '전체 흐름: $message\n'
-              '컨디션 키워드: $moodKeyword\n'
-              '현재 준비도: $readiness\n'
-              '최근 흐름: $weeklyTrend\n'
-              '\n'
-              '[행운 정보]\n'
+        ? '[행운 정보]\n'
+              '행운 흐름: $message\n'
+              '행운 컨디션 키워드: $moodKeyword\n'
+              '행운 준비도: $readiness\n'
+              '행운 최근 흐름: $weeklyTrend\n'
               '행운 숫자: $luckyNumber\n'
               '행운 색상: $luckyColor\n'
               '행운 시간대: $luckyTime\n'
+              '행운 구역: $luckyZone\n'
               '행운 물건: $luckyObject\n'
               '행운 간식: $luckySnack\n'
+              '행운 루틴 큐: $luckyCue\n'
               '$boost'
-        : 'Overall flow: $message\n'
-              'Mood keyword: $moodKeyword\n'
-              'Current readiness: $readiness\n'
-              'Recent trend: $weeklyTrend\n'
-              '\n'
-              '[Lucky info]\n'
+        : '[Lucky info]\n'
+              'Lucky flow: $message\n'
+              'Lucky mood keyword: $moodKeyword\n'
+              'Lucky readiness: $readiness\n'
+              'Lucky recent trend: $weeklyTrend\n'
               'Lucky number: $luckyNumber\n'
               'Lucky color: $luckyColor\n'
               'Lucky time: $luckyTime\n'
+              'Lucky zone: $luckyZone\n'
               'Lucky item: $luckyObject\n'
               'Lucky snack: $luckySnack\n'
+              'Lucky routine cue: $luckyCue\n'
               '$boost';
 
     return LocalFortuneResult(
@@ -285,6 +289,23 @@ class LocalFortuneService {
     );
   }
 
+  String _luckyZone({required int seed, required bool isKo}) {
+    return _composeSegments(
+      seed: seed,
+      first: isKo ? _luckyZoneModifiersKo : _luckyZoneModifiersEn,
+      second: isKo ? _luckyZoneBasesKo : _luckyZoneBasesEn,
+    );
+  }
+
+  String _luckyCue({required int seed, required bool isKo}) {
+    return _composeSegments(
+      seed: seed,
+      first: isKo ? _luckyCueOpeningsKo : _luckyCueOpeningsEn,
+      second: isKo ? _luckyCueActionsKo : _luckyCueActionsEn,
+      third: isKo ? _luckyCueClosingsKo : _luckyCueClosingsEn,
+    );
+  }
+
   String _composeSegments({
     required int seed,
     required List<String> first,
@@ -302,7 +323,9 @@ class LocalFortuneService {
 
   static BigInt _calculateTotalFortunePoolCount() {
     BigInt count(List<String> values) => BigInt.from(values.length);
-    BigInt countSegments(List<String> first, List<String> second, [
+    BigInt countSegments(
+      List<String> first,
+      List<String> second, [
       List<String>? third,
     ]) {
       var total = count(first) * count(second);
@@ -335,6 +358,10 @@ class LocalFortuneService {
       _luckyTimePeriodsKo,
       _luckyTimeWindowsKo,
     );
+    final luckyZoneCount = countSegments(
+      _luckyZoneModifiersKo,
+      _luckyZoneBasesKo,
+    );
     final luckyObjectCount = countSegments(
       _luckyObjectModifiersKo,
       _luckyObjectBasesKo,
@@ -342,6 +369,11 @@ class LocalFortuneService {
     final luckySnackCount = countSegments(
       _luckySnackModifiersKo,
       _luckySnackBasesKo,
+    );
+    final luckyCueCount = countSegments(
+      _luckyCueOpeningsKo,
+      _luckyCueActionsKo,
+      _luckyCueClosingsKo,
     );
     final boostCount = countSegments(
       _boostOpeningsKo,
@@ -356,8 +388,10 @@ class LocalFortuneService {
         readinessCount *
         luckyColorCount *
         luckyTimeCount *
+        luckyZoneCount *
         luckyObjectCount *
         luckySnackCount *
+        luckyCueCount *
         boostCount *
         BigInt.from(weeklyTrendCount) *
         BigInt.from(luckyNumberCount);
@@ -685,6 +719,54 @@ const List<String> _luckyTimeWindowsEn = [
   '21:00-21:40',
 ];
 
+const List<String> _luckyZoneModifiersKo = [
+  '왼쪽',
+  '오른쪽',
+  '중앙',
+  '하프라인 근처',
+  '박스 바깥',
+  '터치라인 쪽',
+  '전진 시작',
+  '수비 전환',
+];
+
+const List<String> _luckyZoneBasesKo = [
+  '하프스페이스',
+  '터치라인 안쪽',
+  '첫 터치 지점',
+  '리턴 패스 각도',
+  '세컨드볼 반응 구역',
+  '압박 탈출 출발점',
+  '원투패스 연결선',
+  '침투 타이밍 구간',
+  '시야 확보 자리',
+  '마무리 직전 공간',
+];
+
+const List<String> _luckyZoneModifiersEn = [
+  'Left-side',
+  'Right-side',
+  'Central',
+  'Half-line',
+  'Box-edge',
+  'Touchline-side',
+  'Forward-start',
+  'Transition',
+];
+
+const List<String> _luckyZoneBasesEn = [
+  'half-space',
+  'inside channel',
+  'first-touch spot',
+  'return-pass angle',
+  'second-ball lane',
+  'press-break starting point',
+  'one-two lane',
+  'run timing window',
+  'scanning pocket',
+  'pre-finish space',
+];
+
 const List<String> _luckyObjectModifiersKo = [
   '가벼운',
   '작은',
@@ -779,6 +861,64 @@ const List<String> _luckySnackBasesEn = [
   'few sips of chocolate milk',
   'cheese stick',
   'half a toast',
+];
+
+const List<String> _luckyCueOpeningsKo = [
+  '짧게',
+  '첫 세트 전에',
+  '호흡 고른 뒤',
+  '볼을 받기 전에',
+  '발끝을 깨운 다음',
+  '고개를 든 직후',
+  '턴 동작 직전',
+  '리듬이 흔들리면',
+];
+
+const List<String> _luckyCueActionsKo = [
+  '시선 한 번 더 확인하기',
+  '터치 방향 먼저 정하기',
+  '왼발과 오른발 간격 맞추기',
+  '첫 발 디딤을 가볍게 두기',
+  '몸을 열고 다음 선택 보기',
+  '짧은 호흡으로 템포 묶기',
+  '한 번에 세게보다 정확하게 두기',
+  '볼 오기 전에 어깨 방향 정리하기',
+];
+
+const List<String> _luckyCueClosingsKo = [
+  '가 오늘 감각을 오래 붙잡아 줘요.',
+  '가 좋은 장면을 더 빨리 불러올 수 있어요.',
+  '가 흔들린 리듬을 다시 모아줄 거예요.',
+  '가 하루 전체의 템포를 정리해 줄 수 있어요.',
+];
+
+const List<String> _luckyCueOpeningsEn = [
+  'Briefly',
+  'Before the first set',
+  'After settling the breath',
+  'Before receiving the ball',
+  'Once the feet wake up',
+  'Right after lifting the head',
+  'Just before the turn',
+  'When the rhythm slips',
+];
+
+const List<String> _luckyCueActionsEn = [
+  'scan one more time',
+  'pick the touch direction first',
+  'set the gap between both feet',
+  'keep the first step light',
+  'open the body and see the next option',
+  'bind the tempo with a short breath',
+  'choose accuracy before force',
+  'set the shoulder angle before the ball arrives',
+];
+
+const List<String> _luckyCueClosingsEn = [
+  'should help the feel last longer today.',
+  'can bring the next good moment faster.',
+  'should gather the rhythm again when it shakes.',
+  'can clean up the tempo of the whole day.',
 ];
 
 const List<String> _boostOpeningsKo = [

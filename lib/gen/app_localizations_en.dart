@@ -1286,7 +1286,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fortuneDialogTitle => 'Today fortune';
 
   @override
-  String get fortuneDialogSubtitle => 'A short reading for today.';
+  String get fortuneDialogSubtitle => 'Check today lucky info.';
 
   @override
   String get fortuneDialogOverviewTitle => 'Fortune overview';
