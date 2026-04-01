@@ -13,7 +13,6 @@ import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:football_note/infrastructure/hive_training_repository.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:hive/hive.dart';
-import 'package:intl/intl.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -143,9 +142,7 @@ void main() {
     );
     await trainingService.add(original);
     final storedEntry = (await trainingService.allEntries()).single;
-    final formattedPoolSize = NumberFormat.decimalPattern(
-      'ko',
-    ).format(LocalFortuneService.totalFortunePoolCount);
+    final formattedPoolSize = LocalFortuneService.formatFortunePoolCount('ko');
 
     await tester.pumpWidget(
       DefaultAssetBundle(

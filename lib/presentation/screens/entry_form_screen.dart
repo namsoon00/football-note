@@ -2790,17 +2790,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final sections = FortuneSections.fromComment(fortuneComment);
-    final localeName = Localizations.localeOf(context).toLanguageTag();
-    String formattedPoolSize;
-    try {
-      formattedPoolSize = NumberFormat.decimalPattern(
-        localeName,
-      ).format(LocalFortuneService.totalFortunePoolCount);
-    } catch (_) {
-      formattedPoolSize = NumberFormat.decimalPattern(
-        Localizations.localeOf(context).languageCode,
-      ).format(LocalFortuneService.totalFortunePoolCount);
-    }
+    final formattedPoolSize = LocalFortuneService.formatFortunePoolCount(
+      Localizations.localeOf(context).toLanguageTag(),
+    );
     await showDialog<void>(
       context: context,
       barrierDismissible: true,

@@ -1,5 +1,6 @@
 import '../domain/entities/player_profile.dart';
 import '../domain/entities/training_entry.dart';
+import 'package:intl/intl.dart';
 
 class LocalFortuneResult {
   final String fortuneText;
@@ -15,6 +16,19 @@ class LocalFortuneResult {
 
 class LocalFortuneService {
   static final BigInt totalFortunePoolCount = _calculateTotalFortunePoolCount();
+
+  static String formatFortunePoolCount(String localeName) {
+    final groupSeparator = _resolveGroupSeparator(localeName);
+    final digits = totalFortunePoolCount.toString();
+    final buffer = StringBuffer();
+    for (var index = 0; index < digits.length; index++) {
+      if (index > 0 && (digits.length - index) % 3 == 0) {
+        buffer.write(groupSeparator);
+      }
+      buffer.write(digits[index]);
+    }
+    return buffer.toString();
+  }
 
   LocalFortuneResult generateResult({
     required TrainingEntry entry,
@@ -347,6 +361,19 @@ class LocalFortuneService {
         boostCount *
         BigInt.from(weeklyTrendCount) *
         BigInt.from(luckyNumberCount);
+  }
+
+  static String _resolveGroupSeparator(String localeName) {
+    try {
+      return NumberFormat.decimalPattern(localeName).symbols.GROUP_SEP;
+    } catch (_) {
+      final fallbackLocale = localeName.split(RegExp('[-_]')).first;
+      try {
+        return NumberFormat.decimalPattern(fallbackLocale).symbols.GROUP_SEP;
+      } catch (_) {
+        return ',';
+      }
+    }
   }
 }
 
