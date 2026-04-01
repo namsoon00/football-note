@@ -52,7 +52,9 @@ void main() {
           location: '학교 운동장',
           program: '볼터치',
           drills: '{"version":2,"boardIds":["board-1"]}',
+          goalFocuses: const ['왼발 퍼스트터치', '압박 탈출'],
           goodPoints: '터치 수를 일정하게 유지했다',
+          improvements: '압박 직전 시선 확인이 늦었다',
           nextGoal: '왼발 퍼스트터치 안정화',
           liftingByPart: const {'inside': 80, 'outside': 60},
           jumpRopeCount: 200,
@@ -156,10 +158,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
-    expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
+    expect(find.text('운세'), findsOneWidget);
+    expect(find.textContaining('운세 · 볼터치'), findsNothing);
     expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsNothing);
     expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
     expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsNothing);
+    expect(find.textContaining('선택한 목표: 왼발 퍼스트터치, 압박 탈출'), findsOneWidget);
+    expect(find.textContaining('잘한 점: 터치 수를 일정하게 유지했다'), findsOneWidget);
+    expect(find.textContaining('아쉬운 점: 압박 직전 시선 확인이 늦었다'), findsOneWidget);
+    expect(find.textContaining('다음 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
     expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
     expect(find.text('식사'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);

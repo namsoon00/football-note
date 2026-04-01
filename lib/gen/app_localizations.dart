@@ -1922,6 +1922,30 @@ abstract class AppLocalizations {
   /// **'Jump rope/lifting'**
   String get diaryStickerConditioning;
 
+  /// No description provided for @diaryTrainingSelectedGoalsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected goals'**
+  String get diaryTrainingSelectedGoalsLabel;
+
+  /// No description provided for @diaryTrainingStrongPointLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'What went well'**
+  String get diaryTrainingStrongPointLabel;
+
+  /// No description provided for @diaryTrainingNeedsWorkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get diaryTrainingNeedsWorkLabel;
+
+  /// No description provided for @diaryTrainingNextGoalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next goal'**
+  String get diaryTrainingNextGoalLabel;
+
   /// No description provided for @diaryMealStorySentence.
   ///
   /// In en, this message translates to:
