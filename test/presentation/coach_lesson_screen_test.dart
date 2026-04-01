@@ -58,7 +58,7 @@ void main() {
           jumpRopeCount: 200,
           jumpRopeMinutes: 8,
           jumpRopeEnabled: true,
-          fortuneComment: '전체 흐름: 작은 노력도 큰 힘이 돼요.\n행운 색상: 에메랄드',
+          fortuneComment: '[행운 정보]\n행운 색상: 에메랄드\n행운 시간대: 오전 후반 08:10~08:50',
           fortuneRecommendation: '전진 패스 연계로 리듬을 이어가세요.',
         ),
         TrainingEntry(
@@ -72,7 +72,7 @@ void main() {
           location: '학교 운동장',
           program: '원터치 패스',
           goodPoints: '패스 템포를 유지했다',
-          fortuneComment: '패스 각도: 오늘은 빠른 판단이 빛나요.\n행운 구역: 오른쪽 하프스페이스',
+          fortuneComment: '[행운 정보]\n행운 구역: 오른쪽 하프스페이스',
           fortuneRecommendation: '첫 터치 후 전진 패스를 바로 연결해보세요.',
         ),
         TrainingEntry(
@@ -158,8 +158,8 @@ void main() {
     expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
     expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
     expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsNothing);
-    expect(find.textContaining('행운 색상: 에메랄드'), findsNothing);
-    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsOneWidget);
+    expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
+    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsNothing);
     expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
     expect(find.text('식사'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
@@ -285,7 +285,7 @@ void main() {
           injury: false,
           notes: '개인 다이어리 저장 테스트',
           location: '학교 운동장',
-          fortuneComment: '전체 흐름: 템포를 잃지 마세요.\n행운 색상: 하늘색',
+          fortuneComment: '[행운 정보]\n행운 색상: 하늘색\n행운 루틴 큐: 짧게 시선 한 번 더 확인하기',
           fortuneRecommendation: '짧은 패스로 리듬을 유지해 보세요.',
         ),
       ]),
@@ -343,9 +343,9 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('볼을 받기 전에 고개를 더 자주 들었고'), findsOneWidget);
-    expect(find.textContaining('전체 흐름: 템포를 잃지 마세요.'), findsOneWidget);
     expect(find.textContaining('행운 색상: 하늘색'), findsOneWidget);
-    expect(find.textContaining('짧은 패스로 리듬을 유지해 보세요.'), findsWidgets);
+    expect(find.textContaining('행운 루틴 큐: 짧게 시선 한 번 더 확인하기'), findsOneWidget);
+    expect(find.textContaining('짧은 패스로 리듬을 유지해 보세요.'), findsNothing);
 
     final raw = optionRepository.getValue<String>('custom_diary_entries_v3');
     expect(raw, isNotNull);

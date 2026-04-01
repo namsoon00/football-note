@@ -784,11 +784,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           luckyInfoCount: _l10n.fortuneDialogLuckyInfoCount(
             fortune.luckyInfoLines.length,
           ),
-          recommendationTitle: _l10n.fortuneDialogRecommendationTitle,
-          recommendation: fortune.recommendation.trim(),
-          encouragement: fortune.recommendation.trim().isEmpty
-              ? null
-              : fortune.recommendation.trim(),
           isKo: _isKo,
           compact: true,
           showOverview: false,
@@ -3908,7 +3903,7 @@ class _DiaryFortune {
     final luckyInfoLines =
         allLines.where(_isLuckyInfoLine).toList(growable: false);
     final bodyLines = allLines
-        .where((line) => !_isLuckyInfoLine(line))
+        .where((line) => !_isLuckyInfoHeader(line) && !_isLuckyInfoLine(line))
         .toList(growable: false);
     final generated = _GeneratedDiaryFortuneText.fromEntry(entry, isKo);
     return _DiaryFortune(
@@ -3923,6 +3918,10 @@ class _DiaryFortune {
 
   static bool _isLuckyInfoLine(String line) {
     return line.startsWith('행운 ') || line.startsWith('Lucky ');
+  }
+
+  static bool _isLuckyInfoHeader(String line) {
+    return line == '[행운 정보]' || line == '[Lucky info]';
   }
 }
 

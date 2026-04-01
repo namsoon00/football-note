@@ -1262,7 +1262,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fortuneDialogTitle => '오늘의 운세';
 
   @override
-  String get fortuneDialogSubtitle => '오늘 흐름을 짧게 읽어보세요.';
+  String get fortuneDialogSubtitle => '오늘의 행운 정보를 확인해 보세요.';
 
   @override
   String get fortuneDialogOverviewTitle => '운세 보기';
