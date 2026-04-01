@@ -977,6 +977,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerConditioning => 'Jump rope/lifting';
 
   @override
+  String get diaryTrainingSelectedGoalsLabel => 'Selected goals';
+
+  @override
+  String get diaryTrainingStrongPointLabel => 'What went well';
+
+  @override
+  String get diaryTrainingNeedsWorkLabel => 'Needs work';
+
+  @override
+  String get diaryTrainingNextGoalLabel => 'Next goal';
+
+  @override
   String get diaryMealStorySentence =>
       'Look back on what you ate today and note how the meal volume connected to body condition.';
 

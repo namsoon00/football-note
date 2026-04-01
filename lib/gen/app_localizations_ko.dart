@@ -960,6 +960,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerConditioning => '줄넘기/리프팅';
 
   @override
+  String get diaryTrainingSelectedGoalsLabel => '선택한 목표';
+
+  @override
+  String get diaryTrainingStrongPointLabel => '잘한 점';
+
+  @override
+  String get diaryTrainingNeedsWorkLabel => '아쉬운 점';
+
+  @override
+  String get diaryTrainingNextGoalLabel => '다음 목표';
+
+  @override
   String get diaryMealStorySentence =>
       '오늘 먹은 흐름을 돌아보며 식사량이 몸 상태와 어떻게 이어졌는지 적어 본다.';
 
