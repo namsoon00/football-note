@@ -2848,6 +2848,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             poolSizeValue: l10n.fortuneDialogPoolSizeCount(formattedPoolSize),
             actionLabel: l10n.fortuneDialogAction,
             isKo: isKo,
+            showOverview: false,
             onActionPressed: () => Navigator.of(contextForClose).pop(),
           ),
         ),
