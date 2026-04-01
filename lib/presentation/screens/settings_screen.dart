@@ -12,6 +12,7 @@ import '../../application/settings_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
+import 'visual_language_preview_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final LocaleService localeService;
@@ -410,6 +411,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _benchmarkSyncBusy
                       ? (isKo ? '평균 데이터 동기화 중...' : 'Syncing average data...')
                       : (isKo ? '평균 데이터 지금 새로고침' : 'Refresh Average Data Now'),
+                ),
+                style: _outlinedActionStyle(),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const VisualLanguagePreviewScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.palette_outlined),
+                label: Text(
+                  isKo ? '그림 언어 시안 보기' : 'Preview Visual Language',
                 ),
                 style: _outlinedActionStyle(),
               ),
