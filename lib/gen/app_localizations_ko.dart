@@ -972,6 +972,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryTrainingNextGoalLabel => '다음 목표';
 
   @override
+  String get diarySelectedRecordStickersTitle => '선택한 기록 스티커';
+
+  @override
+  String get diarySelectedRecordStickersHint => '드래그해서 순서를 바꿀 수 있어요.';
+
+  @override
+  String get diaryRecordStickerReorder => '순서 변경';
+
+  @override
+  String get diaryRecordStickerRemove => '스티커 제거';
+
+  @override
+  String get diaryRecordStickerPinned => '스티커 추가됨';
+
+  @override
+  String get diaryRecordStickerPin => '기록 스티커로 붙이기';
+
+  @override
   String get diaryMealStorySentence =>
       '오늘 먹은 흐름을 돌아보며 식사량이 몸 상태와 어떻게 이어졌는지 적어 본다.';
 

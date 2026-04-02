@@ -989,6 +989,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryTrainingNextGoalLabel => 'Next goal';
 
   @override
+  String get diarySelectedRecordStickersTitle => 'Selected record stickers';
+
+  @override
+  String get diarySelectedRecordStickersHint => 'Drag to reorder them.';
+
+  @override
+  String get diaryRecordStickerReorder => 'Reorder sticker';
+
+  @override
+  String get diaryRecordStickerRemove => 'Remove sticker';
+
+  @override
+  String get diaryRecordStickerPinned => 'Sticker added';
+
+  @override
+  String get diaryRecordStickerPin => 'Pin as sticker';
+
+  @override
   String get diaryMealStorySentence =>
       'Look back on what you ate today and note how the meal volume connected to body condition.';
 
