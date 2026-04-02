@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -158,7 +160,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
-    expect(find.text('운세'), findsOneWidget);
+    expect(find.text('운세'), findsWidgets);
     expect(find.textContaining('운세 · 볼터치'), findsNothing);
     expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsNothing);
     expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
@@ -168,7 +170,7 @@ void main() {
     expect(find.textContaining('아쉬운 점: 압박 직전 시선 확인이 늦었다'), findsOneWidget);
     expect(find.textContaining('다음 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
     expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
-    expect(find.text('식사'), findsWidgets);
+    expect(find.text('공기밥'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
 
     await tester.tapAt(const Offset(20, 20));
@@ -269,12 +271,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('운세 · 볼터치'), findsOneWidget);
+    expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
   });
 
   testWidgets('coach lesson screen saves personal diary writing and stickers', (
     WidgetTester tester,
   ) async {
+    final createdAt = DateTime(2026, 3, 15, 18, 0);
     final optionRepository = _FakeOptionRepository()
       ..setRawValue(
         'custom_diary_entries_v3',
@@ -284,7 +287,7 @@ void main() {
       _FakeTrainingRepository(<TrainingEntry>[
         TrainingEntry(
           date: DateTime(2026, 3, 15, 18, 0),
-          createdAt: DateTime(2026, 3, 15, 18, 0),
+          createdAt: createdAt,
           durationMinutes: 45,
           intensity: 4,
           type: '패스',
@@ -337,8 +340,20 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('diary-sticker-star')));
     await tester.pump();
-    await tester.ensureVisible(find.textContaining('운세 · 패스'));
-    await tester.tap(find.text('기록 스티커로 붙이기').last);
+    await tester.ensureVisible(
+      find.byKey(
+        ValueKey(
+          'diary-record-sticker-fortune-${createdAt.millisecondsSinceEpoch}',
+        ),
+      ),
+    );
+    await tester.tap(
+      find.byKey(
+        ValueKey(
+          'diary-record-sticker-fortune-${createdAt.millisecondsSinceEpoch}',
+        ),
+      ),
+    );
     await tester.pump();
     await tester.ensureVisible(find.byKey(const ValueKey('diary-save-button')));
     await tester.tap(find.byKey(const ValueKey('diary-save-button')));
@@ -432,7 +447,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('본문에 넣기').first);
+      await tester.ensureVisible(find.text('기록 스티커로 붙이기').first);
+      await tester.tap(find.text('기록 스티커로 붙이기').first);
       await tester.pump();
       await tester.ensureVisible(
         find.byKey(const ValueKey('diary-save-button')),
@@ -523,7 +539,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('diary-create-first-button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('확인'));
+    await tester.tap(find.text('${DateTime.now().day}').first);
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -544,6 +560,217 @@ void main() {
       contains('훈련 없는 날의 다이어리'),
     );
   });
+
+  testWidgets('new diary calendar marks only saved diary dates', (
+    WidgetTester tester,
+  ) async {
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"${CoachLessonScreen.todayViewedDayToken(yesterday)}":{"title":"어제 다이어리","story":"저장된 페이지","sections":[],"moodId":"calm","stickers":[],"updatedAt":"${DateTime(yesterday.year, yesterday.month, yesterday.day, 20).toIso8601String()}"}}',
+      );
+    final trainingService = TrainingService(
+      _FakeTrainingRepository(<TrainingEntry>[
+        TrainingEntry(
+          date: DateTime(today.year, today.month, today.day, 18, 0),
+          createdAt: DateTime(today.year, today.month, today.day, 18, 0),
+          durationMinutes: 40,
+          intensity: 3,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '오늘 훈련',
+          location: '학교 운동장',
+        ),
+      ]),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('새 다이어리'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(
+        ValueKey(
+          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(yesterday)}-diary',
+        ),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        ValueKey(
+          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(today)}-training',
+        ),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.byKey(
+        ValueKey(
+          'diary-calendar-marker-${CoachLessonScreen.todayViewedDayToken(today)}-match',
+        ),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'new diary starts from previous record sticker order and saves selected order',
+    (WidgetTester tester) async {
+      final today = DateTime.now();
+      final yesterday = today.subtract(const Duration(days: 1));
+      final todayToken = CoachLessonScreen.todayViewedDayToken(today);
+      final yesterdayToken = CoachLessonScreen.todayViewedDayToken(yesterday);
+      final trainingCreatedAt = DateTime(
+        today.year,
+        today.month,
+        today.day,
+        18,
+      ).millisecondsSinceEpoch;
+      final optionRepository = _FakeOptionRepository()
+        ..setRawValue(
+          'custom_diary_entries_v3',
+          '{"$yesterdayToken":{"title":"어제 다이어리","story":"순서 기준","sections":[],"moodId":"calm","recordStickers":[{"kind":"board","refId":"board-1"},{"kind":"meal","refId":"$yesterdayToken"},{"kind":"training","refId":"999"}],"stickers":[],"updatedAt":"${DateTime(yesterday.year, yesterday.month, yesterday.day, 21).toIso8601String()}"}}',
+        )
+        ..setRawValue(
+          'training_boards_v1',
+          '[{"id":"board-1","title":"측면 전개 보드","layoutJson":"{\\"version\\":1,\\"pages\\":[{\\"name\\":\\"측면 전개\\",\\"methodText\\":\\"측면 2:1 패턴\\",\\"items\\":[],\\"strokes\\":[],\\"playerPath\\":[],\\"ballPath\\":[]}]}","createdAt":"${DateTime(today.year, today.month, today.day, 9).toIso8601String()}","updatedAt":"${DateTime(today.year, today.month, today.day, 20).toIso8601String()}"}]',
+        );
+      final mealLogService = MealLogService(optionRepository);
+      await mealLogService.save(
+        MealEntry(
+          date: DateTime(today.year, today.month, today.day),
+          breakfastRiceBowls: 1,
+          lunchRiceBowls: 1,
+          dinnerRiceBowls: 1,
+        ),
+      );
+      final trainingService = TrainingService(
+        _FakeTrainingRepository(<TrainingEntry>[
+          TrainingEntry(
+            date: DateTime(today.year, today.month, today.day, 18, 0),
+            createdAt: DateTime.fromMillisecondsSinceEpoch(trainingCreatedAt),
+            durationMinutes: 50,
+            intensity: 4,
+            type: '패스',
+            mood: 4,
+            injury: false,
+            notes: '오늘 훈련',
+            location: '학교 운동장',
+            program: '원터치 패스',
+            drills: '{"version":2,"boardIds":["board-1"]}',
+          ),
+        ]),
+      );
+
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: CoachLessonScreen(
+              optionRepository: optionRepository,
+              trainingService: trainingService,
+              mealLogService: mealLogService,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('새 다이어리'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('${today.day}').first);
+      await tester.pumpAndSettle();
+
+      final boardSeed = find.byKey(
+        const ValueKey('diary-todo-seed-board-board-1'),
+      );
+      final mealSeed = find.byKey(ValueKey('diary-todo-seed-meal-$todayToken'));
+      final trainingSeed = find.byKey(
+        ValueKey('diary-todo-seed-training-$trainingCreatedAt'),
+      );
+      expect(boardSeed, findsOneWidget);
+      expect(mealSeed, findsOneWidget);
+      expect(trainingSeed, findsOneWidget);
+      expect(
+        tester.getTopLeft(boardSeed).dy,
+        lessThan(tester.getTopLeft(mealSeed).dy),
+      );
+      expect(
+        tester.getTopLeft(mealSeed).dy,
+        lessThan(tester.getTopLeft(trainingSeed).dy),
+      );
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('diary-record-sticker-board-board-1')),
+      );
+      await tester.tap(
+        find.byKey(const ValueKey('diary-record-sticker-board-board-1')),
+      );
+      await tester.pump();
+      await tester.ensureVisible(
+        find.byKey(
+          ValueKey('diary-record-sticker-training-$trainingCreatedAt'),
+        ),
+      );
+      await tester.tap(
+        find.byKey(
+          ValueKey('diary-record-sticker-training-$trainingCreatedAt'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const ValueKey('diary-story-field')),
+        '순서 저장 테스트',
+      );
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('diary-save-button')),
+      );
+      await tester.tap(find.byKey(const ValueKey('diary-save-button')));
+      await tester.pumpAndSettle();
+
+      final raw = optionRepository.getValue<String>('custom_diary_entries_v3');
+      expect(raw, isNotNull);
+      final decoded = jsonDecode(raw!) as Map<String, dynamic>;
+      final todayEntry = decoded[todayToken] as Map<String, dynamic>;
+      final recordStickers = (todayEntry['recordStickers'] as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+      expect(recordStickers[0]['kind'], 'board');
+      expect(recordStickers[1]['kind'], 'training');
+    },
+  );
 }
 
 class _FakeTrainingRepository implements TrainingRepository {

@@ -1946,6 +1946,42 @@ abstract class AppLocalizations {
   /// **'Next goal'**
   String get diaryTrainingNextGoalLabel;
 
+  /// No description provided for @diarySelectedRecordStickersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected record stickers'**
+  String get diarySelectedRecordStickersTitle;
+
+  /// No description provided for @diarySelectedRecordStickersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder them.'**
+  String get diarySelectedRecordStickersHint;
+
+  /// No description provided for @diaryRecordStickerReorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder sticker'**
+  String get diaryRecordStickerReorder;
+
+  /// No description provided for @diaryRecordStickerRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove sticker'**
+  String get diaryRecordStickerRemove;
+
+  /// No description provided for @diaryRecordStickerPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker added'**
+  String get diaryRecordStickerPinned;
+
+  /// No description provided for @diaryRecordStickerPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin as sticker'**
+  String get diaryRecordStickerPin;
+
   /// No description provided for @diaryMealStorySentence.
   ///
   /// In en, this message translates to:
