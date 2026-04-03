@@ -265,15 +265,24 @@ class _GateSplashPainter extends CustomPainter {
     Rect openingRect,
   ) {
     final splitProgress = (openingRect.width / gateRect.width).clamp(0.0, 1.0);
-    final seamAlpha = (1.0 - splitProgress).clamp(0.0, 1.0);
-    if (seamAlpha <= 0.0) return;
+    final seamVanish = Curves.easeInCubic.transform(
+      const Interval(0.0, 0.24).transform(progress),
+    );
+    final seamAlpha =
+        ((1.0 - splitProgress) * (1.0 - seamVanish)).clamp(0.0, 1.0);
+    if (seamAlpha <= 0.001) return;
+
+    final eraseFrontY = lerpDouble(gateRect.top, gateRect.bottom, seamVanish)!;
+    final visibleTop = eraseFrontY.clamp(gateRect.top, gateRect.bottom);
+    final visibleHeight = gateRect.bottom - visibleTop;
+    if (visibleHeight <= 0.0) return;
 
     final seamX = gateRect.center.dx;
     final seamRect = Rect.fromLTWH(
       seamX - (size.width * 0.012),
-      gateRect.top,
+      visibleTop,
       size.width * 0.024,
-      gateRect.height,
+      visibleHeight,
     );
     canvas.drawRect(
       seamRect,
