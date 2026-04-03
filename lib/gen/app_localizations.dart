@@ -1958,6 +1958,48 @@ abstract class AppLocalizations {
   /// **'Drag to reorder them.'**
   String get diarySelectedRecordStickersHint;
 
+  /// No description provided for @diaryRecordStickerSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record sticker layout'**
+  String get diaryRecordStickerSectionTitle;
+
+  /// No description provided for @diaryRecordStickerSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from today\'s records and organize the reading order above.'**
+  String get diaryRecordStickerSectionSubtitle;
+
+  /// No description provided for @diaryRecordStickerSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull from today records'**
+  String get diaryRecordStickerSourceTitle;
+
+  /// No description provided for @diaryRecordStickerAvailableCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String diaryRecordStickerAvailableCount(int count);
+
+  /// No description provided for @diaryRecordStickerSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String diaryRecordStickerSelectedCount(int count);
+
+  /// No description provided for @diaryRecordStickerSelectedOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order {order}'**
+  String diaryRecordStickerSelectedOrder(int order);
+
+  /// No description provided for @diaryRecordStickerEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick stickers below and reorder them here right away.'**
+  String get diaryRecordStickerEmptyHint;
+
   /// No description provided for @diaryRecordStickerReorder.
   ///
   /// In en, this message translates to:

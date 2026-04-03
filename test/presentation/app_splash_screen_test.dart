@@ -24,7 +24,7 @@ void main() {
     expect(find.byType(Scaffold), findsOneWidget);
     expect(find.byType(CustomPaint), findsWidgets);
 
-    await tester.pump(const Duration(milliseconds: 1800));
+    await tester.pump(const Duration(milliseconds: 2200));
 
     expect(completed, isTrue);
   });

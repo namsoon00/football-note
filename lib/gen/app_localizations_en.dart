@@ -995,6 +995,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diarySelectedRecordStickersHint => 'Drag to reorder them.';
 
   @override
+  String get diaryRecordStickerSectionTitle => 'Record sticker layout';
+
+  @override
+  String get diaryRecordStickerSectionSubtitle =>
+      'Pick from today\'s records and organize the reading order above.';
+
+  @override
+  String get diaryRecordStickerSourceTitle => 'Pull from today records';
+
+  @override
+  String diaryRecordStickerAvailableCount(int count) {
+    return '$count items';
+  }
+
+  @override
+  String diaryRecordStickerSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String diaryRecordStickerSelectedOrder(int order) {
+    return 'Order $order';
+  }
+
+  @override
+  String get diaryRecordStickerEmptyHint =>
+      'Pick stickers below and reorder them here right away.';
+
+  @override
   String get diaryRecordStickerReorder => 'Reorder sticker';
 
   @override
