@@ -87,6 +87,9 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           final rush = Curves.easeInCubic.transform(
             const Interval(0.0, 0.68).transform(t),
           );
+          final seamDrop = Curves.easeInOutCubic.transform(
+            const Interval(0.52, 0.96).transform(t),
+          );
           final fadeOut = Curves.easeIn.transform(
             const Interval(0.76, 1.0).transform(t),
           );
@@ -103,6 +106,7 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                 fieldReveal: fieldReveal,
                 fieldPan: fieldPan,
                 rush: rush,
+                seamDrop: seamDrop,
               ),
             ),
           );
@@ -120,6 +124,7 @@ class _GateSplashPainter extends CustomPainter {
   final double fieldReveal;
   final double fieldPan;
   final double rush;
+  final double seamDrop;
 
   const _GateSplashPainter({
     required this.progress,
@@ -129,6 +134,7 @@ class _GateSplashPainter extends CustomPainter {
     required this.fieldReveal,
     required this.fieldPan,
     required this.rush,
+    required this.seamDrop,
   });
 
   @override
@@ -275,11 +281,16 @@ class _GateSplashPainter extends CustomPainter {
     if (seamAlpha <= 0.0) return;
 
     final seamX = gateRect.center.dx;
+    final seamTop = lerpDouble(
+      gateRect.top - gateRect.height,
+      gateRect.bottom + gateRect.height * 0.2,
+      seamDrop,
+    )!;
     final seamRect = Rect.fromLTWH(
       seamX - (size.width * 0.012),
-      gateRect.top,
+      seamTop,
       size.width * 0.024,
-      gateRect.height,
+      gateRect.height * 0.9,
     );
     canvas.drawRect(
       seamRect,
@@ -482,6 +493,7 @@ class _GateSplashPainter extends CustomPainter {
         oldDelegate.lightBurst != lightBurst ||
         oldDelegate.fieldReveal != fieldReveal ||
         oldDelegate.fieldPan != fieldPan ||
-        oldDelegate.rush != rush;
+        oldDelegate.rush != rush ||
+        oldDelegate.seamDrop != seamDrop;
   }
 }

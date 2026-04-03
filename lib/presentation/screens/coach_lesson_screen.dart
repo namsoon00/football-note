@@ -829,7 +829,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.52),
+                        color: _recordStickerBadgeSurface(sticker.tint),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -870,10 +870,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: _recordStickerMetaSurface(sticker.tint),
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(
-                          color: sticker.tint.withValues(alpha: 0.16),
+                          color: sticker.tint.withValues(
+                            alpha: _isDark ? 0.28 : 0.16,
+                          ),
                         ),
                       ),
                       child: Text(
@@ -894,7 +896,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.48),
+                color: _recordStickerSummarySurface(sticker.tint),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
@@ -940,9 +942,11 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: sticker.tint.withValues(alpha: 0.12),
+        color: _recordStickerCardSurface(sticker.tint),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: sticker.tint.withValues(alpha: 0.28)),
+        border: Border.all(
+          color: sticker.tint.withValues(alpha: _isDark ? 0.42 : 0.28),
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -1046,6 +1050,43 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final weather = _extractWeatherFromNotes(entry.notes);
     if (weather.isEmpty) return base;
     return _isKo ? '$base · 날씨 $weather' : '$base · Weather $weather';
+  }
+
+  String _trainingStickerSummary(TrainingEntry entry) {
+    final cleanNotes = _stripWeatherFromNotes(entry.notes);
+    final lines = <String>[
+      if (!TrainingBoardLinkCodec.isBoardLinkPayload(entry.drills) &&
+          entry.drills.trim().isNotEmpty)
+        entry.drills.trim(),
+      if (cleanNotes.isNotEmpty) cleanNotes,
+      ..._trainingFocusLines(entry),
+    ];
+    if (lines.isEmpty) return _trainingSummaryShortWithWeather(entry);
+    return lines.join('\n');
+  }
+
+  Color _recordStickerBadgeSurface(Color tint) {
+    return _isDark
+        ? tint.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.52);
+  }
+
+  Color _recordStickerMetaSurface(Color tint) {
+    return _isDark
+        ? tint.withValues(alpha: 0.14)
+        : Colors.white.withValues(alpha: 0.5);
+  }
+
+  Color _recordStickerSummarySurface(Color tint) {
+    return _isDark
+        ? Colors.black.withValues(alpha: 0.16)
+        : Colors.white.withValues(alpha: 0.48);
+  }
+
+  Color _recordStickerCardSurface(Color tint) {
+    return _isDark
+        ? Color.alphaBlend(tint.withValues(alpha: 0.12), _tileSurface)
+        : tint.withValues(alpha: 0.12);
   }
 
   Widget _buildEmptyCard({required VoidCallback onCreateDiary}) {
@@ -1549,8 +1590,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.training,
-          title: '${_l10n.diaryStickerTraining} · $primaryLabel',
-          summary: _trainingSummaryShortWithWeather(entry),
+          title: primaryLabel,
+          summary: _trainingStickerSummary(entry),
           badgeLabel: _l10n.diaryStickerTraining,
           metaLabels: [
             _isKo
@@ -1575,8 +1616,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           title: entry.opponentTeam.trim().isEmpty
               ? _l10n.diaryStickerMatch
               : _isKo
-              ? '${_l10n.diaryStickerMatch} · ${entry.opponentTeam.trim()}전'
-              : '${_l10n.diaryStickerMatch} · vs ${entry.opponentTeam.trim()}',
+              ? '${entry.opponentTeam.trim()}전'
+              : 'vs ${entry.opponentTeam.trim()}',
           summary: _matchSummary(entry),
           badgeLabel: _l10n.diaryStickerMatch,
           metaLabels: [
@@ -1603,7 +1644,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.plan,
-          title: '${_l10n.diaryStickerPlan} · ${plan.category}',
+          title: plan.category,
           summary: _isKo
               ? '${_formatTime(plan.scheduledAt)} · ${plan.durationMinutes}분${plan.note.trim().isEmpty ? '' : ' · ${plan.note.trim()}'}'
               : '${_formatTime(plan.scheduledAt)} · ${plan.durationMinutes} min${plan.note.trim().isEmpty ? '' : ' · ${plan.note.trim()}'}',
@@ -1626,7 +1667,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.fortune,
-          title: _l10n.diaryStickerFortune,
+          title: _formatDiaryDate(entry.date),
           summary: fortune.composeText(),
           badgeLabel: _l10n.diaryStickerFortune,
           metaLabels: [
@@ -1650,7 +1691,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.board,
-          title: '${_l10n.diaryStickerBoard} · ${board.title}',
+          title: board.title,
           summary: boardMemo.isNotEmpty
               ? boardMemo
               : (_isKo
@@ -1680,7 +1721,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.news,
-          title: '${_l10n.diaryStickerNews} · $displayTitle',
+          title: displayTitle,
           summary: _isKo
               ? '${item.source.isEmpty ? '출처 없음' : item.source} · ${_formatTime(item.openedAt)}'
               : '${item.source.isEmpty ? 'Unknown source' : item.source} · ${_formatTime(item.openedAt)}',
@@ -2796,278 +2837,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                _l10n.diaryRecordStickerSectionTitle,
-                                style: _theme.textTheme.titleMedium?.copyWith(
-                                  color: _headlineInk,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _l10n.diaryRecordStickerSectionSubtitle,
-                                style: _theme.textTheme.bodySmall?.copyWith(
-                                  color: _bodyInk,
-                                  height: 1.45,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.42),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          _l10n
-                                              .diarySelectedRecordStickersTitle,
-                                          style: _theme.textTheme.labelLarge
-                                              ?.copyWith(
-                                                color: _headlineInk,
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                        ),
-                                        const Spacer(),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: _accentInk.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              999,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            _l10n
-                                                .diaryRecordStickerSelectedCount(
-                                                  selectedRecordStickerOrder
-                                                      .length,
-                                                ),
-                                            style: _theme.textTheme.labelSmall
-                                                ?.copyWith(
-                                                  color: _accentInk,
-                                                  fontWeight: FontWeight.w900,
-                                                ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      _l10n.diarySelectedRecordStickersHint,
-                                      style: _theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: _bodyInk,
-                                            height: 1.4,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    if (selectedRecordStickerOrder.isEmpty)
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 14,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.34,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                          border: Border.all(
-                                            color: _paperEdge.withValues(
-                                              alpha: 0.7,
-                                            ),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          _l10n.diaryRecordStickerEmptyHint,
-                                          style: _theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                                color: _bodyInk,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                        ),
-                                      )
-                                    else
-                                      ReorderableListView.builder(
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        buildDefaultDragHandles: false,
-                                        itemCount:
-                                            selectedRecordStickerOrder.length,
-                                        onReorder: (oldIndex, newIndex) {
-                                          setModalState(() {
-                                            if (newIndex > oldIndex) {
-                                              newIndex -= 1;
-                                            }
-                                            final moved =
-                                                selectedRecordStickerOrder
-                                                    .removeAt(oldIndex);
-                                            selectedRecordStickerOrder.insert(
-                                              newIndex,
-                                              moved,
-                                            );
-                                          });
-                                        },
-                                        itemBuilder: (context, index) {
-                                          final storageId =
-                                              selectedRecordStickerOrder[index];
-                                          final seed =
-                                              seedByRecordStorageId[storageId];
-                                          if (seed == null) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return Container(
-                                            key: ValueKey(
-                                              'diary-selected-record-sticker-$storageId',
-                                            ),
-                                            margin: const EdgeInsets.only(
-                                              bottom: 8,
-                                            ),
-                                            padding: const EdgeInsets.fromLTRB(
-                                              12,
-                                              10,
-                                              8,
-                                              10,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withValues(
-                                                alpha: 0.62,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              border: Border.all(
-                                                color: _paperEdge,
-                                              ),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  width: 28,
-                                                  height: 28,
-                                                  alignment: Alignment.center,
-                                                  decoration: BoxDecoration(
-                                                    color: _accentInk
-                                                        .withValues(
-                                                          alpha: 0.12,
-                                                        ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          999,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    '${index + 1}',
-                                                    style: _theme
-                                                        .textTheme
-                                                        .labelMedium
-                                                        ?.copyWith(
-                                                          color: _accentInk,
-                                                          fontWeight:
-                                                              FontWeight.w900,
-                                                        ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 10),
-                                                Icon(
-                                                  seed.icon,
-                                                  size: 18,
-                                                  color: _accentInk,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        seed.title,
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: _theme
-                                                            .textTheme
-                                                            .labelLarge
-                                                            ?.copyWith(
-                                                              color:
-                                                                  _headlineInk,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w800,
-                                                            ),
-                                                      ),
-                                                      const SizedBox(height: 2),
-                                                      Text(
-                                                        seed.summary,
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: _theme
-                                                            .textTheme
-                                                            .bodySmall
-                                                            ?.copyWith(
-                                                              color: _bodyInk,
-                                                            ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                IconButton(
-                                                  tooltip: _l10n
-                                                      .diaryRecordStickerRemove,
-                                                  onPressed: () {
-                                                    setModalState(() {
-                                                      selectedRecordStickerOrder
-                                                          .remove(storageId);
-                                                    });
-                                                  },
-                                                  icon: const Icon(
-                                                    Icons.close_rounded,
-                                                  ),
-                                                ),
-                                                Tooltip(
-                                                  message: _l10n
-                                                      .diaryRecordStickerReorder,
-                                                  child: ReorderableDragStartListener(
-                                                    key: ValueKey(
-                                                      'diary-selected-record-sticker-handle-$storageId',
-                                                    ),
-                                                    index: index,
-                                                    child: const Padding(
-                                                      padding: EdgeInsets.all(
-                                                        8,
-                                                      ),
-                                                      child: Icon(
-                                                        Icons
-                                                            .drag_handle_rounded,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 14),
                               Row(
                                 children: [
                                   Text(
@@ -3080,8 +2849,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                   ),
                                   const Spacer(),
                                   Text(
-                                    _l10n.diaryRecordStickerAvailableCount(
-                                      todoSeeds.length,
+                                    _l10n.diaryRecordStickerSelectedCount(
+                                      selectedRecordStickerOrder.length,
                                     ),
                                     style: _theme.textTheme.labelSmall
                                         ?.copyWith(
@@ -3092,6 +2861,29 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                 ],
                               ),
                               const SizedBox(height: 10),
+                              if (selectedRecordStickerOrder.isEmpty)
+                                Container(
+                                  width: double.infinity,
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.34),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: _paperEdge.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _l10n.diaryRecordStickerEmptyHint,
+                                    style: _theme.textTheme.bodySmall?.copyWith(
+                                      color: _bodyInk,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
                               ...todoSeeds.map(
                                 (seed) => Builder(
                                   builder: (context) {
@@ -3256,43 +3048,115 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                           ),
                                           if (recordStorageId != null) ...[
                                             const SizedBox(height: 10),
-                                            FilterChip(
-                                              key: ValueKey(
-                                                'diary-record-sticker-${seed.id}',
-                                              ),
-                                              label: Text(
-                                                isSelected
-                                                    ? _l10n
-                                                          .diaryRecordStickerPinned
-                                                    : _l10n
-                                                          .diaryRecordStickerPin,
-                                              ),
-                                              avatar: Icon(
-                                                isSelected
-                                                    ? Icons.check_circle_outline
-                                                    : Icons.push_pin_outlined,
-                                                size: 18,
-                                                color: _accentInk,
-                                              ),
-                                              selected: isSelected,
-                                              onSelected: (selected) {
-                                                setModalState(() {
-                                                  if (selected) {
-                                                    if (!selectedRecordStickerOrder
-                                                        .contains(
-                                                          recordStorageId,
-                                                        )) {
-                                                      selectedRecordStickerOrder
-                                                          .add(recordStorageId);
-                                                    }
-                                                  } else {
-                                                    selectedRecordStickerOrder
-                                                        .remove(
-                                                          recordStorageId,
-                                                        );
-                                                  }
-                                                });
-                                              },
+                                            Row(
+                                              children: [
+                                                FilterChip(
+                                                  key: ValueKey(
+                                                    'diary-record-sticker-${seed.id}',
+                                                  ),
+                                                  label: Text(
+                                                    isSelected
+                                                        ? _l10n
+                                                              .diaryRecordStickerPinned
+                                                        : _l10n
+                                                              .diaryRecordStickerPin,
+                                                  ),
+                                                  avatar: Icon(
+                                                    isSelected
+                                                        ? Icons
+                                                              .check_circle_outline
+                                                        : Icons
+                                                              .push_pin_outlined,
+                                                    size: 18,
+                                                    color: _accentInk,
+                                                  ),
+                                                  selected: isSelected,
+                                                  onSelected: (selected) {
+                                                    setModalState(() {
+                                                      if (selected) {
+                                                        if (!selectedRecordStickerOrder
+                                                            .contains(
+                                                              recordStorageId,
+                                                            )) {
+                                                          selectedRecordStickerOrder
+                                                              .add(
+                                                                recordStorageId,
+                                                              );
+                                                        }
+                                                      } else {
+                                                        selectedRecordStickerOrder
+                                                            .remove(
+                                                              recordStorageId,
+                                                            );
+                                                      }
+                                                    });
+                                                  },
+                                                ),
+                                                if (isSelected) ...[
+                                                  const SizedBox(width: 8),
+                                                  IconButton(
+                                                    key: ValueKey(
+                                                      'diary-record-sticker-move-up-${seed.id}',
+                                                    ),
+                                                    tooltip: _l10n
+                                                        .diaryRecordStickerReorder,
+                                                    onPressed: orderIndex <= 0
+                                                        ? null
+                                                        : () {
+                                                            setModalState(() {
+                                                              final moved =
+                                                                  selectedRecordStickerOrder
+                                                                      .removeAt(
+                                                                        orderIndex,
+                                                                      );
+                                                              selectedRecordStickerOrder
+                                                                  .insert(
+                                                                    orderIndex -
+                                                                        1,
+                                                                    moved,
+                                                                  );
+                                                            });
+                                                          },
+                                                    icon: const Icon(
+                                                      Icons
+                                                          .arrow_upward_rounded,
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    key: ValueKey(
+                                                      'diary-record-sticker-move-down-${seed.id}',
+                                                    ),
+                                                    tooltip: _l10n
+                                                        .diaryRecordStickerReorder,
+                                                    onPressed:
+                                                        orderIndex < 0 ||
+                                                            orderIndex >=
+                                                                selectedRecordStickerOrder
+                                                                        .length -
+                                                                    1
+                                                        ? null
+                                                        : () {
+                                                            setModalState(() {
+                                                              final moved =
+                                                                  selectedRecordStickerOrder
+                                                                      .removeAt(
+                                                                        orderIndex,
+                                                                      );
+                                                              selectedRecordStickerOrder
+                                                                  .insert(
+                                                                    orderIndex +
+                                                                        1,
+                                                                    moved,
+                                                                  );
+                                                            });
+                                                          },
+                                                    icon: const Icon(
+                                                      Icons
+                                                          .arrow_downward_rounded,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
                                             ),
                                           ],
                                         ],

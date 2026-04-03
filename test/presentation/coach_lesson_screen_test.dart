@@ -169,7 +169,7 @@ void main() {
     expect(find.textContaining('잘한 점: 터치 수를 일정하게 유지했다'), findsOneWidget);
     expect(find.textContaining('아쉬운 점: 압박 직전 시선 확인이 늦었다'), findsOneWidget);
     expect(find.textContaining('다음 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
-    expect(find.textContaining('시합 · Blue FC전'), findsOneWidget);
+    expect(find.textContaining('Blue FC전'), findsOneWidget);
     expect(find.text('공기밥'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
 
@@ -222,6 +222,7 @@ void main() {
   testWidgets('coach lesson screen supports dark mode notebook layout', (
     WidgetTester tester,
   ) async {
+    final createdAt = DateTime(2026, 3, 15, 18, 0);
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: TestAssetBundle(),
@@ -241,12 +242,13 @@ void main() {
             optionRepository: _FakeOptionRepository()
               ..setRawValue(
                 'custom_diary_entries_v3',
-                '{"2026-03-15":{"title":"다크 다이어리","story":"야간 페이지","sections":[],"moodId":"calm","stickers":[],"updatedAt":"2026-03-15T21:00:00.000"}}',
+                '{"2026-03-15":{"title":"다크 다이어리","story":"야간 페이지","sections":[],"moodId":"calm","recordStickers":[{"kind":"training","refId":"${createdAt.millisecondsSinceEpoch}"}],"stickers":[],"updatedAt":"2026-03-15T21:00:00.000"}}',
               ),
             trainingService: TrainingService(
               _FakeTrainingRepository(<TrainingEntry>[
                 TrainingEntry(
                   date: DateTime(2026, 3, 15, 18, 0),
+                  createdAt: createdAt,
                   durationMinutes: 30,
                   intensity: 3,
                   type: '볼터치',
@@ -268,10 +270,8 @@ void main() {
     expect(find.text('오늘의 운세 노트'), findsNothing);
     expect(find.textContaining('행운'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
+    expect(find.text('볼터치'), findsOneWidget);
+    expect(find.textContaining('다크모드 확인'), findsWidgets);
   });
 
   testWidgets('coach lesson screen saves personal diary writing and stickers', (
@@ -713,6 +713,8 @@ void main() {
       await tester.tap(find.text('${today.day}').first);
       await tester.pumpAndSettle();
 
+      expect(find.text('기록 스티커 구성'), findsNothing);
+
       final boardSeed = find.byKey(
         const ValueKey('diary-todo-seed-board-board-1'),
       );
@@ -751,6 +753,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.tap(
+        find.byKey(
+          ValueKey('diary-record-sticker-move-up-training-$trainingCreatedAt'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
       await tester.enterText(
         find.byKey(const ValueKey('diary-story-field')),
         '순서 저장 테스트',
@@ -767,8 +776,8 @@ void main() {
       final todayEntry = decoded[todayToken] as Map<String, dynamic>;
       final recordStickers = (todayEntry['recordStickers'] as List<dynamic>)
           .cast<Map<String, dynamic>>();
-      expect(recordStickers[0]['kind'], 'board');
-      expect(recordStickers[1]['kind'], 'training');
+      expect(recordStickers[0]['kind'], 'training');
+      expect(recordStickers[1]['kind'], 'board');
     },
   );
 }
