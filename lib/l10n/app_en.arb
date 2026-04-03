@@ -330,6 +330,34 @@
   "diaryTrainingNextGoalLabel": "Next goal",
   "diarySelectedRecordStickersTitle": "Selected record stickers",
   "diarySelectedRecordStickersHint": "Drag to reorder them.",
+  "diaryRecordStickerSectionTitle": "Record sticker layout",
+  "diaryRecordStickerSectionSubtitle": "Pick from today's records and organize the reading order above.",
+  "diaryRecordStickerSourceTitle": "Pull from today records",
+  "diaryRecordStickerAvailableCount": "{count} items",
+  "@diaryRecordStickerAvailableCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerSelectedCount": "{count} selected",
+  "@diaryRecordStickerSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerSelectedOrder": "Order {order}",
+  "@diaryRecordStickerSelectedOrder": {
+    "placeholders": {
+      "order": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerEmptyHint": "Pick stickers below and reorder them here right away.",
   "diaryRecordStickerReorder": "Reorder sticker",
   "diaryRecordStickerRemove": "Remove sticker",
   "diaryRecordStickerPinned": "Sticker added",

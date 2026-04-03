@@ -978,6 +978,35 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diarySelectedRecordStickersHint => '드래그해서 순서를 바꿀 수 있어요.';
 
   @override
+  String get diaryRecordStickerSectionTitle => '기록 스티커 구성';
+
+  @override
+  String get diaryRecordStickerSectionSubtitle =>
+      '오늘 기록에서 바로 고르고, 위쪽 선택 순서에서 흐름을 정리하세요.';
+
+  @override
+  String get diaryRecordStickerSourceTitle => '오늘 기록에서 가져오기';
+
+  @override
+  String diaryRecordStickerAvailableCount(int count) {
+    return '$count개 항목';
+  }
+
+  @override
+  String diaryRecordStickerSelectedCount(int count) {
+    return '$count개 선택';
+  }
+
+  @override
+  String diaryRecordStickerSelectedOrder(int order) {
+    return '$order번 순서';
+  }
+
+  @override
+  String get diaryRecordStickerEmptyHint =>
+      '아래 기록에서 스티커를 고르면 이곳에서 순서를 바로 바꿀 수 있어요.';
+
+  @override
   String get diaryRecordStickerReorder => '순서 변경';
 
   @override

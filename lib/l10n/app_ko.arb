@@ -330,6 +330,34 @@
   "diaryTrainingNextGoalLabel": "다음 목표",
   "diarySelectedRecordStickersTitle": "선택한 기록 스티커",
   "diarySelectedRecordStickersHint": "드래그해서 순서를 바꿀 수 있어요.",
+  "diaryRecordStickerSectionTitle": "기록 스티커 구성",
+  "diaryRecordStickerSectionSubtitle": "오늘 기록에서 바로 고르고, 위쪽 선택 순서에서 흐름을 정리하세요.",
+  "diaryRecordStickerSourceTitle": "오늘 기록에서 가져오기",
+  "diaryRecordStickerAvailableCount": "{count}개 항목",
+  "@diaryRecordStickerAvailableCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerSelectedCount": "{count}개 선택",
+  "@diaryRecordStickerSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerSelectedOrder": "{order}번 순서",
+  "@diaryRecordStickerSelectedOrder": {
+    "placeholders": {
+      "order": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryRecordStickerEmptyHint": "아래 기록에서 스티커를 고르면 이곳에서 순서를 바로 바꿀 수 있어요.",
   "diaryRecordStickerReorder": "순서 변경",
   "diaryRecordStickerRemove": "스티커 제거",
   "diaryRecordStickerPinned": "스티커 추가됨",

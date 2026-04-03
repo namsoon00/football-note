@@ -81,6 +81,9 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           final fieldReveal = Curves.easeOutCubic.transform(
             const Interval(0.08, 0.84).transform(t),
           );
+          final fieldPan = Curves.easeInOutCubic.transform(
+            const Interval(0.12, 0.9).transform(t),
+          );
           final rush = Curves.easeInCubic.transform(
             const Interval(0.0, 0.68).transform(t),
           );
@@ -98,6 +101,7 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                 gateZoom: gateZoom,
                 lightBurst: lightBurst,
                 fieldReveal: fieldReveal,
+                fieldPan: fieldPan,
                 rush: rush,
               ),
             ),
@@ -114,6 +118,7 @@ class _GateSplashPainter extends CustomPainter {
   final double gateZoom;
   final double lightBurst;
   final double fieldReveal;
+  final double fieldPan;
   final double rush;
 
   const _GateSplashPainter({
@@ -122,6 +127,7 @@ class _GateSplashPainter extends CustomPainter {
     required this.gateZoom,
     required this.lightBurst,
     required this.fieldReveal,
+    required this.fieldPan,
     required this.rush,
   });
 
@@ -300,6 +306,19 @@ class _GateSplashPainter extends CustomPainter {
       ),
     );
 
+    final fieldWorldHeight = openingRect.height * 1.9;
+    final fieldTop = lerpDouble(
+      openingRect.bottom - fieldWorldHeight + (openingRect.height * 0.18),
+      openingRect.top - (openingRect.height * 0.1),
+      fieldPan,
+    )!;
+    final fieldRect = Rect.fromLTWH(
+      openingRect.left,
+      fieldTop,
+      openingRect.width,
+      fieldWorldHeight,
+    );
+
     final fieldBase = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
@@ -316,18 +335,18 @@ class _GateSplashPainter extends CustomPainter {
             fieldReveal,
           )!,
         ],
-      ).createShader(openingRect);
-    canvas.drawRect(openingRect, fieldBase);
+      ).createShader(fieldRect);
+    canvas.drawRect(fieldRect, fieldBase);
 
-    const stripeCount = 7;
-    final stripeHeight = openingRect.height / stripeCount;
+    const stripeCount = 11;
+    final stripeHeight = fieldRect.height / stripeCount;
     for (var i = 0; i < stripeCount; i++) {
       if (i.isOdd) continue;
-      final y = openingRect.top + (i * stripeHeight);
+      final y = fieldRect.top + (i * stripeHeight);
       final stripeRect = Rect.fromLTWH(
-        openingRect.left,
+        fieldRect.left,
         y,
-        openingRect.width,
+        fieldRect.width,
         stripeHeight,
       );
       canvas.drawRect(
@@ -342,17 +361,31 @@ class _GateSplashPainter extends CustomPainter {
       ..strokeWidth = max(1.4, openingRect.width * 0.007)
       ..style = PaintingStyle.stroke;
 
-    final centerY = openingRect.center.dy;
+    final centerY = lerpDouble(
+      fieldRect.bottom - (fieldRect.height * 0.22),
+      fieldRect.top + (fieldRect.height * 0.46),
+      fieldPan,
+    )!;
     canvas.drawLine(
-      Offset(openingRect.left, centerY),
-      Offset(openingRect.right, centerY),
+      Offset(fieldRect.left, centerY),
+      Offset(fieldRect.right, centerY),
       linePaint,
     );
     canvas.drawCircle(
-      Offset(openingRect.center.dx, centerY),
+      Offset(fieldRect.center.dx, centerY),
       openingRect.width * 0.14,
       linePaint,
     );
+
+    final bottomArcRect = Rect.fromCenter(
+      center: Offset(
+        fieldRect.center.dx,
+        fieldRect.bottom - fieldRect.height * 0.06,
+      ),
+      width: fieldRect.width * 0.52,
+      height: fieldRect.height * 0.28,
+    );
+    canvas.drawArc(bottomArcRect, pi, pi, false, linePaint);
 
     canvas.restore();
   }
@@ -448,6 +481,7 @@ class _GateSplashPainter extends CustomPainter {
         oldDelegate.gateZoom != gateZoom ||
         oldDelegate.lightBurst != lightBurst ||
         oldDelegate.fieldReveal != fieldReveal ||
+        oldDelegate.fieldPan != fieldPan ||
         oldDelegate.rush != rush;
   }
 }
