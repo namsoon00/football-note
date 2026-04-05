@@ -90,6 +90,9 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           final seamDrop = Curves.easeInOutCubic.transform(
             const Interval(0.52, 0.96).transform(t),
           );
+          final centerGuideDrop = Curves.easeInOutCubic.transform(
+            const Interval(0.62, 0.99).transform(t),
+          );
           final fadeOut = Curves.easeIn.transform(
             const Interval(0.76, 1.0).transform(t),
           );
@@ -107,6 +110,7 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                 fieldPan: fieldPan,
                 rush: rush,
                 seamDrop: seamDrop,
+                centerGuideDrop: centerGuideDrop,
               ),
             ),
           );
@@ -125,6 +129,7 @@ class _GateSplashPainter extends CustomPainter {
   final double fieldPan;
   final double rush;
   final double seamDrop;
+  final double centerGuideDrop;
 
   const _GateSplashPainter({
     required this.progress,
@@ -135,6 +140,7 @@ class _GateSplashPainter extends CustomPainter {
     required this.fieldPan,
     required this.rush,
     required this.seamDrop,
+    required this.centerGuideDrop,
   });
 
   @override
@@ -394,18 +400,14 @@ class _GateSplashPainter extends CustomPainter {
     final centerY = lerpDouble(
       centerMarkLeadY,
       fieldRect.bottom + (openingRect.width * 0.22),
-      seamDrop,
+      centerGuideDrop,
     )!;
     canvas.drawLine(
       Offset(fieldRect.left, centerY),
       Offset(fieldRect.right, centerY),
       linePaint,
     );
-    canvas.drawCircle(
-      Offset(fieldRect.center.dx, centerY),
-      openingRect.width * 0.14,
-      linePaint,
-    );
+    _paintGoalMark(canvas, fieldRect, centerY, linePaint);
 
     final bottomArcRect = Rect.fromCenter(
       center: Offset(
@@ -418,6 +420,59 @@ class _GateSplashPainter extends CustomPainter {
     canvas.drawArc(bottomArcRect, pi, pi, false, linePaint);
 
     canvas.restore();
+  }
+
+  void _paintGoalMark(
+    Canvas canvas,
+    Rect fieldRect,
+    double centerY,
+    Paint linePaint,
+  ) {
+    final goalWidth = fieldRect.width * 0.22;
+    final goalHeight = fieldRect.height * 0.12;
+    final goalRect = Rect.fromCenter(
+      center: Offset(fieldRect.center.dx, centerY - (goalHeight * 0.12)),
+      width: goalWidth,
+      height: goalHeight,
+    );
+    final postPath = Path()
+      ..moveTo(goalRect.left, goalRect.bottom)
+      ..lineTo(goalRect.left, goalRect.top)
+      ..lineTo(goalRect.right, goalRect.top)
+      ..lineTo(goalRect.right, goalRect.bottom);
+    canvas.drawPath(postPath, linePaint);
+
+    final netPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18 + (fieldReveal * 0.18))
+      ..strokeWidth = linePaint.strokeWidth * 0.54
+      ..style = PaintingStyle.stroke;
+    final netInset = goalWidth * 0.14;
+    for (var i = 1; i <= 2; i++) {
+      final ratio = i / 3;
+      final x = lerpDouble(
+        goalRect.left + netInset,
+        goalRect.right - netInset,
+        ratio,
+      )!;
+      canvas.drawLine(
+        Offset(x, goalRect.top + netInset * 0.4),
+        Offset(x, goalRect.bottom),
+        netPaint,
+      );
+    }
+    for (var i = 1; i <= 2; i++) {
+      final ratio = i / 3;
+      final y = lerpDouble(
+        goalRect.top + netInset * 0.5,
+        goalRect.bottom,
+        ratio,
+      )!;
+      canvas.drawLine(
+        Offset(goalRect.left + netInset * 0.6, y),
+        Offset(goalRect.right - netInset * 0.6, y),
+        netPaint,
+      );
+    }
   }
 
   void _paintLight(Canvas canvas, Size size, Rect openingRect) {
@@ -513,6 +568,7 @@ class _GateSplashPainter extends CustomPainter {
         oldDelegate.fieldReveal != fieldReveal ||
         oldDelegate.fieldPan != fieldPan ||
         oldDelegate.rush != rush ||
-        oldDelegate.seamDrop != seamDrop;
+        oldDelegate.seamDrop != seamDrop ||
+        oldDelegate.centerGuideDrop != centerGuideDrop;
   }
 }

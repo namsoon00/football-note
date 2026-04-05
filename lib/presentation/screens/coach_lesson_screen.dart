@@ -621,10 +621,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _CustomDiaryEntryData customDiary,
   ) {
     final todoSeeds = _todoSeedsForDay(day);
-    final stickers = customDiary.stickers
-        .map(_resolveDiarySticker)
-        .whereType<_DiaryStickerChipData>()
-        .toList(growable: false);
     final recordStickers = customDiary.recordStickers
         .map((sticker) => _resolveRecordSticker(sticker, day))
         .whereType<_DiaryRecordStickerViewData>()
@@ -645,44 +641,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (stickers.isNotEmpty) ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: stickers
-                  .map(
-                    (sticker) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: sticker.tint.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: sticker.tint.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(sticker.icon, size: 18, color: sticker.tint),
-                          const SizedBox(width: 6),
-                          Text(
-                            sticker.label,
-                            style: _theme.textTheme.labelMedium?.copyWith(
-                              color: _headlineInk,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(growable: false),
-            ),
-            const SizedBox(height: 14),
-          ],
           Text(
             customDiary.story.trim().isNotEmpty
                 ? customDiary.story.trim()
@@ -774,7 +732,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             luckyInfoLines: fortune.luckyInfoLines,
           ),
           title: sticker.title,
-          subtitle: _formatDiaryDate(fortune.entryDate),
+          subtitle: '',
           luckyInfoTitle: _l10n.fortuneDialogLuckyInfoTitle,
           overviewTitle: _l10n.fortuneDialogOverviewTitle,
           overallFortuneLabel: _l10n.fortuneDialogOverallFortuneLabel,
@@ -797,7 +755,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 42,
@@ -810,13 +768,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  sticker.title,
-                  maxLines: isNewsSticker ? 2 : null,
-                  overflow: isNewsSticker ? TextOverflow.ellipsis : null,
-                  style: _theme.textTheme.labelLarge?.copyWith(
-                    color: _headlineInk,
-                    fontWeight: FontWeight.w800,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 1),
+                  child: Text(
+                    sticker.title,
+                    maxLines: isNewsSticker ? 2 : null,
+                    overflow: isNewsSticker ? TextOverflow.ellipsis : null,
+                    style: _theme.textTheme.labelLarge?.copyWith(
+                      color: _headlineInk,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ),
@@ -870,14 +831,43 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 sticker.summary,
                 maxLines: isNewsSticker
                     ? 3
-                    : (isFortuneSticker || isTrainingSticker ? null : 3),
-                overflow: isFortuneSticker || isTrainingSticker
+                    : (isFortuneSticker ||
+                            (isTrainingSticker && sticker.focusItems.isEmpty)
+                        ? null
+                        : 3),
+                overflow: isFortuneSticker ||
+                        (isTrainingSticker && sticker.focusItems.isEmpty)
                     ? null
                     : TextOverflow.ellipsis,
                 style: _theme.textTheme.bodyMedium?.copyWith(
                   color: _bodyInk,
                   height: 1.5,
                 ),
+              ),
+            ),
+          ],
+          if (sticker.focusItems.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              decoration: BoxDecoration(
+                color: _recordStickerSummarySurface(sticker.tint),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < sticker.focusItems.length; i++)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        bottom: i == sticker.focusItems.length - 1 ? 0 : 10,
+                      ),
+                      child: _buildTrainingFocusItem(
+                        sticker.focusItems[i],
+                        tint: sticker.tint,
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -923,6 +913,51 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           child: content,
         ),
       ),
+    );
+  }
+
+  Widget _buildTrainingFocusItem(
+    _DiaryStickerFocusItem item, {
+    required Color tint,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 1),
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: tint.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(item.icon, size: 14, color: tint),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.title,
+                style: _theme.textTheme.labelMedium?.copyWith(
+                  color: _headlineInk,
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.body,
+                style: _theme.textTheme.bodySmall?.copyWith(
+                  color: _bodyInk,
+                  height: 1.45,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -979,6 +1014,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  // ignore: unused_element
   _DiaryStickerChipData? _resolveDiarySticker(String id) {
     final preset = _DiaryStickerPalette.fromId(id);
     if (preset != null) {
@@ -1577,6 +1613,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
           icon: Icons.fitness_center_outlined,
           tint: const Color(0xFF2F8F6A),
+          focusItems: _trainingFocusItems(entry),
         );
       case _DiaryRecordStickerKind.match:
         final entry = day.matchEntries.cast<TrainingEntry?>().firstWhere(
@@ -1845,6 +1882,38 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return program;
   }
 
+  List<_DiaryStickerFocusItem> _trainingFocusItems(TrainingEntry entry) {
+    final items = <_DiaryStickerFocusItem>[];
+    if (entry.goodPoints.trim().isNotEmpty) {
+      items.add(
+        _DiaryStickerFocusItem(
+          title: _l10n.diaryTrainingStrongPointLabel,
+          body: entry.goodPoints.trim(),
+          icon: Icons.thumb_up_alt_outlined,
+        ),
+      );
+    }
+    if (entry.improvements.trim().isNotEmpty) {
+      items.add(
+        _DiaryStickerFocusItem(
+          title: _l10n.diaryTrainingNeedsWorkLabel,
+          body: entry.improvements.trim(),
+          icon: Icons.construction_outlined,
+        ),
+      );
+    }
+    if (entry.nextGoal.trim().isNotEmpty) {
+      items.add(
+        _DiaryStickerFocusItem(
+          title: _l10n.diaryTrainingNextGoalLabel,
+          body: entry.nextGoal.trim(),
+          icon: Icons.flag_outlined,
+        ),
+      );
+    }
+    return items;
+  }
+
   List<String> _trainingFocusLines(TrainingEntry entry) {
     final lines = <String>[];
     final selectedGoals = entry.goalFocuses
@@ -1856,21 +1925,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       final goalText =
           selectedGoals.isNotEmpty ? selectedGoals.join(', ') : legacyGoal;
       lines.add('${_l10n.diaryTrainingSelectedGoalsLabel}: $goalText');
-    }
-    if (entry.goodPoints.trim().isNotEmpty) {
-      lines.add(
-        '${_l10n.diaryTrainingStrongPointLabel}: ${entry.goodPoints.trim()}',
-      );
-    }
-    if (entry.improvements.trim().isNotEmpty) {
-      lines.add(
-        '${_l10n.diaryTrainingNeedsWorkLabel}: ${entry.improvements.trim()}',
-      );
-    }
-    if (entry.nextGoal.trim().isNotEmpty) {
-      lines.add(
-        '${_l10n.diaryTrainingNextGoalLabel}: ${entry.nextGoal.trim()}',
-      );
     }
     return lines;
   }
@@ -2261,14 +2315,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     var sessionRecognizedWords = '';
     var sessionCommitted = false;
     var composerActive = true;
-    final initialSelectedStickerIds = initialData.stickers
-        .where(
-          (id) =>
-              _DiaryStickerPalette.fromId(id) != null ||
-              _DiaryStickerPalette.customLabelFromId(id) != null,
-        )
-        .toSet();
-    final selectedStickerIds = <String>{...initialSelectedStickerIds};
+    const initialSelectedStickerIds = <String>{};
     final selectableRecordStorageIds =
         todoSeeds.map(recordStorageIdFromSeed).whereType<String>().toSet();
     final seedByRecordStorageId = <String, _DiaryTodoSeed>{
@@ -2284,8 +2331,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ...initialSelectedRecordStickerOrder,
     ];
     var isClosingFlowRunning = false;
-    var showAllMoodStickers = false;
-
     _CustomDiaryEntryData buildDraftData() {
       return _CustomDiaryEntryData(
         title: titleController.text.trim(),
@@ -2302,7 +2347,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               ),
             )
             .toList(growable: false),
-        stickers: selectedStickerIds.toList(growable: false),
+        stickers: const <String>[],
         updatedAt: initialData.updatedAt,
       );
     }
@@ -2565,48 +2610,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   orElse: () => '',
                 )
                 .trim();
-            const compactMoodStickerCount = 8;
-            const favoriteMoodStickerIds = <String>[
-              'smile',
-              'star',
-              'heart',
-              'fire',
-              'cool',
-              'boot',
-              'trophy',
-              'note',
-            ];
-            final paletteById = <String, _DiaryStickerPalette>{
-              for (final sticker in _DiaryStickerPalette.values)
-                sticker.id: sticker,
-            };
-            final orderedMoodStickers = <_DiaryStickerPalette>[
-              ...favoriteMoodStickerIds
-                  .map((id) => paletteById[id])
-                  .whereType<_DiaryStickerPalette>(),
-              ..._DiaryStickerPalette.values.where(
-                (sticker) => !favoriteMoodStickerIds.contains(sticker.id),
-              ),
-            ];
-            final compactMoodStickers = orderedMoodStickers
-                .take(compactMoodStickerCount)
-                .toList(growable: false);
-            final compactIds =
-                compactMoodStickers.map((sticker) => sticker.id).toSet();
-            final selectedHiddenMoodStickers = orderedMoodStickers
-                .where(
-                  (sticker) =>
-                      selectedStickerIds.contains(sticker.id) &&
-                      !compactIds.contains(sticker.id),
-                )
-                .toList(growable: false);
-            final visibleMoodStickers = showAllMoodStickers
-                ? orderedMoodStickers
-                : <_DiaryStickerPalette>[
-                    ...compactMoodStickers,
-                    ...selectedHiddenMoodStickers,
-                  ];
-
             return PopScope(
               canPop: false,
               onPopInvokedWithResult: (didPop, __) {
@@ -2636,106 +2639,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           height: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _isKo ? '감정 스티커' : 'Mood sticker',
-                        style: _theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ...visibleMoodStickers.map(
-                            (sticker) => FilterChip(
-                              key: ValueKey('diary-sticker-${sticker.id}'),
-                              label: Text(
-                                _isKo ? sticker.labelKo : sticker.labelEn,
-                              ),
-                              avatar: Icon(
-                                sticker.icon,
-                                size: 18,
-                                color: sticker.tint,
-                              ),
-                              selected: selectedStickerIds.contains(sticker.id),
-                              backgroundColor: _composerIdleSurface(),
-                              selectedColor: sticker.tint.withValues(
-                                alpha: 0.16,
-                              ),
-                              side: selectedStickerIds.contains(sticker.id)
-                                  ? BorderSide(
-                                      color: sticker.tint.withValues(
-                                        alpha: 0.44,
-                                      ),
-                                    )
-                                  : _composerIdleBorder(),
-                              onSelected: (selected) {
-                                setModalState(() {
-                                  if (selected) {
-                                    selectedStickerIds.add(sticker.id);
-                                  } else {
-                                    selectedStickerIds.remove(sticker.id);
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                          ...selectedStickerIds
-                              .map(_resolveDiarySticker)
-                              .whereType<_DiaryStickerChipData>()
-                              .where((sticker) => sticker.isCustom)
-                              .map(
-                                (sticker) => FilterChip(
-                                  key: ValueKey('diary-sticker-${sticker.id}'),
-                                  label: Text(sticker.label),
-                                  avatar: Icon(
-                                    sticker.icon,
-                                    size: 18,
-                                    color: sticker.tint,
-                                  ),
-                                  selected: true,
-                                  backgroundColor: _composerIdleSurface(),
-                                  selectedColor: sticker.tint.withValues(
-                                    alpha: 0.16,
-                                  ),
-                                  side: BorderSide(
-                                    color: sticker.tint.withValues(alpha: 0.44),
-                                  ),
-                                  onSelected: (_) {
-                                    setModalState(() {
-                                      selectedStickerIds.remove(sticker.id);
-                                    });
-                                  },
-                                ),
-                              ),
-                        ].toList(growable: false),
-                      ),
-                      if (orderedMoodStickers.length > compactMoodStickerCount)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: TextButton.icon(
-                              onPressed: () {
-                                setModalState(() {
-                                  showAllMoodStickers = !showAllMoodStickers;
-                                });
-                              },
-                              icon: Icon(
-                                showAllMoodStickers
-                                    ? Icons.expand_less_rounded
-                                    : Icons.expand_more_rounded,
-                              ),
-                              label: Text(
-                                showAllMoodStickers
-                                    ? (_isKo ? '접기' : 'Collapse')
-                                    : (_isKo ? '더보기' : 'Show more'),
-                              ),
-                            ),
-                          ),
-                        ),
                       const SizedBox(height: 16),
                       if (diaryWeather.isNotEmpty) ...[
                         Container(
@@ -3275,7 +3178,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                               setModalState(() {
                                 titleController.clear();
                                 storyController.clear();
-                                selectedStickerIds.clear();
                                 selectedRecordStickerOrder.clear();
                               });
                             },
@@ -4132,6 +4034,7 @@ class _DiaryRecordStickerViewData {
   final String? link;
   final MealEntry? mealEntry;
   final _DiaryFortune? fortune;
+  final List<_DiaryStickerFocusItem> focusItems;
 
   const _DiaryRecordStickerViewData({
     required this.id,
@@ -4146,6 +4049,19 @@ class _DiaryRecordStickerViewData {
     this.link,
     this.mealEntry,
     this.fortune,
+    this.focusItems = const <_DiaryStickerFocusItem>[],
+  });
+}
+
+class _DiaryStickerFocusItem {
+  final String title;
+  final String body;
+  final IconData icon;
+
+  const _DiaryStickerFocusItem({
+    required this.title,
+    required this.body,
+    required this.icon,
   });
 }
 
