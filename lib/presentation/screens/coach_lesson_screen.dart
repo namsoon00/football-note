@@ -764,25 +764,33 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            sticker.title,
-            maxLines: isNewsSticker ? 2 : null,
-            overflow: isNewsSticker ? TextOverflow.ellipsis : null,
-            style: _theme.textTheme.labelLarge?.copyWith(
-              color: _headlineInk,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          if (sticker.metaLabels.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              sticker.metaLabels.join(' · '),
-              style: _theme.textTheme.bodySmall?.copyWith(
-                color: _bodyInk.withValues(alpha: 0.78),
-                height: 1.45,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: sticker.tint.withValues(alpha: _isDark ? 0.2 : 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Icon(sticker.icon, size: 16, color: sticker.tint),
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  sticker.title,
+                  maxLines: isNewsSticker ? 2 : null,
+                  overflow: isNewsSticker ? TextOverflow.ellipsis : null,
+                  style: _theme.textTheme.labelLarge?.copyWith(
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
           if (!isMealSticker) ...[
             const SizedBox(height: 10),
             Text(
