@@ -2776,15 +2776,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(999),
                                             ),
-                                            child: Text(
-                                              '${index + 1}',
-                                              style: _theme
-                                                  .textTheme
-                                                  .labelMedium
-                                                  ?.copyWith(
-                                                    color: _accentInk,
-                                                    fontWeight: FontWeight.w900,
-                                                  ),
+                                            child: Icon(
+                                              seed.icon,
+                                              size: 16,
+                                              color: _accentInk,
                                             ),
                                           ),
                                           const SizedBox(width: 10),
@@ -2812,21 +2807,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                                             FontWeight.w800,
                                                       ),
                                                 ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  seed.summary,
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: _theme
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: _bodyInk,
-                                                        height: 1.4,
-                                                      ),
-                                                ),
                                               ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              right: 4,
+                                            ),
+                                            child: Text(
+                                              '${index + 1}',
+                                              style: _theme.textTheme.labelSmall
+                                                  ?.copyWith(
+                                                    color: _accentInk,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
                                             ),
                                           ),
                                           IconButton(
