@@ -280,8 +280,10 @@ class _GateSplashPainter extends CustomPainter {
     final seamVanish = Curves.easeInCubic.transform(
       const Interval(0.0, 0.24).transform(progress),
     );
-    final seamAlpha =
-        ((1.0 - splitProgress) * (1.0 - seamVanish)).clamp(0.0, 1.0);
+    final seamAlpha = ((1.0 - splitProgress) * (1.0 - seamVanish)).clamp(
+      0.0,
+      1.0,
+    );
     if (seamAlpha <= 0.001) return;
 
     final eraseFrontY = lerpDouble(gateRect.top, gateRect.bottom, seamVanish)!;
@@ -384,10 +386,15 @@ class _GateSplashPainter extends CustomPainter {
       ..strokeWidth = max(1.4, openingRect.width * 0.007)
       ..style = PaintingStyle.stroke;
 
-    final centerY = lerpDouble(
-      fieldRect.bottom - (fieldRect.height * 0.22),
-      fieldRect.top + (fieldRect.height * 0.46),
+    final centerMarkLeadY = lerpDouble(
+      fieldRect.top + (fieldRect.height * 0.08),
+      fieldRect.top + (fieldRect.height * 0.32),
       fieldPan,
+    )!;
+    final centerY = lerpDouble(
+      centerMarkLeadY,
+      fieldRect.bottom + (openingRect.width * 0.22),
+      seamDrop,
     )!;
     canvas.drawLine(
       Offset(fieldRect.left, centerY),
