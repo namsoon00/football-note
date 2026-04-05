@@ -392,14 +392,21 @@ class _GateSplashPainter extends CustomPainter {
       ..strokeWidth = max(1.4, openingRect.width * 0.007)
       ..style = PaintingStyle.stroke;
 
-    final centerMarkLeadY = lerpDouble(
-      fieldRect.top + (fieldRect.height * 0.08),
-      fieldRect.top + (fieldRect.height * 0.32),
+    final goalLineY = lerpDouble(
+      fieldRect.top + (fieldRect.height * 0.22),
+      fieldRect.top + (fieldRect.height * 0.12),
+      fieldPan,
+    )!;
+    _paintGoalMark(canvas, fieldRect, goalLineY, linePaint);
+
+    final centerLineLeadY = lerpDouble(
+      fieldRect.top + (fieldRect.height * 0.62),
+      fieldRect.top + (fieldRect.height * 0.72),
       fieldPan,
     )!;
     final centerY = lerpDouble(
-      centerMarkLeadY,
-      fieldRect.bottom + (openingRect.width * 0.22),
+      centerLineLeadY,
+      fieldRect.bottom - (fieldRect.height * 0.1),
       centerGuideDrop,
     )!;
     canvas.drawLine(
@@ -407,17 +414,13 @@ class _GateSplashPainter extends CustomPainter {
       Offset(fieldRect.right, centerY),
       linePaint,
     );
-    _paintGoalMark(canvas, fieldRect, centerY, linePaint);
 
-    final bottomArcRect = Rect.fromCenter(
-      center: Offset(
-        fieldRect.center.dx,
-        fieldRect.bottom - fieldRect.height * 0.06,
-      ),
+    final centerCircleRect = Rect.fromCenter(
+      center: Offset(fieldRect.center.dx, centerY),
       width: fieldRect.width * 0.52,
       height: fieldRect.height * 0.28,
     );
-    canvas.drawArc(bottomArcRect, pi, pi, false, linePaint);
+    canvas.drawOval(centerCircleRect, linePaint);
 
     canvas.restore();
   }
