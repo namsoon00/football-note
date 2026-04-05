@@ -762,6 +762,17 @@ void main() {
       expect(selectedTraining, findsOneWidget);
       expect(selectedBoard, findsOneWidget);
       expect(
+        find.descendant(
+          of: selectedBoard,
+          matching: find.byIcon(Icons.dashboard_customize_outlined),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: selectedBoard, matching: find.text('측면 2:1 패턴')),
+        findsNothing,
+      );
+      expect(
         tester.getTopLeft(selectedBoard).dy,
         lessThan(tester.getTopLeft(selectedTraining).dy),
       );
