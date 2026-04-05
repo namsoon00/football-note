@@ -753,11 +753,23 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(
-        find.byKey(
-          ValueKey('diary-record-sticker-move-up-training-$trainingCreatedAt'),
-        ),
+      final selectedTraining = find.byKey(
+        ValueKey('diary-selected-record-sticker-training-$trainingCreatedAt'),
       );
+      final selectedBoard = find.byKey(
+        const ValueKey('diary-selected-record-sticker-board-board-1'),
+      );
+      expect(selectedTraining, findsOneWidget);
+      expect(selectedBoard, findsOneWidget);
+      expect(
+        tester.getTopLeft(selectedBoard).dy,
+        lessThan(tester.getTopLeft(selectedTraining).dy),
+      );
+
+      final reorderableList = tester.widget<ReorderableListView>(
+        find.byType(ReorderableListView),
+      );
+      reorderableList.onReorder(1, 0);
       await tester.pumpAndSettle();
 
       await tester.enterText(
