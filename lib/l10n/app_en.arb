@@ -355,6 +355,9 @@
       }
     }
   },
+  "diaryQuizQuestionLabel": "Question",
+  "diaryQuizAnswerLabel": "Answer",
+  "diaryQuizNoMissesLabel": "This quiz run finished without any misses.",
   "diaryTrainingSelectedGoalsLabel": "Selected goals",
   "diaryTrainingStrongPointLabel": "What went well",
   "diaryTrainingNeedsWorkLabel": "Needs work",

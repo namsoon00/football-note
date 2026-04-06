@@ -90,12 +90,6 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           final seamDrop = Curves.easeInOutCubic.transform(
             const Interval(0.52, 0.96).transform(t),
           );
-          final centerGuideDrop = Curves.easeInOutCubic.transform(
-            const Interval(0.62, 0.99).transform(t),
-          );
-          final centerGuideLift = Curves.easeOutCubic.transform(
-            const Interval(0.08, 0.92).transform(t),
-          );
           final fadeOut = Curves.easeIn.transform(
             const Interval(0.76, 1.0).transform(t),
           );
@@ -113,8 +107,6 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                 fieldPan: fieldPan,
                 rush: rush,
                 seamDrop: seamDrop,
-                centerGuideDrop: centerGuideDrop,
-                centerGuideLift: centerGuideLift,
               ),
             ),
           );
@@ -133,8 +125,6 @@ class _GateSplashPainter extends CustomPainter {
   final double fieldPan;
   final double rush;
   final double seamDrop;
-  final double centerGuideDrop;
-  final double centerGuideLift;
 
   const _GateSplashPainter({
     required this.progress,
@@ -145,8 +135,6 @@ class _GateSplashPainter extends CustomPainter {
     required this.fieldPan,
     required this.rush,
     required this.seamDrop,
-    required this.centerGuideDrop,
-    required this.centerGuideLift,
   });
 
   @override
@@ -404,36 +392,58 @@ class _GateSplashPainter extends CustomPainter {
       fieldPan,
     )!;
     _paintGoalMark(canvas, fieldRect, goalLineY, linePaint);
-
-    final centerLineLeadY = lerpDouble(
-      fieldRect.top + (fieldRect.height * 0.56),
-      fieldRect.top + (fieldRect.height * 0.63),
-      fieldPan,
-    )!;
-    final centerY = lerpDouble(
-      centerLineLeadY,
-      fieldRect.top + (fieldRect.height * 0.54),
-      centerGuideDrop,
-    )!;
-    final liftedCenterY = lerpDouble(
-      centerY,
-      fieldRect.top + (fieldRect.height * 0.46),
-      centerGuideLift,
-    )!;
-    canvas.drawLine(
-      Offset(fieldRect.left, liftedCenterY),
-      Offset(fieldRect.right, liftedCenterY),
-      linePaint,
-    );
-
-    final centerCircleRect = Rect.fromCenter(
-      center: Offset(fieldRect.center.dx, liftedCenterY),
-      width: fieldRect.width * 0.34,
-      height: fieldRect.height * 0.18,
-    );
-    canvas.drawOval(centerCircleRect, linePaint);
+    _paintRunGuides(canvas, fieldRect, goalLineY, linePaint);
 
     canvas.restore();
+  }
+
+  void _paintRunGuides(
+    Canvas canvas,
+    Rect fieldRect,
+    double goalLineY,
+    Paint linePaint,
+  ) {
+    final vanishingPoint = Offset(
+      fieldRect.center.dx,
+      goalLineY + (fieldRect.height * 0.045),
+    );
+    final lanePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18 + (rush * 0.22))
+      ..strokeWidth = linePaint.strokeWidth * 0.78
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.8);
+
+    for (final ratio in <double>[0.14, 0.28, 0.42, 0.58, 0.72, 0.86]) {
+      final startX = lerpDouble(fieldRect.left, fieldRect.right, ratio)!;
+      canvas.drawLine(
+        Offset(startX, fieldRect.bottom),
+        vanishingPoint,
+        lanePaint,
+      );
+    }
+
+    final dashPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.08 + (rush * 0.16))
+      ..strokeWidth = linePaint.strokeWidth * 0.7
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2);
+
+    for (var i = 0; i < 6; i++) {
+      final depth = (i + 1) / 7;
+      final y = lerpDouble(
+        fieldRect.bottom - (fieldRect.height * 0.03),
+        goalLineY + (fieldRect.height * 0.18),
+        depth,
+      )!;
+      final width = lerpDouble(
+        fieldRect.width * (0.72 - (depth * 0.34)),
+        fieldRect.width * 0.16,
+        fieldPan,
+      )!;
+      final left = fieldRect.center.dx - (width / 2);
+      final right = fieldRect.center.dx + (width / 2);
+      canvas.drawLine(Offset(left, y), Offset(right, y), dashPaint);
+    }
   }
 
   void _paintGoalMark(
@@ -540,17 +550,25 @@ class _GateSplashPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.8);
 
-    for (var i = 0; i < 9; i++) {
-      final ratio = (i + 1) / 10;
+    for (var i = 0; i < 10; i++) {
+      final ratio = (i + 1) / 11;
       final x = lerpDouble(
-        openingRect.left - (size.width * 0.2),
-        openingRect.right + (size.width * 0.2),
-        ratio,
+        openingRect.center.dx,
+        lerpDouble(
+          openingRect.left - (size.width * 0.18),
+          openingRect.right + (size.width * 0.18),
+          ratio,
+        ),
+        0.84,
       )!;
-      final y0 = openingRect.bottom - (size.height * 0.04 * ratio);
-      final y1 = size.height + (size.height * 0.08 * ratio);
+      final y0 = lerpDouble(
+        openingRect.bottom - (size.height * 0.01),
+        openingRect.bottom - (size.height * 0.08 * ratio),
+        0.72,
+      )!;
+      final y1 = size.height + (size.height * (0.06 + ratio * 0.1));
       linePaint.color = Colors.white.withValues(
-        alpha: (0.02 + (rush * 0.2)) * (1 - ratio * 0.5),
+        alpha: (0.03 + (rush * 0.24)) * (1 - ratio * 0.42),
       );
       canvas.drawLine(Offset(x, y0), Offset(x, y1), linePaint);
     }
@@ -582,8 +600,6 @@ class _GateSplashPainter extends CustomPainter {
         oldDelegate.fieldReveal != fieldReveal ||
         oldDelegate.fieldPan != fieldPan ||
         oldDelegate.rush != rush ||
-        oldDelegate.seamDrop != seamDrop ||
-        oldDelegate.centerGuideDrop != centerGuideDrop ||
-        oldDelegate.centerGuideLift != centerGuideLift;
+        oldDelegate.seamDrop != seamDrop;
   }
 }
