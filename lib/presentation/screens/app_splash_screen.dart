@@ -93,6 +93,9 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           final centerGuideDrop = Curves.easeInOutCubic.transform(
             const Interval(0.62, 0.99).transform(t),
           );
+          final centerGuideLift = Curves.easeOutCubic.transform(
+            const Interval(0.08, 0.92).transform(t),
+          );
           final fadeOut = Curves.easeIn.transform(
             const Interval(0.76, 1.0).transform(t),
           );
@@ -111,6 +114,7 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                 rush: rush,
                 seamDrop: seamDrop,
                 centerGuideDrop: centerGuideDrop,
+                centerGuideLift: centerGuideLift,
               ),
             ),
           );
@@ -130,6 +134,7 @@ class _GateSplashPainter extends CustomPainter {
   final double rush;
   final double seamDrop;
   final double centerGuideDrop;
+  final double centerGuideLift;
 
   const _GateSplashPainter({
     required this.progress,
@@ -141,6 +146,7 @@ class _GateSplashPainter extends CustomPainter {
     required this.rush,
     required this.seamDrop,
     required this.centerGuideDrop,
+    required this.centerGuideLift,
   });
 
   @override
@@ -400,25 +406,30 @@ class _GateSplashPainter extends CustomPainter {
     _paintGoalMark(canvas, fieldRect, goalLineY, linePaint);
 
     final centerLineLeadY = lerpDouble(
-      fieldRect.top + (fieldRect.height * 0.62),
-      fieldRect.top + (fieldRect.height * 0.72),
+      fieldRect.top + (fieldRect.height * 0.56),
+      fieldRect.top + (fieldRect.height * 0.63),
       fieldPan,
     )!;
     final centerY = lerpDouble(
       centerLineLeadY,
-      fieldRect.bottom - (fieldRect.height * 0.1),
+      fieldRect.top + (fieldRect.height * 0.54),
       centerGuideDrop,
     )!;
+    final liftedCenterY = lerpDouble(
+      centerY,
+      fieldRect.top + (fieldRect.height * 0.46),
+      centerGuideLift,
+    )!;
     canvas.drawLine(
-      Offset(fieldRect.left, centerY),
-      Offset(fieldRect.right, centerY),
+      Offset(fieldRect.left, liftedCenterY),
+      Offset(fieldRect.right, liftedCenterY),
       linePaint,
     );
 
     final centerCircleRect = Rect.fromCenter(
-      center: Offset(fieldRect.center.dx, centerY),
-      width: fieldRect.width * 0.52,
-      height: fieldRect.height * 0.28,
+      center: Offset(fieldRect.center.dx, liftedCenterY),
+      width: fieldRect.width * 0.34,
+      height: fieldRect.height * 0.18,
     );
     canvas.drawOval(centerCircleRect, linePaint);
 
@@ -572,6 +583,7 @@ class _GateSplashPainter extends CustomPainter {
         oldDelegate.fieldPan != fieldPan ||
         oldDelegate.rush != rush ||
         oldDelegate.seamDrop != seamDrop ||
-        oldDelegate.centerGuideDrop != centerGuideDrop;
+        oldDelegate.centerGuideDrop != centerGuideDrop ||
+        oldDelegate.centerGuideLift != centerGuideLift;
   }
 }

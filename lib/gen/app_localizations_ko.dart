@@ -960,6 +960,34 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerConditioning => '줄넘기/리프팅';
 
   @override
+  String get diaryStickerInjury => '부상';
+
+  @override
+  String get diaryStickerQuiz => '퀴즈';
+
+  @override
+  String get diaryInjuryNoDetails => '남긴 부상 메모가 없어요.';
+
+  @override
+  String get diaryInjuryRehab => '재활';
+
+  @override
+  String get diaryInjuryStorySentence => '통증이 있었던 장면과 회복이 필요한 부분을 짧게 남겨 보세요.';
+
+  @override
+  String get diaryQuizStorySentence => '퀴즈를 풀며 기억에 남은 문제나 다시 보고 싶은 개념을 적어 보세요.';
+
+  @override
+  String diaryQuizSummaryPerfect(int score, int total) {
+    return '$score/$total 정답 · 오답 없음';
+  }
+
+  @override
+  String diaryQuizSummaryWithMisses(int score, int total, int wrongCount) {
+    return '$score/$total 정답 · 오답 $wrongCount개';
+  }
+
+  @override
   String get diaryTrainingSelectedGoalsLabel => '선택한 목표';
 
   @override

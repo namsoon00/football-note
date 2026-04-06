@@ -295,6 +295,32 @@ void main() {
     },
   );
 
+  test('quiz completion awards xp on the completed day token', () async {
+    final repository = _MemoryOptionRepository();
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForQuizCompletion(
+      completedAt: DateTime(2026, 3, 24, 23, 55),
+    );
+    final duplicate = await service.awardForQuizCompletion(
+      completedAt: DateTime(2026, 3, 24, 23, 59),
+    );
+    final nextDay = await service.awardForQuizCompletion(
+      completedAt: DateTime(2026, 3, 25, 0, 5),
+    );
+
+    expect(award.gainedXp, 15);
+    expect(duplicate.gainedXp, 0);
+    expect(nextDay.gainedXp, 15);
+    expect(service.loadState().totalXp, 30);
+
+    final history = service.loadXpHistory();
+    expect(history, hasLength(2));
+    expect(history.first.category, PlayerXpHistoryCategory.quiz);
+    expect(history.first.awardedAt.day, 25);
+    expect(history.last.awardedAt.day, 24);
+  });
+
   test('grouped training plan creation awards bonus xp once', () async {
     final repository = _MemoryOptionRepository();
     final service = PlayerLevelService(repository);

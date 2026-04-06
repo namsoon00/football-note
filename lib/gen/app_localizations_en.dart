@@ -977,6 +977,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerConditioning => 'Jump rope/lifting';
 
   @override
+  String get diaryStickerInjury => 'Injury';
+
+  @override
+  String get diaryStickerQuiz => 'Quiz';
+
+  @override
+  String get diaryInjuryNoDetails => 'No injury note was saved.';
+
+  @override
+  String get diaryInjuryRehab => 'Rehab';
+
+  @override
+  String get diaryInjuryStorySentence =>
+      'Write the moment pain showed up and what needs recovery next.';
+
+  @override
+  String get diaryQuizStorySentence =>
+      'Write the question or concept you want to keep from the quiz run.';
+
+  @override
+  String diaryQuizSummaryPerfect(int score, int total) {
+    return '$score/$total correct · no misses';
+  }
+
+  @override
+  String diaryQuizSummaryWithMisses(int score, int total, int wrongCount) {
+    return '$score/$total correct · $wrongCount misses';
+  }
+
+  @override
   String get diaryTrainingSelectedGoalsLabel => 'Selected goals';
 
   @override

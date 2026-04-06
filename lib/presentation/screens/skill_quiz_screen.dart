@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../domain/repositories/option_repository.dart';
 
@@ -634,6 +635,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 
   Future<void> _completeSession() async {
+    final completedAt = DateTime.now();
     final wrongQuestions = _questions
         .where((question) => _wrongIds.contains(question.id))
         .toList(growable: false);
@@ -641,12 +643,15 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     await _scheduleReviewQuestions(wrongQuestions);
     await _recordRecentPerformance();
     await _recordCategoryPerformance();
-    await _appendQuizHistory();
+    await _appendQuizHistory(completedAt);
     await _trackMetric('football_quiz_session_completed');
+    await PlayerLevelService(
+      widget.optionRepository,
+    ).awardForQuizCompletion(completedAt: completedAt);
 
     await widget.optionRepository.setValue(
       SkillQuizScreen.completionKey,
-      DateTime.now().toIso8601String(),
+      completedAt.toIso8601String(),
     );
     await widget.optionRepository.setValue(SkillQuizScreen.sessionKey, '');
     _refreshResumeSummary();
@@ -1399,12 +1404,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     ];
   }
 
-  Future<void> _appendQuizHistory() async {
+  Future<void> _appendQuizHistory(DateTime finishedAt) async {
     if (_questions.isEmpty) return;
     final existing = _QuizHistoryEntry.decodeList(
       widget.optionRepository.getValue<String>(SkillQuizScreen.historyKey),
     ).take(19).toList(growable: true);
-    final finishedAt = DateTime.now();
     final wrongQuestions = _questions
         .where((question) => _wrongIds.contains(question.id))
         .map(
