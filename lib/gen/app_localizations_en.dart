@@ -1013,8 +1013,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryQuizAnswerLabel => 'Answer';
 
   @override
+  String get diaryQuizWrongAnswerLabel => 'Wrong answer';
+
+  @override
+  String get diaryQuizWrongAnswerNone => 'No wrong answer';
+
+  @override
   String get diaryQuizNoMissesLabel =>
       'This quiz run finished without any misses.';
+
+  @override
+  String get quizWrongAnswerTimeout => 'Timed out';
+
+  @override
+  String get quizWrongAnswerRevealed => 'Revealed the answer';
+
+  @override
+  String get quizWrongAnswerSkipped => 'No answer selected';
+
+  @override
+  String get quizWrongAnswerEmpty => 'No input';
 
   @override
   String get diaryTrainingSelectedGoalsLabel => 'Selected goals';
@@ -1164,6 +1182,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mealXpFull => '3 meals complete +15 XP';
+
+  @override
+  String get mealXpFullBonus => '3 meals complete + 5+ rice bowls +20 XP';
 
   @override
   String get mealXpPartial => '2+ meals +5 XP';

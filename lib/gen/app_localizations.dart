@@ -1982,11 +1982,47 @@ abstract class AppLocalizations {
   /// **'Answer'**
   String get diaryQuizAnswerLabel;
 
+  /// No description provided for @diaryQuizWrongAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong answer'**
+  String get diaryQuizWrongAnswerLabel;
+
+  /// No description provided for @diaryQuizWrongAnswerNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No wrong answer'**
+  String get diaryQuizWrongAnswerNone;
+
   /// No description provided for @diaryQuizNoMissesLabel.
   ///
   /// In en, this message translates to:
   /// **'This quiz run finished without any misses.'**
   String get diaryQuizNoMissesLabel;
+
+  /// No description provided for @quizWrongAnswerTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed out'**
+  String get quizWrongAnswerTimeout;
+
+  /// No description provided for @quizWrongAnswerRevealed.
+  ///
+  /// In en, this message translates to:
+  /// **'Revealed the answer'**
+  String get quizWrongAnswerRevealed;
+
+  /// No description provided for @quizWrongAnswerSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'No answer selected'**
+  String get quizWrongAnswerSkipped;
+
+  /// No description provided for @quizWrongAnswerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No input'**
+  String get quizWrongAnswerEmpty;
 
   /// No description provided for @diaryTrainingSelectedGoalsLabel.
   ///
@@ -2245,6 +2281,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'3 meals complete +15 XP'**
   String get mealXpFull;
+
+  /// No description provided for @mealXpFullBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'3 meals complete + 5+ rice bowls +20 XP'**
+  String get mealXpFullBonus;
 
   /// No description provided for @mealXpPartial.
   ///

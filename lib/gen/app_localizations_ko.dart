@@ -994,7 +994,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryQuizAnswerLabel => '정답';
 
   @override
+  String get diaryQuizWrongAnswerLabel => '오답';
+
+  @override
+  String get diaryQuizWrongAnswerNone => '오답 없음';
+
+  @override
   String get diaryQuizNoMissesLabel => '이번 퀴즈는 오답 없이 마쳤어요.';
+
+  @override
+  String get quizWrongAnswerTimeout => '시간 초과';
+
+  @override
+  String get quizWrongAnswerRevealed => '정답 보기';
+
+  @override
+  String get quizWrongAnswerSkipped => '답을 고르지 않음';
+
+  @override
+  String get quizWrongAnswerEmpty => '입력 없음';
 
   @override
   String get diaryTrainingSelectedGoalsLabel => '선택한 목표';
@@ -1141,6 +1159,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealXpFull => '세 끼 완료 +15 XP';
+
+  @override
+  String get mealXpFullBonus => '세 끼 완료 + 공기밥 5공기 이상 +20 XP';
 
   @override
   String get mealXpPartial => '두 끼 이상 +5 XP';
