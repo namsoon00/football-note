@@ -355,6 +355,9 @@
       }
     }
   },
+  "diaryQuizQuestionLabel": "질문",
+  "diaryQuizAnswerLabel": "정답",
+  "diaryQuizNoMissesLabel": "이번 퀴즈는 오답 없이 마쳤어요.",
   "diaryTrainingSelectedGoalsLabel": "선택한 목표",
   "diaryTrainingStrongPointLabel": "잘한 점",
   "diaryTrainingNeedsWorkLabel": "아쉬운 점",

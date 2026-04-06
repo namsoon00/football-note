@@ -1007,6 +1007,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diaryQuizQuestionLabel => 'Question';
+
+  @override
+  String get diaryQuizAnswerLabel => 'Answer';
+
+  @override
+  String get diaryQuizNoMissesLabel =>
+      'This quiz run finished without any misses.';
+
+  @override
   String get diaryTrainingSelectedGoalsLabel => 'Selected goals';
 
   @override

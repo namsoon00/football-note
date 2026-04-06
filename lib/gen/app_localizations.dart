@@ -1970,6 +1970,24 @@ abstract class AppLocalizations {
   /// **'{score}/{total} correct · {wrongCount} misses'**
   String diaryQuizSummaryWithMisses(int score, int total, int wrongCount);
 
+  /// No description provided for @diaryQuizQuestionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get diaryQuizQuestionLabel;
+
+  /// No description provided for @diaryQuizAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get diaryQuizAnswerLabel;
+
+  /// No description provided for @diaryQuizNoMissesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This quiz run finished without any misses.'**
+  String get diaryQuizNoMissesLabel;
+
   /// No description provided for @diaryTrainingSelectedGoalsLabel.
   ///
   /// In en, this message translates to:

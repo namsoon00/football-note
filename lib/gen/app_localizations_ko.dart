@@ -988,6 +988,15 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get diaryQuizQuestionLabel => '질문';
+
+  @override
+  String get diaryQuizAnswerLabel => '정답';
+
+  @override
+  String get diaryQuizNoMissesLabel => '이번 퀴즈는 오답 없이 마쳤어요.';
+
+  @override
   String get diaryTrainingSelectedGoalsLabel => '선택한 목표';
 
   @override
