@@ -324,6 +324,37 @@
   "diaryStickerNews": "소식",
   "diaryStickerMeal": "공기밥",
   "diaryStickerConditioning": "줄넘기/리프팅",
+  "diaryStickerInjury": "부상",
+  "diaryStickerQuiz": "퀴즈",
+  "diaryInjuryNoDetails": "남긴 부상 메모가 없어요.",
+  "diaryInjuryRehab": "재활",
+  "diaryInjuryStorySentence": "통증이 있었던 장면과 회복이 필요한 부분을 짧게 남겨 보세요.",
+  "diaryQuizStorySentence": "퀴즈를 풀며 기억에 남은 문제나 다시 보고 싶은 개념을 적어 보세요.",
+  "diaryQuizSummaryPerfect": "{score}/{total} 정답 · 오답 없음",
+  "@diaryQuizSummaryPerfect": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryQuizSummaryWithMisses": "{score}/{total} 정답 · 오답 {wrongCount}개",
+  "@diaryQuizSummaryWithMisses": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "wrongCount": {
+        "type": "int"
+      }
+    }
+  },
   "diaryTrainingSelectedGoalsLabel": "선택한 목표",
   "diaryTrainingStrongPointLabel": "잘한 점",
   "diaryTrainingNeedsWorkLabel": "아쉬운 점",

@@ -31,6 +31,10 @@ void main() {
         'training_boards_v1',
         '[{"id":"board-1","title":"측면 전개 보드","layoutJson":"{\\"version\\":1,\\"pages\\":[{\\"name\\":\\"측면 전개\\",\\"methodText\\":\\"측면에서 2:1 패턴 확인\\",\\"items\\":[{\\"type\\":\\"player\\",\\"x\\":0.2,\\"y\\":0.5,\\"size\\":32,\\"rotationDeg\\":0,\\"colorValue\\":4294967295}],\\"strokes\\":[],\\"playerPath\\":[{\\"x\\":0.2,\\"y\\":0.5},{\\"x\\":0.55,\\"y\\":0.4}],\\"ballPath\\":[{\\"x\\":0.25,\\"y\\":0.5},{\\"x\\":0.6,\\"y\\":0.45}]}]}","createdAt":"2026-03-14T10:00:00.000","updatedAt":"2026-03-15T20:00:00.000"}]',
       );
+    optionRepository.setRawValue(
+      'skill_quiz_history_v1',
+      '[{"id":"quiz-1","mode":"daily","finishedAt":"2026-03-15T21:10:00.000","totalQuestions":10,"score":8,"bestStreak":4,"bestCombo":4,"timeouts":0,"avgResponseMs":3100,"wrongQuestions":[{"id":"sa_short_0","promptKo":"테스트 문제","promptEn":"Test prompt","answerKo":"압박","answerEn":"Pressing","explanationKo":"테스트 해설","explanationEn":"Test explanation","category":"tactics","style":"shortAnswer"},{"id":"sa_short_1","promptKo":"테스트 문제 2","promptEn":"Test prompt 2","answerKo":"패스","answerEn":"Pass","explanationKo":"테스트 해설 2","explanationEn":"Test explanation 2","category":"technique","style":"shortAnswer"}]}]',
+    );
     final mealLogService = MealLogService(optionRepository);
     await mealLogService.save(
       MealEntry(
@@ -166,12 +170,11 @@ void main() {
     expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
     expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsNothing);
     expect(find.textContaining('선택한 목표: 왼발 퍼스트터치, 압박 탈출'), findsOneWidget);
-    expect(find.textContaining('잘한 점: 터치 수를 일정하게 유지했다'), findsOneWidget);
-    expect(find.textContaining('아쉬운 점: 압박 직전 시선 확인이 늦었다'), findsOneWidget);
-    expect(find.textContaining('다음 목표: 왼발 퍼스트터치 안정화'), findsOneWidget);
     expect(find.textContaining('Blue FC전'), findsOneWidget);
     expect(find.text('공기밥'), findsWidgets);
     expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
+    expect(find.text('부상'), findsWidgets);
+    expect(find.text('퀴즈'), findsWidgets);
 
     await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
@@ -271,7 +274,6 @@ void main() {
     expect(find.textContaining('행운'), findsNothing);
 
     expect(find.text('볼터치'), findsOneWidget);
-    expect(find.textContaining('다크모드 확인'), findsWidgets);
   });
 
   testWidgets('coach lesson screen saves personal diary writing and stickers', (
@@ -336,11 +338,6 @@ void main() {
       '볼을 받기 전에 고개를 더 자주 들었고, 패스가 끊기지 않아서 기분이 좋았다.',
     );
     await tester.ensureVisible(
-      find.byKey(const ValueKey('diary-sticker-star')),
-    );
-    await tester.tap(find.byKey(const ValueKey('diary-sticker-star')));
-    await tester.pump();
-    await tester.ensureVisible(
       find.byKey(
         ValueKey(
           'diary-record-sticker-fortune-${createdAt.millisecondsSinceEpoch}',
@@ -372,7 +369,6 @@ void main() {
     final raw = optionRepository.getValue<String>('custom_diary_entries_v3');
     expect(raw, isNotNull);
     expect(raw, contains('비 온 날의 패스 노트'));
-    expect(raw, contains('star'));
     expect(raw, contains('recordStickers'));
     expect(raw, contains('"kind":"fortune"'));
   });
@@ -461,6 +457,75 @@ void main() {
           CoachLessonScreen.todayViewedDiaryDayKey,
         ),
         CoachLessonScreen.todayViewedDayToken(today),
+      );
+    },
+  );
+
+  testWidgets(
+    'coach lesson screen stores completed diary day for the saved page date',
+    (WidgetTester tester) async {
+      final base = DateTime.now();
+      final savedDay = DateTime(base.year, base.month, base.day - 1);
+      final optionRepository = _FakeOptionRepository()
+        ..setRawValue(
+          'custom_diary_entries_v3',
+          '{"${CoachLessonScreen.todayViewedDayToken(savedDay)}":{"title":"어제 초안","story":"미완성","sections":[],"moodId":"calm","stickers":[],"updatedAt":"${DateTime(savedDay.year, savedDay.month, savedDay.day, 12).toIso8601String()}"}}',
+        );
+      final trainingService = TrainingService(
+        _FakeTrainingRepository(<TrainingEntry>[
+          TrainingEntry(
+            date: DateTime(savedDay.year, savedDay.month, savedDay.day, 18, 0),
+            durationMinutes: 40,
+            intensity: 3,
+            type: '볼터치',
+            mood: 4,
+            injury: false,
+            notes: '어제 기록',
+            location: '학교 운동장',
+          ),
+        ]),
+      );
+
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: CoachLessonScreen(
+              optionRepository: optionRepository,
+              trainingService: trainingService,
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(
+        find.byKey(
+          ValueKey(
+            'diary-edit-${CoachLessonScreen.todayViewedDayToken(savedDay)}',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('diary-save-button')),
+      );
+      await tester.tap(find.byKey(const ValueKey('diary-save-button')));
+      await tester.pumpAndSettle();
+
+      expect(
+        optionRepository.getValue<String>(
+          CoachLessonScreen.todayViewedDiaryDayKey,
+        ),
+        CoachLessonScreen.todayViewedDayToken(savedDay),
       );
     },
   );

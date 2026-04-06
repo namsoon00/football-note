@@ -1922,6 +1922,54 @@ abstract class AppLocalizations {
   /// **'Jump rope/lifting'**
   String get diaryStickerConditioning;
 
+  /// No description provided for @diaryStickerInjury.
+  ///
+  /// In en, this message translates to:
+  /// **'Injury'**
+  String get diaryStickerInjury;
+
+  /// No description provided for @diaryStickerQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz'**
+  String get diaryStickerQuiz;
+
+  /// No description provided for @diaryInjuryNoDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'No injury note was saved.'**
+  String get diaryInjuryNoDetails;
+
+  /// No description provided for @diaryInjuryRehab.
+  ///
+  /// In en, this message translates to:
+  /// **'Rehab'**
+  String get diaryInjuryRehab;
+
+  /// No description provided for @diaryInjuryStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the moment pain showed up and what needs recovery next.'**
+  String get diaryInjuryStorySentence;
+
+  /// No description provided for @diaryQuizStorySentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the question or concept you want to keep from the quiz run.'**
+  String get diaryQuizStorySentence;
+
+  /// No description provided for @diaryQuizSummaryPerfect.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}/{total} correct · no misses'**
+  String diaryQuizSummaryPerfect(int score, int total);
+
+  /// No description provided for @diaryQuizSummaryWithMisses.
+  ///
+  /// In en, this message translates to:
+  /// **'{score}/{total} correct · {wrongCount} misses'**
+  String diaryQuizSummaryWithMisses(int score, int total, int wrongCount);
+
   /// No description provided for @diaryTrainingSelectedGoalsLabel.
   ///
   /// In en, this message translates to:

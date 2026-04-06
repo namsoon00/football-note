@@ -324,6 +324,37 @@
   "diaryStickerNews": "News",
   "diaryStickerMeal": "Rice bowl",
   "diaryStickerConditioning": "Jump rope/lifting",
+  "diaryStickerInjury": "Injury",
+  "diaryStickerQuiz": "Quiz",
+  "diaryInjuryNoDetails": "No injury note was saved.",
+  "diaryInjuryRehab": "Rehab",
+  "diaryInjuryStorySentence": "Write the moment pain showed up and what needs recovery next.",
+  "diaryQuizStorySentence": "Write the question or concept you want to keep from the quiz run.",
+  "diaryQuizSummaryPerfect": "{score}/{total} correct · no misses",
+  "@diaryQuizSummaryPerfect": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryQuizSummaryWithMisses": "{score}/{total} correct · {wrongCount} misses",
+  "@diaryQuizSummaryWithMisses": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "wrongCount": {
+        "type": "int"
+      }
+    }
+  },
   "diaryTrainingSelectedGoalsLabel": "Selected goals",
   "diaryTrainingStrongPointLabel": "What went well",
   "diaryTrainingNeedsWorkLabel": "Needs work",
