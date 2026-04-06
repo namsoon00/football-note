@@ -1237,74 +1237,59 @@ class _TomorrowWeatherCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(
-                      alpha: 0.5,
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              conditionLabel,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              forecast.summary,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final tileWidth = (constraints.maxWidth - 10) / 2;
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        SizedBox(
+                          width: tileWidth,
+                          child: _ForecastMetricTile(
+                            label: conditionLabel,
+                            value: forecast.summary,
+                            icon: iconForCode(forecast.weatherCode),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.7,
-                  children: [
-                    _ForecastMetricTile(
-                      label: highLowLabel,
-                      value: formatRange(
-                        forecast.temperatureMax,
-                        forecast.temperatureMin,
-                      ),
-                      icon: Icons.thermostat_outlined,
-                    ),
-                    _ForecastMetricTile(
-                      label: precipitationLabel,
-                      value: formatMillimeter(forecast.precipitationSum),
-                      icon: Icons.water_drop_outlined,
-                    ),
-                    _ForecastMetricTile(
-                      label: windLabel,
-                      value: formatWind(forecast.windSpeedMax),
-                      icon: Icons.air_rounded,
-                    ),
-                    _ForecastMetricTile(
-                      label: uvLabel,
-                      value: formatUv(forecast.uvIndexMax),
-                      icon: Icons.wb_sunny_outlined,
-                    ),
-                  ],
+                        SizedBox(
+                          width: tileWidth,
+                          child: _ForecastMetricTile(
+                            label: highLowLabel,
+                            value: formatRange(
+                              forecast.temperatureMax,
+                              forecast.temperatureMin,
+                            ),
+                            icon: Icons.thermostat_outlined,
+                          ),
+                        ),
+                        SizedBox(
+                          width: tileWidth,
+                          child: _ForecastMetricTile(
+                            label: precipitationLabel,
+                            value: formatMillimeter(forecast.precipitationSum),
+                            icon: Icons.water_drop_outlined,
+                          ),
+                        ),
+                        SizedBox(
+                          width: tileWidth,
+                          child: _ForecastMetricTile(
+                            label: windLabel,
+                            value: formatWind(forecast.windSpeedMax),
+                            icon: Icons.air_rounded,
+                          ),
+                        ),
+                        SizedBox(
+                          width: tileWidth,
+                          child: _ForecastMetricTile(
+                            label: uvLabel,
+                            value: formatUv(forecast.uvIndexMax),
+                            icon: Icons.wb_sunny_outlined,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
@@ -1474,62 +1459,35 @@ class _WeeklyForecastRow extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer.withValues(
-                          alpha: 0.55,
-                        ),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        forecast.summary,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w800,
-                        ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: _ForecastStatPill(
+                        label: conditionLabel,
+                        value: forecast.summary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Expanded(
+                    SizedBox(
+                      width: 140,
                       child: _ForecastStatPill(
                         label: highLowLabel,
                         value: range,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
+                    SizedBox(
+                      width: 140,
                       child: _ForecastStatPill(
                         label: precipitationLabel,
                         value: precipitation,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '$conditionLabel ${forecast.summary}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -1564,7 +1522,7 @@ class _ForecastMetricTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18, color: theme.colorScheme.primary),
-          const Spacer(),
+          const SizedBox(height: 18),
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(

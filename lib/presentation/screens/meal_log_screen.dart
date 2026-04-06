@@ -165,9 +165,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                               _formatBowls(status.totalRiceBowls),
                             ),
                           ),
-                          _InfoPill(
-                            label: _xpLabel(l10n, status.completedMeals),
-                          ),
+                          _InfoPill(label: _xpLabel(l10n, status)),
                         ],
                       ),
                     ],
@@ -326,9 +324,12 @@ class _MealLogScreenState extends State<MealLogScreen> {
     return l10n.mealCoachBodyZeroMeal;
   }
 
-  String _xpLabel(AppLocalizations l10n, int completedMeals) {
-    if (completedMeals >= 3) return l10n.mealXpFull;
-    if (completedMeals >= 2) return l10n.mealXpPartial;
+  String _xpLabel(AppLocalizations l10n, MealStatus status) {
+    if (status.completedMeals >= 3 && status.totalRiceBowls >= 5) {
+      return l10n.mealXpFullBonus;
+    }
+    if (status.completedMeals >= 3) return l10n.mealXpFull;
+    if (status.completedMeals >= 2) return l10n.mealXpPartial;
     return l10n.mealXpNeutral;
   }
 

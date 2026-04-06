@@ -29,6 +29,7 @@ class MealCoachingService {
   }
 
   int xpValueForStatus(MealStatus status) {
+    if (status.completedMeals >= 3 && status.totalRiceBowls >= 5) return 20;
     if (status.completedMeals >= 3) return 15;
     if (status.completedMeals >= 2) return 5;
     return 0;
@@ -44,6 +45,9 @@ class MealCoachingService {
   }
 
   String xpReasonForStatus(MealStatus status) {
+    if (status.completedMeals >= 3 && status.totalRiceBowls >= 5) {
+      return 'meal_full_day_bonus';
+    }
     if (status.completedMeals >= 3) return 'meal_full_day';
     if (status.completedMeals >= 2) return 'meal_two_plus';
     return '';
@@ -98,10 +102,10 @@ class MealStatus {
       _effectiveBowls(dinnerDone, dinnerRiceBowls);
 
   double get maxRiceBowls => <double>[
-        _effectiveBowls(breakfastDone, breakfastRiceBowls),
-        _effectiveBowls(lunchDone, lunchRiceBowls),
-        _effectiveBowls(dinnerDone, dinnerRiceBowls),
-      ].reduce((a, b) => a > b ? a : b);
+    _effectiveBowls(breakfastDone, breakfastRiceBowls),
+    _effectiveBowls(lunchDone, lunchRiceBowls),
+    _effectiveBowls(dinnerDone, dinnerRiceBowls),
+  ].reduce((a, b) => a > b ? a : b);
 
   static double _effectiveBowls(bool done, double bowls) => done ? bowls : 0;
 }
