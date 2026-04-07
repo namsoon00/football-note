@@ -868,6 +868,137 @@ void main() {
       expect(recordStickers[1]['kind'], 'board');
     },
   );
+
+  testWidgets('coach lesson screen auto saves diary changes while composing', (
+    WidgetTester tester,
+  ) async {
+    final day = DateTime(2026, 3, 15);
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"${CoachLessonScreen.todayViewedDayToken(day)}":{"title":"초안","story":"기존 본문","sections":[],"moodId":"calm","stickers":[],"updatedAt":"2026-03-15T20:00:00.000"}}',
+      );
+    final trainingService = TrainingService(
+      _FakeTrainingRepository(<TrainingEntry>[
+        TrainingEntry(
+          date: DateTime(2026, 3, 15, 18, 0),
+          createdAt: DateTime(2026, 3, 15, 18, 0),
+          durationMinutes: 45,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '자동 저장 확인',
+          location: '학교 운동장',
+        ),
+      ]),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('diary-story-field')),
+      '자동 저장된 본문',
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+
+    final raw = optionRepository.getValue<String>('custom_diary_entries_v3');
+    expect(raw, isNotNull);
+    expect(raw, contains('자동 저장된 본문'));
+  });
+
+  testWidgets(
+      'coach lesson screen keeps news sticker reorder in rendered order', (
+    WidgetTester tester,
+  ) async {
+    final day = DateTime(2026, 3, 15);
+    final createdAt = DateTime(2026, 3, 15, 18, 0);
+    final dayToken = CoachLessonScreen.todayViewedDayToken(day);
+    final newsId = Uri.encodeComponent('https://example.com/news-1');
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"$dayToken":{"title":"소식 순서 테스트","story":"순서 확인","sections":[],"moodId":"calm","recordStickers":[{"kind":"news","refId":"$newsId"},{"kind":"training","refId":"${createdAt.millisecondsSinceEpoch}"}],"stickers":[],"updatedAt":"2026-03-15T22:00:00.000"}}',
+      )
+      ..setRawValue(
+        'news_opened_items_v1',
+        '[{"title":"첫 기사","titleKo":"첫 기사","source":"테스트 뉴스","link":"https://example.com/news-1","openedAt":"2026-03-15T21:00:00.000"}]',
+      );
+    final trainingService = TrainingService(
+      _FakeTrainingRepository(<TrainingEntry>[
+        TrainingEntry(
+          date: createdAt,
+          createdAt: createdAt,
+          durationMinutes: 60,
+          intensity: 4,
+          type: '패스',
+          mood: 4,
+          injury: false,
+          notes: '순서 비교용 훈련',
+          location: '학교 운동장',
+          program: '원터치 패스',
+        ),
+      ]),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: trainingService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final newsSticker =
+        find.byKey(ValueKey('diary-record-sticker-news:$newsId'));
+    final trainingSticker = find.byKey(
+      ValueKey(
+        'diary-record-sticker-training:${createdAt.millisecondsSinceEpoch}',
+      ),
+    );
+
+    expect(newsSticker, findsOneWidget);
+    expect(trainingSticker, findsOneWidget);
+    expect(
+      tester.getTopLeft(newsSticker).dy,
+      lessThan(tester.getTopLeft(trainingSticker).dy),
+    );
+  });
 }
 
 class _FakeTrainingRepository implements TrainingRepository {

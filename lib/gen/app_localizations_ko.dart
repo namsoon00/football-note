@@ -966,6 +966,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryStickerQuiz => '퀴즈';
 
   @override
+  String get diaryStickerWeather => '날씨';
+
+  @override
   String get diaryInjuryNoDetails => '남긴 부상 메모가 없어요.';
 
   @override
@@ -1001,6 +1004,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get diaryQuizNoMissesLabel => '이번 퀴즈는 오답 없이 마쳤어요.';
+
+  @override
+  String get diaryTrainingStatusLabel => '훈련 상태';
+
+  @override
+  String get diaryConditioningJumpRopeLabel => '줄넘기';
+
+  @override
+  String get diaryConditioningLiftingLabel => '리프팅';
+
+  @override
+  String get diaryWeatherEmpty => '날씨 기록이 없습니다.';
 
   @override
   String get quizWrongAnswerTimeout => '시간 초과';
