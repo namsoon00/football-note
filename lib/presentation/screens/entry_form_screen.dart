@@ -22,6 +22,7 @@ import '../../application/settings_service.dart';
 import '../../application/backup_service.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import '../widgets/status_style.dart';
+import '../models/training_program_emoji.dart';
 import '../models/training_method_layout.dart';
 import '../models/training_board_link_codec.dart';
 import '../widgets/app_feedback.dart';
@@ -2977,6 +2978,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     bool enabled = true,
   }) {
     final l10n = AppLocalizations.of(context)!;
+    final leadingEmoji = label == l10n.program
+        ? trainingProgramEmojiFor(value)
+        : null;
     return Row(
       children: [
         Expanded(
@@ -2985,6 +2989,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
             child: DropdownMenu<String>(
               initialSelection: value,
               label: Text(label),
+              leadingIcon: leadingEmoji == null
+                  ? null
+                  : Text(leadingEmoji, style: const TextStyle(fontSize: 18)),
               trailingIcon: Icon(
                 Icons.expand_more,
                 color: enabled
