@@ -1010,6 +1010,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diaryQuizExpandQuestions(int count) {
+    return 'Show all answers ($count)';
+  }
+
+  @override
+  String get diaryQuizCollapseQuestions => 'Collapse answers';
+
+  @override
   String get diaryQuizQuestionLabel => 'Question';
 
   @override

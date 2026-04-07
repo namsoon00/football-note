@@ -991,6 +991,14 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String diaryQuizExpandQuestions(int count) {
+    return '정답 전체 보기 ($count)';
+  }
+
+  @override
+  String get diaryQuizCollapseQuestions => '정답 접기';
+
+  @override
   String get diaryQuizQuestionLabel => '질문';
 
   @override

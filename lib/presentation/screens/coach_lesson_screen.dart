@@ -30,6 +30,7 @@ import '../widgets/app_feedback.dart';
 import '../widgets/rice_bowl_summary.dart';
 import '../widgets/fortune_card.dart';
 import '../widgets/shared_tab_header.dart';
+import '../widgets/status_style.dart';
 import '../widgets/training_board_sketch.dart';
 import 'news_screen.dart';
 import 'profile_screen.dart';
@@ -76,6 +77,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   static const String _customDiaryEntriesKey = 'custom_diary_entries_v3';
 
   final PageController _pageController = PageController();
+  final Set<String> _expandedQuizStickerIds = <String>{};
   int _selectedDayIndex = 0;
   late String _selectedThemeId;
   String? _lastCompletedDiaryToken;
@@ -917,6 +919,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
     }
 
+    final isExpanded = _expandedQuizStickerIds.contains(sticker.id);
+    final visibleQuestions =
+        isExpanded ? quiz.questions : quiz.questions.take(2).toList();
+    final canToggle = quiz.questions.length > 2;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -927,17 +933,52 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             height: 1.45,
           ),
         ),
-        if (quiz.questions.isNotEmpty) ...[
+        if (visibleQuestions.isNotEmpty) ...[
           const SizedBox(height: 12),
-          ...quiz.questions.asMap().entries.map(
+          ...visibleQuestions.asMap().entries.map(
                 (entry) => Padding(
                   padding: EdgeInsets.only(
-                    bottom: entry.key == quiz.questions.length - 1 ? 0 : 10,
+                    bottom:
+                        entry.key == visibleQuestions.length - 1 && !canToggle
+                            ? 0
+                            : 10,
                   ),
                   child: _buildQuizStickerQuestionCard(sticker, entry.value),
                 ),
               ),
         ],
+        if (canToggle)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  if (isExpanded) {
+                    _expandedQuizStickerIds.remove(sticker.id);
+                  } else {
+                    _expandedQuizStickerIds.add(sticker.id);
+                  }
+                });
+              },
+              icon: Icon(
+                isExpanded
+                    ? Icons.expand_less_rounded
+                    : Icons.expand_more_rounded,
+                size: 18,
+              ),
+              label: Text(
+                isExpanded
+                    ? _l10n.diaryQuizCollapseQuestions
+                    : _l10n.diaryQuizExpandQuestions(quiz.questions.length),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: sticker.tint,
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -947,8 +988,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _DiaryQuizQuestion question,
   ) {
     const correctTint = Color(0xFF1D8A5A);
-    const wrongTint = Color(0xFFC74B4B);
-    final wrongAnswer = question.wrongAnswer(_isKo).trim();
+    final isMissed = question.hasWrongAnswer;
+    final questionTint = isMissed
+        ? const Color(0xFFC74B4B)
+        : sticker.tint.withValues(alpha: _isDark ? 0.72 : 0.88);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -962,21 +1005,34 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            _l10n.diaryQuizQuestionLabel,
-            style: _theme.textTheme.labelMedium?.copyWith(
-              color: sticker.tint,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+            decoration: BoxDecoration(
+              color: questionTint.withValues(alpha: _isDark ? 0.18 : 0.10),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            question.prompt(_isKo),
-            style: _theme.textTheme.bodyMedium?.copyWith(
-              color: _headlineInk,
-              fontWeight: FontWeight.w700,
-              height: 1.45,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _l10n.diaryQuizQuestionLabel,
+                  style: _theme.textTheme.labelMedium?.copyWith(
+                    color: questionTint,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  question.prompt(_isKo),
+                  style: _theme.textTheme.bodyMedium?.copyWith(
+                    color: _headlineInk,
+                    fontWeight: FontWeight.w700,
+                    height: 1.45,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -985,14 +1041,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             value: question.answer(_isKo),
             tint: correctTint,
           ),
-          if (wrongAnswer.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _buildQuizStickerAnswerRow(
-              label: _l10n.diaryQuizWrongAnswerLabel,
-              value: wrongAnswer,
-              tint: wrongTint,
-            ),
-          ],
         ],
       ),
     );
@@ -2001,7 +2049,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   String _trainingSummary(TrainingEntry entry) {
     final cleanNotes = _stripWeatherFromNotes(entry.notes);
-    final meta = _trainingMetaParts(entry);
+    final meta = _trainingMetaParts(entry, includeStatus: false);
     final details = <String>[
       if (_trainingProgramLabel(entry).isNotEmpty) _trainingProgramLabel(entry),
       if (!TrainingBoardLinkCodec.isBoardLinkPayload(entry.drills) &&
@@ -2018,12 +2066,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : '$firstLine\n${focusLines.join('\n')}';
   }
 
-  List<String> _trainingMetaParts(TrainingEntry entry) {
+  List<String> _trainingMetaParts(
+    TrainingEntry entry, {
+    bool includeStatus = true,
+  }) {
     final location = entry.location.trim();
     return <String>[
       location.isEmpty ? (_isKo ? '장소 미기록' : 'No location') : location,
       '${entry.durationMinutes}${_isKo ? '분' : ' min'}',
-      '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
+      if (includeStatus)
+        '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
       _isKo ? '컨디션 ${entry.mood}' : 'Condition ${entry.mood}',
       _isKo ? '강도 ${entry.intensity}' : 'Intensity ${entry.intensity}',
     ];
@@ -2226,6 +2278,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final label =
         entry.program.trim().isNotEmpty ? entry.program.trim() : entry.type;
     final summaryText = _trainingSummary(entry);
+    final statusVisual = trainingStatusVisual(entry.status);
     return _DiaryTodoSeed(
       id: 'training-${entry.createdAt.millisecondsSinceEpoch}',
       title: _isKo ? '훈련 · $label' : 'Training · $label',
@@ -2234,6 +2287,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       sectionTitle: _isKo ? '$label 훈련 요약' : '$label summary',
       sectionBody: summaryText,
       icon: Icons.fitness_center_outlined,
+      trailingIcon: statusVisual.icon,
+      trailingIconColor: statusVisual.color,
+      trailingIconTooltip:
+          '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
       recordKind: _DiaryRecordStickerKind.training,
       recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
     );
@@ -2489,16 +2546,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   List<_DiaryStickerFocusItem> _conditioningFocusItems(_DiaryDayData day) {
     final items = <_DiaryStickerFocusItem>[];
-    final jumpSummary = _jumpRopeSummary(day);
-    if (jumpSummary.isNotEmpty) {
-      items.add(
-        _DiaryStickerFocusItem(
-          title: _l10n.diaryConditioningJumpRopeLabel,
-          body: jumpSummary,
-          icon: Icons.sports_gymnastics_outlined,
-        ),
-      );
-    }
     for (final entry in _liftingBreakdown(day)) {
       items.add(
         _DiaryStickerFocusItem(
@@ -2509,26 +2556,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
     }
     return items;
-  }
-
-  String _jumpRopeSummary(_DiaryDayData day) {
-    final totalJumpCount = _totalJumpRopeCount(day);
-    final totalJumpMinutes = _totalJumpRopeMinutes(day);
-    final notes = day.entries
-        .map((entry) => entry.jumpRopeNote.trim())
-        .where((text) => text.isNotEmpty)
-        .toList(growable: false);
-    if (totalJumpCount <= 0 && totalJumpMinutes <= 0 && notes.isEmpty) {
-      return '';
-    }
-    final parts = <String>[
-      if (totalJumpCount > 0)
-        _isKo ? '$totalJumpCount회' : '$totalJumpCount reps',
-      if (totalJumpMinutes > 0)
-        _isKo ? '$totalJumpMinutes분' : '$totalJumpMinutes min',
-      if (notes.isNotEmpty) notes.first,
-    ];
-    return parts.join(' · ');
   }
 
   List<(String, int)> _liftingBreakdown(_DiaryDayData day) {
@@ -3435,56 +3462,104 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                               ),
                                               const SizedBox(width: 10),
                                               Expanded(
-                                                child: Column(
+                                                child: Row(
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
                                                   children: [
-                                                    Text(
-                                                      seed.title,
-                                                      maxLines: seed
-                                                                  .recordKind ==
-                                                              _DiaryRecordStickerKind
-                                                                  .news
-                                                          ? 2
-                                                          : null,
-                                                      overflow: seed
-                                                                  .recordKind ==
-                                                              _DiaryRecordStickerKind
-                                                                  .news
-                                                          ? TextOverflow
-                                                              .ellipsis
-                                                          : null,
-                                                      style: _theme
-                                                          .textTheme.labelLarge
-                                                          ?.copyWith(
-                                                        color: _headlineInk,
-                                                        fontWeight:
-                                                            FontWeight.w800,
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            seed.title,
+                                                            maxLines: seed
+                                                                        .recordKind ==
+                                                                    _DiaryRecordStickerKind
+                                                                        .news
+                                                                ? 2
+                                                                : null,
+                                                            overflow: seed
+                                                                        .recordKind ==
+                                                                    _DiaryRecordStickerKind
+                                                                        .news
+                                                                ? TextOverflow
+                                                                    .ellipsis
+                                                                : null,
+                                                            style: _theme
+                                                                .textTheme
+                                                                .labelLarge
+                                                                ?.copyWith(
+                                                              color:
+                                                                  _headlineInk,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 6,
+                                                          ),
+                                                          Text(
+                                                            seed.summary,
+                                                            maxLines: seed
+                                                                        .recordKind ==
+                                                                    _DiaryRecordStickerKind
+                                                                        .news
+                                                                ? 2
+                                                                : null,
+                                                            overflow: seed
+                                                                        .recordKind ==
+                                                                    _DiaryRecordStickerKind
+                                                                        .news
+                                                                ? TextOverflow
+                                                                    .ellipsis
+                                                                : null,
+                                                            style: _theme
+                                                                .textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
+                                                              color: _bodyInk,
+                                                              height: 1.45,
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
-                                                    const SizedBox(height: 6),
-                                                    Text(
-                                                      seed.summary,
-                                                      maxLines: seed
-                                                                  .recordKind ==
-                                                              _DiaryRecordStickerKind
-                                                                  .news
-                                                          ? 2
-                                                          : null,
-                                                      overflow: seed
-                                                                  .recordKind ==
-                                                              _DiaryRecordStickerKind
-                                                                  .news
-                                                          ? TextOverflow
-                                                              .ellipsis
-                                                          : null,
-                                                      style: _theme
-                                                          .textTheme.bodySmall
-                                                          ?.copyWith(
-                                                        color: _bodyInk,
-                                                        height: 1.45,
+                                                    if (seed.trailingIcon !=
+                                                        null) ...[
+                                                      const SizedBox(width: 8),
+                                                      Tooltip(
+                                                        message:
+                                                            seed.trailingIconTooltip ??
+                                                                '',
+                                                        child: Container(
+                                                          width: 28,
+                                                          height: 28,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: (seed.trailingIconColor ??
+                                                                    _accentInk)
+                                                                .withValues(
+                                                              alpha: 0.14,
+                                                            ),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                              999,
+                                                            ),
+                                                          ),
+                                                          child: Icon(
+                                                            seed.trailingIcon,
+                                                            size: 16,
+                                                            color:
+                                                                seed.trailingIconColor ??
+                                                                    _accentInk,
+                                                          ),
+                                                        ),
                                                       ),
-                                                    ),
+                                                    ],
                                                   ],
                                                 ),
                                               ),
@@ -4367,6 +4442,9 @@ class _DiaryTodoSeed {
   final String sectionTitle;
   final String sectionBody;
   final IconData icon;
+  final IconData? trailingIcon;
+  final Color? trailingIconColor;
+  final String? trailingIconTooltip;
   final _DiaryRecordStickerKind? recordKind;
   final String? recordRefId;
 
@@ -4378,6 +4456,9 @@ class _DiaryTodoSeed {
     required this.sectionTitle,
     required this.sectionBody,
     required this.icon,
+    this.trailingIcon,
+    this.trailingIconColor,
+    this.trailingIconTooltip,
     this.recordKind,
     this.recordRefId,
   });
@@ -4557,6 +4638,8 @@ class _DiaryQuizQuestion {
   String prompt(bool isKo) => isKo ? promptKo : promptEn;
   String answer(bool isKo) => isKo ? answerKo : answerEn;
   String wrongAnswer(bool isKo) => isKo ? wrongAnswerKo : wrongAnswerEn;
+  bool get hasWrongAnswer =>
+      wrongAnswerKo.trim().isNotEmpty || wrongAnswerEn.trim().isNotEmpty;
 
   static _DiaryQuizQuestion? fromMap(Map<String, dynamic> map) {
     final promptKo = map['promptKo']?.toString().trim() ?? '';

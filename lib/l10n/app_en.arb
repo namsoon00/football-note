@@ -356,6 +356,15 @@
       }
     }
   },
+  "diaryQuizExpandQuestions": "Show all answers ({count})",
+  "@diaryQuizExpandQuestions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryQuizCollapseQuestions": "Collapse answers",
   "diaryQuizQuestionLabel": "Question",
   "diaryQuizAnswerLabel": "Answer",
   "diaryQuizWrongAnswerLabel": "Wrong answer",

@@ -356,6 +356,15 @@
       }
     }
   },
+  "diaryQuizExpandQuestions": "정답 전체 보기 ({count})",
+  "@diaryQuizExpandQuestions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diaryQuizCollapseQuestions": "정답 접기",
   "diaryQuizQuestionLabel": "질문",
   "diaryQuizAnswerLabel": "정답",
   "diaryQuizWrongAnswerLabel": "오답",

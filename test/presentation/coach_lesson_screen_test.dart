@@ -164,6 +164,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
+    expect(find.byTooltip('훈련 상태 보통'), findsWidgets);
+    expect(find.textContaining('훈련 상태'), findsNothing);
     expect(find.text('운세'), findsWidgets);
     expect(find.textContaining('운세 · 볼터치'), findsNothing);
     expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsNothing);
@@ -184,6 +186,114 @@ void main() {
 
     expect(find.textContaining('패스 감각 정리.'), findsOneWidget);
   });
+
+  testWidgets(
+      'coach lesson screen quiz sticker hides wrong answers and expands', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"2026-03-15":{"title":"퀴즈 다이어리","story":"문제 정리","sections":[],"moodId":"calm","recordStickers":[{"kind":"quiz","refId":"quiz-1"}],"stickers":[],"updatedAt":"2026-03-15T21:00:00.000"}}',
+      )
+      ..setRawValue(
+        'skill_quiz_history_v1',
+        '[{"id":"quiz-1","mode":"daily","finishedAt":"2026-03-15T21:10:00.000","totalQuestions":3,"score":2,"bestStreak":2,"bestCombo":2,"timeouts":0,"avgResponseMs":3100,"questions":[{"promptKo":"첫 번째 문제","promptEn":"Question one","answerKo":"압박","answerEn":"Pressing","wrongAnswerKo":"","wrongAnswerEn":""},{"promptKo":"두 번째 문제","promptEn":"Question two","answerKo":"패스","answerEn":"Pass","wrongAnswerKo":"슛","wrongAnswerEn":"Shot"},{"promptKo":"세 번째 문제","promptEn":"Question three","answerKo":"침투","answerEn":"Run in behind","wrongAnswerKo":"","wrongAnswerEn":""}],"wrongQuestions":[{"promptKo":"두 번째 문제","promptEn":"Question two","answerKo":"패스","answerEn":"Pass","wrongAnswerKo":"슛","wrongAnswerEn":"Shot"}]}]',
+      );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: TrainingService(
+              _FakeTrainingRepository(const <TrainingEntry>[]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('첫 번째 문제'), findsOneWidget);
+    expect(find.text('두 번째 문제'), findsOneWidget);
+    expect(find.text('세 번째 문제'), findsNothing);
+    expect(find.text('슛'), findsNothing);
+    expect(find.text('오답'), findsNothing);
+    expect(find.text('정답 전체 보기 (3)'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('정답 전체 보기 (3)'));
+    await tester.tap(find.text('정답 전체 보기 (3)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('세 번째 문제'), findsOneWidget);
+    expect(find.text('정답 접기'), findsOneWidget);
+  });
+
+  testWidgets(
+    'coach lesson screen conditioning sticker removes duplicate jump rope item',
+    (WidgetTester tester) async {
+      final createdAt = DateTime(2026, 3, 15, 18, 0);
+      final optionRepository = _FakeOptionRepository()
+        ..setRawValue(
+          'custom_diary_entries_v3',
+          '{"2026-03-15":{"title":"컨디셔닝 다이어리","story":"정리","sections":[],"moodId":"calm","recordStickers":[{"kind":"conditioning","refId":"2026-03-15"}],"stickers":[],"updatedAt":"2026-03-15T21:00:00.000"}}',
+        );
+
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: CoachLessonScreen(
+              optionRepository: optionRepository,
+              trainingService: TrainingService(
+                _FakeTrainingRepository(<TrainingEntry>[
+                  TrainingEntry(
+                    date: createdAt,
+                    createdAt: createdAt,
+                    durationMinutes: 40,
+                    intensity: 3,
+                    type: '기초',
+                    mood: 3,
+                    injury: false,
+                    notes: '',
+                    location: '운동장',
+                    liftingByPart: const {'inside': 50},
+                    jumpRopeCount: 200,
+                    jumpRopeMinutes: 8,
+                    jumpRopeEnabled: true,
+                  ),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('줄넘기/리프팅'), findsOneWidget);
+      expect(find.textContaining('줄넘기 200회/8분'), findsOneWidget);
+      expect(find.text('줄넘기'), findsNothing);
+      expect(find.text('리프팅 · 인사이드'), findsOneWidget);
+    },
+  );
 
   testWidgets('coach lesson screen shows empty guidance without records', (
     WidgetTester tester,
@@ -984,8 +1094,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final newsSticker =
-        find.byKey(ValueKey('diary-record-sticker-news:$newsId'));
+    final newsSticker = find.byKey(
+      ValueKey('diary-record-sticker-news:$newsId'),
+    );
     final trainingSticker = find.byKey(
       ValueKey(
         'diary-record-sticker-training:${createdAt.millisecondsSinceEpoch}',
