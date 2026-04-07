@@ -983,6 +983,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryStickerQuiz => 'Quiz';
 
   @override
+  String get diaryStickerWeather => 'Weather';
+
+  @override
   String get diaryInjuryNoDetails => 'No injury note was saved.';
 
   @override
@@ -1021,6 +1024,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diaryQuizNoMissesLabel =>
       'This quiz run finished without any misses.';
+
+  @override
+  String get diaryTrainingStatusLabel => 'Training status';
+
+  @override
+  String get diaryConditioningJumpRopeLabel => 'Jump rope';
+
+  @override
+  String get diaryConditioningLiftingLabel => 'Lifting';
+
+  @override
+  String get diaryWeatherEmpty => 'No weather was logged.';
 
   @override
   String get quizWrongAnswerTimeout => 'Timed out';

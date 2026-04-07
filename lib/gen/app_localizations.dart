@@ -1934,6 +1934,12 @@ abstract class AppLocalizations {
   /// **'Quiz'**
   String get diaryStickerQuiz;
 
+  /// No description provided for @diaryStickerWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather'**
+  String get diaryStickerWeather;
+
   /// No description provided for @diaryInjuryNoDetails.
   ///
   /// In en, this message translates to:
@@ -1999,6 +2005,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This quiz run finished without any misses.'**
   String get diaryQuizNoMissesLabel;
+
+  /// No description provided for @diaryTrainingStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training status'**
+  String get diaryTrainingStatusLabel;
+
+  /// No description provided for @diaryConditioningJumpRopeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope'**
+  String get diaryConditioningJumpRopeLabel;
+
+  /// No description provided for @diaryConditioningLiftingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifting'**
+  String get diaryConditioningLiftingLabel;
+
+  /// No description provided for @diaryWeatherEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No weather was logged.'**
+  String get diaryWeatherEmpty;
 
   /// No description provided for @quizWrongAnswerTimeout.
   ///

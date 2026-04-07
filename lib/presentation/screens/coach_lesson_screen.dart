@@ -634,12 +634,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         .map((sticker) => _resolveRecordSticker(sticker, day))
         .whereType<_DiaryRecordStickerViewData>()
         .toList(growable: false);
-    final newsRecordStickers = recordStickers
-        .where((sticker) => sticker.kind == _DiaryRecordStickerKind.news)
-        .toList(growable: false);
-    final normalTopRecordStickers = recordStickers
-        .where((sticker) => sticker.kind != _DiaryRecordStickerKind.news)
-        .toList(growable: false);
     return _buildPaperCard(
       title: null,
       subtitle: customDiary.updatedAt == null
@@ -663,12 +657,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          if (normalTopRecordStickers.isNotEmpty) ...[
-            ...normalTopRecordStickers.map(_buildRecordStickerCard),
-            const SizedBox(height: 6),
-          ],
-          if (newsRecordStickers.isNotEmpty) ...[
-            ...newsRecordStickers.map(_buildRecordStickerCard),
+          if (recordStickers.isNotEmpty) ...[
+            ...recordStickers.map(_buildRecordStickerCard),
             const SizedBox(height: 6),
           ],
           const SizedBox(height: 14),
@@ -957,6 +947,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _DiaryQuizQuestion question,
   ) {
     const correctTint = Color(0xFF1D8A5A);
+    const wrongTint = Color(0xFFC74B4B);
+    final wrongAnswer = question.wrongAnswer(_isKo).trim();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -993,6 +985,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             value: question.answer(_isKo),
             tint: correctTint,
           ),
+          if (wrongAnswer.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildQuizStickerAnswerRow(
+              label: _l10n.diaryQuizWrongAnswerLabel,
+              value: wrongAnswer,
+              tint: wrongTint,
+            ),
+          ],
         ],
       ),
     );
@@ -1121,16 +1121,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return parts.take(4).join(' · ');
   }
 
-  String _trainingSummaryShortWithWeather(TrainingEntry entry) {
-    final base = _trainingSummaryShort(entry);
-    final weather = _extractWeatherFromNotes(entry.notes);
-    if (weather.isEmpty) return base;
-    return _isKo ? '$base · 날씨 $weather' : '$base · Weather $weather';
-  }
-
   String _trainingStickerSummary(TrainingEntry entry) {
     final lines = <String>[
-      _trainingSummaryShortWithWeather(entry),
+      _trainingSummaryShort(entry),
       if (!TrainingBoardLinkCodec.isBoardLinkPayload(entry.drills) &&
           entry.drills.trim().isNotEmpty)
         entry.drills.trim(),
@@ -1729,12 +1722,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           title: primaryLabel,
           summary: _trainingStickerSummary(entry),
           metaLabels: [
+            if (entry.location.trim().isNotEmpty) entry.location.trim(),
             _isKo
                 ? '${entry.durationMinutes}분'
                 : '${entry.durationMinutes} min',
+            '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
             _isKo ? '컨디션 ${entry.mood}' : 'Condition ${entry.mood}',
             _isKo ? '강도 ${entry.intensity}' : 'Intensity ${entry.intensity}',
-            if (entry.location.trim().isNotEmpty) entry.location.trim(),
           ],
           icon: Icons.fitness_center_outlined,
           tint: const Color(0xFF2F8F6A),
@@ -1867,6 +1861,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           tint: const Color(0xFF7A4ED8),
           link: item.link,
         );
+      case _DiaryRecordStickerKind.weather:
+        final weather = _weatherSummaryForDay(day).trim();
+        if (weather.isEmpty || sticker.refId != _dayStorageToken(day.date)) {
+          return null;
+        }
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.weather,
+          title: _l10n.diaryStickerWeather,
+          summary: weather,
+          metaLabels: [_formatDiaryDate(day.date)],
+          icon: Icons.wb_cloudy_outlined,
+          tint: const Color(0xFF4E86C8),
+        );
       case _DiaryRecordStickerKind.meal:
         final mealEntry = day.mealEntry;
         if (mealEntry == null || sticker.refId != _dayStorageToken(day.date)) {
@@ -1909,6 +1917,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
           icon: Icons.sports_gymnastics_outlined,
           tint: const Color(0xFF2F8F6A),
+          focusItems: _conditioningFocusItems(day),
         );
       case _DiaryRecordStickerKind.injury:
         final dayToken = _dayStorageToken(day.date);
@@ -2010,14 +2019,30 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   List<String> _trainingMetaParts(TrainingEntry entry) {
+    final location = entry.location.trim();
     return <String>[
+      location.isEmpty ? (_isKo ? '장소 미기록' : 'No location') : location,
       '${entry.durationMinutes}${_isKo ? '분' : ' min'}',
+      '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
       _isKo ? '컨디션 ${entry.mood}' : 'Condition ${entry.mood}',
       _isKo ? '강도 ${entry.intensity}' : 'Intensity ${entry.intensity}',
-      entry.location.trim().isEmpty
-          ? (_isKo ? '미기록' : 'Not logged')
-          : entry.location.trim(),
     ];
+  }
+
+  String _trainingStatusLabel(String status) {
+    switch (status) {
+      case 'great':
+        return _l10n.statusGreat;
+      case 'good':
+        return _l10n.statusGood;
+      case 'tough':
+        return _l10n.statusTough;
+      case 'recovery':
+        return _l10n.statusRecovery;
+      case 'normal':
+      default:
+        return _l10n.statusNormal;
+    }
   }
 
   String _trainingProgramLabel(TrainingEntry entry) {
@@ -2163,6 +2188,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       if (day.mealEntry != null) _mealTodoSeed(day.mealEntry!),
       ...day.boards.map(_boardTodoSeed),
       ..._newsTodoSeedsForDay(day.date),
+      if (_weatherTodoSeed(day) case final weatherSeed?) weatherSeed,
       if (_quizHistoryForDay(day.date) case final quiz?) _quizTodoSeed(quiz),
     ];
     if (_hasConditioningRecord(day)) {
@@ -2320,6 +2346,25 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
+  _DiaryTodoSeed? _weatherTodoSeed(_DiaryDayData day) {
+    final weather = _weatherSummaryForDay(day).trim();
+    if (weather.isEmpty) return null;
+    final dayToken = _dayStorageToken(day.date);
+    return _DiaryTodoSeed(
+      id: 'weather-$dayToken',
+      title: _l10n.diaryStickerWeather,
+      summary: weather,
+      storySentence: _isKo
+          ? '그날 날씨가 훈련 흐름과 몸 상태에 어떤 영향을 줬는지 적어 보세요.'
+          : 'Write how the weather affected your training flow and body.',
+      sectionTitle: _l10n.diaryStickerWeather,
+      sectionBody: weather,
+      icon: Icons.wb_cloudy_outlined,
+      recordKind: _DiaryRecordStickerKind.weather,
+      recordRefId: dayToken,
+    );
+  }
+
   _DiaryTodoSeed _injuryTodoSeed(_DiaryDayData day) {
     final dayToken = _dayStorageToken(day.date);
     return _DiaryTodoSeed(
@@ -2442,6 +2487,97 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return 'Lifting $totalLifting reps · Jump rope $totalJumpCount reps/$totalJumpMinutes min${noteText.isEmpty ? '' : ' · $noteText'}';
   }
 
+  List<_DiaryStickerFocusItem> _conditioningFocusItems(_DiaryDayData day) {
+    final items = <_DiaryStickerFocusItem>[];
+    final jumpSummary = _jumpRopeSummary(day);
+    if (jumpSummary.isNotEmpty) {
+      items.add(
+        _DiaryStickerFocusItem(
+          title: _l10n.diaryConditioningJumpRopeLabel,
+          body: jumpSummary,
+          icon: Icons.sports_gymnastics_outlined,
+        ),
+      );
+    }
+    for (final entry in _liftingBreakdown(day)) {
+      items.add(
+        _DiaryStickerFocusItem(
+          title: '${_l10n.diaryConditioningLiftingLabel} · ${entry.$1}',
+          body: _isKo ? '${entry.$2}회' : '${entry.$2} reps',
+          icon: Icons.sports_soccer_outlined,
+        ),
+      );
+    }
+    return items;
+  }
+
+  String _jumpRopeSummary(_DiaryDayData day) {
+    final totalJumpCount = _totalJumpRopeCount(day);
+    final totalJumpMinutes = _totalJumpRopeMinutes(day);
+    final notes = day.entries
+        .map((entry) => entry.jumpRopeNote.trim())
+        .where((text) => text.isNotEmpty)
+        .toList(growable: false);
+    if (totalJumpCount <= 0 && totalJumpMinutes <= 0 && notes.isEmpty) {
+      return '';
+    }
+    final parts = <String>[
+      if (totalJumpCount > 0)
+        _isKo ? '$totalJumpCount회' : '$totalJumpCount reps',
+      if (totalJumpMinutes > 0)
+        _isKo ? '$totalJumpMinutes분' : '$totalJumpMinutes min',
+      if (notes.isNotEmpty) notes.first,
+    ];
+    return parts.join(' · ');
+  }
+
+  List<(String, int)> _liftingBreakdown(_DiaryDayData day) {
+    const orderedKeys = <String>[
+      'infront',
+      'inside',
+      'outside',
+      'muple',
+      'head',
+      'chest',
+    ];
+    final totals = <String, int>{};
+    for (final entry in day.entries) {
+      entry.liftingByPart.forEach((key, value) {
+        if (value <= 0) return;
+        totals[key] = (totals[key] ?? 0) + value;
+      });
+    }
+    return orderedKeys
+        .where((key) => (totals[key] ?? 0) > 0)
+        .map((key) => (_liftingPartLabel(key), totals[key] ?? 0))
+        .toList(growable: false);
+  }
+
+  String _liftingPartLabel(String key) {
+    switch (key) {
+      case 'infront':
+        return _l10n.liftingPartInfront;
+      case 'inside':
+        return _l10n.liftingPartInside;
+      case 'outside':
+        return _l10n.liftingPartOutside;
+      case 'muple':
+        return _l10n.liftingPartMuple;
+      case 'head':
+        return _l10n.liftingPartHead;
+      case 'chest':
+      default:
+        return _l10n.liftingPartChest;
+    }
+  }
+
+  String _weatherSummaryForDay(_DiaryDayData day) {
+    return day.trainingEntries
+        .map((entry) => _extractWeatherFromNotes(entry.notes))
+        .firstWhere((weather) => weather.trim().isNotEmpty, orElse: () => '')
+        .trim();
+  }
+
   String _injurySummary(_DiaryDayData day) {
     final injuredEntries =
         day.entries.where((entry) => entry.injury).toList(growable: false);
@@ -2499,18 +2635,17 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               totalQuestions: totalQuestions,
               score: score,
               wrongQuestions: wrongQuestions,
-              questions:
-                  ((map['questions'] as List?) ??
-                          (map['wrongQuestions'] as List?) ??
-                          const <dynamic>[])
-                      .whereType<Map>()
-                      .map(
-                        (item) => _DiaryQuizQuestion.fromMap(
-                          item.cast<String, dynamic>(),
-                        ),
-                      )
-                      .whereType<_DiaryQuizQuestion>()
-                      .toList(growable: false),
+              questions: ((map['questions'] as List?) ??
+                      (map['wrongQuestions'] as List?) ??
+                      const <dynamic>[])
+                  .whereType<Map>()
+                  .map(
+                    (item) => _DiaryQuizQuestion.fromMap(
+                      item.cast<String, dynamic>(),
+                    ),
+                  )
+                  .whereType<_DiaryQuizQuestion>()
+                  .toList(growable: false),
             );
           })
           .where((item) => item.id.isNotEmpty)
@@ -2586,6 +2721,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       ...initialSelectedRecordStickerOrder,
     ];
     var isClosingFlowRunning = false;
+    Timer? autoSaveTimer;
+    var autoSaveInFlight = false;
+    var autoSaveQueued = false;
+    var persistedDraftSignature = '';
     _CustomDiaryEntryData buildDraftData() {
       return _CustomDiaryEntryData(
         title: titleController.text.trim(),
@@ -2607,6 +2746,52 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
     }
 
+    String buildDraftSignature(_CustomDiaryEntryData data) {
+      return jsonEncode(<String, dynamic>{
+        'title': data.title.trim(),
+        'story': data.story.trim(),
+        'recordStickers': data.recordStickers
+            .map((sticker) => sticker.storageId)
+            .toList(growable: false),
+        'stickers': [...data.stickers]..sort(),
+      });
+    }
+
+    Future<void> persistDraftSilently() async {
+      if (!composerActive) return;
+      if (autoSaveInFlight) {
+        autoSaveQueued = true;
+        return;
+      }
+      autoSaveInFlight = true;
+      try {
+        do {
+          autoSaveQueued = false;
+          final draft = buildDraftData();
+          final nextSignature = buildDraftSignature(draft);
+          if (nextSignature == persistedDraftSignature) {
+            continue;
+          }
+          await _saveCustomDiary(day.date, draft, showFeedback: false);
+          persistedDraftSignature = nextSignature;
+        } while (autoSaveQueued && composerActive);
+      } finally {
+        autoSaveInFlight = false;
+      }
+    }
+
+    void scheduleAutoSave() {
+      autoSaveTimer?.cancel();
+      autoSaveTimer = Timer(
+        const Duration(milliseconds: 450),
+        () => unawaited(persistDraftSilently()),
+      );
+    }
+
+    titleController.addListener(scheduleAutoSave);
+    storyController.addListener(scheduleAutoSave);
+    persistedDraftSignature = buildDraftSignature(buildDraftData());
+
     List<String> normalizeIds(List<String> values) {
       final ids = [...values]..sort();
       return ids;
@@ -2614,12 +2799,9 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
     bool hasUnsavedChanges() {
       final draft = buildDraftData();
-      return draft.title.trim() != initialData.title.trim() ||
-          draft.story.trim() != initialData.story.trim() ||
+      return buildDraftSignature(draft) != persistedDraftSignature ||
           normalizeIds(draft.stickers).join('|') !=
-              normalizeIds(initialSelectedStickerIds.toList()).join('|') ||
-          selectedRecordStickerOrder.join('|') !=
-              initialSelectedRecordStickerOrder.join('|');
+              normalizeIds(initialSelectedStickerIds.toList()).join('|');
     }
 
     Future<void> requestCloseWithSavePrompt(BuildContext modalContext) async {
@@ -3046,6 +3228,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                         moved,
                                       );
                                     });
+                                    scheduleAutoSave();
                                   },
                                   itemBuilder: (context, index) {
                                     final storageId =
@@ -3152,6 +3335,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                                 selectedRecordStickerOrder
                                                     .remove(storageId);
                                               });
+                                              scheduleAutoSave();
                                             },
                                             icon: const Icon(
                                               Icons.close_rounded,
@@ -3362,6 +3546,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                                         );
                                                       }
                                                     });
+                                                    scheduleAutoSave();
                                                   },
                                                 ),
                                                 if (isSelected &&
@@ -3431,6 +3616,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                 storyController.clear();
                                 selectedRecordStickerOrder.clear();
                               });
+                              scheduleAutoSave();
                             },
                             child: Text(_isKo ? '비우기' : 'Clear'),
                           ),
@@ -3455,9 +3641,12 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
 
     composerActive = false;
+    autoSaveTimer?.cancel();
     if (isListening) {
       await speech.cancel();
     }
+    titleController.removeListener(scheduleAutoSave);
+    storyController.removeListener(scheduleAutoSave);
     listeningController = null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       titleController.dispose();
@@ -4242,6 +4431,7 @@ enum _DiaryRecordStickerKind {
   fortune,
   board,
   news,
+  weather,
   meal,
   conditioning,
   injury,
@@ -4352,16 +4542,21 @@ class _DiaryQuizQuestion {
   final String promptEn;
   final String answerKo;
   final String answerEn;
+  final String wrongAnswerKo;
+  final String wrongAnswerEn;
 
   const _DiaryQuizQuestion({
     required this.promptKo,
     required this.promptEn,
     required this.answerKo,
     required this.answerEn,
+    required this.wrongAnswerKo,
+    required this.wrongAnswerEn,
   });
 
   String prompt(bool isKo) => isKo ? promptKo : promptEn;
   String answer(bool isKo) => isKo ? answerKo : answerEn;
+  String wrongAnswer(bool isKo) => isKo ? wrongAnswerKo : wrongAnswerEn;
 
   static _DiaryQuizQuestion? fromMap(Map<String, dynamic> map) {
     final promptKo = map['promptKo']?.toString().trim() ?? '';
@@ -4377,6 +4572,8 @@ class _DiaryQuizQuestion {
       promptEn: promptEn,
       answerKo: answerKo,
       answerEn: answerEn,
+      wrongAnswerKo: map['wrongAnswerKo']?.toString().trim() ?? '',
+      wrongAnswerEn: map['wrongAnswerEn']?.toString().trim() ?? '',
     );
   }
 }
