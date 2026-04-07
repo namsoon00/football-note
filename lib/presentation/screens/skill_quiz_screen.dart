@@ -1462,8 +1462,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     final existing = _QuizHistoryEntry.decodeList(
       widget.optionRepository.getValue<String>(SkillQuizScreen.historyKey),
     ).take(19).toList(growable: true);
-    final wrongQuestions = _questions
-        .where((question) => _wrongIds.contains(question.id))
+    final allQuestions = _questions
         .map(
           (question) => _QuizHistoryQuestion(
             id: question.id,
@@ -1488,6 +1487,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           ),
         )
         .toList(growable: false);
+    final wrongQuestions = allQuestions
+        .where((question) => _wrongIds.contains(question.id))
+        .toList(growable: false);
     existing.insert(
       0,
       _QuizHistoryEntry(
@@ -1501,6 +1503,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         timeouts: _timeouts,
         avgResponseMs:
             _answerCount == 0 ? 0 : (_responseMillisSum ~/ _answerCount),
+        questions: allQuestions,
         wrongQuestions: wrongQuestions,
       ),
     );
@@ -3268,106 +3271,89 @@ class _SuggestionCard extends StatelessWidget {
   }
 }
 
-class _FlipQuizReviewCard extends StatefulWidget {
+class _FlipQuizReviewCard extends StatelessWidget {
   final dynamic question;
   final bool isKo;
 
   const _FlipQuizReviewCard({required this.question, required this.isKo});
 
   @override
-  State<_FlipQuizReviewCard> createState() => _FlipQuizReviewCardState();
-}
-
-class _FlipQuizReviewCardState extends State<_FlipQuizReviewCard> {
-  bool _showBack = false;
-
-  @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final prompt = widget.question is _FootballQuizQuestion
-        ? (widget.question as _FootballQuizQuestion).prompt(widget.isKo)
-        : (widget.question as _QuizHistoryQuestion).prompt(widget.isKo);
-    final answer = widget.question is _FootballQuizQuestion
-        ? (widget.question as _FootballQuizQuestion).displayAnswer(widget.isKo)
-        : (widget.question as _QuizHistoryQuestion).answer(widget.isKo);
-    final explanation = widget.question is _FootballQuizQuestion
-        ? (widget.question as _FootballQuizQuestion).explainText(widget.isKo)
-        : (widget.question as _QuizHistoryQuestion).explanation(widget.isKo);
+    final prompt = question is _FootballQuizQuestion
+        ? (question as _FootballQuizQuestion).prompt(isKo)
+        : (question as _QuizHistoryQuestion).prompt(isKo);
+    final answer = question is _FootballQuizQuestion
+        ? (question as _FootballQuizQuestion).displayAnswer(isKo)
+        : (question as _QuizHistoryQuestion).answer(isKo);
+    final explanation = question is _FootballQuizQuestion
+        ? (question as _FootballQuizQuestion).explainText(isKo)
+        : (question as _QuizHistoryQuestion).explanation(isKo);
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: () => setState(() => _showBack = !_showBack),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: _showBack
-              ? scheme.primary.withValues(alpha: 0.08)
-              : scheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: _showBack ? scheme.primary : scheme.outlineVariant,
-          ),
-        ),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
-          child: _showBack
-              ? Column(
-                  key: const ValueKey('back'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.isKo ? '정답 / 해설' : 'Answer / explanation',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      answer,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      explanation,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(height: 1.45),
-                    ),
-                  ],
-                )
-              : Column(
-                  key: const ValueKey('front'),
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.isKo ? '문제' : 'Question',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      prompt,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            height: 1.4,
-                          ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      widget.isKo ? '탭해서 뒤집기' : 'Tap to flip',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.65),
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                  ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isKo ? '문제' : 'Question',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
                 ),
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            prompt,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.4,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isKo ? '정답' : 'Answer',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  answer,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.35,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          if (explanation.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              explanation,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    height: 1.45,
+                  ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -3790,6 +3776,7 @@ class _QuizHistoryEntry {
   final int bestCombo;
   final int timeouts;
   final int avgResponseMs;
+  final List<_QuizHistoryQuestion> questions;
   final List<_QuizHistoryQuestion> wrongQuestions;
 
   const _QuizHistoryEntry({
@@ -3802,6 +3789,7 @@ class _QuizHistoryEntry {
     required this.bestCombo,
     required this.timeouts,
     required this.avgResponseMs,
+    required this.questions,
     required this.wrongQuestions,
   });
 
@@ -3817,6 +3805,7 @@ class _QuizHistoryEntry {
         'bestCombo': bestCombo,
         'timeouts': timeouts,
         'avgResponseMs': avgResponseMs,
+        'questions': questions.map((item) => item.toMap()).toList(),
         'wrongQuestions': wrongQuestions.map((item) => item.toMap()).toList(),
       };
 
@@ -3848,6 +3837,16 @@ class _QuizHistoryEntry {
               map['finishedAt']?.toString() ?? '',
             );
             if (id.isEmpty || finishedAt == null) return null;
+            final questions = (map['questions'] as List?)
+                    ?.whereType<Map>()
+                    .map(
+                      (item) => _QuizHistoryQuestion.fromMap(
+                        item.cast<String, dynamic>(),
+                      ),
+                    )
+                    .whereType<_QuizHistoryQuestion>()
+                    .toList(growable: false) ??
+                const <_QuizHistoryQuestion>[];
             final wrongQuestions = (map['wrongQuestions'] as List?)
                     ?.whereType<Map>()
                     .map(
@@ -3868,6 +3867,7 @@ class _QuizHistoryEntry {
               bestCombo: (map['bestCombo'] as num?)?.toInt() ?? 0,
               timeouts: (map['timeouts'] as num?)?.toInt() ?? 0,
               avgResponseMs: (map['avgResponseMs'] as num?)?.toInt() ?? 0,
+              questions: questions.isEmpty ? wrongQuestions : questions,
               wrongQuestions: wrongQuestions,
             );
           })
