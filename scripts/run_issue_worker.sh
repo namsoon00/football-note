@@ -18,6 +18,7 @@ CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
 CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
 USE_CUSTOM_CODEX_CMD="${USE_CUSTOM_CODEX_CMD:-0}"
 CODEX_UNSAFE="${CODEX_UNSAFE:-1}"
+CODEX_MODEL="${CODEX_MODEL:-gpt-5}"
 FORCE_MAIN_MERGE="${FORCE_MAIN_MERGE:-1}"
 LOCAL_SYNC_REPO_PATH="${LOCAL_SYNC_REPO_PATH:-/Users/namsoon00/Devel/football_note/football_note}"
 
@@ -196,15 +197,17 @@ else
     log "codex CLI not found. Set CODEX_RUNNER_CMD or install codex."
     exit 1
   fi
-  log "Running codex CLI (sandbox=$CODEX_SANDBOX, approval=$CODEX_APPROVAL, unsafe=$CODEX_UNSAFE)"
+  log "Running codex CLI (model=$CODEX_MODEL, sandbox=$CODEX_SANDBOX, approval=$CODEX_APPROVAL, unsafe=$CODEX_UNSAFE)"
   if codex exec --help >/dev/null 2>&1; then
     if [[ "$CODEX_UNSAFE" == "1" ]]; then
       codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
         --dangerously-bypass-approvals-and-sandbox \
         exec "$(cat "$PROMPT_FILE")"
       CODEX_EXIT=$?
     else
       codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
         --sandbox "$CODEX_SANDBOX" \
         --ask-for-approval "$CODEX_APPROVAL" \
         exec "$(cat "$PROMPT_FILE")"
@@ -213,11 +216,13 @@ else
   else
     if [[ "$CODEX_UNSAFE" == "1" ]]; then
       codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
         --dangerously-bypass-approvals-and-sandbox \
         "$(cat "$PROMPT_FILE")"
       CODEX_EXIT=$?
     else
       codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
         --sandbox "$CODEX_SANDBOX" \
         --ask-for-approval "$CODEX_APPROVAL" \
         "$(cat "$PROMPT_FILE")"
