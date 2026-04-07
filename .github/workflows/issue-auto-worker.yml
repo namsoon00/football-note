@@ -37,6 +37,7 @@ jobs:
           CODEX_SANDBOX: ${{ vars.CODEX_SANDBOX }}
           CODEX_APPROVAL: ${{ vars.CODEX_APPROVAL }}
           CODEX_UNSAFE: ${{ vars.CODEX_UNSAFE }}
+          CODEX_MODEL: ${{ vars.CODEX_MODEL }}
           FORCE_MAIN_MERGE: "1"
           LOCAL_SYNC_REPO_PATH: ${{ vars.LOCAL_SYNC_REPO_PATH }}
           RUN_VERIFY: ${{ vars.RUN_VERIFY }}

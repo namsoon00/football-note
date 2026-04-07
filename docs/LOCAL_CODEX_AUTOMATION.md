@@ -30,6 +30,7 @@ Both run every 30 minutes.
 - `CODEX_SANDBOX`: default `workspace-write`
 - `CODEX_APPROVAL`: default `never`
 - `CODEX_UNSAFE`: default `1` (uses `--dangerously-bypass-approvals-and-sandbox`)
+- `CODEX_MODEL`: default `gpt-5` (latest model). Override if needed.
 - `RUN_VERIFY`: set `1` to run `scripts/verify.sh` in worker
 - `AUTO_MERGE`: default `1` (try merge PR to `main` automatically)
 - `AUTO_MERGE_METHOD`: `squash` (default), `merge`, or `rebase`
