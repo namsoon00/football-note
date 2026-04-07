@@ -185,22 +185,22 @@ class _GateSplashPainter extends CustomPainter {
   }
 
   void _paintBackdrop(Canvas canvas, Rect rect) {
-    final night = Paint()
+    final sky = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF04070B), Color(0xFF081018), Color(0xFF03070C)],
+        colors: [Color(0xFFBEE6FF), Color(0xFF76B8F4), Color(0xFF1E5B92)],
       ).createShader(rect);
-    canvas.drawRect(rect, night);
+    canvas.drawRect(rect, sky);
 
     final vignette = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(0, -0.08),
+        center: const Alignment(0, -0.22),
         radius: 1.08,
         colors: [
           Colors.transparent,
-          Colors.black.withValues(alpha: 0.34),
-          Colors.black.withValues(alpha: 0.72),
+          const Color(0xFF0E3150).withValues(alpha: 0.16),
+          const Color(0xFF07172A).withValues(alpha: 0.46),
         ],
         stops: const [0.5, 0.84, 1.0],
       ).createShader(rect);
@@ -331,10 +331,45 @@ class _GateSplashPainter extends CustomPainter {
       ),
     );
 
-    final fieldWorldHeight = openingRect.height * 1.9;
+    final skyHeight = openingRect.height * 0.42;
+    final skyRect = Rect.fromLTWH(
+      openingRect.left,
+      openingRect.top,
+      openingRect.width,
+      skyHeight,
+    );
+    canvas.drawRect(
+      skyRect,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFD8F1FF), Color(0xFF8FC9FF), Color(0xFF5A9BDB)],
+        ).createShader(skyRect),
+    );
+
+    final cloudPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.18 + (fieldReveal * 0.14))
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    for (final cloud in <Offset>[
+      Offset(openingRect.width * 0.22, skyRect.height * 0.28),
+      Offset(openingRect.width * 0.64, skyRect.height * 0.2),
+      Offset(openingRect.width * 0.52, skyRect.height * 0.44),
+    ]) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(openingRect.left + cloud.dx, openingRect.top + cloud.dy),
+          width: openingRect.width * 0.22,
+          height: skyRect.height * 0.18,
+        ),
+        cloudPaint,
+      );
+    }
+
+    final fieldWorldHeight = openingRect.height * 1.45;
     final fieldTop = lerpDouble(
-      openingRect.bottom - fieldWorldHeight + (openingRect.height * 0.18),
-      openingRect.top - (openingRect.height * 0.1),
+      openingRect.top + (openingRect.height * 0.46),
+      openingRect.top + (openingRect.height * 0.26),
       fieldPan,
     )!;
     final fieldRect = Rect.fromLTWH(
@@ -350,13 +385,13 @@ class _GateSplashPainter extends CustomPainter {
         end: Alignment.bottomCenter,
         colors: [
           Color.lerp(
-            const Color(0xFF0D2315),
-            const Color(0xFF1F6B35),
+            const Color(0xFF3B8E49),
+            const Color(0xFF4FAF58),
             fieldReveal,
           )!,
           Color.lerp(
-            const Color(0xFF0B1D11),
-            const Color(0xFF2D8C41),
+            const Color(0xFF216C37),
+            const Color(0xFF2F8E47),
             fieldReveal,
           )!,
         ],
@@ -387,8 +422,8 @@ class _GateSplashPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final goalLineY = lerpDouble(
-      fieldRect.top + (fieldRect.height * 0.22),
-      fieldRect.top + (fieldRect.height * 0.12),
+      fieldRect.top + (fieldRect.height * 0.14),
+      fieldRect.top + (fieldRect.height * 0.18),
       fieldPan,
     )!;
     _paintGoalMark(canvas, fieldRect, goalLineY, linePaint);

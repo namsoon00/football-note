@@ -47,6 +47,7 @@ class CoachLessonScreen extends StatefulWidget {
   final SettingsService? settingsService;
   final BackupService? driveBackupService;
   final bool embeddedInHomeTab;
+  final int openTodayDiaryRequestKey;
 
   const CoachLessonScreen({
     super.key,
@@ -57,6 +58,7 @@ class CoachLessonScreen extends StatefulWidget {
     this.settingsService,
     this.driveBackupService,
     this.embeddedInHomeTab = false,
+    this.openTodayDiaryRequestKey = 0,
   });
 
   static String todayViewedDayToken(DateTime date) =>
@@ -78,6 +80,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   late String _selectedThemeId;
   String? _lastCompletedDiaryToken;
   late Map<String, _CustomDiaryEntryData> _customDiaryEntries;
+  int _lastHandledOpenTodayDiaryRequestKey = 0;
 
   bool get _isKo => Localizations.localeOf(context).languageCode == 'ko';
   AppLocalizations get _l10n => AppLocalizations.of(context)!;
@@ -177,6 +180,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                     widget.optionRepository,
                   ).boardMap();
                   final days = _buildDays(
+                    entriesByDay: entriesByDay,
+                    mealEntriesByDay: mealEntriesByDay,
+                    plansByDay: plansByDay,
+                    boardMap: boardMap,
+                  );
+                  _consumeTodayDiaryOpenRequest(
+                    days: days,
                     entriesByDay: entriesByDay,
                     mealEntriesByDay: mealEntriesByDay,
                     plansByDay: plansByDay,
@@ -917,7 +927,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       );
     }
 
-    final question = quiz.highlightQuestion;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -928,27 +937,16 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             height: 1.45,
           ),
         ),
-        if (question != null) ...[
+        if (quiz.questions.isNotEmpty) ...[
           const SizedBox(height: 12),
-          _buildQuizStickerQuestionCard(sticker, question),
-        ] else ...[
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: sticker.tint.withValues(alpha: _isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              _l10n.diaryQuizNoMissesLabel,
-              style: _theme.textTheme.bodySmall?.copyWith(
-                color: _headlineInk,
-                fontWeight: FontWeight.w700,
-                height: 1.4,
+          ...quiz.questions.asMap().entries.map(
+                (entry) => Padding(
+                  padding: EdgeInsets.only(
+                    bottom: entry.key == quiz.questions.length - 1 ? 0 : 10,
+                  ),
+                  child: _buildQuizStickerQuestionCard(sticker, entry.value),
+                ),
               ),
-            ),
-          ),
         ],
       ],
     );
@@ -959,7 +957,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _DiaryQuizQuestion question,
   ) {
     const correctTint = Color(0xFF1D8A5A);
-    const wrongTint = Color(0xFFC94B4B);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -995,14 +992,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             label: _l10n.diaryQuizAnswerLabel,
             value: question.answer(_isKo),
             tint: correctTint,
-          ),
-          const SizedBox(height: 8),
-          _buildQuizStickerAnswerRow(
-            label: _l10n.diaryQuizWrongAnswerLabel,
-            value: question.wrongAnswer(_isKo).trim().isEmpty
-                ? _l10n.diaryQuizWrongAnswerNone
-                : question.wrongAnswer(_isKo),
-            tint: wrongTint,
           ),
         ],
       ),
@@ -1650,6 +1639,76 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
   }
 
+  void _consumeTodayDiaryOpenRequest({
+    required List<_DiaryDayData> days,
+    required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, MealEntry> mealEntriesByDay,
+    required Map<DateTime, List<_DiaryPlan>> plansByDay,
+    required Map<String, TrainingBoard> boardMap,
+  }) {
+    final requestKey = widget.openTodayDiaryRequestKey;
+    if (requestKey == 0 || requestKey == _lastHandledOpenTodayDiaryRequestKey) {
+      return;
+    }
+    _lastHandledOpenTodayDiaryRequestKey = requestKey;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _openTodayDiaryFromHome(
+        days: days,
+        entriesByDay: entriesByDay,
+        mealEntriesByDay: mealEntriesByDay,
+        plansByDay: plansByDay,
+        boardMap: boardMap,
+      );
+    });
+  }
+
+  Future<void> _openTodayDiaryFromHome({
+    required List<_DiaryDayData> days,
+    required Map<DateTime, List<TrainingEntry>> entriesByDay,
+    required Map<DateTime, MealEntry> mealEntriesByDay,
+    required Map<DateTime, List<_DiaryPlan>> plansByDay,
+    required Map<String, TrainingBoard> boardMap,
+  }) async {
+    final today = _normalizeDay(DateTime.now());
+    final todayToken = _dayStorageToken(today);
+    if (_customDiaryEntries.containsKey(todayToken)) {
+      final index = days.indexWhere((entry) => entry.date == today);
+      if (index >= 0) {
+        setState(() => _selectedDayIndex = index);
+        await _movePage(index);
+      }
+      final viewedToken = CoachLessonScreen.todayViewedDayToken(today);
+      _lastCompletedDiaryToken = viewedToken;
+      await widget.optionRepository.setValue(
+        CoachLessonScreen.todayViewedDiaryDayKey,
+        viewedToken,
+      );
+      return;
+    }
+
+    final todayDay = _buildDiaryDayData(
+      day: today,
+      entriesByDay: entriesByDay,
+      mealEntriesByDay: mealEntriesByDay,
+      plansByDay: plansByDay,
+      boardMap: boardMap,
+    );
+    await _openDiaryComposer(todayDay, _customDiaryForDay(today));
+    if (!mounted) return;
+    final orderedDays = _buildDays(
+      entriesByDay: entriesByDay,
+      mealEntriesByDay: mealEntriesByDay,
+      plansByDay: plansByDay,
+      boardMap: boardMap,
+    );
+    final index = orderedDays.indexWhere((entry) => entry.date == today);
+    if (index >= 0) {
+      setState(() => _selectedDayIndex = index);
+      await _movePage(index);
+    }
+  }
+
   _DiaryRecordStickerViewData? _resolveRecordSticker(
     _DiaryRecordStickerData sticker,
     _DiaryDayData day,
@@ -2111,23 +2170,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     }
     if (_hasRecoveryRecord(day)) {
       seeds.add(_injuryTodoSeed(day));
-      seeds.add(
-        _DiaryTodoSeed(
-          id: 'recovery-${_dayStorageToken(day.date)}',
-          title: _isKo ? '회복과 몸 상태' : 'Recovery and body status',
-          summary: _isKo
-              ? '통증, 회복 루틴, 내일을 위한 조절 포인트를 정리할 수 있어요.'
-              : 'Capture pain points, recovery routine, and how to adjust for tomorrow.',
-          storySentence: _isKo
-              ? '몸 상태를 돌아보며 오늘 무리했던 지점과 회복이 필요한 부분을 적어 본다.'
-              : 'Look back on the body and note where it was pushed and what needs recovery.',
-          sectionTitle: _isKo ? '몸 상태 체크' : 'Body check',
-          sectionBody: _isKo
-              ? '회복이 필요했던 부위와 내일 조절할 점을 남긴다.'
-              : 'Leave the area that needs recovery and what to adjust tomorrow.',
-          icon: Icons.health_and_safety_outlined,
-        ),
-      );
     }
     return seeds;
   }
@@ -2457,8 +2499,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               totalQuestions: totalQuestions,
               score: score,
               wrongQuestions: wrongQuestions,
-              highlightQuestion:
-                  ((map['wrongQuestions'] as List?) ?? const <dynamic>[])
+              questions:
+                  ((map['questions'] as List?) ??
+                          (map['wrongQuestions'] as List?) ??
+                          const <dynamic>[])
                       .whereType<Map>()
                       .map(
                         (item) => _DiaryQuizQuestion.fromMap(
@@ -2466,11 +2510,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ),
                       )
                       .whereType<_DiaryQuizQuestion>()
-                      .cast<_DiaryQuizQuestion?>()
-                      .firstWhere(
-                        (item) => item != null,
-                        orElse: () => null,
-                      ),
+                      .toList(growable: false),
             );
           })
           .where((item) => item.id.isNotEmpty)
@@ -4284,7 +4324,7 @@ class _DiaryQuizSummary {
   final int totalQuestions;
   final int score;
   final int wrongQuestions;
-  final _DiaryQuizQuestion? highlightQuestion;
+  final List<_DiaryQuizQuestion> questions;
 
   const _DiaryQuizSummary({
     required this.id,
@@ -4292,7 +4332,7 @@ class _DiaryQuizSummary {
     required this.totalQuestions,
     required this.score,
     required this.wrongQuestions,
-    this.highlightQuestion,
+    required this.questions,
   });
 
   String summary(AppLocalizations l10n) {
@@ -4312,29 +4352,22 @@ class _DiaryQuizQuestion {
   final String promptEn;
   final String answerKo;
   final String answerEn;
-  final String wrongAnswerKo;
-  final String wrongAnswerEn;
 
   const _DiaryQuizQuestion({
     required this.promptKo,
     required this.promptEn,
     required this.answerKo,
     required this.answerEn,
-    required this.wrongAnswerKo,
-    required this.wrongAnswerEn,
   });
 
   String prompt(bool isKo) => isKo ? promptKo : promptEn;
   String answer(bool isKo) => isKo ? answerKo : answerEn;
-  String wrongAnswer(bool isKo) => isKo ? wrongAnswerKo : wrongAnswerEn;
 
   static _DiaryQuizQuestion? fromMap(Map<String, dynamic> map) {
     final promptKo = map['promptKo']?.toString().trim() ?? '';
     final promptEn = map['promptEn']?.toString().trim() ?? '';
     final answerKo = map['answerKo']?.toString().trim() ?? '';
     final answerEn = map['answerEn']?.toString().trim() ?? '';
-    final wrongAnswerKo = map['wrongAnswerKo']?.toString().trim() ?? '';
-    final wrongAnswerEn = map['wrongAnswerEn']?.toString().trim() ?? '';
     if ((promptKo.isEmpty && promptEn.isEmpty) ||
         (answerKo.isEmpty && answerEn.isEmpty)) {
       return null;
@@ -4344,8 +4377,6 @@ class _DiaryQuizQuestion {
       promptEn: promptEn,
       answerKo: answerKo,
       answerEn: answerEn,
-      wrongAnswerKo: wrongAnswerKo,
-      wrongAnswerEn: wrongAnswerEn,
     );
   }
 }

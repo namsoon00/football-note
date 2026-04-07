@@ -51,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _calendarSelectedDay;
   DateTimeRange? _statsInitialRange;
   int _statsInitialRangeRequestKey = 0;
+  int _openTodayDiaryRequestKey = 0;
   CalendarQuickCreateAction? _pendingCalendarQuickCreateAction;
   final Set<int> _guideCheckedInSession = <int>{};
   bool _routePushInFlight = false;
@@ -85,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onQuickBoard: _openTrainingBoards,
         onOpenPlans: _openPlans,
         onOpenLogs: () => _onDestinationSelected(1),
-        onOpenDiary: () => _onDestinationSelected(4),
+        onOpenDiary: _openTodayDiary,
         onOpenWeeklyStats: _openWeeklyStatsForCurrentWeek,
         onEdit: _openEdit,
         onEditTrainingBoard: _openEditTrainingBoard,
@@ -143,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
         settingsService: widget.settingsService,
         driveBackupService: widget.driveBackupService,
         embeddedInHomeTab: true,
+        openTodayDiaryRequestKey: _openTodayDiaryRequestKey,
       ),
     ];
     final l10n = AppLocalizations.of(context)!;
@@ -200,6 +202,14 @@ class _HomeScreenState extends State<HomeScreen> {
       _index = 3;
     });
     unawaited(_showTabGuideIfNeeded(3));
+  }
+
+  void _openTodayDiary() {
+    setState(() {
+      _openTodayDiaryRequestKey++;
+      _index = 4;
+    });
+    unawaited(_showTabGuideIfNeeded(4));
   }
 
   DateTimeRange _currentWeekRange() {
