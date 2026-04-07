@@ -1976,6 +1976,18 @@ abstract class AppLocalizations {
   /// **'{score}/{total} correct · {wrongCount} misses'**
   String diaryQuizSummaryWithMisses(int score, int total, int wrongCount);
 
+  /// No description provided for @diaryQuizExpandQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all answers ({count})'**
+  String diaryQuizExpandQuestions(int count);
+
+  /// No description provided for @diaryQuizCollapseQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse answers'**
+  String get diaryQuizCollapseQuestions;
+
   /// No description provided for @diaryQuizQuestionLabel.
   ///
   /// In en, this message translates to:
