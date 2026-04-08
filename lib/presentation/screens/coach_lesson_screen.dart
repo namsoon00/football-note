@@ -564,7 +564,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final diaryTitle = customDiary.title.trim().isNotEmpty
         ? customDiary.title.trim()
         : _l10n.diaryTitlePlaceholder;
-    final weatherHeadline = _weatherSummaryForDay(day).trim();
+    // Weather shown via sticker; omit older subtitle summary.
     return _DiaryScrollPage(
       onReachedEnd: () {},
       onPullDownToDismiss: widget.embeddedInHomeTab
@@ -578,7 +578,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           children: [
             _buildDiarySection(
               title: diaryTitle,
-              subtitle: weatherHeadline.isEmpty ? null : weatherHeadline,
+              // Weather appears via sticker; keep subtitle empty.
+              subtitle: null,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1834,7 +1835,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             _isKo ? '컨디션 ${entry.mood}' : 'Condition ${entry.mood}',
             _isKo ? '강도 ${entry.intensity}' : 'Intensity ${entry.intensity}',
           ],
-          icon: Icons.fitness_center_outlined,
+          // Match the icon used when recording training status
+          icon: trainingStatusVisual(entry.status).icon,
           tint: const Color(0xFF2F8F6A),
           focusItems: _trainingFocusItems(entry),
         );
@@ -2353,11 +2355,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       storySentence: summaryText,
       sectionTitle: _isKo ? '$displayLabel 훈련 요약' : '$displayLabel summary',
       sectionBody: summaryText,
-      icon: Icons.fitness_center_outlined,
-      trailingIcon: statusVisual.icon,
-      trailingIconColor: statusVisual.color,
-      trailingIconTooltip:
-          '${_l10n.diaryTrainingStatusLabel} ${_trainingStatusLabel(entry.status)}',
+      icon: statusVisual.icon,
       recordKind: _DiaryRecordStickerKind.training,
       recordRefId: '${entry.createdAt.millisecondsSinceEpoch}',
     );
@@ -3707,24 +3705,22 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                                     scheduleAutoSave();
                                                   },
                                                 ),
-                                                if (isSelected &&
-                                                    orderIndex >= 0) ...[
                                                   const SizedBox(width: 8),
-                                                  Text(
-                                                    _l10n
-                                                        .diaryRecordStickerSelectedOrder(
-                                                          orderIndex + 1,
-                                                        ),
-                                                    style: _theme
-                                                        .textTheme
-                                                        .labelSmall
-                                                        ?.copyWith(
-                                                          color: _accentInk,
-                                                          fontWeight:
-                                                              FontWeight.w900,
-                                                        ),
+                                                  Visibility(
+                                                    visible: isSelected && orderIndex >= 0,
+                                                    maintainSize: true,
+                                                    maintainState: true,
+                                                    maintainAnimation: true,
+                                                    child: Text(
+                                                      _l10n.diaryRecordStickerSelectedOrder(
+                                                        orderIndex + 1,
+                                                      ),
+                                                      style: _theme.textTheme.labelSmall?.copyWith(
+                                                        color: _accentInk,
+                                                        fontWeight: FontWeight.w900,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ],
                                               ],
                                             ),
                                           ],

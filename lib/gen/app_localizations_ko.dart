@@ -817,6 +817,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherUvIndex => '자외선';
 
   @override
+  String get homeWeatherOutfitTitle => '오늘의 축구 복장';
+
+  @override
+  String get homeWeatherOutfitBaseHot => '반팔 유니폼과 가벼운 쇼츠, 통풍 잘 되는 양말을 준비하세요.';
+
+  @override
+  String get homeWeatherOutfitBaseCold => '기모 이너, 장갑, 롱양말, 필요하면 비니까지 착용하세요.';
+
+  @override
+  String get homeWeatherOutfitBaseMild => '기본 유니폼에 가벼운 이너 한 벌이면 충분합니다.';
+
+  @override
+  String get homeWeatherOutfitRain => '얇은 방수 바람막이와 여벌 양말을 챙기세요.';
+
+  @override
+  String get homeWeatherOutfitSnow => '보온 이너와 두꺼운 양말, 미끄럼 주의가 필요합니다.';
+
+  @override
+  String get homeWeatherOutfitWind => '바람막이를 덧입고 체온이 떨어지지 않게 하세요.';
+
+  @override
+  String get homeWeatherOutfitAirCaution =>
+      '대기질이 나쁘면 이동 시 마스크를 착용하고 야외 고강도는 줄이세요.';
+
+  @override
   String get homeWeatherAirQualityTitle => '대기질';
 
   @override

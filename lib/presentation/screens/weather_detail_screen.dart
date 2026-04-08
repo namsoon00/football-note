@@ -632,6 +632,58 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return suggestions.join(' ');
   }
 
+  String _buildOutfitSuggestion(AppLocalizations l10n) {
+    final parts = <String>[];
+    final temp = _apparentTemperature;
+    // Base layer by temperature.
+    if (temp != null) {
+      if (temp >= 28) {
+        parts.add(l10n.homeWeatherOutfitBaseHot);
+      } else if (temp <= 5) {
+        parts.add(l10n.homeWeatherOutfitBaseCold);
+      } else {
+        parts.add(l10n.homeWeatherOutfitBaseMild);
+      }
+    } else {
+      parts.add(l10n.homeWeatherOutfitBaseMild);
+    }
+    // Precipitation by weather code.
+    switch (_weatherCode) {
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        parts.add(l10n.homeWeatherOutfitRain);
+        break;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        parts.add(l10n.homeWeatherOutfitSnow);
+        break;
+    }
+    // Wind hint.
+    if ((_windSpeed ?? 0) >= 20) {
+      parts.add(l10n.homeWeatherOutfitWind);
+    }
+    // Air quality caution.
+    if (_worstAirQualityLevel().index >= _AirQualityLevel.sensitive.index) {
+      parts.add(l10n.homeWeatherOutfitAirCaution);
+    }
+    return parts.join(' ');
+  }
+
   String _baseTrainingSuggestion(AppLocalizations l10n) {
     switch (_weatherCode) {
       case 0:
@@ -1131,6 +1183,47 @@ class _TrainingGuideCard extends StatelessWidget {
   }
 }
 
+class _OutfitGuideCard extends StatelessWidget {
+  final String title;
+  final String suggestion;
+
+  const _OutfitGuideCard({required this.title, required this.suggestion});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            suggestion,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TomorrowWeatherCard extends StatelessWidget {
   final String title;
   final String conditionLabel;
@@ -1421,14 +1514,33 @@ class _WeeklyForecastRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+              ),
+              const SizedBox(height: 6),
+              SizedBox(
+                width: 80,
+                child: Text(
+                  forecast.summary,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1459,29 +1571,19 @@ class _WeeklyForecastRow extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: _ForecastStatPill(
-                        label: conditionLabel,
-                        value: forecast.summary,
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                Row(
                   children: [
-                    SizedBox(
-                      width: 140,
+                    Expanded(
                       child: _ForecastStatPill(
                         label: highLowLabel,
                         value: range,
                       ),
                     ),
-                    SizedBox(
-                      width: 140,
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: _ForecastStatPill(
                         label: precipitationLabel,
                         value: precipitation,
