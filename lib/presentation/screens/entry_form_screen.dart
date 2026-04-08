@@ -2978,9 +2978,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     bool enabled = true,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final leadingEmoji = label == l10n.program
+    final resolvedEmoji = label == l10n.program
         ? trainingProgramEmojiFor(value)
         : null;
+    // Remove soccer-ball emoji before training type (keep other emojis).
+    final leadingEmoji =
+        (label == l10n.program && resolvedEmoji == '⚽') ? null : resolvedEmoji;
     return Row(
       children: [
         Expanded(

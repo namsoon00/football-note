@@ -24,6 +24,7 @@ import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../models/training_board_link_codec.dart';
 import '../models/training_program_emoji.dart';
+import '../models/training_status_emoji.dart';
 import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
@@ -1811,8 +1812,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         final primaryLabel = entry.program.trim().isNotEmpty
             ? entry.program.trim()
             : entry.type;
+        final programEmoji = trainingProgramEmojiFor(primaryLabel);
+        final statusEmoji = trainingStatusEmojiFor(entry.status);
+        // Remove soccer-ball emoji before training type; keep other program emojis.
+        final showProgramEmoji = programEmoji != '⚽';
         final displayLabel =
-            '${trainingProgramEmojiFor(primaryLabel)} $primaryLabel';
+            '${statusEmoji.isNotEmpty ? '$statusEmoji ' : ''}'
+            '${showProgramEmoji ? '$programEmoji ' : ''}'
+            '$primaryLabel';
         return _DiaryRecordStickerViewData(
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.training,
@@ -2330,7 +2337,13 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final label = entry.program.trim().isNotEmpty
         ? entry.program.trim()
         : entry.type;
-    final displayLabel = '${trainingProgramEmojiFor(label)} $label';
+    final programEmoji = trainingProgramEmojiFor(label);
+    final showProgramEmoji = programEmoji != '⚽';
+    final statusEmoji = trainingStatusEmojiFor(entry.status);
+    final displayLabel =
+        '${statusEmoji.isNotEmpty ? '$statusEmoji ' : ''}'
+        '${showProgramEmoji ? '$programEmoji ' : ''}'
+        '$label';
     final summaryText = _trainingSummary(entry);
     final statusVisual = trainingStatusVisual(entry.status);
     return _DiaryTodoSeed(

@@ -84,6 +84,10 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           final fadeOut = Curves.easeIn.transform(
             const Interval(0.82, 1.0).transform(t),
           );
+          // In the last phase, expand ground to cover full screen.
+          final fullCover = Curves.easeOutCubic.transform(
+            const Interval(0.9, 1.0).transform(t),
+          );
 
           return Opacity(
             opacity: 1 - fadeOut,
@@ -95,6 +99,7 @@ class _AppSplashScreenState extends State<AppSplashScreen>
                 forwardMotion: forwardMotion,
                 skyBloom: skyBloom,
                 atmosphere: atmosphere,
+                fullCover: fullCover,
               ),
             ),
           );
@@ -110,6 +115,7 @@ class _ForwardFieldSplashPainter extends CustomPainter {
   final double forwardMotion;
   final double skyBloom;
   final double atmosphere;
+  final double fullCover;
 
   const _ForwardFieldSplashPainter({
     required this.progress,
@@ -117,6 +123,7 @@ class _ForwardFieldSplashPainter extends CustomPainter {
     required this.forwardMotion,
     required this.skyBloom,
     required this.atmosphere,
+    required this.fullCover,
   });
 
   @override
@@ -137,6 +144,7 @@ class _ForwardFieldSplashPainter extends CustomPainter {
     _paintAirStreaks(canvas, size, horizonY);
     _paintParticles(canvas, size, horizonY);
     _paintVignette(canvas, rect);
+    _paintFullCover(canvas, size);
   }
 
   void _paintSky(Canvas canvas, Rect rect, double horizonY) {
@@ -469,12 +477,28 @@ class _ForwardFieldSplashPainter extends CustomPainter {
     );
   }
 
+  void _paintFullCover(Canvas canvas, Size size) {
+    if (fullCover <= 0) return;
+    final rect = Offset.zero & size;
+    final shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          const Color(0xFF1E4A1C).withValues(alpha: 0.85 * fullCover),
+          const Color(0xFF0C1A0A).withValues(alpha: 0.95 * fullCover),
+        ],
+        stops: const [0.0, 1.0],
+      ).createShader(rect);
+    canvas.drawRect(rect, Paint()..shader = shader);
+  }
+
   @override
   bool shouldRepaint(covariant _ForwardFieldSplashPainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.groundReveal != groundReveal ||
         oldDelegate.forwardMotion != forwardMotion ||
         oldDelegate.skyBloom != skyBloom ||
-        oldDelegate.atmosphere != atmosphere;
+        oldDelegate.atmosphere != atmosphere ||
+        oldDelegate.fullCover != fullCover;
   }
 }
