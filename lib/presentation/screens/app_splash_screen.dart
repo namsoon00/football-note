@@ -89,17 +89,25 @@ class _AppSplashScreenState extends State<AppSplashScreen>
             const Interval(0.9, 1.0).transform(t),
           );
 
+          final slit = Curves.easeOutCubic.transform(
+            const Interval(0.0, 0.36).transform(t),
+          );
+          final widthFactor = lerpDouble(0.3, 1.0, slit)!;
           return Opacity(
             opacity: 1 - fadeOut,
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: _ForwardFieldSplashPainter(
-                progress: t,
-                groundReveal: groundReveal,
-                forwardMotion: forwardMotion,
-                skyBloom: skyBloom,
-                atmosphere: atmosphere,
-                fullCover: fullCover,
+            child: Align(
+              alignment: Alignment.center,
+              widthFactor: AppMotion.reduceMotion(context) ? 1.0 : widthFactor,
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: _ForwardFieldSplashPainter(
+                  progress: t,
+                  groundReveal: groundReveal,
+                  forwardMotion: forwardMotion,
+                  skyBloom: skyBloom,
+                  atmosphere: atmosphere,
+                  fullCover: fullCover,
+                ),
               ),
             ),
           );
