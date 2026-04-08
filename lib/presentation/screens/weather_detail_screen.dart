@@ -76,9 +76,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 helper: l10n.homeWeatherCacheHint,
                 icon: _weatherIcon(_weatherCode),
                 loading: _loading,
-                buttonLabel: _loading
-                    ? l10n.homeWeatherLoading
-                    : l10n.homeWeatherLoad,
+                buttonLabel:
+                    _loading ? l10n.homeWeatherLoading : l10n.homeWeatherLoad,
                 onRefresh: _loading
                     ? null
                     : () => _loadWeather(requestPermission: true),
@@ -140,9 +139,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
                   uvLabel: l10n.homeWeatherUvIndex,
-                  tomorrowForecast: _dailyForecasts.length > 1
-                      ? _dailyForecasts[1]
-                      : null,
+                  tomorrowForecast:
+                      _dailyForecasts.length > 1 ? _dailyForecasts[1] : null,
                   tomorrowFallback: l10n.homeWeatherTomorrowFallback,
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
@@ -300,11 +298,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     });
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'current': 'pm10,pm2_5,us_aqi',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
     final responses = await Future.wait([
       http.get(weatherUri),
       http.get(airQualityUri),
@@ -341,8 +339,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return _WeatherDetailsSnapshot(
       summary: summary,
       weatherCode: weatherCode,
-      apparentTemperature: (current['apparent_temperature'] as num?)
-          ?.toDouble(),
+      apparentTemperature:
+          (current['apparent_temperature'] as num?)?.toDouble(),
       humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
       windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
       temperatureMax: dailyMax,
@@ -461,12 +459,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   String _formatForecastWeekday(DateTime date) => DateFormat.E(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   bool _isKoreaCountry(String country) {
     final normalized = country.trim().toLowerCase();
@@ -630,58 +628,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     }
 
     return suggestions.join(' ');
-  }
-
-  String _buildOutfitSuggestion(AppLocalizations l10n) {
-    final parts = <String>[];
-    final temp = _apparentTemperature;
-    // Base layer by temperature.
-    if (temp != null) {
-      if (temp >= 28) {
-        parts.add(l10n.homeWeatherOutfitBaseHot);
-      } else if (temp <= 5) {
-        parts.add(l10n.homeWeatherOutfitBaseCold);
-      } else {
-        parts.add(l10n.homeWeatherOutfitBaseMild);
-      }
-    } else {
-      parts.add(l10n.homeWeatherOutfitBaseMild);
-    }
-    // Precipitation by weather code.
-    switch (_weatherCode) {
-      case 51:
-      case 53:
-      case 55:
-      case 56:
-      case 57:
-      case 61:
-      case 63:
-      case 65:
-      case 66:
-      case 67:
-      case 80:
-      case 81:
-      case 82:
-        parts.add(l10n.homeWeatherOutfitRain);
-        break;
-      case 71:
-      case 73:
-      case 75:
-      case 77:
-      case 85:
-      case 86:
-        parts.add(l10n.homeWeatherOutfitSnow);
-        break;
-    }
-    // Wind hint.
-    if ((_windSpeed ?? 0) >= 20) {
-      parts.add(l10n.homeWeatherOutfitWind);
-    }
-    // Air quality caution.
-    if (_worstAirQualityLevel().index >= _AirQualityLevel.sensitive.index) {
-      parts.add(l10n.homeWeatherOutfitAirCaution);
-    }
-    return parts.join(' ');
   }
 
   String _baseTrainingSuggestion(AppLocalizations l10n) {
@@ -1147,47 +1093,6 @@ class _TrainingGuideCard extends StatelessWidget {
   final String suggestion;
 
   const _TrainingGuideCard({required this.title, required this.suggestion});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            suggestion,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              height: 1.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OutfitGuideCard extends StatelessWidget {
-  final String title;
-  final String suggestion;
-
-  const _OutfitGuideCard({required this.title, required this.suggestion});
 
   @override
   Widget build(BuildContext context) {
