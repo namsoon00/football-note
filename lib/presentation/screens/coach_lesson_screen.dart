@@ -564,7 +564,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final diaryTitle = customDiary.title.trim().isNotEmpty
         ? customDiary.title.trim()
         : _l10n.diaryTitlePlaceholder;
-    final weatherHeadline = _weatherSummaryForDay(day).trim();
+    // Weather shown via sticker; omit older subtitle summary.
     return _DiaryScrollPage(
       onReachedEnd: () {},
       onPullDownToDismiss: widget.embeddedInHomeTab

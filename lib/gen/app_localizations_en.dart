@@ -831,6 +831,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherUvIndex => 'UV index';
 
   @override
+  String get homeWeatherOutfitTitle => 'Recommended football outfit';
+
+  @override
+  String get homeWeatherOutfitBaseHot =>
+      'Short-sleeve kit, light shorts, and breathable socks.';
+
+  @override
+  String get homeWeatherOutfitBaseCold =>
+      'Thermal base layer, gloves, long socks, and a beanie if needed.';
+
+  @override
+  String get homeWeatherOutfitBaseMild =>
+      'Standard kit with a light base layer is enough.';
+
+  @override
+  String get homeWeatherOutfitRain =>
+      'Pack a thin waterproof shell and an extra pair of socks.';
+
+  @override
+  String get homeWeatherOutfitSnow =>
+      'Wear warm base layers and thick socks; watch for slippery ground.';
+
+  @override
+  String get homeWeatherOutfitWind =>
+      'Add a windbreaker to keep body temperature stable.';
+
+  @override
+  String get homeWeatherOutfitAirCaution =>
+      'If air quality is poor, wear a mask when commuting and reduce hard outdoor work.';
+
+  @override
   String get homeWeatherAirQualityTitle => 'Air quality';
 
   @override

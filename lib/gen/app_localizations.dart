@@ -1652,6 +1652,54 @@ abstract class AppLocalizations {
   /// **'UV index'**
   String get homeWeatherUvIndex;
 
+  /// No description provided for @homeWeatherOutfitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended football outfit'**
+  String get homeWeatherOutfitTitle;
+
+  /// No description provided for @homeWeatherOutfitBaseHot.
+  ///
+  /// In en, this message translates to:
+  /// **'Short-sleeve kit, light shorts, and breathable socks.'**
+  String get homeWeatherOutfitBaseHot;
+
+  /// No description provided for @homeWeatherOutfitBaseCold.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermal base layer, gloves, long socks, and a beanie if needed.'**
+  String get homeWeatherOutfitBaseCold;
+
+  /// No description provided for @homeWeatherOutfitBaseMild.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard kit with a light base layer is enough.'**
+  String get homeWeatherOutfitBaseMild;
+
+  /// No description provided for @homeWeatherOutfitRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack a thin waterproof shell and an extra pair of socks.'**
+  String get homeWeatherOutfitRain;
+
+  /// No description provided for @homeWeatherOutfitSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Wear warm base layers and thick socks; watch for slippery ground.'**
+  String get homeWeatherOutfitSnow;
+
+  /// No description provided for @homeWeatherOutfitWind.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a windbreaker to keep body temperature stable.'**
+  String get homeWeatherOutfitWind;
+
+  /// No description provided for @homeWeatherOutfitAirCaution.
+  ///
+  /// In en, this message translates to:
+  /// **'If air quality is poor, wear a mask when commuting and reduce hard outdoor work.'**
+  String get homeWeatherOutfitAirCaution;
+
   /// No description provided for @homeWeatherAirQualityTitle.
   ///
   /// In en, this message translates to:
