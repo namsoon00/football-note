@@ -1577,7 +1577,6 @@ class _WeeklyForecastCard extends StatelessWidget {
           for (final forecast in forecasts) ...[
             _WeeklyForecastRow(
               dateLabel: dateLabel,
-              conditionLabel: conditionLabel,
               highLowLabel: highLowLabel,
               precipitationLabel: precipitationLabel,
               forecast: forecast,
@@ -1599,7 +1598,6 @@ class _WeeklyForecastCard extends StatelessWidget {
 
 class _WeeklyForecastRow extends StatelessWidget {
   final String dateLabel;
-  final String conditionLabel;
   final String highLowLabel;
   final String precipitationLabel;
   final _DailyWeatherForecast forecast;
@@ -1609,7 +1607,6 @@ class _WeeklyForecastRow extends StatelessWidget {
 
   const _WeeklyForecastRow({
     required this.dateLabel,
-    required this.conditionLabel,
     required this.highLowLabel,
     required this.precipitationLabel,
     required this.forecast,
@@ -1622,88 +1619,55 @@ class _WeeklyForecastRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(icon, size: 20, color: theme.colorScheme.primary),
-              ),
-              const SizedBox(height: 6),
-              SizedBox(
-                width: 80,
-                child: Text(
-                  forecast.summary,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 20, color: theme.colorScheme.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            forecast.weekdayLabel,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$dateLabel ${forecast.label}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                Text(
+                  forecast.weekdayLabel,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-                const SizedBox(height: 10),
-                Row(
+                const SizedBox(height: 2),
+                Text(
+                  '$dateLabel ${forecast.label} · ${forecast.summary}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Column(
                   children: [
-                    Expanded(
-                      child: _ForecastStatPill(
-                        label: highLowLabel,
-                        value: range,
-                      ),
+                    _ForecastStatPill(
+                      label: highLowLabel,
+                      value: range,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _ForecastStatPill(
-                        label: precipitationLabel,
-                        value: precipitation,
-                      ),
+                    const SizedBox(height: 6),
+                    _ForecastStatPill(
+                      label: precipitationLabel,
+                      value: precipitation,
                     ),
                   ],
                 ),
