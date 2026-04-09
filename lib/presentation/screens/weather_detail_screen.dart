@@ -307,7 +307,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               if (hasWeather) ...[
                 const SizedBox(height: 10),
                 _CurrentLocationCard(
-                  title: isKo ? '현재 위치' : 'Current location',
                   value: _location.isEmpty
                       ? l10n.homeWeatherLocationUnknown
                       : _location,
@@ -383,9 +382,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   dateLabel: l10n.homeWeatherWeeklyDateLabel,
                   highLowLabel: l10n.homeWeatherDailyHighLow,
                   precipitationLabel: l10n.homeWeatherPrecipitation,
+                  windLabel: l10n.homeWeatherWindSpeed,
                   forecasts: _dailyForecasts.skip(1).toList(growable: false),
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
+                  formatWind: _formatWind,
                   iconForCode: _weatherIcon,
                 ),
               ],
@@ -1450,10 +1451,9 @@ class _WeatherActionChip extends StatelessWidget {
 }
 
 class _CurrentLocationCard extends StatelessWidget {
-  final String title;
   final String value;
 
-  const _CurrentLocationCard({required this.title, required this.value});
+  const _CurrentLocationCard({required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -1472,14 +1472,6 @@ class _CurrentLocationCard extends StatelessWidget {
         children: [
           Icon(Icons.place_outlined,
               size: 18, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Text(
-            '$title:',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
@@ -1650,9 +1642,11 @@ class _WeeklyForecastCard extends StatelessWidget {
   final String dateLabel;
   final String highLowLabel;
   final String precipitationLabel;
+  final String windLabel;
   final List<_DailyWeatherForecast> forecasts;
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
+  final String Function(double?) formatWind;
   final IconData Function(int?) iconForCode;
 
   const _WeeklyForecastCard({
@@ -1660,9 +1654,11 @@ class _WeeklyForecastCard extends StatelessWidget {
     required this.dateLabel,
     required this.highLowLabel,
     required this.precipitationLabel,
+    required this.windLabel,
     required this.forecasts,
     required this.formatRange,
     required this.formatMillimeter,
+    required this.formatWind,
     required this.iconForCode,
   });
 
@@ -1716,12 +1712,14 @@ class _WeeklyForecastCard extends StatelessWidget {
               dateLabel: dateLabel,
               highLowLabel: highLowLabel,
               precipitationLabel: precipitationLabel,
+              windLabel: windLabel,
               forecast: forecast,
               range: formatRange(
                 forecast.temperatureMax,
                 forecast.temperatureMin,
               ),
               precipitation: formatMillimeter(forecast.precipitationSum),
+              wind: formatWind(forecast.windSpeedMax),
               icon: iconForCode(forecast.weatherCode),
             ),
             if (!identical(forecast, forecasts.last))
@@ -1737,18 +1735,22 @@ class _WeeklyForecastRow extends StatelessWidget {
   final String dateLabel;
   final String highLowLabel;
   final String precipitationLabel;
+  final String windLabel;
   final _DailyWeatherForecast forecast;
   final String range;
   final String precipitation;
+  final String wind;
   final IconData icon;
 
   const _WeeklyForecastRow({
     required this.dateLabel,
     required this.highLowLabel,
     required this.precipitationLabel,
+    required this.windLabel,
     required this.forecast,
     required this.range,
     required this.precipitation,
+    required this.wind,
     required this.icon,
   });
 
@@ -1788,25 +1790,38 @@ class _WeeklyForecastRow extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
+          Padding(
+            padding: const EdgeInsets.only(left: 46),
+            child: Text(
+              '$highLowLabel $range',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: 5),
           Padding(
             padding: const EdgeInsets.only(left: 46),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    '$highLowLabel $range',
+                    '$precipitationLabel $precipitation',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$precipitationLabel $precipitation',
+                    '$windLabel $wind',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,
