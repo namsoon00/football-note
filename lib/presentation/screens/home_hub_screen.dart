@@ -429,7 +429,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     final uri = Uri.https('geocoding-api.open-meteo.com', '/v1/reverse', {
       'latitude': latitude.toString(),
       'longitude': longitude.toString(),
-      'count': '1',
+      'count': '3',
       'language': isKo ? 'ko' : 'en',
     });
     final response = await http.get(uri);
@@ -447,8 +447,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     final country = (first['country'] ?? '').toString().trim();
     if (_isKoreaCountry(country)) {
       final localParts = <String>[
-        if (city.isNotEmpty) city,
         if (district.isNotEmpty && district != city) district,
+        if (city.isNotEmpty) city,
         if (region.isNotEmpty && region != city && region != district) region,
         if (name.isNotEmpty &&
             name != city &&
@@ -1765,7 +1765,7 @@ class _TodayWeatherButton extends StatelessWidget {
                 ),
               const SizedBox(width: 8),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 140),
+                constraints: const BoxConstraints(maxWidth: 180),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -1781,7 +1781,7 @@ class _TodayWeatherButton extends StatelessWidget {
                     const SizedBox(height: 1),
                     Text(
                       locationLabel,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,

@@ -461,7 +461,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final uri = Uri.https('geocoding-api.open-meteo.com', '/v1/reverse', {
       'latitude': latitude.toString(),
       'longitude': longitude.toString(),
-      'count': '1',
+      'count': '3',
       'language': isKo ? 'ko' : 'en',
     });
     final response = await http.get(uri);
@@ -479,8 +479,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final country = (first['country'] ?? '').toString().trim();
     if (_isKoreaCountry(country)) {
       final localParts = <String>[
-        if (city.isNotEmpty) city,
         if (district.isNotEmpty && district != city) district,
+        if (city.isNotEmpty) city,
         if (region.isNotEmpty && region != city && region != district) region,
         if (name.isNotEmpty &&
             name != city &&
