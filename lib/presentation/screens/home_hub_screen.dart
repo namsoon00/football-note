@@ -235,6 +235,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                               weatherLoading: _weatherLoading,
                               weatherSummary: _weatherSummary.trim(),
                               weatherLocation: _weatherLocation.trim(),
+                              weatherCode: _weatherCode,
                               onTap: _openWeatherDetails,
                             ),
                           ],
@@ -1648,6 +1649,7 @@ class _TodayWeatherButton extends StatelessWidget {
   final bool weatherLoading;
   final String weatherSummary;
   final String weatherLocation;
+  final int? weatherCode;
   final VoidCallback onTap;
 
   const _TodayWeatherButton({
@@ -1655,8 +1657,50 @@ class _TodayWeatherButton extends StatelessWidget {
     required this.weatherLoading,
     required this.weatherSummary,
     required this.weatherLocation,
+    required this.weatherCode,
     required this.onTap,
   });
+
+  IconData _weatherIcon(int? code) {
+    switch (code) {
+      case 0:
+        return Icons.wb_sunny_outlined;
+      case 1:
+      case 2:
+      case 3:
+        return Icons.wb_cloudy_outlined;
+      case 45:
+      case 48:
+        return Icons.foggy;
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return Icons.umbrella_outlined;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return Icons.ac_unit;
+      case 95:
+      case 96:
+      case 99:
+        return Icons.thunderstorm_outlined;
+      default:
+        return Icons.cloud_outlined;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1696,7 +1740,7 @@ class _TodayWeatherButton extends StatelessWidget {
                 )
               else
                 Icon(
-                  hasWeather ? Icons.wb_cloudy_outlined : Icons.cloud_outlined,
+                  hasWeather ? _weatherIcon(weatherCode) : Icons.cloud_outlined,
                   size: 18,
                   color: theme.colorScheme.primary,
                 ),
