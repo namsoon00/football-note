@@ -21,6 +21,201 @@ class WeatherDetailScreen extends StatefulWidget {
     this.initialWeatherCode,
   });
 
+  static Future<void> warmUpFromHomeSync({
+    required double latitude,
+    required double longitude,
+    required String location,
+    required AppLocalizations l10n,
+    required Locale locale,
+    required String summary,
+    required int? weatherCode,
+  }) async {
+    final fetched = await _fetchWeatherSnapshotStatic(
+      latitude: latitude,
+      longitude: longitude,
+      l10n: l10n,
+    );
+    final snapshot = fetched.summary.trim().isEmpty
+        ? _WeatherDetailsSnapshot(
+            summary: summary.trim(), weatherCode: weatherCode)
+        : fetched;
+    _WeatherDetailScreenState._cachedDetails = _CachedWeatherDetails(
+      location: location.trim(),
+      snapshot: snapshot,
+      localeTag: locale.toLanguageTag(),
+      fetchedAt: DateTime.now(),
+    );
+  }
+
+  static Future<_WeatherDetailsSnapshot> _fetchWeatherSnapshotStatic({
+    required double latitude,
+    required double longitude,
+    required AppLocalizations l10n,
+  }) async {
+    final weatherUri = Uri.https('api.open-meteo.com', '/v1/forecast', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current':
+          'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m',
+      'daily':
+          'weather_code,uv_index_max,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
+      'forecast_days': '7',
+      'timezone': 'auto',
+    });
+    final airQualityUri =
+        Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
+    final responses = await Future.wait([
+      http.get(weatherUri),
+      http.get(airQualityUri),
+    ]);
+    if (responses[0].statusCode != 200 || responses[1].statusCode != 200) {
+      return const _WeatherDetailsSnapshot(summary: '');
+    }
+    final weatherDecoded = jsonDecode(responses[0].body);
+    final airDecoded = jsonDecode(responses[1].body);
+    if (weatherDecoded is! Map<String, dynamic> ||
+        airDecoded is! Map<String, dynamic>) {
+      return const _WeatherDetailsSnapshot(summary: '');
+    }
+
+    final current = weatherDecoded['current'];
+    final daily = weatherDecoded['daily'];
+    final airCurrent = airDecoded['current'];
+    if (current is! Map<String, dynamic> ||
+        daily is! Map<String, dynamic> ||
+        airCurrent is! Map<String, dynamic>) {
+      return const _WeatherDetailsSnapshot(summary: '');
+    }
+
+    final temperature = (current['temperature_2m'] as num?)?.toDouble();
+    final localizer = _WeatherLocalizer(l10n: l10n);
+    final weatherCode = (current['weather_code'] as num?)?.toInt();
+    final weatherText =
+        _weatherLabelFromCodeStatic(weatherCode, localizer: localizer);
+    final summary = temperature == null
+        ? weatherText
+        : '$weatherText ${temperature.toStringAsFixed(1)}°C';
+    final dailyMax = _firstDailyNumberStatic(daily['temperature_2m_max']);
+    final dailyMin = _firstDailyNumberStatic(daily['temperature_2m_min']);
+    final forecasts = _buildDailyForecastsStatic(daily, localizer: localizer);
+
+    return _WeatherDetailsSnapshot(
+      summary: summary,
+      weatherCode: weatherCode,
+      apparentTemperature:
+          (current['apparent_temperature'] as num?)?.toDouble(),
+      humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
+      windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
+      temperatureMax: dailyMax,
+      temperatureMin: dailyMin,
+      pm10: (airCurrent['pm10'] as num?)?.toDouble(),
+      pm25: (airCurrent['pm2_5'] as num?)?.toDouble(),
+      aqi: (airCurrent['us_aqi'] as num?)?.toInt(),
+      dailyForecasts: forecasts,
+    );
+  }
+
+  static String _weatherLabelFromCodeStatic(
+    int? code, {
+    required _WeatherLabelLocalizer localizer,
+  }) {
+    switch (code) {
+      case 0:
+        return localizer.clear;
+      case 1:
+      case 2:
+      case 3:
+        return localizer.cloudy;
+      case 45:
+      case 48:
+        return localizer.fog;
+      case 51:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+        return localizer.drizzle;
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+        return localizer.rain;
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return localizer.snow;
+      case 95:
+      case 96:
+      case 99:
+        return localizer.thunderstorm;
+      default:
+        return localizer.defaultValue;
+    }
+  }
+
+  static double? _firstDailyNumberStatic(Object? value) {
+    if (value is List && value.isNotEmpty) {
+      return (value.first as num?)?.toDouble();
+    }
+    return null;
+  }
+
+  static List<_DailyWeatherForecast> _buildDailyForecastsStatic(
+    Map<String, dynamic> daily, {
+    required _WeatherLabelLocalizer localizer,
+  }) {
+    final times = daily['time'];
+    final codes = daily['weather_code'];
+    final maxTemps = daily['temperature_2m_max'];
+    final minTemps = daily['temperature_2m_min'];
+    final precipitationSums = daily['precipitation_sum'];
+    final maxWinds = daily['wind_speed_10m_max'];
+    final uvIndexMax = daily['uv_index_max'];
+    if (times is! List) return const <_DailyWeatherForecast>[];
+
+    final forecasts = <_DailyWeatherForecast>[];
+    for (var index = 0; index < times.length; index++) {
+      final rawDate = times[index]?.toString();
+      final date = rawDate == null ? null : DateTime.tryParse(rawDate);
+      if (date == null) continue;
+      final weatherCode = _numberAtStatic(codes, index)?.toInt();
+      forecasts.add(
+        _DailyWeatherForecast(
+          date: date,
+          label: '',
+          weekdayLabel: '',
+          weatherCode: weatherCode,
+          summary:
+              _weatherLabelFromCodeStatic(weatherCode, localizer: localizer),
+          temperatureMax: _numberAtStatic(maxTemps, index)?.toDouble(),
+          temperatureMin: _numberAtStatic(minTemps, index)?.toDouble(),
+          precipitationSum:
+              _numberAtStatic(precipitationSums, index)?.toDouble(),
+          windSpeedMax: _numberAtStatic(maxWinds, index)?.toDouble(),
+          uvIndexMax: _numberAtStatic(uvIndexMax, index)?.toDouble(),
+        ),
+      );
+    }
+    return forecasts;
+  }
+
+  static num? _numberAtStatic(Object? values, int index) {
+    if (values is! List || index >= values.length) return null;
+    return values[index] as num?;
+  }
+
   @override
   State<WeatherDetailScreen> createState() => _WeatherDetailScreenState();
 }
@@ -109,6 +304,36 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                     : const <_CompactMetricData>[],
               ),
               if (hasWeather) ...[
+                const SizedBox(height: 12),
+                _WeatherActionsRow(
+                  outfitLabel: isKo ? '추천 복장' : 'Recommended Outfit',
+                  trainingPointLabel:
+                      isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
+                  todayGuideLabel: isKo ? '오늘의 훈련복 가이드' : 'Today Outfit Guide',
+                  onOutfitTap: () {
+                    _showWeatherGuideSheet(
+                      title: isKo ? '추천 복장' : 'Recommended Outfit',
+                      body: '${isKo ? '상의' : 'Top'}: ${outfitGuide.top}\n'
+                          '${isKo ? '하의' : 'Bottom'}: ${outfitGuide.bottom}',
+                    );
+                  },
+                  onTrainingPointTap: () {
+                    _showWeatherGuideSheet(
+                      title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
+                      body: _buildTrainingSuggestion(l10n),
+                    );
+                  },
+                  onTodayGuideTap: () {
+                    _showWeatherGuideSheet(
+                      title: isKo ? '오늘의 훈련복 가이드' : 'Today Outfit Guide',
+                      body: '${isKo ? '상의' : 'Top'}: ${outfitGuide.top}\n\n'
+                          '${isKo ? '하의' : 'Bottom'}: ${outfitGuide.bottom}\n\n'
+                          '${isKo ? '추가 준비물' : 'Extras'}: ${outfitGuide.extras}',
+                    );
+                  },
+                ),
+              ],
+              if (hasWeather) ...[
                 const SizedBox(height: 16),
                 _AirQualityCard(
                   title: l10n.homeWeatherAirQualityTitle,
@@ -154,31 +379,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 _WeeklyForecastCard(
                   title: l10n.homeWeatherWeeklyTitle,
                   dateLabel: l10n.homeWeatherWeeklyDateLabel,
-                  conditionLabel: l10n.homeWeatherWeeklyConditionLabel,
                   highLowLabel: l10n.homeWeatherDailyHighLow,
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   forecasts: _dailyForecasts.skip(1).toList(growable: false),
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
                   iconForCode: _weatherIcon,
-                ),
-                const SizedBox(height: 16),
-                _TrainingGuideCard(
-                  title: l10n.homeWeatherSuggestionTitle,
-                  suggestion: _buildTrainingSuggestion(l10n),
-                ),
-                const SizedBox(height: 16),
-                _OutfitGuideCard(
-                  title: isKo ? '오늘의 훈련복 가이드' : 'Today\'s Training Outfit',
-                  subtitle: isKo
-                      ? '현재 날씨에 맞춰 바로 입고 나가기 좋은 차림입니다.'
-                      : 'A quick outfit recommendation based on today\'s weather.',
-                  topLabel: isKo ? '상의' : 'Top',
-                  bottomLabel: isKo ? '하의' : 'Bottom',
-                  extraLabel: isKo ? '추가 준비물' : 'Extras',
-                  topValue: outfitGuide.top,
-                  bottomValue: outfitGuide.bottom,
-                  extraValue: outfitGuide.extras,
                 ),
               ],
             ],
@@ -300,72 +506,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double latitude,
     required double longitude,
     required AppLocalizations l10n,
-  }) async {
-    final weatherUri = Uri.https('api.open-meteo.com', '/v1/forecast', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current':
-          'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m',
-      'daily':
-          'weather_code,uv_index_max,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
-      'forecast_days': '7',
-      'timezone': 'auto',
-    });
-    final airQualityUri =
-        Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current': 'pm10,pm2_5,us_aqi',
-      'timezone': 'auto',
-    });
-    final responses = await Future.wait([
-      http.get(weatherUri),
-      http.get(airQualityUri),
-    ]);
-    if (responses[0].statusCode != 200 || responses[1].statusCode != 200) {
-      return const _WeatherDetailsSnapshot(summary: '');
-    }
-    final weatherDecoded = jsonDecode(responses[0].body);
-    final airDecoded = jsonDecode(responses[1].body);
-    if (weatherDecoded is! Map<String, dynamic> ||
-        airDecoded is! Map<String, dynamic>) {
-      return const _WeatherDetailsSnapshot(summary: '');
-    }
-
-    final current = weatherDecoded['current'];
-    final daily = weatherDecoded['daily'];
-    final airCurrent = airDecoded['current'];
-    if (current is! Map<String, dynamic> ||
-        daily is! Map<String, dynamic> ||
-        airCurrent is! Map<String, dynamic>) {
-      return const _WeatherDetailsSnapshot(summary: '');
-    }
-
-    final temperature = (current['temperature_2m'] as num?)?.toDouble();
-    final weatherCode = (current['weather_code'] as num?)?.toInt();
-    final weatherText = _weatherLabelFromCode(weatherCode, l10n);
-    final summary = temperature == null
-        ? weatherText
-        : '$weatherText ${temperature.toStringAsFixed(1)}°C';
-    final dailyMax = _firstDailyNumber(daily['temperature_2m_max']);
-    final dailyMin = _firstDailyNumber(daily['temperature_2m_min']);
-    final forecasts = _buildDailyForecasts(daily, l10n);
-
-    return _WeatherDetailsSnapshot(
-      summary: summary,
-      weatherCode: weatherCode,
-      apparentTemperature:
-          (current['apparent_temperature'] as num?)?.toDouble(),
-      humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
-      windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
-      temperatureMax: dailyMax,
-      temperatureMin: dailyMin,
-      pm10: (airCurrent['pm10'] as num?)?.toDouble(),
-      pm25: (airCurrent['pm2_5'] as num?)?.toDouble(),
-      aqi: (airCurrent['us_aqi'] as num?)?.toInt(),
-      dailyForecasts: forecasts,
-    );
-  }
+  }) =>
+      WeatherDetailScreen._fetchWeatherSnapshotStatic(
+        latitude: latitude,
+        longitude: longitude,
+        l10n: l10n,
+      );
 
   void _applySnapshot(String location, _WeatherDetailsSnapshot snapshot) {
     _location = location;
@@ -379,98 +525,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _pm10 = snapshot.pm10;
     _pm25 = snapshot.pm25;
     _aqi = snapshot.aqi;
-    _dailyForecasts = snapshot.dailyForecasts;
-  }
-
-  String _weatherLabelFromCode(int? code, AppLocalizations l10n) {
-    switch (code) {
-      case 0:
-        return l10n.weatherLabelClear;
-      case 1:
-      case 2:
-      case 3:
-        return l10n.weatherLabelCloudy;
-      case 45:
-      case 48:
-        return l10n.weatherLabelFog;
-      case 51:
-      case 53:
-      case 55:
-      case 56:
-      case 57:
-        return l10n.weatherLabelDrizzle;
-      case 61:
-      case 63:
-      case 65:
-      case 66:
-      case 67:
-      case 80:
-      case 81:
-      case 82:
-        return l10n.weatherLabelRain;
-      case 71:
-      case 73:
-      case 75:
-      case 77:
-      case 85:
-      case 86:
-        return l10n.weatherLabelSnow;
-      case 95:
-      case 96:
-      case 99:
-        return l10n.weatherLabelThunderstorm;
-      default:
-        return l10n.weatherLabelDefault;
-    }
-  }
-
-  double? _firstDailyNumber(Object? value) {
-    if (value is List && value.isNotEmpty) {
-      return (value.first as num?)?.toDouble();
-    }
-    return null;
-  }
-
-  List<_DailyWeatherForecast> _buildDailyForecasts(
-    Map<String, dynamic> daily,
-    AppLocalizations l10n,
-  ) {
-    final times = daily['time'];
-    final codes = daily['weather_code'];
-    final maxTemps = daily['temperature_2m_max'];
-    final minTemps = daily['temperature_2m_min'];
-    final precipitationSums = daily['precipitation_sum'];
-    final maxWinds = daily['wind_speed_10m_max'];
-    final uvIndexMax = daily['uv_index_max'];
-    if (times is! List) return const <_DailyWeatherForecast>[];
-
-    final forecasts = <_DailyWeatherForecast>[];
-    for (var index = 0; index < times.length; index++) {
-      final rawDate = times[index]?.toString();
-      final date = rawDate == null ? null : DateTime.tryParse(rawDate);
-      if (date == null) continue;
-      final weatherCode = _numberAt(codes, index)?.toInt();
-      forecasts.add(
-        _DailyWeatherForecast(
-          date: date,
-          label: _formatForecastDate(date),
-          weekdayLabel: _formatForecastWeekday(date),
-          weatherCode: weatherCode,
-          summary: _weatherLabelFromCode(weatherCode, l10n),
-          temperatureMax: _numberAt(maxTemps, index)?.toDouble(),
-          temperatureMin: _numberAt(minTemps, index)?.toDouble(),
-          precipitationSum: _numberAt(precipitationSums, index)?.toDouble(),
-          windSpeedMax: _numberAt(maxWinds, index)?.toDouble(),
-          uvIndexMax: _numberAt(uvIndexMax, index)?.toDouble(),
-        ),
-      );
-    }
-    return forecasts;
-  }
-
-  num? _numberAt(Object? values, int index) {
-    if (values is! List || index >= values.length) return null;
-    return values[index] as num?;
+    _dailyForecasts = snapshot.dailyForecasts
+        .map(
+          (forecast) => forecast.copyWith(
+            label: _formatForecastDate(forecast.date),
+            weekdayLabel: _formatForecastWeekday(forecast.date),
+          ),
+        )
+        .toList(growable: false);
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
@@ -623,6 +685,41 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _formatParticles(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} µg/m³';
+
+  void _showWeatherGuideSheet({required String title, required String body}) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  body,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    height: 1.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   String _buildTrainingSuggestion(AppLocalizations l10n) {
     final suggestions = <String>[_baseTrainingSuggestion(l10n)];
@@ -1171,171 +1268,66 @@ class _AirQualityCard extends StatelessWidget {
   }
 }
 
-class _TrainingGuideCard extends StatelessWidget {
-  final String title;
-  final String suggestion;
+class _WeatherActionsRow extends StatelessWidget {
+  final String outfitLabel;
+  final String trainingPointLabel;
+  final String todayGuideLabel;
+  final VoidCallback onOutfitTap;
+  final VoidCallback onTrainingPointTap;
+  final VoidCallback onTodayGuideTap;
 
-  const _TrainingGuideCard({required this.title, required this.suggestion});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            suggestion,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              height: 1.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OutfitGuideCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String topLabel;
-  final String bottomLabel;
-  final String extraLabel;
-  final String topValue;
-  final String bottomValue;
-  final String extraValue;
-
-  const _OutfitGuideCard({
-    required this.title,
-    required this.subtitle,
-    required this.topLabel,
-    required this.bottomLabel,
-    required this.extraLabel,
-    required this.topValue,
-    required this.bottomValue,
-    required this.extraValue,
+  const _WeatherActionsRow({
+    required this.outfitLabel,
+    required this.trainingPointLabel,
+    required this.todayGuideLabel,
+    required this.onOutfitTap,
+    required this.onTrainingPointTap,
+    required this.onTodayGuideTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _OutfitGuideRow(
-            icon: Icons.checkroom_outlined,
-            label: topLabel,
-            value: topValue,
-          ),
-          const SizedBox(height: 10),
-          _OutfitGuideRow(
-            icon: Icons.straighten_outlined,
-            label: bottomLabel,
-            value: bottomValue,
-          ),
-          const SizedBox(height: 10),
-          _OutfitGuideRow(
-            icon: Icons.backpack_outlined,
-            label: extraLabel,
-            value: extraValue,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OutfitGuideRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _OutfitGuideRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+        _WeatherActionChip(
+          label: outfitLabel,
+          icon: Icons.checkroom_outlined,
+          onTap: onOutfitTap,
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
+        _WeatherActionChip(
+          label: trainingPointLabel,
+          icon: Icons.sports_soccer_rounded,
+          onTap: onTrainingPointTap,
+        ),
+        _WeatherActionChip(
+          label: todayGuideLabel,
+          icon: Icons.tips_and_updates_outlined,
+          onTap: onTodayGuideTap,
         ),
       ],
+    );
+  }
+}
+
+class _WeatherActionChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _WeatherActionChip({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.tonalIcon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
     );
   }
 }
@@ -1491,7 +1483,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
 class _WeeklyForecastCard extends StatelessWidget {
   final String title;
   final String dateLabel;
-  final String conditionLabel;
   final String highLowLabel;
   final String precipitationLabel;
   final List<_DailyWeatherForecast> forecasts;
@@ -1502,7 +1493,6 @@ class _WeeklyForecastCard extends StatelessWidget {
   const _WeeklyForecastCard({
     required this.title,
     required this.dateLabel,
-    required this.conditionLabel,
     required this.highLowLabel,
     required this.precipitationLabel,
     required this.forecasts,
@@ -1606,54 +1596,43 @@ class _WeeklyForecastRow extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${forecast.weekdayLabel} · $dateLabel ${forecast.label} · ${forecast.summary}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.only(left: 46),
             child: Row(
               children: [
                 Expanded(
-                  flex: 3,
-                  child: Text(
-                    '${forecast.weekdayLabel} · $dateLabel ${forecast.label}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    forecast.summary,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
                   child: Text(
                     '$highLowLabel $range',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -1661,7 +1640,6 @@ class _WeeklyForecastRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  flex: 2,
                   child: Text(
                     '$precipitationLabel $precipitation',
                     maxLines: 1,
@@ -1847,6 +1825,47 @@ class _AirQualityMetric extends StatelessWidget {
   }
 }
 
+abstract interface class _WeatherLabelLocalizer {
+  String get clear;
+  String get cloudy;
+  String get fog;
+  String get drizzle;
+  String get rain;
+  String get snow;
+  String get thunderstorm;
+  String get defaultValue;
+}
+
+class _WeatherLocalizer implements _WeatherLabelLocalizer {
+  final AppLocalizations l10n;
+
+  const _WeatherLocalizer({required this.l10n});
+
+  @override
+  String get clear => l10n.weatherLabelClear;
+
+  @override
+  String get cloudy => l10n.weatherLabelCloudy;
+
+  @override
+  String get fog => l10n.weatherLabelFog;
+
+  @override
+  String get drizzle => l10n.weatherLabelDrizzle;
+
+  @override
+  String get rain => l10n.weatherLabelRain;
+
+  @override
+  String get snow => l10n.weatherLabelSnow;
+
+  @override
+  String get thunderstorm => l10n.weatherLabelThunderstorm;
+
+  @override
+  String get defaultValue => l10n.weatherLabelDefault;
+}
+
 enum _AirQualityLevel {
   unknown,
   good,
@@ -2022,6 +2041,24 @@ class _DailyWeatherForecast {
     this.windSpeedMax,
     this.uvIndexMax,
   });
+
+  _DailyWeatherForecast copyWith({
+    String? label,
+    String? weekdayLabel,
+  }) {
+    return _DailyWeatherForecast(
+      date: date,
+      label: label ?? this.label,
+      weekdayLabel: weekdayLabel ?? this.weekdayLabel,
+      weatherCode: weatherCode,
+      summary: summary,
+      temperatureMax: temperatureMax,
+      temperatureMin: temperatureMin,
+      precipitationSum: precipitationSum,
+      windSpeedMax: windSpeedMax,
+      uvIndexMax: uvIndexMax,
+    );
+  }
 }
 
 class _OutfitGuide {
