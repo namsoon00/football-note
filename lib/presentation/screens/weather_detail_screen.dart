@@ -307,8 +307,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               if (hasWeather) ...[
                 const SizedBox(height: 16),
                 _WeatherRecommendationActions(
-                  outfitLabel: isKo ? '추천 복장 보기' : 'View outfit guide',
-                  trainingLabel: isKo ? '추천 훈련 포인트 보기' : 'View training focus',
+                  outfitLabel: l10n.homeWeatherOutfitButton,
+                  trainingLabel: l10n.homeWeatherSuggestionButton,
                   onOutfitTap: () => _showOutfitGuideSheet(
                     isKo: isKo,
                     guide: detailedOutfitGuide,

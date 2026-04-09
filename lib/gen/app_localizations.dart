@@ -1700,6 +1700,12 @@ abstract class AppLocalizations {
   /// **'If air quality is poor, wear a mask when commuting and reduce hard outdoor work.'**
   String get homeWeatherOutfitAirCaution;
 
+  /// No description provided for @homeWeatherOutfitButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Outfit guide'**
+  String get homeWeatherOutfitButton;
+
   /// No description provided for @homeWeatherAirQualityTitle.
   ///
   /// In en, this message translates to:
@@ -1819,6 +1825,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suggested training focus'**
   String get homeWeatherSuggestionTitle;
+
+  /// No description provided for @homeWeatherSuggestionButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Training focus'**
+  String get homeWeatherSuggestionButton;
 
   /// No description provided for @homeWeatherSuggestionClear.
   ///
