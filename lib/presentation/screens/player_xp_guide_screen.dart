@@ -55,7 +55,15 @@ class PlayerXpGuideScreen extends StatelessWidget {
           _XpGuideItem(
             icon: Icons.rice_bowl_outlined,
             title: isKo ? '식사 기록 저장' : 'Meal log saved',
-            xpLabel: isKo ? '+5 XP / +15 XP' : '+5 XP / +15 XP',
+            xpLabel:
+                isKo ? '+5 XP / +15 XP / +20 XP' : '+5 XP / +15 XP / +20 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.task_alt_outlined,
+            title: isKo
+                ? '하루 루틴 완주 (리프팅+줄넘기+식사)'
+                : 'Daily routine complete (lifting+jump rope+meal)',
+            xpLabel: '+20 XP',
           ),
         ],
       ),
@@ -116,6 +124,12 @@ class PlayerXpGuideScreen extends StatelessWidget {
             icon: Icons.local_fire_department_outlined,
             title: isKo ? '3일 연속 기록 / 7일 연속 기록' : '3-day / 7-day streak',
             xpLabel: isKo ? '+25 XP / +60 XP' : '+25 XP / +60 XP',
+          ),
+          _XpGuideItem(
+            icon: Icons.bolt_outlined,
+            title: isKo ? '연속 기록 데일리 보너스' : 'Daily bonus from streak logging',
+            xpLabel:
+                isKo ? '+5 XP / +10 XP / +15 XP' : '+5 XP / +10 XP / +15 XP',
           ),
           _XpGuideItem(
             icon: Icons.bar_chart_outlined,
