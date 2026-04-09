@@ -42,6 +42,15 @@ log() {
   echo "[issue-worker] $*"
 }
 
+is_plan_request_issue() {
+  local haystack
+  haystack="$(printf '%s\n%s' "${ISSUE_TITLE:-}" "${ISSUE_BODY:-}" | tr '[:upper:]' '[:lower:]')"
+  if grep -Eiq '계획|플랜|기획|논의|discussion|plan' <<<"$haystack"; then
+    return 0
+  fi
+  return 1
+}
+
 post_issue_comment() {
   local message="${1:-}"
   if [[ -z "$message" || -z "${ISSUE_NUMBER:-}" ]]; then
@@ -54,6 +63,106 @@ post_issue_comment() {
     "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
     -d "{\"body\":\"${message}\"}" \
     >/dev/null || true
+}
+
+create_plan_discussion() {
+  local categories_json category_id payload response discussion_url
+
+  categories_json="$(
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/discussions/categories"
+  )"
+
+  category_id="$(
+    python3 - <<'PY' "$categories_json"
+import json,sys
+raw = sys.argv[1]
+try:
+    data = json.loads(raw)
+except Exception:
+    print("")
+    raise SystemExit(0)
+if not isinstance(data, list) or not data:
+    print("")
+    raise SystemExit(0)
+preferred = {"general", "ideas", "q&a", "announcements"}
+picked = ""
+for item in data:
+    name = str(item.get("name", "")).strip().lower()
+    if name in preferred:
+        picked = str(item.get("id", "")).strip()
+        break
+if not picked:
+    picked = str(data[0].get("id", "")).strip()
+print(picked)
+PY
+  )"
+
+  if [[ -z "$category_id" ]]; then
+    log "Discussion category not found."
+    return 1
+  fi
+
+  payload="$(
+    python3 - <<'PY' "$category_id" "$ISSUE_NUMBER" "$ISSUE_TITLE" "$ISSUE_URL" "$ISSUE_BODY"
+import json,sys
+category_id, issue_number, issue_title, issue_url, issue_body = sys.argv[1:6]
+trimmed_body = (issue_body or "").strip()
+if len(trimmed_body) > 1200:
+    trimmed_body = trimmed_body[:1200].rstrip() + "\n..."
+title = f"[계획] Issue #{issue_number} - {issue_title}"
+body = f"""## 이슈 정보
+- Issue: #{issue_number}
+- 제목: {issue_title}
+- 링크: {issue_url}
+
+## 요청 요약
+{trimmed_body if trimmed_body else '(본문 없음)'}
+
+## 작업 계획(초안)
+1. 문제/요구사항 범위 확정
+2. 영향받는 화면/로직 식별
+3. 최소 변경안과 대안 비교
+4. 구현 순서/검증 방법 확정
+5. 리스크와 롤백 포인트 정리
+
+자동 워커가 생성한 계획 Discussion입니다. 필요하면 여기서 바로 피드백 주세요.
+"""
+print(json.dumps({"title": title, "body": body, "category_id": category_id}, ensure_ascii=False))
+PY
+  )"
+
+  response="$(
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -X POST \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/discussions" \
+      -d "$payload"
+  )"
+
+  discussion_url="$(
+    python3 - <<'PY' "$response"
+import json,sys
+try:
+    data=json.loads(sys.argv[1])
+except Exception:
+    print("")
+    raise SystemExit(0)
+print(str(data.get("html_url","")).strip())
+PY
+  )"
+
+  if [[ -z "$discussion_url" ]]; then
+    log "Failed to create discussion."
+    return 1
+  fi
+
+  post_issue_comment "요청하신 계획을 Discussion에 남겼습니다: ${discussion_url}"
+  log "Plan discussion created: ${discussion_url}"
+  return 0
 }
 
 issue_state() {
@@ -170,6 +279,15 @@ fi
 ISSUE_TITLE="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("title","").strip())' <<< "$ISSUE_JSON")"
 ISSUE_BODY="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("body","").strip())' <<< "$ISSUE_JSON")"
 ISSUE_URL="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("html_url",""))' <<< "$ISSUE_JSON")"
+
+if is_plan_request_issue; then
+  log "Plan request detected for issue #${ISSUE_NUMBER}."
+  if create_plan_discussion; then
+    log "Plan discussion flow completed."
+    exit 0
+  fi
+  post_issue_comment "계획 요청을 감지했지만 Discussion 생성에 실패했습니다. 저장소 Discussions 활성화/권한을 확인해 주세요."
+fi
 
 SAFE_SLUG="$(python3 - "$ISSUE_TITLE" <<'PY'
 import re,sys
