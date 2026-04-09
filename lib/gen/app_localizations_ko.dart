@@ -842,6 +842,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '대기질이 나쁘면 이동 시 마스크를 착용하고 야외 고강도는 줄이세요.';
 
   @override
+  String get homeWeatherOutfitButton => '추천 복장';
+
+  @override
   String get homeWeatherAirQualityTitle => '대기질';
 
   @override
@@ -900,6 +903,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherSuggestionTitle => '추천 훈련 포인트';
+
+  @override
+  String get homeWeatherSuggestionButton => '추천 훈련 포인트';
 
   @override
   String get homeWeatherSuggestionClear =>

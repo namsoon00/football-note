@@ -862,6 +862,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'If air quality is poor, wear a mask when commuting and reduce hard outdoor work.';
 
   @override
+  String get homeWeatherOutfitButton => 'Outfit guide';
+
+  @override
   String get homeWeatherAirQualityTitle => 'Air quality';
 
   @override
@@ -922,6 +925,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherSuggestionTitle => 'Suggested training focus';
+
+  @override
+  String get homeWeatherSuggestionButton => 'Training focus';
 
   @override
   String get homeWeatherSuggestionClear =>
