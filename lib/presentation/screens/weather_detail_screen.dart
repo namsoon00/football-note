@@ -2021,7 +2021,7 @@ class _WeeklyForecastRow extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '${forecast.weekdayLabel} · $dateLabel ${forecast.label} · ${forecast.summary}',
+                  '${forecast.weekdayLabel} · ${forecast.label} · ${forecast.summary}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
