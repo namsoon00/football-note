@@ -7,6 +7,21 @@ cd "$ROOT_DIR"
 LOCK_DIR="/tmp/football_note_issue_worker.lock"
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
   echo "[issue-worker] Another run is active. Exiting."
+  ISSUE_QUEUE_FILE="$ROOT_DIR/docs/ISSUE_QUEUE.md"
+  ISSUE_NUMBER_LOCK="$(
+    (
+      grep -Eo '#[0-9]+' "$ISSUE_QUEUE_FILE" 2>/dev/null || true
+    ) | head -n1 | tr -d '#'
+  )"
+  if [[ -n "${ISSUE_NUMBER_LOCK:-}" && -n "${GITHUB_REPOSITORY:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -X POST \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER_LOCK}/comments" \
+      -d "{\"body\":\"자동 워커가 이미 실행 중이라 이번 수동 실행은 건너뛰었습니다. 잠시 후 다시 실행해 주세요.\"}" \
+      >/dev/null || true
+  fi
   exit 0
 fi
 trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
@@ -21,9 +36,24 @@ CODEX_UNSAFE="${CODEX_UNSAFE:-1}"
 CODEX_MODEL="${CODEX_MODEL:-gpt-5}"
 FORCE_MAIN_MERGE="${FORCE_MAIN_MERGE:-1}"
 LOCAL_SYNC_REPO_PATH="${LOCAL_SYNC_REPO_PATH:-/Users/namsoon00/Devel/football_note/football_note}"
+ISSUE_NUMBER=""
 
 log() {
   echo "[issue-worker] $*"
+}
+
+post_issue_comment() {
+  local message="${1:-}"
+  if [[ -z "$message" || -z "${ISSUE_NUMBER:-}" ]]; then
+    return 0
+  fi
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -X POST \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+    -d "{\"body\":\"${message}\"}" \
+    >/dev/null || true
 }
 
 issue_state() {
@@ -112,6 +142,7 @@ python3 scripts/sync_issue_queue.py || true
 
 if [[ ! -f "docs/ISSUE_QUEUE.md" ]]; then
   log "Queue file not found. Exiting."
+  post_issue_comment "자동 워커 종료: \`docs/ISSUE_QUEUE.md\` 파일이 없어 작업 대상을 찾지 못했습니다."
   exit 0
 fi
 
@@ -132,6 +163,7 @@ ISSUE_JSON="$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: ap
 ISSUE_STATE="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("state",""))' <<< "$ISSUE_JSON")"
 if [[ "$ISSUE_STATE" != "open" ]]; then
   log "Issue #$ISSUE_NUMBER is not open."
+  post_issue_comment "자동 워커 종료: 이슈가 open 상태가 아니어서 작업을 중단했습니다."
   exit 0
 fi
 
@@ -261,8 +293,10 @@ fi
 if [[ "$CODEX_EXIT" != "0" ]]; then
   if [[ "$HAS_WORKTREE_CHANGES" == "0" && "$AHEAD_COUNT" != "0" ]]; then
     log "Codex exited non-zero, but branch already has ${AHEAD_COUNT} commit(s) to merge. Continuing."
+    post_issue_comment "자동 워커 경고: Codex 실행은 비정상 종료(${CODEX_EXIT})했지만, 브랜치에 기존 커밋이 있어 병합 절차를 계속 진행했습니다."
   else
     log "Failing run because Codex exited non-zero and there are pending changes/commits to inspect."
+    post_issue_comment "자동 워커 실패: Codex 실행이 비정상 종료(${CODEX_EXIT})했고 변경사항 검증이 필요해 중단했습니다."
     exit "$CODEX_EXIT"
   fi
 fi
@@ -320,13 +354,7 @@ if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
     git push origin "$DEFAULT_BRANCH"
     close_issue_completed "자동 병합 완료: \`${HEAD_BRANCH}\` -> \`${DEFAULT_BRANCH}\`\\n이슈를 completed로 닫았습니다."
   else
-    curl -sS \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      -X POST \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
-      -d "{\"body\":\"자동 main 병합 실패: 브랜치 충돌 또는 보호 규칙으로 병합되지 않았습니다. 수동 병합이 필요합니다.\"}" \
-      >/dev/null || true
+    post_issue_comment "자동 main 병합 실패: 브랜치 충돌 또는 보호 규칙으로 병합되지 않았습니다. 수동 병합이 필요합니다."
     exit 1
   fi
 fi
