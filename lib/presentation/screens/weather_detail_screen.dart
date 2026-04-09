@@ -306,38 +306,17 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               ),
               if (hasWeather) ...[
                 const SizedBox(height: 16),
-                _StructuredOutfitGuideCard(
-                  title: isKo ? '추천 복장' : 'Recommended Outfit',
-                  subtitle: _location.isEmpty
-                      ? (isKo
-                          ? '현재 날씨 기준 추천입니다.'
-                          : 'Recommended for current weather conditions.')
-                      : (isKo
-                          ? '$_location 날씨 기준 추천입니다.'
-                          : 'Recommended for $_location weather.'),
-                  layersLabel: isKo ? '레이어' : 'Layers',
-                  outerLabel: isKo ? '아우터' : 'Outerwear',
-                  bottomLabel: isKo ? '하의' : 'Bottom',
-                  accessoriesLabel: isKo ? '준비물' : 'Accessories',
-                  cautionLabel: isKo ? '주의 포인트' : 'Notes',
-                  buttonLabel: isKo ? '모든 복장 케이스 보기' : 'View all outfit cases',
-                  guide: detailedOutfitGuide,
-                  onViewAll: () => _showAllOutfitCasesSheet(isKo),
-                ),
-                const SizedBox(height: 16),
-                _StructuredTrainingGuideCard(
-                  title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
-                  subtitle: _location.isEmpty
-                      ? (isKo
-                          ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                          : 'Best focus for the current weather.')
-                      : (isKo
-                          ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                          : 'Tailored to $_location weather.'),
-                  focusLabel: isKo ? '오늘 집중' : 'Focus',
-                  cautionLabel: isKo ? '운영 팁' : 'Execution tip',
-                  recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
-                  guide: trainingGuide,
+                _WeatherRecommendationActions(
+                  outfitLabel: isKo ? '추천 복장 보기' : 'View outfit guide',
+                  trainingLabel: isKo ? '추천 훈련 포인트 보기' : 'View training focus',
+                  onOutfitTap: () => _showOutfitGuideSheet(
+                    isKo: isKo,
+                    guide: detailedOutfitGuide,
+                  ),
+                  onTrainingTap: () => _showTrainingGuideSheet(
+                    isKo: isKo,
+                    guide: trainingGuide,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 _AirQualityCard(
@@ -946,6 +925,70 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     );
   }
 
+  void _showOutfitGuideSheet({
+    required bool isKo,
+    required _DetailedOutfitGuide guide,
+  }) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: _StructuredOutfitGuideCard(
+            title: isKo ? '추천 복장' : 'Recommended Outfit',
+            subtitle: _location.isEmpty
+                ? (isKo
+                    ? '현재 날씨 기준 추천입니다.'
+                    : 'Recommended for current weather conditions.')
+                : (isKo
+                    ? '$_location 날씨 기준 추천입니다.'
+                    : 'Recommended for $_location weather.'),
+            layersLabel: isKo ? '레이어' : 'Layers',
+            outerLabel: isKo ? '아우터' : 'Outerwear',
+            bottomLabel: isKo ? '하의' : 'Bottom',
+            accessoriesLabel: isKo ? '준비물' : 'Accessories',
+            cautionLabel: isKo ? '주의 포인트' : 'Notes',
+            buttonLabel: isKo ? '모든 복장 케이스 보기' : 'View all outfit cases',
+            guide: guide,
+            onViewAll: () => _showAllOutfitCasesSheet(isKo),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showTrainingGuideSheet({
+    required bool isKo,
+    required _TrainingGuide guide,
+  }) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: _StructuredTrainingGuideCard(
+            title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
+            subtitle: _location.isEmpty
+                ? (isKo
+                    ? '지금 날씨에서 효율적인 훈련 방향입니다.'
+                    : 'Best focus for the current weather.')
+                : (isKo
+                    ? '$_location 날씨에 맞춘 훈련 방향입니다.'
+                    : 'Tailored to $_location weather.'),
+            focusLabel: isKo ? '오늘 집중' : 'Focus',
+            cautionLabel: isKo ? '운영 팁' : 'Execution tip',
+            recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
+            guide: guide,
+          ),
+        ),
+      ),
+    );
+  }
+
   String _baseTrainingSuggestion(AppLocalizations l10n) {
     switch (_weatherCode) {
       case 0:
@@ -1496,6 +1539,43 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _WeatherRecommendationActions extends StatelessWidget {
+  final String outfitLabel;
+  final String trainingLabel;
+  final VoidCallback onOutfitTap;
+  final VoidCallback onTrainingTap;
+
+  const _WeatherRecommendationActions({
+    required this.outfitLabel,
+    required this.trainingLabel,
+    required this.onOutfitTap,
+    required this.onTrainingTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: FilledButton.tonalIcon(
+            onPressed: onOutfitTap,
+            icon: const Icon(Icons.checkroom_outlined, size: 18),
+            label: Text(outfitLabel),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: FilledButton.tonalIcon(
+            onPressed: onTrainingTap,
+            icon: const Icon(Icons.sports_soccer_rounded, size: 18),
+            label: Text(trainingLabel),
+          ),
+        ),
+      ],
     );
   }
 }
