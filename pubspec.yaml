@@ -52,6 +52,7 @@ dependencies:
   timezone: ^0.9.4
   flutter_timezone: ^3.0.1
   geolocator: ^13.0.2
+  lottie: ^3.1.2
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +86,7 @@ flutter:
     - assets/airbnb/svg/
     - assets/watch_cart/images/
     - assets/watch_cart/svg/
+    - assets/animations/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
