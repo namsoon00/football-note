@@ -16,11 +16,10 @@ class AppSplashScreen extends StatefulWidget {
 
 class _AppSplashScreenState extends State<AppSplashScreen>
     with SingleTickerProviderStateMixin {
-  static const Duration _minVisibleDuration = Duration(milliseconds: 1800);
+  static const Duration _minVisibleDuration = Duration(milliseconds: 2000);
   static const Duration _fadeDuration = Duration(milliseconds: 300);
-  static const Duration _reducedMotionDelay = Duration(milliseconds: 450);
-  static const String _lottiePath =
-      'assets/animations/soccer_splash_pro_lottie.json';
+  static const Duration _reducedMotionDelay = Duration(milliseconds: 600);
+  static const String _lottiePath = 'assets/animations/hope_gate_sunrise.json';
 
   late final AnimationController _fadeController;
   Timer? _completeTimer;
@@ -83,17 +82,34 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Align(
-                alignment: Alignment.center,
-                child: FractionallySizedBox(
-                  widthFactor: 0.94,
-                  heightFactor: 0.62,
-                  child: Lottie.asset(
-                    _lottiePath,
-                    fit: BoxFit.contain,
-                    repeat: !reduceMotion,
-                    animate: true,
-                    frameRate: FrameRate.max,
+              Lottie.asset(
+                _lottiePath,
+                fit: BoxFit.cover,
+                repeat: !reduceMotion,
+                animate: true,
+                frameRate: FrameRate.max,
+              ),
+              IgnorePointer(
+                child: Align(
+                  alignment: const Alignment(0, -0.66),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text(
+                      '오늘도 한 걸음 성장!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
                   ),
                 ),
               ),
