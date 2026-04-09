@@ -68,17 +68,7 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           CurvedAnimation(parent: _fadeController, curve: Curves.easeInCubic),
         ),
         child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF0A1528),
-                Color(0xFF143056),
-                Color(0xFF2C5E8A),
-              ],
-            ),
-          ),
+          decoration: const BoxDecoration(color: Color(0xFF081307)),
           child: Stack(
             fit: StackFit.expand,
             children: [
