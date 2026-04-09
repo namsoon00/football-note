@@ -83,12 +83,19 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Lottie.asset(
-                _lottiePath,
-                fit: BoxFit.cover,
-                repeat: !reduceMotion,
-                animate: true,
-                frameRate: FrameRate.max,
+              Align(
+                alignment: Alignment.center,
+                child: FractionallySizedBox(
+                  widthFactor: 0.94,
+                  heightFactor: 0.62,
+                  child: Lottie.asset(
+                    _lottiePath,
+                    fit: BoxFit.contain,
+                    repeat: !reduceMotion,
+                    animate: true,
+                    frameRate: FrameRate.max,
+                  ),
+                ),
               ),
             ],
           ),
