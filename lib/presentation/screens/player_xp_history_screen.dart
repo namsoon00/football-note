@@ -542,6 +542,14 @@ class _XpHistoryCard extends StatelessWidget {
         return isKo ? '3일 연속' : '3-day streak';
       case 'streak_7':
         return isKo ? '7일 연속' : '7-day streak';
+      case 'streak_daily_2_3':
+        return isKo ? '연속 기록 데일리(2~3일)' : 'daily streak (2-3 days)';
+      case 'streak_daily_4_6':
+        return isKo ? '연속 기록 데일리(4~6일)' : 'daily streak (4-6 days)';
+      case 'streak_daily_7_plus':
+        return isKo ? '연속 기록 데일리(7일+)' : 'daily streak (7+ days)';
+      case 'routine_complete_day':
+        return isKo ? '하루 루틴 완주' : 'daily routine complete';
       case 'weekly_3':
         return isKo ? '주간 3회' : '3 this week';
       case 'weekly_5':

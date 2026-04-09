@@ -13,6 +13,7 @@ class PlayerLevelService {
   static const String awardedStreaksKey = 'player_awarded_streaks_v1';
   static const String awardedBoardSaveTokensKey =
       'player_awarded_board_save_tokens_v1';
+  static const String awardedRoutineDaysKey = 'player_awarded_routine_days_v1';
   static const String diaryCreatedDayKey = 'player_diary_created_day_v2';
   static const String claimedRewardLevelsKey =
       'player_claimed_reward_levels_v1';
@@ -127,7 +128,27 @@ class PlayerLevelService {
     final updatedEntries = <TrainingEntry>[...existingTrainingEntries, entry];
     final streak = _calculateTrainingStreak(updatedEntries);
     final awardedStreaks = _getStringSet(awardedStreaksKey);
+    final awardedRoutineDays = _getStringSet(awardedRoutineDaysKey);
     final dayToken = _dayKey(entryDay);
+
+    if (sameDayEntries.isEmpty) {
+      if (streak >= 7) {
+        gainedXp += 15;
+        reasons.add('streak_daily_7_plus');
+      } else if (streak >= 4) {
+        gainedXp += 10;
+        reasons.add('streak_daily_4_6');
+      } else if (streak >= 2) {
+        gainedXp += 5;
+        reasons.add('streak_daily_2_3');
+      }
+    }
+
+    if (_isRoutineComplete(entry, mealXp) && awardedRoutineDays.add(dayToken)) {
+      gainedXp += 20;
+      reasons.add('routine_complete_day');
+    }
+
     if (streak >= 3 && awardedStreaks.add('$dayToken:3')) {
       gainedXp += 25;
       reasons.add('streak_3');
@@ -154,6 +175,10 @@ class PlayerLevelService {
     final nextTotal = (before.totalXp + gainedXp).clamp(0, 1000000).toInt();
     await _options.setValue(totalXpKey, nextTotal);
     await _options.setValue(awardedStreaksKey, awardedStreaks.toList()..sort());
+    await _options.setValue(
+      awardedRoutineDaysKey,
+      awardedRoutineDays.toList()..sort(),
+    );
     final after = PlayerLevelState.fromXp(nextTotal);
     await _appendXpHistory(
       PlayerXpHistoryEntry(
@@ -217,6 +242,22 @@ class PlayerLevelService {
       }
     }
 
+    final entryDay = _normalizeDay(updatedEntry.date);
+    final dayToken = _dayKey(entryDay);
+    final awardedRoutineDays = _getStringSet(awardedRoutineDaysKey);
+    final previousRoutineComplete = _isRoutineComplete(
+      previousEntry,
+      previousMealXp,
+    );
+    final updatedRoutineComplete =
+        _isRoutineComplete(updatedEntry, updatedMealXp);
+    if (!previousRoutineComplete &&
+        updatedRoutineComplete &&
+        awardedRoutineDays.add(dayToken)) {
+      gainedXp += 20;
+      reasons.add('routine_complete_day');
+    }
+
     if (gainedXp == 0) {
       return PlayerLevelAward(
         gainedXp: 0,
@@ -228,6 +269,10 @@ class PlayerLevelService {
 
     final nextTotal = before.totalXp + gainedXp;
     await _options.setValue(totalXpKey, nextTotal);
+    await _options.setValue(
+      awardedRoutineDaysKey,
+      awardedRoutineDays.toList()..sort(),
+    );
     final after = PlayerLevelState.fromXp(nextTotal);
     await _appendXpHistory(
       PlayerXpHistoryEntry(
@@ -795,6 +840,10 @@ class PlayerLevelService {
     return entry.jumpRopeCount > 0 ||
         entry.jumpRopeMinutes > 0 ||
         entry.jumpRopeNote.trim().isNotEmpty;
+  }
+
+  bool _isRoutineComplete(TrainingEntry entry, int mealXp) {
+    return _hasLiftingRecord(entry) && _hasJumpRopeRecord(entry) && mealXp >= 5;
   }
 
   String _dayKey(DateTime value) {
