@@ -4633,6 +4633,70 @@ List<_OxFactSeed> _historyAndFifaRecordOxFacts() {
       enNextPoint:
           'In tournament history, study trophy changes alongside champions.',
     ),
+    _OxFactSeed(
+      id: 'premier_league_1992_start',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koTrueStatement: '프리미어리그는 1992년에 출범했다.',
+      enTrueStatement: 'The Premier League launched in 1992.',
+      koFalseStatement: '프리미어리그는 1970년에 출범했다.',
+      enFalseStatement: 'The Premier League launched in 1970.',
+      koExplain: '잉글랜드 프리미어리그는 1992년에 새 리그 체제로 출범했습니다.',
+      enExplain:
+          'The Premier League began in 1992 as a new top-flight structure in England.',
+      koNextPoint: '리그 역사 문제는 출범 연도와 초대 우승팀을 함께 묶으세요.',
+      enNextPoint:
+          'For league history, pair founding years with inaugural champions.',
+    ),
+    _OxFactSeed(
+      id: 'maradona_hand_of_god_1986',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koTrueStatement: '마라도나의 “신의 손” 골은 1986년 월드컵에서 나왔다.',
+      enTrueStatement:
+          'Maradona’s “Hand of God” goal came at the 1986 World Cup.',
+      koFalseStatement: '마라도나의 “신의 손” 골은 1998년 월드컵에서 나왔다.',
+      enFalseStatement:
+          'Maradona’s “Hand of God” goal came at the 1998 World Cup.',
+      koExplain: '“신의 손”은 1986년 멕시코 월드컵 아르헨티나 대 잉글랜드 경기의 상징적 장면입니다.',
+      enExplain:
+          'The “Hand of God” is one of the defining moments of Argentina vs England at Mexico 1986.',
+      koNextPoint: '역사 장면은 연도와 상대 팀까지 같이 기억하면 오래 남습니다.',
+      enNextPoint:
+          'Historic moments stick better when paired with year and opponent.',
+    ),
+    _OxFactSeed(
+      id: 'womens_world_cup_1991',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koTrueStatement: 'FIFA 여자 월드컵의 첫 대회는 1991년에 열렸다.',
+      enTrueStatement: 'The first FIFA Women’s World Cup was held in 1991.',
+      koFalseStatement: 'FIFA 여자 월드컵의 첫 대회는 2003년에 열렸다.',
+      enFalseStatement: 'The first FIFA Women’s World Cup was held in 2003.',
+      koExplain: 'FIFA 여자 월드컵은 1991년에 시작되었고 중국이 첫 개최국이었습니다.',
+      enExplain:
+          'The FIFA Women’s World Cup began in 1991, with China hosting the first edition.',
+      koNextPoint: '남자 대회와 여자 대회의 시작 연도를 함께 비교해 보세요.',
+      enNextPoint:
+          'Compare the launch years of the men’s and women’s tournaments together.',
+    ),
+    _OxFactSeed(
+      id: 'champions_league_old_name',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koTrueStatement: 'UEFA 챔피언스리그의 이전 이름은 유러피언컵이다.',
+      enTrueStatement:
+          'The former name of the UEFA Champions League was the European Cup.',
+      koFalseStatement: 'UEFA 챔피언스리그의 이전 이름은 월드 클럽 챔피언십이다.',
+      enFalseStatement:
+          'The former name of the UEFA Champions League was the World Club Championship.',
+      koExplain: '챔피언스리그는 유러피언컵에서 발전한 대회로, 명칭과 포맷이 바뀌었습니다.',
+      enExplain:
+          'The Champions League evolved from the European Cup with major naming and format changes.',
+      koNextPoint: '대회 역사는 이름 변화와 포맷 변화까지 함께 보세요.',
+      enNextPoint:
+          'Study competitions through both name changes and format changes.',
+    ),
   ];
 }
 
@@ -4702,6 +4766,196 @@ List<_McqSeed> _historyAndFifaRecordMcqSeeds() {
       enNextPoint:
           'Trophy-name changes are useful anchors for learning tournament history.',
     ),
+    _McqSeed(
+      id: 'first_ballon_dor_winner',
+      difficulty: 3,
+      category: _QuizCategory.fun,
+      koStem: '1956년 첫 발롱도르 수상자는 누구일까요?',
+      enStem: 'Who won the first Ballon d’Or in 1956?',
+      options: [
+        _FootballQuizOption(koText: '스탠리 매튜스', enText: 'Stanley Matthews'),
+        _FootballQuizOption(koText: '펠레', enText: 'Pele'),
+        _FootballQuizOption(
+          koText: '알프레도 디 스테파노',
+          enText: 'Alfredo Di Stefano',
+        ),
+        _FootballQuizOption(koText: '요한 크루이프', enText: 'Johan Cruyff'),
+      ],
+      correctIndex: 0,
+      koExplain: '첫 발롱도르는 1956년 스탠리 매튜스가 수상했습니다.',
+      enExplain:
+          'The first Ballon d’Or was awarded to Stanley Matthews in 1956.',
+      koNextPoint: '개인상 역사는 첫 수상자와 연도를 같이 외우면 좋습니다.',
+      enNextPoint:
+          'Awards history is easier when you pair first winners with years.',
+    ),
+    _McqSeed(
+      id: 'premier_league_inaugural_champion',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '1992-93 초대 프리미어리그 우승팀은 어디일까요?',
+      enStem: 'Who were the inaugural Premier League champions in 1992-93?',
+      options: [
+        _FootballQuizOption(
+          koText: '맨체스터 유나이티드',
+          enText: 'Manchester United',
+        ),
+        _FootballQuizOption(koText: '아스널', enText: 'Arsenal'),
+        _FootballQuizOption(
+          koText: '블랙번 로버스',
+          enText: 'Blackburn Rovers',
+        ),
+        _FootballQuizOption(koText: '리버풀', enText: 'Liverpool'),
+      ],
+      correctIndex: 0,
+      koExplain: '프리미어리그 출범 첫 시즌인 1992-93 우승팀은 맨체스터 유나이티드였습니다.',
+      enExplain:
+          'Manchester United won the inaugural Premier League title in 1992-93.',
+      koNextPoint: '새 리그나 대회의 초대 우승팀은 역사 문제의 핵심 포인트입니다.',
+      enNextPoint:
+          'Inaugural champions are a key anchor point in competition history.',
+    ),
+    _McqSeed(
+      id: 'champions_league_rebrand_year',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '유러피언컵이 UEFA 챔피언스리그로 바뀐 시즌은 언제일까요?',
+      enStem:
+          'When was the European Cup rebranded as the UEFA Champions League?',
+      options: [
+        _FootballQuizOption(koText: '1992-93 시즌', enText: '1992-93 season'),
+        _FootballQuizOption(koText: '1974-75 시즌', enText: '1974-75 season'),
+        _FootballQuizOption(koText: '2000-01 시즌', enText: '2000-01 season'),
+        _FootballQuizOption(koText: '1984-85 시즌', enText: '1984-85 season'),
+      ],
+      correctIndex: 0,
+      koExplain: '유러피언컵은 1992-93 시즌부터 UEFA 챔피언스리그라는 이름으로 운영됐습니다.',
+      enExplain:
+          'The competition began operating as the UEFA Champions League from the 1992-93 season.',
+      koNextPoint: '대회 역사에서는 리브랜딩 시점도 중요한 사건입니다.',
+      enNextPoint:
+          'Rebranding years are important landmarks in competition history.',
+    ),
+    _McqSeed(
+      id: 'invincibles_club',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '프리미어리그 한 시즌 무패 우승 “인빈서블스”로 가장 유명한 팀은 어디일까요?',
+      enStem:
+          'Which team is most famous for the undefeated “Invincibles” Premier League season?',
+      options: [
+        _FootballQuizOption(koText: '아스널', enText: 'Arsenal'),
+        _FootballQuizOption(koText: '첼시', enText: 'Chelsea'),
+        _FootballQuizOption(
+          koText: '맨체스터 시티',
+          enText: 'Manchester City',
+        ),
+        _FootballQuizOption(
+          koText: '리즈 유나이티드',
+          enText: 'Leeds United',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '아스널의 2003-04 무패 우승은 프리미어리그 역사에서 가장 상징적인 기록 중 하나입니다.',
+      enExplain:
+          'Arsenal’s 2003-04 unbeaten title is one of the most iconic records in Premier League history.',
+      koNextPoint: '팀 별명과 시즌 기록을 함께 연결하면 기억하기 쉽습니다.',
+      enNextPoint:
+          'It is easier to remember historic teams by pairing nicknames with seasons.',
+    ),
+    _McqSeed(
+      id: 'zidane_headbutt_tournament',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '지네딘 지단의 결승전 헤더 사건은 어느 대회에서 나왔을까요?',
+      enStem:
+          'In which tournament final did Zinedine Zidane’s famous headbutt incident occur?',
+      options: [
+        _FootballQuizOption(
+          koText: '2006 FIFA 월드컵',
+          enText: '2006 FIFA World Cup',
+        ),
+        _FootballQuizOption(koText: '2000 유로', enText: 'UEFA Euro 2000'),
+        _FootballQuizOption(
+          koText: '2002 챔피언스리그',
+          enText: '2002 Champions League',
+        ),
+        _FootballQuizOption(
+          koText: '1998 FIFA 월드컵',
+          enText: '1998 FIFA World Cup',
+        ),
+      ],
+      correctIndex: 0,
+      koExplain: '지단의 헤더 사건은 2006 독일 월드컵 결승전에서 벌어진 역사적 장면입니다.',
+      enExplain:
+          'Zidane’s headbutt took place in the 2006 World Cup final in Germany.',
+      koNextPoint: '상징적 장면은 대회와 상대까지 함께 묶어 보세요.',
+      enNextPoint:
+          'Pair iconic moments with the tournament and opponent for stronger recall.',
+    ),
+    _McqSeed(
+      id: 'hand_of_god_opponent',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '마라도나의 “신의 손” 장면 상대 팀은 어디였을까요?',
+      enStem:
+          'Who were Argentina facing when Maradona scored the “Hand of God” goal?',
+      options: [
+        _FootballQuizOption(koText: '잉글랜드', enText: 'England'),
+        _FootballQuizOption(koText: '독일', enText: 'Germany'),
+        _FootballQuizOption(koText: '브라질', enText: 'Brazil'),
+        _FootballQuizOption(koText: '네덜란드', enText: 'Netherlands'),
+      ],
+      correctIndex: 0,
+      koExplain: '“신의 손”과 이어진 환상적인 60m 드리블 골은 모두 잉글랜드전에서 나왔습니다.',
+      enExplain:
+          'Both the “Hand of God” and the stunning dribble goal came against England.',
+      koNextPoint: '유명한 역사 장면은 상대와 경기 맥락까지 함께 보세요.',
+      enNextPoint: 'Study famous moments with the opponent and match context.',
+    ),
+    _McqSeed(
+      id: 'womens_world_cup_first_host',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '첫 FIFA 여자 월드컵 개최국은 어디였을까요?',
+      enStem: 'Which country hosted the first FIFA Women’s World Cup?',
+      options: [
+        _FootballQuizOption(koText: '중국', enText: 'China'),
+        _FootballQuizOption(koText: '미국', enText: 'United States'),
+        _FootballQuizOption(koText: '독일', enText: 'Germany'),
+        _FootballQuizOption(koText: '스웨덴', enText: 'Sweden'),
+      ],
+      correctIndex: 0,
+      koExplain: '첫 여자 월드컵은 1991년 중국에서 열렸습니다.',
+      enExplain: 'The first Women’s World Cup was held in China in 1991.',
+      koNextPoint: '여자 축구 역사도 남자 축구와 따로 정리해 두면 좋습니다.',
+      enNextPoint:
+          'Women’s football history is worth studying as its own timeline.',
+    ),
+    _McqSeed(
+      id: 'most_world_cup_goals_player',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koStem: '남자 월드컵 통산 최다 득점 기록자로 잘 알려진 선수는 누구일까요?',
+      enStem:
+          'Who is widely recognized as the all-time leading scorer in the men’s World Cup?',
+      options: [
+        _FootballQuizOption(
+          koText: '미로슬라프 클로제',
+          enText: 'Miroslav Klose',
+        ),
+        _FootballQuizOption(koText: '호나우두', enText: 'Ronaldo'),
+        _FootballQuizOption(koText: '게르트 뮐러', enText: 'Gerd Muller'),
+        _FootballQuizOption(koText: '리오넬 메시', enText: 'Lionel Messi'),
+      ],
+      correctIndex: 0,
+      koExplain: '미로슬라프 클로제는 남자 월드컵 통산 최다 득점 기록으로 널리 알려져 있습니다.',
+      enExplain:
+          'Miroslav Klose is widely recognized as the all-time top scorer in the men’s World Cup.',
+      koNextPoint: '대회 기록은 선수 이름과 숫자를 세트로 외우면 좋습니다.',
+      enNextPoint:
+          'For tournament records, memorize the player together with the number.',
+    ),
   ];
 }
 
@@ -4739,6 +4993,38 @@ List<_ShortAnswerKnowledgeSeed> _historyAndFifaRecordShortAnswerSeeds() {
       koNextPoint: '트로피 이름은 시대 구분 포인트로 활용할 수 있습니다.',
       enNextPoint:
           'Trophy names can act as useful markers for separating eras.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'first_womens_world_cup_year',
+      difficulty: 1,
+      category: _QuizCategory.fun,
+      koClue: '첫 FIFA 여자 월드컵이 열린 연도. 숫자 네 자리로 쓰세요',
+      enClue:
+          'Year of the first FIFA Women’s World Cup. Answer with four digits',
+      acceptedAnswers: ['1991'],
+      koExplain: '정답은 "1991"입니다. 첫 FIFA 여자 월드컵은 중국에서 열렸습니다.',
+      enExplain:
+          'The answer is "1991." The first FIFA Women’s World Cup was held in China.',
+      koNextPoint: '축구 역사에서 여자 대회 시작 연도도 중요한 기준점입니다.',
+      enNextPoint:
+          'The launch year of women’s competitions is a key football-history anchor too.',
+    ),
+    _ShortAnswerKnowledgeSeed(
+      id: 'european_cup_old_name',
+      difficulty: 2,
+      category: _QuizCategory.fun,
+      koClue: 'UEFA 챔피언스리그의 이전 이름',
+      enClue: 'Former name of the UEFA Champions League',
+      acceptedAnswers: [
+        '유러피언컵',
+        'european cup',
+        'the european cup',
+      ],
+      koExplain: '정답은 "유러피언컵"입니다. 챔피언스리그는 이 대회를 바탕으로 발전했습니다.',
+      enExplain:
+          'The answer is "European Cup." The Champions League grew out of that competition.',
+      koNextPoint: '대회의 옛 이름과 현재 이름을 함께 묶어 보세요.',
+      enNextPoint: 'Link former competition names with their current identity.',
     ),
   ];
 }
