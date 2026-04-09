@@ -1446,59 +1446,41 @@ class _TomorrowWeatherCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final tileWidth = (constraints.maxWidth - 10) / 2;
-                    return Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        SizedBox(
-                          width: tileWidth,
-                          child: _ForecastMetricTile(
-                            label: conditionLabel,
-                            value: forecast.summary,
-                            icon: iconForCode(forecast.weatherCode),
-                          ),
-                        ),
-                        SizedBox(
-                          width: tileWidth,
-                          child: _ForecastMetricTile(
-                            label: highLowLabel,
-                            value: formatRange(
-                              forecast.temperatureMax,
-                              forecast.temperatureMin,
-                            ),
-                            icon: Icons.thermostat_outlined,
-                          ),
-                        ),
-                        SizedBox(
-                          width: tileWidth,
-                          child: _ForecastMetricTile(
-                            label: precipitationLabel,
-                            value: formatMillimeter(forecast.precipitationSum),
-                            icon: Icons.water_drop_outlined,
-                          ),
-                        ),
-                        SizedBox(
-                          width: tileWidth,
-                          child: _ForecastMetricTile(
-                            label: windLabel,
-                            value: formatWind(forecast.windSpeedMax),
-                            icon: Icons.air_rounded,
-                          ),
-                        ),
-                        SizedBox(
-                          width: tileWidth,
-                          child: _ForecastMetricTile(
-                            label: uvLabel,
-                            value: formatUv(forecast.uvIndexMax),
-                            icon: Icons.wb_sunny_outlined,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                Column(
+                  children: [
+                    _CompactForecastInfoRow(
+                      label: conditionLabel,
+                      value: forecast.summary,
+                      icon: iconForCode(forecast.weatherCode),
+                    ),
+                    const SizedBox(height: 8),
+                    _CompactForecastInfoRow(
+                      label: highLowLabel,
+                      value: formatRange(
+                        forecast.temperatureMax,
+                        forecast.temperatureMin,
+                      ),
+                      icon: Icons.thermostat_outlined,
+                    ),
+                    const SizedBox(height: 8),
+                    _CompactForecastInfoRow(
+                      label: precipitationLabel,
+                      value: formatMillimeter(forecast.precipitationSum),
+                      icon: Icons.water_drop_outlined,
+                    ),
+                    const SizedBox(height: 8),
+                    _CompactForecastInfoRow(
+                      label: windLabel,
+                      value: formatWind(forecast.windSpeedMax),
+                      icon: Icons.air_rounded,
+                    ),
+                    const SizedBox(height: 8),
+                    _CompactForecastInfoRow(
+                      label: uvLabel,
+                      value: formatUv(forecast.uvIndexMax),
+                      icon: Icons.wb_sunny_outlined,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1619,7 +1601,7 @@ class _WeeklyForecastRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
@@ -1628,48 +1610,68 @@ class _WeeklyForecastRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: theme.colorScheme.primary),
+            child: Icon(icon, size: 18, color: theme.colorScheme.primary),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  forecast.weekdayLabel,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    '${forecast.weekdayLabel} · $dateLabel ${forecast.label}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '$dateLabel ${forecast.label} · ${forecast.summary}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    forecast.summary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Column(
-                  children: [
-                    _ForecastStatPill(
-                      label: highLowLabel,
-                      value: range,
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    '$highLowLabel $range',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(height: 6),
-                    _ForecastStatPill(
-                      label: precipitationLabel,
-                      value: precipitation,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    '$precipitationLabel $precipitation',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -1680,12 +1682,12 @@ class _WeeklyForecastRow extends StatelessWidget {
   }
 }
 
-class _ForecastMetricTile extends StatelessWidget {
+class _CompactForecastInfoRow extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
 
-  const _ForecastMetricTile({
+  const _CompactForecastInfoRow({
     required this.label,
     required this.value,
     required this.icon,
@@ -1695,62 +1697,26 @@ class _ForecastMetricTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Icon(icon, size: 18, color: theme.colorScheme.primary),
-          const SizedBox(height: 18),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ForecastStatPill extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _ForecastStatPill({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
           Text(
             value,
             style: theme.textTheme.bodyMedium?.copyWith(
