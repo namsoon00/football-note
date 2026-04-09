@@ -257,7 +257,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final airLevel = _aqiLevel(l10n, _aqi);
     final pm10Level = _pm10Level(l10n, _pm10);
     final pm25Level = _pm25Level(l10n, _pm25);
-    final outfitGuide = _buildOutfitGuide(isKo);
+    final legacyOutfitGuide = _buildLegacyOutfitGuide(isKo);
+    final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
       body: AppBackground(
@@ -304,31 +305,32 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                     : const <_CompactMetricData>[],
               ),
               if (hasWeather) ...[
+                const SizedBox(height: 10),
+                _CurrentLocationCard(
+                  title: isKo ? '현재 위치' : 'Current location',
+                  value: _location.isEmpty
+                      ? l10n.homeWeatherLocationUnknown
+                      : _location,
+                ),
                 const SizedBox(height: 12),
                 _WeatherActionsRow(
                   outfitLabel: isKo ? '추천 복장' : 'Recommended Outfit',
                   trainingPointLabel:
                       isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
-                  todayGuideLabel: isKo ? '오늘의 훈련복 가이드' : 'Today Outfit Guide',
                   onOutfitTap: () {
                     _showWeatherGuideSheet(
                       title: isKo ? '추천 복장' : 'Recommended Outfit',
-                      body: '${isKo ? '상의' : 'Top'}: ${outfitGuide.top}\n'
-                          '${isKo ? '하의' : 'Bottom'}: ${outfitGuide.bottom}',
+                      body: _buildOutfitGuideBody(
+                        isKo: isKo,
+                        detailed: detailedOutfitGuide,
+                        legacy: legacyOutfitGuide,
+                      ),
                     );
                   },
                   onTrainingPointTap: () {
                     _showWeatherGuideSheet(
                       title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
                       body: _buildTrainingSuggestion(l10n),
-                    );
-                  },
-                  onTodayGuideTap: () {
-                    _showWeatherGuideSheet(
-                      title: isKo ? '오늘의 훈련복 가이드' : 'Today Outfit Guide',
-                      body: '${isKo ? '상의' : 'Top'}: ${outfitGuide.top}\n\n'
-                          '${isKo ? '하의' : 'Bottom'}: ${outfitGuide.bottom}\n\n'
-                          '${isKo ? '추가 준비물' : 'Extras'}: ${outfitGuide.extras}',
                     );
                   },
                 ),
@@ -742,7 +744,131 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     return suggestions.join(' ');
   }
 
-  _OutfitGuide _buildOutfitGuide(bool isKo) {
+  String _buildOutfitGuideBody({
+    required bool isKo,
+    required _DetailedOutfitGuide detailed,
+    required _OutfitGuide legacy,
+  }) {
+    if (isKo) {
+      return '추천 복장(상세)\n'
+          '레이어: ${detailed.layers}\n'
+          '아우터: ${detailed.outer}\n'
+          '하의: ${detailed.bottom}\n'
+          '방한/보조: ${detailed.accessories}\n'
+          '주의: ${detailed.caution}\n\n'
+          '기존 추천 보기\n'
+          '상의: ${legacy.top}\n'
+          '하의: ${legacy.bottom}\n'
+          '추가 준비물: ${legacy.extras}';
+    }
+    return 'Detailed recommendation\n'
+        'Layers: ${detailed.layers}\n'
+        'Outerwear: ${detailed.outer}\n'
+        'Bottom: ${detailed.bottom}\n'
+        'Cold/weather gear: ${detailed.accessories}\n'
+        'Notes: ${detailed.caution}\n\n'
+        'Previous recommendation\n'
+        'Top: ${legacy.top}\n'
+        'Bottom: ${legacy.bottom}\n'
+        'Extras: ${legacy.extras}';
+  }
+
+  _DetailedOutfitGuide _buildDetailedOutfitGuide(bool isKo) {
+    final apparentTemperature = _apparentTemperature ?? _temperatureMax;
+    final windSpeed = _windSpeed ?? 0;
+    final weatherCode = _weatherCode;
+    final isRainy = weatherCode != null &&
+        <int>{51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99}
+            .contains(weatherCode);
+    final isSnowy = weatherCode != null &&
+        <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
+
+    String layers;
+    String outer;
+    String bottom;
+    String accessories;
+    final notes = <String>[];
+
+    if (apparentTemperature == null) {
+      layers = isKo ? '기능성 이너 + 반팔 훈련복' : 'Base layer + short-sleeve top';
+      outer = isKo ? '얇은 집업 또는 조끼' : 'Light zip-up or vest';
+      bottom = isKo ? '기본 반바지' : 'Standard shorts';
+      accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
+    } else if (apparentTemperature >= 30) {
+      layers =
+          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
+      outer = isKo ? '아우터 없음' : 'No outerwear';
+      bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
+      accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
+      notes.add(isKo ? '과열 방지 위해 휴식 간격을 짧게' : 'Take frequent cooling breaks');
+    } else if (apparentTemperature >= 22) {
+      layers = isKo ? '반팔 훈련복' : 'Short-sleeve training top';
+      outer = isKo ? '얇은 조끼(선택)' : 'Light vest (optional)';
+      bottom = isKo ? '반바지' : 'Training shorts';
+      accessories = isKo ? '여벌 티셔츠, 땀수건' : 'Spare shirt and sweat towel';
+    } else if (apparentTemperature >= 15) {
+      layers = isKo ? '기능성 이너 + 반팔/긴팔' : 'Base layer + short/long sleeve';
+      outer = isKo ? '트레이닝 집업 또는 조끼' : 'Training zip-up or vest';
+      bottom = isKo ? '얇은 긴바지 또는 반바지' : 'Light track pants or shorts';
+      accessories = isKo ? '워밍업용 겉옷' : 'Warm-up layer';
+    } else if (apparentTemperature >= 8) {
+      layers = isKo ? '기모 이너 + 긴팔 훈련복' : 'Brushed base layer + long-sleeve top';
+      outer = isKo ? '바람막이 + 조끼' : 'Windbreaker + vest';
+      bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
+      accessories = isKo ? '얇은 장갑, 넥워머' : 'Light gloves, neck warmer';
+    } else if (apparentTemperature >= 2) {
+      layers =
+          isKo ? '기모 이너 + 긴팔 + 미들레이어' : 'Thermal base + long-sleeve + midlayer';
+      outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
+      bottom = isKo ? '기모 긴바지' : 'Fleece-lined pants';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
+    } else {
+      layers = isKo ? '발열 이너 + 두꺼운 미들레이어' : 'Heat base layer + thick midlayer';
+      outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
+      bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
+      notes.add(isKo
+          ? '실내 워밍업 후 짧은 세트로 진행'
+          : 'Warm up indoors then do short outdoor sets');
+    }
+
+    if (windSpeed >= 20) {
+      notes.add(isKo
+          ? '강풍: 바람막이/넥워머 필수'
+          : 'Strong wind: windbreaker and neck warmer required');
+    }
+    if (isRainy) {
+      outer = isKo
+          ? '생활방수 자켓 + 얇은 미들레이어'
+          : 'Water-resistant jacket + light midlayer';
+      accessories = isKo
+          ? '$accessories, 방수 양말 또는 여벌 양말'
+          : '$accessories, waterproof or spare socks';
+      notes.add(isKo ? '젖은 잔디 미끄럼 주의' : 'Watch slippery wet grass');
+    } else if (isSnowy) {
+      outer = isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket';
+      accessories = isKo
+          ? '$accessories, 손난로(선택)'
+          : '$accessories, hand warmers (optional)';
+      notes.add(isKo ? '빙판 구간 피해서 훈련' : 'Avoid icy zones');
+    }
+
+    return _DetailedOutfitGuide(
+      layers: layers,
+      outer: outer,
+      bottom: bottom,
+      accessories: accessories,
+      caution: notes.isEmpty
+          ? (isKo
+              ? '현재 조건에서 일반 강도 훈련 가능'
+              : 'Normal intensity is fine in current conditions')
+          : notes.join(isKo ? ' · ' : ' · '),
+    );
+  }
+
+  _OutfitGuide _buildLegacyOutfitGuide(bool isKo) {
     final apparentTemperature = _apparentTemperature ?? _temperatureMax;
     final windSpeed = _windSpeed ?? 0;
     final weatherCode = _weatherCode;
@@ -1271,18 +1397,14 @@ class _AirQualityCard extends StatelessWidget {
 class _WeatherActionsRow extends StatelessWidget {
   final String outfitLabel;
   final String trainingPointLabel;
-  final String todayGuideLabel;
   final VoidCallback onOutfitTap;
   final VoidCallback onTrainingPointTap;
-  final VoidCallback onTodayGuideTap;
 
   const _WeatherActionsRow({
     required this.outfitLabel,
     required this.trainingPointLabel,
-    required this.todayGuideLabel,
     required this.onOutfitTap,
     required this.onTrainingPointTap,
-    required this.onTodayGuideTap,
   });
 
   @override
@@ -1300,11 +1422,6 @@ class _WeatherActionsRow extends StatelessWidget {
           label: trainingPointLabel,
           icon: Icons.sports_soccer_rounded,
           onTap: onTrainingPointTap,
-        ),
-        _WeatherActionChip(
-          label: todayGuideLabel,
-          icon: Icons.tips_and_updates_outlined,
-          onTap: onTodayGuideTap,
         ),
       ],
     );
@@ -1328,6 +1445,54 @@ class _WeatherActionChip extends StatelessWidget {
       onPressed: onTap,
       icon: Icon(icon, size: 18),
       label: Text(label),
+    );
+  }
+}
+
+class _CurrentLocationCard extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const _CurrentLocationCard({required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.place_outlined,
+              size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            '$title:',
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2070,6 +2235,22 @@ class _OutfitGuide {
     required this.top,
     required this.bottom,
     required this.extras,
+  });
+}
+
+class _DetailedOutfitGuide {
+  final String layers;
+  final String outer;
+  final String bottom;
+  final String accessories;
+  final String caution;
+
+  const _DetailedOutfitGuide({
+    required this.layers,
+    required this.outer,
+    required this.bottom,
+    required this.accessories,
+    required this.caution,
   });
 }
 
