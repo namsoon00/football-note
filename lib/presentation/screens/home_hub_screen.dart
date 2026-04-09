@@ -440,17 +440,34 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     if (results is! List || results.isEmpty) return '';
     final first = results.first;
     if (first is! Map<String, dynamic>) return '';
-    final city = (first['city'] ?? first['name'] ?? '').toString().trim();
+    final city = (first['city'] ?? '').toString().trim();
+    final district = (first['admin2'] ?? '').toString().trim();
     final region = (first['admin1'] ?? '').toString().trim();
+    final name = (first['name'] ?? '').toString().trim();
     final country = (first['country'] ?? '').toString().trim();
     if (_isKoreaCountry(country)) {
-      if (city.isNotEmpty) return '$city, $koreaLabel';
+      final localParts = <String>[
+        if (city.isNotEmpty) city,
+        if (district.isNotEmpty && district != city) district,
+        if (region.isNotEmpty && region != city && region != district) region,
+        if (name.isNotEmpty &&
+            name != city &&
+            name != district &&
+            name != region)
+          name,
+      ];
+      if (localParts.isNotEmpty) {
+        return '${localParts.take(2).join(' ')}, $koreaLabel';
+      }
       if (region.isNotEmpty) return '$region, $koreaLabel';
       return koreaLabel;
     }
     final parts = <String>[
       if (city.isNotEmpty) city,
+      if (district.isNotEmpty && district != city) district,
       if (region.isNotEmpty && region != city) region,
+      if (name.isNotEmpty && name != city && name != district && name != region)
+        name,
       if (country.isNotEmpty) country,
     ];
     return parts.take(2).join(', ');
@@ -1706,12 +1723,14 @@ class _TodayWeatherButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasWeather = weatherSummary.isNotEmpty;
-    final hasLocation = weatherLocation.isNotEmpty;
     final title = weatherLoading
         ? l10n.homeWeatherLoading
         : hasWeather
             ? weatherSummary
             : l10n.homeWeatherTitle;
+    final locationLabel = weatherLocation.isEmpty
+        ? l10n.homeWeatherLocationUnknown
+        : weatherLocation;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1759,18 +1778,16 @@ class _TodayWeatherButton extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    if (hasLocation) ...[
-                      const SizedBox(height: 1),
-                      Text(
-                        weatherLocation,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    const SizedBox(height: 1),
+                    Text(
+                      locationLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
