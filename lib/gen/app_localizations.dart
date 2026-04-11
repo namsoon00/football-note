@@ -2839,6 +2839,372 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No training or meal entries in the selected period.'**
   String get mealStatsNoTrainingOrMealEntries;
+
+  /// No description provided for @drawerRunningCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'Running Coach'**
+  String get drawerRunningCoach;
+
+  /// No description provided for @runningCoachScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Running Coach'**
+  String get runningCoachScreenTitle;
+
+  /// No description provided for @runningCoachHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Side-view running form coach'**
+  String get runningCoachHeroTitle;
+
+  /// No description provided for @runningCoachHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a short side-view running clip and get quick feedback on posture, bounce, and stride reach.'**
+  String get runningCoachHeroBody;
+
+  /// No description provided for @runningCoachTipsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to record'**
+  String get runningCoachTipsTitle;
+
+  /// No description provided for @runningCoachTipWholeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the full body in frame from head to ankle for the whole clip.'**
+  String get runningCoachTipWholeBody;
+
+  /// No description provided for @runningCoachTipSideView.
+  ///
+  /// In en, this message translates to:
+  /// **'Record from the side while the runner moves across the frame.'**
+  String get runningCoachTipSideView;
+
+  /// No description provided for @runningCoachTipSteadyCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.'**
+  String get runningCoachTipSteadyCamera;
+
+  /// No description provided for @runningCoachSelectedVideoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected video'**
+  String get runningCoachSelectedVideoLabel;
+
+  /// No description provided for @runningCoachNoVideoSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No video selected yet.'**
+  String get runningCoachNoVideoSelected;
+
+  /// No description provided for @runningCoachPickVideoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick video'**
+  String get runningCoachPickVideoAction;
+
+  /// No description provided for @runningCoachAnalyzeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze run'**
+  String get runningCoachAnalyzeAction;
+
+  /// No description provided for @runningCoachAnalysisInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing...'**
+  String get runningCoachAnalysisInProgress;
+
+  /// No description provided for @runningCoachPickVideoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the video picker.'**
+  String get runningCoachPickVideoFailed;
+
+  /// No description provided for @runningCoachUnsupportedPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Running video analysis is currently available on mobile builds only.'**
+  String get runningCoachUnsupportedPlatform;
+
+  /// No description provided for @runningCoachVideoFileMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected video file could not be found.'**
+  String get runningCoachVideoFileMissing;
+
+  /// No description provided for @runningCoachVideoTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'The video is too short. Record at least a few running steps.'**
+  String get runningCoachVideoTooShort;
+
+  /// No description provided for @runningCoachNoPoseDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner could not be tracked well enough. Try a clearer side-view clip.'**
+  String get runningCoachNoPoseDetected;
+
+  /// No description provided for @runningCoachAnalysisFailedGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Running analysis failed. Try another clip with a clearer side view.'**
+  String get runningCoachAnalysisFailedGeneric;
+
+  /// No description provided for @runningCoachResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching results'**
+  String get runningCoachResultsTitle;
+
+  /// No description provided for @runningCoachOverallHeadlineStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong running shape'**
+  String get runningCoachOverallHeadlineStrong;
+
+  /// No description provided for @runningCoachOverallHeadlineSolid.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid base with one clear fix'**
+  String get runningCoachOverallHeadlineSolid;
+
+  /// No description provided for @runningCoachOverallHeadlineNeedsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a cleaner running pattern'**
+  String get runningCoachOverallHeadlineNeedsWork;
+
+  /// No description provided for @runningCoachOverallSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall running score {score}/100'**
+  String runningCoachOverallSummary(int score);
+
+  /// No description provided for @runningCoachDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip'**
+  String get runningCoachDurationLabel;
+
+  /// No description provided for @runningCoachFramesAnalyzedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Frames'**
+  String get runningCoachFramesAnalyzedLabel;
+
+  /// No description provided for @runningCoachCoverageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage'**
+  String get runningCoachCoverageLabel;
+
+  /// No description provided for @runningCoachMetricValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured value'**
+  String get runningCoachMetricValueLabel;
+
+  /// No description provided for @runningCoachStatusGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get runningCoachStatusGood;
+
+  /// No description provided for @runningCoachStatusWatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get runningCoachStatusWatch;
+
+  /// No description provided for @runningCoachStatusNeedsWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs work'**
+  String get runningCoachStatusNeedsWork;
+
+  /// No description provided for @runningCoachLeanValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}° forward lean'**
+  String runningCoachLeanValue(Object value);
+
+  /// No description provided for @runningCoachBounceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}% vertical bounce'**
+  String runningCoachBounceValue(Object value);
+
+  /// No description provided for @runningCoachStrideValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}x stride reach'**
+  String runningCoachStrideValue(Object value);
+
+  /// No description provided for @runningCoachInsightPostureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Posture'**
+  String get runningCoachInsightPostureTitle;
+
+  /// No description provided for @runningCoachPostureGoodSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your body angle is close to a clean sprint posture with a slight forward lean.'**
+  String get runningCoachPostureGoodSummary;
+
+  /// No description provided for @runningCoachPostureGoodCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the chest tall and let the whole body fall forward together.'**
+  String get runningCoachPostureGoodCue;
+
+  /// No description provided for @runningCoachPostureGoodDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 15m wall-lean marches to lock in the same body line.'**
+  String get runningCoachPostureGoodDrill;
+
+  /// No description provided for @runningCoachPostureUprightSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your torso stays too upright, so you may be losing forward intent on each step.'**
+  String get runningCoachPostureUprightSummary;
+
+  /// No description provided for @runningCoachPostureUprightCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Think \"nose over toes\" and let the lean come from the ankles, not the waist.'**
+  String get runningCoachPostureUprightCue;
+
+  /// No description provided for @runningCoachPostureUprightDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 15m falling starts, then 2 x 15m wall-lean marches.'**
+  String get runningCoachPostureUprightDrill;
+
+  /// No description provided for @runningCoachPostureLeanSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your torso is leaning too much, which can make the stride collapse and slow recovery.'**
+  String get runningCoachPostureLeanSummary;
+
+  /// No description provided for @runningCoachPostureLeanCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Run tall through the hips and keep the ribs stacked over the pelvis.'**
+  String get runningCoachPostureLeanCue;
+
+  /// No description provided for @runningCoachPostureLeanDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m tall posture runs with light quick steps.'**
+  String get runningCoachPostureLeanDrill;
+
+  /// No description provided for @runningCoachInsightBounceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounce'**
+  String get runningCoachInsightBounceTitle;
+
+  /// No description provided for @runningCoachBounceGoodSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vertical movement looks controlled, which helps keep energy moving forward.'**
+  String get runningCoachBounceGoodSummary;
+
+  /// No description provided for @runningCoachBounceGoodCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep pushing backward into the ground instead of bouncing upward.'**
+  String get runningCoachBounceGoodCue;
+
+  /// No description provided for @runningCoachBounceGoodDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m ankle dribbles before your next sprint set.'**
+  String get runningCoachBounceGoodDrill;
+
+  /// No description provided for @runningCoachBounceHighSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'There is extra up-and-down bounce in the clip, which can waste energy.'**
+  String get runningCoachBounceHighSummary;
+
+  /// No description provided for @runningCoachBounceHighCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Think quick contacts and push the ground behind you, not straight down.'**
+  String get runningCoachBounceHighCue;
+
+  /// No description provided for @runningCoachBounceHighDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 3 x 20m ankle dribbles and straight-leg runs with short contacts.'**
+  String get runningCoachBounceHighDrill;
+
+  /// No description provided for @runningCoachInsightStrideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stride reach'**
+  String get runningCoachInsightStrideTitle;
+
+  /// No description provided for @runningCoachStrideGoodSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your front foot stays close to a useful landing window under the body.'**
+  String get runningCoachStrideGoodSummary;
+
+  /// No description provided for @runningCoachStrideGoodCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the same timing and let the stride open from force, not from reaching.'**
+  String get runningCoachStrideGoodCue;
+
+  /// No description provided for @runningCoachStrideGoodDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m wicket-style quick step runs to keep the same rhythm.'**
+  String get runningCoachStrideGoodDrill;
+
+  /// No description provided for @runningCoachStrideShortSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your stride reach looks short, so you may be holding back and not opening the run enough.'**
+  String get runningCoachStrideShortSummary;
+
+  /// No description provided for @runningCoachStrideShortCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Drive the knee forward and let the step open naturally behind a faster arm rhythm.'**
+  String get runningCoachStrideShortCue;
+
+  /// No description provided for @runningCoachStrideShortDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m A-march into A-skip to build front-side mechanics.'**
+  String get runningCoachStrideShortDrill;
+
+  /// No description provided for @runningCoachStrideOverSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'The front foot is reaching too far ahead of the body, which can create braking.'**
+  String get runningCoachStrideOverSummary;
+
+  /// No description provided for @runningCoachStrideOverCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Land closer under the hips and let speed come from push-off, not reaching.'**
+  String get runningCoachStrideOverCue;
+
+  /// No description provided for @runningCoachStrideOverDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m A-march and 2 x 20m wicket-style runs with short contacts.'**
+  String get runningCoachStrideOverDrill;
 }
 
 class _AppLocalizationsDelegate

@@ -1479,4 +1479,221 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mealStatsNoTrainingOrMealEntries => '선택한 기간에 훈련 기록과 식사 기록이 없습니다.';
+
+  @override
+  String get drawerRunningCoach => '달리기 코치';
+
+  @override
+  String get runningCoachScreenTitle => '달리기 코치';
+
+  @override
+  String get runningCoachHeroTitle => '측면 달리기 자세 코칭';
+
+  @override
+  String get runningCoachHeroBody =>
+      '짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 보폭 도달 범위를 빠르게 코칭해 줍니다.';
+
+  @override
+  String get runningCoachTipsTitle => '촬영 팁';
+
+  @override
+  String get runningCoachTipWholeBody => '머리부터 발목까지 전신이 영상 안에 계속 들어오게 촬영해 주세요.';
+
+  @override
+  String get runningCoachTipSideView => '러너가 화면을 가로지르도록 측면에서 촬영해 주세요.';
+
+  @override
+  String get runningCoachTipSteadyCamera =>
+      '카메라는 흔들리지 않게 두고 5~15초 정도의 짧은 달리기 장면을 사용해 주세요.';
+
+  @override
+  String get runningCoachSelectedVideoLabel => '선택한 영상';
+
+  @override
+  String get runningCoachNoVideoSelected => '아직 선택한 영상이 없어요.';
+
+  @override
+  String get runningCoachPickVideoAction => '영상 선택';
+
+  @override
+  String get runningCoachAnalyzeAction => '달리기 분석';
+
+  @override
+  String get runningCoachAnalysisInProgress => '분석 중...';
+
+  @override
+  String get runningCoachPickVideoFailed => '영상 선택기를 열지 못했어요.';
+
+  @override
+  String get runningCoachUnsupportedPlatform => '달리기 영상 분석은 현재 모바일 빌드에서만 지원해요.';
+
+  @override
+  String get runningCoachVideoFileMissing => '선택한 영상 파일을 찾지 못했어요.';
+
+  @override
+  String get runningCoachVideoTooShort => '영상이 너무 짧아요. 몇 걸음 이상 달리는 장면을 찍어 주세요.';
+
+  @override
+  String get runningCoachNoPoseDetected =>
+      '러너 자세를 충분히 추적하지 못했어요. 더 선명한 측면 영상을 사용해 주세요.';
+
+  @override
+  String get runningCoachAnalysisFailedGeneric =>
+      '달리기 분석에 실패했어요. 측면이 더 잘 보이는 영상으로 다시 시도해 주세요.';
+
+  @override
+  String get runningCoachResultsTitle => '코칭 결과';
+
+  @override
+  String get runningCoachOverallHeadlineStrong => '달리기 형태가 좋아요';
+
+  @override
+  String get runningCoachOverallHeadlineSolid => '기본은 좋고 한 가지 포인트만 다듬으면 돼요';
+
+  @override
+  String get runningCoachOverallHeadlineNeedsWork =>
+      '달리기 패턴을 더 깔끔하게 만들 필요가 있어요';
+
+  @override
+  String runningCoachOverallSummary(int score) {
+    return '전체 달리기 점수 $score/100';
+  }
+
+  @override
+  String get runningCoachDurationLabel => '영상 길이';
+
+  @override
+  String get runningCoachFramesAnalyzedLabel => '분석 프레임';
+
+  @override
+  String get runningCoachCoverageLabel => '추적 비율';
+
+  @override
+  String get runningCoachMetricValueLabel => '측정값';
+
+  @override
+  String get runningCoachStatusGood => '좋음';
+
+  @override
+  String get runningCoachStatusWatch => '주의';
+
+  @override
+  String get runningCoachStatusNeedsWork => '보완 필요';
+
+  @override
+  String runningCoachLeanValue(Object value) {
+    return '전경사 $value°';
+  }
+
+  @override
+  String runningCoachBounceValue(Object value) {
+    return '수직 바운스 $value%';
+  }
+
+  @override
+  String runningCoachStrideValue(Object value) {
+    return '보폭 도달 $value배';
+  }
+
+  @override
+  String get runningCoachInsightPostureTitle => '상체 자세';
+
+  @override
+  String get runningCoachPostureGoodSummary =>
+      '상체 각도가 가벼운 전경사를 유지해서 깔끔한 스프린트 자세에 가까워요.';
+
+  @override
+  String get runningCoachPostureGoodCue =>
+      '가슴은 세우고 몸 전체가 한 줄로 앞으로 기울어진 느낌을 유지해 보세요.';
+
+  @override
+  String get runningCoachPostureGoodDrill =>
+      '드릴: 벽 기대기 마치 15m x 2세트로 같은 몸선 유지하기.';
+
+  @override
+  String get runningCoachPostureUprightSummary =>
+      '상체가 너무 곧게 서 있어서 한 걸음마다 앞으로 나가는 힘이 줄 수 있어요.';
+
+  @override
+  String get runningCoachPostureUprightCue =>
+      '\"코가 발끝 위에 온다\"는 느낌으로 허리가 아니라 발목에서 가볍게 기울여 보세요.';
+
+  @override
+  String get runningCoachPostureUprightDrill =>
+      '드릴: 폴링 스타트 15m x 2세트 후 벽 기대기 마치 15m x 2세트.';
+
+  @override
+  String get runningCoachPostureLeanSummary =>
+      '상체 기울기가 너무 커서 보폭이 무너지거나 회복 동작이 늦어질 수 있어요.';
+
+  @override
+  String get runningCoachPostureLeanCue =>
+      '엉덩이를 세우고 갈비뼈가 골반 위에 쌓이는 느낌으로 달려 보세요.';
+
+  @override
+  String get runningCoachPostureLeanDrill => '드릴: 가볍고 빠른 발로 톨 포스처 런 20m x 2세트.';
+
+  @override
+  String get runningCoachInsightBounceTitle => '바운스';
+
+  @override
+  String get runningCoachBounceGoodSummary =>
+      '상하 움직임이 잘 제어돼서 에너지가 앞으로 잘 전달되는 편이에요.';
+
+  @override
+  String get runningCoachBounceGoodCue => '위로 튀기보다 뒤로 밀어낸다는 느낌을 계속 가져가세요.';
+
+  @override
+  String get runningCoachBounceGoodDrill => '드릴: 다음 스프린트 전에 앵클 드리블 20m x 2세트.';
+
+  @override
+  String get runningCoachBounceHighSummary =>
+      '상하 바운스가 조금 커서 에너지가 위로 새고 있을 수 있어요.';
+
+  @override
+  String get runningCoachBounceHighCue =>
+      '짧고 빠른 지면 접촉으로 뒤로 밀어내고, 위로 튀는 느낌은 줄여 보세요.';
+
+  @override
+  String get runningCoachBounceHighDrill =>
+      '드릴: 앵클 드리블 20m x 3세트와 스트레이트 레그 런으로 짧은 접촉 만들기.';
+
+  @override
+  String get runningCoachInsightStrideTitle => '보폭 도달';
+
+  @override
+  String get runningCoachStrideGoodSummary =>
+      '앞발 착지가 몸 아래 근처의 좋은 구간 안에 들어오는 편이에요.';
+
+  @override
+  String get runningCoachStrideGoodCue =>
+      '앞으로 뻗으려 하지 말고, 밀어낸 힘으로 자연스럽게 보폭이 열리게 유지하세요.';
+
+  @override
+  String get runningCoachStrideGoodDrill =>
+      '드릴: 빠른 리듬을 유지하는 위켓 스타일 런 20m x 2세트.';
+
+  @override
+  String get runningCoachStrideShortSummary =>
+      '보폭 도달이 짧아서 동작을 너무 묶고 달릴 가능성이 있어 보여요.';
+
+  @override
+  String get runningCoachStrideShortCue =>
+      '팔 리듬을 조금 더 빠르게 쓰고, 무릎을 앞쪽으로 보내면서 보폭이 자연스럽게 열리게 해 보세요.';
+
+  @override
+  String get runningCoachStrideShortDrill =>
+      '드릴: A-마치 후 A-스킵 20m x 2세트로 앞쪽 메커닉 만들기.';
+
+  @override
+  String get runningCoachStrideOverSummary =>
+      '앞발이 몸보다 너무 멀리 나가 브레이크가 걸릴 수 있어요.';
+
+  @override
+  String get runningCoachStrideOverCue =>
+      '엉덩이 아래에 가깝게 착지하고, 뻗기보다 지면을 밀어서 속도를 만드세요.';
+
+  @override
+  String get runningCoachStrideOverDrill =>
+      '드릴: A-마치 20m x 2세트와 짧은 접촉 위켓 스타일 런 20m x 2세트.';
 }

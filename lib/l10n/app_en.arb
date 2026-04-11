@@ -614,5 +614,88 @@
   "fortuneDialogRecommendationTitle": "Fortune note",
   "fortuneDialogEncouragement": "Cheering for your best play today.",
   "fortuneDialogAction": "Nice",
-  "mealStatsNoTrainingOrMealEntries": "No training or meal entries in the selected period."
+  "mealStatsNoTrainingOrMealEntries": "No training or meal entries in the selected period.",
+  "drawerRunningCoach": "Running Coach",
+  "runningCoachScreenTitle": "Running Coach",
+  "runningCoachHeroTitle": "Side-view running form coach",
+  "runningCoachHeroBody": "Upload a short side-view running clip and get quick feedback on posture, bounce, and stride reach.",
+  "runningCoachTipsTitle": "How to record",
+  "runningCoachTipWholeBody": "Keep the full body in frame from head to ankle for the whole clip.",
+  "runningCoachTipSideView": "Record from the side while the runner moves across the frame.",
+  "runningCoachTipSteadyCamera": "Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.",
+  "runningCoachSelectedVideoLabel": "Selected video",
+  "runningCoachNoVideoSelected": "No video selected yet.",
+  "runningCoachPickVideoAction": "Pick video",
+  "runningCoachAnalyzeAction": "Analyze run",
+  "runningCoachAnalysisInProgress": "Analyzing...",
+  "runningCoachPickVideoFailed": "Could not open the video picker.",
+  "runningCoachUnsupportedPlatform": "Running video analysis is currently available on mobile builds only.",
+  "runningCoachVideoFileMissing": "The selected video file could not be found.",
+  "runningCoachVideoTooShort": "The video is too short. Record at least a few running steps.",
+  "runningCoachNoPoseDetected": "The runner could not be tracked well enough. Try a clearer side-view clip.",
+  "runningCoachAnalysisFailedGeneric": "Running analysis failed. Try another clip with a clearer side view.",
+  "runningCoachResultsTitle": "Coaching results",
+  "runningCoachOverallHeadlineStrong": "Strong running shape",
+  "runningCoachOverallHeadlineSolid": "Solid base with one clear fix",
+  "runningCoachOverallHeadlineNeedsWork": "Build a cleaner running pattern",
+  "runningCoachOverallSummary": "Overall running score {score}/100",
+  "@runningCoachOverallSummary": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachDurationLabel": "Clip",
+  "runningCoachFramesAnalyzedLabel": "Frames",
+  "runningCoachCoverageLabel": "Coverage",
+  "runningCoachMetricValueLabel": "Measured value",
+  "runningCoachStatusGood": "Good",
+  "runningCoachStatusWatch": "Watch",
+  "runningCoachStatusNeedsWork": "Needs work",
+  "runningCoachLeanValue": "{value}° forward lean",
+  "@runningCoachLeanValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachBounceValue": "{value}% vertical bounce",
+  "@runningCoachBounceValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachStrideValue": "{value}x stride reach",
+  "@runningCoachStrideValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachInsightPostureTitle": "Posture",
+  "runningCoachPostureGoodSummary": "Your body angle is close to a clean sprint posture with a slight forward lean.",
+  "runningCoachPostureGoodCue": "Keep the chest tall and let the whole body fall forward together.",
+  "runningCoachPostureGoodDrill": "Drill: 2 x 15m wall-lean marches to lock in the same body line.",
+  "runningCoachPostureUprightSummary": "Your torso stays too upright, so you may be losing forward intent on each step.",
+  "runningCoachPostureUprightCue": "Think \"nose over toes\" and let the lean come from the ankles, not the waist.",
+  "runningCoachPostureUprightDrill": "Drill: 2 x 15m falling starts, then 2 x 15m wall-lean marches.",
+  "runningCoachPostureLeanSummary": "Your torso is leaning too much, which can make the stride collapse and slow recovery.",
+  "runningCoachPostureLeanCue": "Run tall through the hips and keep the ribs stacked over the pelvis.",
+  "runningCoachPostureLeanDrill": "Drill: 2 x 20m tall posture runs with light quick steps.",
+  "runningCoachInsightBounceTitle": "Bounce",
+  "runningCoachBounceGoodSummary": "Your vertical movement looks controlled, which helps keep energy moving forward.",
+  "runningCoachBounceGoodCue": "Keep pushing backward into the ground instead of bouncing upward.",
+  "runningCoachBounceGoodDrill": "Drill: 2 x 20m ankle dribbles before your next sprint set.",
+  "runningCoachBounceHighSummary": "There is extra up-and-down bounce in the clip, which can waste energy.",
+  "runningCoachBounceHighCue": "Think quick contacts and push the ground behind you, not straight down.",
+  "runningCoachBounceHighDrill": "Drill: 3 x 20m ankle dribbles and straight-leg runs with short contacts.",
+  "runningCoachInsightStrideTitle": "Stride reach",
+  "runningCoachStrideGoodSummary": "Your front foot stays close to a useful landing window under the body.",
+  "runningCoachStrideGoodCue": "Keep the same timing and let the stride open from force, not from reaching.",
+  "runningCoachStrideGoodDrill": "Drill: 2 x 20m wicket-style quick step runs to keep the same rhythm.",
+  "runningCoachStrideShortSummary": "Your stride reach looks short, so you may be holding back and not opening the run enough.",
+  "runningCoachStrideShortCue": "Drive the knee forward and let the step open naturally behind a faster arm rhythm.",
+  "runningCoachStrideShortDrill": "Drill: 2 x 20m A-march into A-skip to build front-side mechanics.",
+  "runningCoachStrideOverSummary": "The front foot is reaching too far ahead of the body, which can create braking.",
+  "runningCoachStrideOverCue": "Land closer under the hips and let speed come from push-off, not reaching.",
+  "runningCoachStrideOverDrill": "Drill: 2 x 20m A-march and 2 x 20m wicket-style runs with short contacts."
 }
