@@ -141,6 +141,7 @@ close_issue() {
 }
 
 current_branch="$(git rev-parse --abbrev-ref HEAD)"
+worktree_status="$(git status --porcelain)"
 
 if [[ -z "${issue_number}" ]]; then
   issue_number="$(infer_issue_from_message "${commit_message}")"
@@ -152,6 +153,11 @@ fi
 issue_number="$(normalize_issue_number "${issue_number}")"
 
 if [[ "${current_branch}" == "main" ]]; then
+  if [[ -n "${worktree_status}" ]]; then
+    echo "Working tree has uncommitted changes. Commit or stash them before running verify_commit_push on main."
+    git status --short
+    exit 2
+  fi
   echo "==> git pull --rebase origin main"
   git pull --rebase origin main
 fi

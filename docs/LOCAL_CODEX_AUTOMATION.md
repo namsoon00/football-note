@@ -32,6 +32,7 @@ Both run every 30 minutes.
 - `CODEX_APPROVAL`: default `never`
 - `CODEX_UNSAFE`: default `1` (uses `--dangerously-bypass-approvals-and-sandbox`)
 - `CODEX_MODEL`: default `gpt-5` (latest model). Override if needed.
+- `CODEX_REASONING_EFFORT`: optional; supported values are `minimal`, `low`, `medium`, `high` and invalid values are normalized by the harness
 - `RUN_VERIFY`: default `1`; set `0` to skip the worker-side verify/repair loop
 - `AUTO_MERGE`: default `1` (try merge PR to `main` automatically)
 - `AUTO_MERGE_METHOD`: `squash` (default), `merge`, or `rebase`
