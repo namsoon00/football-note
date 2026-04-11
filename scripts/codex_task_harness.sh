@@ -31,6 +31,27 @@ log() {
   echo "[harness] $*"
 }
 
+sanitize_reasoning_effort() {
+  local raw="${1:-${CODEX_REASONING_EFFORT:-${OPENAI_REASONING_EFFORT:-high}}}"
+  case "${raw}" in
+    minimal|low|medium|high)
+      echo "${raw}"
+      ;;
+    xhigh)
+      echo "high"
+      ;;
+    xmedium)
+      echo "medium"
+      ;;
+    xlow)
+      echo "low"
+      ;;
+    *)
+      echo "high"
+      ;;
+  esac
+}
+
 append_unique_line() {
   local target_file="$1"
   local value="$2"
@@ -371,11 +392,19 @@ fi
 
 run_codex_prompt() {
   local prompt_file="$1"
-  local prompt_text exit_code
+  local prompt_text exit_code reasoning_effort
+
+  reasoning_effort="$(sanitize_reasoning_effort)"
+  if [[ "${reasoning_effort}" != "${CODEX_REASONING_EFFORT:-${OPENAI_REASONING_EFFORT:-}}" ]]; then
+    log "Normalizing reasoning.effort to ${reasoning_effort}"
+  fi
 
   if [[ "${USE_CUSTOM_CODEX_CMD:-0}" == "1" && -n "${CODEX_RUNNER_CMD:-}" ]]; then
     log "Running custom Codex command"
-    CODEX_PROMPT_FILE="${prompt_file}" bash -lc "cd \"$ROOT_DIR\" && ${CODEX_RUNNER_CMD}"
+    CODEX_PROMPT_FILE="${prompt_file}" \
+      CODEX_REASONING_EFFORT="${reasoning_effort}" \
+      OPENAI_REASONING_EFFORT="${reasoning_effort}" \
+      bash -lc "cd \"$ROOT_DIR\" && ${CODEX_RUNNER_CMD}"
     return $?
   fi
 
@@ -395,12 +424,14 @@ run_codex_prompt() {
     if [[ "${CODEX_UNSAFE:-1}" == "1" ]]; then
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
+        -c "reasoning.effort=\"${reasoning_effort}\"" \
         --dangerously-bypass-approvals-and-sandbox \
         exec "${prompt_text}"
       exit_code=$?
     else
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
+        -c "reasoning.effort=\"${reasoning_effort}\"" \
         --sandbox "${CODEX_SANDBOX:-workspace-write}" \
         --ask-for-approval "${CODEX_APPROVAL:-never}" \
         exec "${prompt_text}"
@@ -410,12 +441,14 @@ run_codex_prompt() {
     if [[ "${CODEX_UNSAFE:-1}" == "1" ]]; then
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
+        -c "reasoning.effort=\"${reasoning_effort}\"" \
         --dangerously-bypass-approvals-and-sandbox \
         "${prompt_text}"
       exit_code=$?
     else
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
+        -c "reasoning.effort=\"${reasoning_effort}\"" \
         --sandbox "${CODEX_SANDBOX:-workspace-write}" \
         --ask-for-approval "${CODEX_APPROVAL:-never}" \
         "${prompt_text}"
