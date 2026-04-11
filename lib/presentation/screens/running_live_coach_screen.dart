@@ -521,6 +521,16 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       PoseLandmarkType.rightShoulder,
       RunningPoseLandmarkType.rightShoulder,
     );
+    addLandmark(PoseLandmarkType.leftElbow, RunningPoseLandmarkType.leftElbow);
+    addLandmark(
+      PoseLandmarkType.rightElbow,
+      RunningPoseLandmarkType.rightElbow,
+    );
+    addLandmark(PoseLandmarkType.leftWrist, RunningPoseLandmarkType.leftWrist);
+    addLandmark(
+      PoseLandmarkType.rightWrist,
+      RunningPoseLandmarkType.rightWrist,
+    );
     addLandmark(PoseLandmarkType.leftHip, RunningPoseLandmarkType.leftHip);
     addLandmark(PoseLandmarkType.rightHip, RunningPoseLandmarkType.rightHip);
     addLandmark(PoseLandmarkType.leftKnee, RunningPoseLandmarkType.leftKnee);
@@ -1096,18 +1106,31 @@ class _RunningPosePainter extends CustomPainter {
       RunningPoseLandmarkType.leftShoulder,
       RunningPoseLandmarkType.rightShoulder,
     ),
+    (RunningPoseLandmarkType.leftShoulder, RunningPoseLandmarkType.leftElbow),
+    (RunningPoseLandmarkType.leftElbow, RunningPoseLandmarkType.leftWrist),
+    (
+      RunningPoseLandmarkType.rightShoulder,
+      RunningPoseLandmarkType.rightElbow,
+    ),
+    (RunningPoseLandmarkType.rightElbow, RunningPoseLandmarkType.rightWrist),
     (RunningPoseLandmarkType.leftShoulder, RunningPoseLandmarkType.leftHip),
     (RunningPoseLandmarkType.rightShoulder, RunningPoseLandmarkType.rightHip),
     (RunningPoseLandmarkType.leftHip, RunningPoseLandmarkType.rightHip),
-    (RunningPoseLandmarkType.leftShoulder, RunningPoseLandmarkType.leftKnee),
-    (RunningPoseLandmarkType.rightShoulder, RunningPoseLandmarkType.rightKnee),
     (RunningPoseLandmarkType.leftHip, RunningPoseLandmarkType.leftKnee),
     (RunningPoseLandmarkType.rightHip, RunningPoseLandmarkType.rightKnee),
     (RunningPoseLandmarkType.leftKnee, RunningPoseLandmarkType.leftAnkle),
     (RunningPoseLandmarkType.rightKnee, RunningPoseLandmarkType.rightAnkle),
-    (RunningPoseLandmarkType.leftAnkle, RunningPoseLandmarkType.leftFootIndex),
+    (RunningPoseLandmarkType.leftAnkle, RunningPoseLandmarkType.leftHeel),
+    (
+      RunningPoseLandmarkType.leftHeel,
+      RunningPoseLandmarkType.leftFootIndex,
+    ),
     (
       RunningPoseLandmarkType.rightAnkle,
+      RunningPoseLandmarkType.rightHeel,
+    ),
+    (
+      RunningPoseLandmarkType.rightHeel,
       RunningPoseLandmarkType.rightFootIndex,
     ),
   ];
