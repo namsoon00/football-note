@@ -27,3 +27,8 @@
 - All user-facing text must be added through the localization files under `lib/l10n/` and accessed through generated localization classes.
 - Do not introduce new hardcoded UI strings in screens, widgets, dialogs, snackbars, buttons, labels, or tooltips, even if only English/Korean exists today.
 - When adding or changing copy, update every supported ARB file consistently so the app remains ready for additional locales later.
+
+## XP Guide Consistency (Mandatory)
+- Whenever XP, level thresholds, level rewards, streak bonuses, routine bonuses, daily caps, or other progression rules change, update every affected guide/explanation surface in the same task.
+- This includes the XP/level guide screens, summary copy, and any localized reward text under `lib/l10n/*.arb` that mentions concrete XP amounts or progression rules.
+- Do not leave gameplay/progression logic on new numbers while the guide still shows old numbers.
