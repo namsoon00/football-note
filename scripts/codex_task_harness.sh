@@ -396,7 +396,7 @@ run_codex_prompt() {
 
   reasoning_effort="$(sanitize_reasoning_effort)"
   if [[ "${reasoning_effort}" != "${CODEX_REASONING_EFFORT:-${OPENAI_REASONING_EFFORT:-}}" ]]; then
-    log "Normalizing reasoning.effort to ${reasoning_effort}"
+    log "Normalizing model_reasoning_effort to ${reasoning_effort}"
   fi
 
   if [[ "${USE_CUSTOM_CODEX_CMD:-0}" == "1" && -n "${CODEX_RUNNER_CMD:-}" ]]; then
@@ -424,14 +424,14 @@ run_codex_prompt() {
     if [[ "${CODEX_UNSAFE:-1}" == "1" ]]; then
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
-        -c "reasoning.effort=\"${reasoning_effort}\"" \
+        -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --dangerously-bypass-approvals-and-sandbox \
         exec "${prompt_text}"
       exit_code=$?
     else
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
-        -c "reasoning.effort=\"${reasoning_effort}\"" \
+        -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --sandbox "${CODEX_SANDBOX:-workspace-write}" \
         --ask-for-approval "${CODEX_APPROVAL:-never}" \
         exec "${prompt_text}"
@@ -441,14 +441,14 @@ run_codex_prompt() {
     if [[ "${CODEX_UNSAFE:-1}" == "1" ]]; then
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
-        -c "reasoning.effort=\"${reasoning_effort}\"" \
+        -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --dangerously-bypass-approvals-and-sandbox \
         "${prompt_text}"
       exit_code=$?
     else
       codex -C "${ROOT_DIR}" \
         -m "${CODEX_MODEL:-gpt-5}" \
-        -c "reasoning.effort=\"${reasoning_effort}\"" \
+        -c "model_reasoning_effort=\"${reasoning_effort}\"" \
         --sandbox "${CODEX_SANDBOX:-workspace-write}" \
         --ask-for-approval "${CODEX_APPROVAL:-never}" \
         "${prompt_text}"
