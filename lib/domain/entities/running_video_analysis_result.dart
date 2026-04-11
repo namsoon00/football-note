@@ -1,6 +1,12 @@
 enum RunningDirection { leftToRight, rightToLeft, stationary }
 
-enum RunningCoachMetric { posture, bounce, stride }
+enum RunningCoachMetric {
+  posture,
+  bounce,
+  footStrike,
+  kneeFlexion,
+  armCarriage,
+}
 
 enum RunningCoachStatus { good, watch, needsWork }
 
@@ -10,9 +16,14 @@ enum RunningCoachFinding {
   postureTooLean,
   bounceEfficient,
   bounceTooHigh,
-  strideBalanced,
-  strideTooShort,
-  strideOverstride,
+  footStrikeUnderBody,
+  footStrikeOverstride,
+  kneeFlexionLoaded,
+  kneeTooStraight,
+  kneeTooCollapsed,
+  armCompact,
+  armTooOpen,
+  armTooTight,
 }
 
 class RunningVideoAnalysisResult {
@@ -22,7 +33,9 @@ class RunningVideoAnalysisResult {
   final RunningDirection direction;
   final double forwardLeanDegrees;
   final double verticalBounceRatio;
-  final double strideReachRatio;
+  final double footStrikeDistanceRatio;
+  final double stanceKneeAngleDegrees;
+  final double elbowAngleDegrees;
 
   const RunningVideoAnalysisResult({
     required this.videoDuration,
@@ -31,7 +44,9 @@ class RunningVideoAnalysisResult {
     required this.direction,
     required this.forwardLeanDegrees,
     required this.verticalBounceRatio,
-    required this.strideReachRatio,
+    required this.footStrikeDistanceRatio,
+    required this.stanceKneeAngleDegrees,
+    required this.elbowAngleDegrees,
   });
 
   double get validFrameCoverage =>
@@ -54,7 +69,11 @@ class RunningVideoAnalysisResult {
       forwardLeanDegrees: (map['forwardLeanDegrees'] as num?)?.toDouble() ?? 0,
       verticalBounceRatio:
           (map['verticalBounceRatio'] as num?)?.toDouble() ?? 0,
-      strideReachRatio: (map['strideReachRatio'] as num?)?.toDouble() ?? 0,
+      footStrikeDistanceRatio:
+          (map['footStrikeDistanceRatio'] as num?)?.toDouble() ?? 0,
+      stanceKneeAngleDegrees:
+          (map['stanceKneeAngleDegrees'] as num?)?.toDouble() ?? 0,
+      elbowAngleDegrees: (map['elbowAngleDegrees'] as num?)?.toDouble() ?? 0,
     );
   }
 }
