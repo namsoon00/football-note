@@ -14,8 +14,8 @@ Coding agent flow:
   - optionally close issue
 
 Usage:
-  ./scripts/coding_agent.sh -m "<commit message>" [--issue <number>] [-b <branch>]
-  ./scripts/coding_agent.sh -m "<commit message>" --title "<task>" [--body "<details>" | --body-file task.md]
+  ./scripts/coding_agent.sh -m "<commit message (#123 or #0)>" [--issue <number>] [-b <branch>]
+  ./scripts/coding_agent.sh -m "<commit message (#123 or #0)>" --title "<task>" [--body "<details>" | --body-file task.md]
 EOF
 }
 

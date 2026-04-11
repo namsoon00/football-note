@@ -66,6 +66,15 @@ infer_issue_from_message() {
   fi
 }
 
+normalize_issue_number() {
+  local raw="$1"
+  if [[ "${raw}" == "0" ]]; then
+    echo ""
+  else
+    echo "${raw}"
+  fi
+}
+
 slugify() {
   echo "$1" \
     | tr '[:upper:]' '[:lower:]' \
@@ -139,6 +148,8 @@ if [[ -z "${issue_number}" ]]; then
     echo "==> inferred issue #${issue_number} from commit message"
   fi
 fi
+
+issue_number="$(normalize_issue_number "${issue_number}")"
 
 if [[ "${current_branch}" == "main" ]]; then
   echo "==> git pull --rebase origin main"
