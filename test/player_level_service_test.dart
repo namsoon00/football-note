@@ -4,9 +4,12 @@ import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 
 void main() {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day, 18);
+
   test('reward becomes available and can be claimed once', () async {
     final repository = _MemoryOptionRepository()
-      ..seed(PlayerLevelService.totalXpKey, 60);
+      ..seed(PlayerLevelService.totalXpKey, 40);
     final service = PlayerLevelService(repository);
     await service.setCustomRewardName(2, '새 축구 양말');
 
@@ -34,7 +37,7 @@ void main() {
 
   test('custom reward name is stored and returned on claim', () async {
     final repository = _MemoryOptionRepository()
-      ..seed(PlayerLevelService.totalXpKey, 60);
+      ..seed(PlayerLevelService.totalXpKey, 40);
     final service = PlayerLevelService(repository);
 
     await service.setCustomRewardName(2, '새 축구 양말');
@@ -50,7 +53,7 @@ void main() {
 
   test('claim is blocked when reward name is empty', () async {
     final repository = _MemoryOptionRepository()
-      ..seed(PlayerLevelService.totalXpKey, 60);
+      ..seed(PlayerLevelService.totalXpKey, 40);
     final service = PlayerLevelService(repository);
 
     final claim = await service.claimRewardForLevel(2);
@@ -60,7 +63,7 @@ void main() {
 
   test('level thresholds now support up to level 20', () {
     expect(PlayerLevelService.levelThresholds, hasLength(20));
-    expect(PlayerLevelState.fromXp(7000).level, 20);
+    expect(PlayerLevelState.fromXp(15000).level, 20);
   });
 
   test('illustration labels are unique through level 20', () {
@@ -81,7 +84,7 @@ void main() {
 
       final award = await service.awardForTrainingLog(
         entry: TrainingEntry(
-          date: DateTime(2026, 3, 18, 18),
+          date: today,
           durationMinutes: 40,
           intensity: 3,
           type: '패스',
@@ -109,8 +112,8 @@ void main() {
 
     await service.awardForTrainingLog(
       entry: TrainingEntry(
-        date: DateTime(2026, 3, 18, 18),
-        createdAt: DateTime(2026, 3, 18, 18, 30),
+        date: today,
+        createdAt: DateTime(today.year, today.month, today.day, 18, 30),
         durationMinutes: 55,
         intensity: 4,
         type: '패스',
@@ -131,7 +134,7 @@ void main() {
     expect(history, hasLength(1));
     expect(history.first.category, PlayerXpHistoryCategory.training);
     expect(history.first.label, '원터치 패스');
-    expect(history.first.totalXp, 130);
+    expect(history.first.totalXp, 120);
     expect(history.first.reasons, contains('log'));
   });
 
@@ -142,7 +145,7 @@ void main() {
 
     final award = await service.awardForTrainingLog(
       entry: TrainingEntry(
-        date: DateTime(2026, 3, 18, 18),
+        date: today,
         durationMinutes: 55,
         intensity: 4,
         type: '패스',
@@ -163,9 +166,9 @@ void main() {
       existingEntries: const [],
     );
 
-    expect(award.gainedXp, 45);
+    expect(award.gainedXp, 34);
     expect(award.reasons, contains('meal_full_day'));
-    expect(service.loadState().totalXp, 145);
+    expect(service.loadState().totalXp, 134);
   });
 
   test(
@@ -177,7 +180,7 @@ void main() {
 
       final award = await service.awardForTrainingLogUpdate(
         previousEntry: TrainingEntry(
-          date: DateTime(2026, 3, 18, 18),
+          date: today,
           durationMinutes: 55,
           intensity: 4,
           type: '패스',
@@ -187,8 +190,8 @@ void main() {
           location: '운동장',
         ),
         updatedEntry: TrainingEntry(
-          date: DateTime(2026, 3, 18, 18),
-          createdAt: DateTime(2026, 3, 18, 19),
+          date: today,
+          createdAt: DateTime(today.year, today.month, today.day, 19),
           durationMinutes: 55,
           intensity: 4,
           type: '패스',
@@ -203,12 +206,12 @@ void main() {
         ),
       );
 
-      expect(award.gainedXp, 20);
+      expect(award.gainedXp, 12);
       expect(
         award.reasons,
         containsAll(<String>['lifting_added', 'jump_rope_added']),
       );
-      expect(service.loadState().totalXp, 120);
+      expect(service.loadState().totalXp, 112);
 
       final history = service.loadXpHistory();
       expect(history, hasLength(1));
@@ -226,7 +229,7 @@ void main() {
 
       final award = await service.awardForTrainingLogUpdate(
         previousEntry: TrainingEntry(
-          date: DateTime(2026, 3, 18, 18),
+          date: today,
           durationMinutes: 55,
           intensity: 4,
           type: '패스',
@@ -236,8 +239,8 @@ void main() {
           location: '운동장',
         ),
         updatedEntry: TrainingEntry(
-          date: DateTime(2026, 3, 18, 18),
-          createdAt: DateTime(2026, 3, 18, 19),
+          date: today,
+          createdAt: DateTime(today.year, today.month, today.day, 19),
           durationMinutes: 55,
           intensity: 4,
           type: '패스',
@@ -252,9 +255,9 @@ void main() {
         ),
       );
 
-      expect(award.gainedXp, 5);
+      expect(award.gainedXp, 3);
       expect(award.reasons, contains('meal_two_plus'));
-      expect(service.loadState().totalXp, 105);
+      expect(service.loadState().totalXp, 103);
     },
   );
 
@@ -276,17 +279,17 @@ void main() {
         savedAt: DateTime(2026, 3, 22, 18),
       );
       final diaryAward = await service.awardForDiaryCreated(
-        createdAt: DateTime(2026, 3, 22, 21),
+        createdAt: DateTime(today.year, today.month, today.day, 21),
       );
       final diaryAwardDuplicate = await service.awardForDiaryCreated(
-        createdAt: DateTime(2026, 3, 22, 22),
+        createdAt: DateTime(today.year, today.month, today.day, 22),
       );
 
-      expect(boardAward.gainedXp, 12);
+      expect(boardAward.gainedXp, 5);
       expect(boardAwardDuplicate.gainedXp, 0);
-      expect(diaryAward.gainedXp, 5);
+      expect(diaryAward.gainedXp, 3);
       expect(diaryAwardDuplicate.gainedXp, 0);
-      expect(service.loadState().totalXp, 17);
+      expect(service.loadState().totalXp, 8);
 
       final history = service.loadXpHistory();
       expect(history, hasLength(2));
@@ -309,10 +312,10 @@ void main() {
       completedAt: DateTime(2026, 3, 25, 0, 5),
     );
 
-    expect(award.gainedXp, 15);
+    expect(award.gainedXp, 8);
     expect(duplicate.gainedXp, 0);
-    expect(nextDay.gainedXp, 15);
-    expect(service.loadState().totalXp, 30);
+    expect(nextDay.gainedXp, 8);
+    expect(service.loadState().totalXp, 16);
 
     final history = service.loadXpHistory();
     expect(history, hasLength(2));
@@ -334,7 +337,7 @@ void main() {
       planIds: const ['plan-1', 'plan-2', 'plan-3'],
     );
 
-    expect(award.gainedXp, 20);
+    expect(award.gainedXp, 12);
     expect(award.reasons, contains('plan_created'));
     expect(award.reasons, contains('plan_group_created:3'));
     expect(duplicateAward.gainedXp, 0);
@@ -343,6 +346,32 @@ void main() {
     expect(history, hasLength(1));
     expect(history.first.category, PlayerXpHistoryCategory.plan);
     expect(history.first.reasons, contains('plan_group_created:3'));
+  });
+
+  test('daily positive xp is capped to keep level-ups slower', () async {
+    final repository = _MemoryOptionRepository()
+      ..seed(PlayerLevelService.totalXpKey, 64)
+      ..seed(PlayerLevelService.xpHistoryKey, <Map<String, dynamic>>[
+        PlayerXpHistoryEntry(
+          awardedAt: DateTime(2026, 3, 22, 9),
+          deltaXp: 64,
+          totalXp: 64,
+          beforeLevel: 1,
+          afterLevel: 2,
+          category: PlayerXpHistoryCategory.training,
+          label: '드리블',
+          reasons: const <String>['log'],
+        ).toMap(),
+      ]);
+    final service = PlayerLevelService(repository);
+
+    final award = await service.awardForQuizCompletion(
+      completedAt: DateTime(2026, 3, 22, 20),
+    );
+
+    expect(award.gainedXp, 1);
+    expect(award.reasons, contains('daily_xp_cap'));
+    expect(service.loadState().totalXp, 65);
   });
 
   test(
@@ -357,7 +386,9 @@ void main() {
         savedAt: DateTime(2026, 3, 22, 10),
         created: true,
       );
-      await service.awardForDiaryCreated(createdAt: DateTime(2026, 3, 22, 21));
+      await service.awardForDiaryCreated(
+        createdAt: DateTime(today.year, today.month, today.day, 21),
+      );
 
       final history = service.loadXpHistory();
       expect(history, hasLength(2));
