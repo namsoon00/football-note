@@ -43,6 +43,13 @@ Local Codex tasks can share the same harness as the issue worker:
   --body "Unify local CLI and issue worker through the shared harness."
 ```
 
+Chat-style requests can go through the same flow with a single entrypoint:
+
+```bash
+./scripts/cli.sh request \
+  --request "Unify the onboarding CTA spacing and add tests for the updated layout."
+```
+
 ## Issue Workflow
 
 This repo supports issue-driven remote tasking.
