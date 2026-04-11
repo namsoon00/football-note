@@ -11,7 +11,7 @@ Usage:
   ./scripts/cli.sh <command>
 
 Commands:
-  coding    Coding agent flow (verify -> branch merge -> push main)
+  coding    Coding agent flow (optional harness -> verify -> branch merge -> push main)
   build     Build agent flow (ios/android/all)
   verify    Run full verification (includes iOS simulator build/run)
   verify-push  Verify, commit on work branch, merge/push main (supports --issue N)
