@@ -13,6 +13,7 @@ import '../screens/training_method_board_screen.dart';
 import '../screens/news_screen.dart';
 import '../screens/notification_center_screen.dart';
 import '../screens/skill_quiz_screen.dart';
+import '../screens/running_coach_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -195,6 +196,18 @@ class AppDrawer extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) =>
                             SkillQuizScreen(optionRepository: optionRepository),
+                      ),
+                    );
+                  },
+                ),
+                _DrawerActionTile(
+                  icon: Icons.directions_run_outlined,
+                  label: l10n.drawerRunningCoach,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RunningCoachScreen(),
                       ),
                     );
                   },

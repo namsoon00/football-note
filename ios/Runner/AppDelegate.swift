@@ -5,6 +5,8 @@ import GoogleSignIn
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private var runningPoseAnalysisChannel: RunningPoseAnalysisChannel?
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -31,7 +33,13 @@ import GoogleSignIn
         clientID: "771305087734-9t068sugq2613or2h7h53vnr1vgld604.apps.googleusercontent.com"
       )
     }
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    let didFinish = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    if let controller = window?.rootViewController as? FlutterViewController {
+      runningPoseAnalysisChannel = RunningPoseAnalysisChannel(
+        binaryMessenger: controller.binaryMessenger
+      )
+    }
+    return didFinish
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {

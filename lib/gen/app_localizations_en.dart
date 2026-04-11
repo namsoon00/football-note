@@ -1513,4 +1513,230 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mealStatsNoTrainingOrMealEntries =>
       'No training or meal entries in the selected period.';
+
+  @override
+  String get drawerRunningCoach => 'Running Coach';
+
+  @override
+  String get runningCoachScreenTitle => 'Running Coach';
+
+  @override
+  String get runningCoachHeroTitle => 'Side-view running form coach';
+
+  @override
+  String get runningCoachHeroBody =>
+      'Upload a short side-view running clip and get quick feedback on posture, bounce, and stride reach.';
+
+  @override
+  String get runningCoachTipsTitle => 'How to record';
+
+  @override
+  String get runningCoachTipWholeBody =>
+      'Keep the full body in frame from head to ankle for the whole clip.';
+
+  @override
+  String get runningCoachTipSideView =>
+      'Record from the side while the runner moves across the frame.';
+
+  @override
+  String get runningCoachTipSteadyCamera =>
+      'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.';
+
+  @override
+  String get runningCoachSelectedVideoLabel => 'Selected video';
+
+  @override
+  String get runningCoachNoVideoSelected => 'No video selected yet.';
+
+  @override
+  String get runningCoachPickVideoAction => 'Pick video';
+
+  @override
+  String get runningCoachAnalyzeAction => 'Analyze run';
+
+  @override
+  String get runningCoachAnalysisInProgress => 'Analyzing...';
+
+  @override
+  String get runningCoachPickVideoFailed => 'Could not open the video picker.';
+
+  @override
+  String get runningCoachUnsupportedPlatform =>
+      'Running video analysis is currently available on mobile builds only.';
+
+  @override
+  String get runningCoachVideoFileMissing =>
+      'The selected video file could not be found.';
+
+  @override
+  String get runningCoachVideoTooShort =>
+      'The video is too short. Record at least a few running steps.';
+
+  @override
+  String get runningCoachNoPoseDetected =>
+      'The runner could not be tracked well enough. Try a clearer side-view clip.';
+
+  @override
+  String get runningCoachAnalysisFailedGeneric =>
+      'Running analysis failed. Try another clip with a clearer side view.';
+
+  @override
+  String get runningCoachResultsTitle => 'Coaching results';
+
+  @override
+  String get runningCoachOverallHeadlineStrong => 'Strong running shape';
+
+  @override
+  String get runningCoachOverallHeadlineSolid =>
+      'Solid base with one clear fix';
+
+  @override
+  String get runningCoachOverallHeadlineNeedsWork =>
+      'Build a cleaner running pattern';
+
+  @override
+  String runningCoachOverallSummary(int score) {
+    return 'Overall running score $score/100';
+  }
+
+  @override
+  String get runningCoachDurationLabel => 'Clip';
+
+  @override
+  String get runningCoachFramesAnalyzedLabel => 'Frames';
+
+  @override
+  String get runningCoachCoverageLabel => 'Coverage';
+
+  @override
+  String get runningCoachMetricValueLabel => 'Measured value';
+
+  @override
+  String get runningCoachStatusGood => 'Good';
+
+  @override
+  String get runningCoachStatusWatch => 'Watch';
+
+  @override
+  String get runningCoachStatusNeedsWork => 'Needs work';
+
+  @override
+  String runningCoachLeanValue(Object value) {
+    return '$value° forward lean';
+  }
+
+  @override
+  String runningCoachBounceValue(Object value) {
+    return '$value% vertical bounce';
+  }
+
+  @override
+  String runningCoachStrideValue(Object value) {
+    return '${value}x stride reach';
+  }
+
+  @override
+  String get runningCoachInsightPostureTitle => 'Posture';
+
+  @override
+  String get runningCoachPostureGoodSummary =>
+      'Your body angle is close to a clean sprint posture with a slight forward lean.';
+
+  @override
+  String get runningCoachPostureGoodCue =>
+      'Keep the chest tall and let the whole body fall forward together.';
+
+  @override
+  String get runningCoachPostureGoodDrill =>
+      'Drill: 2 x 15m wall-lean marches to lock in the same body line.';
+
+  @override
+  String get runningCoachPostureUprightSummary =>
+      'Your torso stays too upright, so you may be losing forward intent on each step.';
+
+  @override
+  String get runningCoachPostureUprightCue =>
+      'Think \"nose over toes\" and let the lean come from the ankles, not the waist.';
+
+  @override
+  String get runningCoachPostureUprightDrill =>
+      'Drill: 2 x 15m falling starts, then 2 x 15m wall-lean marches.';
+
+  @override
+  String get runningCoachPostureLeanSummary =>
+      'Your torso is leaning too much, which can make the stride collapse and slow recovery.';
+
+  @override
+  String get runningCoachPostureLeanCue =>
+      'Run tall through the hips and keep the ribs stacked over the pelvis.';
+
+  @override
+  String get runningCoachPostureLeanDrill =>
+      'Drill: 2 x 20m tall posture runs with light quick steps.';
+
+  @override
+  String get runningCoachInsightBounceTitle => 'Bounce';
+
+  @override
+  String get runningCoachBounceGoodSummary =>
+      'Your vertical movement looks controlled, which helps keep energy moving forward.';
+
+  @override
+  String get runningCoachBounceGoodCue =>
+      'Keep pushing backward into the ground instead of bouncing upward.';
+
+  @override
+  String get runningCoachBounceGoodDrill =>
+      'Drill: 2 x 20m ankle dribbles before your next sprint set.';
+
+  @override
+  String get runningCoachBounceHighSummary =>
+      'There is extra up-and-down bounce in the clip, which can waste energy.';
+
+  @override
+  String get runningCoachBounceHighCue =>
+      'Think quick contacts and push the ground behind you, not straight down.';
+
+  @override
+  String get runningCoachBounceHighDrill =>
+      'Drill: 3 x 20m ankle dribbles and straight-leg runs with short contacts.';
+
+  @override
+  String get runningCoachInsightStrideTitle => 'Stride reach';
+
+  @override
+  String get runningCoachStrideGoodSummary =>
+      'Your front foot stays close to a useful landing window under the body.';
+
+  @override
+  String get runningCoachStrideGoodCue =>
+      'Keep the same timing and let the stride open from force, not from reaching.';
+
+  @override
+  String get runningCoachStrideGoodDrill =>
+      'Drill: 2 x 20m wicket-style quick step runs to keep the same rhythm.';
+
+  @override
+  String get runningCoachStrideShortSummary =>
+      'Your stride reach looks short, so you may be holding back and not opening the run enough.';
+
+  @override
+  String get runningCoachStrideShortCue =>
+      'Drive the knee forward and let the step open naturally behind a faster arm rhythm.';
+
+  @override
+  String get runningCoachStrideShortDrill =>
+      'Drill: 2 x 20m A-march into A-skip to build front-side mechanics.';
+
+  @override
+  String get runningCoachStrideOverSummary =>
+      'The front foot is reaching too far ahead of the body, which can create braking.';
+
+  @override
+  String get runningCoachStrideOverCue =>
+      'Land closer under the hips and let speed come from push-off, not reaching.';
+
+  @override
+  String get runningCoachStrideOverDrill =>
+      'Drill: 2 x 20m A-march and 2 x 20m wicket-style runs with short contacts.';
 }
