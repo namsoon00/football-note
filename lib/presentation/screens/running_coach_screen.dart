@@ -538,8 +538,12 @@ class _InsightCopy {
         l10n.runningCoachLeanValue(insight.value.toStringAsFixed(1)),
       RunningCoachMetric.bounce =>
         l10n.runningCoachBounceValue(insight.value.toStringAsFixed(1)),
-      RunningCoachMetric.stride =>
-        l10n.runningCoachStrideValue(insight.value.toStringAsFixed(2)),
+      RunningCoachMetric.footStrike =>
+        l10n.runningCoachFootStrikeValue(insight.value.toStringAsFixed(2)),
+      RunningCoachMetric.kneeFlexion =>
+        l10n.runningCoachKneeValue(insight.value.toStringAsFixed(0)),
+      RunningCoachMetric.armCarriage =>
+        l10n.runningCoachArmValue(insight.value.toStringAsFixed(0)),
     };
 
     return switch (insight.finding) {
@@ -583,27 +587,67 @@ class _InsightCopy {
           statusLabel: statusLabel,
           value: value,
         ),
-      RunningCoachFinding.strideBalanced => _InsightCopy(
-          title: l10n.runningCoachInsightStrideTitle,
-          summary: l10n.runningCoachStrideGoodSummary,
-          cue: l10n.runningCoachStrideGoodCue,
-          drill: l10n.runningCoachStrideGoodDrill,
+      RunningCoachFinding.footStrikeUnderBody => _InsightCopy(
+          title: l10n.runningCoachInsightFootStrikeTitle,
+          summary: l10n.runningCoachFootStrikeGoodSummary,
+          cue: l10n.runningCoachFootStrikeGoodCue,
+          drill: l10n.runningCoachFootStrikeGoodDrill,
           statusLabel: statusLabel,
           value: value,
         ),
-      RunningCoachFinding.strideTooShort => _InsightCopy(
-          title: l10n.runningCoachInsightStrideTitle,
-          summary: l10n.runningCoachStrideShortSummary,
-          cue: l10n.runningCoachStrideShortCue,
-          drill: l10n.runningCoachStrideShortDrill,
+      RunningCoachFinding.footStrikeOverstride => _InsightCopy(
+          title: l10n.runningCoachInsightFootStrikeTitle,
+          summary: l10n.runningCoachFootStrikeOverSummary,
+          cue: l10n.runningCoachFootStrikeOverCue,
+          drill: l10n.runningCoachFootStrikeOverDrill,
           statusLabel: statusLabel,
           value: value,
         ),
-      RunningCoachFinding.strideOverstride => _InsightCopy(
-          title: l10n.runningCoachInsightStrideTitle,
-          summary: l10n.runningCoachStrideOverSummary,
-          cue: l10n.runningCoachStrideOverCue,
-          drill: l10n.runningCoachStrideOverDrill,
+      RunningCoachFinding.kneeFlexionLoaded => _InsightCopy(
+          title: l10n.runningCoachInsightKneeTitle,
+          summary: l10n.runningCoachKneeGoodSummary,
+          cue: l10n.runningCoachKneeGoodCue,
+          drill: l10n.runningCoachKneeGoodDrill,
+          statusLabel: statusLabel,
+          value: value,
+        ),
+      RunningCoachFinding.kneeTooStraight => _InsightCopy(
+          title: l10n.runningCoachInsightKneeTitle,
+          summary: l10n.runningCoachKneeStraightSummary,
+          cue: l10n.runningCoachKneeStraightCue,
+          drill: l10n.runningCoachKneeStraightDrill,
+          statusLabel: statusLabel,
+          value: value,
+        ),
+      RunningCoachFinding.kneeTooCollapsed => _InsightCopy(
+          title: l10n.runningCoachInsightKneeTitle,
+          summary: l10n.runningCoachKneeCollapseSummary,
+          cue: l10n.runningCoachKneeCollapseCue,
+          drill: l10n.runningCoachKneeCollapseDrill,
+          statusLabel: statusLabel,
+          value: value,
+        ),
+      RunningCoachFinding.armCompact => _InsightCopy(
+          title: l10n.runningCoachInsightArmTitle,
+          summary: l10n.runningCoachArmGoodSummary,
+          cue: l10n.runningCoachArmGoodCue,
+          drill: l10n.runningCoachArmGoodDrill,
+          statusLabel: statusLabel,
+          value: value,
+        ),
+      RunningCoachFinding.armTooOpen => _InsightCopy(
+          title: l10n.runningCoachInsightArmTitle,
+          summary: l10n.runningCoachArmOpenSummary,
+          cue: l10n.runningCoachArmOpenCue,
+          drill: l10n.runningCoachArmOpenDrill,
+          statusLabel: statusLabel,
+          value: value,
+        ),
+      RunningCoachFinding.armTooTight => _InsightCopy(
+          title: l10n.runningCoachInsightArmTitle,
+          summary: l10n.runningCoachArmTightSummary,
+          cue: l10n.runningCoachArmTightCue,
+          drill: l10n.runningCoachArmTightDrill,
           statusLabel: statusLabel,
           value: value,
         ),

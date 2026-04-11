@@ -1491,13 +1491,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachHeroBody =>
-      '짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 보폭 도달 범위를 빠르게 코칭해 줍니다.';
+      '짧은 측면 달리기 영상을 올리면 상체 자세, 바운스, 발 착지, 무릎 굴곡, 팔 각도까지 더 엄격하게 코칭해 줍니다.';
 
   @override
   String get runningCoachTipsTitle => '촬영 팁';
 
   @override
-  String get runningCoachTipWholeBody => '머리부터 발목까지 전신이 영상 안에 계속 들어오게 촬영해 주세요.';
+  String get runningCoachTipWholeBody =>
+      '머리부터 발목까지 전신이 들어오고, 팔꿈치와 발도 계속 보이게 촬영해 주세요.';
 
   @override
   String get runningCoachTipSideView => '러너가 화면을 가로지르도록 측면에서 촬영해 주세요.';
@@ -1511,7 +1512,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '카메라를 켜 두면 화면이 잘못 잡혔는지 먼저 알려 주고, 자세가 안정되면 바로 코칭해 줘요.';
+      '카메라를 켜 두면 화면부터 먼저 바로잡아 주고, 측면 자세가 안정되면 상체, 바운스, 발 착지, 무릎 굴곡, 팔 각도를 바로 코칭해 줘요.';
 
   @override
   String get runningCoachLiveAction => '실시간 코치 시작';
@@ -1544,7 +1545,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipBodyBody =>
-      '머리, 엉덩이, 발목이 모두 프레임 안에 남아야 자세 선과 점수가 안정적으로 나와요.';
+      '머리, 팔꿈치, 엉덩이, 발목이 모두 프레임 안에 남아야 자세 선과 점수가 안정적으로 나와요.';
 
   @override
   String get runningCoachLiveGuideTipHudTitle => '러너 주변에 여백을 남겨 주세요';
@@ -1668,7 +1669,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachNoPoseDetected =>
-      '러너 자세를 충분히 추적하지 못했어요. 더 선명한 측면 영상을 사용해 주세요.';
+      '러너 자세를 충분히 추적하지 못했어요. 팔꿈치, 무릎, 발이 잘 보이는 더 선명한 측면 영상을 사용해 주세요.';
 
   @override
   String get runningCoachAnalysisFailedGeneric =>
@@ -1721,6 +1722,21 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String runningCoachBounceValue(Object value) {
     return '수직 바운스 $value%';
+  }
+
+  @override
+  String runningCoachFootStrikeValue(Object value) {
+    return '엉덩이 앞 $value배';
+  }
+
+  @override
+  String runningCoachKneeValue(Object value) {
+    return '지지 무릎 각도 $value°';
+  }
+
+  @override
+  String runningCoachArmValue(Object value) {
+    return '팔꿈치 각도 $value°';
   }
 
   @override
@@ -1790,6 +1806,110 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachBounceHighDrill =>
       '드릴: 앵클 드리블 20m x 3세트와 스트레이트 레그 런으로 짧은 접촉 만들기.';
+
+  @override
+  String get runningCoachInsightFootStrikeTitle => '발 착지';
+
+  @override
+  String get runningCoachFootStrikeGoodSummary =>
+      '앞발이 엉덩이 아래에 비교적 가깝게 착지해서 리듬을 끊지 않고 앞으로 이어 갈 수 있어요.';
+
+  @override
+  String get runningCoachFootStrikeGoodCue =>
+      '앞으로 뻗기보다 엉덩이 아래에 가깝게 착지하고 뒤로 밀어내는 느낌을 유지하세요.';
+
+  @override
+  String get runningCoachFootStrikeGoodDrill =>
+      '드릴: 짧고 빠른 접촉을 만드는 위켓 스타일 런 20m x 2세트.';
+
+  @override
+  String get runningCoachFootStrikeOverSummary =>
+      '앞발이 엉덩이보다 너무 멀리 앞에 닿아 접지 때 브레이크가 걸릴 수 있어요.';
+
+  @override
+  String get runningCoachFootStrikeOverCue =>
+      '착지 지점을 엉덩이 아래로 더 당기고, 앞으로 뻗기보다 뒤로 미는 느낌을 가져가세요.';
+
+  @override
+  String get runningCoachFootStrikeOverDrill =>
+      '드릴: A-마치 20m x 2세트 후 짧은 접촉 위켓 스타일 런 20m x 2세트.';
+
+  @override
+  String get runningCoachInsightKneeTitle => '무릎 굴곡';
+
+  @override
+  String get runningCoachKneeGoodSummary =>
+      '지지 무릎이 너무 잠기지 않으면서도 무너지지 않게 잘 버텨 주고 있어요.';
+
+  @override
+  String get runningCoachKneeGoodCue =>
+      '착지할 때 무릎은 부드럽게 받고, 바로 튀어나가는 반응성을 유지하세요.';
+
+  @override
+  String get runningCoachKneeGoodDrill =>
+      '드릴: 포고 런 20m x 2세트 후 드리블 런 20m x 2세트.';
+
+  @override
+  String get runningCoachKneeStraightSummary =>
+      '지지 무릎이 너무 펴진 채 닿아서 착지가 딱딱하고 무거워질 수 있어요.';
+
+  @override
+  String get runningCoachKneeStraightCue =>
+      '무릎을 완전히 잠그지 말고, 엉덩이 아래에서 부드럽게 받아 주세요.';
+
+  @override
+  String get runningCoachKneeStraightDrill =>
+      '드릴: 살짝 굽힌 무릎으로 짧게 접지하는 드리블 런 20m x 2세트.';
+
+  @override
+  String get runningCoachKneeCollapseSummary =>
+      '지지 무릎이 접지 뒤에 너무 많이 접혀서 다리 스프링이 무너지고 있어요.';
+
+  @override
+  String get runningCoachKneeCollapseCue =>
+      '지지 다리를 너무 주저앉히지 말고, 엉덩이와 발 위에서 탄성 있게 버텨 보세요.';
+
+  @override
+  String get runningCoachKneeCollapseDrill =>
+      '드릴: 한 발 포고 홉 각 15m x 2세트 후 드리블 런 20m x 2세트.';
+
+  @override
+  String get runningCoachInsightArmTitle => '팔 각도';
+
+  @override
+  String get runningCoachArmGoodSummary =>
+      '팔꿈치가 적당히 접힌 범위 안에서 움직여서 리듬을 잘 도와주고 있어요.';
+
+  @override
+  String get runningCoachArmGoodCue => '팔꿈치를 적당히 굽힌 채 손이 앞뒤로 자연스럽게 오가게 유지하세요.';
+
+  @override
+  String get runningCoachArmGoodDrill =>
+      '드릴: 벽 팔 스위치 20초 x 2세트 후 암 드라이브 마치 20m x 2세트.';
+
+  @override
+  String get runningCoachArmOpenSummary =>
+      '팔꿈치가 너무 많이 펴져서 팔 스윙 리듬이 새고 있을 수 있어요.';
+
+  @override
+  String get runningCoachArmOpenCue =>
+      '팔꿈치를 더 접고, 손이 길게 뻗기보다 엉덩이 뒤로 지나가게 밀어 보세요.';
+
+  @override
+  String get runningCoachArmOpenDrill =>
+      '드릴: 팔꿈치 80~100도를 유지한 벽 팔 스위치 20초 x 2세트.';
+
+  @override
+  String get runningCoachArmTightSummary =>
+      '팔꿈치가 너무 접혀 있어서 팔 스윙이 짧아지고 보폭 리듬이 답답해질 수 있어요.';
+
+  @override
+  String get runningCoachArmTightCue =>
+      '어깨 힘을 풀고, 팔꿈치가 조금 더 열리면서 뒤로 밀리는 동작을 만들어 보세요.';
+
+  @override
+  String get runningCoachArmTightDrill =>
+      '드릴: 어깨 힘을 빼고 부드럽게 뒤로 미는 암 스윙 마치 20m x 2세트.';
 
   @override
   String get runningCoachInsightStrideTitle => '보폭 도달';
