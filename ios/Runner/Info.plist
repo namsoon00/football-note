@@ -34,6 +34,8 @@
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Voice input needs microphone access.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Live running coaching needs camera access.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location access is used to fetch local weather for your training note.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

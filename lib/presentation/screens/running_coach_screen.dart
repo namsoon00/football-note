@@ -5,6 +5,7 @@ import '../../application/running_coaching_service.dart';
 import '../../application/running_video_analysis_service.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import 'running_live_coach_screen.dart';
 import '../widgets/app_feedback.dart';
 
 class RunningCoachScreen extends StatefulWidget {
@@ -46,6 +47,32 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               l10n.runningCoachTipSideView,
               l10n.runningCoachTipSteadyCamera,
             ],
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.runningCoachLiveCardTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.runningCoachLiveCardBody,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton.icon(
+                    onPressed: _openLiveCoach,
+                    icon: const Icon(Icons.videocam_outlined),
+                    label: Text(l10n.runningCoachLiveAction),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           Card(
@@ -122,6 +149,14 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   }
 
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
+
+  void _openLiveCoach() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const RunningLiveCoachScreen(),
+      ),
+    );
+  }
 
   Future<void> _pickVideo() async {
     try {

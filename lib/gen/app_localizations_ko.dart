@@ -1507,6 +1507,93 @@ class AppLocalizationsKo extends AppLocalizations {
       '카메라는 흔들리지 않게 두고 5~15초 정도의 짧은 달리기 장면을 사용해 주세요.';
 
   @override
+  String get runningCoachLiveCardTitle => '실시간 코치';
+
+  @override
+  String get runningCoachLiveCardBody =>
+      '카메라를 켜 두면 화면이 잘못 잡혔는지 먼저 알려 주고, 자세가 안정되면 바로 코칭해 줘요.';
+
+  @override
+  String get runningCoachLiveAction => '실시간 코치 시작';
+
+  @override
+  String get runningCoachLiveScreenTitle => '실시간 달리기 코치';
+
+  @override
+  String get runningCoachLivePreparingTitle => '카메라 준비 중';
+
+  @override
+  String get runningCoachLivePreparingBody => '후면 카메라를 열고 실시간 자세 추적을 준비하고 있어요.';
+
+  @override
+  String get runningCoachLiveCameraIssueTitle => '카메라 확인이 필요해요';
+
+  @override
+  String get runningCoachLiveCameraDenied => '실시간 코칭을 쓰려면 카메라 권한이 필요해요.';
+
+  @override
+  String get runningCoachLiveCameraFailed =>
+      '실시간 코치용 카메라를 열지 못했어요. 다시 시도해 주세요.';
+
+  @override
+  String get runningCoachLiveRetryAction => '다시 시도';
+
+  @override
+  String get runningCoachLiveVoiceOn => '음성 코칭 켜짐';
+
+  @override
+  String get runningCoachLiveVoiceOff => '음성 코칭 꺼짐';
+
+  @override
+  String get runningCoachLiveSwitchCamera => '카메라 전환';
+
+  @override
+  String get runningCoachLiveStatusFraming => '화면부터 맞춰 주세요';
+
+  @override
+  String get runningCoachLiveStatusCollecting => '움직임을 모으는 중';
+
+  @override
+  String get runningCoachLiveStatusCoaching => '실시간 코칭 중';
+
+  @override
+  String get runningCoachLiveCueNoRunner => '러너가 잘 보이지 않아요. 화면 안으로 들어와 주세요.';
+
+  @override
+  String get runningCoachLiveCueStepBack =>
+      '한 걸음 뒤로 가서 머리부터 발끝까지 전신이 다 나오게 맞춰 주세요.';
+
+  @override
+  String get runningCoachLiveCueMoveCloser =>
+      '몸이 너무 작게 보여요. 카메라 쪽으로 조금만 더 가까이 와 주세요.';
+
+  @override
+  String get runningCoachLiveCueCenterRunner => '러너를 화면 가운데에 더 가깝게 맞춰 주세요.';
+
+  @override
+  String get runningCoachLiveCueTurnSideways => '정면보다 측면이 잘 보이게 몸 방향을 돌려 주세요.';
+
+  @override
+  String get runningCoachLiveCueKeepRunning =>
+      '좋아요. 같은 리듬으로 몇 걸음 더 달리면 코칭이 바로 나와요.';
+
+  @override
+  String get runningCoachLiveCueLookingGood => '좋아요. 지금 리듬과 자세를 그대로 유지해 보세요.';
+
+  @override
+  String runningCoachLiveTrackedFrames(int count) {
+    return '추적 프레임 $count';
+  }
+
+  @override
+  String get runningCoachLiveScorePending => '점수 계산 중';
+
+  @override
+  String runningCoachLiveOverallScore(int score) {
+    return '실시간 점수 $score/100';
+  }
+
+  @override
   String get runningCoachSelectedVideoLabel => '선택한 영상';
 
   @override

@@ -57,6 +57,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  camera:
+    dependency: "direct main"
+    description:
+      name: camera
+      sha256: "034c38cb8014d29698dcae6d20276688a1bf74e6487dfeb274d70ea05d5f7777"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.12.0+1"
+  camera_android_camerax:
+    dependency: transitive
+    description:
+      name: camera_android_camerax
+      sha256: "2c178975759aac0f0ef7ce1ec698b6e2acd792127ea7f38fa79a424fbebeae7f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.1+2"
+  camera_avfoundation:
+    dependency: transitive
+    description:
+      name: camera_avfoundation
+      sha256: "90e4cc3fde331581a3b2d35d83be41dbb7393af0ab857eb27b732174289cb96d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.1"
+  camera_platform_interface:
+    dependency: transitive
+    description:
+      name: camera_platform_interface
+      sha256: "98cfc9357e04bad617671b4c1f78a597f25f08003089dd94050709ae54effc63"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.12.0"
+  camera_web:
+    dependency: transitive
+    description:
+      name: camera_web
+      sha256: "57f49a635c8bf249d07fb95eb693d7e4dda6796dedb3777f9127fb54847beba7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.5+3"
   characters:
     dependency: transitive
     description:
@@ -368,6 +408,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  flutter_tts:
+    dependency: "direct main"
+    description:
+      name: flutter_tts
+      sha256: ce5eb209b40e95f2f4a1397116c87ab2fcdff32257d04ed7a764e75894c03775
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.5"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -445,6 +493,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.3+1"
+  google_mlkit_commons:
+    dependency: transitive
+    description:
+      name: google_mlkit_commons
+      sha256: "3e69fea4211727732cc385104e675ad1e40b29f12edd492ee52fa108423a6124"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.11.1"
+  google_mlkit_pose_detection:
+    dependency: "direct main"
+    description:
+      name: google_mlkit_pose_detection
+      sha256: "9157847e41fff1703b6b16b1af5508cf5def85cad96b7b724394fa9fe386cb8f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.14.1"
   google_sign_in:
     dependency: "direct main"
     description:
@@ -890,6 +954,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  stream_transform:
+    dependency: transitive
+    description:
+      name: stream_transform
+      sha256: ad47125e588cfd37a9a7f86c7d6356dde8dfe89d071d293f80ca9e9273a33871
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   string_scanner:
     dependency: transitive
     description:
