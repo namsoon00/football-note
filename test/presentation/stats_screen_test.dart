@@ -93,10 +93,61 @@ void main() {
     expect(find.text('최근 7일'), findsOneWidget);
     expect(find.text('훈련'), findsOneWidget);
     expect(find.text('시합'), findsOneWidget);
-    expect(find.text('훈련 횟수'), findsOneWidget);
-    expect(find.textContaining('1회'), findsOneWidget);
+    expect(find.text('훈련 횟수'), findsNothing);
     expect(find.text('전체 요약'), findsOneWidget);
     expect(find.byTooltip('다이어리'), findsNothing);
+  });
+
+  testWidgets('Growth summary can be expanded from the stats panel', (
+    WidgetTester tester,
+  ) async {
+    await box.clear();
+    await service.add(
+      TrainingEntry(
+        date: DateTime.now(),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '드리블',
+        mood: 3,
+        injury: false,
+        notes: '',
+        location: '학교 운동장',
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: StatsScreen(
+            trainingService: service,
+            mealLogService: mealLogService,
+            localeService: localeService,
+            onCreate: () {},
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('이번 기간 성장 요약'), findsOneWidget);
+    expect(find.text('훈련 횟수'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('훈련 횟수'), findsOneWidget);
+    expect(find.textContaining('1회'), findsOneWidget);
   });
 
   testWidgets('Stats screen separates match records in match tab', (
