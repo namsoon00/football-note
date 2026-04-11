@@ -17,6 +17,7 @@ Keep the runner service always on.
 Default worker behavior:
 - If `CODEX_RUNNER_CMD` is set, it runs that command.
 - Else it tries `codex exec "<prompt>"`.
+- Before Codex runs, the worker now builds a shared prompt/context bundle through `scripts/codex_task_harness.sh`.
 
 ## 3) Workflow files
 - Queue sync: `.github/workflows/issue-queue-sync.yml`
@@ -31,7 +32,7 @@ Both run every 30 minutes.
 - `CODEX_APPROVAL`: default `never`
 - `CODEX_UNSAFE`: default `1` (uses `--dangerously-bypass-approvals-and-sandbox`)
 - `CODEX_MODEL`: default `gpt-5` (latest model). Override if needed.
-- `RUN_VERIFY`: set `1` to run `scripts/verify.sh` in worker
+- `RUN_VERIFY`: default `1`; set `0` to skip the worker-side verify/repair loop
 - `AUTO_MERGE`: default `1` (try merge PR to `main` automatically)
 - `AUTO_MERGE_METHOD`: `squash` (default), `merge`, or `rebase`
 - `FORCE_MAIN_MERGE`: default `1` (merge worker branch directly into `main` and close issue)
@@ -50,10 +51,21 @@ Repository Settings -> General:
 2. Refresh `docs/ISSUE_QUEUE.md`
 3. Pick first open issue from queue
 4. Create/use branch `auto/issue-<number>-<slug>`
-5. Run Codex against issue title/body
-6. Commit and push changes
-7. Create or update PR
-8. Leave issue comment with PR link
+5. Build a shared harness prompt with context hints and repo rules
+6. Run Codex against the harness prompt
+7. Run verification/repair loop when enabled
+8. Commit and push changes
+9. Create or update PR
+10. Leave issue comment with PR link
+
+## 5-1) Shared local/remote harness
+- Local coding flow can call the same harness through `./scripts/cli.sh coding --title ... --body-file ...`
+- Remote issue automation calls the harness inside `scripts/run_issue_worker.sh`
+- Common improvements live in one place:
+  - prompt normalization
+  - related file hints
+  - localization/testing reminders
+  - optional verify + repair retry
 
 ## 6) Commit and close behavior
 - Commit hook requires issue numbers in messages.

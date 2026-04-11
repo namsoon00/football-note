@@ -34,6 +34,15 @@ Single entrypoint for common project tasks:
 ./scripts/cli.sh help
 ```
 
+Local Codex tasks can share the same harness as the issue worker:
+
+```bash
+./scripts/cli.sh coding \
+  -m "chore: improve harness flow" \
+  --title "Improve automation harness" \
+  --body "Unify local CLI and issue worker through the shared harness."
+```
+
 ## Issue Workflow
 
 This repo supports issue-driven remote tasking.
