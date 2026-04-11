@@ -68,25 +68,29 @@ class _AppSplashScreenState extends State<AppSplashScreen>
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
-          final t = reducedMotion ? 1.0 : _controller.value;
+          final t = reducedMotion ? 0.78 : _controller.value;
+          final expand = Curves.easeInOutCubic.transform(
+            const Interval(0.0, 0.72).transform(t),
+          );
           final reveal = Curves.easeOutCubic.transform(
-            const Interval(0.0, 0.75).transform(t),
+            const Interval(0.06, 0.78).transform(t),
           );
           final shimmer = Curves.easeInOutSine.transform(
             const Interval(0.0, 1.0).transform(t),
           );
           final cameraDrift = Curves.easeInOutCubic.transform(
-            const Interval(0.08, 0.9).transform(t),
+            const Interval(0.12, 0.88).transform(t),
           );
-          final fadeOut = Curves.easeIn.transform(
-            const Interval(0.8, 1.0).transform(t),
-          );
+          final fadeOut = reducedMotion
+              ? 0.0
+              : Curves.easeIn.transform(const Interval(0.82, 1.0).transform(t));
           return Opacity(
             opacity: 1 - fadeOut,
             child: CustomPaint(
               size: Size.infinite,
               painter: _GrassOnlySplashPainter(
                 progress: t,
+                expand: expand,
                 reveal: reveal,
                 shimmer: shimmer,
                 cameraDrift: cameraDrift,
@@ -101,12 +105,14 @@ class _AppSplashScreenState extends State<AppSplashScreen>
 
 class _GrassOnlySplashPainter extends CustomPainter {
   final double progress;
+  final double expand;
   final double reveal;
   final double shimmer;
   final double cameraDrift;
 
   const _GrassOnlySplashPainter({
     required this.progress,
+    required this.expand,
     required this.reveal,
     required this.shimmer,
     required this.cameraDrift,
@@ -114,33 +120,137 @@ class _GrassOnlySplashPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final zoom = lerpDouble(1.0, 1.06, cameraDrift)!;
-    final shiftY = lerpDouble(0.0, -size.height * 0.015, cameraDrift)!;
+    final screenRect = Offset.zero & size;
+    final fieldRect = _fieldRectFor(size);
+    final fieldRadius = lerpDouble(
+      min(fieldRect.height * 0.42, 40.0),
+      0.0,
+      Curves.easeOut.transform(expand),
+    )!;
+    final fieldClip = RRect.fromRectAndRadius(
+      fieldRect,
+      Radius.circular(fieldRadius),
+    );
+
+    _paintBackdrop(canvas, screenRect, fieldRect);
+    _paintFieldShadow(canvas, fieldRect, fieldRadius);
 
     canvas.save();
-    canvas.translate(size.width * 0.5, size.height * 0.5 + shiftY);
-    canvas.scale(zoom, zoom);
-    canvas.translate(-size.width * 0.5, -size.height * 0.5);
+    canvas.clipRRect(fieldClip);
 
-    _paintBaseGrass(canvas, rect);
-    _paintStripeBands(canvas, rect);
-    _paintFieldGlow(canvas, rect);
-    _paintCenterMark(canvas, rect);
-    _paintGrassTexture(canvas, size);
-    _paintDewHighlights(canvas, size);
-    _paintEdgeVignette(canvas, rect);
+    final zoom = lerpDouble(1.08, 1.0, cameraDrift)!;
+    final shiftY = lerpDouble(
+      fieldRect.height * 0.025,
+      -fieldRect.height * 0.015,
+      cameraDrift,
+    )!;
+    canvas.translate(fieldRect.center.dx, fieldRect.center.dy + shiftY);
+    canvas.scale(zoom, zoom);
+    canvas.translate(-fieldRect.center.dx, -fieldRect.center.dy);
+
+    _paintBaseGrass(canvas, fieldRect);
+    _paintStripeBands(canvas, fieldRect);
+    _paintFieldGlow(canvas, fieldRect);
+    _paintCenterMark(canvas, fieldRect);
+    _paintGrassTexture(canvas, fieldRect);
+    _paintDewHighlights(canvas, fieldRect);
+    _paintFieldVignette(canvas, fieldRect);
 
     canvas.restore();
+
+    _paintFieldEdge(canvas, fieldRect, fieldRadius);
+    _paintScreenVignette(canvas, screenRect);
+  }
+
+  Rect _fieldRectFor(Size size) {
+    final initialWidth = size.shortestSide * 0.54;
+    final initialHeight = initialWidth * 0.62;
+    final finalWidth = size.width * 1.18;
+    final finalHeight = size.height * 1.18;
+    final width = lerpDouble(initialWidth, finalWidth, expand)!;
+    final height = lerpDouble(initialHeight, finalHeight, expand)!;
+    final centerY = lerpDouble(
+      size.height * 0.54,
+      size.height * 0.52,
+      cameraDrift,
+    )!;
+
+    return Rect.fromCenter(
+      center: Offset(size.width * 0.5, centerY),
+      width: width,
+      height: height,
+    );
+  }
+
+  void _paintBackdrop(Canvas canvas, Rect screenRect, Rect fieldRect) {
+    canvas.drawRect(
+      screenRect,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF020503),
+            Color(0xFF06140B),
+            Color(0xFF071009),
+          ],
+          stops: [0.0, 0.45, 1.0],
+        ).createShader(screenRect),
+    );
+
+    final glowRect = Rect.fromCenter(
+      center: Offset(
+        screenRect.center.dx,
+        fieldRect.center.dy - (fieldRect.height * 0.16),
+      ),
+      width: screenRect.width * 1.2,
+      height: screenRect.height * 0.96,
+    );
+    canvas.drawRect(
+      screenRect,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(0, -0.08),
+          radius: 1.0,
+          colors: [
+            const Color(0xFF204B1F).withValues(alpha: 0.24 + (reveal * 0.08)),
+            const Color(0xFF0C2410).withValues(alpha: 0.14 + (reveal * 0.04)),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.42, 1.0],
+        ).createShader(glowRect),
+    );
+  }
+
+  void _paintFieldShadow(Canvas canvas, Rect fieldRect, double fieldRadius) {
+    final shadowInflate = lerpDouble(26.0, 8.0, expand)!;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        fieldRect.inflate(shadowInflate),
+        Radius.circular(fieldRadius + shadowInflate),
+      ),
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.26 - (expand * 0.08))
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 24),
+    );
   }
 
   void _paintBaseGrass(Canvas canvas, Rect rect) {
-    final top =
-        Color.lerp(const Color(0xFF174C1F), const Color(0xFF2C7A31), reveal)!;
-    final mid =
-        Color.lerp(const Color(0xFF1F6A27), const Color(0xFF3E963B), reveal)!;
-    final bottom =
-        Color.lerp(const Color(0xFF0E3615), const Color(0xFF1F5A25), reveal)!;
+    final top = Color.lerp(
+      const Color(0xFF174C1F),
+      const Color(0xFF2C7A31),
+      reveal,
+    )!;
+    final mid = Color.lerp(
+      const Color(0xFF1F6A27),
+      const Color(0xFF3E963B),
+      reveal,
+    )!;
+    final bottom = Color.lerp(
+      const Color(0xFF0E3615),
+      const Color(0xFF1F5A25),
+      reveal,
+    )!;
 
     canvas.drawRect(
       rect,
@@ -176,8 +286,12 @@ class _GrassOnlySplashPainter extends CustomPainter {
   }
 
   void _paintFieldGlow(Canvas canvas, Rect rect) {
-    final glowRect =
-        Rect.fromLTWH(0, rect.height * 0.05, rect.width, rect.height * 0.7);
+    final glowRect = Rect.fromLTWH(
+      rect.left,
+      rect.top + (rect.height * 0.05),
+      rect.width,
+      rect.height * 0.7,
+    );
     canvas.drawRect(
       glowRect,
       Paint()
@@ -199,32 +313,40 @@ class _GrassOnlySplashPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = max(1.8, rect.width * 0.0042)
       ..color = Colors.white.withValues(alpha: 0.26 + (reveal * 0.18));
-    final midY = rect.height * 0.54;
-    canvas.drawLine(Offset(0, midY), Offset(rect.width, midY), linePaint);
+    final midY = rect.top + (rect.height * 0.54);
+    canvas.drawLine(
+      Offset(rect.left, midY),
+      Offset(rect.right, midY),
+      linePaint,
+    );
     canvas.drawCircle(
-        Offset(rect.width * 0.5, midY), rect.width * 0.11, linePaint);
+      Offset(rect.center.dx, midY),
+      rect.width * 0.11,
+      linePaint,
+    );
   }
 
-  void _paintGrassTexture(Canvas canvas, Size size) {
+  void _paintGrassTexture(Canvas canvas, Rect rect) {
     final bladePaint = Paint()
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
     for (var i = 0; i < 260; i++) {
       final seed = i / 260;
-      final x = size.width * ((seed * 1.73 + (progress * 0.035)) % 1);
-      final y = size.height * ((seed * 2.31 + 0.08) % 1);
-      final bladeLength = lerpDouble(7, 18, (1 - y / size.height))!;
+      final x =
+          rect.left + (rect.width * ((seed * 1.73 + (progress * 0.035)) % 1));
+      final y = rect.top + (rect.height * ((seed * 2.31 + 0.08) % 1));
+      final heightProgress = 1 - ((y - rect.top) / rect.height);
+      final bladeLength = lerpDouble(7, 18, heightProgress)!;
       final lean = sin((seed * 30) + (progress * 6.2)) * 2.4;
-      final alpha = (0.06 + ((1 - y / size.height) * 0.16)).clamp(0.06, 0.2);
+      final alpha = (0.06 + (heightProgress * 0.16)).clamp(0.06, 0.2);
       bladePaint
-        ..strokeWidth = lerpDouble(0.8, 1.5, (1 - y / size.height))!
+        ..strokeWidth = lerpDouble(0.8, 1.5, heightProgress)!
         ..color = Color.lerp(
           const Color(0xFF7DD35B),
           const Color(0xFF184E1E),
-          y / size.height,
-        )!
-            .withValues(alpha: alpha);
+          (y - rect.top) / rect.height,
+        )!.withValues(alpha: alpha);
       canvas.drawLine(
         Offset(x, y),
         Offset(x + lean, y - bladeLength),
@@ -233,21 +355,23 @@ class _GrassOnlySplashPainter extends CustomPainter {
     }
   }
 
-  void _paintDewHighlights(Canvas canvas, Size size) {
+  void _paintDewHighlights(Canvas canvas, Rect rect) {
     final dewPaint = Paint()..style = PaintingStyle.fill;
     for (var i = 0; i < 48; i++) {
       final seed = i / 48;
-      final x = size.width * ((seed * 2.17 + (progress * 0.022)) % 1);
-      final y = size.height * (0.15 + ((seed * 1.91) % 0.72));
+      final x =
+          rect.left + (rect.width * ((seed * 2.17 + (progress * 0.022)) % 1));
+      final y = rect.top + (rect.height * (0.15 + ((seed * 1.91) % 0.72)));
       final radius = 0.8 + ((i % 4) * 0.28);
+      final heightProgress = 1 - ((y - rect.top) / rect.height);
       dewPaint.color = Colors.white.withValues(
-        alpha: (0.05 + (shimmer * 0.09)) * (1 - (y / size.height) * 0.55),
+        alpha: (0.05 + (shimmer * 0.09)) * (1 - ((1 - heightProgress) * 0.55)),
       );
       canvas.drawCircle(Offset(x, y), radius, dewPaint);
     }
   }
 
-  void _paintEdgeVignette(Canvas canvas, Rect rect) {
+  void _paintFieldVignette(Canvas canvas, Rect rect) {
     canvas.drawRect(
       rect,
       Paint()
@@ -264,9 +388,46 @@ class _GrassOnlySplashPainter extends CustomPainter {
     );
   }
 
+  void _paintFieldEdge(Canvas canvas, Rect rect, double radius) {
+    final strokeWidth = lerpDouble(1.6, 0.0, Curves.easeOut.transform(expand))!;
+    if (strokeWidth <= 0) {
+      return;
+    }
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        rect.deflate(strokeWidth * 0.5),
+        Radius.circular(max(0.0, radius - (strokeWidth * 0.5))),
+      ),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..color = Colors.white.withValues(
+          alpha: ((1 - expand) * 0.22) + (shimmer * 0.03),
+        ),
+    );
+  }
+
+  void _paintScreenVignette(Canvas canvas, Rect rect) {
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(0, -0.06),
+          radius: 1.08,
+          colors: [
+            Colors.transparent,
+            Colors.black.withValues(alpha: 0.18),
+            Colors.black.withValues(alpha: 0.36),
+          ],
+          stops: const [0.58, 0.84, 1.0],
+        ).createShader(rect),
+    );
+  }
+
   @override
   bool shouldRepaint(covariant _GrassOnlySplashPainter oldDelegate) {
     return oldDelegate.progress != progress ||
+        oldDelegate.expand != expand ||
         oldDelegate.reveal != reveal ||
         oldDelegate.shimmer != shimmer ||
         oldDelegate.cameraDrift != cameraDrift;
