@@ -3122,13 +3122,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
               );
             }
 
-            final diaryWeather = day.trainingEntries
-                .map((entry) => _extractWeatherFromNotes(entry.notes))
-                .firstWhere(
-                  (weather) => weather.trim().isNotEmpty,
-                  orElse: () => '',
-                )
-                .trim();
             return PopScope(
               canPop: false,
               onPopInvokedWithResult: (didPop, __) {
@@ -3159,43 +3152,6 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      if (diaryWeather.isNotEmpty) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _tileSurface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: _paperEdge),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.wb_cloudy_outlined,
-                                size: 16,
-                                color: _accentInk,
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  _isKo
-                                      ? '날씨 $diaryWeather'
-                                      : 'Weather $diaryWeather',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: _theme.textTheme.bodySmall?.copyWith(
-                                    color: _bodyInk,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
                       buildVoiceField(
                         key: const ValueKey('diary-title-field'),
                         controller: titleController,
