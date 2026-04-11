@@ -441,16 +441,31 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     final first = results.first;
     if (first is! Map<String, dynamic>) return '';
     final city = (first['city'] ?? '').toString().trim();
+    final neighborhood = (first['admin4'] ?? '').toString().trim();
+    final township = (first['admin3'] ?? '').toString().trim();
     final district = (first['admin2'] ?? '').toString().trim();
     final region = (first['admin1'] ?? '').toString().trim();
     final name = (first['name'] ?? '').toString().trim();
     final country = (first['country'] ?? '').toString().trim();
     if (_isKoreaCountry(country)) {
       final localParts = <String>[
-        if (district.isNotEmpty && district != city) district,
+        if (neighborhood.isNotEmpty) neighborhood,
+        if (township.isNotEmpty && township != neighborhood) township,
+        if (district.isNotEmpty &&
+            district != neighborhood &&
+            district != township &&
+            district != city)
+          district,
         if (city.isNotEmpty) city,
-        if (region.isNotEmpty && region != city && region != district) region,
+        if (region.isNotEmpty &&
+            region != neighborhood &&
+            region != township &&
+            region != city &&
+            region != district)
+          region,
         if (name.isNotEmpty &&
+            name != neighborhood &&
+            name != township &&
             name != city &&
             name != district &&
             name != region)
@@ -463,10 +478,26 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       return koreaLabel;
     }
     final parts = <String>[
+      if (neighborhood.isNotEmpty) neighborhood,
+      if (township.isNotEmpty && township != neighborhood) township,
       if (city.isNotEmpty) city,
-      if (district.isNotEmpty && district != city) district,
-      if (region.isNotEmpty && region != city) region,
-      if (name.isNotEmpty && name != city && name != district && name != region)
+      if (district.isNotEmpty &&
+          district != neighborhood &&
+          district != township &&
+          district != city)
+        district,
+      if (region.isNotEmpty &&
+          region != neighborhood &&
+          region != township &&
+          region != city &&
+          region != district)
+        region,
+      if (name.isNotEmpty &&
+          name != neighborhood &&
+          name != township &&
+          name != city &&
+          name != district &&
+          name != region)
         name,
       if (country.isNotEmpty) country,
     ];
@@ -1728,9 +1759,6 @@ class _TodayWeatherButton extends StatelessWidget {
         : hasWeather
             ? weatherSummary
             : l10n.homeWeatherTitle;
-    final locationLabel = weatherLocation.isEmpty
-        ? l10n.homeWeatherLocationUnknown
-        : weatherLocation;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1778,16 +1806,18 @@ class _TodayWeatherButton extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 1),
-                    Text(
-                      locationLabel,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
+                    if (weatherLocation.isNotEmpty) ...[
+                      const SizedBox(height: 1),
+                      Text(
+                        weatherLocation,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),

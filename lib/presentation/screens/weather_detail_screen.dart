@@ -268,9 +268,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             children: [
               _CompactWeatherHeaderCard(
                 title: hasWeather ? _summary : l10n.homeWeatherUnavailable,
-                subtitle: _location.isEmpty
-                    ? l10n.homeWeatherLocationUnknown
-                    : _location,
+                subtitle: _headerLocationLabel(l10n),
                 helper: l10n.homeWeatherCacheHint,
                 icon: _weatherIcon(_weatherCode),
                 loading: _loading,
@@ -473,16 +471,31 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final first = results.first;
     if (first is! Map<String, dynamic>) return '';
     final city = (first['city'] ?? '').toString().trim();
+    final neighborhood = (first['admin4'] ?? '').toString().trim();
+    final township = (first['admin3'] ?? '').toString().trim();
     final district = (first['admin2'] ?? '').toString().trim();
     final region = (first['admin1'] ?? '').toString().trim();
     final name = (first['name'] ?? '').toString().trim();
     final country = (first['country'] ?? '').toString().trim();
     if (_isKoreaCountry(country)) {
       final localParts = <String>[
-        if (district.isNotEmpty && district != city) district,
+        if (neighborhood.isNotEmpty) neighborhood,
+        if (township.isNotEmpty && township != neighborhood) township,
+        if (district.isNotEmpty &&
+            district != neighborhood &&
+            district != township &&
+            district != city)
+          district,
         if (city.isNotEmpty) city,
-        if (region.isNotEmpty && region != city && region != district) region,
+        if (region.isNotEmpty &&
+            region != neighborhood &&
+            region != township &&
+            region != city &&
+            region != district)
+          region,
         if (name.isNotEmpty &&
+            name != neighborhood &&
+            name != township &&
             name != city &&
             name != district &&
             name != region)
@@ -495,10 +508,26 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       return koreaLabel;
     }
     final parts = <String>[
+      if (neighborhood.isNotEmpty) neighborhood,
+      if (township.isNotEmpty && township != neighborhood) township,
       if (city.isNotEmpty) city,
-      if (district.isNotEmpty && district != city) district,
-      if (region.isNotEmpty && region != city) region,
-      if (name.isNotEmpty && name != city && name != district && name != region)
+      if (district.isNotEmpty &&
+          district != neighborhood &&
+          district != township &&
+          district != city)
+        district,
+      if (region.isNotEmpty &&
+          region != neighborhood &&
+          region != township &&
+          region != city &&
+          region != district)
+        region,
+      if (name.isNotEmpty &&
+          name != neighborhood &&
+          name != township &&
+          name != city &&
+          name != district &&
+          name != region)
         name,
       if (country.isNotEmpty) country,
     ];
@@ -515,6 +544,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         longitude: longitude,
         l10n: l10n,
       );
+
+  String _headerLocationLabel(AppLocalizations l10n) {
+    if (_location.isNotEmpty) return _location;
+    return l10n.homeWeatherDetailsSubtitle;
+  }
 
   void _applySnapshot(String location, _WeatherDetailsSnapshot snapshot) {
     _location = location;
