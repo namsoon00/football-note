@@ -9,7 +9,7 @@ class TrainingService {
   final BackupService? _backupService;
 
   TrainingService(this._repository, {BackupService? backupService})
-    : _backupService = backupService;
+      : _backupService = backupService;
 
   Stream<List<TrainingEntry>> watchEntries() => _repository.watchAll();
 

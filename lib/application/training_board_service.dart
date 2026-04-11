@@ -16,13 +16,12 @@ class TrainingBoardService {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! List) return const <TrainingBoard>[];
-      final boards =
-          decoded
-              .whereType<Map>()
-              .map((e) => TrainingBoard.fromMap(e.cast<String, dynamic>()))
-              .whereType<TrainingBoard>()
-              .toList(growable: false)
-            ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      final boards = decoded
+          .whereType<Map>()
+          .map((e) => TrainingBoard.fromMap(e.cast<String, dynamic>()))
+          .whereType<TrainingBoard>()
+          .toList(growable: false)
+        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
       return boards;
     } catch (_) {
       return const <TrainingBoard>[];

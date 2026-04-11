@@ -68,11 +68,10 @@ class RiceBowlSummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style:
-                          (compact
-                                  ? theme.textTheme.titleSmall
-                                  : theme.textTheme.titleMedium)
-                              ?.copyWith(fontWeight: FontWeight.w900),
+                      style: (compact
+                              ? theme.textTheme.titleSmall
+                              : theme.textTheme.titleMedium)
+                          ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                     if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
                       const SizedBox(height: 2),
@@ -273,8 +272,8 @@ class _RiceBowlMealItem extends StatelessWidget {
                   fillLevel: bowls <= 0
                       ? 0.0
                       : bowls < 1
-                      ? 0.5
-                      : 1.0,
+                          ? 0.5
+                          : 1.0,
                   accentColor: accentColor,
                 ),
           SizedBox(height: compact ? 2 : 8),

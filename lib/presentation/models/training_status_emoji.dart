@@ -13,4 +13,3 @@ String trainingStatusEmojiFor(String status) {
       return '😐';
   }
 }
-

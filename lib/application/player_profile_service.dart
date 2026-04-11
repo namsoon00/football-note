@@ -98,8 +98,7 @@ class PlayerProfileService {
   int? _elapsedYears(DateTime? start, DateTime now) {
     if (start == null || start.isAfter(now)) return null;
     var years = now.year - start.year;
-    final beforeAnniversary =
-        now.month < start.month ||
+    final beforeAnniversary = now.month < start.month ||
         (now.month == start.month && now.day < start.day);
     if (beforeAnniversary) years -= 1;
     return years < 0 ? null : years;

@@ -26,11 +26,9 @@ class TrainingPlanSeriesBuilder {
     }
 
     final result = <DateTime>[];
-    for (
-      var day = normalizedStart;
-      !day.isAfter(normalizedEnd);
-      day = day.add(const Duration(days: 1))
-    ) {
+    for (var day = normalizedStart;
+        !day.isAfter(normalizedEnd);
+        day = day.add(const Duration(days: 1))) {
       if (!weekdaySet.contains(day.weekday)) continue;
       result.add(DateTime(day.year, day.month, day.day, hour, minute));
     }
