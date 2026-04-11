@@ -33,7 +33,8 @@ CODEX_SANDBOX="${CODEX_SANDBOX:-workspace-write}"
 CODEX_APPROVAL="${CODEX_APPROVAL:-never}"
 USE_CUSTOM_CODEX_CMD="${USE_CUSTOM_CODEX_CMD:-0}"
 CODEX_UNSAFE="${CODEX_UNSAFE:-1}"
-CODEX_MODEL="${CODEX_MODEL:-gpt-5}"
+CODEX_MODEL="gpt-5.4"
+CODEX_REASONING_EFFORT="xhigh"
 FORCE_MAIN_MERGE="${FORCE_MAIN_MERGE:-1}"
 LOCAL_SYNC_REPO_PATH="${LOCAL_SYNC_REPO_PATH:-/Users/namsoon00/Devel/football_note/football_note}"
 ISSUE_NUMBER=""
@@ -311,23 +312,83 @@ if git ls-remote --exit-code --heads origin "$HEAD_BRANCH" >/dev/null 2>&1; then
   git checkout -B "$HEAD_BRANCH" "origin/$HEAD_BRANCH"
 fi
 
-export ISSUE_NUMBER ISSUE_TITLE ISSUE_URL ISSUE_BODY HEAD_BRANCH BASE_BRANCH="$DEFAULT_BRANCH"
+PROMPT_FILE="/tmp/codex_issue_${ISSUE_NUMBER}.prompt"
+cat > "$PROMPT_FILE" <<PROMPT
+You are working in repository ${GITHUB_REPOSITORY}.
+
+Implement GitHub issue #${ISSUE_NUMBER}.
+Title: ${ISSUE_TITLE}
+URL: ${ISSUE_URL}
+
+Issue body:
+${ISSUE_BODY}
+
+Requirements:
+- Make direct code changes in this repo.
+- Keep existing features unless explicitly changed in the issue.
+- Run minimal verification (at least flutter analyze for touched files).
+- Prepare commit-ready changes.
+PROMPT
+
+export ISSUE_NUMBER ISSUE_TITLE ISSUE_URL ISSUE_BODY HEAD_BRANCH BASE_BRANCH="$DEFAULT_BRANCH" CODEX_PROMPT_FILE="$PROMPT_FILE"
 
 CODEX_EXIT=0
 set +e
-HARNESS_RUN_VERIFY="${RUN_VERIFY:-1}" \
-HARNESS_VERIFY_COMMAND="${HARNESS_VERIFY_COMMAND:-./scripts/verify.sh}" \
-HARNESS_REPAIR_ATTEMPTS="${HARNESS_REPAIR_ATTEMPTS:-1}" \
-./scripts/codex_task_harness.sh \
-  --source issue \
-  --title "${ISSUE_TITLE}" \
-  --body "${ISSUE_BODY}" \
-  --issue-number "${ISSUE_NUMBER}" \
-  --issue-url "${ISSUE_URL}" \
-  --head-branch "${HEAD_BRANCH}" \
-  --base-branch "${DEFAULT_BRANCH}" \
-  --context-path "docs/ISSUE_QUEUE.md"
-CODEX_EXIT=$?
+if [[ "$USE_CUSTOM_CODEX_CMD" == "1" && -n "${CODEX_RUNNER_CMD:-}" ]]; then
+  log "Running custom Codex command in $ROOT_DIR"
+  log "Custom command: $CODEX_RUNNER_CMD"
+  CODEX_PROMPT_FILE="$PROMPT_FILE" \
+  CODEX_MODEL="$CODEX_MODEL" \
+  CODEX_REASONING_EFFORT="$CODEX_REASONING_EFFORT" \
+  OPENAI_REASONING_EFFORT="$CODEX_REASONING_EFFORT" \
+  bash -lc "cd \"$ROOT_DIR\" && $CODEX_RUNNER_CMD"
+  CODEX_EXIT=$?
+else
+  if [[ -n "${CODEX_RUNNER_CMD:-}" ]]; then
+    log "Ignoring CODEX_RUNNER_CMD because USE_CUSTOM_CODEX_CMD!=1"
+  fi
+  if ! command -v codex >/dev/null 2>&1; then
+    set -e
+    log "codex CLI not found. Set CODEX_RUNNER_CMD or install codex."
+    exit 1
+  fi
+  log "Running codex CLI (model=$CODEX_MODEL, effort=$CODEX_REASONING_EFFORT, sandbox=$CODEX_SANDBOX, approval=$CODEX_APPROVAL, unsafe=$CODEX_UNSAFE)"
+  if codex exec --help >/dev/null 2>&1; then
+    if [[ "$CODEX_UNSAFE" == "1" ]]; then
+      codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
+        -c "model_reasoning_effort=\"${CODEX_REASONING_EFFORT}\"" \
+        --dangerously-bypass-approvals-and-sandbox \
+        exec "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
+    else
+      codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
+        -c "model_reasoning_effort=\"${CODEX_REASONING_EFFORT}\"" \
+        --sandbox "$CODEX_SANDBOX" \
+        --ask-for-approval "$CODEX_APPROVAL" \
+        exec "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
+    fi
+  else
+    if [[ "$CODEX_UNSAFE" == "1" ]]; then
+      codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
+        -c "model_reasoning_effort=\"${CODEX_REASONING_EFFORT}\"" \
+        --dangerously-bypass-approvals-and-sandbox \
+        "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
+    else
+      codex -C "$ROOT_DIR" \
+        -m "$CODEX_MODEL" \
+        -c "model_reasoning_effort=\"${CODEX_REASONING_EFFORT}\"" \
+        --sandbox "$CODEX_SANDBOX" \
+        --ask-for-approval "$CODEX_APPROVAL" \
+        "$(cat "$PROMPT_FILE")"
+      CODEX_EXIT=$?
+    fi
+  fi
+fi
 set -e
 
 if [[ "$CODEX_EXIT" != "0" ]]; then
