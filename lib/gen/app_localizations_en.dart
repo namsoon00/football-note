@@ -1543,6 +1543,99 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.';
 
   @override
+  String get runningCoachLiveCardTitle => 'Live coach';
+
+  @override
+  String get runningCoachLiveCardBody =>
+      'Turn on the camera and the app will first warn when framing is off, then start coaching as soon as the running view stabilizes.';
+
+  @override
+  String get runningCoachLiveAction => 'Start live coach';
+
+  @override
+  String get runningCoachLiveScreenTitle => 'Live running coach';
+
+  @override
+  String get runningCoachLivePreparingTitle => 'Preparing camera';
+
+  @override
+  String get runningCoachLivePreparingBody =>
+      'Opening the rear camera and getting live pose tracking ready.';
+
+  @override
+  String get runningCoachLiveCameraIssueTitle => 'Camera check needed';
+
+  @override
+  String get runningCoachLiveCameraDenied =>
+      'Camera access is required for live running coaching.';
+
+  @override
+  String get runningCoachLiveCameraFailed =>
+      'The live coach camera could not be opened. Try again.';
+
+  @override
+  String get runningCoachLiveRetryAction => 'Try again';
+
+  @override
+  String get runningCoachLiveVoiceOn => 'Voice coaching on';
+
+  @override
+  String get runningCoachLiveVoiceOff => 'Voice coaching off';
+
+  @override
+  String get runningCoachLiveSwitchCamera => 'Switch camera';
+
+  @override
+  String get runningCoachLiveStatusFraming => 'Fix the framing first';
+
+  @override
+  String get runningCoachLiveStatusCollecting => 'Collecting movement';
+
+  @override
+  String get runningCoachLiveStatusCoaching => 'Live coaching active';
+
+  @override
+  String get runningCoachLiveCueNoRunner =>
+      'The runner is not clear enough yet. Step into the frame.';
+
+  @override
+  String get runningCoachLiveCueStepBack =>
+      'Step back and fit the whole body in frame from head to toe.';
+
+  @override
+  String get runningCoachLiveCueMoveCloser =>
+      'The runner looks too small. Move a bit closer to the camera.';
+
+  @override
+  String get runningCoachLiveCueCenterRunner =>
+      'Center the runner more clearly in the frame.';
+
+  @override
+  String get runningCoachLiveCueTurnSideways =>
+      'Turn more to the side so the running shape is easier to read.';
+
+  @override
+  String get runningCoachLiveCueKeepRunning =>
+      'Good. Keep the same rhythm for a few more steps and coaching will appear.';
+
+  @override
+  String get runningCoachLiveCueLookingGood =>
+      'Good. Keep this rhythm and hold the same shape.';
+
+  @override
+  String runningCoachLiveTrackedFrames(int count) {
+    return 'Tracked frames $count';
+  }
+
+  @override
+  String get runningCoachLiveScorePending => 'Scoring...';
+
+  @override
+  String runningCoachLiveOverallScore(int score) {
+    return 'Live score $score/100';
+  }
+
+  @override
   String get runningCoachSelectedVideoLabel => 'Selected video';
 
   @override

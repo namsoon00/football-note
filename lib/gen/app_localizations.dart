@@ -2888,6 +2888,162 @@ abstract class AppLocalizations {
   /// **'Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.'**
   String get runningCoachTipSteadyCamera;
 
+  /// No description provided for @runningCoachLiveCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live coach'**
+  String get runningCoachLiveCardTitle;
+
+  /// No description provided for @runningCoachLiveCardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the camera and the app will first warn when framing is off, then start coaching as soon as the running view stabilizes.'**
+  String get runningCoachLiveCardBody;
+
+  /// No description provided for @runningCoachLiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start live coach'**
+  String get runningCoachLiveAction;
+
+  /// No description provided for @runningCoachLiveScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live running coach'**
+  String get runningCoachLiveScreenTitle;
+
+  /// No description provided for @runningCoachLivePreparingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing camera'**
+  String get runningCoachLivePreparingTitle;
+
+  /// No description provided for @runningCoachLivePreparingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the rear camera and getting live pose tracking ready.'**
+  String get runningCoachLivePreparingBody;
+
+  /// No description provided for @runningCoachLiveCameraIssueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera check needed'**
+  String get runningCoachLiveCameraIssueTitle;
+
+  /// No description provided for @runningCoachLiveCameraDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is required for live running coaching.'**
+  String get runningCoachLiveCameraDenied;
+
+  /// No description provided for @runningCoachLiveCameraFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The live coach camera could not be opened. Try again.'**
+  String get runningCoachLiveCameraFailed;
+
+  /// No description provided for @runningCoachLiveRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get runningCoachLiveRetryAction;
+
+  /// No description provided for @runningCoachLiveVoiceOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice coaching on'**
+  String get runningCoachLiveVoiceOn;
+
+  /// No description provided for @runningCoachLiveVoiceOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice coaching off'**
+  String get runningCoachLiveVoiceOff;
+
+  /// No description provided for @runningCoachLiveSwitchCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch camera'**
+  String get runningCoachLiveSwitchCamera;
+
+  /// No description provided for @runningCoachLiveStatusFraming.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the framing first'**
+  String get runningCoachLiveStatusFraming;
+
+  /// No description provided for @runningCoachLiveStatusCollecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting movement'**
+  String get runningCoachLiveStatusCollecting;
+
+  /// No description provided for @runningCoachLiveStatusCoaching.
+  ///
+  /// In en, this message translates to:
+  /// **'Live coaching active'**
+  String get runningCoachLiveStatusCoaching;
+
+  /// No description provided for @runningCoachLiveCueNoRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner is not clear enough yet. Step into the frame.'**
+  String get runningCoachLiveCueNoRunner;
+
+  /// No description provided for @runningCoachLiveCueStepBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Step back and fit the whole body in frame from head to toe.'**
+  String get runningCoachLiveCueStepBack;
+
+  /// No description provided for @runningCoachLiveCueMoveCloser.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner looks too small. Move a bit closer to the camera.'**
+  String get runningCoachLiveCueMoveCloser;
+
+  /// No description provided for @runningCoachLiveCueCenterRunner.
+  ///
+  /// In en, this message translates to:
+  /// **'Center the runner more clearly in the frame.'**
+  String get runningCoachLiveCueCenterRunner;
+
+  /// No description provided for @runningCoachLiveCueTurnSideways.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn more to the side so the running shape is easier to read.'**
+  String get runningCoachLiveCueTurnSideways;
+
+  /// No description provided for @runningCoachLiveCueKeepRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good. Keep the same rhythm for a few more steps and coaching will appear.'**
+  String get runningCoachLiveCueKeepRunning;
+
+  /// No description provided for @runningCoachLiveCueLookingGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good. Keep this rhythm and hold the same shape.'**
+  String get runningCoachLiveCueLookingGood;
+
+  /// No description provided for @runningCoachLiveTrackedFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked frames {count}'**
+  String runningCoachLiveTrackedFrames(int count);
+
+  /// No description provided for @runningCoachLiveScorePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring...'**
+  String get runningCoachLiveScorePending;
+
+  /// No description provided for @runningCoachLiveOverallScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Live score {score}/100'**
+  String runningCoachLiveOverallScore(int score);
+
   /// No description provided for @runningCoachSelectedVideoLabel.
   ///
   /// In en, this message translates to:

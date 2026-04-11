@@ -623,6 +623,46 @@
   "runningCoachTipWholeBody": "Keep the full body in frame from head to ankle for the whole clip.",
   "runningCoachTipSideView": "Record from the side while the runner moves across the frame.",
   "runningCoachTipSteadyCamera": "Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.",
+  "runningCoachLiveCardTitle": "Live coach",
+  "runningCoachLiveCardBody": "Turn on the camera and the app will first warn when framing is off, then start coaching as soon as the running view stabilizes.",
+  "runningCoachLiveAction": "Start live coach",
+  "runningCoachLiveScreenTitle": "Live running coach",
+  "runningCoachLivePreparingTitle": "Preparing camera",
+  "runningCoachLivePreparingBody": "Opening the rear camera and getting live pose tracking ready.",
+  "runningCoachLiveCameraIssueTitle": "Camera check needed",
+  "runningCoachLiveCameraDenied": "Camera access is required for live running coaching.",
+  "runningCoachLiveCameraFailed": "The live coach camera could not be opened. Try again.",
+  "runningCoachLiveRetryAction": "Try again",
+  "runningCoachLiveVoiceOn": "Voice coaching on",
+  "runningCoachLiveVoiceOff": "Voice coaching off",
+  "runningCoachLiveSwitchCamera": "Switch camera",
+  "runningCoachLiveStatusFraming": "Fix the framing first",
+  "runningCoachLiveStatusCollecting": "Collecting movement",
+  "runningCoachLiveStatusCoaching": "Live coaching active",
+  "runningCoachLiveCueNoRunner": "The runner is not clear enough yet. Step into the frame.",
+  "runningCoachLiveCueStepBack": "Step back and fit the whole body in frame from head to toe.",
+  "runningCoachLiveCueMoveCloser": "The runner looks too small. Move a bit closer to the camera.",
+  "runningCoachLiveCueCenterRunner": "Center the runner more clearly in the frame.",
+  "runningCoachLiveCueTurnSideways": "Turn more to the side so the running shape is easier to read.",
+  "runningCoachLiveCueKeepRunning": "Good. Keep the same rhythm for a few more steps and coaching will appear.",
+  "runningCoachLiveCueLookingGood": "Good. Keep this rhythm and hold the same shape.",
+  "runningCoachLiveTrackedFrames": "Tracked frames {count}",
+  "@runningCoachLiveTrackedFrames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachLiveScorePending": "Scoring...",
+  "runningCoachLiveOverallScore": "Live score {score}/100",
+  "@runningCoachLiveOverallScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachSelectedVideoLabel": "Selected video",
   "runningCoachNoVideoSelected": "No video selected yet.",
   "runningCoachPickVideoAction": "Pick video",
