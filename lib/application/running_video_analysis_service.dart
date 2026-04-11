@@ -49,8 +49,8 @@ class RunningVideoAnalysisService {
       );
     } on MissingPluginException {
       throw const RunningVideoAnalysisException(
-        'unsupported_platform',
-        'Running video analysis is not available on this platform.',
+        'native_analyzer_unavailable',
+        'Running video analysis is not available in this app build.',
       );
     }
   }

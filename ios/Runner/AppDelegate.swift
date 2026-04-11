@@ -5,7 +5,8 @@ import GoogleSignIn
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
-  private var runningPoseAnalysisChannel: RunningPoseAnalysisChannel?
+  private var runningPoseAnalysisChannels: [RunningPoseAnalysisChannel] = []
+  private var runningPoseAnalysisChannelMessengers = Set<ObjectIdentifier>()
 
   override func application(
     _ application: UIApplication,
@@ -35,9 +36,7 @@ import GoogleSignIn
     }
     let didFinish = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     if let controller = window?.rootViewController as? FlutterViewController {
-      runningPoseAnalysisChannel = RunningPoseAnalysisChannel(
-        binaryMessenger: controller.binaryMessenger
-      )
+      registerRunningPoseAnalysisChannel(binaryMessenger: controller.binaryMessenger)
     }
     return didFinish
   }
@@ -47,5 +46,20 @@ import GoogleSignIn
       FirebaseApp.configure()
     }
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    registerRunningPoseAnalysisChannel(
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+  }
+
+  private func registerRunningPoseAnalysisChannel(binaryMessenger: FlutterBinaryMessenger) {
+    let messengerKey = ObjectIdentifier(binaryMessenger as AnyObject)
+    guard !runningPoseAnalysisChannelMessengers.contains(messengerKey) else {
+      return
+    }
+
+    runningPoseAnalysisChannels.append(
+      RunningPoseAnalysisChannel(binaryMessenger: binaryMessenger)
+    )
+    runningPoseAnalysisChannelMessengers.insert(messengerKey)
   }
 }

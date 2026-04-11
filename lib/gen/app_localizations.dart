@@ -2927,8 +2927,14 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachUnsupportedPlatform.
   ///
   /// In en, this message translates to:
-  /// **'Running video analysis is currently available on mobile builds only.'**
+  /// **'Running video analysis is available only on Android and iPhone/iPad app builds.'**
   String get runningCoachUnsupportedPlatform;
+
+  /// No description provided for @runningCoachNativeAnalyzerUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This app build does not include the running video analyzer yet. Reinstall the latest mobile app build and try again.'**
+  String get runningCoachNativeAnalyzerUnavailable;
 
   /// No description provided for @runningCoachVideoFileMissing.
   ///
