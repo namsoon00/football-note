@@ -12,6 +12,8 @@ Usage:
 
 Commands:
   coding    Coding agent flow (optional harness -> verify -> branch merge -> push main)
+  request   Chat task flow (request normalization -> harness -> verify -> merge/push)
+  chat      Alias for `request`
   build     Build agent flow (ios/android/all)
   verify    Run full verification (includes iOS simulator build/run)
   verify-push  Verify, commit on work branch, merge/push main (supports --issue N)
@@ -45,6 +47,10 @@ case "${cmd}" in
   coding)
     shift || true
     ./scripts/coding_agent.sh "$@"
+    ;;
+  request|chat)
+    shift || true
+    ./scripts/chat_task.sh "$@"
     ;;
   build)
     shift || true

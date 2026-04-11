@@ -20,6 +20,9 @@
 - Build agent: `./scripts/build_agent.sh` (or `./scripts/cli.sh build ...`)
   - Scope: build/release artifacts only (iOS/Android), no code edits and no git writes.
 
+## Chat Task Flow (Mandatory)
+- For chat-originated implementation requests in this repository, prefer `./scripts/cli.sh request ...` (or `./scripts/chat_task.sh ...`) so the shared harness normalizes the request, injects repo rules, and runs the verify/repair loop before the normal coding agent flow.
+
 ## Localization (Mandatory)
 - All user-facing text must be added through the localization files under `lib/l10n/` and accessed through generated localization classes.
 - Do not introduce new hardcoded UI strings in screens, widgets, dialogs, snackbars, buttons, labels, or tooltips, even if only English/Korean exists today.

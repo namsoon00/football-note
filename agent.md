@@ -29,5 +29,8 @@ This file mirrors agent workflow expectations for this repository.
 - Build agent: `./scripts/build_agent.sh` (or `./scripts/cli.sh build ...`)
   - Scope: build/release artifacts only (iOS/Android), no code edits and no git writes.
 
+## Chat Task Flow (Mandatory)
+- For chat-originated implementation requests in this repository, prefer `./scripts/cli.sh request ...` (or `./scripts/chat_task.sh ...`) so the shared harness normalizes the request, injects repo rules, and runs the verify/repair loop before the normal coding agent flow.
+
 ## Communication (Mandatory)
 - If there is anything to notify the user about, leave it in GitHub Discussions for this repository.
