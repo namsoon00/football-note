@@ -2923,6 +2923,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         return;
       }
       if (shouldSave) {
+        // Ensure any ongoing IME composition (notably on Android/Korean input)
+        // is committed before reading controller texts.
+        FocusManager.instance.primaryFocus?.unfocus();
+        await Future.delayed(const Duration(milliseconds: 16));
         if (navigator.canPop()) {
           navigator.pop(buildDraftData());
         }
@@ -3753,8 +3757,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                           const Spacer(),
                           FilledButton(
                             key: const ValueKey('diary-save-button'),
-                            onPressed: () {
-                              Navigator.of(context).pop(buildDraftData());
+                            onPressed: () async {
+                              // Commit any unsubmitted composing text from the
+                              // active TextField before saving. Without this,
+                              // some Android IMEs may drop the last syllable
+                              // or treat the entry as empty.
+                              final navigator = Navigator.of(context);
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              await Future.delayed(
+                                const Duration(milliseconds: 16),
+                              );
+                              if (navigator.canPop()) {
+                                navigator.pop(buildDraftData());
+                              }
                             },
                             child: Text(_isKo ? '저장' : 'Save'),
                           ),
