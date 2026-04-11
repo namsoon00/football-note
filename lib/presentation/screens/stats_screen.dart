@@ -61,6 +61,7 @@ class _StatsScreenState extends State<StatsScreen> {
   late final BenchmarkService _benchmarkService;
   late DateTimeRange _selectedRange;
   int _statsTabIndex = 0;
+  bool _trainingOverviewExpanded = false;
   bool _routePushInFlight = false;
 
   @override
@@ -377,6 +378,12 @@ class _StatsScreenState extends State<StatsScreen> {
               plans: plansInRange,
               isKo: isKo,
               range: _selectedRange,
+              expanded: _trainingOverviewExpanded,
+              onToggleExpanded: () {
+                setState(() {
+                  _trainingOverviewExpanded = !_trainingOverviewExpanded;
+                });
+              },
             ),
           ),
           const SizedBox(height: 18),
@@ -1440,12 +1447,16 @@ class _TrainingOverviewSection extends StatelessWidget {
   final List<_StatsPlanLite> plans;
   final bool isKo;
   final DateTimeRange range;
+  final bool expanded;
+  final VoidCallback onToggleExpanded;
 
   const _TrainingOverviewSection({
     required this.entries,
     required this.plans,
     required this.isKo,
     required this.range,
+    required this.expanded,
+    required this.onToggleExpanded,
   });
 
   @override
@@ -1509,92 +1520,117 @@ class _TrainingOverviewSection extends StatelessWidget {
         _SectionTitle(
           icon: Icons.insights_outlined,
           title: isKo ? '이번 기간 성장 요약' : 'Growth Summary',
+          trailing: IconButton(
+            visualDensity: VisualDensity.compact,
+            onPressed: onToggleExpanded,
+            icon: Icon(
+              expanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+            ),
+          ),
         ),
-        const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final cardWidth = (constraints.maxWidth - 10) / 2;
-            final cards = [
-              _MetricCard(
-                label: isKo ? '훈련 횟수' : 'Sessions',
-                value: isKo ? '${entries.length}회' : '${entries.length}',
-              ),
-              _MetricCard(
-                label: isKo ? '총 훈련 시간' : 'Total time',
-                value: _formatMinutesAsTime(totalMinutes, isKo: isKo),
-              ),
-              _MetricCard(
-                label: isKo ? '계획 실행률' : 'Plan execution',
-                value: executionRate == null
-                    ? (isKo ? '계획 없음' : 'No plan')
-                    : '$executionRate%',
-              ),
-              _MetricCard(label: isKo ? '집중 분야' : 'Focus', value: focus),
-            ];
-            return Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: cards
-                  .map((card) => SizedBox(width: cardWidth, child: card))
-                  .toList(growable: false),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        _CoachMessage(
-          icon: Icons.auto_awesome_outlined,
-          title: isKo ? '코치 해석' : 'Coach Insight',
-          message: overviewMessage,
-        ),
-        const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 700;
-            final cards = [
-              _InsightMiniCard(
-                title: isKo ? '가장 좋아진 점' : 'Best gain',
-                value: strongest,
-                icon: Icons.trending_up_outlined,
-              ),
-              _InsightMiniCard(
-                title: isKo ? '가장 약한 점' : 'Weak spot',
-                value: weakest,
-                icon: Icons.report_problem_outlined,
-              ),
-              _InsightMiniCard(
-                title: isKo ? '다음 액션' : 'Next action',
-                value: nextAction,
-                icon: Icons.flag_outlined,
-              ),
-              _InsightMiniCard(
-                title: isKo ? '꾸준함' : 'Consistency',
-                value: isKo ? '$streak일 연속 기록' : '$streak-day streak',
-                icon: Icons.local_fire_department_outlined,
-              ),
-            ];
-            if (!wide) {
-              return Column(
-                children: [
-                  for (var i = 0; i < cards.length; i++) ...[
-                    cards[i],
-                    if (i != cards.length - 1) const SizedBox(height: 10),
-                  ],
-                ],
-              );
-            }
-            return Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: cards
-                  .map(
-                    (card) => SizedBox(
-                      width: (constraints.maxWidth - 10) / 2,
-                      child: card,
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final cardWidth = (constraints.maxWidth - 10) / 2;
+                  final cards = [
+                    _MetricCard(
+                      label: isKo ? '훈련 횟수' : 'Sessions',
+                      value: isKo ? '${entries.length}회' : '${entries.length}',
                     ),
-                  )
-                  .toList(growable: false),
-            );
-          },
+                    _MetricCard(
+                      label: isKo ? '총 훈련 시간' : 'Total time',
+                      value: _formatMinutesAsTime(totalMinutes, isKo: isKo),
+                    ),
+                    _MetricCard(
+                      label: isKo ? '계획 실행률' : 'Plan execution',
+                      value: executionRate == null
+                          ? (isKo ? '계획 없음' : 'No plan')
+                          : '$executionRate%',
+                    ),
+                    _MetricCard(
+                      label: isKo ? '집중 분야' : 'Focus',
+                      value: focus,
+                    ),
+                  ];
+                  return Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: cards
+                        .map((card) => SizedBox(width: cardWidth, child: card))
+                        .toList(growable: false),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _CoachMessage(
+                icon: Icons.auto_awesome_outlined,
+                title: isKo ? '코치 해석' : 'Coach Insight',
+                message: overviewMessage,
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 700;
+                  final cards = [
+                    _InsightMiniCard(
+                      title: isKo ? '가장 좋아진 점' : 'Best gain',
+                      value: strongest,
+                      icon: Icons.trending_up_outlined,
+                    ),
+                    _InsightMiniCard(
+                      title: isKo ? '가장 약한 점' : 'Weak spot',
+                      value: weakest,
+                      icon: Icons.report_problem_outlined,
+                    ),
+                    _InsightMiniCard(
+                      title: isKo ? '다음 액션' : 'Next action',
+                      value: nextAction,
+                      icon: Icons.flag_outlined,
+                    ),
+                    _InsightMiniCard(
+                      title: isKo ? '꾸준함' : 'Consistency',
+                      value: isKo ? '$streak일 연속 기록' : '$streak-day streak',
+                      icon: Icons.local_fire_department_outlined,
+                    ),
+                  ];
+                  if (!wide) {
+                    return Column(
+                      children: [
+                        for (var i = 0; i < cards.length; i++) ...[
+                          cards[i],
+                          if (i != cards.length - 1) const SizedBox(height: 10),
+                        ],
+                      ],
+                    );
+                  }
+                  return Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: cards
+                        .map(
+                          (card) => SizedBox(
+                            width: (constraints.maxWidth - 10) / 2,
+                            child: card,
+                          ),
+                        )
+                        .toList(growable: false),
+                  );
+                },
+              ),
+            ],
+          ),
+          crossFadeState:
+              expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 180),
+          firstCurve: Curves.easeOut,
+          secondCurve: Curves.easeOut,
         ),
       ],
     );
