@@ -2906,11 +2906,83 @@ abstract class AppLocalizations {
   /// **'Start live coach'**
   String get runningCoachLiveAction;
 
+  /// No description provided for @runningCoachLiveGuideAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Shooting guide'**
+  String get runningCoachLiveGuideAction;
+
   /// No description provided for @runningCoachLiveScreenTitle.
   ///
   /// In en, this message translates to:
   /// **'Live running coach'**
   String get runningCoachLiveScreenTitle;
+
+  /// No description provided for @runningCoachLiveGuideScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live shooting guide'**
+  String get runningCoachLiveGuideScreenTitle;
+
+  /// No description provided for @runningCoachLiveGuideHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the runner centered and the score out to the side'**
+  String get runningCoachLiveGuideHeroTitle;
+
+  /// No description provided for @runningCoachLiveGuideHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner should stay inside the center frame while the app keeps score and coaching badges on the edges. Use the setup below for steadier live tracking.'**
+  String get runningCoachLiveGuideHeroBody;
+
+  /// No description provided for @runningCoachLiveGuideTipSideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a side view'**
+  String get runningCoachLiveGuideTipSideTitle;
+
+  /// No description provided for @runningCoachLiveGuideTipSideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner should move across the frame from the side, not straight toward the camera or on a heavy diagonal.'**
+  String get runningCoachLiveGuideTipSideBody;
+
+  /// No description provided for @runningCoachLiveGuideTipBodyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the full body in frame'**
+  String get runningCoachLiveGuideTipBodyTitle;
+
+  /// No description provided for @runningCoachLiveGuideTipBodyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The head, hips, and ankles all need to stay visible so the pose line and score can stay stable.'**
+  String get runningCoachLiveGuideTipBodyBody;
+
+  /// No description provided for @runningCoachLiveGuideTipHudTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave space around the runner'**
+  String get runningCoachLiveGuideTipHudTitle;
+
+  /// No description provided for @runningCoachLiveGuideTipHudBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Scores and metrics sit on the outer edges of the screen. Keep the runner inside the center guide so the body is not covered.'**
+  String get runningCoachLiveGuideTipHudBody;
+
+  /// No description provided for @runningCoachLiveGuideTipCameraTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the camera fixed and the body large enough'**
+  String get runningCoachLiveGuideTipCameraTitle;
+
+  /// No description provided for @runningCoachLiveGuideTipCameraBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height.'**
+  String get runningCoachLiveGuideTipCameraBody;
 
   /// No description provided for @runningCoachLivePreparingTitle.
   ///

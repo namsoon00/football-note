@@ -5,6 +5,7 @@ import '../../application/running_coaching_service.dart';
 import '../../application/running_video_analysis_service.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import 'running_live_coach_guide_screen.dart';
 import 'running_live_coach_screen.dart';
 import '../widgets/app_feedback.dart';
 
@@ -65,10 +66,21 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 14),
-                  FilledButton.icon(
-                    onPressed: _openLiveCoach,
-                    icon: const Icon(Icons.videocam_outlined),
-                    label: Text(l10n.runningCoachLiveAction),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _openLiveGuide,
+                        icon: const Icon(Icons.info_outline_rounded),
+                        label: Text(l10n.runningCoachLiveGuideAction),
+                      ),
+                      FilledButton.icon(
+                        onPressed: _openLiveCoach,
+                        icon: const Icon(Icons.videocam_outlined),
+                        label: Text(l10n.runningCoachLiveAction),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -154,6 +166,14 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const RunningLiveCoachScreen(),
+      ),
+    );
+  }
+
+  void _openLiveGuide() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RunningLiveCoachGuideScreen(onStart: _openLiveCoach),
       ),
     );
   }

@@ -29,9 +29,9 @@ class MealCoachingService {
   }
 
   int xpValueForStatus(MealStatus status) {
-    if (status.completedMeals >= 3 && status.totalRiceBowls >= 5) return 20;
-    if (status.completedMeals >= 3) return 15;
-    if (status.completedMeals >= 2) return 5;
+    if (status.completedMeals >= 3 && status.totalRiceBowls >= 5) return 10;
+    if (status.completedMeals >= 3) return 8;
+    if (status.completedMeals >= 2) return 3;
     return 0;
   }
 

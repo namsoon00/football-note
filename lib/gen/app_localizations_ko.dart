@@ -1517,7 +1517,48 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveAction => '실시간 코치 시작';
 
   @override
+  String get runningCoachLiveGuideAction => '촬영 가이드';
+
+  @override
   String get runningCoachLiveScreenTitle => '실시간 달리기 코치';
+
+  @override
+  String get runningCoachLiveGuideScreenTitle => '실시간 촬영 가이드';
+
+  @override
+  String get runningCoachLiveGuideHeroTitle => '러너가 가운데, 점수는 옆으로';
+
+  @override
+  String get runningCoachLiveGuideHeroBody =>
+      '러너는 가운데 프레임 안에 두고, 앱의 점수와 코칭 정보는 좌우 가장자리로 빠지도록 설계했어요. 아래 기준으로 맞추면 인식이 더 안정돼요.';
+
+  @override
+  String get runningCoachLiveGuideTipSideTitle => '측면이 잘 보여야 해요';
+
+  @override
+  String get runningCoachLiveGuideTipSideBody =>
+      '러너가 정면이나 사선보다 측면으로 보이게 서서 화면을 가로지르도록 달려 주세요.';
+
+  @override
+  String get runningCoachLiveGuideTipBodyTitle => '머리부터 발끝까지 넣어 주세요';
+
+  @override
+  String get runningCoachLiveGuideTipBodyBody =>
+      '머리, 엉덩이, 발목이 모두 프레임 안에 남아야 자세 선과 점수가 안정적으로 나와요.';
+
+  @override
+  String get runningCoachLiveGuideTipHudTitle => '러너 주변에 여백을 남겨 주세요';
+
+  @override
+  String get runningCoachLiveGuideTipHudBody =>
+      '점수와 메트릭은 화면 바깥쪽에 붙어 나와요. 러너는 가운데 가이드 프레임 안쪽에 두면 가려지지 않아요.';
+
+  @override
+  String get runningCoachLiveGuideTipCameraTitle => '카메라는 고정하고 몸 크기는 적당히';
+
+  @override
+  String get runningCoachLiveGuideTipCameraBody =>
+      '카메라는 흔들리지 않게 두고, 러너가 너무 작지 않게 전신 기준으로 세로 높이의 절반 이상 차지하도록 맞춰 주세요.';
 
   @override
   String get runningCoachLivePreparingTitle => '카메라 준비 중';
