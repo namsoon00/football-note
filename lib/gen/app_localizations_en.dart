@@ -1553,7 +1553,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachLiveAction => 'Start live coach';
 
   @override
+  String get runningCoachLiveGuideAction => 'Shooting guide';
+
+  @override
   String get runningCoachLiveScreenTitle => 'Live running coach';
+
+  @override
+  String get runningCoachLiveGuideScreenTitle => 'Live shooting guide';
+
+  @override
+  String get runningCoachLiveGuideHeroTitle =>
+      'Keep the runner centered and the score out to the side';
+
+  @override
+  String get runningCoachLiveGuideHeroBody =>
+      'The runner should stay inside the center frame while the app keeps score and coaching badges on the edges. Use the setup below for steadier live tracking.';
+
+  @override
+  String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
+
+  @override
+  String get runningCoachLiveGuideTipSideBody =>
+      'The runner should move across the frame from the side, not straight toward the camera or on a heavy diagonal.';
+
+  @override
+  String get runningCoachLiveGuideTipBodyTitle => 'Keep the full body in frame';
+
+  @override
+  String get runningCoachLiveGuideTipBodyBody =>
+      'The head, hips, and ankles all need to stay visible so the pose line and score can stay stable.';
+
+  @override
+  String get runningCoachLiveGuideTipHudTitle =>
+      'Leave space around the runner';
+
+  @override
+  String get runningCoachLiveGuideTipHudBody =>
+      'Scores and metrics sit on the outer edges of the screen. Keep the runner inside the center guide so the body is not covered.';
+
+  @override
+  String get runningCoachLiveGuideTipCameraTitle =>
+      'Keep the camera fixed and the body large enough';
+
+  @override
+  String get runningCoachLiveGuideTipCameraBody =>
+      'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height.';
 
   @override
   String get runningCoachLivePreparingTitle => 'Preparing camera';
