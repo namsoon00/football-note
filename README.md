@@ -38,7 +38,7 @@ Local Codex tasks can share the same harness as the issue worker:
 
 ```bash
 ./scripts/cli.sh coding \
-  -m "chore: improve harness flow" \
+  -m "chore: improve harness flow (#0)" \
   --title "Improve automation harness" \
   --body "Unify local CLI and issue worker through the shared harness."
 ```
