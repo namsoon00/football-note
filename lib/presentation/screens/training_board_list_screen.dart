@@ -189,13 +189,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted) return;
     await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
     if (!mounted) return;
-    final award = await PlayerLevelService(widget.optionRepository)
-        .awardForBoardSaved(
-          boardId: created.id,
-          boardTitle: created.title,
-          savedAt: created.updatedAt,
-          created: true,
-        );
+    final award =
+        await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
+      boardId: created.id,
+      boardTitle: created.title,
+      savedAt: created.updatedAt,
+      created: true,
+    );
     await TrainingPlanReminderService(
       widget.optionRepository,
       SettingsService(widget.optionRepository)..load(),
@@ -249,210 +249,211 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
 
   List<_BoardTemplate> _defaultTemplates(bool isKo) {
     TrainingMethodLayout blank(String title) => TrainingMethodLayout(
-      pages: <TrainingMethodPage>[
-        TrainingMethodPage(name: title, items: const <TrainingMethodItem>[]),
-      ],
-    );
+          pages: <TrainingMethodPage>[
+            TrainingMethodPage(
+                name: title, items: const <TrainingMethodItem>[]),
+          ],
+        );
     TrainingMethodLayout passWarmup(String title) => TrainingMethodLayout(
-      pages: <TrainingMethodPage>[
-        TrainingMethodPage(
-          name: title,
-          methodText: isKo ? '2터치 패스 + 움직임 교대' : 'Two-touch pass + rotate',
-          items: <TrainingMethodItem>[
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.2,
-              y: 0.5,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.5,
-              y: 0.25,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.8,
-              y: 0.5,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'cone',
-              x: 0.5,
-              y: 0.75,
-              size: 30,
-              rotationDeg: 0,
-              colorValue: 0xFFFFA000,
-            ),
-            const TrainingMethodItem(
-              type: 'ball',
-              x: 0.2,
-              y: 0.5,
-              size: 30,
-              rotationDeg: 0,
-              colorValue: 0xFFFFFFFF,
+          pages: <TrainingMethodPage>[
+            TrainingMethodPage(
+              name: title,
+              methodText: isKo ? '2터치 패스 + 움직임 교대' : 'Two-touch pass + rotate',
+              items: <TrainingMethodItem>[
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.2,
+                  y: 0.5,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.5,
+                  y: 0.25,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.8,
+                  y: 0.5,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'cone',
+                  x: 0.5,
+                  y: 0.75,
+                  size: 30,
+                  rotationDeg: 0,
+                  colorValue: 0xFFFFA000,
+                ),
+                const TrainingMethodItem(
+                  type: 'ball',
+                  x: 0.2,
+                  y: 0.5,
+                  size: 30,
+                  rotationDeg: 0,
+                  colorValue: 0xFFFFFFFF,
+                ),
+              ],
             ),
           ],
-        ),
-      ],
-    );
+        );
     TrainingMethodLayout buildUp(String title) => TrainingMethodLayout(
-      pages: <TrainingMethodPage>[
-        TrainingMethodPage(
-          name: title,
-          methodText: isKo ? '후방 빌드업 3-2 전개' : 'Back build-up 3-2 shape',
-          items: <TrainingMethodItem>[
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.2,
-              y: 0.8,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.5,
-              y: 0.82,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.8,
-              y: 0.8,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.38,
-              y: 0.58,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.62,
-              y: 0.58,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'ball',
-              x: 0.5,
-              y: 0.82,
-              size: 30,
-              rotationDeg: 0,
-              colorValue: 0xFFFFFFFF,
+          pages: <TrainingMethodPage>[
+            TrainingMethodPage(
+              name: title,
+              methodText: isKo ? '후방 빌드업 3-2 전개' : 'Back build-up 3-2 shape',
+              items: <TrainingMethodItem>[
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.2,
+                  y: 0.8,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.5,
+                  y: 0.82,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.8,
+                  y: 0.8,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.38,
+                  y: 0.58,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.62,
+                  y: 0.58,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'ball',
+                  x: 0.5,
+                  y: 0.82,
+                  size: 30,
+                  rotationDeg: 0,
+                  colorValue: 0xFFFFFFFF,
+                ),
+              ],
             ),
           ],
-        ),
-      ],
-    );
+        );
     TrainingMethodLayout pressing(String title) => TrainingMethodLayout(
-      pages: <TrainingMethodPage>[
-        TrainingMethodPage(
-          name: title,
-          methodText: isKo ? '전방 압박 트리거 확인' : 'Front pressing trigger',
-          items: <TrainingMethodItem>[
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.3,
-              y: 0.35,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFFE53935,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.5,
-              y: 0.42,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFFE53935,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.7,
-              y: 0.35,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFFE53935,
-            ),
-            const TrainingMethodItem(
-              type: 'ball',
-              x: 0.5,
-              y: 0.18,
-              size: 30,
-              rotationDeg: 0,
-              colorValue: 0xFFFFFFFF,
+          pages: <TrainingMethodPage>[
+            TrainingMethodPage(
+              name: title,
+              methodText: isKo ? '전방 압박 트리거 확인' : 'Front pressing trigger',
+              items: <TrainingMethodItem>[
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.3,
+                  y: 0.35,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFFE53935,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.5,
+                  y: 0.42,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFFE53935,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.7,
+                  y: 0.35,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFFE53935,
+                ),
+                const TrainingMethodItem(
+                  type: 'ball',
+                  x: 0.5,
+                  y: 0.18,
+                  size: 30,
+                  rotationDeg: 0,
+                  colorValue: 0xFFFFFFFF,
+                ),
+              ],
             ),
           ],
-        ),
-      ],
-    );
+        );
     TrainingMethodLayout setPiece(String title) => TrainingMethodLayout(
-      pages: <TrainingMethodPage>[
-        TrainingMethodPage(
-          name: title,
-          methodText: isKo ? '코너킥 공격 패턴' : 'Corner kick attacking setup',
-          items: <TrainingMethodItem>[
-            const TrainingMethodItem(
-              type: 'ball',
-              x: 0.06,
-              y: 0.08,
-              size: 30,
-              rotationDeg: 0,
-              colorValue: 0xFFFFFFFF,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.2,
-              y: 0.2,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.3,
-              y: 0.28,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.38,
-              y: 0.36,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFF1E88E5,
-            ),
-            const TrainingMethodItem(
-              type: 'player',
-              x: 0.45,
-              y: 0.24,
-              size: 32,
-              rotationDeg: 0,
-              colorValue: 0xFFE53935,
+          pages: <TrainingMethodPage>[
+            TrainingMethodPage(
+              name: title,
+              methodText: isKo ? '코너킥 공격 패턴' : 'Corner kick attacking setup',
+              items: <TrainingMethodItem>[
+                const TrainingMethodItem(
+                  type: 'ball',
+                  x: 0.06,
+                  y: 0.08,
+                  size: 30,
+                  rotationDeg: 0,
+                  colorValue: 0xFFFFFFFF,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.2,
+                  y: 0.2,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.3,
+                  y: 0.28,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.38,
+                  y: 0.36,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFF1E88E5,
+                ),
+                const TrainingMethodItem(
+                  type: 'player',
+                  x: 0.45,
+                  y: 0.24,
+                  size: 32,
+                  rotationDeg: 0,
+                  colorValue: 0xFFE53935,
+                ),
+              ],
             ),
           ],
-        ),
-      ],
-    );
+        );
 
     return <_BoardTemplate>[
       _BoardTemplate(
@@ -538,9 +539,8 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
       ),
     );
     if (!mounted || source == null) return;
-    final defaultCopyTitle = isKo
-        ? '${source.title} 복사본'
-        : '${source.title} Copy';
+    final defaultCopyTitle =
+        isKo ? '${source.title} 복사본' : '${source.title} Copy';
     final copiedTitle = await _promptTitle(initialValue: defaultCopyTitle);
     if (!mounted || copiedTitle == null) return;
     final created = await _boardService.createBoard(
@@ -550,13 +550,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted) return;
     await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
     if (!mounted) return;
-    final award = await PlayerLevelService(widget.optionRepository)
-        .awardForBoardSaved(
-          boardId: created.id,
-          boardTitle: created.title,
-          savedAt: created.updatedAt,
-          created: true,
-        );
+    final award =
+        await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
+      boardId: created.id,
+      boardTitle: created.title,
+      savedAt: created.updatedAt,
+      created: true,
+    );
     await TrainingPlanReminderService(
       widget.optionRepository,
       SettingsService(widget.optionRepository)..load(),
@@ -639,12 +639,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
 
   List<TrainingBoard> _visibleBoards() {
     final query = _searchQuery.trim().toLowerCase();
-    final filtered = _boards
-        .where((board) {
-          if (query.isEmpty) return true;
-          return board.title.toLowerCase().contains(query);
-        })
-        .toList(growable: false);
+    final filtered = _boards.where((board) {
+      if (query.isEmpty) return true;
+      return board.title.toLowerCase().contains(query);
+    }).toList(growable: false);
     final sorted = [...filtered];
     switch (_sort) {
       case _BoardListSort.updatedDesc:
@@ -955,13 +953,13 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     if (!mounted) return;
     await widget.optionRepository.setValue(_recentBoardIdKey, created.id);
     if (!mounted) return;
-    final award = await PlayerLevelService(widget.optionRepository)
-        .awardForBoardSaved(
-          boardId: created.id,
-          boardTitle: created.title,
-          savedAt: created.updatedAt,
-          created: true,
-        );
+    final award =
+        await PlayerLevelService(widget.optionRepository).awardForBoardSaved(
+      boardId: created.id,
+      boardTitle: created.title,
+      savedAt: created.updatedAt,
+      created: true,
+    );
     await TrainingPlanReminderService(
       widget.optionRepository,
       SettingsService(widget.optionRepository)..load(),

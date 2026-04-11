@@ -168,7 +168,7 @@ class RssNewsRepository implements NewsRepository {
     final merged = <String>{..._defaultBlockedDomains};
     final custom =
         _optionRepository?.getOptions('news_blocked_domains', const []) ??
-        const <String>[];
+            const <String>[];
     for (final domain in custom) {
       final normalized = _normalizeDomain(domain);
       if (normalized.isNotEmpty) {

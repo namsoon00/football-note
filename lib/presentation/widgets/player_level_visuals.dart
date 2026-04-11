@@ -468,7 +468,8 @@ class PlayerLevelIllustrationPainter extends CustomPainter {
 
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(center.dx - (radius * 0.22), center.dy - (radius * 0.34)),
+        center:
+            Offset(center.dx - (radius * 0.22), center.dy - (radius * 0.34)),
         width: radius * 0.72,
         height: radius * 0.38,
       ),

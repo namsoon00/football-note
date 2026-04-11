@@ -44,8 +44,7 @@ class LocalizedOptionDefaults {
     for (final item in stored) {
       final value = item.trim();
       if (value.isEmpty) continue;
-      final mapped =
-          _translateKnownValue(
+      final mapped = _translateKnownValue(
             value: value,
             variants: variants,
             localizedDefaults: localizedDefaults,

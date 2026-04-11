@@ -485,8 +485,8 @@ class _MealBowlPreview extends StatelessWidget {
             value <= 0
                 ? AppLocalizations.of(context)!.homeRiceBowlEmpty
                 : value == value.truncateToDouble()
-                ? value.toStringAsFixed(0)
-                : value.toStringAsFixed(1),
+                    ? value.toStringAsFixed(0)
+                    : value.toStringAsFixed(1),
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w800,

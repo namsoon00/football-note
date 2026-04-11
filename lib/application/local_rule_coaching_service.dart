@@ -30,8 +30,9 @@ class LocalRuleCoachingService {
         entry.liftingByPart.values.fold<int>(0, (a, b) => a + b);
     final liftingVariety =
         entry.liftingByPart.values.where((c) => c > 0).length;
-    final notesLen =
-        '${entry.improvements} ${entry.goodPoints} ${entry.notes}'.trim().length;
+    final notesLen = '${entry.improvements} ${entry.goodPoints} ${entry.notes}'
+        .trim()
+        .length;
     final goalLen =
         '${entry.nextGoal} ${entry.goalFocuses.join(' ')} ${entry.goal}'
             .trim()

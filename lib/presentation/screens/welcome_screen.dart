@@ -28,8 +28,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               Text(
                 isKo ? '환영합니다! 앱 화면 안내' : 'Welcome! App Walkthrough',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -125,8 +125,8 @@ class _WelcomeSectionCard extends StatelessWidget {
                 child: Text(
                   section.title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
             ],

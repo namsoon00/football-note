@@ -25,8 +25,8 @@ class SpaceSpeedPassState {
 
   bool get ballOwnerAttackerIsA =>
       ballPhase == SpaceSpeedBallPhase.flying && !goalChanceActive
-      ? !attackerAIsPasser
-      : attackerAIsPasser;
+          ? !attackerAIsPasser
+          : attackerAIsPasser;
 
   bool get ballOwnerAttackerIsB => !ballOwnerAttackerIsA;
 

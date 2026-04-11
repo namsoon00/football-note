@@ -27,16 +27,20 @@ Future<void> showLevelUpCelebrationDialog(
           Color(0xFFFFD36E),
           Color(0xFFFF9F68),
         ];
-  final primaryTextColor = isDark ? const Color(0xFFFFF1D6) : const Color(0xFF5C2E00);
+  final primaryTextColor =
+      isDark ? const Color(0xFFFFF1D6) : const Color(0xFF5C2E00);
   final secondaryTextColor =
       isDark ? const Color(0xFFFFDCA8) : const Color(0xFF6F3C00);
   final infoBackground =
       isDark ? const Color(0xFF1D1F2A) : Colors.white.withValues(alpha: 0.74);
-  final rewardBackground =
-      isDark ? const Color(0x33242A3D) : const Color(0xFF5C2E00).withValues(alpha: 0.10);
-  final rewardBorder =
-      isDark ? const Color(0x66A88BFF) : const Color(0xFF5C2E00).withValues(alpha: 0.18);
-  final actionButtonColor = isDark ? const Color(0xFF6B6CFF) : const Color(0xFF5C2E00);
+  final rewardBackground = isDark
+      ? const Color(0x33242A3D)
+      : const Color(0xFF5C2E00).withValues(alpha: 0.10);
+  final rewardBorder = isDark
+      ? const Color(0x66A88BFF)
+      : const Color(0xFF5C2E00).withValues(alpha: 0.18);
+  final actionButtonColor =
+      isDark ? const Color(0xFF6B6CFF) : const Color(0xFF5C2E00);
   await showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -101,8 +105,8 @@ Future<void> showLevelUpCelebrationDialog(
                   Text(
                     isKo
                         ? hasCustomRewardName
-                              ? '와! 오늘의 노력이 반짝 점수로 쌓여서 "$rewardName" 선물도 준비됐어요.'
-                              : '와! 오늘의 노력이 반짝 점수로 쌓였어요.'
+                            ? '와! 오늘의 노력이 반짝 점수로 쌓여서 "$rewardName" 선물도 준비됐어요.'
+                            : '와! 오늘의 노력이 반짝 점수로 쌓였어요.'
                         : 'Your effort turned into shining XP today.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(

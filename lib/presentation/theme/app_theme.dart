@@ -4,22 +4,21 @@ import '../widgets/watch_cart/constants.dart';
 
 class AppTheme {
   static ThemeData light() {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: WatchCartConstants.primaryColor,
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: const Color(0xFF2B6FF3),
-          onPrimary: Colors.white,
-          secondary: const Color(0xFF2B6FF3),
-          onSecondary: Colors.white,
-          secondaryContainer: const Color(0xFFEAF2FF),
-          onSecondaryContainer: const Color(0xFF183F8F),
-          surface: Colors.white,
-          onSurface: const Color(0xFF191F2B),
-          surfaceContainerHighest: const Color(0xFFF4F7FC),
-          outline: const Color(0xFFE4EAF3),
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: WatchCartConstants.primaryColor,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: const Color(0xFF2B6FF3),
+      onPrimary: Colors.white,
+      secondary: const Color(0xFF2B6FF3),
+      onSecondary: Colors.white,
+      secondaryContainer: const Color(0xFFEAF2FF),
+      onSecondaryContainer: const Color(0xFF183F8F),
+      surface: Colors.white,
+      onSurface: const Color(0xFF191F2B),
+      surfaceContainerHighest: const Color(0xFFF4F7FC),
+      outline: const Color(0xFFE4EAF3),
+    );
     final textTheme = GoogleFonts.notoSansKrTextTheme().copyWith(
       headlineLarge: const TextStyle(
         fontSize: 30,
@@ -95,51 +94,48 @@ class AppTheme {
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style:
-            OutlinedButton.styleFrom(
-              foregroundColor: colorScheme.primary,
-              side: BorderSide(color: colorScheme.outline),
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              minimumSize: const Size(0, 52),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(
-                colorScheme.primary.withAlpha(16),
-              ),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.outline),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          minimumSize: const Size(0, 52),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(
+            colorScheme.primary.withAlpha(16),
+          ),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style:
-            ElevatedButton.styleFrom(
-              elevation: 0,
-              foregroundColor: Colors.white,
-              backgroundColor: colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              minimumSize: const Size.fromHeight(54),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          minimumSize: const Size.fromHeight(54),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style:
-            FilledButton.styleFrom(
-              elevation: 0,
-              foregroundColor: Colors.white,
-              backgroundColor: colorScheme.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              minimumSize: const Size.fromHeight(54),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          minimumSize: const Size.fromHeight(54),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(28)),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
@@ -197,21 +193,20 @@ class AppTheme {
   }
 
   static ThemeData dark() {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: WatchCartConstants.primaryColor,
-          brightness: Brightness.dark,
-        ).copyWith(
-          surface: const Color(0xFF1B1F2A),
-          onSurface: const Color(0xFFF2F5FA),
-          outline: const Color(0xFF4A556D),
-          surfaceContainerHighest: const Color(0xFF2A3040),
-        );
-    final textTheme = GoogleFonts.latoTextTheme(ThemeData.dark().textTheme)
-        .apply(
-          bodyColor: const Color(0xFFF2F5FA),
-          displayColor: const Color(0xFFF2F5FA),
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: WatchCartConstants.primaryColor,
+      brightness: Brightness.dark,
+    ).copyWith(
+      surface: const Color(0xFF1B1F2A),
+      onSurface: const Color(0xFFF2F5FA),
+      outline: const Color(0xFF4A556D),
+      surfaceContainerHighest: const Color(0xFF2A3040),
+    );
+    final textTheme =
+        GoogleFonts.latoTextTheme(ThemeData.dark().textTheme).apply(
+      bodyColor: const Color(0xFFF2F5FA),
+      displayColor: const Color(0xFFF2F5FA),
+    );
 
     return ThemeData(
       colorScheme: colorScheme,
@@ -254,15 +249,14 @@ class AppTheme {
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style:
-            FilledButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ).copyWith(
-              overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(30)),
-              splashFactory: InkRipple.splashFactory,
-            ),
+        style: FilledButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ).copyWith(
+          overlayColor: WidgetStateProperty.all(Colors.white.withAlpha(30)),
+          splashFactory: InkRipple.splashFactory,
+        ),
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF1C2433),

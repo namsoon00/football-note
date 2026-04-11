@@ -102,10 +102,10 @@ class MealStatus {
       _effectiveBowls(dinnerDone, dinnerRiceBowls);
 
   double get maxRiceBowls => <double>[
-    _effectiveBowls(breakfastDone, breakfastRiceBowls),
-    _effectiveBowls(lunchDone, lunchRiceBowls),
-    _effectiveBowls(dinnerDone, dinnerRiceBowls),
-  ].reduce((a, b) => a > b ? a : b);
+        _effectiveBowls(breakfastDone, breakfastRiceBowls),
+        _effectiveBowls(lunchDone, lunchRiceBowls),
+        _effectiveBowls(dinnerDone, dinnerRiceBowls),
+      ].reduce((a, b) => a > b ? a : b);
 
   static double _effectiveBowls(bool done, double bowls) => done ? bowls : 0;
 }
