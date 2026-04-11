@@ -1525,7 +1525,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachPickVideoFailed => '영상 선택기를 열지 못했어요.';
 
   @override
-  String get runningCoachUnsupportedPlatform => '달리기 영상 분석은 현재 모바일 빌드에서만 지원해요.';
+  String get runningCoachUnsupportedPlatform =>
+      '달리기 영상 분석은 안드로이드와 iPhone/iPad 앱에서만 지원해요.';
+
+  @override
+  String get runningCoachNativeAnalyzerUnavailable =>
+      '이 앱 빌드에는 달리기 영상 분석기가 포함되지 않았어요. 최신 모바일 앱으로 다시 설치한 뒤 시도해 주세요.';
 
   @override
   String get runningCoachVideoFileMissing => '선택한 영상 파일을 찾지 못했어요.';

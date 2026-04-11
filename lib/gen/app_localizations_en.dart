@@ -1562,7 +1562,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachUnsupportedPlatform =>
-      'Running video analysis is currently available on mobile builds only.';
+      'Running video analysis is available only on Android and iPhone/iPad app builds.';
+
+  @override
+  String get runningCoachNativeAnalyzerUnavailable =>
+      'This app build does not include the running video analyzer yet. Reinstall the latest mobile app build and try again.';
 
   @override
   String get runningCoachVideoFileMissing =>

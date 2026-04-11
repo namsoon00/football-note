@@ -175,6 +175,8 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   ) {
     return switch (error.code) {
       'unsupported_platform' => l10n.runningCoachUnsupportedPlatform,
+      'native_analyzer_unavailable' =>
+        l10n.runningCoachNativeAnalyzerUnavailable,
       'missing_file' => l10n.runningCoachVideoFileMissing,
       'video_too_short' => l10n.runningCoachVideoTooShort,
       'no_pose_detected' => l10n.runningCoachNoPoseDetected,
