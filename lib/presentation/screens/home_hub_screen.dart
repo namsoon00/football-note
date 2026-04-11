@@ -17,6 +17,7 @@ import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
+import '../../application/weather_location_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
@@ -425,93 +426,13 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) async {
-    final uri = Uri.https('geocoding-api.open-meteo.com', '/v1/reverse', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'count': '3',
-      'language': isKo ? 'ko' : 'en',
-    });
-    final response = await http.get(uri);
-    if (response.statusCode != 200) return '';
-    final decoded = jsonDecode(response.body);
-    if (decoded is! Map<String, dynamic>) return '';
-    final results = decoded['results'];
-    if (results is! List || results.isEmpty) return '';
-    final first = results.first;
-    if (first is! Map<String, dynamic>) return '';
-    final city = (first['city'] ?? '').toString().trim();
-    final neighborhood = (first['admin4'] ?? '').toString().trim();
-    final township = (first['admin3'] ?? '').toString().trim();
-    final district = (first['admin2'] ?? '').toString().trim();
-    final region = (first['admin1'] ?? '').toString().trim();
-    final name = (first['name'] ?? '').toString().trim();
-    final country = (first['country'] ?? '').toString().trim();
-    if (_isKoreaCountry(country)) {
-      final localParts = <String>[
-        if (neighborhood.isNotEmpty) neighborhood,
-        if (township.isNotEmpty && township != neighborhood) township,
-        if (district.isNotEmpty &&
-            district != neighborhood &&
-            district != township &&
-            district != city)
-          district,
-        if (city.isNotEmpty) city,
-        if (region.isNotEmpty &&
-            region != neighborhood &&
-            region != township &&
-            region != city &&
-            region != district)
-          region,
-        if (name.isNotEmpty &&
-            name != neighborhood &&
-            name != township &&
-            name != city &&
-            name != district &&
-            name != region)
-          name,
-      ];
-      if (localParts.isNotEmpty) {
-        return '${localParts.take(2).join(' ')}, $koreaLabel';
-      }
-      if (region.isNotEmpty) return '$region, $koreaLabel';
-      return koreaLabel;
-    }
-    final parts = <String>[
-      if (neighborhood.isNotEmpty) neighborhood,
-      if (township.isNotEmpty && township != neighborhood) township,
-      if (city.isNotEmpty) city,
-      if (district.isNotEmpty &&
-          district != neighborhood &&
-          district != township &&
-          district != city)
-        district,
-      if (region.isNotEmpty &&
-          region != neighborhood &&
-          region != township &&
-          region != city &&
-          region != district)
-        region,
-      if (name.isNotEmpty &&
-          name != neighborhood &&
-          name != township &&
-          name != city &&
-          name != district &&
-          name != region)
-        name,
-      if (country.isNotEmpty) country,
-    ];
-    return parts.take(2).join(', ');
-  }
-
-  bool _isKoreaCountry(String country) {
-    final normalized = country.trim().toLowerCase();
-    return normalized == 'south korea' ||
-        normalized == 'korea' ||
-        normalized == 'republic of korea' ||
-        country == '대한민국' ||
-        country == '한국';
-  }
+  }) =>
+      WeatherLocationService.resolvePlaceName(
+        latitude: latitude,
+        longitude: longitude,
+        isKo: isKo,
+        koreaLabel: koreaLabel,
+      );
 
   Future<_HomeWeatherSnapshot> _fetchCurrentWeather({
     required double latitude,
