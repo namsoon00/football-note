@@ -2861,7 +2861,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Upload a short side-view running clip and get quick feedback on posture, bounce, and stride reach.'**
+  /// **'Upload a short side-view running clip and get stricter feedback on posture, bounce, foot strike, knee flexion, and arm carriage.'**
   String get runningCoachHeroBody;
 
   /// No description provided for @runningCoachTipsTitle.
@@ -2873,7 +2873,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachTipWholeBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep the full body in frame from head to ankle for the whole clip.'**
+  /// **'Keep the full body in frame from head to ankle, with elbows and feet visible for the whole clip.'**
   String get runningCoachTipWholeBody;
 
   /// No description provided for @runningCoachTipSideView.
@@ -2897,7 +2897,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Turn on the camera and the app will first warn when framing is off, then start coaching as soon as the running view stabilizes.'**
+  /// **'Turn on the camera and the app will first correct framing, then coach posture, bounce, foot strike, knee bend, and arm carriage once the side view stabilizes.'**
   String get runningCoachLiveCardBody;
 
   /// No description provided for @runningCoachLiveAction.
@@ -2957,7 +2957,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideTipBodyBody.
   ///
   /// In en, this message translates to:
-  /// **'The head, hips, and ankles all need to stay visible so the pose line and score can stay stable.'**
+  /// **'The head, elbows, hips, and ankles all need to stay visible so the pose line and score can stay stable.'**
   String get runningCoachLiveGuideTipBodyBody;
 
   /// No description provided for @runningCoachLiveGuideTipHudTitle.
@@ -3179,7 +3179,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachNoPoseDetected.
   ///
   /// In en, this message translates to:
-  /// **'The runner could not be tracked well enough. Try a clearer side-view clip.'**
+  /// **'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.'**
   String get runningCoachNoPoseDetected;
 
   /// No description provided for @runningCoachAnalysisFailedGeneric.
@@ -3271,6 +3271,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value}% vertical bounce'**
   String runningCoachBounceValue(Object value);
+
+  /// No description provided for @runningCoachFootStrikeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}x ahead of hips'**
+  String runningCoachFootStrikeValue(Object value);
+
+  /// No description provided for @runningCoachKneeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}° support knee angle'**
+  String runningCoachKneeValue(Object value);
+
+  /// No description provided for @runningCoachArmValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}° elbow angle'**
+  String runningCoachArmValue(Object value);
 
   /// No description provided for @runningCoachStrideValue.
   ///
@@ -3379,6 +3397,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drill: 3 x 20m ankle dribbles and straight-leg runs with short contacts.'**
   String get runningCoachBounceHighDrill;
+
+  /// No description provided for @runningCoachInsightFootStrikeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Foot strike'**
+  String get runningCoachInsightFootStrikeTitle;
+
+  /// No description provided for @runningCoachFootStrikeGoodSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'The lead foot is landing close enough to the hips that the step can keep rolling forward.'**
+  String get runningCoachFootStrikeGoodSummary;
+
+  /// No description provided for @runningCoachFootStrikeGoodCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep landing under the hips and let speed come from push-off, not reaching.'**
+  String get runningCoachFootStrikeGoodCue;
+
+  /// No description provided for @runningCoachFootStrikeGoodDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m wicket-style runs with short, quick contacts.'**
+  String get runningCoachFootStrikeGoodDrill;
+
+  /// No description provided for @runningCoachFootStrikeOverSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'The lead foot is reaching too far in front of the hips, which can create braking at contact.'**
+  String get runningCoachFootStrikeOverSummary;
+
+  /// No description provided for @runningCoachFootStrikeOverCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring the landing point back under the hips and think push back, not reach forward.'**
+  String get runningCoachFootStrikeOverCue;
+
+  /// No description provided for @runningCoachFootStrikeOverDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m A-march plus 2 x 20m wicket-style runs with shorter contacts.'**
+  String get runningCoachFootStrikeOverDrill;
+
+  /// No description provided for @runningCoachInsightKneeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee flexion'**
+  String get runningCoachInsightKneeTitle;
+
+  /// No description provided for @runningCoachKneeGoodSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'The support knee is bending enough to stay springy without collapsing.'**
+  String get runningCoachKneeGoodSummary;
+
+  /// No description provided for @runningCoachKneeGoodCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the stance leg soft and reactive instead of locking on landing.'**
+  String get runningCoachKneeGoodCue;
+
+  /// No description provided for @runningCoachKneeGoodDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m pogo runs, then 2 x 20m dribble runs.'**
+  String get runningCoachKneeGoodDrill;
+
+  /// No description provided for @runningCoachKneeStraightSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'The support knee is landing too straight, which can make the step look stiff and heavy.'**
+  String get runningCoachKneeStraightSummary;
+
+  /// No description provided for @runningCoachKneeStraightCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Soften the landing knee and let the leg accept the ground under the hips.'**
+  String get runningCoachKneeStraightCue;
+
+  /// No description provided for @runningCoachKneeStraightDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m dribble runs with bent-knee contacts and quick steps.'**
+  String get runningCoachKneeStraightDrill;
+
+  /// No description provided for @runningCoachKneeCollapseSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'The support knee is folding too much after contact, so the stance leg is losing stiffness.'**
+  String get runningCoachKneeCollapseSummary;
+
+  /// No description provided for @runningCoachKneeCollapseCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay springy through the stance leg and keep the hips stacked over the foot.'**
+  String get runningCoachKneeCollapseCue;
+
+  /// No description provided for @runningCoachKneeCollapseDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 15m single-leg pogo hops per side, then 2 x 20m dribble runs.'**
+  String get runningCoachKneeCollapseDrill;
+
+  /// No description provided for @runningCoachInsightArmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm carriage'**
+  String get runningCoachInsightArmTitle;
+
+  /// No description provided for @runningCoachArmGoodSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your elbows stay in a compact range that supports rhythm without over-tensing the upper body.'**
+  String get runningCoachArmGoodSummary;
+
+  /// No description provided for @runningCoachArmGoodCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the elbows bent and let the hands travel front to back with the same rhythm as the legs.'**
+  String get runningCoachArmGoodCue;
+
+  /// No description provided for @runningCoachArmGoodDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20s wall arm switches, then 2 x 20m arm-drive marches.'**
+  String get runningCoachArmGoodDrill;
+
+  /// No description provided for @runningCoachArmOpenSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your elbows are opening too much, so the arms may be leaking rhythm instead of helping it.'**
+  String get runningCoachArmOpenSummary;
+
+  /// No description provided for @runningCoachArmOpenCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the elbows more bent and drive the hands back past the hips instead of reaching long.'**
+  String get runningCoachArmOpenCue;
+
+  /// No description provided for @runningCoachArmOpenDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20s wall arm switches while holding a compact 80-100 degree elbow bend.'**
+  String get runningCoachArmOpenDrill;
+
+  /// No description provided for @runningCoachArmTightSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Your elbows are staying too tight, which can shorten the arm swing and make the stride feel forced.'**
+  String get runningCoachArmTightSummary;
+
+  /// No description provided for @runningCoachArmTightCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Relax the shoulders and let the elbows open a little more while the hands keep moving backward.'**
+  String get runningCoachArmTightCue;
+
+  /// No description provided for @runningCoachArmTightDrill.
+  ///
+  /// In en, this message translates to:
+  /// **'Drill: 2 x 20m marching arm swings with relaxed shoulders and a smoother back drive.'**
+  String get runningCoachArmTightDrill;
 
   /// No description provided for @runningCoachInsightStrideTitle.
   ///

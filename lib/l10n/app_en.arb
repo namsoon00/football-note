@@ -618,13 +618,13 @@
   "drawerRunningCoach": "Running Coach",
   "runningCoachScreenTitle": "Running Coach",
   "runningCoachHeroTitle": "Side-view running form coach",
-  "runningCoachHeroBody": "Upload a short side-view running clip and get quick feedback on posture, bounce, and stride reach.",
+  "runningCoachHeroBody": "Upload a short side-view running clip and get stricter feedback on posture, bounce, foot strike, knee flexion, and arm carriage.",
   "runningCoachTipsTitle": "How to record",
-  "runningCoachTipWholeBody": "Keep the full body in frame from head to ankle for the whole clip.",
+  "runningCoachTipWholeBody": "Keep the full body in frame from head to ankle, with elbows and feet visible for the whole clip.",
   "runningCoachTipSideView": "Record from the side while the runner moves across the frame.",
   "runningCoachTipSteadyCamera": "Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.",
   "runningCoachLiveCardTitle": "Live coach",
-  "runningCoachLiveCardBody": "Turn on the camera and the app will first warn when framing is off, then start coaching as soon as the running view stabilizes.",
+  "runningCoachLiveCardBody": "Turn on the camera and the app will first correct framing, then coach posture, bounce, foot strike, knee bend, and arm carriage once the side view stabilizes.",
   "runningCoachLiveAction": "Start live coach",
   "runningCoachLiveGuideAction": "Shooting guide",
   "runningCoachLiveScreenTitle": "Live running coach",
@@ -634,7 +634,7 @@
   "runningCoachLiveGuideTipSideTitle": "Show a side view",
   "runningCoachLiveGuideTipSideBody": "The runner should move across the frame from the side, not straight toward the camera or on a heavy diagonal.",
   "runningCoachLiveGuideTipBodyTitle": "Keep the full body in frame",
-  "runningCoachLiveGuideTipBodyBody": "The head, hips, and ankles all need to stay visible so the pose line and score can stay stable.",
+  "runningCoachLiveGuideTipBodyBody": "The head, elbows, hips, and ankles all need to stay visible so the pose line and score can stay stable.",
   "runningCoachLiveGuideTipHudTitle": "Leave space around the runner",
   "runningCoachLiveGuideTipHudBody": "Scores and metrics sit on the outer edges of the screen. Keep the runner inside the center guide so the body is not covered.",
   "runningCoachLiveGuideTipCameraTitle": "Keep the camera fixed and the body large enough",
@@ -685,7 +685,7 @@
   "runningCoachNativeAnalyzerUnavailable": "This app build does not include the running video analyzer yet. Reinstall the latest mobile app build and try again.",
   "runningCoachVideoFileMissing": "The selected video file could not be found.",
   "runningCoachVideoTooShort": "The video is too short. Record at least a few running steps.",
-  "runningCoachNoPoseDetected": "The runner could not be tracked well enough. Try a clearer side-view clip.",
+  "runningCoachNoPoseDetected": "The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.",
   "runningCoachAnalysisFailedGeneric": "Running analysis failed. Try another clip with a clearer side view.",
   "runningCoachResultsTitle": "Coaching results",
   "runningCoachOverallHeadlineStrong": "Strong running shape",
@@ -718,6 +718,24 @@
       "value": {}
     }
   },
+  "runningCoachFootStrikeValue": "{value}x ahead of hips",
+  "@runningCoachFootStrikeValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachKneeValue": "{value}° support knee angle",
+  "@runningCoachKneeValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachArmValue": "{value}° elbow angle",
+  "@runningCoachArmValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "runningCoachStrideValue": "{value}x stride reach",
   "@runningCoachStrideValue": {
     "placeholders": {
@@ -741,6 +759,33 @@
   "runningCoachBounceHighSummary": "There is extra up-and-down bounce in the clip, which can waste energy.",
   "runningCoachBounceHighCue": "Think quick contacts and push the ground behind you, not straight down.",
   "runningCoachBounceHighDrill": "Drill: 3 x 20m ankle dribbles and straight-leg runs with short contacts.",
+  "runningCoachInsightFootStrikeTitle": "Foot strike",
+  "runningCoachFootStrikeGoodSummary": "The lead foot is landing close enough to the hips that the step can keep rolling forward.",
+  "runningCoachFootStrikeGoodCue": "Keep landing under the hips and let speed come from push-off, not reaching.",
+  "runningCoachFootStrikeGoodDrill": "Drill: 2 x 20m wicket-style runs with short, quick contacts.",
+  "runningCoachFootStrikeOverSummary": "The lead foot is reaching too far in front of the hips, which can create braking at contact.",
+  "runningCoachFootStrikeOverCue": "Bring the landing point back under the hips and think push back, not reach forward.",
+  "runningCoachFootStrikeOverDrill": "Drill: 2 x 20m A-march plus 2 x 20m wicket-style runs with shorter contacts.",
+  "runningCoachInsightKneeTitle": "Knee flexion",
+  "runningCoachKneeGoodSummary": "The support knee is bending enough to stay springy without collapsing.",
+  "runningCoachKneeGoodCue": "Keep the stance leg soft and reactive instead of locking on landing.",
+  "runningCoachKneeGoodDrill": "Drill: 2 x 20m pogo runs, then 2 x 20m dribble runs.",
+  "runningCoachKneeStraightSummary": "The support knee is landing too straight, which can make the step look stiff and heavy.",
+  "runningCoachKneeStraightCue": "Soften the landing knee and let the leg accept the ground under the hips.",
+  "runningCoachKneeStraightDrill": "Drill: 2 x 20m dribble runs with bent-knee contacts and quick steps.",
+  "runningCoachKneeCollapseSummary": "The support knee is folding too much after contact, so the stance leg is losing stiffness.",
+  "runningCoachKneeCollapseCue": "Stay springy through the stance leg and keep the hips stacked over the foot.",
+  "runningCoachKneeCollapseDrill": "Drill: 2 x 15m single-leg pogo hops per side, then 2 x 20m dribble runs.",
+  "runningCoachInsightArmTitle": "Arm carriage",
+  "runningCoachArmGoodSummary": "Your elbows stay in a compact range that supports rhythm without over-tensing the upper body.",
+  "runningCoachArmGoodCue": "Keep the elbows bent and let the hands travel front to back with the same rhythm as the legs.",
+  "runningCoachArmGoodDrill": "Drill: 2 x 20s wall arm switches, then 2 x 20m arm-drive marches.",
+  "runningCoachArmOpenSummary": "Your elbows are opening too much, so the arms may be leaking rhythm instead of helping it.",
+  "runningCoachArmOpenCue": "Keep the elbows more bent and drive the hands back past the hips instead of reaching long.",
+  "runningCoachArmOpenDrill": "Drill: 2 x 20s wall arm switches while holding a compact 80-100 degree elbow bend.",
+  "runningCoachArmTightSummary": "Your elbows are staying too tight, which can shorten the arm swing and make the stride feel forced.",
+  "runningCoachArmTightCue": "Relax the shoulders and let the elbows open a little more while the hands keep moving backward.",
+  "runningCoachArmTightDrill": "Drill: 2 x 20m marching arm swings with relaxed shoulders and a smoother back drive.",
   "runningCoachInsightStrideTitle": "Stride reach",
   "runningCoachStrideGoodSummary": "Your front foot stays close to a useful landing window under the body.",
   "runningCoachStrideGoodCue": "Keep the same timing and let the stride open from force, not from reaching.",
