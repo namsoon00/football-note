@@ -3670,66 +3670,82 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                         ),
                       ],
                       const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          TextButton(
-                            onPressed: () async {
-                              final shouldClear = await showDialog<bool>(
-                                context: context,
-                                builder: (dialogContext) => AlertDialog(
-                                  title: Text(
-                                    _isKo ? '정말 비울까요?' : 'Clear all?',
-                                  ),
-                                  content: Text(
-                                    _isKo
-                                        ? '작성한 제목, 본문, 선택한 스티커를 모두 비웁니다.'
-                                        : 'This will clear title, story, and selected stickers.',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(
-                                        dialogContext,
-                                      ).pop(false),
-                                      child: Text(_isKo ? '취소' : 'Cancel'),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final saveButtonWidth = math.min(
+                            180.0,
+                            constraints.maxWidth * 0.45,
+                          );
+                          return Row(
+                            children: [
+                              TextButton(
+                                onPressed: () async {
+                                  final shouldClear = await showDialog<bool>(
+                                    context: context,
+                                    builder: (dialogContext) => AlertDialog(
+                                      title: Text(
+                                        _isKo ? '정말 비울까요?' : 'Clear all?',
+                                      ),
+                                      content: Text(
+                                        _isKo
+                                            ? '작성한 제목, 본문, 선택한 스티커를 모두 비웁니다.'
+                                            : 'This will clear title, story, and selected stickers.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(
+                                            dialogContext,
+                                          ).pop(false),
+                                          child: Text(_isKo ? '취소' : 'Cancel'),
+                                        ),
+                                        FilledButton(
+                                          onPressed: () => Navigator.of(
+                                            dialogContext,
+                                          ).pop(true),
+                                          child: Text(
+                                            _isKo ? '비우기' : 'Clear',
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    FilledButton(
-                                      onPressed: () =>
-                                          Navigator.of(dialogContext).pop(true),
-                                      child: Text(_isKo ? '비우기' : 'Clear'),
-                                    ),
-                                  ],
+                                  );
+                                  if (shouldClear != true) return;
+                                  setModalState(() {
+                                    titleController.clear();
+                                    storyController.clear();
+                                    selectedRecordStickerOrder.clear();
+                                  });
+                                  scheduleAutoSave();
+                                },
+                                child: Text(_isKo ? '비우기' : 'Clear'),
+                              ),
+                              const Spacer(),
+                              SizedBox(
+                                width: saveButtonWidth,
+                                child: FilledButton(
+                                  key: const ValueKey('diary-save-button'),
+                                  onPressed: () async {
+                                    // Commit any unsubmitted composing text from
+                                    // the active TextField before saving.
+                                    // Without this, some Android IMEs may drop
+                                    // the last syllable or treat the entry as
+                                    // empty.
+                                    final navigator = Navigator.of(context);
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                    await Future.delayed(
+                                      const Duration(milliseconds: 16),
+                                    );
+                                    if (navigator.canPop()) {
+                                      navigator.pop(buildDraftData());
+                                    }
+                                  },
+                                  child: Text(_isKo ? '저장' : 'Save'),
                                 ),
-                              );
-                              if (shouldClear != true) return;
-                              setModalState(() {
-                                titleController.clear();
-                                storyController.clear();
-                                selectedRecordStickerOrder.clear();
-                              });
-                              scheduleAutoSave();
-                            },
-                            child: Text(_isKo ? '비우기' : 'Clear'),
-                          ),
-                          const Spacer(),
-                          FilledButton(
-                            key: const ValueKey('diary-save-button'),
-                            onPressed: () async {
-                              // Commit any unsubmitted composing text from the
-                              // active TextField before saving. Without this,
-                              // some Android IMEs may drop the last syllable
-                              // or treat the entry as empty.
-                              final navigator = Navigator.of(context);
-                              FocusManager.instance.primaryFocus?.unfocus();
-                              await Future.delayed(
-                                const Duration(milliseconds: 16),
-                              );
-                              if (navigator.canPop()) {
-                                navigator.pop(buildDraftData());
-                              }
-                            },
-                            child: Text(_isKo ? '저장' : 'Save'),
-                          ),
-                        ],
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),

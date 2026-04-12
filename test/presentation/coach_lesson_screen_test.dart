@@ -684,6 +684,44 @@ void main() {
     },
   );
 
+  testWidgets('coach lesson screen opens diary composer without layout errors',
+      (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _FakeOptionRepository();
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: TrainingService(
+              _FakeTrainingRepository(const <TrainingEntry>[]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('diary-create-first-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('${DateTime.now().day}').first);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('diary-save-button')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('coach lesson screen can create diary without training records', (
     WidgetTester tester,
   ) async {
