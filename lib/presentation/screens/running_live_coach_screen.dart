@@ -599,13 +599,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         l10n.runningCoachPostureUprightCue,
       RunningLivePrimaryCue.postureTooLean => l10n.runningCoachPostureLeanCue,
       RunningLivePrimaryCue.bounceTooHigh => l10n.runningCoachBounceHighCue,
-      RunningLivePrimaryCue.footStrikeOverstride =>
-        l10n.runningCoachFootStrikeOverCue,
-      RunningLivePrimaryCue.kneeTooStraight => l10n.runningCoachKneeStraightCue,
-      RunningLivePrimaryCue.kneeTooCollapsed =>
-        l10n.runningCoachKneeCollapseCue,
-      RunningLivePrimaryCue.armTooOpen => l10n.runningCoachArmOpenCue,
-      RunningLivePrimaryCue.armTooTight => l10n.runningCoachArmTightCue,
+      RunningLivePrimaryCue.strideTooShort => l10n.runningCoachStrideShortCue,
+      RunningLivePrimaryCue.strideOverstride => l10n.runningCoachStrideOverCue,
     };
   }
 
@@ -625,13 +620,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         l10n.runningCoachPostureUprightCue,
       RunningLivePrimaryCue.postureTooLean => l10n.runningCoachPostureLeanCue,
       RunningLivePrimaryCue.bounceTooHigh => l10n.runningCoachBounceHighCue,
-      RunningLivePrimaryCue.footStrikeOverstride =>
-        l10n.runningCoachFootStrikeOverCue,
-      RunningLivePrimaryCue.kneeTooStraight => l10n.runningCoachKneeStraightCue,
-      RunningLivePrimaryCue.kneeTooCollapsed =>
-        l10n.runningCoachKneeCollapseCue,
-      RunningLivePrimaryCue.armTooOpen => l10n.runningCoachArmOpenCue,
-      RunningLivePrimaryCue.armTooTight => l10n.runningCoachArmTightCue,
+      RunningLivePrimaryCue.strideTooShort => l10n.runningCoachStrideShortCue,
+      RunningLivePrimaryCue.strideOverstride => l10n.runningCoachStrideOverCue,
     };
   }
 
@@ -690,17 +680,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
           accent: Colors.white54,
         ),
         _MetricTileData(
-          label: l10n.runningCoachInsightFootStrikeTitle,
-          value: '--',
-          accent: Colors.white54,
-        ),
-        _MetricTileData(
-          label: l10n.runningCoachInsightKneeTitle,
-          value: '--',
-          accent: Colors.white54,
-        ),
-        _MetricTileData(
-          label: l10n.runningCoachInsightArmTitle,
+          label: l10n.runningCoachInsightStrideTitle,
           value: '--',
           accent: Colors.white54,
         ),
@@ -712,22 +692,15 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       final label = switch (insight.metric) {
         RunningCoachMetric.posture => l10n.runningCoachInsightPostureTitle,
         RunningCoachMetric.bounce => l10n.runningCoachInsightBounceTitle,
-        RunningCoachMetric.footStrike =>
-          l10n.runningCoachInsightFootStrikeTitle,
-        RunningCoachMetric.kneeFlexion => l10n.runningCoachInsightKneeTitle,
-        RunningCoachMetric.armCarriage => l10n.runningCoachInsightArmTitle,
+        RunningCoachMetric.stride => l10n.runningCoachInsightStrideTitle,
       };
       final value = switch (insight.metric) {
         RunningCoachMetric.posture =>
           l10n.runningCoachLeanValue(insight.value.toStringAsFixed(1)),
         RunningCoachMetric.bounce =>
           l10n.runningCoachBounceValue(insight.value.toStringAsFixed(1)),
-        RunningCoachMetric.footStrike =>
-          l10n.runningCoachFootStrikeValue(insight.value.toStringAsFixed(2)),
-        RunningCoachMetric.kneeFlexion =>
-          l10n.runningCoachKneeValue(insight.value.toStringAsFixed(0)),
-        RunningCoachMetric.armCarriage =>
-          l10n.runningCoachArmValue(insight.value.toStringAsFixed(0)),
+        RunningCoachMetric.stride =>
+          l10n.runningCoachStrideValue(insight.value.toStringAsFixed(2)),
       };
       metrics.add(
         _MetricTileData(

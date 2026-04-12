@@ -1525,14 +1525,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachHeroBody =>
-      'Upload a short side-view running clip and get stricter feedback on posture, bounce, foot strike, knee flexion, and arm carriage.';
+      'Upload a short side-view running clip and get quick feedback on posture, bounce, and stride reach.';
 
   @override
   String get runningCoachTipsTitle => 'How to record';
 
   @override
   String get runningCoachTipWholeBody =>
-      'Keep the full body in frame from head to ankle, with elbows and feet visible for the whole clip.';
+      'Keep the full body in frame from head to ankle for the whole clip.';
 
   @override
   String get runningCoachTipSideView =>
@@ -1547,7 +1547,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Turn on the camera and the app will first correct framing, then coach posture, bounce, foot strike, knee bend, and arm carriage once the side view stabilizes.';
+      'Turn on the camera and the app will first warn when framing is off, then start coaching as soon as the running view stabilizes.';
 
   @override
   String get runningCoachLiveAction => 'Start live coach';
@@ -1581,7 +1581,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipBodyBody =>
-      'The head, elbows, hips, and ankles all need to stay visible so the pose line and score can stay stable.';
+      'The head, hips, and ankles all need to stay visible so the pose line and score can stay stable.';
 
   @override
   String get runningCoachLiveGuideTipHudTitle =>
@@ -1715,7 +1715,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachNoPoseDetected =>
-      'The runner could not be tracked well enough. Try a clearer side-view clip with elbows, knees, and feet visible.';
+      'The runner could not be tracked well enough. Try a clearer side-view clip.';
 
   @override
   String get runningCoachAnalysisFailedGeneric =>
@@ -1769,21 +1769,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String runningCoachBounceValue(Object value) {
     return '$value% vertical bounce';
-  }
-
-  @override
-  String runningCoachFootStrikeValue(Object value) {
-    return '${value}x ahead of hips';
-  }
-
-  @override
-  String runningCoachKneeValue(Object value) {
-    return '$value° support knee angle';
-  }
-
-  @override
-  String runningCoachArmValue(Object value) {
-    return '$value° elbow angle';
   }
 
   @override
@@ -1856,111 +1841,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachBounceHighDrill =>
       'Drill: 3 x 20m ankle dribbles and straight-leg runs with short contacts.';
-
-  @override
-  String get runningCoachInsightFootStrikeTitle => 'Foot strike';
-
-  @override
-  String get runningCoachFootStrikeGoodSummary =>
-      'The lead foot is landing close enough to the hips that the step can keep rolling forward.';
-
-  @override
-  String get runningCoachFootStrikeGoodCue =>
-      'Keep landing under the hips and let speed come from push-off, not reaching.';
-
-  @override
-  String get runningCoachFootStrikeGoodDrill =>
-      'Drill: 2 x 20m wicket-style runs with short, quick contacts.';
-
-  @override
-  String get runningCoachFootStrikeOverSummary =>
-      'The lead foot is reaching too far in front of the hips, which can create braking at contact.';
-
-  @override
-  String get runningCoachFootStrikeOverCue =>
-      'Bring the landing point back under the hips and think push back, not reach forward.';
-
-  @override
-  String get runningCoachFootStrikeOverDrill =>
-      'Drill: 2 x 20m A-march plus 2 x 20m wicket-style runs with shorter contacts.';
-
-  @override
-  String get runningCoachInsightKneeTitle => 'Knee flexion';
-
-  @override
-  String get runningCoachKneeGoodSummary =>
-      'The support knee is bending enough to stay springy without collapsing.';
-
-  @override
-  String get runningCoachKneeGoodCue =>
-      'Keep the stance leg soft and reactive instead of locking on landing.';
-
-  @override
-  String get runningCoachKneeGoodDrill =>
-      'Drill: 2 x 20m pogo runs, then 2 x 20m dribble runs.';
-
-  @override
-  String get runningCoachKneeStraightSummary =>
-      'The support knee is landing too straight, which can make the step look stiff and heavy.';
-
-  @override
-  String get runningCoachKneeStraightCue =>
-      'Soften the landing knee and let the leg accept the ground under the hips.';
-
-  @override
-  String get runningCoachKneeStraightDrill =>
-      'Drill: 2 x 20m dribble runs with bent-knee contacts and quick steps.';
-
-  @override
-  String get runningCoachKneeCollapseSummary =>
-      'The support knee is folding too much after contact, so the stance leg is losing stiffness.';
-
-  @override
-  String get runningCoachKneeCollapseCue =>
-      'Stay springy through the stance leg and keep the hips stacked over the foot.';
-
-  @override
-  String get runningCoachKneeCollapseDrill =>
-      'Drill: 2 x 15m single-leg pogo hops per side, then 2 x 20m dribble runs.';
-
-  @override
-  String get runningCoachInsightArmTitle => 'Arm carriage';
-
-  @override
-  String get runningCoachArmGoodSummary =>
-      'Your elbows stay in a compact range that supports rhythm without over-tensing the upper body.';
-
-  @override
-  String get runningCoachArmGoodCue =>
-      'Keep the elbows bent and let the hands travel front to back with the same rhythm as the legs.';
-
-  @override
-  String get runningCoachArmGoodDrill =>
-      'Drill: 2 x 20s wall arm switches, then 2 x 20m arm-drive marches.';
-
-  @override
-  String get runningCoachArmOpenSummary =>
-      'Your elbows are opening too much, so the arms may be leaking rhythm instead of helping it.';
-
-  @override
-  String get runningCoachArmOpenCue =>
-      'Keep the elbows more bent and drive the hands back past the hips instead of reaching long.';
-
-  @override
-  String get runningCoachArmOpenDrill =>
-      'Drill: 2 x 20s wall arm switches while holding a compact 80-100 degree elbow bend.';
-
-  @override
-  String get runningCoachArmTightSummary =>
-      'Your elbows are staying too tight, which can shorten the arm swing and make the stride feel forced.';
-
-  @override
-  String get runningCoachArmTightCue =>
-      'Relax the shoulders and let the elbows open a little more while the hands keep moving backward.';
-
-  @override
-  String get runningCoachArmTightDrill =>
-      'Drill: 2 x 20m marching arm swings with relaxed shoulders and a smoother back drive.';
 
   @override
   String get runningCoachInsightStrideTitle => 'Stride reach';

@@ -16,8 +16,8 @@ class RunningLiveCoachingService {
 
   RunningLiveCoachingService({
     RunningCoachingService coachingService = const RunningCoachingService(),
-    Duration analysisWindow = const Duration(milliseconds: 2400),
-    int minimumTrackedFrames = 7,
+    Duration analysisWindow = const Duration(seconds: 2),
+    int minimumTrackedFrames = 6,
     double minimumLikelihood = 0.45,
   })  : _coachingService = coachingService,
         _analysisWindow = analysisWindow,
@@ -189,14 +189,6 @@ class RunningLiveCoachingService {
       RunningPoseLandmarkType.rightHip,
       minimumLikelihood: _minimumLikelihood,
     );
-    final leftKnee = observation.landmark(
-      RunningPoseLandmarkType.leftKnee,
-      minimumLikelihood: _minimumLikelihood,
-    );
-    final rightKnee = observation.landmark(
-      RunningPoseLandmarkType.rightKnee,
-      minimumLikelihood: _minimumLikelihood,
-    );
     final leftAnkle = observation.landmark(
       RunningPoseLandmarkType.leftAnkle,
       minimumLikelihood: _minimumLikelihood,
@@ -209,8 +201,6 @@ class RunningLiveCoachingService {
         rightShoulder == null ||
         leftHip == null ||
         rightHip == null ||
-        leftKnee == null ||
-        rightKnee == null ||
         leftAnkle == null ||
         rightAnkle == null) {
       return null;
@@ -230,52 +220,10 @@ class RunningLiveCoachingService {
     }
 
     return _FrameSample(
-      leftShoulder: leftShoulder.position,
-      rightShoulder: rightShoulder.position,
-      leftHip: leftHip.position,
-      rightHip: rightHip.position,
-      leftKnee: leftKnee.position,
-      rightKnee: rightKnee.position,
       shoulderCenter: shoulderCenter,
       hipCenter: hipCenter,
       leftAnkle: leftAnkle.position,
       rightAnkle: rightAnkle.position,
-      leftHeel: observation
-          .landmark(
-            RunningPoseLandmarkType.leftHeel,
-            minimumLikelihood: _minimumLikelihood,
-          )
-          ?.position,
-      rightHeel: observation
-          .landmark(
-            RunningPoseLandmarkType.rightHeel,
-            minimumLikelihood: _minimumLikelihood,
-          )
-          ?.position,
-      leftElbow: observation
-          .landmark(
-            RunningPoseLandmarkType.leftElbow,
-            minimumLikelihood: _minimumLikelihood,
-          )
-          ?.position,
-      rightElbow: observation
-          .landmark(
-            RunningPoseLandmarkType.rightElbow,
-            minimumLikelihood: _minimumLikelihood,
-          )
-          ?.position,
-      leftWrist: observation
-          .landmark(
-            RunningPoseLandmarkType.leftWrist,
-            minimumLikelihood: _minimumLikelihood,
-          )
-          ?.position,
-      rightWrist: observation
-          .landmark(
-            RunningPoseLandmarkType.rightWrist,
-            minimumLikelihood: _minimumLikelihood,
-          )
-          ?.position,
       bodyScale: bodyScale,
       shoulderSpan: _distance(
         leftShoulder.position,
@@ -310,34 +258,11 @@ class RunningLiveCoachingService {
         ((shoulderYs.reduce(math.max) - shoulderYs.reduce(math.min)) /
                 math.max(averageScale, 1))
             .clamp(0.0, double.infinity);
-    final loadingSamples = samples.toList(growable: false)
-      ..sort(
-        (first, second) => first
-            .leadFootStrikeRatio(direction)
-            .compareTo(second.leadFootStrikeRatio(direction)),
-      );
-    final loadingWindowSize = math.max(1, loadingSamples.length ~/ 3);
-    final stanceSamples =
-        loadingSamples.sublist(loadingSamples.length - loadingWindowSize);
-    final footStrikeRatio = stanceSamples
-            .map((sample) => sample.leadFootStrikeRatio(direction))
-            .reduce((sum, value) => sum + value) /
-        stanceSamples.length;
-    final kneeAngles = <double>[
-      for (final sample in stanceSamples)
-        if (sample.leadKneeAngleDegrees(direction) case final angle?) angle,
-    ];
-    final elbowAngles = <double>[
-      for (final sample in samples)
-        if (sample.averageElbowAngleDegrees case final angle?) angle,
-    ];
-    if (kneeAngles.isEmpty || elbowAngles.isEmpty) {
-      return null;
-    }
-    final stanceKneeAngle =
-        kneeAngles.reduce((sum, value) => sum + value) / kneeAngles.length;
-    final elbowAngle =
-        elbowAngles.reduce((sum, value) => sum + value) / elbowAngles.length;
+    final strideRatio = _topAverage(
+      samples
+          .map((sample) => sample.strideReachRatio(direction))
+          .toList(growable: false),
+    ).clamp(0.0, double.infinity);
 
     return RunningVideoAnalysisResult(
       videoDuration: duration < const Duration(milliseconds: 400)
@@ -348,9 +273,7 @@ class RunningLiveCoachingService {
       direction: direction,
       forwardLeanDegrees: _roundTo3(leanDegrees),
       verticalBounceRatio: _roundTo3(bounceRatio),
-      footStrikeDistanceRatio: _roundTo3(footStrikeRatio),
-      stanceKneeAngleDegrees: _roundTo3(stanceKneeAngle),
-      elbowAngleDegrees: _roundTo3(elbowAngle),
+      strideReachRatio: _roundTo3(strideRatio),
     );
   }
 
@@ -411,14 +334,10 @@ class RunningLiveCoachingService {
       RunningCoachFinding.postureTooLean =>
         RunningLivePrimaryCue.postureTooLean,
       RunningCoachFinding.bounceTooHigh => RunningLivePrimaryCue.bounceTooHigh,
-      RunningCoachFinding.footStrikeOverstride =>
-        RunningLivePrimaryCue.footStrikeOverstride,
-      RunningCoachFinding.kneeTooStraight =>
-        RunningLivePrimaryCue.kneeTooStraight,
-      RunningCoachFinding.kneeTooCollapsed =>
-        RunningLivePrimaryCue.kneeTooCollapsed,
-      RunningCoachFinding.armTooOpen => RunningLivePrimaryCue.armTooOpen,
-      RunningCoachFinding.armTooTight => RunningLivePrimaryCue.armTooTight,
+      RunningCoachFinding.strideTooShort =>
+        RunningLivePrimaryCue.strideTooShort,
+      RunningCoachFinding.strideOverstride =>
+        RunningLivePrimaryCue.strideOverstride,
       _ => RunningLivePrimaryCue.lookingGood,
     };
   }
@@ -431,6 +350,16 @@ class RunningLiveCoachingService {
     final dx = first.dx - second.dx;
     final dy = first.dy - second.dy;
     return math.sqrt((dx * dx) + (dy * dy));
+  }
+
+  double _topAverage(List<double> values) {
+    if (values.isEmpty) {
+      return 0;
+    }
+    final clipped = values.map((value) => math.max(0, value)).toList()..sort();
+    final windowSize = math.max(1, clipped.length ~/ 3);
+    final slice = clipped.sublist(clipped.length - windowSize);
+    return slice.reduce((sum, value) => sum + value) / slice.length;
   }
 
   double _roundTo3(double value) {
@@ -449,43 +378,19 @@ class _TimedFrameSample {
 }
 
 class _FrameSample {
-  final Offset leftShoulder;
-  final Offset rightShoulder;
-  final Offset leftHip;
-  final Offset rightHip;
-  final Offset leftKnee;
-  final Offset rightKnee;
   final Offset shoulderCenter;
   final Offset hipCenter;
   final Offset leftAnkle;
   final Offset rightAnkle;
-  final Offset? leftHeel;
-  final Offset? rightHeel;
-  final Offset? leftElbow;
-  final Offset? rightElbow;
-  final Offset? leftWrist;
-  final Offset? rightWrist;
   final double bodyScale;
   final double shoulderSpan;
   final double hipSpan;
 
   const _FrameSample({
-    required this.leftShoulder,
-    required this.rightShoulder,
-    required this.leftHip,
-    required this.rightHip,
-    required this.leftKnee,
-    required this.rightKnee,
     required this.shoulderCenter,
     required this.hipCenter,
     required this.leftAnkle,
     required this.rightAnkle,
-    required this.leftHeel,
-    required this.rightHeel,
-    required this.leftElbow,
-    required this.rightElbow,
-    required this.leftWrist,
-    required this.rightWrist,
     required this.bodyScale,
     required this.shoulderSpan,
     required this.hipSpan,
@@ -504,61 +409,17 @@ class _FrameSample {
     return math.atan2(forwardOffset.abs(), verticalTravel) * 180 / math.pi;
   }
 
-  double leadFootStrikeRatio(RunningDirection direction) {
-    final leftFoot = leftHeel ?? leftAnkle;
-    final rightFoot = rightHeel ?? rightAnkle;
+  double strideReachRatio(RunningDirection direction) {
     final forwardReach = switch (direction) {
       RunningDirection.leftToRight =>
-        math.max(leftFoot.dx, rightFoot.dx) - hipCenter.dx,
+        math.max(leftAnkle.dx, rightAnkle.dx) - hipCenter.dx,
       RunningDirection.rightToLeft =>
-        hipCenter.dx - math.min(leftFoot.dx, rightFoot.dx),
+        hipCenter.dx - math.min(leftAnkle.dx, rightAnkle.dx),
       RunningDirection.stationary => math.max(
-          (leftFoot.dx - hipCenter.dx).abs(),
-          (rightFoot.dx - hipCenter.dx).abs(),
+          (leftAnkle.dx - hipCenter.dx).abs(),
+          (rightAnkle.dx - hipCenter.dx).abs(),
         ),
     };
-    return forwardReach / math.max(bodyScale, 1.0);
-  }
-
-  double? get averageElbowAngleDegrees {
-    final angles = <double>[
-      if (leftElbow != null && leftWrist != null)
-        _jointAngle(leftShoulder, leftElbow!, leftWrist!),
-      if (rightElbow != null && rightWrist != null)
-        _jointAngle(rightShoulder, rightElbow!, rightWrist!),
-    ];
-    if (angles.isEmpty) {
-      return null;
-    }
-    return angles.reduce((sum, value) => sum + value) / angles.length;
-  }
-
-  double? leadKneeAngleDegrees(RunningDirection direction) {
-    final useLeft = switch (direction) {
-      RunningDirection.leftToRight =>
-        (leftHeel ?? leftAnkle).dx >= (rightHeel ?? rightAnkle).dx,
-      RunningDirection.rightToLeft =>
-        (leftHeel ?? leftAnkle).dx <= (rightHeel ?? rightAnkle).dx,
-      RunningDirection.stationary =>
-        ((leftHeel ?? leftAnkle).dx - hipCenter.dx).abs() >=
-            ((rightHeel ?? rightAnkle).dx - hipCenter.dx).abs(),
-    };
-    return useLeft
-        ? _jointAngle(leftHip, leftKnee, leftAnkle)
-        : _jointAngle(rightHip, rightKnee, rightAnkle);
-  }
-
-  double _jointAngle(Offset first, Offset vertex, Offset third) {
-    final firstVector = first - vertex;
-    final secondVector = third - vertex;
-    final firstLength = firstVector.distance;
-    final secondLength = secondVector.distance;
-    if (firstLength <= 0 || secondLength <= 0) {
-      return 180;
-    }
-    final cosine = ((firstVector.dx * secondVector.dx) +
-            (firstVector.dy * secondVector.dy)) /
-        (firstLength * secondLength);
-    return math.acos(cosine.clamp(-1.0, 1.0)) * 180 / math.pi;
+    return math.max(0, forwardReach) / math.max(bodyScale, 1.0);
   }
 }

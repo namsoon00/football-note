@@ -18,10 +18,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.atan2
-import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class RunningPoseAnalysisChannel(
     messenger: BinaryMessenger,
@@ -132,23 +130,9 @@ class RunningPoseAnalysisChannel(
                 (shoulderYs.maxOrNull() ?: 0.0) -
                     (shoulderYs.minOrNull() ?: 0.0)
                 ) / averageScale
-            val loadingWindowSize = max(1, frameSamples.size / 3)
-            val loadingSamples = frameSamples
-                .sortedBy { it.leadFootStrikeRatio(direction) }
-                .takeLast(loadingWindowSize)
-            val footStrikeRatio = loadingSamples
-                .map { it.leadFootStrikeRatio(direction) }
-                .average()
-            val kneeAngles = loadingSamples.mapNotNull { it.leadKneeAngleDegrees(direction) }
-            val elbowAngles = frameSamples.mapNotNull { it.averageElbowAngleDegrees() }
-            if (kneeAngles.isEmpty() || elbowAngles.isEmpty()) {
-                throw AnalysisException(
-                    "no_pose_detected",
-                    "We could not detect a clear running pose in this video.",
-                )
-            }
-            val stanceKneeAngle = kneeAngles.average()
-            val elbowAngle = elbowAngles.average()
+            val strideRatio = topAverage(
+                frameSamples.map { it.strideReachRatio(direction) },
+            )
 
             return mapOf(
                 "durationMs" to durationMs.toInt(),
@@ -157,9 +141,7 @@ class RunningPoseAnalysisChannel(
                 "direction" to direction.token,
                 "forwardLeanDegrees" to roundTo3(leanDegrees),
                 "verticalBounceRatio" to roundTo3(bounceRatio.coerceAtLeast(0.0)),
-                "footStrikeDistanceRatio" to roundTo3(footStrikeRatio),
-                "stanceKneeAngleDegrees" to roundTo3(stanceKneeAngle),
-                "elbowAngleDegrees" to roundTo3(elbowAngle),
+                "strideReachRatio" to roundTo3(strideRatio.coerceAtLeast(0.0)),
             )
         } finally {
             retriever.release()
@@ -172,8 +154,6 @@ class RunningPoseAnalysisChannel(
         val rightShoulder = confidentLandmark(pose, PoseLandmark.RIGHT_SHOULDER) ?: return null
         val leftHip = confidentLandmark(pose, PoseLandmark.LEFT_HIP) ?: return null
         val rightHip = confidentLandmark(pose, PoseLandmark.RIGHT_HIP) ?: return null
-        val leftKnee = confidentLandmark(pose, PoseLandmark.LEFT_KNEE) ?: return null
-        val rightKnee = confidentLandmark(pose, PoseLandmark.RIGHT_KNEE) ?: return null
         val leftAnkle = confidentLandmark(pose, PoseLandmark.LEFT_ANKLE) ?: return null
         val rightAnkle = confidentLandmark(pose, PoseLandmark.RIGHT_ANKLE) ?: return null
 
@@ -188,22 +168,10 @@ class RunningPoseAnalysisChannel(
         }
 
         return FrameSample(
-            leftShoulder = copyPoint(leftShoulder.position),
-            rightShoulder = copyPoint(rightShoulder.position),
-            leftHip = copyPoint(leftHip.position),
-            rightHip = copyPoint(rightHip.position),
-            leftKnee = copyPoint(leftKnee.position),
-            rightKnee = copyPoint(rightKnee.position),
             shoulderCenter = shoulderCenter,
             hipCenter = hipCenter,
             leftAnkle = copyPoint(leftAnkle.position),
             rightAnkle = copyPoint(rightAnkle.position),
-            leftHeel = confidentLandmark(pose, PoseLandmark.LEFT_HEEL)?.let { copyPoint(it.position) },
-            rightHeel = confidentLandmark(pose, PoseLandmark.RIGHT_HEEL)?.let { copyPoint(it.position) },
-            leftElbow = confidentLandmark(pose, PoseLandmark.LEFT_ELBOW)?.let { copyPoint(it.position) },
-            rightElbow = confidentLandmark(pose, PoseLandmark.RIGHT_ELBOW)?.let { copyPoint(it.position) },
-            leftWrist = confidentLandmark(pose, PoseLandmark.LEFT_WRIST)?.let { copyPoint(it.position) },
-            rightWrist = confidentLandmark(pose, PoseLandmark.RIGHT_WRIST)?.let { copyPoint(it.position) },
             bodyScale = bodyScale,
         )
     }
@@ -238,25 +206,22 @@ class RunningPoseAnalysisChannel(
 
     private fun copyPoint(point: PointF): PointF = PointF(point.x, point.y)
 
-    private fun roundTo3(value: Double): Double = (value * 1000.0).roundToInt() / 1000.0
+    private fun topAverage(values: List<Double>): Double {
+        if (values.isEmpty()) {
+            return 0.0
+        }
+        val clipped = values.map { it.coerceAtLeast(0.0) }.sorted()
+        val windowSize = max(1, clipped.size / 3)
+        return clipped.takeLast(windowSize).average()
+    }
+
+    private fun roundTo3(value: Double): Double = (value * 1000.0).toInt() / 1000.0
 
     private data class FrameSample(
-        val leftShoulder: PointF,
-        val rightShoulder: PointF,
-        val leftHip: PointF,
-        val rightHip: PointF,
-        val leftKnee: PointF,
-        val rightKnee: PointF,
         val shoulderCenter: PointF,
         val hipCenter: PointF,
         val leftAnkle: PointF,
         val rightAnkle: PointF,
-        val leftHeel: PointF?,
-        val rightHeel: PointF?,
-        val leftElbow: PointF?,
-        val rightElbow: PointF?,
-        val leftWrist: PointF?,
-        val rightWrist: PointF?,
         val bodyScale: Double,
     ) {
         fun forwardLeanDegrees(direction: AnalysisDirection): Double {
@@ -278,68 +243,22 @@ class RunningPoseAnalysisChannel(
             return Math.toDegrees(atan2(abs(forwardOffset), verticalTravel))
         }
 
-        fun leadFootStrikeRatio(direction: AnalysisDirection): Double {
-            val leftFoot = leftHeel ?: leftAnkle
-            val rightFoot = rightHeel ?: rightAnkle
+        fun strideReachRatio(direction: AnalysisDirection): Double {
             val forwardReachPx = when (direction) {
                 AnalysisDirection.leftToRight -> {
-                    max(leftFoot.x, rightFoot.x).toDouble() - hipCenter.x.toDouble()
+                    max(leftAnkle.x, rightAnkle.x).toDouble() - hipCenter.x.toDouble()
                 }
                 AnalysisDirection.rightToLeft -> {
-                    hipCenter.x.toDouble() - min(leftFoot.x, rightFoot.x).toDouble()
+                    hipCenter.x.toDouble() - min(leftAnkle.x, rightAnkle.x).toDouble()
                 }
                 AnalysisDirection.stationary -> {
                     max(
-                        abs(leftFoot.x.toDouble() - hipCenter.x.toDouble()),
-                        abs(rightFoot.x.toDouble() - hipCenter.x.toDouble()),
+                        abs(leftAnkle.x.toDouble() - hipCenter.x.toDouble()),
+                        abs(rightAnkle.x.toDouble() - hipCenter.x.toDouble()),
                     )
                 }
             }
-            return forwardReachPx / bodyScale.coerceAtLeast(1.0)
-        }
-
-        fun averageElbowAngleDegrees(): Double? {
-            val angles = mutableListOf<Double>()
-            if (leftElbow != null && leftWrist != null) {
-                angles.add(jointAngle(leftShoulder, leftElbow, leftWrist))
-            }
-            if (rightElbow != null && rightWrist != null) {
-                angles.add(jointAngle(rightShoulder, rightElbow, rightWrist))
-            }
-            return angles.takeIf { it.isNotEmpty() }?.average()
-        }
-
-        fun leadKneeAngleDegrees(direction: AnalysisDirection): Double? {
-            val leftFoot = leftHeel ?: leftAnkle
-            val rightFoot = rightHeel ?: rightAnkle
-            val useLeft = when (direction) {
-                AnalysisDirection.leftToRight -> leftFoot.x >= rightFoot.x
-                AnalysisDirection.rightToLeft -> leftFoot.x <= rightFoot.x
-                AnalysisDirection.stationary -> {
-                    abs(leftFoot.x.toDouble() - hipCenter.x.toDouble()) >=
-                        abs(rightFoot.x.toDouble() - hipCenter.x.toDouble())
-                }
-            }
-            return if (useLeft) {
-                jointAngle(leftHip, leftKnee, leftAnkle)
-            } else {
-                jointAngle(rightHip, rightKnee, rightAnkle)
-            }
-        }
-
-        private fun jointAngle(first: PointF, vertex: PointF, third: PointF): Double {
-            val firstX = first.x - vertex.x
-            val firstY = first.y - vertex.y
-            val secondX = third.x - vertex.x
-            val secondY = third.y - vertex.y
-            val firstLength = hypot(firstX.toDouble(), firstY.toDouble())
-            val secondLength = hypot(secondX.toDouble(), secondY.toDouble())
-            if (firstLength <= 0.0 || secondLength <= 0.0) {
-                return 180.0
-            }
-            val cosine =
-                ((firstX * secondX) + (firstY * secondY)) / (firstLength * secondLength)
-            return Math.toDegrees(kotlin.math.acos(cosine.coerceIn(-1.0, 1.0)))
+            return forwardReachPx.coerceAtLeast(0.0) / bodyScale.coerceAtLeast(1.0)
         }
     }
 
@@ -357,8 +276,8 @@ class RunningPoseAnalysisChannel(
     companion object {
         private const val channelName = "football_note/running_pose_analysis"
         private const val methodName = "analyzeRunningVideo"
-        private const val sampleCount = 14
-        private const val minimumValidFrames = 6
+        private const val sampleCount = 10
+        private const val minimumValidFrames = 3
         private const val minVideoDurationMs = 1500L
         private const val minimumLikelihood = 0.45f
         private const val minimumBodyScalePx = 40.0

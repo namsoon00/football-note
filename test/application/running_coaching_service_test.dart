@@ -8,20 +8,17 @@ void main() {
   test('balanced running form produces strong coaching scores', () {
     const result = RunningVideoAnalysisResult(
       videoDuration: Duration(seconds: 6),
-      sampledFrames: 14,
-      validFrames: 14,
+      sampledFrames: 12,
+      validFrames: 12,
       direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 9.2,
-      verticalBounceRatio: 0.058,
-      footStrikeDistanceRatio: 0.09,
-      stanceKneeAngleDegrees: 154,
-      elbowAngleDegrees: 92,
+      forwardLeanDegrees: 8.2,
+      verticalBounceRatio: 0.064,
+      strideReachRatio: 0.29,
     );
 
     final report = service.buildReport(result);
 
     expect(report.overallScore, greaterThanOrEqualTo(85));
-    expect(report.insights.length, 5);
     expect(
       report.insights.every((item) => item.status == RunningCoachStatus.good),
       isTrue,
@@ -32,14 +29,12 @@ void main() {
       () {
     const result = RunningVideoAnalysisResult(
       videoDuration: Duration(seconds: 6),
-      sampledFrames: 14,
+      sampledFrames: 12,
       validFrames: 10,
       direction: RunningDirection.leftToRight,
-      forwardLeanDegrees: 3.8,
+      forwardLeanDegrees: 2.8,
       verticalBounceRatio: 0.108,
-      footStrikeDistanceRatio: 0.23,
-      stanceKneeAngleDegrees: 174,
-      elbowAngleDegrees: 132,
+      strideReachRatio: 0.47,
     );
 
     final report = service.buildReport(result);
@@ -47,9 +42,6 @@ void main() {
     expect(report.overallScore, lessThan(70));
     expect(report.insights[0].finding, RunningCoachFinding.postureTooUpright);
     expect(report.insights[1].finding, RunningCoachFinding.bounceTooHigh);
-    expect(
-        report.insights[2].finding, RunningCoachFinding.footStrikeOverstride);
-    expect(report.insights[3].finding, RunningCoachFinding.kneeTooStraight);
-    expect(report.insights[4].finding, RunningCoachFinding.armTooOpen);
+    expect(report.insights[2].finding, RunningCoachFinding.strideOverstride);
   });
 }

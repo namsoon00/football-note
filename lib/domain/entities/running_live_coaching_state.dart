@@ -74,11 +74,8 @@ enum RunningLivePrimaryCue {
   postureTooUpright,
   postureTooLean,
   bounceTooHigh,
-  footStrikeOverstride,
-  kneeTooStraight,
-  kneeTooCollapsed,
-  armTooOpen,
-  armTooTight,
+  strideTooShort,
+  strideOverstride,
 }
 
 class RunningLiveCoachingState {

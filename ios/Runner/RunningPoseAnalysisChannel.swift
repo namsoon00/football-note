@@ -137,23 +137,7 @@ final class RunningPoseAnalysisChannel {
     let shoulderYs = frameSamples.map { Double($0.shoulderCenter.y) }
     let bounceRatio =
       ((shoulderYs.max() ?? 0) - (shoulderYs.min() ?? 0)) / averageScale
-    let loadingWindowSize = max(1, frameSamples.count / 3)
-    let loadingSamples = frameSamples
-      .sorted { $0.leadFootStrikeRatio(direction: direction) < $1.leadFootStrikeRatio(direction: direction) }
-      .suffix(loadingWindowSize)
-    let footStrikeRatio =
-      loadingSamples.map { $0.leadFootStrikeRatio(direction: direction) }.reduce(0, +) /
-      Double(loadingSamples.count)
-    let kneeAngles = loadingSamples.compactMap { $0.leadKneeAngleDegrees(direction: direction) }
-    let elbowAngles = frameSamples.compactMap { $0.averageElbowAngleDegrees }
-    guard !kneeAngles.isEmpty, !elbowAngles.isEmpty else {
-      throw AnalysisError(
-        code: "no_pose_detected",
-        message: "We could not detect a clear running pose in this video."
-      )
-    }
-    let stanceKneeAngle = kneeAngles.reduce(0, +) / Double(kneeAngles.count)
-    let elbowAngle = elbowAngles.reduce(0, +) / Double(elbowAngles.count)
+    let strideRatio = topAverage(frameSamples.map { $0.strideReachRatio(direction: direction) })
 
     return [
       "durationMs": durationMs,
@@ -162,9 +146,7 @@ final class RunningPoseAnalysisChannel {
       "direction": direction.rawValue,
       "forwardLeanDegrees": roundTo3(leanDegrees),
       "verticalBounceRatio": roundTo3(max(0, bounceRatio)),
-      "footStrikeDistanceRatio": roundTo3(footStrikeRatio),
-      "stanceKneeAngleDegrees": roundTo3(stanceKneeAngle),
-      "elbowAngleDegrees": roundTo3(elbowAngle),
+      "strideReachRatio": roundTo3(max(0, strideRatio)),
     ]
   }
 
@@ -174,17 +156,15 @@ final class RunningPoseAnalysisChannel {
       let rightShoulder = confidentLandmark(.rightShoulder, in: pose),
       let leftHip = confidentLandmark(.leftHip, in: pose),
       let rightHip = confidentLandmark(.rightHip, in: pose),
-      let leftKnee = confidentLandmark(.leftKnee, in: pose),
-      let rightKnee = confidentLandmark(.rightKnee, in: pose),
       let leftAnkle = confidentLandmark(.leftAnkle, in: pose),
       let rightAnkle = confidentLandmark(.rightAnkle, in: pose)
     else {
       return nil
     }
 
-    let shoulderCenter = midpoint(point(leftShoulder.position), point(rightShoulder.position))
-    let hipCenter = midpoint(point(leftHip.position), point(rightHip.position))
-    let ankleCenter = midpoint(point(leftAnkle.position), point(rightAnkle.position))
+    let shoulderCenter = midpoint(leftShoulder.position, rightShoulder.position)
+    let hipCenter = midpoint(leftHip.position, rightHip.position)
+    let ankleCenter = midpoint(leftAnkle.position, rightAnkle.position)
     let torsoScale = distance(shoulderCenter, hipCenter)
     let legScale = distance(hipCenter, ankleCenter)
     let bodyScale = max(torsoScale, legScale)
@@ -193,22 +173,10 @@ final class RunningPoseAnalysisChannel {
     }
 
     return FrameSample(
-      leftShoulder: point(leftShoulder.position),
-      rightShoulder: point(rightShoulder.position),
-      leftHip: point(leftHip.position),
-      rightHip: point(rightHip.position),
-      leftKnee: point(leftKnee.position),
-      rightKnee: point(rightKnee.position),
       shoulderCenter: shoulderCenter,
       hipCenter: hipCenter,
-      leftAnkle: point(leftAnkle.position),
-      rightAnkle: point(rightAnkle.position),
-      leftHeel: confidentLandmark(.leftHeel, in: pose).map { point($0.position) },
-      rightHeel: confidentLandmark(.rightHeel, in: pose).map { point($0.position) },
-      leftElbow: confidentLandmark(.leftElbow, in: pose).map { point($0.position) },
-      rightElbow: confidentLandmark(.rightElbow, in: pose).map { point($0.position) },
-      leftWrist: confidentLandmark(.leftWrist, in: pose).map { point($0.position) },
-      rightWrist: confidentLandmark(.rightWrist, in: pose).map { point($0.position) },
+      leftAnkle: leftAnkle.position,
+      rightAnkle: rightAnkle.position,
       bodyScale: bodyScale
     )
   }
@@ -233,7 +201,7 @@ final class RunningPoseAnalysisChannel {
     return hipMovement > 0 ? .leftToRight : .rightToLeft
   }
 
-  private func midpoint(_ first: CGPoint, _ second: CGPoint) -> CGPoint {
+  private func midpoint(_ first: Vision3DPoint, _ second: Vision3DPoint) -> CGPoint {
     CGPoint(x: (first.x + second.x) / 2, y: (first.y + second.y) / 2)
   }
 
@@ -243,8 +211,14 @@ final class RunningPoseAnalysisChannel {
     return hypot(dx, dy)
   }
 
-  private func point(_ source: Vision3DPoint) -> CGPoint {
-    CGPoint(x: source.x, y: source.y)
+  private func topAverage(_ values: [Double]) -> Double {
+    guard !values.isEmpty else {
+      return 0
+    }
+    let clipped = values.map { max(0, $0) }.sorted()
+    let windowSize = max(1, clipped.count / 3)
+    let slice = clipped.suffix(windowSize)
+    return slice.reduce(0, +) / Double(slice.count)
   }
 
   private func roundTo3(_ value: Double) -> Double {
@@ -252,22 +226,10 @@ final class RunningPoseAnalysisChannel {
   }
 
   private struct FrameSample {
-    let leftShoulder: CGPoint
-    let rightShoulder: CGPoint
-    let leftHip: CGPoint
-    let rightHip: CGPoint
-    let leftKnee: CGPoint
-    let rightKnee: CGPoint
     let shoulderCenter: CGPoint
     let hipCenter: CGPoint
-    let leftAnkle: CGPoint
-    let rightAnkle: CGPoint
-    let leftHeel: CGPoint?
-    let rightHeel: CGPoint?
-    let leftElbow: CGPoint?
-    let rightElbow: CGPoint?
-    let leftWrist: CGPoint?
-    let rightWrist: CGPoint?
+    let leftAnkle: Vision3DPoint
+    let rightAnkle: Vision3DPoint
     let bodyScale: Double
 
     func forwardLeanDegrees(direction: AnalysisDirection) -> Double {
@@ -288,70 +250,20 @@ final class RunningPoseAnalysisChannel {
       return atan2(abs(forwardOffset), verticalTravel) * 180 / .pi
     }
 
-    func leadFootStrikeRatio(direction: AnalysisDirection) -> Double {
-      let leftFoot = leftHeel ?? leftAnkle
-      let rightFoot = rightHeel ?? rightAnkle
+    func strideReachRatio(direction: AnalysisDirection) -> Double {
       let forwardReachPx: Double
       switch direction {
       case .leftToRight:
-        forwardReachPx = Double(max(leftFoot.x, rightFoot.x) - hipCenter.x)
+        forwardReachPx = Double(max(leftAnkle.x, rightAnkle.x) - hipCenter.x)
       case .rightToLeft:
-        forwardReachPx = Double(hipCenter.x - min(leftFoot.x, rightFoot.x))
+        forwardReachPx = Double(hipCenter.x - min(leftAnkle.x, rightAnkle.x))
       case .stationary:
         forwardReachPx = max(
-          abs(Double(leftFoot.x - hipCenter.x)),
-          abs(Double(rightFoot.x - hipCenter.x))
+          abs(Double(leftAnkle.x - hipCenter.x)),
+          abs(Double(rightAnkle.x - hipCenter.x))
         )
       }
-      return forwardReachPx / max(bodyScale, 1.0)
-    }
-
-    var averageElbowAngleDegrees: Double? {
-      var angles: [Double] = []
-      if let leftElbow, let leftWrist {
-        angles.append(jointAngle(leftShoulder, leftElbow, leftWrist))
-      }
-      if let rightElbow, let rightWrist {
-        angles.append(jointAngle(rightShoulder, rightElbow, rightWrist))
-      }
-      guard !angles.isEmpty else {
-        return nil
-      }
-      return angles.reduce(0, +) / Double(angles.count)
-    }
-
-    func leadKneeAngleDegrees(direction: AnalysisDirection) -> Double? {
-      let leftFoot = leftHeel ?? leftAnkle
-      let rightFoot = rightHeel ?? rightAnkle
-      let useLeft: Bool
-      switch direction {
-      case .leftToRight:
-        useLeft = leftFoot.x >= rightFoot.x
-      case .rightToLeft:
-        useLeft = leftFoot.x <= rightFoot.x
-      case .stationary:
-        useLeft =
-          abs(Double(leftFoot.x - hipCenter.x)) >=
-          abs(Double(rightFoot.x - hipCenter.x))
-      }
-      return useLeft
-        ? jointAngle(leftHip, leftKnee, leftAnkle)
-        : jointAngle(rightHip, rightKnee, rightAnkle)
-    }
-
-    private func jointAngle(_ first: CGPoint, _ vertex: CGPoint, _ third: CGPoint) -> Double {
-      let firstDx = Double(first.x - vertex.x)
-      let firstDy = Double(first.y - vertex.y)
-      let secondDx = Double(third.x - vertex.x)
-      let secondDy = Double(third.y - vertex.y)
-      let firstLength = hypot(firstDx, firstDy)
-      let secondLength = hypot(secondDx, secondDy)
-      guard firstLength > 0, secondLength > 0 else {
-        return 180
-      }
-      let cosine =
-        ((firstDx * secondDx) + (firstDy * secondDy)) / (firstLength * secondLength)
-      return acos(max(-1, min(1, cosine))) * 180 / .pi
+      return max(0, forwardReachPx) / max(bodyScale, 1.0)
     }
   }
 
@@ -368,8 +280,8 @@ final class RunningPoseAnalysisChannel {
 
   private static let channelName = "football_note/running_pose_analysis"
   private static let methodName = "analyzeRunningVideo"
-  private static let sampleCount = 14
-  private static let minimumValidFrames = 6
+  private static let sampleCount = 10
+  private static let minimumValidFrames = 3
   private static let minVideoDurationMs = 1500
   private static let sampleStartFraction = 0.15
   private static let sampleEndFraction = 0.85
