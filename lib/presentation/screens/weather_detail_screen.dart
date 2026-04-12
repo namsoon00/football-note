@@ -1143,29 +1143,31 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  helper,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                    height: 1.4,
-                  ),
+              Text(
+                helper,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                  height: 1.4,
                 ),
               ),
-              const SizedBox(width: 12),
-              FilledButton.icon(
-                onPressed: onRefresh,
-                icon: loading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                      )
-                    : const Icon(Icons.my_location_rounded),
-                label: Text(buttonLabel),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  onPressed: onRefresh,
+                  icon: loading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2.0),
+                        )
+                      : const Icon(Icons.my_location_rounded),
+                  label: Text(buttonLabel),
+                ),
               ),
             ],
           ),
