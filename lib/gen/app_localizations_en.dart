@@ -1684,7 +1684,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      'Connect the side-view camera directly to the sprint pipeline so trunk lean, knee drive, step rhythm, arm balance, and session FPS/drop visibility logs run on-device together.';
+      'Connect the side-view camera directly so trunk lean, knee drive, step rhythm, arm balance, and session FPS/skip/visibility logs can be checked together on-device.';
 
   @override
   String get runningCoachSprintLiveAction => 'Start sprint MVP';
@@ -1694,26 +1694,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveStatusLowConfidence =>
-      'Fix full-body visibility first';
+      'Fix full-body framing first';
 
   @override
   String get runningCoachSprintLiveStatusCollecting =>
-      'Collecting sprint rhythm';
+      'Stabilizing sprint rhythm';
 
   @override
-  String get runningCoachSprintLiveStatusReady => 'Ready for live feedback';
+  String get runningCoachSprintLiveStatusReady => 'Live feedback ready';
 
   @override
   String get runningCoachSprintLiveStatusCoaching =>
-      'Live sprint coaching active';
+      'Live sprint feedback active';
 
   @override
   String get runningCoachSprintLiveCueCollecting =>
-      'Keep the sprint going for a few more steps so rhythm and knee-drive metrics can stabilize.';
+      'Hold a few more steps so rhythm and knee-drive readings can settle.';
 
   @override
   String get runningCoachSprintLiveCueReady =>
-      'Good. Hold this shape and sprint for another 5-10 seconds.';
+      'Good. Keep this shape and sprint for another 5-10 seconds.';
+
+  @override
+  String get runningCoachSprintGuideSideCapture => 'Keep a clear side view';
+
+  @override
+  String get runningCoachSprintGuideFullBodyFraming =>
+      'Keep the full body inside the frame';
 
   @override
   String runningCoachSprintTrackingConfidenceValue(int percent) {
@@ -1731,7 +1738,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionLogTitle => 'Session diagnostics';
+  String get runningCoachSprintSessionLogTitle => 'Session debug';
 
   @override
   String get runningCoachSprintSessionCameraFpsLabel => 'Camera input FPS';
@@ -1757,13 +1764,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionBodyNotVisibleLabel =>
-      'bodyNotVisible ratio';
+  String get runningCoachSprintSessionBodyNotVisibleLabel => 'Body loss ratio';
 
   @override
   String runningCoachSprintSessionBodyNotVisibleValue(int percent) {
     return '$percent%';
   }
+
+  @override
+  String get runningCoachSprintSessionBodyVisibilityLabel => 'Body visibility';
+
+  @override
+  String runningCoachSprintSessionBodyVisibilityValue(
+      Object status, int visible, int total, int percent) {
+    return '$status · core $visible/$total · $percent%';
+  }
+
+  @override
+  String get runningCoachSprintSessionActiveFeedbackLabel => 'Active feedback';
+
+  @override
+  String runningCoachSprintSessionActiveFeedbackValue(Object key, Object text) {
+    return '$key · $text';
+  }
+
+  @override
+  String get runningCoachSprintSessionFeedbackEmpty => 'Waiting';
 
   @override
   String get runningCoachSprintSessionFeedbackChangesLabel =>
@@ -1844,6 +1870,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String runningCoachSprintMetricArmBalanceValue(Object value) {
     return 'Gap $value%';
   }
+
+  @override
+  String get runningCoachSprintBodyVisibilityFull => 'Full body locked';
+
+  @override
+  String get runningCoachSprintBodyVisibilityPartial => 'Partial landmarks';
+
+  @override
+  String get runningCoachSprintBodyVisibilityNotVisible => 'Body lost';
 
   @override
   String get runningCoachSprintCueBodyVisible =>

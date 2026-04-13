@@ -34,7 +34,7 @@ class SprintFeedbackRuleEngine {
     }
 
     if ((features.kneeDriveHeightRatio ?? double.infinity) <
-        config.minimumKneeDriveHeightRatio) {
+        config.minimumKneeDriveHeight) {
       return const SprintFeedbackMessage(
         code: SprintFeedbackCode.driveKneeHigher,
         priority: 80,
@@ -53,7 +53,7 @@ class SprintFeedbackRuleEngine {
     }
 
     if ((features.armSwingAsymmetryRatio ?? 0) >
-        config.maximumArmSwingAsymmetryRatio) {
+        config.maximumArmAsymmetryRatio) {
       return const SprintFeedbackMessage(
         code: SprintFeedbackCode.balanceArmSwing,
         priority: 60,
