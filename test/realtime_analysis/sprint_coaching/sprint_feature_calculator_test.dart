@@ -49,6 +49,9 @@ void main() {
       expect(snapshot.stepIntervalStdMs, closeTo(0, 0.001));
       expect(snapshot.armSwingAsymmetryRatio, closeTo(0.0434, 0.001));
       expect(snapshot.detectedStepEvents, 4);
+      expect(snapshot.stepCrossoverCount, 4);
+      expect(snapshot.rejectedStepEventsLowVelocity, 0);
+      expect(snapshot.rejectedStepEventsMinInterval, 0);
       expect(snapshot.hasEnoughSignal, isTrue);
     });
 
@@ -84,6 +87,9 @@ void main() {
       ]);
 
       expect(snapshot.detectedStepEvents, 0);
+      expect(snapshot.stepCrossoverCount, 0);
+      expect(snapshot.rejectedStepEventsLowVelocity, 0);
+      expect(snapshot.rejectedStepEventsMinInterval, 0);
       expect(snapshot.stepInterval, isNull);
       expect(snapshot.cadenceStepsPerMinute, isNull);
     });
@@ -116,9 +122,50 @@ void main() {
         ], minimumStepDetectionVelocity: 1.4);
 
         expect(snapshot.detectedStepEvents, 0);
+        expect(snapshot.stepCrossoverCount, 2);
+        expect(snapshot.rejectedStepEventsLowVelocity, 2);
+        expect(snapshot.rejectedStepEventsMinInterval, 0);
         expect(snapshot.stepInterval, isNull);
       },
     );
+
+    test('tracks crossings rejected by the minimum event interval', () {
+      final calculator = SprintFeatureCalculator();
+      final start = DateTime(2026, 4, 13, 9);
+
+      final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
+        _frame(
+          timestamp: start,
+          leftAnkleX: 0.16,
+          rightAnkleX: -0.16,
+          kneeDriveHeight: 0.32,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 120)),
+          leftAnkleX: -0.16,
+          rightAnkleX: 0.16,
+          kneeDriveHeight: 0.33,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 180)),
+          leftAnkleX: 0.16,
+          rightAnkleX: -0.16,
+          kneeDriveHeight: 0.34,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 340)),
+          leftAnkleX: -0.16,
+          rightAnkleX: 0.16,
+          kneeDriveHeight: 0.35,
+        ),
+      ], minimumStepEventInterval: const Duration(milliseconds: 110));
+
+      expect(snapshot.stepCrossoverCount, 3);
+      expect(snapshot.detectedStepEvents, 2);
+      expect(snapshot.rejectedStepEventsLowVelocity, 0);
+      expect(snapshot.rejectedStepEventsMinInterval, 1);
+      expect(snapshot.stepInterval, const Duration(milliseconds: 220));
+    });
   });
 }
 

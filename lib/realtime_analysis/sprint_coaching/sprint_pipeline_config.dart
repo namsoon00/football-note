@@ -7,6 +7,9 @@ class SprintPipelineConfig {
   final int minimumVisibleLandmarks;
   final int minimumWindowFrames;
   final double minimumRunningTravelRatio;
+  final int minimumStepEventsForRunning;
+  final double minimumRunningCadenceStepsPerMinute;
+  final double minimumStepDrivenTravelRatio;
   final double minimumTrunkAngleDegrees;
   final double maximumAccelerationTrunkAngleDegrees;
   final double minimumKneeDriveHeightRatio;
@@ -25,6 +28,9 @@ class SprintPipelineConfig {
     this.minimumVisibleLandmarks = 8,
     this.minimumWindowFrames = 6,
     this.minimumRunningTravelRatio = 0.12,
+    this.minimumStepEventsForRunning = 3,
+    this.minimumRunningCadenceStepsPerMinute = 150,
+    this.minimumStepDrivenTravelRatio = 0.04,
     this.minimumTrunkAngleDegrees = 8,
     this.maximumAccelerationTrunkAngleDegrees = 24,
     this.minimumKneeDriveHeightRatio = 0.24,

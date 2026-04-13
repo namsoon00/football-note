@@ -54,6 +54,7 @@ void main() {
       expect(state.features.trunkAngleDegrees, greaterThan(8));
       expect(state.stateEstimate.feedbackCooldownActive, isTrue);
       expect(state.feedback?.code, SprintFeedbackCode.leanForwardMore);
+      expect(state.feedbackSwitchSuppressedByCooldown, isTrue);
 
       for (var index = 0; index < 4; index += 1) {
         state = pipeline.ingest(
@@ -95,7 +96,44 @@ void main() {
 
       expect(state.status, SprintCoachingStatus.lowConfidence);
       expect(state.stateEstimate.bodyFullyVisible, isFalse);
+      expect(state.stateEstimate.visibleLandmarkCount, 4);
+      expect(state.stateEstimate.missingCoreLandmarkCount, 8);
       expect(state.feedback?.code, SprintFeedbackCode.bodyNotVisible);
+    });
+
+    test('keeps in-place low-travel motion out of running mode', () {
+      final pipeline = SprintRealtimeCoachingPipeline(
+        config: const SprintPipelineConfig(
+          analysisWindow: Duration(milliseconds: 800),
+          minimumWindowFrames: 5,
+          smoothingFactor: 1,
+        ),
+      );
+      final start = DateTime(2026, 4, 13, 9);
+
+      SprintRealtimeCoachingState state =
+          const SprintRealtimeCoachingState.initial();
+
+      for (var index = 0; index < 6; index += 1) {
+        state = pipeline.ingest(
+          _poseFrame(
+            timestamp: start.add(Duration(milliseconds: 120 * index)),
+            hipCenterX: 320.0 + index.toDouble(),
+            trunkLeanX: 0.2,
+            kneeDriveHeight: 0.34,
+            leftAnkleX: index.isEven ? 0.34 : -0.34,
+            rightAnkleX: index.isEven ? -0.34 : 0.34,
+          ),
+        );
+      }
+
+      expect(state.stateEstimate.bodyFullyVisible, isTrue);
+      expect(state.stateEstimate.lowConfidence, isFalse);
+      expect(state.features.detectedStepEvents, greaterThanOrEqualTo(3));
+      expect(state.stateEstimate.hipTravelRatio, lessThan(0.04));
+      expect(state.stateEstimate.runningDetected, isFalse);
+      expect(state.status, SprintCoachingStatus.collecting);
+      expect(state.feedback, isNull);
     });
   });
 }

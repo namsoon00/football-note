@@ -1,3 +1,5 @@
+import 'sprint_pose_frame.dart';
+
 enum SprintCoachingStatus { collecting, lowConfidence, ready, coaching }
 
 enum SprintFeedbackCode {
@@ -17,6 +19,9 @@ class SprintFeatureSnapshot {
   final double? stepIntervalStdMs;
   final double? armSwingAsymmetryRatio;
   final int detectedStepEvents;
+  final int stepCrossoverCount;
+  final int rejectedStepEventsLowVelocity;
+  final int rejectedStepEventsMinInterval;
 
   const SprintFeatureSnapshot({
     this.trunkAngleDegrees,
@@ -26,6 +31,9 @@ class SprintFeatureSnapshot {
     this.stepIntervalStdMs,
     this.armSwingAsymmetryRatio,
     this.detectedStepEvents = 0,
+    this.stepCrossoverCount = 0,
+    this.rejectedStepEventsLowVelocity = 0,
+    this.rejectedStepEventsMinInterval = 0,
   });
 
   const SprintFeatureSnapshot.empty() : this();
@@ -45,6 +53,9 @@ class SprintStateEstimate {
   final bool bodyFullyVisible;
   final double trackingConfidence;
   final int stableFrameCount;
+  final int visibleLandmarkCount;
+  final int missingCoreLandmarkCount;
+  final double hipTravelRatio;
 
   const SprintStateEstimate({
     required this.runningDetected,
@@ -54,16 +65,22 @@ class SprintStateEstimate {
     required this.bodyFullyVisible,
     required this.trackingConfidence,
     required this.stableFrameCount,
+    required this.visibleLandmarkCount,
+    required this.missingCoreLandmarkCount,
+    required this.hipTravelRatio,
   });
 
   const SprintStateEstimate.initial()
-    : runningDetected = false,
-      accelerationPhaseDetected = false,
-      feedbackCooldownActive = false,
-      lowConfidence = true,
-      bodyFullyVisible = false,
-      trackingConfidence = 0,
-      stableFrameCount = 0;
+      : runningDetected = false,
+        accelerationPhaseDetected = false,
+        feedbackCooldownActive = false,
+        lowConfidence = true,
+        bodyFullyVisible = false,
+        trackingConfidence = 0,
+        stableFrameCount = 0,
+        visibleLandmarkCount = 0,
+        missingCoreLandmarkCount = sprintMvpCoreLandmarkCount,
+        hipTravelRatio = 0;
 }
 
 class SprintFeedbackMessage {
@@ -88,6 +105,7 @@ class SprintRealtimeCoachingState {
   final int processedFrames;
   final int trackedFrames;
   final DateTime? lastFeedbackAt;
+  final bool feedbackSwitchSuppressedByCooldown;
 
   const SprintRealtimeCoachingState({
     required this.status,
@@ -97,14 +115,16 @@ class SprintRealtimeCoachingState {
     this.processedFrames = 0,
     this.trackedFrames = 0,
     this.lastFeedbackAt,
+    this.feedbackSwitchSuppressedByCooldown = false,
   });
 
   const SprintRealtimeCoachingState.initial()
-    : status = SprintCoachingStatus.collecting,
-      features = const SprintFeatureSnapshot.empty(),
-      stateEstimate = const SprintStateEstimate.initial(),
-      feedback = null,
-      processedFrames = 0,
-      trackedFrames = 0,
-      lastFeedbackAt = null;
+      : status = SprintCoachingStatus.collecting,
+        features = const SprintFeatureSnapshot.empty(),
+        stateEstimate = const SprintStateEstimate.initial(),
+        feedback = null,
+        processedFrames = 0,
+        trackedFrames = 0,
+        lastFeedbackAt = null,
+        feedbackSwitchSuppressedByCooldown = false;
 }

@@ -24,12 +24,13 @@ class SprintFeatureCalculator {
         if (_kneeDriveHeightRatio(frame) case final height?) height,
     ];
     final armExcursions = _armExcursions(frames);
-    final stepEvents = _detectStepEvents(
+    final stepDetection = _detectStepEvents(
       frames,
       minimumStepEventInterval: minimumStepEventInterval,
       stepDetectionHysteresis: stepDetectionHysteresis,
       minimumStepDetectionVelocity: minimumStepDetectionVelocity,
     );
+    final stepEvents = stepDetection.acceptedEvents;
     final stepIntervalsMs = <double>[
       for (var index = 1; index < stepEvents.length; index += 1)
         stepEvents[index]
@@ -64,6 +65,10 @@ class SprintFeatureCalculator {
               armExcursions.rightAverage,
             ),
       detectedStepEvents: stepEvents.length,
+      stepCrossoverCount: stepDetection.leadSwitchCount,
+      rejectedStepEventsLowVelocity: stepDetection.rejectedForLowVelocityCount,
+      rejectedStepEventsMinInterval:
+          stepDetection.rejectedForMinimumIntervalCount,
     );
   }
 
@@ -127,17 +132,20 @@ class SprintFeatureCalculator {
     );
   }
 
-  List<DateTime> _detectStepEvents(
+  _StepDetectionSummary _detectStepEvents(
     List<SprintNormalizedPoseFrame> frames, {
     required Duration minimumStepEventInterval,
     required double stepDetectionHysteresis,
     required double minimumStepDetectionVelocity,
   }) {
-    final events = <DateTime>[];
+    final acceptedEvents = <DateTime>[];
     double? previousDelta;
     DateTime? previousTimestamp;
     _LeadFootState? previousLeadFoot;
     DateTime? lastAcceptedEventAt;
+    var leadSwitchCount = 0;
+    var rejectedForLowVelocityCount = 0;
+    var rejectedForMinimumIntervalCount = 0;
 
     for (final frame in frames) {
       final leftAnkle = frame.landmark(SprintPoseLandmarkType.leftAnkle);
@@ -156,6 +164,7 @@ class SprintFeatureCalculator {
           leadFoot != null &&
           previousLeadFoot != null &&
           previousLeadFoot != leadFoot) {
+        leadSwitchCount += 1;
         final deltaTimeSeconds =
             frame.timestamp.difference(previousTimestamp).inMicroseconds /
             Duration.microsecondsPerSecond;
@@ -166,8 +175,12 @@ class SprintFeatureCalculator {
             lastAcceptedEventAt == null ||
             frame.timestamp.difference(lastAcceptedEventAt) >=
                 minimumStepEventInterval;
-        if (meetsInterval && velocity >= minimumStepDetectionVelocity) {
-          events.add(frame.timestamp);
+        if (!meetsInterval) {
+          rejectedForMinimumIntervalCount += 1;
+        } else if (velocity < minimumStepDetectionVelocity) {
+          rejectedForLowVelocityCount += 1;
+        } else {
+          acceptedEvents.add(frame.timestamp);
           lastAcceptedEventAt = frame.timestamp;
         }
       }
@@ -179,7 +192,12 @@ class SprintFeatureCalculator {
       }
     }
 
-    return events;
+    return _StepDetectionSummary(
+      acceptedEvents: acceptedEvents,
+      leadSwitchCount: leadSwitchCount,
+      rejectedForLowVelocityCount: rejectedForLowVelocityCount,
+      rejectedForMinimumIntervalCount: rejectedForMinimumIntervalCount,
+    );
   }
 
   _LeadFootState? _leadFootState({
@@ -234,3 +252,17 @@ class _ArmExcursions {
 }
 
 enum _LeadFootState { leftLead, rightLead }
+
+class _StepDetectionSummary {
+  final List<DateTime> acceptedEvents;
+  final int leadSwitchCount;
+  final int rejectedForLowVelocityCount;
+  final int rejectedForMinimumIntervalCount;
+
+  const _StepDetectionSummary({
+    required this.acceptedEvents,
+    required this.leadSwitchCount,
+    required this.rejectedForLowVelocityCount,
+    required this.rejectedForMinimumIntervalCount,
+  });
+}

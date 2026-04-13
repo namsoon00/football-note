@@ -1771,8 +1771,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String runningCoachSprintSessionFeedbackChangesValue(
-      int count, Object perMinute) {
-    return '$count changes / $perMinute per min';
+      int count, Object perMinute, int suppressed) {
+    return '$count changes / $perMinute per min · cooldown holds $suppressed';
+  }
+
+  @override
+  String get runningCoachSprintSessionReadinessLabel => 'Readiness';
+
+  @override
+  String runningCoachSprintSessionReadinessValue(
+      int visible, int missing, int stable, Object travel) {
+    return 'visible $visible · miss $missing · stable $stable · travel $travel';
+  }
+
+  @override
+  String get runningCoachSprintSessionStepDetectorLabel => 'Step detector';
+
+  @override
+  String runningCoachSprintSessionStepDetectorValue(
+      int switches, int accepted, int lowVelocity, int minInterval) {
+    return 'switch $switches · ok $accepted · lowV $lowVelocity · gap $minInterval';
   }
 
   @override

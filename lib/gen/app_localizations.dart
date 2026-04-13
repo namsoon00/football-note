@@ -3257,9 +3257,35 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintSessionFeedbackChangesValue.
   ///
   /// In en, this message translates to:
-  /// **'{count} changes / {perMinute} per min'**
+  /// **'{count} changes / {perMinute} per min · cooldown holds {suppressed}'**
   String runningCoachSprintSessionFeedbackChangesValue(
-      int count, Object perMinute);
+      int count, Object perMinute, int suppressed);
+
+  /// No description provided for @runningCoachSprintSessionReadinessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Readiness'**
+  String get runningCoachSprintSessionReadinessLabel;
+
+  /// No description provided for @runningCoachSprintSessionReadinessValue.
+  ///
+  /// In en, this message translates to:
+  /// **'visible {visible} · miss {missing} · stable {stable} · travel {travel}'**
+  String runningCoachSprintSessionReadinessValue(
+      int visible, int missing, int stable, Object travel);
+
+  /// No description provided for @runningCoachSprintSessionStepDetectorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Step detector'**
+  String get runningCoachSprintSessionStepDetectorLabel;
+
+  /// No description provided for @runningCoachSprintSessionStepDetectorValue.
+  ///
+  /// In en, this message translates to:
+  /// **'switch {switches} · ok {accepted} · lowV {lowVelocity} · gap {minInterval}'**
+  String runningCoachSprintSessionStepDetectorValue(
+      int switches, int accepted, int lowVelocity, int minInterval);
 
   /// No description provided for @runningCoachSprintSessionConfidenceLabel.
   ///

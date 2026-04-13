@@ -245,11 +245,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                             _InfoChipData(
                               text: l10n
                                   .runningCoachSprintTrackingConfidenceValue(
-                                (_coachingState
-                                            .stateEstimate.trackingConfidence *
-                                        100)
-                                    .round(),
-                              ),
+                                    (_coachingState
+                                                .stateEstimate
+                                                .trackingConfidence *
+                                            100)
+                                        .round(),
+                                  ),
                             ),
                             _InfoChipData(
                               text: l10n.runningCoachSprintTrackedFrames(
@@ -349,11 +350,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       }
 
       _cameras = cameras;
-      final selectedCamera = preferredCamera ??
+      final selectedCamera =
+          preferredCamera ??
           cameras.cast<CameraDescription?>().firstWhere(
-                (camera) => camera?.lensDirection == CameraLensDirection.back,
-                orElse: () => cameras.first,
-              )!;
+            (camera) => camera?.lensDirection == CameraLensDirection.back,
+            orElse: () => cameras.first,
+          )!;
       _activeCamera = selectedCamera;
 
       final controller = CameraController(
@@ -508,7 +510,8 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   }
 
   void _refreshSessionMetricsIfNeeded(DateTime now) {
-    final shouldRefresh = _lastMetricsUiRefreshAt == null ||
+    final shouldRefresh =
+        _lastMetricsUiRefreshAt == null ||
         now.difference(_lastMetricsUiRefreshAt!) >= _metricsUiRefreshInterval;
     if (shouldRefresh) {
       final snapshot = _sessionMetricsCollector.snapshot(now: now);
@@ -708,29 +711,29 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     final scheme = Theme.of(context).colorScheme;
     return switch (state.status) {
       SprintCoachingStatus.lowConfidence => _LiveStatusTheme(
-          title: l10n.runningCoachSprintLiveStatusLowConfidence,
-          icon: Icons.visibility_off_rounded,
-          color: const Color(0xFFFFB74D),
-          background: Colors.black.withAlpha(178),
-        ),
+        title: l10n.runningCoachSprintLiveStatusLowConfidence,
+        icon: Icons.visibility_off_rounded,
+        color: const Color(0xFFFFB74D),
+        background: Colors.black.withAlpha(178),
+      ),
       SprintCoachingStatus.collecting => _LiveStatusTheme(
-          title: l10n.runningCoachSprintLiveStatusCollecting,
-          icon: Icons.directions_run_rounded,
-          color: scheme.secondary,
-          background: Colors.black.withAlpha(178),
-        ),
+        title: l10n.runningCoachSprintLiveStatusCollecting,
+        icon: Icons.directions_run_rounded,
+        color: scheme.secondary,
+        background: Colors.black.withAlpha(178),
+      ),
       SprintCoachingStatus.ready => _LiveStatusTheme(
-          title: l10n.runningCoachSprintLiveStatusReady,
-          icon: Icons.track_changes_rounded,
-          color: const Color(0xFF8BC34A),
-          background: Colors.black.withAlpha(178),
-        ),
+        title: l10n.runningCoachSprintLiveStatusReady,
+        icon: Icons.track_changes_rounded,
+        color: const Color(0xFF8BC34A),
+        background: Colors.black.withAlpha(178),
+      ),
       SprintCoachingStatus.coaching => _LiveStatusTheme(
-          title: l10n.runningCoachSprintLiveStatusCoaching,
-          icon: Icons.flash_on_rounded,
-          color: const Color(0xFF73F3B4),
-          background: Colors.black.withAlpha(178),
-        ),
+        title: l10n.runningCoachSprintLiveStatusCoaching,
+        icon: Icons.flash_on_rounded,
+        color: const Color(0xFF73F3B4),
+        background: Colors.black.withAlpha(178),
+      ),
     };
   }
 
@@ -853,10 +856,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   }
 
   List<_SessionSummaryLine> _buildSessionSummaryLines(AppLocalizations l10n) {
-    final highConfidence =
-        ((_sessionMetrics.confidenceBucketRatio(4)) * 100).round();
-    final midConfidence =
-        ((_sessionMetrics.confidenceBucketRatio(3)) * 100).round();
+    final highConfidence = ((_sessionMetrics.confidenceBucketRatio(4)) * 100)
+        .round();
+    final midConfidence = ((_sessionMetrics.confidenceBucketRatio(3)) * 100)
+        .round();
     final lowConfidence = (100 - highConfidence - midConfidence).clamp(0, 100);
 
     return [
@@ -887,10 +890,29 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         ),
       ),
       _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionReadinessLabel,
+        value: l10n.runningCoachSprintSessionReadinessValue(
+          _coachingState.stateEstimate.visibleLandmarkCount,
+          _coachingState.stateEstimate.missingCoreLandmarkCount,
+          _coachingState.stateEstimate.stableFrameCount,
+          _coachingState.stateEstimate.hipTravelRatio.toStringAsFixed(3),
+        ),
+      ),
+      _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionStepDetectorLabel,
+        value: l10n.runningCoachSprintSessionStepDetectorValue(
+          _coachingState.features.stepCrossoverCount,
+          _coachingState.features.detectedStepEvents,
+          _coachingState.features.rejectedStepEventsLowVelocity,
+          _coachingState.features.rejectedStepEventsMinInterval,
+        ),
+      ),
+      _SessionSummaryLine(
         label: l10n.runningCoachSprintSessionFeedbackChangesLabel,
         value: l10n.runningCoachSprintSessionFeedbackChangesValue(
           _sessionMetrics.feedbackChangeCount,
           _sessionMetrics.feedbackChangesPerMinute.toStringAsFixed(1),
+          _sessionMetrics.feedbackSuppressedByCooldownCount,
         ),
       ),
       _SessionSummaryLine(
@@ -967,9 +989,9 @@ class _CueBanner extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -977,9 +999,9 @@ class _CueBanner extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                          height: 1.25,
-                        ),
+                      color: Colors.white70,
+                      height: 1.25,
+                    ),
                   ),
                 ],
               ),
@@ -1066,9 +1088,9 @@ class _MetricTile extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -1076,10 +1098,10 @@ class _MetricTile extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      height: 1.25,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
               ),
             ],
           ),
@@ -1126,9 +1148,9 @@ class _InfoChip extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white70,
-              fontWeight: FontWeight.w700,
-            ),
+          color: Colors.white70,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -1178,9 +1200,9 @@ class _SessionSummaryCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 10),
               for (var index = 0; index < lines.length; index += 1) ...[
@@ -1209,9 +1231,9 @@ class _SessionSummaryRow extends StatelessWidget {
           child: Text(
             line.label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white60,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white60,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -1220,9 +1242,9 @@ class _SessionSummaryRow extends StatelessWidget {
             line.value,
             textAlign: TextAlign.right,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -1265,9 +1287,9 @@ class _StatusPane extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1471,8 +1493,7 @@ class _SprintPosePainter extends CustomPainter {
   }) {
     final rotatedPoint = _rotatePoint(point, imageSize, rotation);
     final rotatedImageSize = switch (rotation) {
-      InputImageRotation.rotation90deg ||
-      InputImageRotation.rotation270deg =>
+      InputImageRotation.rotation90deg || InputImageRotation.rotation270deg =>
         Size(imageSize.height, imageSize.width),
       _ => imageSize,
     };
@@ -1510,17 +1531,17 @@ class _SprintPosePainter extends CustomPainter {
   ) {
     return switch (rotation) {
       InputImageRotation.rotation90deg => Offset(
-          point.dy,
-          imageSize.width - point.dx,
-        ),
+        point.dy,
+        imageSize.width - point.dx,
+      ),
       InputImageRotation.rotation180deg => Offset(
-          imageSize.width - point.dx,
-          imageSize.height - point.dy,
-        ),
+        imageSize.width - point.dx,
+        imageSize.height - point.dy,
+      ),
       InputImageRotation.rotation270deg => Offset(
-          imageSize.height - point.dy,
-          point.dx,
-        ),
+        imageSize.height - point.dy,
+        point.dx,
+      ),
       _ => point,
     };
   }
