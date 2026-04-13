@@ -738,13 +738,50 @@
     }
   },
   "runningCoachSprintSessionFeedbackChangesLabel": "피드백 변경 빈도",
-  "runningCoachSprintSessionFeedbackChangesValue": "{count}회 / {perMinute}분당",
+  "runningCoachSprintSessionFeedbackChangesValue": "{count}회 / {perMinute}분당 · 쿨다운 보류 {suppressed}",
   "@runningCoachSprintSessionFeedbackChangesValue": {
     "placeholders": {
       "count": {
         "type": "int"
       },
-      "perMinute": {}
+      "perMinute": {},
+      "suppressed": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionReadinessLabel": "준비 상태",
+  "runningCoachSprintSessionReadinessValue": "보임 {visible} · 누락 {missing} · 안정 {stable} · 이동 {travel}",
+  "@runningCoachSprintSessionReadinessValue": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "missing": {
+        "type": "int"
+      },
+      "stable": {
+        "type": "int"
+      },
+      "travel": {}
+    }
+  },
+  "runningCoachSprintSessionStepDetectorLabel": "스텝 판정",
+  "runningCoachSprintSessionStepDetectorValue": "교차 {switches} · 채택 {accepted} · 저속 {lowVelocity} · 간격 {minInterval}",
+  "@runningCoachSprintSessionStepDetectorValue": {
+    "placeholders": {
+      "switches": {
+        "type": "int"
+      },
+      "accepted": {
+        "type": "int"
+      },
+      "lowVelocity": {
+        "type": "int"
+      },
+      "minInterval": {
+        "type": "int"
+      }
     }
   },
   "runningCoachSprintSessionConfidenceLabel": "랜드마크 confidence",

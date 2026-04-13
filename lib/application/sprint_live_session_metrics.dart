@@ -29,6 +29,7 @@ class SprintLiveSessionMetricsSnapshot {
   final int analysisErrorFrames;
   final int bodyNotVisibleCount;
   final int feedbackChangeCount;
+  final int feedbackSuppressedByCooldownCount;
   final double cameraInputFps;
   final double analyzedFps;
   final double averageProcessingTimeMs;
@@ -47,6 +48,7 @@ class SprintLiveSessionMetricsSnapshot {
     required this.analysisErrorFrames,
     required this.bodyNotVisibleCount,
     required this.feedbackChangeCount,
+    required this.feedbackSuppressedByCooldownCount,
     required this.cameraInputFps,
     required this.analyzedFps,
     required this.averageProcessingTimeMs,
@@ -66,6 +68,7 @@ class SprintLiveSessionMetricsSnapshot {
       analysisErrorFrames = 0,
       bodyNotVisibleCount = 0,
       feedbackChangeCount = 0,
+      feedbackSuppressedByCooldownCount = 0,
       cameraInputFps = 0,
       analyzedFps = 0,
       averageProcessingTimeMs = 0,
@@ -95,6 +98,7 @@ class SprintLiveSessionMetricsCollector {
   int _analysisErrorFrames = 0;
   int _bodyNotVisibleCount = 0;
   int _feedbackChangeCount = 0;
+  int _feedbackSuppressedByCooldownCount = 0;
   int _totalProcessingMicros = 0;
   String? _lastFeedbackKey;
   final List<int> _confidenceBucketCounts = List<int>.filled(
@@ -112,6 +116,7 @@ class SprintLiveSessionMetricsCollector {
     _analysisErrorFrames = 0;
     _bodyNotVisibleCount = 0;
     _feedbackChangeCount = 0;
+    _feedbackSuppressedByCooldownCount = 0;
     _totalProcessingMicros = 0;
     _lastFeedbackKey = null;
     for (var index = 0; index < _confidenceBucketCounts.length; index += 1) {
@@ -149,6 +154,9 @@ class SprintLiveSessionMetricsCollector {
 
     if (state.feedback?.code == SprintFeedbackCode.bodyNotVisible) {
       _bodyNotVisibleCount += 1;
+    }
+    if (state.feedbackSwitchSuppressedByCooldown) {
+      _feedbackSuppressedByCooldownCount += 1;
     }
 
     final feedbackKey = state.feedback?.localizationKey;
@@ -195,6 +203,7 @@ class SprintLiveSessionMetricsCollector {
       analysisErrorFrames: _analysisErrorFrames,
       bodyNotVisibleCount: _bodyNotVisibleCount,
       feedbackChangeCount: _feedbackChangeCount,
+      feedbackSuppressedByCooldownCount: _feedbackSuppressedByCooldownCount,
       cameraInputFps: _cameraInputFrames / elapsedSeconds,
       analyzedFps: analyzedFrames / elapsedSeconds,
       averageProcessingTimeMs: analyzedFrames == 0
@@ -230,6 +239,21 @@ class SprintLiveSessionMetricsCollector {
       'feedbackChanges': <String, Object?>{
         'count': snapshot.feedbackChangeCount,
         'perMinute': snapshot.feedbackChangesPerMinute.toStringAsFixed(2),
+        'suppressedByCooldown': snapshot.feedbackSuppressedByCooldownCount,
+      },
+      'readiness': <String, Object?>{
+        'bodyFullyVisible': state.stateEstimate.bodyFullyVisible,
+        'visibleLandmarks': state.stateEstimate.visibleLandmarkCount,
+        'missingCoreLandmarks': state.stateEstimate.missingCoreLandmarkCount,
+        'stableFrames': state.stateEstimate.stableFrameCount,
+        'hipTravelRatio': state.stateEstimate.hipTravelRatio.toStringAsFixed(3),
+        'runningDetected': state.stateEstimate.runningDetected,
+      },
+      'stepDetector': <String, Object?>{
+        'leadSwitches': state.features.stepCrossoverCount,
+        'acceptedEvents': state.features.detectedStepEvents,
+        'rejectedLowVelocity': state.features.rejectedStepEventsLowVelocity,
+        'rejectedMinInterval': state.features.rejectedStepEventsMinInterval,
       },
       'landmarkConfidenceDistribution': <String, Object?>{
         for (

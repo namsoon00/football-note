@@ -20,7 +20,7 @@ class SprintFeedbackRuleEngine {
     }
 
     if (!stateEstimate.runningDetected) {
-      return activeFeedback;
+      return null;
     }
 
     if ((features.trunkAngleDegrees ?? double.infinity) <

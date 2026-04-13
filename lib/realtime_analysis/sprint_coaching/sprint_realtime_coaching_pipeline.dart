@@ -32,12 +32,12 @@ class SprintRealtimeCoachingPipeline {
     SprintFeatureCalculator? featureCalculator,
     SprintStateEstimator? stateEstimator,
     SprintFeedbackRuleEngine? feedbackRuleEngine,
-  }) : _smoother = smoother ?? SprintLandmarkSmoother(),
-       _normalizer = normalizer ?? SprintPoseNormalizer(),
-       _featureCalculator = featureCalculator ?? SprintFeatureCalculator(),
-       _stateEstimator = stateEstimator ?? SprintStateEstimator(),
-       _feedbackRuleEngine =
-           feedbackRuleEngine ?? const SprintFeedbackRuleEngine();
+  })  : _smoother = smoother ?? SprintLandmarkSmoother(),
+        _normalizer = normalizer ?? SprintPoseNormalizer(),
+        _featureCalculator = featureCalculator ?? SprintFeatureCalculator(),
+        _stateEstimator = stateEstimator ?? SprintStateEstimator(),
+        _feedbackRuleEngine =
+            feedbackRuleEngine ?? const SprintFeedbackRuleEngine();
 
   void reset() {
     _rawWindow.clear();
@@ -90,11 +90,12 @@ class SprintRealtimeCoachingPipeline {
       now: now,
       lastFeedbackAt: _lastFeedbackAt,
     );
-    final nextFeedback = _resolveFeedback(
+    final feedbackResolution = _resolveFeedback(
       now: now,
       features: features,
       stateEstimate: stateEstimate,
     );
+    final nextFeedback = feedbackResolution.feedback;
 
     return SprintRealtimeCoachingState(
       status: _resolveStatus(
@@ -108,6 +109,8 @@ class SprintRealtimeCoachingPipeline {
       processedFrames: _processedFrames,
       trackedFrames: normalizedFrames.length,
       lastFeedbackAt: _lastFeedbackAt,
+      feedbackSwitchSuppressedByCooldown:
+          feedbackResolution.suppressedByCooldown,
     );
   }
 
@@ -133,7 +136,7 @@ class SprintRealtimeCoachingPipeline {
     }
   }
 
-  SprintFeedbackMessage? _resolveFeedback({
+  _FeedbackResolution _resolveFeedback({
     required DateTime now,
     required SprintFeatureSnapshot features,
     required SprintStateEstimate stateEstimate,
@@ -145,31 +148,47 @@ class SprintRealtimeCoachingPipeline {
       activeFeedback: _activeFeedback,
     );
     if (selected == null) {
-      if (!stateEstimate.feedbackCooldownActive) {
+      if (!stateEstimate.feedbackCooldownActive ||
+          !stateEstimate.runningDetected) {
         _activeFeedback = null;
       }
-      return _activeFeedback;
+      return _FeedbackResolution(
+        feedback: _activeFeedback,
+        suppressedByCooldown: false,
+      );
     }
 
     if (selected.code == SprintFeedbackCode.bodyNotVisible) {
       _activeFeedback = selected;
-      return _activeFeedback;
+      return _FeedbackResolution(
+        feedback: _activeFeedback,
+        suppressedByCooldown: false,
+      );
     }
 
     if (stateEstimate.feedbackCooldownActive &&
         _activeFeedback != null &&
         _activeFeedback!.code != selected.code) {
-      return _activeFeedback;
+      return _FeedbackResolution(
+        feedback: _activeFeedback,
+        suppressedByCooldown: true,
+      );
     }
 
     if (_activeFeedback?.code != selected.code) {
       _lastFeedbackAt = now;
       _activeFeedback = selected;
-      return _activeFeedback;
+      return _FeedbackResolution(
+        feedback: _activeFeedback,
+        suppressedByCooldown: false,
+      );
     }
 
     _activeFeedback = selected;
-    return _activeFeedback;
+    return _FeedbackResolution(
+      feedback: _activeFeedback,
+      suppressedByCooldown: false,
+    );
   }
 
   SprintCoachingStatus _resolveStatus({
@@ -191,4 +210,14 @@ class SprintRealtimeCoachingPipeline {
 
     return SprintCoachingStatus.coaching;
   }
+}
+
+class _FeedbackResolution {
+  final SprintFeedbackMessage? feedback;
+  final bool suppressedByCooldown;
+
+  const _FeedbackResolution({
+    required this.feedback,
+    required this.suppressedByCooldown,
+  });
 }

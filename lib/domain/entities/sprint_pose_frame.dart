@@ -37,6 +37,8 @@ const Set<SprintPoseLandmarkType> sprintMvpCoreLandmarks = {
   SprintPoseLandmarkType.rightAnkle,
 };
 
+const int sprintMvpCoreLandmarkCount = 12;
+
 class SprintPoseLandmark {
   final Offset position;
   final double confidence;

@@ -1722,8 +1722,26 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String runningCoachSprintSessionFeedbackChangesValue(
-      int count, Object perMinute) {
-    return '$count회 / $perMinute분당';
+      int count, Object perMinute, int suppressed) {
+    return '$count회 / $perMinute분당 · 쿨다운 보류 $suppressed';
+  }
+
+  @override
+  String get runningCoachSprintSessionReadinessLabel => '준비 상태';
+
+  @override
+  String runningCoachSprintSessionReadinessValue(
+      int visible, int missing, int stable, Object travel) {
+    return '보임 $visible · 누락 $missing · 안정 $stable · 이동 $travel';
+  }
+
+  @override
+  String get runningCoachSprintSessionStepDetectorLabel => '스텝 판정';
+
+  @override
+  String runningCoachSprintSessionStepDetectorValue(
+      int switches, int accepted, int lowVelocity, int minInterval) {
+    return '교차 $switches · 채택 $accepted · 저속 $lowVelocity · 간격 $minInterval';
   }
 
   @override

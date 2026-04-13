@@ -738,13 +738,50 @@
     }
   },
   "runningCoachSprintSessionFeedbackChangesLabel": "Feedback changes",
-  "runningCoachSprintSessionFeedbackChangesValue": "{count} changes / {perMinute} per min",
+  "runningCoachSprintSessionFeedbackChangesValue": "{count} changes / {perMinute} per min · cooldown holds {suppressed}",
   "@runningCoachSprintSessionFeedbackChangesValue": {
     "placeholders": {
       "count": {
         "type": "int"
       },
-      "perMinute": {}
+      "perMinute": {},
+      "suppressed": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionReadinessLabel": "Readiness",
+  "runningCoachSprintSessionReadinessValue": "visible {visible} · miss {missing} · stable {stable} · travel {travel}",
+  "@runningCoachSprintSessionReadinessValue": {
+    "placeholders": {
+      "visible": {
+        "type": "int"
+      },
+      "missing": {
+        "type": "int"
+      },
+      "stable": {
+        "type": "int"
+      },
+      "travel": {}
+    }
+  },
+  "runningCoachSprintSessionStepDetectorLabel": "Step detector",
+  "runningCoachSprintSessionStepDetectorValue": "switch {switches} · ok {accepted} · lowV {lowVelocity} · gap {minInterval}",
+  "@runningCoachSprintSessionStepDetectorValue": {
+    "placeholders": {
+      "switches": {
+        "type": "int"
+      },
+      "accepted": {
+        "type": "int"
+      },
+      "lowVelocity": {
+        "type": "int"
+      },
+      "minInterval": {
+        "type": "int"
+      }
     }
   },
   "runningCoachSprintSessionConfidenceLabel": "Landmark confidence",
