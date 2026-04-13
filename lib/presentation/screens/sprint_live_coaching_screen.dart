@@ -28,11 +28,11 @@ class SprintLiveCoachingScreen extends StatefulWidget {
 class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     with WidgetsBindingObserver {
   static const _pipelineConfig = SprintPipelineConfig();
-  static const _minimumAnalysisInterval = Duration(milliseconds: 100);
-  static const _repeatSpeechCooldown = Duration(seconds: 4);
-  static const _changeSpeechCooldown = Duration(milliseconds: 1400);
+  static const _repeatSpeechCooldown = Duration(seconds: 7);
+  static const _changeSpeechCooldown = Duration(milliseconds: 1800);
   static const _metricsLogInterval = Duration(seconds: 5);
   static const _metricsUiRefreshInterval = Duration(milliseconds: 450);
+  static const _skipEventLogInterval = Duration(seconds: 2);
 
   final SprintLiveCoachingService _coachingService = SprintLiveCoachingService(
     config: _pipelineConfig,
@@ -67,9 +67,13 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   String? _cameraErrorCode;
   DateTime? _lastAnalyzedAt;
   DateTime? _lastSpokenAt;
-  String? _lastSpokenFeedbackKey;
   DateTime? _lastMetricsLoggedAt;
   DateTime? _lastMetricsUiRefreshAt;
+  String? _sessionId;
+  int _lastLoggedStepCount = 0;
+  bool _lastBodyNotVisibleActive = false;
+  final Map<SprintSkippedFrameReason, DateTime> _lastSkipLogAtByReason =
+      <SprintSkippedFrameReason, DateTime>{};
 
   bool get _isAndroidPlatform =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -100,7 +104,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     }
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
-      _emitSessionLog(force: true);
+      _endSessionLogging(reason: 'lifecycle_${state.name}');
       unawaited(controller.dispose());
       _controller = null;
       return;
@@ -112,7 +116,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
 
   @override
   void dispose() {
-    _emitSessionLog(force: true);
+    _endSessionLogging(reason: 'dispose');
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
     final controller = _controller;
@@ -231,6 +235,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                             theme: statusTheme,
                             title: statusTheme.title,
                             body: bannerBody,
+                            hints: <String>[
+                              l10n.runningCoachSprintGuideSideCapture,
+                              l10n.runningCoachSprintGuideFullBodyFraming,
+                            ],
                           ),
                         ),
                       ),
@@ -245,12 +253,11 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                             _InfoChipData(
                               text: l10n
                                   .runningCoachSprintTrackingConfidenceValue(
-                                    (_coachingState
-                                                .stateEstimate
-                                                .trackingConfidence *
-                                            100)
-                                        .round(),
-                                  ),
+                                (_coachingState
+                                            .stateEstimate.trackingConfidence *
+                                        100)
+                                    .round(),
+                              ),
                             ),
                             _InfoChipData(
                               text: l10n.runningCoachSprintTrackedFrames(
@@ -262,6 +269,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                                 _coachingState.features.detectedStepEvents,
                               ),
                             ),
+                            _InfoChipData(text: _bodyVisibilityText(l10n)),
                             _InfoChipData(
                               text: _isSpeechEnabled
                                   ? l10n.runningCoachLiveVoiceOn
@@ -313,6 +321,8 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       return;
     }
 
+    _endSessionLogging(reason: 'reinitialize');
+
     if (!_isSupportedMobilePlatform) {
       setState(() {
         _cameraErrorCode = 'unsupported_platform';
@@ -339,9 +349,12 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     _poseOverlayState = null;
     _lastAnalyzedAt = null;
     _lastSpokenAt = null;
-    _lastSpokenFeedbackKey = null;
     _lastMetricsLoggedAt = null;
     _lastMetricsUiRefreshAt = null;
+    _sessionId = null;
+    _lastLoggedStepCount = 0;
+    _lastBodyNotVisibleActive = false;
+    _lastSkipLogAtByReason.clear();
 
     try {
       final cameras = await availableCameras();
@@ -350,12 +363,11 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       }
 
       _cameras = cameras;
-      final selectedCamera =
-          preferredCamera ??
+      final selectedCamera = preferredCamera ??
           cameras.cast<CameraDescription?>().firstWhere(
-            (camera) => camera?.lensDirection == CameraLensDirection.back,
-            orElse: () => cameras.first,
-          )!;
+                (camera) => camera?.lensDirection == CameraLensDirection.back,
+                orElse: () => cameras.first,
+              )!;
       _activeCamera = selectedCamera;
 
       final controller = CameraController(
@@ -377,6 +389,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         _controller = controller;
         _isInitializing = false;
       });
+      _startSessionLogging();
     } on CameraException catch (error) {
       if (_isDisposed) {
         return;
@@ -426,20 +439,24 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     }
 
     final receivedAt = DateTime.now();
+    final previousState = _coachingState;
     _sessionMetricsCollector.recordCameraInputFrame(timestamp: receivedAt);
 
     if (_isProcessingFrame) {
       _sessionMetricsCollector.recordSkippedFrame(
         SprintSkippedFrameReason.detectorBusy,
       );
+      _emitSkippedFrameEvent(SprintSkippedFrameReason.detectorBusy, receivedAt);
       _refreshSessionMetricsIfNeeded(receivedAt);
       return;
     }
     if (_lastAnalyzedAt != null &&
-        receivedAt.difference(_lastAnalyzedAt!) < _minimumAnalysisInterval) {
+        receivedAt.difference(_lastAnalyzedAt!) <
+            _pipelineConfig.minimumAnalysisInterval) {
       _sessionMetricsCollector.recordSkippedFrame(
         SprintSkippedFrameReason.throttled,
       );
+      _emitSkippedFrameEvent(SprintSkippedFrameReason.throttled, receivedAt);
       _refreshSessionMetricsIfNeeded(receivedAt);
       return;
     }
@@ -449,6 +466,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       _sessionMetricsCollector.recordSkippedFrame(
         SprintSkippedFrameReason.invalidInput,
       );
+      _emitSkippedFrameEvent(SprintSkippedFrameReason.invalidInput, receivedAt);
       _refreshSessionMetricsIfNeeded(receivedAt);
       return;
     }
@@ -496,12 +514,21 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
               );
       });
 
-      _emitSessionLog(force: false);
-      await _maybeSpeakFeedback(state);
+      _logStateTransitions(
+        previousState: previousState,
+        nextState: state,
+        timestamp: receivedAt,
+      );
+      _emitSessionLog(event: 'periodic', force: false, now: receivedAt);
+      await _maybeSpeakFeedback(previousState: previousState, state: state);
     } catch (_) {
       stopwatch.stop();
       _sessionMetricsCollector.recordSkippedFrame(
         SprintSkippedFrameReason.analysisError,
+      );
+      _emitSkippedFrameEvent(
+        SprintSkippedFrameReason.analysisError,
+        receivedAt,
       );
       _refreshSessionMetricsIfNeeded(receivedAt);
     } finally {
@@ -510,8 +537,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   }
 
   void _refreshSessionMetricsIfNeeded(DateTime now) {
-    final shouldRefresh =
-        _lastMetricsUiRefreshAt == null ||
+    final shouldRefresh = _lastMetricsUiRefreshAt == null ||
         now.difference(_lastMetricsUiRefreshAt!) >= _metricsUiRefreshInterval;
     if (shouldRefresh) {
       final snapshot = _sessionMetricsCollector.snapshot(now: now);
@@ -522,32 +548,162 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         });
       }
     }
-    _emitSessionLog(force: false);
+    _emitSessionLog(event: 'periodic', force: false, now: now);
   }
 
-  void _emitSessionLog({required bool force}) {
+  void _startSessionLogging() {
     final now = DateTime.now();
-    if (!force &&
+    _sessionId = 'sprint-${now.microsecondsSinceEpoch}';
+    _emitSessionLog(
+      event: 'start',
+      force: true,
+      now: now,
+      details: <String, Object?>{
+        'cameraLensDirection': _activeCamera?.lensDirection.name,
+        'minimumAnalysisIntervalMs':
+            _pipelineConfig.minimumAnalysisInterval.inMilliseconds,
+      },
+    );
+  }
+
+  void _endSessionLogging({required String reason}) {
+    if (_sessionId == null) {
+      return;
+    }
+    _emitSessionLog(
+      event: 'end',
+      force: true,
+      details: <String, Object?>{'reason': reason},
+    );
+    _sessionId = null;
+  }
+
+  void _emitSessionLog({
+    required String event,
+    required bool force,
+    DateTime? now,
+    Map<String, Object?>? details,
+  }) {
+    final timestamp = now ?? DateTime.now();
+    if (event == 'periodic' &&
+        !force &&
         _lastMetricsLoggedAt != null &&
-        now.difference(_lastMetricsLoggedAt!) < _metricsLogInterval) {
+        timestamp.difference(_lastMetricsLoggedAt!) < _metricsLogInterval) {
       return;
     }
 
     final l10n = mounted ? AppLocalizations.of(context) : null;
     final feedbackText = l10n == null
         ? null
-        : _localizedFeedbackText(
-            l10n,
-            _coachingState.feedback?.localizationKey,
-          );
-    final snapshot = _sessionMetricsCollector.snapshot(now: now);
+        : _localizedFeedbackText(l10n, _coachingState.activeFeedbackKey);
+    final snapshot = _sessionMetricsCollector.snapshot(now: timestamp);
     final payload = _sessionMetricsCollector.buildLogPayload(
+      event: event,
+      sessionId: _sessionId ?? 'inactive',
+      timestamp: timestamp,
+      config: _pipelineConfig,
       snapshot: snapshot,
       state: _coachingState,
       feedbackText: feedbackText,
+      details: details,
     );
     debugPrint('[SprintLiveSession] ${jsonEncode(payload)}');
-    _lastMetricsLoggedAt = now;
+    if (event == 'periodic') {
+      _lastMetricsLoggedAt = timestamp;
+    }
+  }
+
+  void _emitSkippedFrameEvent(
+    SprintSkippedFrameReason reason,
+    DateTime timestamp,
+  ) {
+    final lastLoggedAt = _lastSkipLogAtByReason[reason];
+    if (lastLoggedAt != null &&
+        timestamp.difference(lastLoggedAt) < _skipEventLogInterval) {
+      return;
+    }
+
+    _emitSessionLog(
+      event: 'analysis_skipped',
+      force: true,
+      now: timestamp,
+      details: <String, Object?>{
+        'reason': reason.name,
+        'count': _skippedFrameCount(reason),
+      },
+    );
+    _lastSkipLogAtByReason[reason] = timestamp;
+  }
+
+  int _skippedFrameCount(SprintSkippedFrameReason reason) {
+    final snapshot = _sessionMetricsCollector.snapshot();
+    return switch (reason) {
+      SprintSkippedFrameReason.detectorBusy => snapshot.busySkippedFrames,
+      SprintSkippedFrameReason.throttled => snapshot.throttledSkippedFrames,
+      SprintSkippedFrameReason.invalidInput => snapshot.invalidInputFrames,
+      SprintSkippedFrameReason.analysisError => snapshot.analysisErrorFrames,
+    };
+  }
+
+  void _logStateTransitions({
+    required SprintRealtimeCoachingState previousState,
+    required SprintRealtimeCoachingState nextState,
+    required DateTime timestamp,
+  }) {
+    final previousFeedbackKey = previousState.activeFeedbackKey;
+    final nextFeedbackKey = nextState.activeFeedbackKey;
+    if (nextFeedbackKey != previousFeedbackKey) {
+      _emitSessionLog(
+        event: 'feedback_changed',
+        force: true,
+        now: timestamp,
+        details: <String, Object?>{
+          'from': previousFeedbackKey,
+          'to': nextFeedbackKey,
+          'text': _localizedFeedbackText(
+            AppLocalizations.of(context)!,
+            nextFeedbackKey,
+          ),
+        },
+      );
+    }
+
+    if (nextState.features.detectedStepEvents > _lastLoggedStepCount) {
+      final delta =
+          nextState.features.detectedStepEvents - _lastLoggedStepCount;
+      _lastLoggedStepCount = nextState.features.detectedStepEvents;
+      _emitSessionLog(
+        event: 'step_detected',
+        force: true,
+        now: timestamp,
+        details: <String, Object?>{
+          'delta': delta,
+          'acceptedEvents': nextState.features.detectedStepEvents,
+          'leadSwitches': nextState.features.stepCrossoverCount,
+        },
+      );
+    } else {
+      _lastLoggedStepCount = nextState.features.detectedStepEvents;
+    }
+
+    final nextBodyNotVisible = nextState.bodyNotVisibleActive;
+    if (nextBodyNotVisible != _lastBodyNotVisibleActive) {
+      _emitSessionLog(
+        event: nextBodyNotVisible
+            ? 'body_not_visible_entered'
+            : 'body_not_visible_exited',
+        force: true,
+        now: timestamp,
+        details: <String, Object?>{
+          'status': nextState.stateEstimate.bodyVisibilityStatus.name,
+          'visibleCoreLandmarks':
+              nextState.stateEstimate.visibleCoreLandmarkCount,
+          'bodyVisibilityRatio':
+              nextState.stateEstimate.bodyVisibilityRatio.toStringAsFixed(3),
+        },
+      );
+      _lastBodyNotVisibleActive = nextBodyNotVisible;
+    }
   }
 
   _CameraFrameInput? _inputImageFromCameraImage(CameraImage image) {
@@ -671,7 +827,10 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     );
   }
 
-  Future<void> _maybeSpeakFeedback(SprintRealtimeCoachingState state) async {
+  Future<void> _maybeSpeakFeedback({
+    required SprintRealtimeCoachingState previousState,
+    required SprintRealtimeCoachingState state,
+  }) async {
     if (!_isSpeechEnabled ||
         _isDisposed ||
         !mounted ||
@@ -690,15 +849,18 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
 
     final feedbackKey = state.feedback!.localizationKey;
     final now = DateTime.now();
-    final cooldown = _lastSpokenFeedbackKey == feedbackKey
-        ? _repeatSpeechCooldown
-        : _changeSpeechCooldown;
+    final feedbackChanged = previousState.activeFeedbackKey != feedbackKey;
+    if (!feedbackChanged &&
+        state.feedback?.code == SprintFeedbackCode.keepPushing) {
+      return;
+    }
+    final cooldown =
+        feedbackChanged ? _changeSpeechCooldown : _repeatSpeechCooldown;
     if (_lastSpokenAt != null && now.difference(_lastSpokenAt!) < cooldown) {
       return;
     }
 
     _lastSpokenAt = now;
-    _lastSpokenFeedbackKey = feedbackKey;
     await _tts.stop();
     await _tts.speak(message);
   }
@@ -711,29 +873,29 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     final scheme = Theme.of(context).colorScheme;
     return switch (state.status) {
       SprintCoachingStatus.lowConfidence => _LiveStatusTheme(
-        title: l10n.runningCoachSprintLiveStatusLowConfidence,
-        icon: Icons.visibility_off_rounded,
-        color: const Color(0xFFFFB74D),
-        background: Colors.black.withAlpha(178),
-      ),
+          title: l10n.runningCoachSprintLiveStatusLowConfidence,
+          icon: Icons.visibility_off_rounded,
+          color: const Color(0xFFFFB74D),
+          background: Colors.black.withAlpha(178),
+        ),
       SprintCoachingStatus.collecting => _LiveStatusTheme(
-        title: l10n.runningCoachSprintLiveStatusCollecting,
-        icon: Icons.directions_run_rounded,
-        color: scheme.secondary,
-        background: Colors.black.withAlpha(178),
-      ),
+          title: l10n.runningCoachSprintLiveStatusCollecting,
+          icon: Icons.directions_run_rounded,
+          color: scheme.secondary,
+          background: Colors.black.withAlpha(178),
+        ),
       SprintCoachingStatus.ready => _LiveStatusTheme(
-        title: l10n.runningCoachSprintLiveStatusReady,
-        icon: Icons.track_changes_rounded,
-        color: const Color(0xFF8BC34A),
-        background: Colors.black.withAlpha(178),
-      ),
+          title: l10n.runningCoachSprintLiveStatusReady,
+          icon: Icons.track_changes_rounded,
+          color: const Color(0xFF8BC34A),
+          background: Colors.black.withAlpha(178),
+        ),
       SprintCoachingStatus.coaching => _LiveStatusTheme(
-        title: l10n.runningCoachSprintLiveStatusCoaching,
-        icon: Icons.flash_on_rounded,
-        color: const Color(0xFF73F3B4),
-        background: Colors.black.withAlpha(178),
-      ),
+          title: l10n.runningCoachSprintLiveStatusCoaching,
+          icon: Icons.flash_on_rounded,
+          color: const Color(0xFF73F3B4),
+          background: Colors.black.withAlpha(178),
+        ),
     };
   }
 
@@ -811,7 +973,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
               ),
         accent: _accentForThreshold(
           value: _coachingState.features.kneeDriveHeightRatio,
-          minimum: _pipelineConfig.minimumKneeDriveHeightRatio,
+          minimum: _pipelineConfig.minimumKneeDriveHeight,
           lowerIsBad: true,
         ),
       ),
@@ -849,17 +1011,17 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
               ),
         accent: _accentForThreshold(
           value: _coachingState.features.armSwingAsymmetryRatio,
-          maximum: _pipelineConfig.maximumArmSwingAsymmetryRatio,
+          maximum: _pipelineConfig.maximumArmAsymmetryRatio,
         ),
       ),
     ];
   }
 
   List<_SessionSummaryLine> _buildSessionSummaryLines(AppLocalizations l10n) {
-    final highConfidence = ((_sessionMetrics.confidenceBucketRatio(4)) * 100)
-        .round();
-    final midConfidence = ((_sessionMetrics.confidenceBucketRatio(3)) * 100)
-        .round();
+    final highConfidence =
+        ((_sessionMetrics.confidenceBucketRatio(4)) * 100).round();
+    final midConfidence =
+        ((_sessionMetrics.confidenceBucketRatio(3)) * 100).round();
     final lowConfidence = (100 - highConfidence - midConfidence).clamp(0, 100);
 
     return [
@@ -888,6 +1050,19 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
         value: l10n.runningCoachSprintSessionBodyNotVisibleValue(
           (_sessionMetrics.bodyNotVisibleRatio * 100).round(),
         ),
+      ),
+      _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionBodyVisibilityLabel,
+        value: l10n.runningCoachSprintSessionBodyVisibilityValue(
+          _bodyVisibilityStatusText(l10n),
+          _coachingState.stateEstimate.visibleCoreLandmarkCount,
+          sprintMvpCoreLandmarkCount,
+          (_coachingState.stateEstimate.bodyVisibilityRatio * 100).round(),
+        ),
+      ),
+      _SessionSummaryLine(
+        label: l10n.runningCoachSprintSessionActiveFeedbackLabel,
+        value: _activeFeedbackDebugValue(l10n),
       ),
       _SessionSummaryLine(
         label: l10n.runningCoachSprintSessionReadinessLabel,
@@ -926,6 +1101,38 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
     ];
   }
 
+  String _bodyVisibilityText(AppLocalizations l10n) {
+    return l10n.runningCoachSprintSessionBodyVisibilityValue(
+      _bodyVisibilityStatusText(l10n),
+      _coachingState.stateEstimate.visibleCoreLandmarkCount,
+      sprintMvpCoreLandmarkCount,
+      (_coachingState.stateEstimate.bodyVisibilityRatio * 100).round(),
+    );
+  }
+
+  String _bodyVisibilityStatusText(AppLocalizations l10n) {
+    return switch (_coachingState.stateEstimate.bodyVisibilityStatus) {
+      SprintBodyVisibilityStatus.full =>
+        l10n.runningCoachSprintBodyVisibilityFull,
+      SprintBodyVisibilityStatus.partial =>
+        l10n.runningCoachSprintBodyVisibilityPartial,
+      SprintBodyVisibilityStatus.notVisible =>
+        l10n.runningCoachSprintBodyVisibilityNotVisible,
+    };
+  }
+
+  String _activeFeedbackDebugValue(AppLocalizations l10n) {
+    final feedbackKey = _coachingState.activeFeedbackKey;
+    final feedbackText = _localizedFeedbackText(l10n, feedbackKey);
+    if (feedbackKey == null || feedbackKey.isEmpty || feedbackText.isEmpty) {
+      return l10n.runningCoachSprintSessionFeedbackEmpty;
+    }
+    return l10n.runningCoachSprintSessionActiveFeedbackValue(
+      feedbackKey,
+      feedbackText,
+    );
+  }
+
   Color _accentForThreshold({
     required double? value,
     double? minimum,
@@ -952,11 +1159,13 @@ class _CueBanner extends StatelessWidget {
   final _LiveStatusTheme theme;
   final String title;
   final String body;
+  final List<String> hints;
 
   const _CueBanner({
     required this.theme,
     required this.title,
     required this.body,
+    required this.hints,
   });
 
   @override
@@ -976,37 +1185,80 @@ class _CueBanner extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(theme.icon, color: theme.color, size: 20),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 112),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(theme.icon, color: theme.color, size: 20),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    body,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                      height: 1.25,
+                    const SizedBox(height: 3),
+                    SizedBox(
+                      height: 34,
+                      child: Text(
+                        body,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white70,
+                              height: 1.25,
+                            ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final hint in hints)
+                          _CueHintPill(text: hint, color: theme.color),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CueHintPill extends StatelessWidget {
+  final String text;
+  final Color color;
+
+  const _CueHintPill({required this.text, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withAlpha(96)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Colors.white70,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
@@ -1088,9 +1340,9 @@ class _MetricTile extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w700,
-                ),
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -1098,10 +1350,10 @@ class _MetricTile extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  height: 1.25,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      height: 1.25,
+                    ),
               ),
             ],
           ),
@@ -1148,9 +1400,9 @@ class _InfoChip extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-          color: Colors.white70,
-          fontWeight: FontWeight.w700,
-        ),
+              color: Colors.white70,
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -1200,9 +1452,9 @@ class _SessionSummaryCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               const SizedBox(height: 10),
               for (var index = 0; index < lines.length; index += 1) ...[
@@ -1231,9 +1483,9 @@ class _SessionSummaryRow extends StatelessWidget {
           child: Text(
             line.label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white60,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: Colors.white60,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
         ),
         const SizedBox(width: 10),
@@ -1242,9 +1494,9 @@ class _SessionSummaryRow extends StatelessWidget {
             line.value,
             textAlign: TextAlign.right,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ),
       ],
@@ -1287,9 +1539,9 @@ class _StatusPane extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1493,7 +1745,8 @@ class _SprintPosePainter extends CustomPainter {
   }) {
     final rotatedPoint = _rotatePoint(point, imageSize, rotation);
     final rotatedImageSize = switch (rotation) {
-      InputImageRotation.rotation90deg || InputImageRotation.rotation270deg =>
+      InputImageRotation.rotation90deg ||
+      InputImageRotation.rotation270deg =>
         Size(imageSize.height, imageSize.width),
       _ => imageSize,
     };
@@ -1531,17 +1784,17 @@ class _SprintPosePainter extends CustomPainter {
   ) {
     return switch (rotation) {
       InputImageRotation.rotation90deg => Offset(
-        point.dy,
-        imageSize.width - point.dx,
-      ),
+          point.dy,
+          imageSize.width - point.dx,
+        ),
       InputImageRotation.rotation180deg => Offset(
-        imageSize.width - point.dx,
-        imageSize.height - point.dy,
-      ),
+          imageSize.width - point.dx,
+          imageSize.height - point.dy,
+        ),
       InputImageRotation.rotation270deg => Offset(
-        imageSize.height - point.dy,
-        point.dx,
-      ),
+          imageSize.height - point.dy,
+          point.dx,
+        ),
       _ => point,
     };
   }

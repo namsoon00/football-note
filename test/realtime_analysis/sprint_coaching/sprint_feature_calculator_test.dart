@@ -55,47 +55,50 @@ void main() {
       expect(snapshot.hasEnoughSignal, isTrue);
     });
 
-    test('suppresses jitter that never clears hysteresis', () {
-      final calculator = SprintFeatureCalculator();
-      final start = DateTime(2026, 4, 13, 9);
+    test(
+      'treats ankle jitter under hysteresis as a step-detector false positive case',
+      () {
+        final calculator = SprintFeatureCalculator();
+        final start = DateTime(2026, 4, 13, 9);
 
-      final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
-        _frame(
-          timestamp: start,
-          leftAnkleX: 0.03,
-          rightAnkleX: -0.03,
-          kneeDriveHeight: 0.28,
-        ),
-        _frame(
-          timestamp: start.add(const Duration(milliseconds: 120)),
-          leftAnkleX: -0.02,
-          rightAnkleX: 0.02,
-          kneeDriveHeight: 0.29,
-        ),
-        _frame(
-          timestamp: start.add(const Duration(milliseconds: 240)),
-          leftAnkleX: 0.04,
-          rightAnkleX: -0.04,
-          kneeDriveHeight: 0.31,
-        ),
-        _frame(
-          timestamp: start.add(const Duration(milliseconds: 360)),
-          leftAnkleX: -0.03,
-          rightAnkleX: 0.03,
-          kneeDriveHeight: 0.3,
-        ),
-      ]);
+        final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
+          _frame(
+            timestamp: start,
+            leftAnkleX: 0.03,
+            rightAnkleX: -0.03,
+            kneeDriveHeight: 0.28,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 120)),
+            leftAnkleX: -0.02,
+            rightAnkleX: 0.02,
+            kneeDriveHeight: 0.29,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 240)),
+            leftAnkleX: 0.04,
+            rightAnkleX: -0.04,
+            kneeDriveHeight: 0.31,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 360)),
+            leftAnkleX: -0.03,
+            rightAnkleX: 0.03,
+            kneeDriveHeight: 0.3,
+          ),
+        ]);
 
-      expect(snapshot.detectedStepEvents, 0);
-      expect(snapshot.stepCrossoverCount, 0);
-      expect(snapshot.rejectedStepEventsLowVelocity, 0);
-      expect(snapshot.rejectedStepEventsMinInterval, 0);
-      expect(snapshot.stepInterval, isNull);
-      expect(snapshot.cadenceStepsPerMinute, isNull);
-    });
+        expect(snapshot.detectedStepEvents, 0);
+        expect(snapshot.stepCrossoverCount, 0);
+        expect(snapshot.rejectedStepEventsLowVelocity, 0);
+        expect(snapshot.rejectedStepEventsMinInterval, 0);
+        expect(snapshot.stepInterval, isNull);
+        expect(snapshot.cadenceStepsPerMinute, isNull);
+      },
+    );
 
     test(
-      'suppresses crossings that are slower than the velocity threshold',
+      'captures low-velocity crossings as a step-detector false negative case',
       () {
         final calculator = SprintFeatureCalculator();
         final start = DateTime(2026, 4, 13, 9);
@@ -129,43 +132,46 @@ void main() {
       },
     );
 
-    test('tracks crossings rejected by the minimum event interval', () {
-      final calculator = SprintFeatureCalculator();
-      final start = DateTime(2026, 4, 13, 9);
+    test(
+      'captures minimum-interval rejections as a step-detector false negative case',
+      () {
+        final calculator = SprintFeatureCalculator();
+        final start = DateTime(2026, 4, 13, 9);
 
-      final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
-        _frame(
-          timestamp: start,
-          leftAnkleX: 0.16,
-          rightAnkleX: -0.16,
-          kneeDriveHeight: 0.32,
-        ),
-        _frame(
-          timestamp: start.add(const Duration(milliseconds: 120)),
-          leftAnkleX: -0.16,
-          rightAnkleX: 0.16,
-          kneeDriveHeight: 0.33,
-        ),
-        _frame(
-          timestamp: start.add(const Duration(milliseconds: 180)),
-          leftAnkleX: 0.16,
-          rightAnkleX: -0.16,
-          kneeDriveHeight: 0.34,
-        ),
-        _frame(
-          timestamp: start.add(const Duration(milliseconds: 340)),
-          leftAnkleX: -0.16,
-          rightAnkleX: 0.16,
-          kneeDriveHeight: 0.35,
-        ),
-      ], minimumStepEventInterval: const Duration(milliseconds: 110));
+        final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
+          _frame(
+            timestamp: start,
+            leftAnkleX: 0.16,
+            rightAnkleX: -0.16,
+            kneeDriveHeight: 0.32,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 120)),
+            leftAnkleX: -0.16,
+            rightAnkleX: 0.16,
+            kneeDriveHeight: 0.33,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 180)),
+            leftAnkleX: 0.16,
+            rightAnkleX: -0.16,
+            kneeDriveHeight: 0.34,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 340)),
+            leftAnkleX: -0.16,
+            rightAnkleX: 0.16,
+            kneeDriveHeight: 0.35,
+          ),
+        ], minimumStepEventInterval: const Duration(milliseconds: 110));
 
-      expect(snapshot.stepCrossoverCount, 3);
-      expect(snapshot.detectedStepEvents, 2);
-      expect(snapshot.rejectedStepEventsLowVelocity, 0);
-      expect(snapshot.rejectedStepEventsMinInterval, 1);
-      expect(snapshot.stepInterval, const Duration(milliseconds: 220));
-    });
+        expect(snapshot.stepCrossoverCount, 3);
+        expect(snapshot.detectedStepEvents, 2);
+        expect(snapshot.rejectedStepEventsLowVelocity, 0);
+        expect(snapshot.rejectedStepEventsMinInterval, 1);
+        expect(snapshot.stepInterval, const Duration(milliseconds: 220));
+      },
+    );
   });
 }
 

@@ -676,15 +676,17 @@
     }
   },
   "runningCoachSprintLiveCardTitle": "스프린트 실시간 MVP",
-  "runningCoachSprintLiveCardBody": "측면 카메라를 스프린트 파이프라인에 직접 연결해 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 보고 세션 FPS/드랍/가시성 로그까지 함께 남겨요.",
+  "runningCoachSprintLiveCardBody": "측면 카메라를 바로 연결해 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 보고 세션 FPS, 스킵, 가시성 로그까지 함께 확인해요.",
   "runningCoachSprintLiveAction": "스프린트 MVP 시작",
   "runningCoachSprintLiveScreenTitle": "스프린트 실시간 코칭",
-  "runningCoachSprintLiveStatusLowConfidence": "전신 가시성을 먼저 맞춰 주세요",
-  "runningCoachSprintLiveStatusCollecting": "스프린트 리듬을 모으는 중",
-  "runningCoachSprintLiveStatusReady": "실시간 피드백 준비 완료",
-  "runningCoachSprintLiveStatusCoaching": "스프린트 실시간 코칭 중",
-  "runningCoachSprintLiveCueCollecting": "몇 걸음만 더 유지하면 스프린트 리듬과 무릎 드라이브를 안정적으로 계산해요.",
-  "runningCoachSprintLiveCueReady": "좋아요. 지금 자세를 유지하면서 5~10초 정도 더 질주해 보세요.",
+  "runningCoachSprintLiveStatusLowConfidence": "먼저 전신 프레이밍을 맞춰 주세요",
+  "runningCoachSprintLiveStatusCollecting": "스프린트 리듬을 안정화하는 중",
+  "runningCoachSprintLiveStatusReady": "실시간 피드백 준비됨",
+  "runningCoachSprintLiveStatusCoaching": "실시간 스프린트 피드백 중",
+  "runningCoachSprintLiveCueCollecting": "몇 걸음만 더 유지하면 리듬과 무릎 드라이브를 더 안정적으로 읽을 수 있어요.",
+  "runningCoachSprintLiveCueReady": "좋아요. 지금 형태를 유지한 채 5~10초만 더 질주해 주세요.",
+  "runningCoachSprintGuideSideCapture": "측면 구도를 유지해 주세요",
+  "runningCoachSprintGuideFullBodyFraming": "머리부터 발끝까지 프레임 안에 맞춰 주세요",
   "runningCoachSprintTrackingConfidenceValue": "트래킹 {percent}%",
   "@runningCoachSprintTrackingConfidenceValue": {
     "placeholders": {
@@ -709,7 +711,7 @@
       }
     }
   },
-  "runningCoachSprintSessionLogTitle": "세션 계측",
+  "runningCoachSprintSessionLogTitle": "세션 디버그",
   "runningCoachSprintSessionCameraFpsLabel": "카메라 입력 FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "분석 FPS",
   "runningCoachSprintSessionAverageProcessingLabel": "평균 처리시간",
@@ -728,7 +730,7 @@
       }
     }
   },
-  "runningCoachSprintSessionBodyNotVisibleLabel": "bodyNotVisible 비율",
+  "runningCoachSprintSessionBodyNotVisibleLabel": "전신 누락 비율",
   "runningCoachSprintSessionBodyNotVisibleValue": "{percent}%",
   "@runningCoachSprintSessionBodyNotVisibleValue": {
     "placeholders": {
@@ -737,6 +739,31 @@
       }
     }
   },
+  "runningCoachSprintSessionBodyVisibilityLabel": "전신 가시성",
+  "runningCoachSprintSessionBodyVisibilityValue": "{status} · 핵심 {visible}/{total} · {percent}%",
+  "@runningCoachSprintSessionBodyVisibilityValue": {
+    "placeholders": {
+      "status": {},
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionActiveFeedbackLabel": "활성 피드백",
+  "runningCoachSprintSessionActiveFeedbackValue": "{key} · {text}",
+  "@runningCoachSprintSessionActiveFeedbackValue": {
+    "placeholders": {
+      "key": {},
+      "text": {}
+    }
+  },
+  "runningCoachSprintSessionFeedbackEmpty": "대기 중",
   "runningCoachSprintSessionFeedbackChangesLabel": "피드백 변경 빈도",
   "runningCoachSprintSessionFeedbackChangesValue": "{count}회 / {perMinute}분당 · 쿨다운 보류 {suppressed}",
   "@runningCoachSprintSessionFeedbackChangesValue": {
@@ -784,7 +811,7 @@
       }
     }
   },
-  "runningCoachSprintSessionConfidenceLabel": "랜드마크 confidence",
+  "runningCoachSprintSessionConfidenceLabel": "랜드마크 신뢰도",
   "runningCoachSprintSessionConfidenceValue": "0.8+ {high}% · 0.6-0.8 {medium}% · <0.6 {low}%",
   "@runningCoachSprintSessionConfidenceValue": {
     "placeholders": {
@@ -835,6 +862,9 @@
       "value": {}
     }
   },
+  "runningCoachSprintBodyVisibilityFull": "전신 확보",
+  "runningCoachSprintBodyVisibilityPartial": "일부 누락",
+  "runningCoachSprintBodyVisibilityNotVisible": "전신 미확보",
   "runningCoachSprintCueBodyVisible": "몸 전체가 프레임 안에 보이도록 한 걸음만 더 조정해 주세요.",
   "runningCoachSprintCueLeanForward": "허리로 꺾지 말고 발목부터 상체를 조금 더 앞으로 유지해 주세요.",
   "runningCoachSprintCueDriveKnee": "지면에서 밀어낸 뒤 무릎을 조금 더 강하게 앞으로 끌어올려 보세요.",

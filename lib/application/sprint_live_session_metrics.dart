@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../domain/entities/sprint_pose_frame.dart';
 import '../domain/entities/sprint_realtime_coaching_state.dart';
+import '../realtime_analysis/sprint_coaching/sprint_pipeline_config.dart';
 
 const List<String> sprintConfidenceBucketLabels = <String>[
   '0.0-0.2',
@@ -218,42 +219,84 @@ class SprintLiveSessionMetricsCollector {
   }
 
   Map<String, Object?> buildLogPayload({
+    required String event,
+    required String sessionId,
+    required DateTime timestamp,
+    required SprintPipelineConfig config,
     required SprintLiveSessionMetricsSnapshot snapshot,
     required SprintRealtimeCoachingState state,
     String? feedbackText,
+    Map<String, Object?>? details,
   }) {
     return <String, Object?>{
+      'sessionId': sessionId,
+      'event': event,
+      'timestamp': timestamp.toIso8601String(),
+      'configPreset': config.preset.name,
       'elapsedMs': snapshot.elapsed.inMilliseconds,
-      'cameraInputFps': snapshot.cameraInputFps.toStringAsFixed(2),
-      'analyzedFps': snapshot.analyzedFps.toStringAsFixed(2),
-      'averageProcessingTimeMs': snapshot.averageProcessingTimeMs
-          .toStringAsFixed(2),
-      'skippedFrames': <String, Object?>{
-        'total': snapshot.skippedFrames,
-        'busy': snapshot.busySkippedFrames,
-        'throttled': snapshot.throttledSkippedFrames,
-        'invalidInput': snapshot.invalidInputFrames,
-        'analysisError': snapshot.analysisErrorFrames,
-      },
-      'bodyNotVisibleRatio': snapshot.bodyNotVisibleRatio.toStringAsFixed(3),
-      'feedbackChanges': <String, Object?>{
-        'count': snapshot.feedbackChangeCount,
-        'perMinute': snapshot.feedbackChangesPerMinute.toStringAsFixed(2),
-        'suppressedByCooldown': snapshot.feedbackSuppressedByCooldownCount,
-      },
-      'readiness': <String, Object?>{
+      'status': state.status.name,
+      'state': <String, Object?>{
         'bodyFullyVisible': state.stateEstimate.bodyFullyVisible,
+        'bodyVisibilityStatus': state.stateEstimate.bodyVisibilityStatus.name,
         'visibleLandmarks': state.stateEstimate.visibleLandmarkCount,
+        'visibleCoreLandmarks': state.stateEstimate.visibleCoreLandmarkCount,
         'missingCoreLandmarks': state.stateEstimate.missingCoreLandmarkCount,
+        'bodyVisibilityRatio': state.stateEstimate.bodyVisibilityRatio
+            .toStringAsFixed(3),
         'stableFrames': state.stateEstimate.stableFrameCount,
+        'trackingConfidence': state.stateEstimate.trackingConfidence
+            .toStringAsFixed(3),
         'hipTravelRatio': state.stateEstimate.hipTravelRatio.toStringAsFixed(3),
         'runningDetected': state.stateEstimate.runningDetected,
+        'accelerationPhaseDetected':
+            state.stateEstimate.accelerationPhaseDetected,
+        'feedbackCooldownActive': state.stateEstimate.feedbackCooldownActive,
+      },
+      'features': <String, Object?>{
+        'trunkAngleDegrees': state.features.trunkAngleDegrees?.toStringAsFixed(
+          2,
+        ),
+        'kneeDriveHeight': state.features.kneeDriveHeightRatio?.toStringAsFixed(
+          3,
+        ),
+        'cadenceStepsPerMinute': state.features.cadenceStepsPerMinute
+            ?.toStringAsFixed(2),
+        'stepIntervalMs': state.features.stepInterval?.inMilliseconds,
+        'stepIntervalStdMs': state.features.stepIntervalStdMs?.toStringAsFixed(
+          2,
+        ),
+        'armAsymmetryRatio': state.features.armSwingAsymmetryRatio
+            ?.toStringAsFixed(3),
       },
       'stepDetector': <String, Object?>{
         'leadSwitches': state.features.stepCrossoverCount,
         'acceptedEvents': state.features.detectedStepEvents,
         'rejectedLowVelocity': state.features.rejectedStepEventsLowVelocity,
         'rejectedMinInterval': state.features.rejectedStepEventsMinInterval,
+      },
+      'feedback': <String, Object?>{
+        'key': state.activeFeedbackKey,
+        'text': feedbackText,
+        'suppressedByCooldown': state.feedbackSwitchSuppressedByCooldown,
+      },
+      'metrics': <String, Object?>{
+        'cameraInputFps': snapshot.cameraInputFps.toStringAsFixed(2),
+        'analyzedFps': snapshot.analyzedFps.toStringAsFixed(2),
+        'averageProcessingTimeMs': snapshot.averageProcessingTimeMs
+            .toStringAsFixed(2),
+        'skippedFrames': <String, Object?>{
+          'total': snapshot.skippedFrames,
+          'busy': snapshot.busySkippedFrames,
+          'throttled': snapshot.throttledSkippedFrames,
+          'invalidInput': snapshot.invalidInputFrames,
+          'analysisError': snapshot.analysisErrorFrames,
+        },
+        'bodyNotVisibleRatio': snapshot.bodyNotVisibleRatio.toStringAsFixed(3),
+        'feedbackChanges': <String, Object?>{
+          'count': snapshot.feedbackChangeCount,
+          'perMinute': snapshot.feedbackChangesPerMinute.toStringAsFixed(2),
+          'suppressedByCooldown': snapshot.feedbackSuppressedByCooldownCount,
+        },
       },
       'landmarkConfidenceDistribution': <String, Object?>{
         for (
@@ -264,11 +307,7 @@ class SprintLiveSessionMetricsCollector {
           sprintConfidenceBucketLabels[index]:
               snapshot.confidenceBucketCounts[index],
       },
-      'status': state.status.name,
-      'trackingConfidence': state.stateEstimate.trackingConfidence
-          .toStringAsFixed(3),
-      'activeFeedbackKey': state.feedback?.localizationKey,
-      'activeFeedbackText': feedbackText,
+      if (details != null && details.isNotEmpty) 'details': details,
     };
   }
 

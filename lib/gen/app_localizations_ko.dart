@@ -1640,7 +1640,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      '측면 카메라를 스프린트 파이프라인에 직접 연결해 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 보고 세션 FPS/드랍/가시성 로그까지 함께 남겨요.';
+      '측면 카메라를 바로 연결해 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 보고 세션 FPS, 스킵, 가시성 로그까지 함께 확인해요.';
 
   @override
   String get runningCoachSprintLiveAction => '스프린트 MVP 시작';
@@ -1649,24 +1649,31 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachSprintLiveScreenTitle => '스프린트 실시간 코칭';
 
   @override
-  String get runningCoachSprintLiveStatusLowConfidence => '전신 가시성을 먼저 맞춰 주세요';
+  String get runningCoachSprintLiveStatusLowConfidence => '먼저 전신 프레이밍을 맞춰 주세요';
 
   @override
-  String get runningCoachSprintLiveStatusCollecting => '스프린트 리듬을 모으는 중';
+  String get runningCoachSprintLiveStatusCollecting => '스프린트 리듬을 안정화하는 중';
 
   @override
-  String get runningCoachSprintLiveStatusReady => '실시간 피드백 준비 완료';
+  String get runningCoachSprintLiveStatusReady => '실시간 피드백 준비됨';
 
   @override
-  String get runningCoachSprintLiveStatusCoaching => '스프린트 실시간 코칭 중';
+  String get runningCoachSprintLiveStatusCoaching => '실시간 스프린트 피드백 중';
 
   @override
   String get runningCoachSprintLiveCueCollecting =>
-      '몇 걸음만 더 유지하면 스프린트 리듬과 무릎 드라이브를 안정적으로 계산해요.';
+      '몇 걸음만 더 유지하면 리듬과 무릎 드라이브를 더 안정적으로 읽을 수 있어요.';
 
   @override
   String get runningCoachSprintLiveCueReady =>
-      '좋아요. 지금 자세를 유지하면서 5~10초 정도 더 질주해 보세요.';
+      '좋아요. 지금 형태를 유지한 채 5~10초만 더 질주해 주세요.';
+
+  @override
+  String get runningCoachSprintGuideSideCapture => '측면 구도를 유지해 주세요';
+
+  @override
+  String get runningCoachSprintGuideFullBodyFraming =>
+      '머리부터 발끝까지 프레임 안에 맞춰 주세요';
 
   @override
   String runningCoachSprintTrackingConfidenceValue(int percent) {
@@ -1684,7 +1691,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionLogTitle => '세션 계측';
+  String get runningCoachSprintSessionLogTitle => '세션 디버그';
 
   @override
   String get runningCoachSprintSessionCameraFpsLabel => '카메라 입력 FPS';
@@ -1709,13 +1716,32 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionBodyNotVisibleLabel =>
-      'bodyNotVisible 비율';
+  String get runningCoachSprintSessionBodyNotVisibleLabel => '전신 누락 비율';
 
   @override
   String runningCoachSprintSessionBodyNotVisibleValue(int percent) {
     return '$percent%';
   }
+
+  @override
+  String get runningCoachSprintSessionBodyVisibilityLabel => '전신 가시성';
+
+  @override
+  String runningCoachSprintSessionBodyVisibilityValue(
+      Object status, int visible, int total, int percent) {
+    return '$status · 핵심 $visible/$total · $percent%';
+  }
+
+  @override
+  String get runningCoachSprintSessionActiveFeedbackLabel => '활성 피드백';
+
+  @override
+  String runningCoachSprintSessionActiveFeedbackValue(Object key, Object text) {
+    return '$key · $text';
+  }
+
+  @override
+  String get runningCoachSprintSessionFeedbackEmpty => '대기 중';
 
   @override
   String get runningCoachSprintSessionFeedbackChangesLabel => '피드백 변경 빈도';
@@ -1745,7 +1771,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionConfidenceLabel => '랜드마크 confidence';
+  String get runningCoachSprintSessionConfidenceLabel => '랜드마크 신뢰도';
 
   @override
   String runningCoachSprintSessionConfidenceValue(
@@ -1795,6 +1821,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String runningCoachSprintMetricArmBalanceValue(Object value) {
     return '차이 $value%';
   }
+
+  @override
+  String get runningCoachSprintBodyVisibilityFull => '전신 확보';
+
+  @override
+  String get runningCoachSprintBodyVisibilityPartial => '일부 누락';
+
+  @override
+  String get runningCoachSprintBodyVisibilityNotVisible => '전신 미확보';
 
   @override
   String get runningCoachSprintCueBodyVisible =>

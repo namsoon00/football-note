@@ -3125,7 +3125,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Connect the side-view camera directly to the sprint pipeline so trunk lean, knee drive, step rhythm, arm balance, and session FPS/drop visibility logs run on-device together.'**
+  /// **'Connect the side-view camera directly so trunk lean, knee drive, step rhythm, arm balance, and session FPS/skip/visibility logs can be checked together on-device.'**
   String get runningCoachSprintLiveCardBody;
 
   /// No description provided for @runningCoachSprintLiveAction.
@@ -3143,38 +3143,50 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintLiveStatusLowConfidence.
   ///
   /// In en, this message translates to:
-  /// **'Fix full-body visibility first'**
+  /// **'Fix full-body framing first'**
   String get runningCoachSprintLiveStatusLowConfidence;
 
   /// No description provided for @runningCoachSprintLiveStatusCollecting.
   ///
   /// In en, this message translates to:
-  /// **'Collecting sprint rhythm'**
+  /// **'Stabilizing sprint rhythm'**
   String get runningCoachSprintLiveStatusCollecting;
 
   /// No description provided for @runningCoachSprintLiveStatusReady.
   ///
   /// In en, this message translates to:
-  /// **'Ready for live feedback'**
+  /// **'Live feedback ready'**
   String get runningCoachSprintLiveStatusReady;
 
   /// No description provided for @runningCoachSprintLiveStatusCoaching.
   ///
   /// In en, this message translates to:
-  /// **'Live sprint coaching active'**
+  /// **'Live sprint feedback active'**
   String get runningCoachSprintLiveStatusCoaching;
 
   /// No description provided for @runningCoachSprintLiveCueCollecting.
   ///
   /// In en, this message translates to:
-  /// **'Keep the sprint going for a few more steps so rhythm and knee-drive metrics can stabilize.'**
+  /// **'Hold a few more steps so rhythm and knee-drive readings can settle.'**
   String get runningCoachSprintLiveCueCollecting;
 
   /// No description provided for @runningCoachSprintLiveCueReady.
   ///
   /// In en, this message translates to:
-  /// **'Good. Hold this shape and sprint for another 5-10 seconds.'**
+  /// **'Good. Keep this shape and sprint for another 5-10 seconds.'**
   String get runningCoachSprintLiveCueReady;
+
+  /// No description provided for @runningCoachSprintGuideSideCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a clear side view'**
+  String get runningCoachSprintGuideSideCapture;
+
+  /// No description provided for @runningCoachSprintGuideFullBodyFraming.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the full body inside the frame'**
+  String get runningCoachSprintGuideFullBodyFraming;
 
   /// No description provided for @runningCoachSprintTrackingConfidenceValue.
   ///
@@ -3197,7 +3209,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintSessionLogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Session diagnostics'**
+  /// **'Session debug'**
   String get runningCoachSprintSessionLogTitle;
 
   /// No description provided for @runningCoachSprintSessionCameraFpsLabel.
@@ -3239,7 +3251,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintSessionBodyNotVisibleLabel.
   ///
   /// In en, this message translates to:
-  /// **'bodyNotVisible ratio'**
+  /// **'Body loss ratio'**
   String get runningCoachSprintSessionBodyNotVisibleLabel;
 
   /// No description provided for @runningCoachSprintSessionBodyNotVisibleValue.
@@ -3247,6 +3259,37 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{percent}%'**
   String runningCoachSprintSessionBodyNotVisibleValue(int percent);
+
+  /// No description provided for @runningCoachSprintSessionBodyVisibilityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Body visibility'**
+  String get runningCoachSprintSessionBodyVisibilityLabel;
+
+  /// No description provided for @runningCoachSprintSessionBodyVisibilityValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{status} · core {visible}/{total} · {percent}%'**
+  String runningCoachSprintSessionBodyVisibilityValue(
+      Object status, int visible, int total, int percent);
+
+  /// No description provided for @runningCoachSprintSessionActiveFeedbackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active feedback'**
+  String get runningCoachSprintSessionActiveFeedbackLabel;
+
+  /// No description provided for @runningCoachSprintSessionActiveFeedbackValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{key} · {text}'**
+  String runningCoachSprintSessionActiveFeedbackValue(Object key, Object text);
+
+  /// No description provided for @runningCoachSprintSessionFeedbackEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get runningCoachSprintSessionFeedbackEmpty;
 
   /// No description provided for @runningCoachSprintSessionFeedbackChangesLabel.
   ///
@@ -3365,6 +3408,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gap {value}%'**
   String runningCoachSprintMetricArmBalanceValue(Object value);
+
+  /// No description provided for @runningCoachSprintBodyVisibilityFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full body locked'**
+  String get runningCoachSprintBodyVisibilityFull;
+
+  /// No description provided for @runningCoachSprintBodyVisibilityPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial landmarks'**
+  String get runningCoachSprintBodyVisibilityPartial;
+
+  /// No description provided for @runningCoachSprintBodyVisibilityNotVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Body lost'**
+  String get runningCoachSprintBodyVisibilityNotVisible;
 
   /// No description provided for @runningCoachSprintCueBodyVisible.
   ///

@@ -676,15 +676,17 @@
     }
   },
   "runningCoachSprintLiveCardTitle": "Sprint live MVP",
-  "runningCoachSprintLiveCardBody": "Connect the side-view camera directly to the sprint pipeline so trunk lean, knee drive, step rhythm, arm balance, and session FPS/drop visibility logs run on-device together.",
+  "runningCoachSprintLiveCardBody": "Connect the side-view camera directly so trunk lean, knee drive, step rhythm, arm balance, and session FPS/skip/visibility logs can be checked together on-device.",
   "runningCoachSprintLiveAction": "Start sprint MVP",
   "runningCoachSprintLiveScreenTitle": "Live sprint coaching",
-  "runningCoachSprintLiveStatusLowConfidence": "Fix full-body visibility first",
-  "runningCoachSprintLiveStatusCollecting": "Collecting sprint rhythm",
-  "runningCoachSprintLiveStatusReady": "Ready for live feedback",
-  "runningCoachSprintLiveStatusCoaching": "Live sprint coaching active",
-  "runningCoachSprintLiveCueCollecting": "Keep the sprint going for a few more steps so rhythm and knee-drive metrics can stabilize.",
-  "runningCoachSprintLiveCueReady": "Good. Hold this shape and sprint for another 5-10 seconds.",
+  "runningCoachSprintLiveStatusLowConfidence": "Fix full-body framing first",
+  "runningCoachSprintLiveStatusCollecting": "Stabilizing sprint rhythm",
+  "runningCoachSprintLiveStatusReady": "Live feedback ready",
+  "runningCoachSprintLiveStatusCoaching": "Live sprint feedback active",
+  "runningCoachSprintLiveCueCollecting": "Hold a few more steps so rhythm and knee-drive readings can settle.",
+  "runningCoachSprintLiveCueReady": "Good. Keep this shape and sprint for another 5-10 seconds.",
+  "runningCoachSprintGuideSideCapture": "Keep a clear side view",
+  "runningCoachSprintGuideFullBodyFraming": "Keep the full body inside the frame",
   "runningCoachSprintTrackingConfidenceValue": "Tracking {percent}%",
   "@runningCoachSprintTrackingConfidenceValue": {
     "placeholders": {
@@ -709,7 +711,7 @@
       }
     }
   },
-  "runningCoachSprintSessionLogTitle": "Session diagnostics",
+  "runningCoachSprintSessionLogTitle": "Session debug",
   "runningCoachSprintSessionCameraFpsLabel": "Camera input FPS",
   "runningCoachSprintSessionAnalyzedFpsLabel": "Analyzed FPS",
   "runningCoachSprintSessionAverageProcessingLabel": "Avg processing",
@@ -728,7 +730,7 @@
       }
     }
   },
-  "runningCoachSprintSessionBodyNotVisibleLabel": "bodyNotVisible ratio",
+  "runningCoachSprintSessionBodyNotVisibleLabel": "Body loss ratio",
   "runningCoachSprintSessionBodyNotVisibleValue": "{percent}%",
   "@runningCoachSprintSessionBodyNotVisibleValue": {
     "placeholders": {
@@ -737,6 +739,31 @@
       }
     }
   },
+  "runningCoachSprintSessionBodyVisibilityLabel": "Body visibility",
+  "runningCoachSprintSessionBodyVisibilityValue": "{status} · core {visible}/{total} · {percent}%",
+  "@runningCoachSprintSessionBodyVisibilityValue": {
+    "placeholders": {
+      "status": {},
+      "visible": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionActiveFeedbackLabel": "Active feedback",
+  "runningCoachSprintSessionActiveFeedbackValue": "{key} · {text}",
+  "@runningCoachSprintSessionActiveFeedbackValue": {
+    "placeholders": {
+      "key": {},
+      "text": {}
+    }
+  },
+  "runningCoachSprintSessionFeedbackEmpty": "Waiting",
   "runningCoachSprintSessionFeedbackChangesLabel": "Feedback changes",
   "runningCoachSprintSessionFeedbackChangesValue": "{count} changes / {perMinute} per min · cooldown holds {suppressed}",
   "@runningCoachSprintSessionFeedbackChangesValue": {
@@ -835,6 +862,9 @@
       "value": {}
     }
   },
+  "runningCoachSprintBodyVisibilityFull": "Full body locked",
+  "runningCoachSprintBodyVisibilityPartial": "Partial landmarks",
+  "runningCoachSprintBodyVisibilityNotVisible": "Body lost",
   "runningCoachSprintCueBodyVisible": "Adjust one more step so the full body stays inside the frame.",
   "runningCoachSprintCueLeanForward": "Keep the lean slightly more forward from the ankles, not by folding at the waist.",
   "runningCoachSprintCueDriveKnee": "After the push-off, drive the knee forward a little more aggressively.",

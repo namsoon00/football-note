@@ -21,6 +21,18 @@ class SprintStateEstimator {
           minimumConfidence: config.minimumLandmarkConfidence,
         ) ??
         0;
+    final visibleCoreLandmarkCount = lastRawFrame == null
+        ? 0
+        : sprintMvpCoreLandmarks
+              .where(
+                (type) =>
+                    lastRawFrame.landmark(
+                      type,
+                      minimumConfidence: config.minimumLandmarkConfidence,
+                    ) !=
+                    null,
+              )
+              .length;
     final missingCoreLandmarkCount = lastRawFrame == null
         ? sprintMvpCoreLandmarks.length
         : sprintMvpCoreLandmarks
@@ -33,10 +45,17 @@ class SprintStateEstimator {
                     null,
               )
               .length;
+    final bodyVisibilityRatio =
+        visibleCoreLandmarkCount / sprintMvpCoreLandmarkCount;
     final bodyFullyVisible =
         lastRawFrame != null &&
         visibleLandmarkCount >= config.minimumVisibleLandmarks &&
-        missingCoreLandmarkCount == 0;
+        bodyVisibilityRatio >= config.minimumBodyVisibilityRatio;
+    final bodyVisibilityStatus = visibleCoreLandmarkCount == 0
+        ? SprintBodyVisibilityStatus.notVisible
+        : bodyFullyVisible
+        ? SprintBodyVisibilityStatus.full
+        : SprintBodyVisibilityStatus.partial;
     final trackingConfidence = _trackingConfidence(rawFrames);
     final hipTravelRatio = _hipTravelRatio(
       rawFrames,
@@ -47,12 +66,16 @@ class SprintStateEstimator {
         trackingConfidence < config.minimumTrackingConfidence ||
         normalizedFrames.length < config.minimumWindowFrames;
     final cadence = features.cadenceStepsPerMinute ?? 0;
+    final cadenceSupportsRunning =
+        features.detectedStepEvents == 0 ||
+        cadence >= config.minimumRunningCadenceStepsPerMinute;
     final stepDrivenRunningDetected =
         features.detectedStepEvents >= config.minimumStepEventsForRunning &&
         cadence >= config.minimumRunningCadenceStepsPerMinute &&
         hipTravelRatio >= config.minimumStepDrivenTravelRatio;
     final runningDetected =
         !lowConfidence &&
+        cadenceSupportsRunning &&
         (hipTravelRatio >= config.minimumRunningTravelRatio ||
             stepDrivenRunningDetected);
     final accelerationPhaseDetected =
@@ -70,10 +93,13 @@ class SprintStateEstimator {
       feedbackCooldownActive: feedbackCooldownActive,
       lowConfidence: lowConfidence,
       bodyFullyVisible: bodyFullyVisible,
+      bodyVisibilityStatus: bodyVisibilityStatus,
       trackingConfidence: trackingConfidence,
       stableFrameCount: normalizedFrames.length,
       visibleLandmarkCount: visibleLandmarkCount,
+      visibleCoreLandmarkCount: visibleCoreLandmarkCount,
       missingCoreLandmarkCount: missingCoreLandmarkCount,
+      bodyVisibilityRatio: bodyVisibilityRatio,
       hipTravelRatio: hipTravelRatio,
     );
   }
