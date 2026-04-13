@@ -84,24 +84,87 @@ if [[ -z "${repo}" ]]; then
 fi
 
 categories_json="$(
-  curl -fsSL \
-    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-    -H "Accept: application/vnd.github+json" \
-    "https://api.github.com/repos/${repo}/discussions/categories"
+  python3 - <<'PY' "${repo}" "${preferred_category}"
+import json
+import os
+import sys
+import urllib.request
+
+repo = sys.argv[1]
+preferred_category = sys.argv[2]
+owner, name = repo.split("/", 1)
+query = """
+query($owner:String!, $name:String!) {
+  repository(owner:$owner, name:$name) {
+    id
+    discussionCategories(first:20) {
+      nodes {
+        id
+        name
+        slug
+      }
+    }
+  }
+}
+"""
+request = urllib.request.Request(
+    "https://api.github.com/graphql",
+    data=json.dumps(
+        {"query": query, "variables": {"owner": owner, "name": name}},
+        ensure_ascii=False,
+    ).encode(),
+    headers={
+        "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.github+json",
+    },
+    method="POST",
+)
+with urllib.request.urlopen(request) as response:
+    payload = json.loads(response.read().decode())
+
+repository = (((payload.get("data") or {}).get("repository")) or {})
+print(
+    json.dumps(
+        {
+            "repository_id": repository.get("id", ""),
+            "categories": ((repository.get("discussionCategories") or {}).get("nodes") or []),
+            "preferred_category": preferred_category,
+        },
+        ensure_ascii=False,
+    )
+)
+PY
 )"
 
-category_id="$(
-  python3 - <<'PY' "${categories_json}" "${preferred_category}"
+repository_id="$(
+  python3 - <<'PY' "${categories_json}"
 import json
 import sys
 
 try:
-    categories = json.loads(sys.argv[1])
+    payload = json.loads(sys.argv[1])
 except Exception:
     print("")
     raise SystemExit(0)
 
-preferred_name = sys.argv[2].strip().lower()
+print(str(payload.get("repository_id", "")).strip())
+PY
+)"
+
+category_id="$(
+  python3 - <<'PY' "${categories_json}"
+import json
+import sys
+
+try:
+    payload = json.loads(sys.argv[1])
+except Exception:
+    print("")
+    raise SystemExit(0)
+
+categories = payload.get("categories") or []
+preferred_name = str(payload.get("preferred_category", "")).strip().lower()
 preferred_fallbacks = ["general", "ideas", "q&a", "announcements"]
 
 picked = ""
@@ -128,22 +191,40 @@ print(picked)
 PY
 )"
 
-if [[ -z "${category_id}" ]]; then
-  echo "Discussion category could not be resolved." >&2
+if [[ -z "${repository_id}" || -z "${category_id}" ]]; then
+  echo "Discussion repository/category could not be resolved." >&2
   exit 1
 fi
 
 payload="$(
-  python3 - <<'PY' "${title}" "${category_id}" "${body_file}"
+  python3 - <<'PY' "${title}" "${repository_id}" "${category_id}" "${body_file}"
 import json
 import pathlib
 import sys
 
-title, category_id, body_path = sys.argv[1:4]
+title, repository_id, category_id, body_path = sys.argv[1:5]
 body = pathlib.Path(body_path).read_text(encoding="utf-8")
 print(
     json.dumps(
-        {"title": title, "body": body, "category_id": category_id},
+        {
+            "query": """
+mutation($input: CreateDiscussionInput!) {
+  createDiscussion(input: $input) {
+    discussion {
+      url
+    }
+  }
+}
+""",
+            "variables": {
+                "input": {
+                    "repositoryId": repository_id,
+                    "categoryId": category_id,
+                    "title": title,
+                    "body": body,
+                }
+            },
+        },
         ensure_ascii=False,
     )
 )
@@ -154,8 +235,9 @@ response="$(
   curl -fsSL \
     -H "Authorization: Bearer ${GITHUB_TOKEN}" \
     -H "Accept: application/vnd.github+json" \
+    -H "Content-Type: application/json" \
     -X POST \
-    "https://api.github.com/repos/${repo}/discussions" \
+    "https://api.github.com/graphql" \
     -d "${payload}"
 )"
 
@@ -170,7 +252,8 @@ except Exception:
     print("")
     raise SystemExit(0)
 
-print(str(response.get("html_url", "")).strip())
+discussion = (((response.get("data") or {}).get("createDiscussion") or {}).get("discussion")) or {}
+print(str(discussion.get("url", "")).strip())
 PY
 )"
 
