@@ -5,7 +5,12 @@ import '../../domain/entities/sprint_realtime_coaching_state.dart';
 import 'sprint_pose_normalizer.dart';
 
 class SprintFeatureCalculator {
-  SprintFeatureSnapshot calculate(List<SprintNormalizedPoseFrame> frames) {
+  SprintFeatureSnapshot calculate(
+    List<SprintNormalizedPoseFrame> frames, {
+    Duration minimumStepEventInterval = const Duration(milliseconds: 110),
+    double stepDetectionHysteresis = 0.08,
+    double minimumStepDetectionVelocity = 0.9,
+  }) {
     if (frames.isEmpty) {
       return const SprintFeatureSnapshot.empty();
     }
@@ -19,7 +24,12 @@ class SprintFeatureCalculator {
         if (_kneeDriveHeightRatio(frame) case final height?) height,
     ];
     final armExcursions = _armExcursions(frames);
-    final stepEvents = _detectStepEvents(frames);
+    final stepEvents = _detectStepEvents(
+      frames,
+      minimumStepEventInterval: minimumStepEventInterval,
+      stepDetectionHysteresis: stepDetectionHysteresis,
+      minimumStepDetectionVelocity: minimumStepDetectionVelocity,
+    );
     final stepIntervalsMs = <double>[
       for (var index = 1; index < stepEvents.length; index += 1)
         stepEvents[index]
@@ -28,22 +38,25 @@ class SprintFeatureCalculator {
             .toDouble(),
     ];
 
-    final averageStepIntervalMs =
-        stepIntervalsMs.isEmpty ? null : _average(stepIntervalsMs);
+    final averageStepIntervalMs = stepIntervalsMs.isEmpty
+        ? null
+        : _average(stepIntervalsMs);
     final cadence = averageStepIntervalMs == null || averageStepIntervalMs <= 0
         ? null
         : 60000 / averageStepIntervalMs;
 
     return SprintFeatureSnapshot(
       trunkAngleDegrees: trunkAngles.isEmpty ? null : _average(trunkAngles),
-      kneeDriveHeightRatio:
-          kneeDriveHeights.isEmpty ? null : _averageTopWindow(kneeDriveHeights),
+      kneeDriveHeightRatio: kneeDriveHeights.isEmpty
+          ? null
+          : _averageTopWindow(kneeDriveHeights),
       stepInterval: averageStepIntervalMs == null
           ? null
           : Duration(milliseconds: averageStepIntervalMs.round()),
       cadenceStepsPerMinute: cadence,
-      stepIntervalStdMs:
-          stepIntervalsMs.isEmpty ? null : _standardDeviation(stepIntervalsMs),
+      stepIntervalStdMs: stepIntervalsMs.isEmpty
+          ? null
+          : _standardDeviation(stepIntervalsMs),
       armSwingAsymmetryRatio: armExcursions == null
           ? null
           : _asymmetryRatio(
@@ -114,10 +127,17 @@ class SprintFeatureCalculator {
     );
   }
 
-  List<DateTime> _detectStepEvents(List<SprintNormalizedPoseFrame> frames) {
+  List<DateTime> _detectStepEvents(
+    List<SprintNormalizedPoseFrame> frames, {
+    required Duration minimumStepEventInterval,
+    required double stepDetectionHysteresis,
+    required double minimumStepDetectionVelocity,
+  }) {
     final events = <DateTime>[];
     double? previousDelta;
     DateTime? previousTimestamp;
+    _LeadFootState? previousLeadFoot;
+    DateTime? lastAcceptedEventAt;
 
     for (final frame in frames) {
       final leftAnkle = frame.landmark(SprintPoseLandmarkType.leftAnkle);
@@ -127,27 +147,52 @@ class SprintFeatureCalculator {
       }
 
       final delta = leftAnkle.dx - rightAnkle.dx;
+      final leadFoot = _leadFootState(
+        delta: delta,
+        hysteresis: stepDetectionHysteresis,
+      );
       if (previousDelta != null &&
           previousTimestamp != null &&
-          _signChanged(previousDelta, delta) &&
-          frame.timestamp.difference(previousTimestamp) >=
-              const Duration(milliseconds: 110)) {
-        events.add(frame.timestamp);
+          leadFoot != null &&
+          previousLeadFoot != null &&
+          previousLeadFoot != leadFoot) {
+        final deltaTimeSeconds =
+            frame.timestamp.difference(previousTimestamp).inMicroseconds /
+            Duration.microsecondsPerSecond;
+        final velocity = deltaTimeSeconds <= 0
+            ? 0
+            : (delta - previousDelta).abs() / deltaTimeSeconds;
+        final meetsInterval =
+            lastAcceptedEventAt == null ||
+            frame.timestamp.difference(lastAcceptedEventAt) >=
+                minimumStepEventInterval;
+        if (meetsInterval && velocity >= minimumStepDetectionVelocity) {
+          events.add(frame.timestamp);
+          lastAcceptedEventAt = frame.timestamp;
+        }
       }
 
       previousDelta = delta;
       previousTimestamp = frame.timestamp;
+      if (leadFoot != null) {
+        previousLeadFoot = leadFoot;
+      }
     }
 
     return events;
   }
 
-  bool _signChanged(double previous, double current) {
-    if (previous == 0 || current == 0) {
-      return false;
+  _LeadFootState? _leadFootState({
+    required double delta,
+    required double hysteresis,
+  }) {
+    if (delta >= hysteresis) {
+      return _LeadFootState.leftLead;
     }
-    return (previous.isNegative && !current.isNegative) ||
-        (!previous.isNegative && current.isNegative);
+    if (delta <= -hysteresis) {
+      return _LeadFootState.rightLead;
+    }
+    return null;
   }
 
   double _average(List<double> values) {
@@ -172,7 +217,8 @@ class SprintFeatureCalculator {
       return 0;
     }
     final mean = _average(values);
-    final variance = values
+    final variance =
+        values
             .map((value) => math.pow(value - mean, 2).toDouble())
             .reduce((sum, value) => sum + value) /
         values.length;
@@ -186,3 +232,5 @@ class _ArmExcursions {
 
   const _ArmExcursions({required this.leftAverage, required this.rightAverage});
 }
+
+enum _LeadFootState { leftLead, rightLead }

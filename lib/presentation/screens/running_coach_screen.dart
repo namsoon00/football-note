@@ -7,6 +7,7 @@ import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
 import 'running_live_coach_guide_screen.dart';
 import 'running_live_coach_screen.dart';
+import 'sprint_live_coaching_screen.dart';
 import '../widgets/app_feedback.dart';
 
 class RunningCoachScreen extends StatefulWidget {
@@ -94,6 +95,43 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
+                    l10n.runningCoachSprintLiveCardTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.runningCoachSprintLiveCardBody,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _openSprintLiveGuide,
+                        icon: const Icon(Icons.info_outline_rounded),
+                        label: Text(l10n.runningCoachLiveGuideAction),
+                      ),
+                      FilledButton.icon(
+                        onPressed: _openSprintLiveCoach,
+                        icon: const Icon(Icons.flash_on_rounded),
+                        label: Text(l10n.runningCoachSprintLiveAction),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                     l10n.runningCoachSelectedVideoLabel,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
@@ -163,17 +201,30 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   bool get _canAnalyze => !_isAnalyzing && _selectedVideo != null;
 
   void _openLiveCoach() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const RunningLiveCoachScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const RunningLiveCoachScreen()));
   }
 
   void _openLiveGuide() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => RunningLiveCoachGuideScreen(onStart: _openLiveCoach),
+      ),
+    );
+  }
+
+  void _openSprintLiveCoach() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SprintLiveCoachingScreen()));
+  }
+
+  void _openSprintLiveGuide() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            RunningLiveCoachGuideScreen(onStart: _openSprintLiveCoach),
       ),
     );
   }
@@ -254,10 +305,7 @@ class _HeroCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              scheme.primary.withAlpha(220),
-              scheme.secondaryContainer,
-            ],
+            colors: [scheme.primary.withAlpha(220), scheme.secondaryContainer],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -270,9 +318,9 @@ class _HeroCard extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: scheme.onPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: scheme.onPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -344,8 +392,8 @@ class _ResultsSummaryCard extends StatelessWidget {
     final headline = score >= 85
         ? l10n.runningCoachOverallHeadlineStrong
         : score >= 70
-            ? l10n.runningCoachOverallHeadlineSolid
-            : l10n.runningCoachOverallHeadlineNeedsWork;
+        ? l10n.runningCoachOverallHeadlineSolid
+        : l10n.runningCoachOverallHeadlineNeedsWork;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -470,9 +518,9 @@ class _InsightCard extends StatelessWidget {
                     child: Text(
                       copy.statusLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: badgeTextColor,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        color: badgeTextColor,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -480,7 +528,9 @@ class _InsightCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _StatChip(
-                label: l10n.runningCoachMetricValueLabel, value: copy.value),
+              label: l10n.runningCoachMetricValueLabel,
+              value: copy.value,
+            ),
             const SizedBox(height: 12),
             Text(copy.summary, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 10),
@@ -493,9 +543,9 @@ class _InsightCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Text(
                 copy.cue,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             const SizedBox(height: 10),
@@ -534,123 +584,128 @@ class _InsightCopy {
       RunningCoachStatus.needsWork => l10n.runningCoachStatusNeedsWork,
     };
     final value = switch (insight.metric) {
-      RunningCoachMetric.posture =>
-        l10n.runningCoachLeanValue(insight.value.toStringAsFixed(1)),
-      RunningCoachMetric.bounce =>
-        l10n.runningCoachBounceValue(insight.value.toStringAsFixed(1)),
-      RunningCoachMetric.footStrike =>
-        l10n.runningCoachFootStrikeValue(insight.value.toStringAsFixed(2)),
-      RunningCoachMetric.kneeFlexion =>
-        l10n.runningCoachKneeValue(insight.value.toStringAsFixed(0)),
-      RunningCoachMetric.armCarriage =>
-        l10n.runningCoachArmValue(insight.value.toStringAsFixed(0)),
+      RunningCoachMetric.posture => l10n.runningCoachLeanValue(
+        insight.value.toStringAsFixed(1),
+      ),
+      RunningCoachMetric.bounce => l10n.runningCoachBounceValue(
+        insight.value.toStringAsFixed(1),
+      ),
+      RunningCoachMetric.footStrike => l10n.runningCoachFootStrikeValue(
+        insight.value.toStringAsFixed(2),
+      ),
+      RunningCoachMetric.kneeFlexion => l10n.runningCoachKneeValue(
+        insight.value.toStringAsFixed(0),
+      ),
+      RunningCoachMetric.armCarriage => l10n.runningCoachArmValue(
+        insight.value.toStringAsFixed(0),
+      ),
     };
 
     return switch (insight.finding) {
       RunningCoachFinding.postureAligned => _InsightCopy(
-          title: l10n.runningCoachInsightPostureTitle,
-          summary: l10n.runningCoachPostureGoodSummary,
-          cue: l10n.runningCoachPostureGoodCue,
-          drill: l10n.runningCoachPostureGoodDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightPostureTitle,
+        summary: l10n.runningCoachPostureGoodSummary,
+        cue: l10n.runningCoachPostureGoodCue,
+        drill: l10n.runningCoachPostureGoodDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.postureTooUpright => _InsightCopy(
-          title: l10n.runningCoachInsightPostureTitle,
-          summary: l10n.runningCoachPostureUprightSummary,
-          cue: l10n.runningCoachPostureUprightCue,
-          drill: l10n.runningCoachPostureUprightDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightPostureTitle,
+        summary: l10n.runningCoachPostureUprightSummary,
+        cue: l10n.runningCoachPostureUprightCue,
+        drill: l10n.runningCoachPostureUprightDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.postureTooLean => _InsightCopy(
-          title: l10n.runningCoachInsightPostureTitle,
-          summary: l10n.runningCoachPostureLeanSummary,
-          cue: l10n.runningCoachPostureLeanCue,
-          drill: l10n.runningCoachPostureLeanDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightPostureTitle,
+        summary: l10n.runningCoachPostureLeanSummary,
+        cue: l10n.runningCoachPostureLeanCue,
+        drill: l10n.runningCoachPostureLeanDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.bounceEfficient => _InsightCopy(
-          title: l10n.runningCoachInsightBounceTitle,
-          summary: l10n.runningCoachBounceGoodSummary,
-          cue: l10n.runningCoachBounceGoodCue,
-          drill: l10n.runningCoachBounceGoodDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightBounceTitle,
+        summary: l10n.runningCoachBounceGoodSummary,
+        cue: l10n.runningCoachBounceGoodCue,
+        drill: l10n.runningCoachBounceGoodDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.bounceTooHigh => _InsightCopy(
-          title: l10n.runningCoachInsightBounceTitle,
-          summary: l10n.runningCoachBounceHighSummary,
-          cue: l10n.runningCoachBounceHighCue,
-          drill: l10n.runningCoachBounceHighDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightBounceTitle,
+        summary: l10n.runningCoachBounceHighSummary,
+        cue: l10n.runningCoachBounceHighCue,
+        drill: l10n.runningCoachBounceHighDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.footStrikeUnderBody => _InsightCopy(
-          title: l10n.runningCoachInsightFootStrikeTitle,
-          summary: l10n.runningCoachFootStrikeGoodSummary,
-          cue: l10n.runningCoachFootStrikeGoodCue,
-          drill: l10n.runningCoachFootStrikeGoodDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightFootStrikeTitle,
+        summary: l10n.runningCoachFootStrikeGoodSummary,
+        cue: l10n.runningCoachFootStrikeGoodCue,
+        drill: l10n.runningCoachFootStrikeGoodDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.footStrikeOverstride => _InsightCopy(
-          title: l10n.runningCoachInsightFootStrikeTitle,
-          summary: l10n.runningCoachFootStrikeOverSummary,
-          cue: l10n.runningCoachFootStrikeOverCue,
-          drill: l10n.runningCoachFootStrikeOverDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightFootStrikeTitle,
+        summary: l10n.runningCoachFootStrikeOverSummary,
+        cue: l10n.runningCoachFootStrikeOverCue,
+        drill: l10n.runningCoachFootStrikeOverDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.kneeFlexionLoaded => _InsightCopy(
-          title: l10n.runningCoachInsightKneeTitle,
-          summary: l10n.runningCoachKneeGoodSummary,
-          cue: l10n.runningCoachKneeGoodCue,
-          drill: l10n.runningCoachKneeGoodDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightKneeTitle,
+        summary: l10n.runningCoachKneeGoodSummary,
+        cue: l10n.runningCoachKneeGoodCue,
+        drill: l10n.runningCoachKneeGoodDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.kneeTooStraight => _InsightCopy(
-          title: l10n.runningCoachInsightKneeTitle,
-          summary: l10n.runningCoachKneeStraightSummary,
-          cue: l10n.runningCoachKneeStraightCue,
-          drill: l10n.runningCoachKneeStraightDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightKneeTitle,
+        summary: l10n.runningCoachKneeStraightSummary,
+        cue: l10n.runningCoachKneeStraightCue,
+        drill: l10n.runningCoachKneeStraightDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.kneeTooCollapsed => _InsightCopy(
-          title: l10n.runningCoachInsightKneeTitle,
-          summary: l10n.runningCoachKneeCollapseSummary,
-          cue: l10n.runningCoachKneeCollapseCue,
-          drill: l10n.runningCoachKneeCollapseDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightKneeTitle,
+        summary: l10n.runningCoachKneeCollapseSummary,
+        cue: l10n.runningCoachKneeCollapseCue,
+        drill: l10n.runningCoachKneeCollapseDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.armCompact => _InsightCopy(
-          title: l10n.runningCoachInsightArmTitle,
-          summary: l10n.runningCoachArmGoodSummary,
-          cue: l10n.runningCoachArmGoodCue,
-          drill: l10n.runningCoachArmGoodDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightArmTitle,
+        summary: l10n.runningCoachArmGoodSummary,
+        cue: l10n.runningCoachArmGoodCue,
+        drill: l10n.runningCoachArmGoodDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.armTooOpen => _InsightCopy(
-          title: l10n.runningCoachInsightArmTitle,
-          summary: l10n.runningCoachArmOpenSummary,
-          cue: l10n.runningCoachArmOpenCue,
-          drill: l10n.runningCoachArmOpenDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightArmTitle,
+        summary: l10n.runningCoachArmOpenSummary,
+        cue: l10n.runningCoachArmOpenCue,
+        drill: l10n.runningCoachArmOpenDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
       RunningCoachFinding.armTooTight => _InsightCopy(
-          title: l10n.runningCoachInsightArmTitle,
-          summary: l10n.runningCoachArmTightSummary,
-          cue: l10n.runningCoachArmTightCue,
-          drill: l10n.runningCoachArmTightDrill,
-          statusLabel: statusLabel,
-          value: value,
-        ),
+        title: l10n.runningCoachInsightArmTitle,
+        summary: l10n.runningCoachArmTightSummary,
+        cue: l10n.runningCoachArmTightCue,
+        drill: l10n.runningCoachArmTightDrill,
+        statusLabel: statusLabel,
+        value: value,
+      ),
     };
   }
 }

@@ -12,6 +12,9 @@ class SprintPipelineConfig {
   final double minimumKneeDriveHeightRatio;
   final double maximumStepIntervalStdMs;
   final double maximumArmSwingAsymmetryRatio;
+  final Duration minimumStepEventInterval;
+  final double stepDetectionHysteresis;
+  final double minimumStepDetectionVelocity;
 
   const SprintPipelineConfig({
     this.analysisWindow = const Duration(milliseconds: 1400),
@@ -27,5 +30,8 @@ class SprintPipelineConfig {
     this.minimumKneeDriveHeightRatio = 0.24,
     this.maximumStepIntervalStdMs = 110,
     this.maximumArmSwingAsymmetryRatio = 0.18,
+    this.minimumStepEventInterval = const Duration(milliseconds: 110),
+    this.stepDetectionHysteresis = 0.08,
+    this.minimumStepDetectionVelocity = 0.9,
   });
 }

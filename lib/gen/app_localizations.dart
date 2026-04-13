@@ -3116,6 +3116,266 @@ abstract class AppLocalizations {
   /// **'Live score {score}/100'**
   String runningCoachLiveOverallScore(int score);
 
+  /// No description provided for @runningCoachSprintLiveCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprint live MVP'**
+  String get runningCoachSprintLiveCardTitle;
+
+  /// No description provided for @runningCoachSprintLiveCardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the side-view camera directly to the sprint pipeline so trunk lean, knee drive, step rhythm, arm balance, and session FPS/drop visibility logs run on-device together.'**
+  String get runningCoachSprintLiveCardBody;
+
+  /// No description provided for @runningCoachSprintLiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Start sprint MVP'**
+  String get runningCoachSprintLiveAction;
+
+  /// No description provided for @runningCoachSprintLiveScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sprint coaching'**
+  String get runningCoachSprintLiveScreenTitle;
+
+  /// No description provided for @runningCoachSprintLiveStatusLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix full-body visibility first'**
+  String get runningCoachSprintLiveStatusLowConfidence;
+
+  /// No description provided for @runningCoachSprintLiveStatusCollecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting sprint rhythm'**
+  String get runningCoachSprintLiveStatusCollecting;
+
+  /// No description provided for @runningCoachSprintLiveStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for live feedback'**
+  String get runningCoachSprintLiveStatusReady;
+
+  /// No description provided for @runningCoachSprintLiveStatusCoaching.
+  ///
+  /// In en, this message translates to:
+  /// **'Live sprint coaching active'**
+  String get runningCoachSprintLiveStatusCoaching;
+
+  /// No description provided for @runningCoachSprintLiveCueCollecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the sprint going for a few more steps so rhythm and knee-drive metrics can stabilize.'**
+  String get runningCoachSprintLiveCueCollecting;
+
+  /// No description provided for @runningCoachSprintLiveCueReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Good. Hold this shape and sprint for another 5-10 seconds.'**
+  String get runningCoachSprintLiveCueReady;
+
+  /// No description provided for @runningCoachSprintTrackingConfidenceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking {percent}%'**
+  String runningCoachSprintTrackingConfidenceValue(int percent);
+
+  /// No description provided for @runningCoachSprintTrackedFrames.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked {count} frames'**
+  String runningCoachSprintTrackedFrames(int count);
+
+  /// No description provided for @runningCoachSprintDetectedSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'Step events {count}'**
+  String runningCoachSprintDetectedSteps(int count);
+
+  /// No description provided for @runningCoachSprintSessionLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Session diagnostics'**
+  String get runningCoachSprintSessionLogTitle;
+
+  /// No description provided for @runningCoachSprintSessionCameraFpsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera input FPS'**
+  String get runningCoachSprintSessionCameraFpsLabel;
+
+  /// No description provided for @runningCoachSprintSessionAnalyzedFpsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed FPS'**
+  String get runningCoachSprintSessionAnalyzedFpsLabel;
+
+  /// No description provided for @runningCoachSprintSessionAverageProcessingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg processing'**
+  String get runningCoachSprintSessionAverageProcessingLabel;
+
+  /// No description provided for @runningCoachSprintSessionAverageProcessingValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{ms}ms'**
+  String runningCoachSprintSessionAverageProcessingValue(Object ms);
+
+  /// No description provided for @runningCoachSprintSessionSkippedFramesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropped / skipped'**
+  String get runningCoachSprintSessionSkippedFramesLabel;
+
+  /// No description provided for @runningCoachSprintSessionSkippedFramesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} frames'**
+  String runningCoachSprintSessionSkippedFramesValue(int count);
+
+  /// No description provided for @runningCoachSprintSessionBodyNotVisibleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'bodyNotVisible ratio'**
+  String get runningCoachSprintSessionBodyNotVisibleLabel;
+
+  /// No description provided for @runningCoachSprintSessionBodyNotVisibleValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String runningCoachSprintSessionBodyNotVisibleValue(int percent);
+
+  /// No description provided for @runningCoachSprintSessionFeedbackChangesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback changes'**
+  String get runningCoachSprintSessionFeedbackChangesLabel;
+
+  /// No description provided for @runningCoachSprintSessionFeedbackChangesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes / {perMinute} per min'**
+  String runningCoachSprintSessionFeedbackChangesValue(
+      int count, Object perMinute);
+
+  /// No description provided for @runningCoachSprintSessionConfidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Landmark confidence'**
+  String get runningCoachSprintSessionConfidenceLabel;
+
+  /// No description provided for @runningCoachSprintSessionConfidenceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'0.8+ {high}% · 0.6-0.8 {medium}% · <0.6 {low}%'**
+  String runningCoachSprintSessionConfidenceValue(
+      int high, int medium, int low);
+
+  /// No description provided for @runningCoachSprintMetricPending.
+  ///
+  /// In en, this message translates to:
+  /// **'--'**
+  String get runningCoachSprintMetricPending;
+
+  /// No description provided for @runningCoachSprintMetricTrunkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Trunk lean'**
+  String get runningCoachSprintMetricTrunkLabel;
+
+  /// No description provided for @runningCoachSprintMetricTrunkValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}°'**
+  String runningCoachSprintMetricTrunkValue(Object value);
+
+  /// No description provided for @runningCoachSprintMetricKneeDriveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Knee drive'**
+  String get runningCoachSprintMetricKneeDriveLabel;
+
+  /// No description provided for @runningCoachSprintMetricKneeDriveValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale {value}%'**
+  String runningCoachSprintMetricKneeDriveValue(Object value);
+
+  /// No description provided for @runningCoachSprintMetricCadenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cadence'**
+  String get runningCoachSprintMetricCadenceLabel;
+
+  /// No description provided for @runningCoachSprintMetricCadenceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} spm'**
+  String runningCoachSprintMetricCadenceValue(Object value);
+
+  /// No description provided for @runningCoachSprintMetricRhythmLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rhythm drift'**
+  String get runningCoachSprintMetricRhythmLabel;
+
+  /// No description provided for @runningCoachSprintMetricRhythmValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}ms'**
+  String runningCoachSprintMetricRhythmValue(Object value);
+
+  /// No description provided for @runningCoachSprintMetricArmBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm balance'**
+  String get runningCoachSprintMetricArmBalanceLabel;
+
+  /// No description provided for @runningCoachSprintMetricArmBalanceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Gap {value}%'**
+  String runningCoachSprintMetricArmBalanceValue(Object value);
+
+  /// No description provided for @runningCoachSprintCueBodyVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust one more step so the full body stays inside the frame.'**
+  String get runningCoachSprintCueBodyVisible;
+
+  /// No description provided for @runningCoachSprintCueLeanForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the lean slightly more forward from the ankles, not by folding at the waist.'**
+  String get runningCoachSprintCueLeanForward;
+
+  /// No description provided for @runningCoachSprintCueDriveKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'After the push-off, drive the knee forward a little more aggressively.'**
+  String get runningCoachSprintCueDriveKnee;
+
+  /// No description provided for @runningCoachSprintCueKeepRhythm.
+  ///
+  /// In en, this message translates to:
+  /// **'The left-right rhythm is drifting. Try to keep the ground contacts more even.'**
+  String get runningCoachSprintCueKeepRhythm;
+
+  /// No description provided for @runningCoachSprintCueBalanceArms.
+  ///
+  /// In en, this message translates to:
+  /// **'The arm swing is unbalanced. Match the backward drive on both sides more closely.'**
+  String get runningCoachSprintCueBalanceArms;
+
+  /// No description provided for @runningCoachSprintCueKeepPushing.
+  ///
+  /// In en, this message translates to:
+  /// **'Good. Keep pushing with the same rhythm and forward lean.'**
+  String get runningCoachSprintCueKeepPushing;
+
   /// No description provided for @runningCoachSelectedVideoLabel.
   ///
   /// In en, this message translates to:
