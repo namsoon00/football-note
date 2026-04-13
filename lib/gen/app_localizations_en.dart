@@ -1680,6 +1680,178 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintLiveCardTitle => 'Sprint live MVP';
+
+  @override
+  String get runningCoachSprintLiveCardBody =>
+      'Connect the side-view camera directly to the sprint pipeline so trunk lean, knee drive, step rhythm, arm balance, and session FPS/drop visibility logs run on-device together.';
+
+  @override
+  String get runningCoachSprintLiveAction => 'Start sprint MVP';
+
+  @override
+  String get runningCoachSprintLiveScreenTitle => 'Live sprint coaching';
+
+  @override
+  String get runningCoachSprintLiveStatusLowConfidence =>
+      'Fix full-body visibility first';
+
+  @override
+  String get runningCoachSprintLiveStatusCollecting =>
+      'Collecting sprint rhythm';
+
+  @override
+  String get runningCoachSprintLiveStatusReady => 'Ready for live feedback';
+
+  @override
+  String get runningCoachSprintLiveStatusCoaching =>
+      'Live sprint coaching active';
+
+  @override
+  String get runningCoachSprintLiveCueCollecting =>
+      'Keep the sprint going for a few more steps so rhythm and knee-drive metrics can stabilize.';
+
+  @override
+  String get runningCoachSprintLiveCueReady =>
+      'Good. Hold this shape and sprint for another 5-10 seconds.';
+
+  @override
+  String runningCoachSprintTrackingConfidenceValue(int percent) {
+    return 'Tracking $percent%';
+  }
+
+  @override
+  String runningCoachSprintTrackedFrames(int count) {
+    return 'Tracked $count frames';
+  }
+
+  @override
+  String runningCoachSprintDetectedSteps(int count) {
+    return 'Step events $count';
+  }
+
+  @override
+  String get runningCoachSprintSessionLogTitle => 'Session diagnostics';
+
+  @override
+  String get runningCoachSprintSessionCameraFpsLabel => 'Camera input FPS';
+
+  @override
+  String get runningCoachSprintSessionAnalyzedFpsLabel => 'Analyzed FPS';
+
+  @override
+  String get runningCoachSprintSessionAverageProcessingLabel =>
+      'Avg processing';
+
+  @override
+  String runningCoachSprintSessionAverageProcessingValue(Object ms) {
+    return '${ms}ms';
+  }
+
+  @override
+  String get runningCoachSprintSessionSkippedFramesLabel => 'Dropped / skipped';
+
+  @override
+  String runningCoachSprintSessionSkippedFramesValue(int count) {
+    return '$count frames';
+  }
+
+  @override
+  String get runningCoachSprintSessionBodyNotVisibleLabel =>
+      'bodyNotVisible ratio';
+
+  @override
+  String runningCoachSprintSessionBodyNotVisibleValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get runningCoachSprintSessionFeedbackChangesLabel =>
+      'Feedback changes';
+
+  @override
+  String runningCoachSprintSessionFeedbackChangesValue(
+      int count, Object perMinute) {
+    return '$count changes / $perMinute per min';
+  }
+
+  @override
+  String get runningCoachSprintSessionConfidenceLabel => 'Landmark confidence';
+
+  @override
+  String runningCoachSprintSessionConfidenceValue(
+      int high, int medium, int low) {
+    return '0.8+ $high% · 0.6-0.8 $medium% · <0.6 $low%';
+  }
+
+  @override
+  String get runningCoachSprintMetricPending => '--';
+
+  @override
+  String get runningCoachSprintMetricTrunkLabel => 'Trunk lean';
+
+  @override
+  String runningCoachSprintMetricTrunkValue(Object value) {
+    return '$value°';
+  }
+
+  @override
+  String get runningCoachSprintMetricKneeDriveLabel => 'Knee drive';
+
+  @override
+  String runningCoachSprintMetricKneeDriveValue(Object value) {
+    return 'Scale $value%';
+  }
+
+  @override
+  String get runningCoachSprintMetricCadenceLabel => 'Cadence';
+
+  @override
+  String runningCoachSprintMetricCadenceValue(Object value) {
+    return '$value spm';
+  }
+
+  @override
+  String get runningCoachSprintMetricRhythmLabel => 'Rhythm drift';
+
+  @override
+  String runningCoachSprintMetricRhythmValue(Object value) {
+    return '${value}ms';
+  }
+
+  @override
+  String get runningCoachSprintMetricArmBalanceLabel => 'Arm balance';
+
+  @override
+  String runningCoachSprintMetricArmBalanceValue(Object value) {
+    return 'Gap $value%';
+  }
+
+  @override
+  String get runningCoachSprintCueBodyVisible =>
+      'Adjust one more step so the full body stays inside the frame.';
+
+  @override
+  String get runningCoachSprintCueLeanForward =>
+      'Keep the lean slightly more forward from the ankles, not by folding at the waist.';
+
+  @override
+  String get runningCoachSprintCueDriveKnee =>
+      'After the push-off, drive the knee forward a little more aggressively.';
+
+  @override
+  String get runningCoachSprintCueKeepRhythm =>
+      'The left-right rhythm is drifting. Try to keep the ground contacts more even.';
+
+  @override
+  String get runningCoachSprintCueBalanceArms =>
+      'The arm swing is unbalanced. Match the backward drive on both sides more closely.';
+
+  @override
+  String get runningCoachSprintCueKeepPushing =>
+      'Good. Keep pushing with the same rhythm and forward lean.';
+
+  @override
   String get runningCoachSelectedVideoLabel => 'Selected video';
 
   @override

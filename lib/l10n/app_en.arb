@@ -675,6 +675,135 @@
       }
     }
   },
+  "runningCoachSprintLiveCardTitle": "Sprint live MVP",
+  "runningCoachSprintLiveCardBody": "Connect the side-view camera directly to the sprint pipeline so trunk lean, knee drive, step rhythm, arm balance, and session FPS/drop visibility logs run on-device together.",
+  "runningCoachSprintLiveAction": "Start sprint MVP",
+  "runningCoachSprintLiveScreenTitle": "Live sprint coaching",
+  "runningCoachSprintLiveStatusLowConfidence": "Fix full-body visibility first",
+  "runningCoachSprintLiveStatusCollecting": "Collecting sprint rhythm",
+  "runningCoachSprintLiveStatusReady": "Ready for live feedback",
+  "runningCoachSprintLiveStatusCoaching": "Live sprint coaching active",
+  "runningCoachSprintLiveCueCollecting": "Keep the sprint going for a few more steps so rhythm and knee-drive metrics can stabilize.",
+  "runningCoachSprintLiveCueReady": "Good. Hold this shape and sprint for another 5-10 seconds.",
+  "runningCoachSprintTrackingConfidenceValue": "Tracking {percent}%",
+  "@runningCoachSprintTrackingConfidenceValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintTrackedFrames": "Tracked {count} frames",
+  "@runningCoachSprintTrackedFrames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintDetectedSteps": "Step events {count}",
+  "@runningCoachSprintDetectedSteps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionLogTitle": "Session diagnostics",
+  "runningCoachSprintSessionCameraFpsLabel": "Camera input FPS",
+  "runningCoachSprintSessionAnalyzedFpsLabel": "Analyzed FPS",
+  "runningCoachSprintSessionAverageProcessingLabel": "Avg processing",
+  "runningCoachSprintSessionAverageProcessingValue": "{ms}ms",
+  "@runningCoachSprintSessionAverageProcessingValue": {
+    "placeholders": {
+      "ms": {}
+    }
+  },
+  "runningCoachSprintSessionSkippedFramesLabel": "Dropped / skipped",
+  "runningCoachSprintSessionSkippedFramesValue": "{count} frames",
+  "@runningCoachSprintSessionSkippedFramesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionBodyNotVisibleLabel": "bodyNotVisible ratio",
+  "runningCoachSprintSessionBodyNotVisibleValue": "{percent}%",
+  "@runningCoachSprintSessionBodyNotVisibleValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionFeedbackChangesLabel": "Feedback changes",
+  "runningCoachSprintSessionFeedbackChangesValue": "{count} changes / {perMinute} per min",
+  "@runningCoachSprintSessionFeedbackChangesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "perMinute": {}
+    }
+  },
+  "runningCoachSprintSessionConfidenceLabel": "Landmark confidence",
+  "runningCoachSprintSessionConfidenceValue": "0.8+ {high}% · 0.6-0.8 {medium}% · <0.6 {low}%",
+  "@runningCoachSprintSessionConfidenceValue": {
+    "placeholders": {
+      "high": {
+        "type": "int"
+      },
+      "medium": {
+        "type": "int"
+      },
+      "low": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintMetricPending": "--",
+  "runningCoachSprintMetricTrunkLabel": "Trunk lean",
+  "runningCoachSprintMetricTrunkValue": "{value}°",
+  "@runningCoachSprintMetricTrunkValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricKneeDriveLabel": "Knee drive",
+  "runningCoachSprintMetricKneeDriveValue": "Scale {value}%",
+  "@runningCoachSprintMetricKneeDriveValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricCadenceLabel": "Cadence",
+  "runningCoachSprintMetricCadenceValue": "{value} spm",
+  "@runningCoachSprintMetricCadenceValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricRhythmLabel": "Rhythm drift",
+  "runningCoachSprintMetricRhythmValue": "{value}ms",
+  "@runningCoachSprintMetricRhythmValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintMetricArmBalanceLabel": "Arm balance",
+  "runningCoachSprintMetricArmBalanceValue": "Gap {value}%",
+  "@runningCoachSprintMetricArmBalanceValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "runningCoachSprintCueBodyVisible": "Adjust one more step so the full body stays inside the frame.",
+  "runningCoachSprintCueLeanForward": "Keep the lean slightly more forward from the ankles, not by folding at the waist.",
+  "runningCoachSprintCueDriveKnee": "After the push-off, drive the knee forward a little more aggressively.",
+  "runningCoachSprintCueKeepRhythm": "The left-right rhythm is drifting. Try to keep the ground contacts more even.",
+  "runningCoachSprintCueBalanceArms": "The arm swing is unbalanced. Match the backward drive on both sides more closely.",
+  "runningCoachSprintCueKeepPushing": "Good. Keep pushing with the same rhythm and forward lean.",
   "runningCoachSelectedVideoLabel": "Selected video",
   "runningCoachNoVideoSelected": "No video selected yet.",
   "runningCoachPickVideoAction": "Pick video",

@@ -1636,6 +1636,173 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get runningCoachSprintLiveCardTitle => '스프린트 실시간 MVP';
+
+  @override
+  String get runningCoachSprintLiveCardBody =>
+      '측면 카메라를 스프린트 파이프라인에 직접 연결해 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 보고 세션 FPS/드랍/가시성 로그까지 함께 남겨요.';
+
+  @override
+  String get runningCoachSprintLiveAction => '스프린트 MVP 시작';
+
+  @override
+  String get runningCoachSprintLiveScreenTitle => '스프린트 실시간 코칭';
+
+  @override
+  String get runningCoachSprintLiveStatusLowConfidence => '전신 가시성을 먼저 맞춰 주세요';
+
+  @override
+  String get runningCoachSprintLiveStatusCollecting => '스프린트 리듬을 모으는 중';
+
+  @override
+  String get runningCoachSprintLiveStatusReady => '실시간 피드백 준비 완료';
+
+  @override
+  String get runningCoachSprintLiveStatusCoaching => '스프린트 실시간 코칭 중';
+
+  @override
+  String get runningCoachSprintLiveCueCollecting =>
+      '몇 걸음만 더 유지하면 스프린트 리듬과 무릎 드라이브를 안정적으로 계산해요.';
+
+  @override
+  String get runningCoachSprintLiveCueReady =>
+      '좋아요. 지금 자세를 유지하면서 5~10초 정도 더 질주해 보세요.';
+
+  @override
+  String runningCoachSprintTrackingConfidenceValue(int percent) {
+    return '트래킹 $percent%';
+  }
+
+  @override
+  String runningCoachSprintTrackedFrames(int count) {
+    return '추적 $count프레임';
+  }
+
+  @override
+  String runningCoachSprintDetectedSteps(int count) {
+    return '스텝 이벤트 $count';
+  }
+
+  @override
+  String get runningCoachSprintSessionLogTitle => '세션 계측';
+
+  @override
+  String get runningCoachSprintSessionCameraFpsLabel => '카메라 입력 FPS';
+
+  @override
+  String get runningCoachSprintSessionAnalyzedFpsLabel => '분석 FPS';
+
+  @override
+  String get runningCoachSprintSessionAverageProcessingLabel => '평균 처리시간';
+
+  @override
+  String runningCoachSprintSessionAverageProcessingValue(Object ms) {
+    return '${ms}ms';
+  }
+
+  @override
+  String get runningCoachSprintSessionSkippedFramesLabel => '드랍/스킵 프레임';
+
+  @override
+  String runningCoachSprintSessionSkippedFramesValue(int count) {
+    return '$count프레임';
+  }
+
+  @override
+  String get runningCoachSprintSessionBodyNotVisibleLabel =>
+      'bodyNotVisible 비율';
+
+  @override
+  String runningCoachSprintSessionBodyNotVisibleValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get runningCoachSprintSessionFeedbackChangesLabel => '피드백 변경 빈도';
+
+  @override
+  String runningCoachSprintSessionFeedbackChangesValue(
+      int count, Object perMinute) {
+    return '$count회 / $perMinute분당';
+  }
+
+  @override
+  String get runningCoachSprintSessionConfidenceLabel => '랜드마크 confidence';
+
+  @override
+  String runningCoachSprintSessionConfidenceValue(
+      int high, int medium, int low) {
+    return '0.8+ $high% · 0.6-0.8 $medium% · <0.6 $low%';
+  }
+
+  @override
+  String get runningCoachSprintMetricPending => '--';
+
+  @override
+  String get runningCoachSprintMetricTrunkLabel => '전경사';
+
+  @override
+  String runningCoachSprintMetricTrunkValue(Object value) {
+    return '$value°';
+  }
+
+  @override
+  String get runningCoachSprintMetricKneeDriveLabel => '무릎 드라이브';
+
+  @override
+  String runningCoachSprintMetricKneeDriveValue(Object value) {
+    return '스케일 $value%';
+  }
+
+  @override
+  String get runningCoachSprintMetricCadenceLabel => '케이던스';
+
+  @override
+  String runningCoachSprintMetricCadenceValue(Object value) {
+    return '$value spm';
+  }
+
+  @override
+  String get runningCoachSprintMetricRhythmLabel => '리듬 변동';
+
+  @override
+  String runningCoachSprintMetricRhythmValue(Object value) {
+    return '${value}ms';
+  }
+
+  @override
+  String get runningCoachSprintMetricArmBalanceLabel => '팔 균형';
+
+  @override
+  String runningCoachSprintMetricArmBalanceValue(Object value) {
+    return '차이 $value%';
+  }
+
+  @override
+  String get runningCoachSprintCueBodyVisible =>
+      '몸 전체가 프레임 안에 보이도록 한 걸음만 더 조정해 주세요.';
+
+  @override
+  String get runningCoachSprintCueLeanForward =>
+      '허리로 꺾지 말고 발목부터 상체를 조금 더 앞으로 유지해 주세요.';
+
+  @override
+  String get runningCoachSprintCueDriveKnee =>
+      '지면에서 밀어낸 뒤 무릎을 조금 더 강하게 앞으로 끌어올려 보세요.';
+
+  @override
+  String get runningCoachSprintCueKeepRhythm =>
+      '좌우 리듬이 흔들리고 있어요. 접지 간격을 조금 더 일정하게 맞춰 보세요.';
+
+  @override
+  String get runningCoachSprintCueBalanceArms =>
+      '팔 스윙 좌우 차이가 커요. 뒤로 당기는 길이를 비슷하게 맞춰 보세요.';
+
+  @override
+  String get runningCoachSprintCueKeepPushing =>
+      '좋아요. 지금 리듬과 전경사를 유지한 채 그대로 밀고 나가세요.';
+
+  @override
   String get runningCoachSelectedVideoLabel => '선택한 영상';
 
   @override

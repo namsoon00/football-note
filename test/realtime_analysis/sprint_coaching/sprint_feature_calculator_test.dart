@@ -51,6 +51,74 @@ void main() {
       expect(snapshot.detectedStepEvents, 4);
       expect(snapshot.hasEnoughSignal, isTrue);
     });
+
+    test('suppresses jitter that never clears hysteresis', () {
+      final calculator = SprintFeatureCalculator();
+      final start = DateTime(2026, 4, 13, 9);
+
+      final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
+        _frame(
+          timestamp: start,
+          leftAnkleX: 0.03,
+          rightAnkleX: -0.03,
+          kneeDriveHeight: 0.28,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 120)),
+          leftAnkleX: -0.02,
+          rightAnkleX: 0.02,
+          kneeDriveHeight: 0.29,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 240)),
+          leftAnkleX: 0.04,
+          rightAnkleX: -0.04,
+          kneeDriveHeight: 0.31,
+        ),
+        _frame(
+          timestamp: start.add(const Duration(milliseconds: 360)),
+          leftAnkleX: -0.03,
+          rightAnkleX: 0.03,
+          kneeDriveHeight: 0.3,
+        ),
+      ]);
+
+      expect(snapshot.detectedStepEvents, 0);
+      expect(snapshot.stepInterval, isNull);
+      expect(snapshot.cadenceStepsPerMinute, isNull);
+    });
+
+    test(
+      'suppresses crossings that are slower than the velocity threshold',
+      () {
+        final calculator = SprintFeatureCalculator();
+        final start = DateTime(2026, 4, 13, 9);
+
+        final snapshot = calculator.calculate(<SprintNormalizedPoseFrame>[
+          _frame(
+            timestamp: start,
+            leftAnkleX: 0.12,
+            rightAnkleX: -0.12,
+            kneeDriveHeight: 0.3,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 400)),
+            leftAnkleX: -0.12,
+            rightAnkleX: 0.12,
+            kneeDriveHeight: 0.31,
+          ),
+          _frame(
+            timestamp: start.add(const Duration(milliseconds: 800)),
+            leftAnkleX: 0.13,
+            rightAnkleX: -0.13,
+            kneeDriveHeight: 0.32,
+          ),
+        ], minimumStepDetectionVelocity: 1.4);
+
+        expect(snapshot.detectedStepEvents, 0);
+        expect(snapshot.stepInterval, isNull);
+      },
+    );
   });
 }
 

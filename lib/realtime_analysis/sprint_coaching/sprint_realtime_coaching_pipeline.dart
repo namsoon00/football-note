@@ -76,7 +76,12 @@ class SprintRealtimeCoachingPipeline {
 
     final rawFrames = _rawWindow.toList(growable: false);
     final normalizedFrames = _normalizedWindow.toList(growable: false);
-    final features = _featureCalculator.calculate(normalizedFrames);
+    final features = _featureCalculator.calculate(
+      normalizedFrames,
+      minimumStepEventInterval: config.minimumStepEventInterval,
+      stepDetectionHysteresis: config.stepDetectionHysteresis,
+      minimumStepDetectionVelocity: config.minimumStepDetectionVelocity,
+    );
     final stateEstimate = _stateEstimator.estimate(
       rawFrames: rawFrames,
       normalizedFrames: normalizedFrames,
