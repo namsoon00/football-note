@@ -2225,4 +2225,248 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachStrideOverDrill =>
       'Drill: 2 x 20m A-march and 2 x 20m wicket-style runs with short contacts.';
+
+  @override
+  String get runningCoachSprintDebugToggle => 'Toggle sprint debug overlay';
+
+  @override
+  String get runningCoachSprintDebugPanelTitle => 'Debug overlay';
+
+  @override
+  String get runningCoachSprintCueWhyLabel => 'Why';
+
+  @override
+  String get runningCoachSprintCueTryLabel => 'Try';
+
+  @override
+  String get runningCoachSprintTrackingStateBodyTooSmall => 'Move closer';
+
+  @override
+  String get runningCoachSprintTrackingStateBodyOutOfFrame =>
+      'Keep the full body in frame';
+
+  @override
+  String get runningCoachSprintTrackingStateLowConfidence =>
+      'Raise tracking confidence';
+
+  @override
+  String get runningCoachSprintTrackingStateSideViewUnstable =>
+      'Settle the side view';
+
+  @override
+  String get runningCoachSprintTrackingStateReady => 'Ready for analysis';
+
+  @override
+  String get runningCoachSprintTrackingHintBodyTooSmall =>
+      'The runner is too small in frame. Move closer before analyzing.';
+
+  @override
+  String get runningCoachSprintTrackingHintBodyOutOfFrame =>
+      'Some joints are leaving the frame, so the pose line cannot stay locked.';
+
+  @override
+  String get runningCoachSprintTrackingHintLowConfidence =>
+      'Pose confidence is low right now. Hold a steadier shot for a moment.';
+
+  @override
+  String get runningCoachSprintTrackingHintSideViewUnstable =>
+      'The side-view motion is still unstable. Keep a cleaner lateral run path.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisBodyTooSmall =>
+      'The current body box is too small for stable trunk, knee, and rhythm measurements on device.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame =>
+      'Core joints are clipping near the edge, so overlay and feature values will drift.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisLowConfidence =>
+      'Visible joints or average landmark confidence are below the quality gate for coaching.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisSideViewUnstable =>
+      'The motion path is not staying lateral enough yet, so side-view analysis is being held back.';
+
+  @override
+  String get runningCoachSprintTrackingActionBodyTooSmall =>
+      'Bring the camera closer until the body fills at least about half of the screen height.';
+
+  @override
+  String get runningCoachSprintTrackingActionBodyOutOfFrame =>
+      'Keep the head, elbows, hips, and ankles inside the guide frame before sprinting again.';
+
+  @override
+  String get runningCoachSprintTrackingActionLowConfidence =>
+      'Use a steadier camera, clearer lighting, and keep the runner centered for a few frames.';
+
+  @override
+  String get runningCoachSprintTrackingActionSideViewUnstable =>
+      'Run across the frame from the side instead of drifting toward the camera or diagonally.';
+
+  @override
+  String runningCoachSprintTrackingSummary(
+      Object state, int heightPercent, int areaPercent) {
+    return '$state · height $heightPercent% · area $areaPercent%';
+  }
+
+  @override
+  String runningCoachSprintSpeechSummary(Object state, Object reason) {
+    return 'Speech $state · $reason';
+  }
+
+  @override
+  String get runningCoachSprintSpeechStateIdle => 'Idle';
+
+  @override
+  String get runningCoachSprintSpeechStateQueued => 'Queued';
+
+  @override
+  String get runningCoachSprintSpeechStateStarted => 'Started';
+
+  @override
+  String get runningCoachSprintSpeechStateCompleted => 'Completed';
+
+  @override
+  String get runningCoachSprintSpeechStateSkipped => 'Skipped';
+
+  @override
+  String get runningCoachSprintSpeechStateCancelled => 'Cancelled';
+
+  @override
+  String get runningCoachSprintSpeechStateError => 'Error';
+
+  @override
+  String get runningCoachSprintSpeechSkipNone => 'No skip';
+
+  @override
+  String get runningCoachSprintSpeechSkipDisabled => 'Voice feedback is off';
+
+  @override
+  String get runningCoachSprintSpeechSkipNoFeedbackSelected =>
+      'No feedback selected';
+
+  @override
+  String get runningCoachSprintSpeechSkipEmptyCue => 'Cue text is empty';
+
+  @override
+  String get runningCoachSprintSpeechSkipInfoFeedback =>
+      'Only warning cues are spoken';
+
+  @override
+  String get runningCoachSprintSpeechSkipTrackingNotReady =>
+      'Tracking is not ready yet';
+
+  @override
+  String get runningCoachSprintSpeechSkipLowConfidence =>
+      'Feedback confidence is too low for speech';
+
+  @override
+  String get runningCoachSprintSpeechSkipTrackingNotStable =>
+      'Tracking has not stayed stable long enough';
+
+  @override
+  String get runningCoachSprintSpeechSkipCooldownActive =>
+      'Speech cooldown is active';
+
+  @override
+  String get runningCoachSprintDiagnosisLeanForward =>
+      'The trunk is rising too early, so the first acceleration steps lose forward push.';
+
+  @override
+  String get runningCoachSprintDiagnosisDriveKnee =>
+      'The knee drive is staying low relative to the hips, so the front-side step does not connect strongly.';
+
+  @override
+  String get runningCoachSprintDiagnosisKeepRhythm =>
+      'Step timing is varying too much, so the left-right sprint rhythm is drifting.';
+
+  @override
+  String get runningCoachSprintDiagnosisBalanceArms =>
+      'One arm is contributing less backward drive, so rhythm support from the upper body is uneven.';
+
+  @override
+  String get runningCoachSprintDiagnosisKeepPushing =>
+      'The main sprint features are inside the current MVP range, so the app is holding the current cue.';
+
+  @override
+  String get runningCoachSprintActionLeanForward =>
+      'Keep the chest lower for the first three steps and let the lean come from the ankles.';
+
+  @override
+  String get runningCoachSprintActionDriveKnee =>
+      'Push the ground harder and let the knee come through instead of trying to lift it by itself.';
+
+  @override
+  String get runningCoachSprintActionKeepRhythm =>
+      'Do not reach for a longer step. Keep ground contacts evenly spaced for the next few strides.';
+
+  @override
+  String get runningCoachSprintActionBalanceArms =>
+      'Match the backward arm drive on both sides and keep the shoulders quieter.';
+
+  @override
+  String get runningCoachSprintActionKeepPushing =>
+      'Stay with the same shape for another few steps so the app can confirm stability.';
+
+  @override
+  String get runningCoachSprintSessionTrackingStateLabel => 'Tracking state';
+
+  @override
+  String get runningCoachSprintSessionPersonSizeLabel => 'Person size';
+
+  @override
+  String runningCoachSprintSessionPersonSizeValue(
+      int heightPercent, int areaPercent) {
+    return 'height $heightPercent% · area $areaPercent%';
+  }
+
+  @override
+  String get runningCoachSprintSessionVisibleJointCountLabel =>
+      'Visible joints';
+
+  @override
+  String runningCoachSprintSessionVisibleJointCountValue(
+      int count, Object confidence) {
+    return '$count joints · avg $confidence';
+  }
+
+  @override
+  String get runningCoachSprintSessionSpeechStateLabel => 'Speech state';
+
+  @override
+  String runningCoachSprintSessionSpeechStateValue(
+      Object state, Object reason, int cooldownMs) {
+    return '$state · $reason · cooldown ${cooldownMs}ms';
+  }
+
+  @override
+  String get runningCoachSprintSessionFeatureConfidenceLabel =>
+      'Feature confidence';
+
+  @override
+  String runningCoachSprintSessionFeatureConfidenceValue(
+      Object trunk, Object knee, Object rhythm) {
+    return '$trunk / $knee / $rhythm';
+  }
+
+  @override
+  String runningCoachSprintSessionFeatureDebugValue(
+      Object feature, Object value, int confidence) {
+    return '$feature $value ($confidence%)';
+  }
+
+  @override
+  String runningCoachSprintSessionFeatureUnavailableValue(
+      Object feature, Object reason) {
+    return '$feature unavailable: $reason';
+  }
+
+  @override
+  String get runningCoachSprintFeatureUnavailableJointWindow =>
+      'not enough stable joint frames';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableStepEvents =>
+      'not enough stable step events';
 }

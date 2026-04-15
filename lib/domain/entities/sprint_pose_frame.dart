@@ -103,6 +103,68 @@ class SprintPoseFrame {
     return total / count;
   }
 
+  double averageVisibleConfidence({double minimumConfidence = 0}) {
+    var total = 0.0;
+    var count = 0;
+    for (final landmark in landmarks.values) {
+      if (landmark.confidence < minimumConfidence) {
+        continue;
+      }
+      total += landmark.confidence;
+      count += 1;
+    }
+    if (count == 0) {
+      return 0;
+    }
+    return total / count;
+  }
+
+  Rect? boundingBox({
+    double minimumConfidence = 0,
+    Iterable<SprintPoseLandmarkType>? types,
+  }) {
+    final points = <Offset>[];
+    if (types == null) {
+      for (final landmark in landmarks.values) {
+        if (landmark.confidence >= minimumConfidence) {
+          points.add(landmark.position);
+        }
+      }
+    } else {
+      for (final type in types) {
+        final landmark =
+            this.landmark(type, minimumConfidence: minimumConfidence);
+        if (landmark != null) {
+          points.add(landmark.position);
+        }
+      }
+    }
+
+    if (points.isEmpty) {
+      return null;
+    }
+
+    final xs = points.map((point) => point.dx);
+    final ys = points.map((point) => point.dy);
+    final left =
+        xs.reduce((value, element) => value < element ? value : element);
+    final right =
+        xs.reduce((value, element) => value > element ? value : element);
+    final top =
+        ys.reduce((value, element) => value < element ? value : element);
+    final bottom =
+        ys.reduce((value, element) => value > element ? value : element);
+    return Rect.fromLTRB(left, top, right, bottom);
+  }
+
+  double bodyScaleEstimate({double minimumConfidence = 0}) {
+    final bounds = boundingBox(minimumConfidence: minimumConfidence);
+    if (bounds == null) {
+      return 0;
+    }
+    return bounds.height > 0 ? bounds.height : bounds.width;
+  }
+
   SprintPoseFrame copyWith({
     Size? imageSize,
     DateTime? timestamp,

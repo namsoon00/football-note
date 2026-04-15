@@ -991,5 +991,133 @@
   "runningCoachStrideShortDrill": "Drill: 2 x 20m A-march into A-skip to build front-side mechanics.",
   "runningCoachStrideOverSummary": "The front foot is reaching too far ahead of the body, which can create braking.",
   "runningCoachStrideOverCue": "Land closer under the hips and let speed come from push-off, not reaching.",
-  "runningCoachStrideOverDrill": "Drill: 2 x 20m A-march and 2 x 20m wicket-style runs with short contacts."
+  "runningCoachStrideOverDrill": "Drill: 2 x 20m A-march and 2 x 20m wicket-style runs with short contacts.",
+  "runningCoachSprintDebugToggle": "Toggle sprint debug overlay",
+  "runningCoachSprintDebugPanelTitle": "Debug overlay",
+  "runningCoachSprintCueWhyLabel": "Why",
+  "runningCoachSprintCueTryLabel": "Try",
+  "runningCoachSprintTrackingStateBodyTooSmall": "Move closer",
+  "runningCoachSprintTrackingStateBodyOutOfFrame": "Keep the full body in frame",
+  "runningCoachSprintTrackingStateLowConfidence": "Raise tracking confidence",
+  "runningCoachSprintTrackingStateSideViewUnstable": "Settle the side view",
+  "runningCoachSprintTrackingStateReady": "Ready for analysis",
+  "runningCoachSprintTrackingHintBodyTooSmall": "The runner is too small in frame. Move closer before analyzing.",
+  "runningCoachSprintTrackingHintBodyOutOfFrame": "Some joints are leaving the frame, so the pose line cannot stay locked.",
+  "runningCoachSprintTrackingHintLowConfidence": "Pose confidence is low right now. Hold a steadier shot for a moment.",
+  "runningCoachSprintTrackingHintSideViewUnstable": "The side-view motion is still unstable. Keep a cleaner lateral run path.",
+  "runningCoachSprintTrackingDiagnosisBodyTooSmall": "The current body box is too small for stable trunk, knee, and rhythm measurements on device.",
+  "runningCoachSprintTrackingDiagnosisBodyOutOfFrame": "Core joints are clipping near the edge, so overlay and feature values will drift.",
+  "runningCoachSprintTrackingDiagnosisLowConfidence": "Visible joints or average landmark confidence are below the quality gate for coaching.",
+  "runningCoachSprintTrackingDiagnosisSideViewUnstable": "The motion path is not staying lateral enough yet, so side-view analysis is being held back.",
+  "runningCoachSprintTrackingActionBodyTooSmall": "Bring the camera closer until the body fills at least about half of the screen height.",
+  "runningCoachSprintTrackingActionBodyOutOfFrame": "Keep the head, elbows, hips, and ankles inside the guide frame before sprinting again.",
+  "runningCoachSprintTrackingActionLowConfidence": "Use a steadier camera, clearer lighting, and keep the runner centered for a few frames.",
+  "runningCoachSprintTrackingActionSideViewUnstable": "Run across the frame from the side instead of drifting toward the camera or diagonally.",
+  "runningCoachSprintTrackingSummary": "{state} · height {heightPercent}% · area {areaPercent}%",
+  "@runningCoachSprintTrackingSummary": {
+    "placeholders": {
+      "state": {},
+      "heightPercent": {
+        "type": "int"
+      },
+      "areaPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSpeechSummary": "Speech {state} · {reason}",
+  "@runningCoachSprintSpeechSummary": {
+    "placeholders": {
+      "state": {},
+      "reason": {}
+    }
+  },
+  "runningCoachSprintSpeechStateIdle": "Idle",
+  "runningCoachSprintSpeechStateQueued": "Queued",
+  "runningCoachSprintSpeechStateStarted": "Started",
+  "runningCoachSprintSpeechStateCompleted": "Completed",
+  "runningCoachSprintSpeechStateSkipped": "Skipped",
+  "runningCoachSprintSpeechStateCancelled": "Cancelled",
+  "runningCoachSprintSpeechStateError": "Error",
+  "runningCoachSprintSpeechSkipNone": "No skip",
+  "runningCoachSprintSpeechSkipDisabled": "Voice feedback is off",
+  "runningCoachSprintSpeechSkipNoFeedbackSelected": "No feedback selected",
+  "runningCoachSprintSpeechSkipEmptyCue": "Cue text is empty",
+  "runningCoachSprintSpeechSkipInfoFeedback": "Only warning cues are spoken",
+  "runningCoachSprintSpeechSkipTrackingNotReady": "Tracking is not ready yet",
+  "runningCoachSprintSpeechSkipLowConfidence": "Feedback confidence is too low for speech",
+  "runningCoachSprintSpeechSkipTrackingNotStable": "Tracking has not stayed stable long enough",
+  "runningCoachSprintSpeechSkipCooldownActive": "Speech cooldown is active",
+  "runningCoachSprintDiagnosisLeanForward": "The trunk is rising too early, so the first acceleration steps lose forward push.",
+  "runningCoachSprintDiagnosisDriveKnee": "The knee drive is staying low relative to the hips, so the front-side step does not connect strongly.",
+  "runningCoachSprintDiagnosisKeepRhythm": "Step timing is varying too much, so the left-right sprint rhythm is drifting.",
+  "runningCoachSprintDiagnosisBalanceArms": "One arm is contributing less backward drive, so rhythm support from the upper body is uneven.",
+  "runningCoachSprintDiagnosisKeepPushing": "The main sprint features are inside the current MVP range, so the app is holding the current cue.",
+  "runningCoachSprintActionLeanForward": "Keep the chest lower for the first three steps and let the lean come from the ankles.",
+  "runningCoachSprintActionDriveKnee": "Push the ground harder and let the knee come through instead of trying to lift it by itself.",
+  "runningCoachSprintActionKeepRhythm": "Do not reach for a longer step. Keep ground contacts evenly spaced for the next few strides.",
+  "runningCoachSprintActionBalanceArms": "Match the backward arm drive on both sides and keep the shoulders quieter.",
+  "runningCoachSprintActionKeepPushing": "Stay with the same shape for another few steps so the app can confirm stability.",
+  "runningCoachSprintSessionTrackingStateLabel": "Tracking state",
+  "runningCoachSprintSessionPersonSizeLabel": "Person size",
+  "runningCoachSprintSessionPersonSizeValue": "height {heightPercent}% · area {areaPercent}%",
+  "@runningCoachSprintSessionPersonSizeValue": {
+    "placeholders": {
+      "heightPercent": {
+        "type": "int"
+      },
+      "areaPercent": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionVisibleJointCountLabel": "Visible joints",
+  "runningCoachSprintSessionVisibleJointCountValue": "{count} joints · avg {confidence}",
+  "@runningCoachSprintSessionVisibleJointCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "confidence": {}
+    }
+  },
+  "runningCoachSprintSessionSpeechStateLabel": "Speech state",
+  "runningCoachSprintSessionSpeechStateValue": "{state} · {reason} · cooldown {cooldownMs}ms",
+  "@runningCoachSprintSessionSpeechStateValue": {
+    "placeholders": {
+      "state": {},
+      "reason": {},
+      "cooldownMs": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionFeatureConfidenceLabel": "Feature confidence",
+  "runningCoachSprintSessionFeatureConfidenceValue": "{trunk} / {knee} / {rhythm}",
+  "@runningCoachSprintSessionFeatureConfidenceValue": {
+    "placeholders": {
+      "trunk": {},
+      "knee": {},
+      "rhythm": {}
+    }
+  },
+  "runningCoachSprintSessionFeatureDebugValue": "{feature} {value} ({confidence}%)",
+  "@runningCoachSprintSessionFeatureDebugValue": {
+    "placeholders": {
+      "feature": {},
+      "value": {},
+      "confidence": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachSprintSessionFeatureUnavailableValue": "{feature} unavailable: {reason}",
+  "@runningCoachSprintSessionFeatureUnavailableValue": {
+    "placeholders": {
+      "feature": {},
+      "reason": {}
+    }
+  },
+  "runningCoachSprintFeatureUnavailableJointWindow": "not enough stable joint frames",
+  "runningCoachSprintFeatureUnavailableStepEvents": "not enough stable step events"
 }

@@ -2169,4 +2169,240 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachStrideOverDrill =>
       '드릴: A-마치 20m x 2세트와 짧은 접촉 위켓 스타일 런 20m x 2세트.';
+
+  @override
+  String get runningCoachSprintDebugToggle => '스프린트 디버그 오버레이 토글';
+
+  @override
+  String get runningCoachSprintDebugPanelTitle => '디버그 오버레이';
+
+  @override
+  String get runningCoachSprintCueWhyLabel => '원인';
+
+  @override
+  String get runningCoachSprintCueTryLabel => '시도';
+
+  @override
+  String get runningCoachSprintTrackingStateBodyTooSmall => '카메라에 더 가깝게';
+
+  @override
+  String get runningCoachSprintTrackingStateBodyOutOfFrame => '전신을 프레임 안에';
+
+  @override
+  String get runningCoachSprintTrackingStateLowConfidence => '트래킹 신뢰도 올리기';
+
+  @override
+  String get runningCoachSprintTrackingStateSideViewUnstable => '측면 구도 안정화';
+
+  @override
+  String get runningCoachSprintTrackingStateReady => '분석 준비 완료';
+
+  @override
+  String get runningCoachSprintTrackingHintBodyTooSmall =>
+      '러너가 프레임에서 너무 작습니다. 먼저 더 가깝게 맞춰 주세요.';
+
+  @override
+  String get runningCoachSprintTrackingHintBodyOutOfFrame =>
+      '일부 관절이 프레임 밖으로 나가서 포즈 라인이 안정적으로 붙지 않습니다.';
+
+  @override
+  String get runningCoachSprintTrackingHintLowConfidence =>
+      '현재 포즈 신뢰도가 낮습니다. 카메라를 조금 더 안정적으로 유지해 주세요.';
+
+  @override
+  String get runningCoachSprintTrackingHintSideViewUnstable =>
+      '측면 움직임이 아직 불안정합니다. 더 선명한 측면 동선으로 다시 잡아 주세요.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisBodyTooSmall =>
+      '현재 전신 박스가 너무 작아서 실기기에서 전경사, 무릎, 리듬 값을 안정적으로 읽기 어렵습니다.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame =>
+      '핵심 관절이 화면 가장자리에서 잘려 overlay와 feature 값이 함께 흔들릴 수 있습니다.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisLowConfidence =>
+      '보이는 관절 수나 평균 landmark confidence가 현재 코칭 품질 기준 아래입니다.';
+
+  @override
+  String get runningCoachSprintTrackingDiagnosisSideViewUnstable =>
+      '움직임 경로가 충분히 측면으로 유지되지 않아 측면 분석을 아직 열지 않고 있습니다.';
+
+  @override
+  String get runningCoachSprintTrackingActionBodyTooSmall =>
+      '전신 높이가 화면의 절반 정도 이상이 되도록 카메라를 더 가깝게 맞춰 주세요.';
+
+  @override
+  String get runningCoachSprintTrackingActionBodyOutOfFrame =>
+      '머리, 팔꿈치, 엉덩이, 발목이 모두 가이드 안에 들어온 뒤 다시 질주해 주세요.';
+
+  @override
+  String get runningCoachSprintTrackingActionLowConfidence =>
+      '카메라 흔들림을 줄이고 조명을 밝게 한 뒤 몇 프레임 동안 중앙을 유지해 주세요.';
+
+  @override
+  String get runningCoachSprintTrackingActionSideViewUnstable =>
+      '카메라 쪽으로 다가오지 말고 화면을 가로지르는 측면 질주로 맞춰 주세요.';
+
+  @override
+  String runningCoachSprintTrackingSummary(
+      Object state, int heightPercent, int areaPercent) {
+    return '$state · 높이 $heightPercent% · 면적 $areaPercent%';
+  }
+
+  @override
+  String runningCoachSprintSpeechSummary(Object state, Object reason) {
+    return '음성 $state · $reason';
+  }
+
+  @override
+  String get runningCoachSprintSpeechStateIdle => '대기';
+
+  @override
+  String get runningCoachSprintSpeechStateQueued => '큐 등록';
+
+  @override
+  String get runningCoachSprintSpeechStateStarted => '재생 시작';
+
+  @override
+  String get runningCoachSprintSpeechStateCompleted => '재생 완료';
+
+  @override
+  String get runningCoachSprintSpeechStateSkipped => '스킵';
+
+  @override
+  String get runningCoachSprintSpeechStateCancelled => '취소';
+
+  @override
+  String get runningCoachSprintSpeechStateError => '오류';
+
+  @override
+  String get runningCoachSprintSpeechSkipNone => '스킵 없음';
+
+  @override
+  String get runningCoachSprintSpeechSkipDisabled => '음성 피드백이 꺼져 있습니다';
+
+  @override
+  String get runningCoachSprintSpeechSkipNoFeedbackSelected => '선택된 피드백이 없습니다';
+
+  @override
+  String get runningCoachSprintSpeechSkipEmptyCue => '읽을 cue 문구가 비어 있습니다';
+
+  @override
+  String get runningCoachSprintSpeechSkipInfoFeedback => '경고성 cue만 음성으로 읽습니다';
+
+  @override
+  String get runningCoachSprintSpeechSkipTrackingNotReady =>
+      '트래킹이 아직 준비되지 않았습니다';
+
+  @override
+  String get runningCoachSprintSpeechSkipLowConfidence =>
+      '음성으로 읽기에는 피드백 신뢰도가 낮습니다';
+
+  @override
+  String get runningCoachSprintSpeechSkipTrackingNotStable =>
+      '트래킹 안정 프레임이 아직 부족합니다';
+
+  @override
+  String get runningCoachSprintSpeechSkipCooldownActive => '음성 쿨다운이 아직 남아 있습니다';
+
+  @override
+  String get runningCoachSprintDiagnosisLeanForward =>
+      '상체가 너무 빨리 세워져서 첫 가속 구간의 전방 추진이 끊기고 있습니다.';
+
+  @override
+  String get runningCoachSprintDiagnosisDriveKnee =>
+      '무릎 드라이브가 엉덩이 대비 낮아서 앞쪽 스텝 연결이 약해지고 있습니다.';
+
+  @override
+  String get runningCoachSprintDiagnosisKeepRhythm =>
+      '스텝 간격 변동이 커서 좌우 스프린트 리듬이 흔들리고 있습니다.';
+
+  @override
+  String get runningCoachSprintDiagnosisBalanceArms =>
+      '한쪽 팔의 뒤로 미는 기여가 작아서 상체 리듬 지원이 비대칭으로 보입니다.';
+
+  @override
+  String get runningCoachSprintDiagnosisKeepPushing =>
+      '핵심 스프린트 feature가 현재 MVP 범위 안에 있어 지금 형태를 유지하는 cue를 주고 있습니다.';
+
+  @override
+  String get runningCoachSprintActionLeanForward =>
+      '첫 세 걸음 동안 가슴을 더 낮게 두고 발목부터 기울어지는 느낌을 유지해 보세요.';
+
+  @override
+  String get runningCoachSprintActionDriveKnee =>
+      '무릎만 억지로 들기보다 지면을 더 강하게 밀어내고 그 결과로 무릎이 지나오게 해 보세요.';
+
+  @override
+  String get runningCoachSprintActionKeepRhythm =>
+      '보폭을 억지로 늘리지 말고 다음 몇 걸음의 접지 간격을 더 고르게 맞춰 보세요.';
+
+  @override
+  String get runningCoachSprintActionBalanceArms =>
+      '양쪽 팔의 뒤로 미는 길이를 비슷하게 맞추고 어깨 흔들림을 줄여 보세요.';
+
+  @override
+  String get runningCoachSprintActionKeepPushing =>
+      '지금 형태를 몇 걸음 더 유지해서 앱이 안정성을 다시 확인하게 해 주세요.';
+
+  @override
+  String get runningCoachSprintSessionTrackingStateLabel => '트래킹 상태';
+
+  @override
+  String get runningCoachSprintSessionPersonSizeLabel => '사람 크기';
+
+  @override
+  String runningCoachSprintSessionPersonSizeValue(
+      int heightPercent, int areaPercent) {
+    return '높이 $heightPercent% · 면적 $areaPercent%';
+  }
+
+  @override
+  String get runningCoachSprintSessionVisibleJointCountLabel => '보이는 관절 수';
+
+  @override
+  String runningCoachSprintSessionVisibleJointCountValue(
+      int count, Object confidence) {
+    return '$count개 · 평균 $confidence';
+  }
+
+  @override
+  String get runningCoachSprintSessionSpeechStateLabel => '음성 상태';
+
+  @override
+  String runningCoachSprintSessionSpeechStateValue(
+      Object state, Object reason, int cooldownMs) {
+    return '$state · $reason · 쿨다운 ${cooldownMs}ms';
+  }
+
+  @override
+  String get runningCoachSprintSessionFeatureConfidenceLabel => 'feature 신뢰도';
+
+  @override
+  String runningCoachSprintSessionFeatureConfidenceValue(
+      Object trunk, Object knee, Object rhythm) {
+    return '$trunk / $knee / $rhythm';
+  }
+
+  @override
+  String runningCoachSprintSessionFeatureDebugValue(
+      Object feature, Object value, int confidence) {
+    return '$feature $value ($confidence%)';
+  }
+
+  @override
+  String runningCoachSprintSessionFeatureUnavailableValue(
+      Object feature, Object reason) {
+    return '$feature 사용 불가: $reason';
+  }
+
+  @override
+  String get runningCoachSprintFeatureUnavailableJointWindow =>
+      '안정적인 관절 프레임이 부족함';
+
+  @override
+  String get runningCoachSprintFeatureUnavailableStepEvents =>
+      '안정적인 스텝 이벤트가 부족함';
 }
