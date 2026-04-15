@@ -59,23 +59,23 @@ class SprintLiveSessionMetricsSnapshot {
   });
 
   const SprintLiveSessionMetricsSnapshot.initial()
-    : elapsed = Duration.zero,
-      cameraInputFrames = 0,
-      analyzedFrames = 0,
-      skippedFrames = 0,
-      busySkippedFrames = 0,
-      throttledSkippedFrames = 0,
-      invalidInputFrames = 0,
-      analysisErrorFrames = 0,
-      bodyNotVisibleCount = 0,
-      feedbackChangeCount = 0,
-      feedbackSuppressedByCooldownCount = 0,
-      cameraInputFps = 0,
-      analyzedFps = 0,
-      averageProcessingTimeMs = 0,
-      bodyNotVisibleRatio = 0,
-      feedbackChangesPerMinute = 0,
-      confidenceBucketCounts = const <int>[0, 0, 0, 0, 0];
+      : elapsed = Duration.zero,
+        cameraInputFrames = 0,
+        analyzedFrames = 0,
+        skippedFrames = 0,
+        busySkippedFrames = 0,
+        throttledSkippedFrames = 0,
+        invalidInputFrames = 0,
+        analysisErrorFrames = 0,
+        bodyNotVisibleCount = 0,
+        feedbackChangeCount = 0,
+        feedbackSuppressedByCooldownCount = 0,
+        cameraInputFps = 0,
+        analyzedFps = 0,
+        averageProcessingTimeMs = 0,
+        bodyNotVisibleRatio = 0,
+        feedbackChangesPerMinute = 0,
+        confidenceBucketCounts = const <int>[0, 0, 0, 0, 0];
 
   int get confidenceSampleCount =>
       confidenceBucketCounts.fold<int>(0, (sum, value) => sum + value);
@@ -153,7 +153,8 @@ class SprintLiveSessionMetricsCollector {
     _analyzedFrames += 1;
     _totalProcessingMicros += processingTime.inMicroseconds;
 
-    if (state.feedback?.code == SprintFeedbackCode.bodyNotVisible) {
+    if (state.stateEstimate.trackingReadiness !=
+        SprintTrackingReadiness.readyForAnalysis) {
       _bodyNotVisibleCount += 1;
     }
     if (state.feedbackSwitchSuppressedByCooldown) {
@@ -182,13 +183,11 @@ class SprintLiveSessionMetricsCollector {
   SprintLiveSessionMetricsSnapshot snapshot({DateTime? now}) {
     final end = now ?? DateTime.now();
     final startedAt = _startedAt;
-    final elapsed = startedAt == null
-        ? Duration.zero
-        : end.difference(startedAt);
+    final elapsed =
+        startedAt == null ? Duration.zero : end.difference(startedAt);
     final elapsedSeconds = math.max(elapsed.inMilliseconds / 1000, 0.001);
     final analyzedFrames = _analyzedFrames;
-    final skippedFrames =
-        _busySkippedFrames +
+    final skippedFrames = _busySkippedFrames +
         _throttledSkippedFrames +
         _invalidInputFrames +
         _analysisErrorFrames;
@@ -210,9 +209,8 @@ class SprintLiveSessionMetricsCollector {
       averageProcessingTimeMs: analyzedFrames == 0
           ? 0
           : (_totalProcessingMicros / analyzedFrames) / 1000,
-      bodyNotVisibleRatio: analyzedFrames == 0
-          ? 0
-          : _bodyNotVisibleCount / analyzedFrames,
+      bodyNotVisibleRatio:
+          analyzedFrames == 0 ? 0 : _bodyNotVisibleCount / analyzedFrames,
       feedbackChangesPerMinute: _feedbackChangeCount / (elapsedSeconds / 60),
       confidenceBucketCounts: List<int>.unmodifiable(_confidenceBucketCounts),
     );
@@ -238,15 +236,24 @@ class SprintLiveSessionMetricsCollector {
       'state': <String, Object?>{
         'bodyFullyVisible': state.stateEstimate.bodyFullyVisible,
         'bodyVisibilityStatus': state.stateEstimate.bodyVisibilityStatus.name,
+        'trackingReadiness': state.stateEstimate.trackingReadiness.name,
         'visibleLandmarks': state.stateEstimate.visibleLandmarkCount,
         'visibleCoreLandmarks': state.stateEstimate.visibleCoreLandmarkCount,
         'missingCoreLandmarks': state.stateEstimate.missingCoreLandmarkCount,
-        'bodyVisibilityRatio': state.stateEstimate.bodyVisibilityRatio
-            .toStringAsFixed(3),
+        'bodyVisibilityRatio':
+            state.stateEstimate.bodyVisibilityRatio.toStringAsFixed(3),
+        'personHeightRatio':
+            state.stateEstimate.personHeightRatio.toStringAsFixed(3),
+        'personAreaRatio':
+            state.stateEstimate.personAreaRatio.toStringAsFixed(3),
         'stableFrames': state.stateEstimate.stableFrameCount,
-        'trackingConfidence': state.stateEstimate.trackingConfidence
-            .toStringAsFixed(3),
+        'trackingConfidence':
+            state.stateEstimate.trackingConfidence.toStringAsFixed(3),
+        'averageLandmarkConfidence':
+            state.stateEstimate.averageLandmarkConfidence.toStringAsFixed(3),
         'hipTravelRatio': state.stateEstimate.hipTravelRatio.toStringAsFixed(3),
+        'sideViewConfidence':
+            state.stateEstimate.sideViewConfidence.toStringAsFixed(3),
         'runningDetected': state.stateEstimate.runningDetected,
         'accelerationPhaseDetected':
             state.stateEstimate.accelerationPhaseDetected,
@@ -259,14 +266,14 @@ class SprintLiveSessionMetricsCollector {
         'kneeDriveHeight': state.features.kneeDriveHeightRatio?.toStringAsFixed(
           3,
         ),
-        'cadenceStepsPerMinute': state.features.cadenceStepsPerMinute
-            ?.toStringAsFixed(2),
+        'cadenceStepsPerMinute':
+            state.features.cadenceStepsPerMinute?.toStringAsFixed(2),
         'stepIntervalMs': state.features.stepInterval?.inMilliseconds,
         'stepIntervalStdMs': state.features.stepIntervalStdMs?.toStringAsFixed(
           2,
         ),
-        'armAsymmetryRatio': state.features.armSwingAsymmetryRatio
-            ?.toStringAsFixed(3),
+        'armAsymmetryRatio':
+            state.features.armSwingAsymmetryRatio?.toStringAsFixed(3),
       },
       'stepDetector': <String, Object?>{
         'leadSwitches': state.features.stepCrossoverCount,
@@ -277,13 +284,16 @@ class SprintLiveSessionMetricsCollector {
       'feedback': <String, Object?>{
         'key': state.activeFeedbackKey,
         'text': feedbackText,
+        'severity': state.feedback?.severity.name,
+        'confidence': state.feedback?.confidence.toStringAsFixed(3),
+        'cooldownKey': state.feedback?.cooldownKey,
         'suppressedByCooldown': state.feedbackSwitchSuppressedByCooldown,
       },
       'metrics': <String, Object?>{
         'cameraInputFps': snapshot.cameraInputFps.toStringAsFixed(2),
         'analyzedFps': snapshot.analyzedFps.toStringAsFixed(2),
-        'averageProcessingTimeMs': snapshot.averageProcessingTimeMs
-            .toStringAsFixed(2),
+        'averageProcessingTimeMs':
+            snapshot.averageProcessingTimeMs.toStringAsFixed(2),
         'skippedFrames': <String, Object?>{
           'total': snapshot.skippedFrames,
           'busy': snapshot.busySkippedFrames,
@@ -299,11 +309,9 @@ class SprintLiveSessionMetricsCollector {
         },
       },
       'landmarkConfidenceDistribution': <String, Object?>{
-        for (
-          var index = 0;
-          index < sprintConfidenceBucketLabels.length;
-          index += 1
-        )
+        for (var index = 0;
+            index < sprintConfidenceBucketLabels.length;
+            index += 1)
           sprintConfidenceBucketLabels[index]:
               snapshot.confidenceBucketCounts[index],
       },

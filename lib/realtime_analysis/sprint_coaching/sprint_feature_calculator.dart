@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import '../../domain/entities/sprint_pose_frame.dart';
 import '../../domain/entities/sprint_realtime_coaching_state.dart';
@@ -15,13 +16,13 @@ class SprintFeatureCalculator {
       return const SprintFeatureSnapshot.empty();
     }
 
-    final trunkAngles = <double>[
+    final trunkSamples = <_WeightedSample>[
       for (final frame in frames)
-        if (_trunkAngleDegrees(frame) case final angle?) angle,
+        if (_trunkAngleDegrees(frame) case final sample?) sample,
     ];
-    final kneeDriveHeights = <double>[
+    final kneeDriveSamples = <_WeightedSample>[
       for (final frame in frames)
-        if (_kneeDriveHeightRatio(frame) case final height?) height,
+        if (_kneeDriveHeightRatio(frame) case final sample?) sample,
     ];
     final armExcursions = _armExcursions(frames);
     final stepDetection = _detectStepEvents(
@@ -39,31 +40,59 @@ class SprintFeatureCalculator {
             .toDouble(),
     ];
 
-    final averageStepIntervalMs = stepIntervalsMs.isEmpty
-        ? null
-        : _average(stepIntervalsMs);
+    final averageStepIntervalMs =
+        stepIntervalsMs.isEmpty ? null : _average(stepIntervalsMs);
     final cadence = averageStepIntervalMs == null || averageStepIntervalMs <= 0
         ? null
         : 60000 / averageStepIntervalMs;
+    final rhythmStd =
+        stepIntervalsMs.isEmpty ? null : _standardDeviation(stepIntervalsMs);
+    final cadenceConfidence = _stepMetricConfidence(stepDetection, stepEvents);
 
     return SprintFeatureSnapshot(
-      trunkAngleDegrees: trunkAngles.isEmpty ? null : _average(trunkAngles),
-      kneeDriveHeightRatio: kneeDriveHeights.isEmpty
-          ? null
-          : _averageTopWindow(kneeDriveHeights),
+      trunkAngle: _measurementFromSamples(
+        trunkSamples,
+        reasonIfUnavailable: 'insufficient_joint_window',
+        summary: _trimmedAverage,
+      ),
+      kneeDrive: _measurementFromSamples(
+        kneeDriveSamples,
+        reasonIfUnavailable: 'insufficient_joint_window',
+        summary: _upperWindowAverage,
+      ),
+      cadence: cadence == null
+          ? const SprintMeasuredValue.unavailable(
+              reasonIfUnavailable: 'insufficient_step_events',
+            )
+          : SprintMeasuredValue.available(
+              value: cadence,
+              confidence: cadenceConfidence,
+              sampleCount: stepEvents.length,
+            ),
+      rhythm: rhythmStd == null
+          ? const SprintMeasuredValue.unavailable(
+              reasonIfUnavailable: 'insufficient_step_events',
+            )
+          : SprintMeasuredValue.available(
+              value: rhythmStd,
+              confidence: cadenceConfidence,
+              sampleCount: stepIntervalsMs.length,
+            ),
+      armBalance: armExcursions == null
+          ? const SprintMeasuredValue.unavailable(
+              reasonIfUnavailable: 'insufficient_joint_window',
+            )
+          : SprintMeasuredValue.available(
+              value: _asymmetryRatio(
+                armExcursions.leftAverage,
+                armExcursions.rightAverage,
+              ),
+              confidence: armExcursions.confidence,
+              sampleCount: armExcursions.sampleCount,
+            ),
       stepInterval: averageStepIntervalMs == null
           ? null
           : Duration(milliseconds: averageStepIntervalMs.round()),
-      cadenceStepsPerMinute: cadence,
-      stepIntervalStdMs: stepIntervalsMs.isEmpty
-          ? null
-          : _standardDeviation(stepIntervalsMs),
-      armSwingAsymmetryRatio: armExcursions == null
-          ? null
-          : _asymmetryRatio(
-              armExcursions.leftAverage,
-              armExcursions.rightAverage,
-            ),
       detectedStepEvents: stepEvents.length,
       stepCrossoverCount: stepDetection.leadSwitchCount,
       rejectedStepEventsLowVelocity: stepDetection.rejectedForLowVelocityCount,
@@ -72,37 +101,75 @@ class SprintFeatureCalculator {
     );
   }
 
-  double? _trunkAngleDegrees(SprintNormalizedPoseFrame frame) {
-    final shoulderCenter = frame.midpointOf(
-      SprintPoseLandmarkType.leftShoulder,
-      SprintPoseLandmarkType.rightShoulder,
-    );
-    if (shoulderCenter == null) {
+  _WeightedSample? _trunkAngleDegrees(SprintNormalizedPoseFrame frame) {
+    final leftShoulder = frame.landmark(SprintPoseLandmarkType.leftShoulder);
+    final rightShoulder = frame.landmark(SprintPoseLandmarkType.rightShoulder);
+    final leftHip = frame.landmark(SprintPoseLandmarkType.leftHip);
+    final rightHip = frame.landmark(SprintPoseLandmarkType.rightHip);
+    if (leftShoulder == null ||
+        rightShoulder == null ||
+        leftHip == null ||
+        rightHip == null) {
       return null;
     }
 
-    final verticalMagnitude = shoulderCenter.dy.abs();
+    final shoulderCenter = Offset(
+      (leftShoulder.dx + rightShoulder.dx) / 2,
+      (leftShoulder.dy + rightShoulder.dy) / 2,
+    );
+    final hipCenter = Offset(
+      (leftHip.dx + rightHip.dx) / 2,
+      (leftHip.dy + rightHip.dy) / 2,
+    );
+    final axis = shoulderCenter - hipCenter;
+    final verticalMagnitude = axis.dy.abs();
     if (verticalMagnitude <= 0) {
       return null;
     }
 
-    final horizontalMagnitude = shoulderCenter.dx.abs();
-    return math.atan2(horizontalMagnitude, verticalMagnitude) * 180 / math.pi;
+    final horizontalMagnitude = axis.dx.abs();
+    final confidence = _average(<double>[
+      frame.landmarkConfidence(SprintPoseLandmarkType.leftShoulder) ?? 0,
+      frame.landmarkConfidence(SprintPoseLandmarkType.rightShoulder) ?? 0,
+      frame.landmarkConfidence(SprintPoseLandmarkType.leftHip) ?? 0,
+      frame.landmarkConfidence(SprintPoseLandmarkType.rightHip) ?? 0,
+    ]);
+    return _WeightedSample(
+      value: math.atan2(horizontalMagnitude, verticalMagnitude) * 180 / math.pi,
+      confidence: confidence,
+    );
   }
 
-  double? _kneeDriveHeightRatio(SprintNormalizedPoseFrame frame) {
+  _WeightedSample? _kneeDriveHeightRatio(SprintNormalizedPoseFrame frame) {
     final leftKnee = frame.landmark(SprintPoseLandmarkType.leftKnee);
     final rightKnee = frame.landmark(SprintPoseLandmarkType.rightKnee);
-    if (leftKnee == null || rightKnee == null) {
+    final leftHip = frame.landmark(SprintPoseLandmarkType.leftHip);
+    final rightHip = frame.landmark(SprintPoseLandmarkType.rightHip);
+    if (leftKnee == null ||
+        rightKnee == null ||
+        leftHip == null ||
+        rightHip == null) {
       return null;
     }
 
-    return math.max(-leftKnee.dy, -rightKnee.dy);
+    final leftDrive = (leftHip.dy - leftKnee.dy).clamp(0.0, double.infinity);
+    final rightDrive = (rightHip.dy - rightKnee.dy).clamp(0.0, double.infinity);
+    final confidence = _average(<double>[
+      frame.landmarkConfidence(SprintPoseLandmarkType.leftHip) ?? 0,
+      frame.landmarkConfidence(SprintPoseLandmarkType.rightHip) ?? 0,
+      frame.landmarkConfidence(SprintPoseLandmarkType.leftKnee) ?? 0,
+      frame.landmarkConfidence(SprintPoseLandmarkType.rightKnee) ?? 0,
+    ]);
+    return _WeightedSample(
+      value: math.max(leftDrive, rightDrive),
+      confidence: confidence,
+    );
   }
 
   _ArmExcursions? _armExcursions(List<SprintNormalizedPoseFrame> frames) {
     final left = <double>[];
     final right = <double>[];
+    final confidences = <double>[];
 
     for (final frame in frames) {
       final leftShoulder = frame.landmark(SprintPoseLandmarkType.leftShoulder);
@@ -120,6 +187,14 @@ class SprintFeatureCalculator {
 
       left.add((leftWrist.dx - leftShoulder.dx).abs());
       right.add((rightWrist.dx - rightShoulder.dx).abs());
+      confidences.add(
+        _average(<double>[
+          frame.landmarkConfidence(SprintPoseLandmarkType.leftShoulder) ?? 0,
+          frame.landmarkConfidence(SprintPoseLandmarkType.rightShoulder) ?? 0,
+          frame.landmarkConfidence(SprintPoseLandmarkType.leftWrist) ?? 0,
+          frame.landmarkConfidence(SprintPoseLandmarkType.rightWrist) ?? 0,
+        ]),
+      );
     }
 
     if (left.isEmpty || right.isEmpty) {
@@ -127,8 +202,10 @@ class SprintFeatureCalculator {
     }
 
     return _ArmExcursions(
-      leftAverage: _average(left),
-      rightAverage: _average(right),
+      leftAverage: _trimmedAverage(left),
+      rightAverage: _trimmedAverage(right),
+      confidence: _average(confidences),
+      sampleCount: math.min(left.length, right.length),
     );
   }
 
@@ -167,12 +244,11 @@ class SprintFeatureCalculator {
         leadSwitchCount += 1;
         final deltaTimeSeconds =
             frame.timestamp.difference(previousTimestamp).inMicroseconds /
-            Duration.microsecondsPerSecond;
+                Duration.microsecondsPerSecond;
         final velocity = deltaTimeSeconds <= 0
             ? 0
             : (delta - previousDelta).abs() / deltaTimeSeconds;
-        final meetsInterval =
-            lastAcceptedEventAt == null ||
+        final meetsInterval = lastAcceptedEventAt == null ||
             frame.timestamp.difference(lastAcceptedEventAt) >=
                 minimumStepEventInterval;
         if (!meetsInterval) {
@@ -213,12 +289,67 @@ class SprintFeatureCalculator {
     return null;
   }
 
+  SprintMeasuredValue _measurementFromSamples(
+    List<_WeightedSample> samples, {
+    required String reasonIfUnavailable,
+    required double Function(List<double> values) summary,
+  }) {
+    if (samples.length < 3) {
+      return SprintMeasuredValue.unavailable(
+        reasonIfUnavailable: reasonIfUnavailable,
+        sampleCount: samples.length,
+      );
+    }
+
+    final values =
+        samples.map((sample) => sample.value).toList(growable: false);
+    final confidences = samples
+        .map((sample) => sample.confidence.clamp(0.0, 1.0))
+        .toList(growable: false);
+    final value = summary(values);
+    final confidence =
+        (_average(confidences) * math.min(1.0, samples.length / 6.0))
+            .clamp(0.0, 1.0);
+    return SprintMeasuredValue.available(
+      value: value,
+      confidence: confidence,
+      sampleCount: samples.length,
+    );
+  }
+
+  double _stepMetricConfidence(
+    _StepDetectionSummary summary,
+    List<DateTime> stepEvents,
+  ) {
+    if (stepEvents.length < 2) {
+      return 0;
+    }
+
+    final totalAttempts = math.max(1, summary.leadSwitchCount);
+    final rejectionPenalty = (summary.rejectedForLowVelocityCount +
+            summary.rejectedForMinimumIntervalCount) /
+        totalAttempts;
+    final confidence = math.min(1.0, stepEvents.length / 4.0) *
+        (1.0 - rejectionPenalty).clamp(0.2, 1.0);
+    return confidence.clamp(0.0, 1.0);
+  }
+
   double _average(List<double> values) {
     final total = values.reduce((sum, value) => sum + value);
     return total / values.length;
   }
 
-  double _averageTopWindow(List<double> values) {
+  double _trimmedAverage(List<double> values) {
+    if (values.length <= 2) {
+      return _average(values);
+    }
+    final sorted = values.toList()..sort();
+    final start = values.length >= 5 ? 1 : 0;
+    final end = values.length >= 5 ? sorted.length - 1 : sorted.length;
+    return _average(sorted.sublist(start, end));
+  }
+
+  double _upperWindowAverage(List<double> values) {
     final sorted = values.toList()..sort();
     final windowSize = math.max(1, sorted.length ~/ 3);
     final topWindow = sorted.sublist(sorted.length - windowSize);
@@ -235,8 +366,7 @@ class SprintFeatureCalculator {
       return 0;
     }
     final mean = _average(values);
-    final variance =
-        values
+    final variance = values
             .map((value) => math.pow(value - mean, 2).toDouble())
             .reduce((sum, value) => sum + value) /
         values.length;
@@ -244,11 +374,25 @@ class SprintFeatureCalculator {
   }
 }
 
+class _WeightedSample {
+  final double value;
+  final double confidence;
+
+  const _WeightedSample({required this.value, required this.confidence});
+}
+
 class _ArmExcursions {
   final double leftAverage;
   final double rightAverage;
+  final double confidence;
+  final int sampleCount;
 
-  const _ArmExcursions({required this.leftAverage, required this.rightAverage});
+  const _ArmExcursions({
+    required this.leftAverage,
+    required this.rightAverage,
+    required this.confidence,
+    required this.sampleCount,
+  });
 }
 
 enum _LeadFootState { leftLead, rightLead }

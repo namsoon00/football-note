@@ -9,6 +9,7 @@ class SprintNormalizedPoseFrame {
   final Offset hipCenter;
   final Offset shoulderCenter;
   final Map<SprintPoseLandmarkType, Offset> normalizedLandmarks;
+  final Map<SprintPoseLandmarkType, double> landmarkConfidences;
 
   const SprintNormalizedPoseFrame({
     required this.timestamp,
@@ -16,9 +17,13 @@ class SprintNormalizedPoseFrame {
     required this.hipCenter,
     required this.shoulderCenter,
     required this.normalizedLandmarks,
+    required this.landmarkConfidences,
   });
 
   Offset? landmark(SprintPoseLandmarkType type) => normalizedLandmarks[type];
+
+  double? landmarkConfidence(SprintPoseLandmarkType type) =>
+      landmarkConfidences[type];
 
   Offset? midpointOf(
     SprintPoseLandmarkType first,
@@ -90,6 +95,7 @@ class SprintPoseNormalizer {
     }
 
     final normalized = <SprintPoseLandmarkType, Offset>{};
+    final confidences = <SprintPoseLandmarkType, double>{};
     for (final entry in frame.landmarks.entries) {
       if (entry.value.confidence < minimumConfidence) {
         continue;
@@ -98,6 +104,7 @@ class SprintPoseNormalizer {
         (entry.value.position.dx - hipCenter.dx) / bodyScale,
         (entry.value.position.dy - hipCenter.dy) / bodyScale,
       );
+      confidences[entry.key] = entry.value.confidence;
     }
 
     return SprintNormalizedPoseFrame(
@@ -106,6 +113,7 @@ class SprintPoseNormalizer {
       hipCenter: hipCenter,
       shoulderCenter: shoulderCenter,
       normalizedLandmarks: normalized,
+      landmarkConfidences: confidences,
     );
   }
 

@@ -196,10 +196,14 @@ void main() {
         state.stateEstimate.bodyVisibilityStatus,
         SprintBodyVisibilityStatus.partial,
       );
+      expect(
+        state.stateEstimate.trackingReadiness,
+        SprintTrackingReadiness.bodyTooSmall,
+      );
       expect(state.stateEstimate.visibleCoreLandmarkCount, 4);
       expect(state.stateEstimate.missingCoreLandmarkCount, 8);
       expect(state.stateEstimate.bodyVisibilityRatio, closeTo(4 / 12, 0.001));
-      expect(state.feedback?.code, SprintFeedbackCode.bodyNotVisible);
+      expect(state.feedback, isNull);
     });
 
     test('surfaces lean-forward feedback for insufficient trunk angle', () {
@@ -293,6 +297,11 @@ SprintPipelineConfig _scenarioConfig() {
     analysisWindow: Duration(milliseconds: 1400),
     minimumWindowFrames: 5,
     smoothingFactor: 1,
+    minimumPersonHeightRatio: 0.34,
+    minimumPersonAreaRatio: 0.06,
+    minimumSideViewTravelRatio: 0.03,
+    minimumSideViewConfidence: 0.4,
+    minimumFeatureConfidence: 0.4,
   );
 }
 
@@ -334,14 +343,12 @@ List<_SyntheticSprintFrame> _sequence({
   double rightWristReach = 0.44,
 }) {
   expect(offsetsMs.length, hipCenterXs.length);
-  final resolvedLeftAnkles =
-      leftAnkleXs ??
+  final resolvedLeftAnkles = leftAnkleXs ??
       List<double>.generate(
         offsetsMs.length,
         (index) => index.isEven ? 0.24 : -0.24,
       );
-  final resolvedRightAnkles =
-      rightAnkleXs ??
+  final resolvedRightAnkles = rightAnkleXs ??
       List<double>.generate(
         offsetsMs.length,
         (index) => index.isEven ? -0.24 : 0.24,

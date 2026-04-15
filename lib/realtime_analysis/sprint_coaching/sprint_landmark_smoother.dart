@@ -8,14 +8,26 @@ class SprintLandmarkSmoother {
 
   void reset() => _previousPositions.clear();
 
-  SprintPoseFrame smooth(SprintPoseFrame frame, {required double alpha}) {
+  SprintPoseFrame smooth(
+    SprintPoseFrame frame, {
+    required double alpha,
+    double maxDisplacementRatio = 0.44,
+  }) {
     final smoothed = <SprintPoseLandmarkType, SprintPoseLandmark>{};
+    final bodyScale = frame.bodyScaleEstimate();
 
     for (final entry in frame.landmarks.entries) {
       final previous = _previousPositions[entry.key];
+      final displacement =
+          previous == null ? 0.0 : (previous - entry.value.position).distance;
+      final exceedsOutlierThreshold = previous != null &&
+          bodyScale > 0 &&
+          displacement > (bodyScale * maxDisplacementRatio);
       final nextPosition = previous == null
           ? entry.value.position
-          : _lerp(previous, entry.value.position, alpha);
+          : exceedsOutlierThreshold
+              ? previous
+              : _lerp(previous, entry.value.position, alpha);
       _previousPositions[entry.key] = nextPosition;
       smoothed[entry.key] = SprintPoseLandmark(
         position: nextPosition,

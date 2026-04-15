@@ -16,75 +16,105 @@ class SprintStateEstimator {
     required DateTime? lastFeedbackAt,
   }) {
     final lastRawFrame = rawFrames.isEmpty ? null : rawFrames.last;
-    final visibleLandmarkCount =
-        lastRawFrame?.visibleLandmarkCount(
+    final visibleLandmarkCount = lastRawFrame?.visibleLandmarkCount(
           minimumConfidence: config.minimumLandmarkConfidence,
         ) ??
         0;
     final visibleCoreLandmarkCount = lastRawFrame == null
         ? 0
         : sprintMvpCoreLandmarks
-              .where(
-                (type) =>
-                    lastRawFrame.landmark(
-                      type,
-                      minimumConfidence: config.minimumLandmarkConfidence,
-                    ) !=
-                    null,
-              )
-              .length;
+            .where(
+              (type) =>
+                  lastRawFrame.landmark(
+                    type,
+                    minimumConfidence: config.minimumLandmarkConfidence,
+                  ) !=
+                  null,
+            )
+            .length;
     final missingCoreLandmarkCount = lastRawFrame == null
         ? sprintMvpCoreLandmarks.length
         : sprintMvpCoreLandmarks
-              .where(
-                (type) =>
-                    lastRawFrame.landmark(
-                      type,
-                      minimumConfidence: config.minimumLandmarkConfidence,
-                    ) ==
-                    null,
-              )
-              .length;
+            .where(
+              (type) =>
+                  lastRawFrame.landmark(
+                    type,
+                    minimumConfidence: config.minimumLandmarkConfidence,
+                  ) ==
+                  null,
+            )
+            .length;
     final bodyVisibilityRatio =
         visibleCoreLandmarkCount / sprintMvpCoreLandmarkCount;
-    final bodyFullyVisible =
-        lastRawFrame != null &&
+    final personBounds = lastRawFrame?.boundingBox(
+      minimumConfidence: config.minimumLandmarkConfidence,
+    );
+    final personHeightRatio = personBounds == null || lastRawFrame == null
+        ? 0.0
+        : personBounds.height / lastRawFrame.imageSize.height;
+    final personAreaRatio = personBounds == null || lastRawFrame == null
+        ? 0.0
+        : (personBounds.width * personBounds.height) /
+            (lastRawFrame.imageSize.width * lastRawFrame.imageSize.height);
+    final averageLandmarkConfidence = lastRawFrame?.averageVisibleConfidence(
+          minimumConfidence: config.minimumLandmarkConfidence,
+        ) ??
+        0;
+    final bodyTooSmall = personHeightRatio < config.minimumPersonHeightRatio ||
+        personAreaRatio < config.minimumPersonAreaRatio;
+    final bodyPartiallyOutOfFrame =
+        _touchesFrameEdge(lastRawFrame, personBounds, config) ||
+            (visibleCoreLandmarkCount > 0 && bodyVisibilityRatio < 1);
+    final bodyFullyVisible = lastRawFrame != null &&
         visibleLandmarkCount >= config.minimumVisibleLandmarks &&
-        bodyVisibilityRatio >= config.minimumBodyVisibilityRatio;
+        bodyVisibilityRatio >= config.minimumBodyVisibilityRatio &&
+        !bodyTooSmall &&
+        !bodyPartiallyOutOfFrame;
     final bodyVisibilityStatus = visibleCoreLandmarkCount == 0
         ? SprintBodyVisibilityStatus.notVisible
         : bodyFullyVisible
-        ? SprintBodyVisibilityStatus.full
-        : SprintBodyVisibilityStatus.partial;
+            ? SprintBodyVisibilityStatus.full
+            : SprintBodyVisibilityStatus.partial;
     final trackingConfidence = _trackingConfidence(rawFrames);
     final hipTravelRatio = _hipTravelRatio(
       rawFrames,
       config.minimumLandmarkConfidence,
     );
+    final sideViewConfidence = _sideViewConfidence(
+      rawFrames: rawFrames,
+      minimumConfidence: config.minimumLandmarkConfidence,
+      minimumTravelRatio: config.minimumSideViewTravelRatio,
+    );
     final lowConfidence =
-        !bodyFullyVisible ||
         trackingConfidence < config.minimumTrackingConfidence ||
-        normalizedFrames.length < config.minimumWindowFrames;
+            averageLandmarkConfidence < config.minimumTrackingConfidence ||
+            normalizedFrames.length < config.minimumWindowFrames ||
+            visibleLandmarkCount < config.minimumVisibleLandmarks ||
+            visibleCoreLandmarkCount == 0;
+    final trackingReadiness = _trackingReadiness(
+      bodyTooSmall: bodyTooSmall,
+      bodyPartiallyOutOfFrame: bodyPartiallyOutOfFrame,
+      lowConfidence: lowConfidence,
+      sideViewConfidence: sideViewConfidence,
+      config: config,
+    );
     final cadence = features.cadenceStepsPerMinute ?? 0;
-    final cadenceSupportsRunning =
-        features.detectedStepEvents == 0 ||
+    final cadenceSupportsRunning = features.detectedStepEvents == 0 ||
         cadence >= config.minimumRunningCadenceStepsPerMinute;
     final stepDrivenRunningDetected =
         features.detectedStepEvents >= config.minimumStepEventsForRunning &&
-        cadence >= config.minimumRunningCadenceStepsPerMinute &&
-        hipTravelRatio >= config.minimumStepDrivenTravelRatio;
+            cadence >= config.minimumRunningCadenceStepsPerMinute &&
+            hipTravelRatio >= config.minimumStepDrivenTravelRatio;
     final runningDetected =
-        !lowConfidence &&
-        cadenceSupportsRunning &&
-        (hipTravelRatio >= config.minimumRunningTravelRatio ||
-            stepDrivenRunningDetected);
-    final accelerationPhaseDetected =
-        runningDetected &&
+        trackingReadiness == SprintTrackingReadiness.readyForAnalysis &&
+            cadenceSupportsRunning &&
+            (hipTravelRatio >= config.minimumRunningTravelRatio ||
+                stepDrivenRunningDetected);
+    final accelerationPhaseDetected = runningDetected &&
         (features.trunkAngleDegrees ?? 0) >= config.minimumTrunkAngleDegrees &&
         (features.trunkAngleDegrees ?? 0) <=
             config.maximumAccelerationTrunkAngleDegrees;
-    final feedbackCooldownActive =
-        lastFeedbackAt != null &&
+    final feedbackCooldownActive = lastFeedbackAt != null &&
         now.difference(lastFeedbackAt) < config.feedbackCooldown;
 
     return SprintStateEstimate(
@@ -94,6 +124,7 @@ class SprintStateEstimator {
       lowConfidence: lowConfidence,
       bodyFullyVisible: bodyFullyVisible,
       bodyVisibilityStatus: bodyVisibilityStatus,
+      trackingReadiness: trackingReadiness,
       trackingConfidence: trackingConfidence,
       stableFrameCount: normalizedFrames.length,
       visibleLandmarkCount: visibleLandmarkCount,
@@ -101,7 +132,35 @@ class SprintStateEstimator {
       missingCoreLandmarkCount: missingCoreLandmarkCount,
       bodyVisibilityRatio: bodyVisibilityRatio,
       hipTravelRatio: hipTravelRatio,
+      personHeightRatio: personHeightRatio,
+      personAreaRatio: personAreaRatio,
+      averageLandmarkConfidence: averageLandmarkConfidence,
+      sideViewConfidence: sideViewConfidence,
+      personBounds: personBounds,
+      suggestedCropRect: _suggestedCropRect(lastRawFrame, personBounds),
     );
+  }
+
+  SprintTrackingReadiness _trackingReadiness({
+    required bool bodyTooSmall,
+    required bool bodyPartiallyOutOfFrame,
+    required bool lowConfidence,
+    required double sideViewConfidence,
+    required SprintPipelineConfig config,
+  }) {
+    if (bodyTooSmall) {
+      return SprintTrackingReadiness.bodyTooSmall;
+    }
+    if (bodyPartiallyOutOfFrame) {
+      return SprintTrackingReadiness.bodyPartiallyOutOfFrame;
+    }
+    if (lowConfidence) {
+      return SprintTrackingReadiness.lowConfidence;
+    }
+    if (sideViewConfidence < config.minimumSideViewConfidence) {
+      return SprintTrackingReadiness.sideViewUnstable;
+    }
+    return SprintTrackingReadiness.readyForAnalysis;
   }
 
   double _trackingConfidence(List<SprintPoseFrame> rawFrames) {
@@ -196,6 +255,100 @@ class SprintStateEstimator {
       return 0;
     }
     return travel / averageScale;
+  }
+
+  double _sideViewConfidence({
+    required List<SprintPoseFrame> rawFrames,
+    required double minimumConfidence,
+    required double minimumTravelRatio,
+  }) {
+    if (rawFrames.length < 3) {
+      return 0;
+    }
+
+    final hipCenters = <Offset>[];
+    final scales = <double>[];
+    for (final frame in rawFrames) {
+      final leftHip = frame.landmark(
+        SprintPoseLandmarkType.leftHip,
+        minimumConfidence: minimumConfidence,
+      );
+      final rightHip = frame.landmark(
+        SprintPoseLandmarkType.rightHip,
+        minimumConfidence: minimumConfidence,
+      );
+      final bounds = frame.boundingBox(minimumConfidence: minimumConfidence);
+      if (leftHip == null || rightHip == null || bounds == null) {
+        continue;
+      }
+      hipCenters.add(
+        Offset(
+          (leftHip.position.dx + rightHip.position.dx) / 2,
+          (leftHip.position.dy + rightHip.position.dy) / 2,
+        ),
+      );
+      scales.add(bounds.height > 0 ? bounds.height : bounds.width);
+    }
+
+    if (hipCenters.length < 3 || scales.isEmpty) {
+      return 0;
+    }
+
+    final horizontalTravel = (hipCenters.last.dx - hipCenters.first.dx).abs();
+    final verticalTravel = (hipCenters.last.dy - hipCenters.first.dy).abs();
+    final averageScale = _average(scales);
+    if (averageScale <= 0) {
+      return 0;
+    }
+
+    final normalizedHorizontal = horizontalTravel / averageScale;
+    final directionality =
+        horizontalTravel / (horizontalTravel + verticalTravel + 0.001);
+    final normalizedTravel =
+        (normalizedHorizontal / minimumTravelRatio).clamp(0.0, 1.0);
+    return (0.65 * directionality) + (0.35 * normalizedTravel);
+  }
+
+  bool _touchesFrameEdge(
+    SprintPoseFrame? frame,
+    Rect? bounds,
+    SprintPipelineConfig config,
+  ) {
+    if (frame == null || bounds == null) {
+      return false;
+    }
+
+    final marginX = frame.imageSize.width * config.frameEdgePaddingRatio;
+    final marginY = frame.imageSize.height * config.frameEdgePaddingRatio;
+    return bounds.left <= marginX ||
+        bounds.top <= marginY ||
+        bounds.right >= frame.imageSize.width - marginX ||
+        bounds.bottom >= frame.imageSize.height - marginY;
+  }
+
+  Rect? _suggestedCropRect(SprintPoseFrame? frame, Rect? bounds) {
+    if (frame == null || bounds == null) {
+      return null;
+    }
+
+    final expandedWidth = bounds.width * 1.2;
+    final expandedHeight = bounds.height * 1.16;
+    final center = bounds.center;
+    final desired = Rect.fromCenter(
+      center: center,
+      width: expandedWidth,
+      height: expandedHeight,
+    );
+    return Rect.fromLTRB(
+      desired.left.clamp(0.0, frame.imageSize.width),
+      desired.top.clamp(0.0, frame.imageSize.height),
+      desired.right.clamp(0.0, frame.imageSize.width),
+      desired.bottom.clamp(0.0, frame.imageSize.height),
+    );
+  }
+
+  double _average(List<double> values) {
+    return values.reduce((sum, value) => sum + value) / values.length;
   }
 
   double _distance(Offset first, Offset second) {

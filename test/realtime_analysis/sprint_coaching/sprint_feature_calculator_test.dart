@@ -204,5 +204,19 @@ SprintNormalizedPoseFrame _frame({
       SprintPoseLandmarkType.leftAnkle: Offset(leftAnkleX, 1),
       SprintPoseLandmarkType.rightAnkle: Offset(rightAnkleX, 1),
     },
+    landmarkConfidences: <SprintPoseLandmarkType, double>{
+      SprintPoseLandmarkType.leftShoulder: 0.98,
+      SprintPoseLandmarkType.rightShoulder: 0.98,
+      SprintPoseLandmarkType.leftHip: 0.98,
+      SprintPoseLandmarkType.rightHip: 0.98,
+      SprintPoseLandmarkType.leftElbow: 0.98,
+      SprintPoseLandmarkType.rightElbow: 0.98,
+      SprintPoseLandmarkType.leftWrist: 0.98,
+      SprintPoseLandmarkType.rightWrist: 0.98,
+      SprintPoseLandmarkType.leftKnee: 0.98,
+      SprintPoseLandmarkType.rightKnee: 0.98,
+      SprintPoseLandmarkType.leftAnkle: 0.98,
+      SprintPoseLandmarkType.rightAnkle: 0.98,
+    },
   );
 }

@@ -3966,6 +3966,385 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drill: 2 x 20m A-march and 2 x 20m wicket-style runs with short contacts.'**
   String get runningCoachStrideOverDrill;
+
+  /// No description provided for @runningCoachSprintDebugToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle sprint debug overlay'**
+  String get runningCoachSprintDebugToggle;
+
+  /// No description provided for @runningCoachSprintDebugPanelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug overlay'**
+  String get runningCoachSprintDebugPanelTitle;
+
+  /// No description provided for @runningCoachSprintCueWhyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why'**
+  String get runningCoachSprintCueWhyLabel;
+
+  /// No description provided for @runningCoachSprintCueTryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Try'**
+  String get runningCoachSprintCueTryLabel;
+
+  /// No description provided for @runningCoachSprintTrackingStateBodyTooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Move closer'**
+  String get runningCoachSprintTrackingStateBodyTooSmall;
+
+  /// No description provided for @runningCoachSprintTrackingStateBodyOutOfFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the full body in frame'**
+  String get runningCoachSprintTrackingStateBodyOutOfFrame;
+
+  /// No description provided for @runningCoachSprintTrackingStateLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Raise tracking confidence'**
+  String get runningCoachSprintTrackingStateLowConfidence;
+
+  /// No description provided for @runningCoachSprintTrackingStateSideViewUnstable.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle the side view'**
+  String get runningCoachSprintTrackingStateSideViewUnstable;
+
+  /// No description provided for @runningCoachSprintTrackingStateReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for analysis'**
+  String get runningCoachSprintTrackingStateReady;
+
+  /// No description provided for @runningCoachSprintTrackingHintBodyTooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'The runner is too small in frame. Move closer before analyzing.'**
+  String get runningCoachSprintTrackingHintBodyTooSmall;
+
+  /// No description provided for @runningCoachSprintTrackingHintBodyOutOfFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Some joints are leaving the frame, so the pose line cannot stay locked.'**
+  String get runningCoachSprintTrackingHintBodyOutOfFrame;
+
+  /// No description provided for @runningCoachSprintTrackingHintLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Pose confidence is low right now. Hold a steadier shot for a moment.'**
+  String get runningCoachSprintTrackingHintLowConfidence;
+
+  /// No description provided for @runningCoachSprintTrackingHintSideViewUnstable.
+  ///
+  /// In en, this message translates to:
+  /// **'The side-view motion is still unstable. Keep a cleaner lateral run path.'**
+  String get runningCoachSprintTrackingHintSideViewUnstable;
+
+  /// No description provided for @runningCoachSprintTrackingDiagnosisBodyTooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'The current body box is too small for stable trunk, knee, and rhythm measurements on device.'**
+  String get runningCoachSprintTrackingDiagnosisBodyTooSmall;
+
+  /// No description provided for @runningCoachSprintTrackingDiagnosisBodyOutOfFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Core joints are clipping near the edge, so overlay and feature values will drift.'**
+  String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame;
+
+  /// No description provided for @runningCoachSprintTrackingDiagnosisLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible joints or average landmark confidence are below the quality gate for coaching.'**
+  String get runningCoachSprintTrackingDiagnosisLowConfidence;
+
+  /// No description provided for @runningCoachSprintTrackingDiagnosisSideViewUnstable.
+  ///
+  /// In en, this message translates to:
+  /// **'The motion path is not staying lateral enough yet, so side-view analysis is being held back.'**
+  String get runningCoachSprintTrackingDiagnosisSideViewUnstable;
+
+  /// No description provided for @runningCoachSprintTrackingActionBodyTooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring the camera closer until the body fills at least about half of the screen height.'**
+  String get runningCoachSprintTrackingActionBodyTooSmall;
+
+  /// No description provided for @runningCoachSprintTrackingActionBodyOutOfFrame.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the head, elbows, hips, and ankles inside the guide frame before sprinting again.'**
+  String get runningCoachSprintTrackingActionBodyOutOfFrame;
+
+  /// No description provided for @runningCoachSprintTrackingActionLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a steadier camera, clearer lighting, and keep the runner centered for a few frames.'**
+  String get runningCoachSprintTrackingActionLowConfidence;
+
+  /// No description provided for @runningCoachSprintTrackingActionSideViewUnstable.
+  ///
+  /// In en, this message translates to:
+  /// **'Run across the frame from the side instead of drifting toward the camera or diagonally.'**
+  String get runningCoachSprintTrackingActionSideViewUnstable;
+
+  /// No description provided for @runningCoachSprintTrackingSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{state} · height {heightPercent}% · area {areaPercent}%'**
+  String runningCoachSprintTrackingSummary(
+      Object state, int heightPercent, int areaPercent);
+
+  /// No description provided for @runningCoachSprintSpeechSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech {state} · {reason}'**
+  String runningCoachSprintSpeechSummary(Object state, Object reason);
+
+  /// No description provided for @runningCoachSprintSpeechStateIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Idle'**
+  String get runningCoachSprintSpeechStateIdle;
+
+  /// No description provided for @runningCoachSprintSpeechStateQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get runningCoachSprintSpeechStateQueued;
+
+  /// No description provided for @runningCoachSprintSpeechStateStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Started'**
+  String get runningCoachSprintSpeechStateStarted;
+
+  /// No description provided for @runningCoachSprintSpeechStateCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get runningCoachSprintSpeechStateCompleted;
+
+  /// No description provided for @runningCoachSprintSpeechStateSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get runningCoachSprintSpeechStateSkipped;
+
+  /// No description provided for @runningCoachSprintSpeechStateCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get runningCoachSprintSpeechStateCancelled;
+
+  /// No description provided for @runningCoachSprintSpeechStateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get runningCoachSprintSpeechStateError;
+
+  /// No description provided for @runningCoachSprintSpeechSkipNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No skip'**
+  String get runningCoachSprintSpeechSkipNone;
+
+  /// No description provided for @runningCoachSprintSpeechSkipDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice feedback is off'**
+  String get runningCoachSprintSpeechSkipDisabled;
+
+  /// No description provided for @runningCoachSprintSpeechSkipNoFeedbackSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No feedback selected'**
+  String get runningCoachSprintSpeechSkipNoFeedbackSelected;
+
+  /// No description provided for @runningCoachSprintSpeechSkipEmptyCue.
+  ///
+  /// In en, this message translates to:
+  /// **'Cue text is empty'**
+  String get runningCoachSprintSpeechSkipEmptyCue;
+
+  /// No description provided for @runningCoachSprintSpeechSkipInfoFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Only warning cues are spoken'**
+  String get runningCoachSprintSpeechSkipInfoFeedback;
+
+  /// No description provided for @runningCoachSprintSpeechSkipTrackingNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking is not ready yet'**
+  String get runningCoachSprintSpeechSkipTrackingNotReady;
+
+  /// No description provided for @runningCoachSprintSpeechSkipLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback confidence is too low for speech'**
+  String get runningCoachSprintSpeechSkipLowConfidence;
+
+  /// No description provided for @runningCoachSprintSpeechSkipTrackingNotStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking has not stayed stable long enough'**
+  String get runningCoachSprintSpeechSkipTrackingNotStable;
+
+  /// No description provided for @runningCoachSprintSpeechSkipCooldownActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech cooldown is active'**
+  String get runningCoachSprintSpeechSkipCooldownActive;
+
+  /// No description provided for @runningCoachSprintDiagnosisLeanForward.
+  ///
+  /// In en, this message translates to:
+  /// **'The trunk is rising too early, so the first acceleration steps lose forward push.'**
+  String get runningCoachSprintDiagnosisLeanForward;
+
+  /// No description provided for @runningCoachSprintDiagnosisDriveKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'The knee drive is staying low relative to the hips, so the front-side step does not connect strongly.'**
+  String get runningCoachSprintDiagnosisDriveKnee;
+
+  /// No description provided for @runningCoachSprintDiagnosisKeepRhythm.
+  ///
+  /// In en, this message translates to:
+  /// **'Step timing is varying too much, so the left-right sprint rhythm is drifting.'**
+  String get runningCoachSprintDiagnosisKeepRhythm;
+
+  /// No description provided for @runningCoachSprintDiagnosisBalanceArms.
+  ///
+  /// In en, this message translates to:
+  /// **'One arm is contributing less backward drive, so rhythm support from the upper body is uneven.'**
+  String get runningCoachSprintDiagnosisBalanceArms;
+
+  /// No description provided for @runningCoachSprintDiagnosisKeepPushing.
+  ///
+  /// In en, this message translates to:
+  /// **'The main sprint features are inside the current MVP range, so the app is holding the current cue.'**
+  String get runningCoachSprintDiagnosisKeepPushing;
+
+  /// No description provided for @runningCoachSprintActionLeanForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the chest lower for the first three steps and let the lean come from the ankles.'**
+  String get runningCoachSprintActionLeanForward;
+
+  /// No description provided for @runningCoachSprintActionDriveKnee.
+  ///
+  /// In en, this message translates to:
+  /// **'Push the ground harder and let the knee come through instead of trying to lift it by itself.'**
+  String get runningCoachSprintActionDriveKnee;
+
+  /// No description provided for @runningCoachSprintActionKeepRhythm.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not reach for a longer step. Keep ground contacts evenly spaced for the next few strides.'**
+  String get runningCoachSprintActionKeepRhythm;
+
+  /// No description provided for @runningCoachSprintActionBalanceArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Match the backward arm drive on both sides and keep the shoulders quieter.'**
+  String get runningCoachSprintActionBalanceArms;
+
+  /// No description provided for @runningCoachSprintActionKeepPushing.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay with the same shape for another few steps so the app can confirm stability.'**
+  String get runningCoachSprintActionKeepPushing;
+
+  /// No description provided for @runningCoachSprintSessionTrackingStateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking state'**
+  String get runningCoachSprintSessionTrackingStateLabel;
+
+  /// No description provided for @runningCoachSprintSessionPersonSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Person size'**
+  String get runningCoachSprintSessionPersonSizeLabel;
+
+  /// No description provided for @runningCoachSprintSessionPersonSizeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'height {heightPercent}% · area {areaPercent}%'**
+  String runningCoachSprintSessionPersonSizeValue(
+      int heightPercent, int areaPercent);
+
+  /// No description provided for @runningCoachSprintSessionVisibleJointCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible joints'**
+  String get runningCoachSprintSessionVisibleJointCountLabel;
+
+  /// No description provided for @runningCoachSprintSessionVisibleJointCountValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} joints · avg {confidence}'**
+  String runningCoachSprintSessionVisibleJointCountValue(
+      int count, Object confidence);
+
+  /// No description provided for @runningCoachSprintSessionSpeechStateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech state'**
+  String get runningCoachSprintSessionSpeechStateLabel;
+
+  /// No description provided for @runningCoachSprintSessionSpeechStateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{state} · {reason} · cooldown {cooldownMs}ms'**
+  String runningCoachSprintSessionSpeechStateValue(
+      Object state, Object reason, int cooldownMs);
+
+  /// No description provided for @runningCoachSprintSessionFeatureConfidenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature confidence'**
+  String get runningCoachSprintSessionFeatureConfidenceLabel;
+
+  /// No description provided for @runningCoachSprintSessionFeatureConfidenceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{trunk} / {knee} / {rhythm}'**
+  String runningCoachSprintSessionFeatureConfidenceValue(
+      Object trunk, Object knee, Object rhythm);
+
+  /// No description provided for @runningCoachSprintSessionFeatureDebugValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{feature} {value} ({confidence}%)'**
+  String runningCoachSprintSessionFeatureDebugValue(
+      Object feature, Object value, int confidence);
+
+  /// No description provided for @runningCoachSprintSessionFeatureUnavailableValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{feature} unavailable: {reason}'**
+  String runningCoachSprintSessionFeatureUnavailableValue(
+      Object feature, Object reason);
+
+  /// No description provided for @runningCoachSprintFeatureUnavailableJointWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'not enough stable joint frames'**
+  String get runningCoachSprintFeatureUnavailableJointWindow;
+
+  /// No description provided for @runningCoachSprintFeatureUnavailableStepEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'not enough stable step events'**
+  String get runningCoachSprintFeatureUnavailableStepEvents;
 }
 
 class _AppLocalizationsDelegate

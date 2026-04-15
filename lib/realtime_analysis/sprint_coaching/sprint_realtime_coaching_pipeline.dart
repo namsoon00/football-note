@@ -62,6 +62,7 @@ class SprintRealtimeCoachingPipeline {
       final smoothedFrame = _smoother.smooth(
         filteredFrame,
         alpha: config.smoothingFactor,
+        maxDisplacementRatio: config.outlierJointDisplacementRatio,
       );
       final normalizedFrame = _normalizer.normalize(
         smoothedFrame,
@@ -149,17 +150,11 @@ class SprintRealtimeCoachingPipeline {
     );
     if (selected == null) {
       if (!stateEstimate.feedbackCooldownActive ||
-          !stateEstimate.runningDetected) {
+          !stateEstimate.runningDetected ||
+          stateEstimate.trackingReadiness !=
+              SprintTrackingReadiness.readyForAnalysis) {
         _activeFeedback = null;
       }
-      return _FeedbackResolution(
-        feedback: _activeFeedback,
-        suppressedByCooldown: false,
-      );
-    }
-
-    if (selected.code == SprintFeedbackCode.bodyNotVisible) {
-      _activeFeedback = selected;
       return _FeedbackResolution(
         feedback: _activeFeedback,
         suppressedByCooldown: false,
@@ -196,7 +191,8 @@ class SprintRealtimeCoachingPipeline {
     required SprintFeedbackMessage? feedback,
     required SprintFeatureSnapshot features,
   }) {
-    if (stateEstimate.lowConfidence || !stateEstimate.bodyFullyVisible) {
+    if (stateEstimate.trackingReadiness !=
+        SprintTrackingReadiness.readyForAnalysis) {
       return SprintCoachingStatus.lowConfidence;
     }
 
@@ -204,7 +200,7 @@ class SprintRealtimeCoachingPipeline {
       return SprintCoachingStatus.collecting;
     }
 
-    if (feedback == null) {
+    if (feedback == null || feedback.severity == SprintFeedbackSeverity.info) {
       return SprintCoachingStatus.ready;
     }
 
