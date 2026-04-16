@@ -10,16 +10,20 @@ import 'package:intl/intl.dart';
 import '../../application/weather_location_service.dart';
 import '../widgets/app_background.dart';
 
+enum WeatherDetailInitialAction { none, outfitGuide }
+
 class WeatherDetailScreen extends StatefulWidget {
   final String initialLocation;
   final String initialSummary;
   final int? initialWeatherCode;
+  final WeatherDetailInitialAction initialAction;
 
   const WeatherDetailScreen({
     super.key,
     this.initialLocation = '',
     this.initialSummary = '',
     this.initialWeatherCode,
+    this.initialAction = WeatherDetailInitialAction.none,
   });
 
   static Future<void> warmUpFromHomeSync({
@@ -38,7 +42,9 @@ class WeatherDetailScreen extends StatefulWidget {
     );
     final snapshot = fetched.summary.trim().isEmpty
         ? _WeatherDetailsSnapshot(
-            summary: summary.trim(), weatherCode: weatherCode)
+            summary: summary.trim(),
+            weatherCode: weatherCode,
+          )
         : fetched;
     _WeatherDetailScreenState._cachedDetails = _CachedWeatherDetails(
       location: location.trim(),
@@ -65,11 +71,11 @@ class WeatherDetailScreen extends StatefulWidget {
     });
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current': 'pm10,pm2_5,us_aqi',
-      'timezone': 'auto',
-    });
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
+          'current': 'pm10,pm2_5,us_aqi',
+          'timezone': 'auto',
+        });
     final responses = await Future.wait([
       http.get(weatherUri),
       http.get(airQualityUri),
@@ -96,8 +102,10 @@ class WeatherDetailScreen extends StatefulWidget {
     final temperature = (current['temperature_2m'] as num?)?.toDouble();
     final localizer = _WeatherLocalizer(l10n: l10n);
     final weatherCode = (current['weather_code'] as num?)?.toInt();
-    final weatherText =
-        _weatherLabelFromCodeStatic(weatherCode, localizer: localizer);
+    final weatherText = _weatherLabelFromCodeStatic(
+      weatherCode,
+      localizer: localizer,
+    );
     final summary = temperature == null
         ? weatherText
         : '$weatherText ${temperature.toStringAsFixed(1)}°C';
@@ -108,8 +116,8 @@ class WeatherDetailScreen extends StatefulWidget {
     return _WeatherDetailsSnapshot(
       summary: summary,
       weatherCode: weatherCode,
-      apparentTemperature:
-          (current['apparent_temperature'] as num?)?.toDouble(),
+      apparentTemperature: (current['apparent_temperature'] as num?)
+          ?.toDouble(),
       humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
       windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
       temperatureMax: dailyMax,
@@ -198,12 +206,16 @@ class WeatherDetailScreen extends StatefulWidget {
           label: '',
           weekdayLabel: '',
           weatherCode: weatherCode,
-          summary:
-              _weatherLabelFromCodeStatic(weatherCode, localizer: localizer),
+          summary: _weatherLabelFromCodeStatic(
+            weatherCode,
+            localizer: localizer,
+          ),
           temperatureMax: _numberAtStatic(maxTemps, index)?.toDouble(),
           temperatureMin: _numberAtStatic(minTemps, index)?.toDouble(),
-          precipitationSum:
-              _numberAtStatic(precipitationSums, index)?.toDouble(),
+          precipitationSum: _numberAtStatic(
+            precipitationSums,
+            index,
+          )?.toDouble(),
           windSpeedMax: _numberAtStatic(maxWinds, index)?.toDouble(),
           uvIndexMax: _numberAtStatic(uvIndexMax, index)?.toDouble(),
         ),
@@ -226,6 +238,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   static _CachedWeatherDetails? _cachedDetails;
 
   bool _loading = false;
+  bool _handledInitialAction = false;
   String _location = '';
   String _summary = '';
   int? _weatherCode;
@@ -246,7 +259,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _summary = widget.initialSummary.trim();
     _weatherCode = widget.initialWeatherCode;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_loadWeather(requestPermission: false));
+      _maybeHandleInitialAction();
+      final shouldRequestPermission =
+          widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
+          _summary.isEmpty;
+      unawaited(_loadWeather(requestPermission: shouldRequestPermission));
     });
   }
 
@@ -273,8 +290,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 helper: l10n.homeWeatherCacheHint,
                 icon: _weatherIcon(_weatherCode),
                 loading: _loading,
-                buttonLabel:
-                    _loading ? l10n.homeWeatherLoading : l10n.homeWeatherLoad,
+                buttonLabel: _loading
+                    ? l10n.homeWeatherLoading
+                    : l10n.homeWeatherLoad,
                 onRefresh: _loading
                     ? null
                     : () => _loadWeather(requestPermission: true),
@@ -312,10 +330,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                     isKo: isKo,
                     guide: detailedOutfitGuide,
                   ),
-                  onTrainingTap: () => _showTrainingGuideSheet(
-                    isKo: isKo,
-                    guide: trainingGuide,
-                  ),
+                  onTrainingTap: () =>
+                      _showTrainingGuideSheet(isKo: isKo, guide: trainingGuide),
                 ),
                 const SizedBox(height: 16),
                 _AirQualityCard(
@@ -349,8 +365,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
                   uvLabel: l10n.homeWeatherUvIndex,
-                  tomorrowForecast:
-                      _dailyForecasts.length > 1 ? _dailyForecasts[1] : null,
+                  tomorrowForecast: _dailyForecasts.length > 1
+                      ? _dailyForecasts[1]
+                      : null,
                   tomorrowFallback: l10n.homeWeatherTomorrowFallback,
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
@@ -391,6 +408,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       setState(() {
         _applySnapshot(cachedDetails.location, cachedDetails.snapshot);
       });
+      _maybeHandleInitialAction();
       return;
     }
     setState(() => _loading = true);
@@ -432,6 +450,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       setState(() {
         _applySnapshot(place, snapshot);
       });
+      _maybeHandleInitialAction();
       _cachedDetails = _CachedWeatherDetails(
         location: place,
         snapshot: snapshot,
@@ -456,28 +475,41 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) =>
-      WeatherLocationService.resolvePlaceName(
-        latitude: latitude,
-        longitude: longitude,
-        isKo: isKo,
-        koreaLabel: koreaLabel,
-      );
+  }) => WeatherLocationService.resolvePlaceName(
+    latitude: latitude,
+    longitude: longitude,
+    isKo: isKo,
+    koreaLabel: koreaLabel,
+  );
 
   Future<_WeatherDetailsSnapshot> _fetchWeatherSnapshot({
     required double latitude,
     required double longitude,
     required AppLocalizations l10n,
-  }) =>
-      WeatherDetailScreen._fetchWeatherSnapshotStatic(
-        latitude: latitude,
-        longitude: longitude,
-        l10n: l10n,
-      );
+  }) => WeatherDetailScreen._fetchWeatherSnapshotStatic(
+    latitude: latitude,
+    longitude: longitude,
+    l10n: l10n,
+  );
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;
     return l10n.homeWeatherDetailsSubtitle;
+  }
+
+  void _maybeHandleInitialAction() {
+    if (_handledInitialAction ||
+        widget.initialAction != WeatherDetailInitialAction.outfitGuide ||
+        !mounted ||
+        _summary.trim().isEmpty) {
+      return;
+    }
+    _handledInitialAction = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final isKo = Localizations.localeOf(context).languageCode == 'ko';
+      _showOutfitGuideSheet(isKo: isKo, guide: _buildDetailedOutfitGuide(isKo));
+    });
   }
 
   void _applySnapshot(String location, _WeatherDetailsSnapshot snapshot) {
@@ -503,12 +535,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
-        Localizations.localeOf(context).toLanguageTag(),
-      ).format(date);
+    Localizations.localeOf(context).toLanguageTag(),
+  ).format(date);
 
   String _formatForecastWeekday(DateTime date) => DateFormat.E(
-        Localizations.localeOf(context).toLanguageTag(),
-      ).format(date);
+    Localizations.localeOf(context).toLanguageTag(),
+  ).format(date);
 
   _AirLevelLabel _aqiLevel(AppLocalizations l10n, int? value) {
     if (value == null) {
@@ -652,32 +684,46 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final recovery = <String>[];
 
     if (apparentTemperature != null && apparentTemperature >= 30) {
-      caution.add(isKo
-          ? '세트 시간을 짧게 끊고 물 섭취를 자주 가져가세요.'
-          : 'Shorten sets and hydrate more often.');
-      recovery.add(isKo
-          ? '훈련 후 10분 이상 체온을 먼저 낮춰 주세요.'
-          : 'Cool down for at least 10 minutes after training.');
+      caution.add(
+        isKo
+            ? '세트 시간을 짧게 끊고 물 섭취를 자주 가져가세요.'
+            : 'Shorten sets and hydrate more often.',
+      );
+      recovery.add(
+        isKo
+            ? '훈련 후 10분 이상 체온을 먼저 낮춰 주세요.'
+            : 'Cool down for at least 10 minutes after training.',
+      );
     } else if (apparentTemperature != null && apparentTemperature <= 5) {
-      caution.add(isKo
-          ? '야외 시작 전 실내 워밍업으로 체온을 먼저 올리세요.'
-          : 'Start with indoor warm-up before going outside.');
-      recovery.add(isKo
-          ? '젖은 옷은 바로 갈아입고 하체를 따뜻하게 유지하세요.'
-          : 'Change damp gear quickly and keep legs warm.');
+      caution.add(
+        isKo
+            ? '야외 시작 전 실내 워밍업으로 체온을 먼저 올리세요.'
+            : 'Start with indoor warm-up before going outside.',
+      );
+      recovery.add(
+        isKo
+            ? '젖은 옷은 바로 갈아입고 하체를 따뜻하게 유지하세요.'
+            : 'Change damp gear quickly and keep legs warm.',
+      );
     } else {
-      caution.add(isKo
-          ? '워밍업 이후 메인 드릴 강도를 천천히 올리세요.'
-          : 'Ramp up drill intensity after warm-up.');
-      recovery.add(isKo
-          ? '훈련 후 수분과 가벼운 스트레칭을 챙기세요.'
-          : 'Hydrate and stretch lightly after training.');
+      caution.add(
+        isKo
+            ? '워밍업 이후 메인 드릴 강도를 천천히 올리세요.'
+            : 'Ramp up drill intensity after warm-up.',
+      );
+      recovery.add(
+        isKo
+            ? '훈련 후 수분과 가벼운 스트레칭을 챙기세요.'
+            : 'Hydrate and stretch lightly after training.',
+      );
     }
 
     if (airLevel.index >= _AirQualityLevel.sensitive.index) {
-      caution.add(isKo
-          ? '미세먼지가 높아 강한 야외 러닝은 줄이는 편이 좋습니다.'
-          : 'Air quality is poor, so reduce hard outdoor running.');
+      caution.add(
+        isKo
+            ? '미세먼지가 높아 강한 야외 러닝은 줄이는 편이 좋습니다.'
+            : 'Air quality is poor, so reduce hard outdoor running.',
+      );
     }
 
     return _TrainingGuide(
@@ -691,10 +737,28 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final apparentTemperature = _apparentTemperature ?? _temperatureMax;
     final windSpeed = _windSpeed ?? 0;
     final weatherCode = _weatherCode;
-    final isRainy = weatherCode != null &&
-        <int>{51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99}
-            .contains(weatherCode);
-    final isSnowy = weatherCode != null &&
+    final isRainy =
+        weatherCode != null &&
+        <int>{
+          51,
+          53,
+          55,
+          56,
+          57,
+          61,
+          63,
+          65,
+          66,
+          67,
+          80,
+          81,
+          82,
+          95,
+          96,
+          99,
+        }.contains(weatherCode);
+    final isSnowy =
+        weatherCode != null &&
         <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
 
     String layers;
@@ -709,8 +773,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '기본 반바지' : 'Standard shorts';
       accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
     } else if (apparentTemperature >= 30) {
-      layers =
-          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
+      layers = isKo
+          ? '민소매/반팔 + 쿨 이너'
+          : 'Sleeveless/short-sleeve + cooling base';
       outer = isKo ? '아우터 없음' : 'No outerwear';
       bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
       accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
@@ -731,27 +796,34 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
       accessories = isKo ? '얇은 장갑, 넥워머' : 'Light gloves, neck warmer';
     } else if (apparentTemperature >= 2) {
-      layers =
-          isKo ? '기모 이너 + 긴팔 + 미들레이어' : 'Thermal base + long-sleeve + midlayer';
+      layers = isKo
+          ? '기모 이너 + 긴팔 + 미들레이어'
+          : 'Thermal base + long-sleeve + midlayer';
       outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
       bottom = isKo ? '기모 긴바지' : 'Fleece-lined pants';
-      accessories =
-          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
+      accessories = isKo
+          ? '방한 장갑, 넥워머, 귀마개'
+          : 'Winter gloves, neck warmer, ear cover';
     } else {
       layers = isKo ? '발열 이너 + 두꺼운 미들레이어' : 'Heat base layer + thick midlayer';
       outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
       bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
-      accessories =
-          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
-      notes.add(isKo
-          ? '실내 워밍업 후 짧은 세트로 진행'
-          : 'Warm up indoors then do short outdoor sets');
+      accessories = isKo
+          ? '방한 장갑, 넥워머, 비니'
+          : 'Insulated gloves, neck warmer, beanie';
+      notes.add(
+        isKo
+            ? '실내 워밍업 후 짧은 세트로 진행'
+            : 'Warm up indoors then do short outdoor sets',
+      );
     }
 
     if (windSpeed >= 20) {
-      notes.add(isKo
-          ? '강풍: 바람막이/넥워머 필수'
-          : 'Strong wind: windbreaker and neck warmer required');
+      notes.add(
+        isKo
+            ? '강풍: 바람막이/넥워머 필수'
+            : 'Strong wind: windbreaker and neck warmer required',
+      );
     }
     if (isRainy) {
       outer = isKo
@@ -776,8 +848,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       accessories: accessories,
       caution: notes.isEmpty
           ? (isKo
-              ? '현재 조건에서 일반 강도 훈련 가능'
-              : 'Normal intensity is fine in current conditions')
+                ? '현재 조건에서 일반 강도 훈련 가능'
+                : 'Normal intensity is fine in current conditions')
           : notes.join(isKo ? ' · ' : ' · '),
     );
   }
@@ -787,8 +859,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       _OutfitCase(
         title: isKo ? '한여름 더위' : 'Hot summer',
         range: isKo ? '체감 30°C 이상' : 'Feels like 30°C+',
-        summary:
-            isKo ? '쿨 이너와 통풍 반바지 중심' : 'Cooling base and breathable shorts',
+        summary: isKo
+            ? '쿨 이너와 통풍 반바지 중심'
+            : 'Cooling base and breathable shorts',
       ),
       _OutfitCase(
         title: isKo ? '따뜻한 훈련 날' : 'Warm training day',
@@ -912,11 +985,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             title: isKo ? '추천 복장' : 'Recommended Outfit',
             subtitle: _location.isEmpty
                 ? (isKo
-                    ? '현재 날씨 기준 추천입니다.'
-                    : 'Recommended for current weather conditions.')
+                      ? '현재 날씨 기준 추천입니다.'
+                      : 'Recommended for current weather conditions.')
                 : (isKo
-                    ? '$_location 날씨 기준 추천입니다.'
-                    : 'Recommended for $_location weather.'),
+                      ? '$_location 날씨 기준 추천입니다.'
+                      : 'Recommended for $_location weather.'),
             layersLabel: isKo ? '레이어' : 'Layers',
             outerLabel: isKo ? '아우터' : 'Outerwear',
             bottomLabel: isKo ? '하의' : 'Bottom',
@@ -946,11 +1019,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
             subtitle: _location.isEmpty
                 ? (isKo
-                    ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                    : 'Best focus for the current weather.')
+                      ? '지금 날씨에서 효율적인 훈련 방향입니다.'
+                      : 'Best focus for the current weather.')
                 : (isKo
-                    ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                    : 'Tailored to $_location weather.'),
+                      ? '$_location 날씨에 맞춘 훈련 방향입니다.'
+                      : 'Tailored to $_location weather.'),
             focusLabel: isKo ? '오늘 집중' : 'Focus',
             cautionLabel: isKo ? '운영 팁' : 'Execution tip',
             recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
@@ -1066,6 +1139,25 @@ class _CompactMetricData {
   });
 }
 
+class _WeatherHeadlineParts {
+  final String primary;
+  final String? secondary;
+
+  const _WeatherHeadlineParts({required this.primary, required this.secondary});
+
+  factory _WeatherHeadlineParts.parse(String text) {
+    final trimmed = text.trim();
+    final match = RegExp(r'^(.+?)\s+(-?\d+(?:\.\d+)?°C)$').firstMatch(trimmed);
+    if (match == null) {
+      return _WeatherHeadlineParts(primary: trimmed, secondary: null);
+    }
+    return _WeatherHeadlineParts(
+      primary: match.group(2)!,
+      secondary: match.group(1)!,
+    );
+  }
+}
+
 class _CompactWeatherHeaderCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -1090,8 +1182,11 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final headline = _WeatherHeadlineParts.parse(title);
+    final onGradient = theme.colorScheme.onPrimaryContainer;
+    final onGradientMuted = onGradient.withValues(alpha: 0.76);
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -1101,92 +1196,175 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.14),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
+          Positioned(
+            top: -28,
+            right: -20,
+            child: Container(
+              width: 128,
+              height: 128,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            left: -24,
+            bottom: -42,
+            child: Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withValues(alpha: 0.42),
-                  borderRadius: BorderRadius.circular(18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
-                child: Icon(icon, size: 30, color: theme.colorScheme.primary),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
+                    Icon(Icons.place_rounded, size: 16, color: onGradient),
+                    const SizedBox(width: 6),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w700,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: onGradient,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                helper,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: FilledButton.icon(
-                  onPressed: onRefresh,
-                  icon: loading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2.0),
-                        )
-                      : const Icon(Icons.my_location_rounded),
-                  label: Text(buttonLabel),
-                ),
-              ),
-            ],
-          ),
-          if (metrics.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: metrics
-                  .map(
-                    (metric) => _MetricCard(
-                      label: metric.label,
-                      value: metric.value,
-                      icon: metric.icon,
+              const SizedBox(height: 18),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          headline.primary,
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            color: onGradient,
+                            fontWeight: FontWeight.w900,
+                            height: 0.95,
+                          ),
+                        ),
+                        if (headline.secondary != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            headline.secondary!,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: onGradient,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 10),
+                        Text(
+                          helper,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: onGradientMuted,
+                            height: 1.4,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
-                  )
-                  .toList(growable: false),
-            ),
-          ],
+                  ),
+                  const SizedBox(width: 14),
+                  Container(
+                    width: 78,
+                    height: 78,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: theme.colorScheme.surface.withValues(
+                          alpha: 0.14,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: loading
+                          ? SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.4,
+                                color: onGradient,
+                              ),
+                            )
+                          : Icon(icon, size: 40, color: onGradient),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surface.withValues(
+                    alpha: 0.86,
+                  ),
+                  foregroundColor: theme.colorScheme.onSurface,
+                ),
+                onPressed: onRefresh,
+                icon: loading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2.0),
+                      )
+                    : const Icon(Icons.my_location_rounded),
+                label: Text(buttonLabel),
+              ),
+              if (metrics.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: metrics
+                      .map(
+                        (metric) => _MetricCard(
+                          label: metric.label,
+                          value: metric.value,
+                          icon: metric.icon,
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -2420,10 +2598,7 @@ class _DailyWeatherForecast {
     this.uvIndexMax,
   });
 
-  _DailyWeatherForecast copyWith({
-    String? label,
-    String? weekdayLabel,
-  }) {
+  _DailyWeatherForecast copyWith({String? label, String? weekdayLabel}) {
     return _DailyWeatherForecast(
       date: date,
       label: label ?? this.label,

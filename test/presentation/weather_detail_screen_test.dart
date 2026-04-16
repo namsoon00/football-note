@@ -34,7 +34,40 @@ void main() {
 
     expect(find.text('상세 날씨'), findsOneWidget);
     expect(find.text('강남구 역삼1동, 한국'), findsOneWidget);
-    expect(find.text('맑음 21.0°C'), findsOneWidget);
+    expect(find.text('21.0°C'), findsOneWidget);
+    expect(find.text('맑음'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Initial outfit action opens outfit sheet', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동, 한국',
+            initialSummary: '비 12.0°C',
+            initialWeatherCode: 61,
+            initialAction: WeatherDetailInitialAction.outfitGuide,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 450));
+
+    expect(find.text('추천 복장'), findsAtLeastNWidgets(1));
+    expect(find.text('레이어'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
