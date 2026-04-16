@@ -285,9 +285,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
               _CompactWeatherHeaderCard(
-                title: hasWeather ? _summary : l10n.homeWeatherUnavailable,
+                title: hasWeather ? _summary : l10n.homeWeatherTitle,
                 subtitle: _headerLocationLabel(l10n),
-                helper: l10n.homeWeatherCacheHint,
+                helper: null,
                 icon: _weatherIcon(_weatherCode),
                 loading: _loading,
                 buttonLabel: _loading
@@ -494,7 +494,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;
-    return l10n.homeWeatherDetailsSubtitle;
+    return l10n.homeWeatherLocationUnknown;
   }
 
   void _maybeHandleInitialAction() {
@@ -1161,7 +1161,7 @@ class _WeatherHeadlineParts {
 class _CompactWeatherHeaderCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String helper;
+  final String? helper;
   final IconData icon;
   final bool loading;
   final String buttonLabel;
@@ -1171,7 +1171,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
   const _CompactWeatherHeaderCard({
     required this.title,
     required this.subtitle,
-    required this.helper,
+    this.helper,
     required this.icon,
     required this.loading,
     required this.buttonLabel,
@@ -1289,15 +1289,17 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 10),
-                        Text(
-                          helper,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: onGradientMuted,
-                            height: 1.4,
-                            fontWeight: FontWeight.w700,
+                        if (helper != null && helper!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            helper!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: onGradientMuted,
+                              height: 1.4,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -1627,6 +1629,36 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final items = [
+      (
+        label: layersLabel,
+        value: guide.layers,
+        icon: Icons.checkroom_rounded,
+        accent: theme.colorScheme.primaryContainer,
+        foreground: theme.colorScheme.primary,
+      ),
+      (
+        label: outerLabel,
+        value: guide.outer,
+        icon: Icons.shield_outlined,
+        accent: theme.colorScheme.secondaryContainer,
+        foreground: theme.colorScheme.secondary,
+      ),
+      (
+        label: bottomLabel,
+        value: guide.bottom,
+        icon: Icons.directions_run_rounded,
+        accent: theme.colorScheme.tertiaryContainer,
+        foreground: theme.colorScheme.tertiary,
+      ),
+      (
+        label: accessoriesLabel,
+        value: guide.accessories,
+        icon: Icons.backpack_outlined,
+        accent: theme.colorScheme.surfaceContainerHighest,
+        foreground: theme.colorScheme.onSurfaceVariant,
+      ),
+    ];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1639,45 +1671,116 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 14),
-          _RecommendationLine(label: layersLabel, value: guide.layers),
-          const SizedBox(height: 8),
-          _RecommendationLine(label: outerLabel, value: guide.outer),
-          const SizedBox(height: 8),
-          _RecommendationLine(label: bottomLabel, value: guide.bottom),
-          const SizedBox(height: 8),
-          _RecommendationLine(
-            label: accessoriesLabel,
-            value: guide.accessories,
-          ),
-          const SizedBox(height: 10),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primaryContainer.withValues(alpha: 0.95),
+                  theme.colorScheme.secondaryContainer.withValues(alpha: 0.86),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer
+                              .withValues(alpha: 0.82),
+                          fontWeight: FontWeight.w700,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.32),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.checkroom_rounded,
+                    size: 34,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cardWidth = (constraints.maxWidth - 10) / 2;
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: items
+                    .map(
+                      (item) => SizedBox(
+                        width: cardWidth,
+                        child: _OutfitVisualCard(
+                          label: item.label,
+                          value: item.value,
+                          icon: item.icon,
+                          accent: item.accent,
+                          foreground: item.foreground,
+                        ),
+                      ),
+                    )
+                    .toList(growable: false),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: theme.colorScheme.primaryContainer.withValues(alpha: 0.55),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Text(
-              '$cautionLabel · ${guide.caution}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurface,
-              ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.tips_and_updates_outlined,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '$cautionLabel · ${guide.caution}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.onSurface,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -1687,6 +1790,67 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
               onPressed: onViewAll,
               icon: const Icon(Icons.view_carousel_outlined, size: 18),
               label: Text(buttonLabel),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OutfitVisualCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color accent;
+  final Color foreground;
+
+  const _OutfitVisualCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.accent,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 22, color: foreground),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: foreground,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              height: 1.35,
             ),
           ),
         ],
@@ -1786,42 +1950,6 @@ class _StructuredTrainingGuideCard extends StatelessWidget {
           _TrainingGuideBlock(label: recoveryLabel, value: guide.recovery),
         ],
       ),
-    );
-  }
-}
-
-class _RecommendationLine extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _RecommendationLine({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 72,
-          child: Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
