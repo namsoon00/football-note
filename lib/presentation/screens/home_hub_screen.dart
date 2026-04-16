@@ -121,10 +121,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           child: StreamBuilder<List<TrainingEntry>>(
             stream: widget.trainingService.watchEntries(),
             builder: (context, snapshot) {
-              final allEntries = (snapshot.data ?? const <TrainingEntry>[])
-                  .where((entry) => !entry.isMatch)
-                  .toList()
-                ..sort(TrainingEntry.compareByRecentCreated);
+              final allEntries =
+                  (snapshot.data ?? const <TrainingEntry>[])
+                      .where((entry) => !entry.isMatch)
+                      .toList()
+                    ..sort(TrainingEntry.compareByRecentCreated);
               return StreamBuilder<List<MealEntry>>(
                 stream: widget.mealLogService.watchEntries(),
                 builder: (context, mealSnapshot) {
@@ -150,10 +151,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                     quizCompletedAt: _loadQuizCompletedAt(
                       widget.optionRepository,
                     ),
-                    viewedDiaryDayToken:
-                        widget.optionRepository.getValue<String>(
-                      CoachLessonScreen.todayViewedDiaryDayKey,
-                    ),
+                    viewedDiaryDayToken: widget.optionRepository
+                        .getValue<String>(
+                          CoachLessonScreen.todayViewedDiaryDayKey,
+                        ),
                     quizResumeSummary: SkillQuizScreen.loadResumeSummary(
                       widget.optionRepository,
                     ),
@@ -185,9 +186,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                     Scaffold.of(context).openDrawer(),
                                 profilePhotoSource:
                                     widget.optionRepository.getValue<String>(
-                                          'profile_photo_url',
-                                        ) ??
-                                        '',
+                                      'profile_photo_url',
+                                    ) ??
+                                    '',
                                 onNewsTap: _openNews,
                                 newsBadgeCount: newsCount,
                                 onQuizTap: _openQuizShortcut,
@@ -210,8 +211,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           entry: data.todayMealEntry,
                           title: AppLocalizations.of(
                             context,
-                          )!
-                              .homeRiceBowlTitle,
+                          )!.homeRiceBowlTitle,
                           compact: true,
                           onTap: widget.onQuickMeal,
                           backgroundColor: Theme.of(
@@ -219,27 +219,20 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ).colorScheme.surface.withValues(alpha: 0.86),
                         ),
                         const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                isKo ? '오늘의 홈' : 'Today Home',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.w900),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            _TodayWeatherButton(
-                              l10n: AppLocalizations.of(context)!,
-                              weatherLoading: _weatherLoading,
-                              weatherSummary: _weatherSummary.trim(),
-                              weatherLocation: _weatherLocation.trim(),
-                              weatherCode: _weatherCode,
-                              onTap: _openWeatherDetails,
-                            ),
-                          ],
+                        Text(
+                          isKo ? '오늘의 홈' : 'Today Home',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 10),
+                        _TodayWeatherButton(
+                          l10n: AppLocalizations.of(context)!,
+                          weatherLoading: _weatherLoading,
+                          weatherSummary: _weatherSummary.trim(),
+                          weatherLocation: _weatherLocation.trim(),
+                          weatherCode: _weatherCode,
+                          onTap: _openWeatherDetails,
+                          onOutfitTap: _openWeatherOutfitGuide,
                         ),
                         if (data.todayPlanCount > 0) ...[
                           const SizedBox(height: 8),
@@ -268,14 +261,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             priorityFocusSignal == 'log_today'
                                 ? widget.onOpenPlans
                                 : priorityFocusSignal == 'add_session'
-                                    ? widget.onOpenWeeklyStats
-                                    : priorityFocusSignal == 'add_minutes'
-                                        ? widget.onQuickBoard
-                                        : priorityFocusSignal == 'meal_routine'
-                                            ? widget.onQuickMeal
-                                            : priorityFocusSignal == 'recovery'
-                                                ? widget.onOpenWeeklyStats
-                                                : _openLevelGuide,
+                                ? widget.onOpenWeeklyStats
+                                : priorityFocusSignal == 'add_minutes'
+                                ? widget.onQuickBoard
+                                : priorityFocusSignal == 'meal_routine'
+                                ? widget.onQuickMeal
+                                : priorityFocusSignal == 'recovery'
+                                ? widget.onOpenWeeklyStats
+                                : _openLevelGuide,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -316,6 +309,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                         const SizedBox(height: 12),
                         _QuickActionGrid(
                           isKo: isKo,
+                          weatherOutfitLabel: AppLocalizations.of(
+                            context,
+                          )!.homeWeatherOutfitButton,
                           onQuickMatch: _trackedAction(
                             'quick_create_match',
                             widget.onQuickMatch,
@@ -323,6 +319,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           onQuickPlan: _trackedAction(
                             'quick_create_plan',
                             widget.onQuickPlan,
+                          ),
+                          onQuickWeatherOutfit: _trackedAction(
+                            'quick_weather_outfit',
+                            _openWeatherOutfitGuide,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -426,13 +426,12 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) =>
-      WeatherLocationService.resolvePlaceName(
-        latitude: latitude,
-        longitude: longitude,
-        isKo: isKo,
-        koreaLabel: koreaLabel,
-      );
+  }) => WeatherLocationService.resolvePlaceName(
+    latitude: latitude,
+    longitude: longitude,
+    isKo: isKo,
+    koreaLabel: koreaLabel,
+  );
 
   Future<_HomeWeatherSnapshot> _fetchCurrentWeather({
     required double latitude,
@@ -508,17 +507,24 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     }
   }
 
-  Future<void> _openWeatherDetails() async {
+  Future<void> _openWeatherDetails({
+    WeatherDetailInitialAction initialAction = WeatherDetailInitialAction.none,
+  }) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => WeatherDetailScreen(
           initialLocation: _weatherLocation,
           initialSummary: _weatherSummary,
           initialWeatherCode: _weatherCode,
+          initialAction: initialAction,
         ),
       ),
     );
   }
+
+  Future<void> _openWeatherOutfitGuide() => _openWeatherDetails(
+    initialAction: WeatherDetailInitialAction.outfitGuide,
+  );
 
   static List<_DashboardPlan> _loadPlans(OptionRepository optionRepository) {
     final raw = optionRepository.getValue<String>('training_plans_v1');
@@ -637,7 +643,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _resolvePriorityFocusSignal(_HomeHubData data) {
     final rawOverride =
         widget.optionRepository.getValue<String>(_priorityFocusOverrideKey) ??
-            '';
+        '';
     final candidates = _priorityFocusCandidates(data);
     if (rawOverride.isNotEmpty && candidates.contains(rawOverride)) {
       return rawOverride;
@@ -673,10 +679,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   Future<void> _advancePriorityFocusSignal(String currentFocusSignal) async {
     final entries = await widget.trainingService.allEntries();
-    final trainingEntries = entries
-        .where((entry) => !entry.isMatch)
-        .toList(growable: false)
-      ..sort(TrainingEntry.compareByRecentCreated);
+    final trainingEntries =
+        entries.where((entry) => !entry.isMatch).toList(growable: false)
+          ..sort(TrainingEntry.compareByRecentCreated);
     final mealEntries = widget.mealLogService.mergedEntries(
       legacyEntries: trainingEntries,
     );
@@ -699,8 +704,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     );
     final candidates = _priorityFocusCandidates(data);
     final currentIndex = candidates.indexOf(currentFocusSignal);
-    final nextIndex =
-        currentIndex < 0 ? 0 : (currentIndex + 1) % candidates.length;
+    final nextIndex = currentIndex < 0
+        ? 0
+        : (currentIndex + 1) % candidates.length;
     await widget.optionRepository.setValue(
       _priorityFocusOverrideKey,
       candidates[nextIndex],
@@ -858,47 +864,53 @@ class _HomeHubData {
       (sum, entry) => sum + entry.durationMinutes,
     );
     final latestTrainingEntry = entries.isEmpty ? null : entries.first;
-    final latestCreatedTrainingEntry = entries.where((entry) {
-      final createdDay = DateTime(
-        entry.createdAt.year,
-        entry.createdAt.month,
-        entry.createdAt.day,
-      );
-      return createdDay == today;
-    }).fold<TrainingEntry?>(
-      null,
-      (latest, entry) =>
-          latest == null || entry.createdAt.isAfter(latest.createdAt)
+    final latestCreatedTrainingEntry = entries
+        .where((entry) {
+          final createdDay = DateTime(
+            entry.createdAt.year,
+            entry.createdAt.month,
+            entry.createdAt.day,
+          );
+          return createdDay == today;
+        })
+        .fold<TrainingEntry?>(
+          null,
+          (latest, entry) =>
+              latest == null || entry.createdAt.isAfter(latest.createdAt)
               ? entry
               : latest,
-    );
-    final todayEntries = entries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).toList(growable: false);
+        );
+    final todayEntries = entries
+        .where((entry) {
+          final day = DateTime(
+            entry.date.year,
+            entry.date.month,
+            entry.date.day,
+          );
+          return day == today;
+        })
+        .toList(growable: false);
     final loggedTrainingToday = todayEntries.isNotEmpty;
     final loggedLiftingToday = todayEntries.any(
       (entry) => entry.liftingByPart.values.any((value) => value > 0),
     );
     final loggedJumpRopeToday = todayEntries.any(_hasCompletedJumpRope);
-    final todayMealEntry = mealEntries.where((entry) {
-      final day = DateTime(
-        entry.date.year,
-        entry.date.month,
-        entry.date.day,
-      );
-      return day == today;
-    }).fold<MealEntry?>(
-      null,
-      (latest, entry) =>
-          latest == null || entry.createdAt.isAfter(latest.createdAt)
+    final todayMealEntry = mealEntries
+        .where((entry) {
+          final day = DateTime(
+            entry.date.year,
+            entry.date.month,
+            entry.date.day,
+          );
+          return day == today;
+        })
+        .fold<MealEntry?>(
+          null,
+          (latest, entry) =>
+              latest == null || entry.createdAt.isAfter(latest.createdAt)
               ? entry
               : latest,
-    );
+        );
     final loggedMealsToday =
         todayMealEntry != null && todayMealEntry.hasRecords;
 
@@ -949,8 +961,9 @@ class _HomeHubData {
       0,
       (sum, entry) => sum + entry.mood,
     );
-    final averageMood =
-        weeklyEntries.isEmpty ? 0 : totalMood / weeklyEntries.length;
+    final averageMood = weeklyEntries.isEmpty
+        ? 0
+        : totalMood / weeklyEntries.length;
 
     String strongest;
     String focus;
@@ -978,13 +991,15 @@ class _HomeHubData {
       focus = 'upgrade_quality';
     }
 
-    final quizCompletedToday = quizCompletedAt != null &&
+    final quizCompletedToday =
+        quizCompletedAt != null &&
         quizCompletedAt.year == now.year &&
         quizCompletedAt.month == now.month &&
         quizCompletedAt.day == now.day;
     final reviewedTodayDiary =
         viewedDiaryDayToken == CoachLessonScreen.todayViewedDayToken(now);
-    final loggedBoardToday = boards.isNotEmpty &&
+    final loggedBoardToday =
+        boards.isNotEmpty &&
         boards.first.updatedAt.year == now.year &&
         boards.first.updatedAt.month == now.month &&
         boards.first.updatedAt.day == now.day;
@@ -1023,7 +1038,8 @@ class _DashboardPlan {
 
   factory _DashboardPlan.fromMap(Map<String, dynamic> map) {
     return _DashboardPlan(
-      scheduledAt: DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
+      scheduledAt:
+          DateTime.tryParse(map['scheduledAt']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -1100,8 +1116,8 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                     Text(
                       isKo ? '오늘의 훈련 계획' : 'Today training plan',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1109,10 +1125,9 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                           ? '등록된 계획 $count개를 바로 확인하세요.'
                           : 'Open your $count saved plans for today.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -1124,9 +1139,9 @@ class _TodayPlanHighlightCard extends StatelessWidget {
                   Text(
                     isKo ? '계획 보기' : 'Open plans',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   Icon(
                     Icons.chevron_right,
@@ -1205,9 +1220,7 @@ class _LevelHeroCard extends StatelessWidget {
                               ),
                               child: Text(
                                 'Lv.${levelState.level}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelLarge
+                                style: Theme.of(context).textTheme.labelLarge
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -1223,9 +1236,7 @@ class _LevelHeroCard extends StatelessWidget {
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -1244,11 +1255,11 @@ class _LevelHeroCard extends StatelessWidget {
                           isKo
                               ? '다음까지 ${levelState.xpToNextLevel}XP'
                               : '${levelState.xpToNextLevel} XP left',
-                          style:
-                              Theme.of(context).textTheme.labelMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.92),
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.92),
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),
@@ -1323,16 +1334,16 @@ class _DailyFlowCard extends StatelessWidget {
                 child: Text(
                   isKo ? '오늘 할 일' : 'Today tasks',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
               Text(
                 isKo ? '$completedCount/8 완료' : '$completedCount/8 done',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ],
           ),
@@ -1620,6 +1631,7 @@ class _TodayWeatherButton extends StatelessWidget {
   final String weatherLocation;
   final int? weatherCode;
   final VoidCallback onTap;
+  final VoidCallback onOutfitTap;
 
   const _TodayWeatherButton({
     required this.l10n,
@@ -1628,6 +1640,7 @@ class _TodayWeatherButton extends StatelessWidget {
     required this.weatherLocation,
     required this.weatherCode,
     required this.onTap,
+    required this.onOutfitTap,
   });
 
   IconData _weatherIcon(int? code) {
@@ -1671,87 +1684,357 @@ class _TodayWeatherButton extends StatelessWidget {
     }
   }
 
+  _WeatherHeroPalette _palette(ThemeData theme) {
+    switch (weatherCode) {
+      case 0:
+        return _WeatherHeroPalette(
+          gradientColors: [
+            Color.lerp(
+              theme.colorScheme.primaryContainer,
+              Colors.amber.shade100,
+              0.5,
+            )!,
+            Color.lerp(
+              theme.colorScheme.secondaryContainer,
+              Colors.lightBlue.shade100,
+              0.48,
+            )!,
+          ],
+          foreground: theme.colorScheme.onPrimaryContainer,
+          surface: Colors.white.withValues(alpha: 0.24),
+          outline: theme.colorScheme.primary.withValues(alpha: 0.12),
+        );
+      case 61:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
+      case 95:
+      case 96:
+      case 99:
+        return _WeatherHeroPalette(
+          gradientColors: [
+            Color.lerp(
+              theme.colorScheme.primaryContainer,
+              Colors.blueGrey.shade200,
+              0.58,
+            )!,
+            Color.lerp(
+              theme.colorScheme.secondaryContainer,
+              Colors.blue.shade100,
+              0.45,
+            )!,
+          ],
+          foreground: theme.colorScheme.onPrimaryContainer,
+          surface: Colors.white.withValues(alpha: 0.22),
+          outline: theme.colorScheme.primary.withValues(alpha: 0.12),
+        );
+      case 71:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
+        return _WeatherHeroPalette(
+          gradientColors: [
+            Color.lerp(
+              theme.colorScheme.primaryContainer,
+              Colors.cyan.shade50,
+              0.56,
+            )!,
+            Color.lerp(
+              theme.colorScheme.secondaryContainer,
+              Colors.blue.shade50,
+              0.54,
+            )!,
+          ],
+          foreground: theme.colorScheme.onPrimaryContainer,
+          surface: Colors.white.withValues(alpha: 0.26),
+          outline: theme.colorScheme.primary.withValues(alpha: 0.12),
+        );
+      default:
+        return _WeatherHeroPalette(
+          gradientColors: [
+            theme.colorScheme.primaryContainer.withValues(alpha: 0.96),
+            theme.colorScheme.secondaryContainer.withValues(alpha: 0.88),
+          ],
+          foreground: theme.colorScheme.onPrimaryContainer,
+          surface: Colors.white.withValues(alpha: 0.22),
+          outline: theme.colorScheme.primary.withValues(alpha: 0.12),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasWeather = weatherSummary.isNotEmpty;
-    final title = weatherLoading
+    final palette = _palette(theme);
+    final summaryParts = _WeatherSummaryParts.parse(weatherSummary);
+    final primaryText = hasWeather
+        ? summaryParts.primary
+        : l10n.homeWeatherTitle;
+    final secondaryText = hasWeather
+        ? (summaryParts.secondary ?? l10n.homeWeatherSubtitle)
+        : weatherLoading
         ? l10n.homeWeatherLoading
-        : hasWeather
-            ? weatherSummary
-            : l10n.homeWeatherTitle;
+        : l10n.homeWeatherSubtitle;
+    final locationLabel = weatherLocation.isNotEmpty
+        ? weatherLocation
+        : l10n.homeWeatherLocationUnknown;
+    final showOutfitAction = hasWeather;
+    final primaryLooksLikeTemperature = primaryText.contains('°C');
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(28),
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withValues(alpha: 0.88),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+            gradient: LinearGradient(
+              colors: palette.gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: palette.outline),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                blurRadius: 24,
+                offset: const Offset(0, 14),
+              ),
+            ],
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              if (weatherLoading)
-                SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    color: theme.colorScheme.primary,
+              Positioned(
+                top: -16,
+                right: -10,
+                child: Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    color: palette.surface.withValues(alpha: 0.42),
+                    shape: BoxShape.circle,
                   ),
-                )
-              else
-                Icon(
-                  hasWeather ? _weatherIcon(weatherCode) : Icons.cloud_outlined,
-                  size: 18,
-                  color: theme.colorScheme.primary,
                 ),
-              const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 180),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+              ),
+              Positioned(
+                left: -28,
+                bottom: -40,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: palette.surface.withValues(alpha: 0.28),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: palette.surface,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          l10n.homeWeatherTitle,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: palette.foreground,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
-                    ),
-                    if (weatherLocation.isNotEmpty) ...[
-                      const SizedBox(height: 1),
-                      Text(
-                        weatherLocation,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
+                      const Spacer(),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 22,
+                        color: palette.foreground.withValues(alpha: 0.78),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              primaryText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  (primaryLooksLikeTemperature
+                                          ? theme.textTheme.displayMedium
+                                          : theme.textTheme.headlineMedium)
+                                      ?.copyWith(
+                                        color: palette.foreground,
+                                        fontWeight: FontWeight.w900,
+                                        height: 0.96,
+                                      ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              secondaryText,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: palette.foreground.withValues(
+                                  alpha: 0.8,
+                                ),
+                                fontWeight: FontWeight.w700,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: palette.surface,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Center(
+                          child: weatherLoading
+                              ? SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.4,
+                                    color: palette.foreground,
+                                  ),
+                                )
+                              : Icon(
+                                  hasWeather
+                                      ? _weatherIcon(weatherCode)
+                                      : Icons.cloud_outlined,
+                                  size: 40,
+                                  color: palette.foreground,
+                                ),
                         ),
                       ),
                     ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 6),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: palette.surface,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.place_outlined,
+                              size: 16,
+                              color: palette.foreground,
+                            ),
+                            const SizedBox(width: 6),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 190),
+                              child: Text(
+                                locationLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: palette.foreground,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      FilledButton.tonalIcon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: theme.colorScheme.surface.withValues(
+                            alpha: 0.88,
+                          ),
+                        ),
+                        onPressed: showOutfitAction ? onOutfitTap : onTap,
+                        icon: Icon(
+                          showOutfitAction
+                              ? Icons.checkroom_outlined
+                              : Icons.my_location_rounded,
+                          size: 18,
+                        ),
+                        label: Text(
+                          showOutfitAction
+                              ? l10n.homeWeatherOutfitButton
+                              : l10n.homeWeatherLoad,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WeatherHeroPalette {
+  final List<Color> gradientColors;
+  final Color foreground;
+  final Color surface;
+  final Color outline;
+
+  const _WeatherHeroPalette({
+    required this.gradientColors,
+    required this.foreground,
+    required this.surface,
+    required this.outline,
+  });
+}
+
+class _WeatherSummaryParts {
+  final String primary;
+  final String? secondary;
+
+  const _WeatherSummaryParts({required this.primary, required this.secondary});
+
+  factory _WeatherSummaryParts.parse(String summary) {
+    final trimmed = summary.trim();
+    if (trimmed.isEmpty) {
+      return const _WeatherSummaryParts(primary: '', secondary: null);
+    }
+    final match = RegExp(r'^(.+?)\s+(-?\d+(?:\.\d+)?°C)$').firstMatch(trimmed);
+    if (match == null) {
+      return _WeatherSummaryParts(primary: trimmed, secondary: null);
+    }
+    return _WeatherSummaryParts(
+      primary: match.group(2)!,
+      secondary: match.group(1)!,
     );
   }
 }
@@ -1783,8 +2066,8 @@ class _PlanDaysCard extends StatelessWidget {
     final whenText = remainingDays <= 0
         ? (isKo ? '오늘' : 'Today')
         : remainingDays == 1
-            ? (isKo ? '내일' : 'Tomorrow')
-            : (isKo ? '$remainingDays일 뒤' : 'In $remainingDays days');
+        ? (isKo ? '내일' : 'Tomorrow')
+        : (isKo ? '$remainingDays일 뒤' : 'In $remainingDays days');
 
     return Material(
       color: Colors.transparent,
@@ -1830,9 +2113,9 @@ class _PlanDaysCard extends StatelessWidget {
                     Text(
                       isKo ? '다음 훈련' : 'Next training',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -1842,8 +2125,8 @@ class _PlanDaysCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -1853,10 +2136,9 @@ class _PlanDaysCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -1877,13 +2159,17 @@ class _PlanDaysCard extends StatelessWidget {
 
 class _QuickActionGrid extends StatelessWidget {
   final bool isKo;
+  final String weatherOutfitLabel;
   final VoidCallback? onQuickMatch;
   final VoidCallback? onQuickPlan;
+  final VoidCallback? onQuickWeatherOutfit;
 
   const _QuickActionGrid({
     required this.isKo,
+    required this.weatherOutfitLabel,
     required this.onQuickMatch,
     required this.onQuickPlan,
+    required this.onQuickWeatherOutfit,
   });
 
   @override
@@ -1898,6 +2184,11 @@ class _QuickActionGrid extends StatelessWidget {
         icon: Icons.event_note_outlined,
         title: isKo ? '훈련 계획' : 'Add plan',
         onTap: onQuickPlan,
+      ),
+      _QuickActionItem(
+        icon: Icons.checkroom_outlined,
+        title: weatherOutfitLabel,
+        onTap: onQuickWeatherOutfit,
       ),
     ];
     return Column(
@@ -1952,7 +2243,8 @@ class _ContinueCard extends StatelessWidget {
     final quizSummary = data.quizResumeSummary;
     final hasQuizSession = quizSummary.hasActiveSession;
     final latestTrainingEntry = data.latestTrainingEntry;
-    final latestTrainingIsToday = latestTrainingEntry != null &&
+    final latestTrainingIsToday =
+        latestTrainingEntry != null &&
         DateTime(
               latestTrainingEntry.date.year,
               latestTrainingEntry.date.month,
@@ -1967,13 +2259,13 @@ class _ContinueCard extends StatelessWidget {
             );
     final quizTitle = hasQuizSession
         ? (quizSummary.reviewMode
-            ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
-            : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
+              ? (isKo ? '오답 복습 이어하기' : 'Continue wrong-answer review')
+              : (isKo ? '퀴즈 이어하기' : 'Continue quiz'))
         : (isKo ? '새 퀴즈 시작' : 'Start quiz');
     final quizSubtitle = hasQuizSession
         ? (isKo
-            ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
-            : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
+              ? '${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions} 진행 중'
+              : 'In progress ${quizSummary.currentIndex + 1} / ${quizSummary.totalQuestions}')
         : (isKo ? '오늘 퀴즈를 다시 시작해요.' : 'Jump back into today’s quiz.');
     final items = <_ContinueItemData>[
       if (latestTrainingIsToday)
@@ -2010,15 +2302,15 @@ class _ContinueCard extends StatelessWidget {
           title: isKo ? '최근 훈련보드' : 'Recent training board',
           subtitle: data.latestBoard == null
               ? (isKo
-                  ? '스케치 ${data.boardCount}개'
-                  : '${data.boardCount} sketches')
+                    ? '스케치 ${data.boardCount}개'
+                    : '${data.boardCount} sketches')
               : data.latestBoardUpdatedAt == null
-                  ? (isKo
-                      ? '스케치 ${data.boardCount}개'
-                      : '${data.boardCount} sketches')
-                  : (isKo
-                      ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
-                      : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
+              ? (isKo
+                    ? '스케치 ${data.boardCount}개'
+                    : '${data.boardCount} sketches')
+              : (isKo
+                    ? '${data.latestBoard!.title} · 최근 저장 ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'
+                    : '${data.latestBoard!.title} · saved ${DateFormat('M/d').format(data.latestBoardUpdatedAt!)}'),
           buttonLabel: isKo ? '바로 수정' : 'Edit now',
           onPressed: onContinueBoard,
         ),
@@ -2111,8 +2403,8 @@ class _ContinueItem extends StatelessWidget {
                     Text(
                       item.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -2126,9 +2418,9 @@ class _ContinueItem extends StatelessWidget {
               Text(
                 item.buttonLabel,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(width: 2),
               Icon(
@@ -2199,10 +2491,10 @@ class _QuickActionButton extends StatelessWidget {
                       forceStrutHeight: true,
                     ),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontSize: 14,
-                          height: 1.05,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      fontSize: 14,
+                      height: 1.05,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
               ],
@@ -2263,9 +2555,9 @@ class _HomeLevelIllustration extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -2327,10 +2619,10 @@ class _TodoChip extends StatelessWidget {
                     forceStrutHeight: true,
                   ),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: 14,
-                        height: 1.05,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    fontSize: 14,
+                    height: 1.05,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
