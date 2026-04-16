@@ -38,9 +38,149 @@ CODEX_REASONING_EFFORT="xhigh"
 FORCE_MAIN_MERGE="${FORCE_MAIN_MERGE:-1}"
 LOCAL_SYNC_REPO_PATH="${LOCAL_SYNC_REPO_PATH:-/Users/namsoon00/Devel/football_note/football_note}"
 ISSUE_NUMBER=""
+LINKED_DISCUSSION_URL=""
 
 log() {
   echo "[issue-worker] $*"
+}
+
+json_body_payload() {
+  python3 - <<'PY' "${1:-}"
+import json
+import sys
+
+print(json.dumps({"body": sys.argv[1]}, ensure_ascii=False))
+PY
+}
+
+extract_discussion_url_from_text() {
+  python3 - <<'PY' "${1:-}" "${GITHUB_REPOSITORY}"
+import re
+import sys
+
+text = sys.argv[1]
+repo = sys.argv[2]
+
+match = re.search(r"https://github\.com/[^/\s]+/[^/\s]+/discussions/[0-9]+", text, re.IGNORECASE)
+if match:
+    print(match.group(0))
+    raise SystemExit(0)
+
+match = re.search(r"(?:discussion|discussions|논의)\s*#?\s*([0-9]+)", text, re.IGNORECASE)
+if match and repo:
+    print(f"https://github.com/{repo}/discussions/{match.group(1)}")
+PY
+}
+
+find_linked_discussion_url() {
+  local text_url comments_json
+
+  text_url="$(
+    extract_discussion_url_from_text "$(printf '%s\n%s' "${ISSUE_TITLE:-}" "${ISSUE_BODY:-}")"
+  )"
+  if [[ -n "${text_url}" ]]; then
+    echo "${text_url}"
+    return 0
+  fi
+
+  comments_json="$(
+    curl -sS \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments?per_page=100"
+  )"
+
+  python3 - <<'PY' "${comments_json}" "${GITHUB_REPOSITORY}"
+import json
+import re
+import sys
+
+raw, repo = sys.argv[1:3]
+
+def extract(text: str) -> str:
+    match = re.search(r"https://github\.com/[^/\s]+/[^/\s]+/discussions/[0-9]+", text, re.IGNORECASE)
+    if match:
+        return match.group(0)
+    match = re.search(r"(?:discussion|discussions|논의)\s*#?\s*([0-9]+)", text, re.IGNORECASE)
+    if match and repo:
+        return f"https://github.com/{repo}/discussions/{match.group(1)}"
+    return ""
+
+try:
+    comments = json.loads(raw)
+except Exception:
+    print("")
+    raise SystemExit(0)
+
+if isinstance(comments, list):
+    for item in comments:
+        url = extract(str((item or {}).get("body", "")))
+        if url:
+            print(url)
+            raise SystemExit(0)
+
+print("")
+PY
+}
+
+post_issue_comment() {
+  local message="${1:-}" payload
+  if [[ -z "$message" || -z "${ISSUE_NUMBER:-}" ]]; then
+    return 0
+  fi
+  payload="$(json_body_payload "$message")"
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -X POST \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
+    -d "${payload}" \
+    >/dev/null || true
+}
+
+post_linked_discussion_comment() {
+  local message="${1:-}" body_file discussion_target
+
+  if [[ -z "$message" || -z "${LINKED_DISCUSSION_URL:-}" ]]; then
+    return 0
+  fi
+
+  body_file="$(mktemp "${TMP_BASE}/discussion-comment.XXXXXX")"
+  python3 - <<'PY' "${body_file}" "${ISSUE_NUMBER:-}" "${ISSUE_TITLE:-}" "${ISSUE_URL:-}" "${message}"
+import pathlib
+import sys
+
+body_path, issue_number, issue_title, issue_url, message = sys.argv[1:6]
+body = f"""## 자동 워커 업데이트
+- Issue: #{issue_number}
+- 제목: {issue_title}
+- 링크: {issue_url}
+
+{message}
+"""
+pathlib.Path(body_path).write_text(body, encoding="utf-8")
+PY
+
+  if discussion_target="$(
+    scripts/post_discussion.sh \
+      --discussion-url "${LINKED_DISCUSSION_URL}" \
+      --body-file "${body_file}"
+  )"; then
+    LINKED_DISCUSSION_URL="${discussion_target}"
+    return 0
+  fi
+
+  log "Failed to post discussion comment to ${LINKED_DISCUSSION_URL}."
+  return 1
+}
+
+notify_issue_and_discussion() {
+  local message="${1:-}"
+  if [[ -z "${message}" ]]; then
+    return 0
+  fi
+  post_issue_comment "${message}"
+  post_linked_discussion_comment "${message}" || true
 }
 
 is_plan_request_issue() {
@@ -52,68 +192,27 @@ is_plan_request_issue() {
   return 1
 }
 
-post_issue_comment() {
-  local message="${1:-}"
-  if [[ -z "$message" || -z "${ISSUE_NUMBER:-}" ]]; then
-    return 0
-  fi
-  curl -sS \
-    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-    -H "Accept: application/vnd.github+json" \
-    -X POST \
-    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
-    -d "{\"body\":\"${message}\"}" \
-    >/dev/null || true
-}
-
 create_plan_discussion() {
-  local categories_json category_id payload response discussion_url
+  local title body_file discussion_target
 
-  categories_json="$(
-    curl -sS \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/discussions/categories"
-  )"
+  title="$(
+    python3 - <<'PY' "${ISSUE_NUMBER}" "${ISSUE_TITLE}"
+import sys
 
-  category_id="$(
-    python3 - <<'PY' "$categories_json"
-import json,sys
-raw = sys.argv[1]
-try:
-    data = json.loads(raw)
-except Exception:
-    print("")
-    raise SystemExit(0)
-if not isinstance(data, list) or not data:
-    print("")
-    raise SystemExit(0)
-preferred = {"general", "ideas", "q&a", "announcements"}
-picked = ""
-for item in data:
-    name = str(item.get("name", "")).strip().lower()
-    if name in preferred:
-        picked = str(item.get("id", "")).strip()
-        break
-if not picked:
-    picked = str(data[0].get("id", "")).strip()
-print(picked)
+issue_number, issue_title = sys.argv[1:3]
+print(f"[계획] Issue #{issue_number} - {issue_title}")
 PY
   )"
 
-  if [[ -z "$category_id" ]]; then
-    log "Discussion category not found."
-    return 1
-  fi
+  body_file="$(mktemp "${TMP_BASE}/plan-discussion.XXXXXX")"
+  python3 - <<'PY' "${body_file}" "${ISSUE_NUMBER}" "${ISSUE_TITLE}" "${ISSUE_URL}" "${ISSUE_BODY}"
+import pathlib
+import sys
 
-  payload="$(
-    python3 - <<'PY' "$category_id" "$ISSUE_NUMBER" "$ISSUE_TITLE" "$ISSUE_URL" "$ISSUE_BODY"
-import json,sys
-category_id, issue_number, issue_title, issue_url, issue_body = sys.argv[1:6]
+body_path, issue_number, issue_title, issue_url, issue_body = sys.argv[1:6]
 trimmed_body = (issue_body or "").strip()
 if len(trimmed_body) > 1200:
     trimmed_body = trimmed_body[:1200].rstrip() + "\n..."
-title = f"[계획] Issue #{issue_number} - {issue_title}"
 body = f"""## 이슈 정보
 - Issue: #{issue_number}
 - 제목: {issue_title}
@@ -131,39 +230,37 @@ body = f"""## 이슈 정보
 
 자동 워커가 생성한 계획 Discussion입니다. 필요하면 여기서 바로 피드백 주세요.
 """
-print(json.dumps({"title": title, "body": body, "category_id": category_id}, ensure_ascii=False))
+pathlib.Path(body_path).write_text(body, encoding="utf-8")
 PY
-  )"
 
-  response="$(
-    curl -sS \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      -X POST \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/discussions" \
-      -d "$payload"
-  )"
-
-  discussion_url="$(
-    python3 - <<'PY' "$response"
-import json,sys
-try:
-    data=json.loads(sys.argv[1])
-except Exception:
-    print("")
-    raise SystemExit(0)
-print(str(data.get("html_url","")).strip())
-PY
-  )"
-
-  if [[ -z "$discussion_url" ]]; then
-    log "Failed to create discussion."
-    return 1
+  if [[ -n "${LINKED_DISCUSSION_URL:-}" ]]; then
+    if discussion_target="$(
+      scripts/post_discussion.sh \
+        --discussion-url "${LINKED_DISCUSSION_URL}" \
+        --body-file "${body_file}"
+    )"; then
+      LINKED_DISCUSSION_URL="${discussion_target}"
+      post_issue_comment "요청하신 계획을 연결된 Discussion에 남겼습니다: ${discussion_target}"
+      log "Plan discussion comment posted: ${discussion_target}"
+      return 0
+    fi
+    log "Failed to comment on linked discussion ${LINKED_DISCUSSION_URL}; creating a new discussion."
   fi
 
-  post_issue_comment "요청하신 계획을 Discussion에 남겼습니다: ${discussion_url}"
-  log "Plan discussion created: ${discussion_url}"
-  return 0
+  if discussion_target="$(
+    scripts/post_discussion.sh \
+      --title "${title}" \
+      --body-file "${body_file}" \
+      --repo "${GITHUB_REPOSITORY}"
+  )"; then
+    LINKED_DISCUSSION_URL="${discussion_target}"
+    post_issue_comment "요청하신 계획을 Discussion에 남겼습니다: ${discussion_target}"
+    log "Plan discussion created: ${discussion_target}"
+    return 0
+  fi
+
+  log "Failed to create discussion."
+  return 1
 }
 
 issue_state() {
@@ -183,13 +280,7 @@ close_issue_completed() {
     "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" \
     -d '{"state":"closed","state_reason":"completed"}' \
     >/dev/null || true
-  curl -sS \
-    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-    -H "Accept: application/vnd.github+json" \
-    -X POST \
-    "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
-    -d "{\"body\":\"${message}\"}" \
-    >/dev/null || true
+  notify_issue_and_discussion "${message}"
 }
 
 ensure_issue_closed_if_merged() {
@@ -280,6 +371,10 @@ fi
 ISSUE_TITLE="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("title","").strip())' <<< "$ISSUE_JSON")"
 ISSUE_BODY="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("body","").strip())' <<< "$ISSUE_JSON")"
 ISSUE_URL="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("html_url",""))' <<< "$ISSUE_JSON")"
+LINKED_DISCUSSION_URL="$(find_linked_discussion_url)"
+if [[ -n "${LINKED_DISCUSSION_URL}" ]]; then
+  log "Linked discussion detected: ${LINKED_DISCUSSION_URL}"
+fi
 
 if is_plan_request_issue; then
   log "Plan request detected for issue #${ISSUE_NUMBER}."
@@ -287,7 +382,7 @@ if is_plan_request_issue; then
     log "Plan discussion flow completed."
     exit 0
   fi
-  post_issue_comment "계획 요청을 감지했지만 Discussion 생성에 실패했습니다. 저장소 Discussions 활성화/권한을 확인해 주세요."
+  notify_issue_and_discussion "계획 요청을 감지했지만 Discussion 생성에 실패했습니다. 저장소 Discussions 활성화/권한을 확인해 주세요."
 fi
 
 SAFE_SLUG="$(python3 - "$ISSUE_TITLE" <<'PY'
@@ -405,13 +500,7 @@ if \
   HAS_WORKTREE_CHANGES=0
   if [[ "$AHEAD_COUNT" == "0" ]]; then
     log "No changes produced by Codex and no pending commits on ${HEAD_BRANCH}."
-    curl -sS \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      -X POST \
-      "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
-      -d "{\"body\":\"자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (이미 반영되었거나 추가 수정이 필요합니다)\"}" \
-      >/dev/null || true
+    notify_issue_and_discussion "자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (이미 반영되었거나 추가 수정이 필요합니다)"
     exit 0
   fi
   log "No local changes, but branch is ${AHEAD_COUNT} commit(s) ahead of ${DEFAULT_BRANCH}. Continuing."
@@ -420,10 +509,10 @@ fi
 if [[ "$CODEX_EXIT" != "0" ]]; then
   if [[ "$HAS_WORKTREE_CHANGES" == "0" && "$AHEAD_COUNT" != "0" ]]; then
     log "Codex exited non-zero, but branch already has ${AHEAD_COUNT} commit(s) to merge. Continuing."
-    post_issue_comment "자동 워커 경고: Codex 실행은 비정상 종료(${CODEX_EXIT})했지만, 브랜치에 기존 커밋이 있어 병합 절차를 계속 진행했습니다."
+    notify_issue_and_discussion "자동 워커 경고: Codex 실행은 비정상 종료(${CODEX_EXIT})했지만, 브랜치에 기존 커밋이 있어 병합 절차를 계속 진행했습니다."
   else
     log "Failing run because Codex exited non-zero and there are pending changes/commits to inspect."
-    post_issue_comment "자동 워커 실패: Codex 실행이 비정상 종료(${CODEX_EXIT})했고 변경사항 검증이 필요해 중단했습니다."
+    notify_issue_and_discussion "자동 워커 실패: Codex 실행이 비정상 종료(${CODEX_EXIT})했고 변경사항 검증이 필요해 중단했습니다."
     exit "$CODEX_EXIT"
   fi
 fi
@@ -472,9 +561,9 @@ if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
 
   if git merge --no-ff --no-edit "origin/$HEAD_BRANCH"; then
     git push origin "$DEFAULT_BRANCH"
-    close_issue_completed "자동 병합 완료: \`${HEAD_BRANCH}\` -> \`${DEFAULT_BRANCH}\`\\n이슈를 completed로 닫았습니다."
+    close_issue_completed "$(printf '자동 병합 완료: `%s` -> `%s`\n이슈를 completed로 닫았습니다.' "${HEAD_BRANCH}" "${DEFAULT_BRANCH}")"
   else
-    post_issue_comment "자동 main 병합 실패: 브랜치 충돌 또는 보호 규칙으로 병합되지 않았습니다. 수동 병합이 필요합니다."
+    notify_issue_and_discussion "자동 main 병합 실패: 브랜치 충돌 또는 보호 규칙으로 병합되지 않았습니다. 수동 병합이 필요합니다."
     exit 1
   fi
 fi
