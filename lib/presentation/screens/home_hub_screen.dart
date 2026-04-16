@@ -219,20 +219,24 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ).colorScheme.surface.withValues(alpha: 0.86),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          isKo ? '오늘의 홈' : 'Today Home',
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 10),
-                        _TodayWeatherButton(
-                          l10n: AppLocalizations.of(context)!,
-                          weatherLoading: _weatherLoading,
-                          weatherSummary: _weatherSummary.trim(),
-                          weatherLocation: _weatherLocation.trim(),
-                          weatherCode: _weatherCode,
-                          onTap: _openWeatherDetails,
-                          onOutfitTap: _openWeatherOutfitGuide,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isKo ? '오늘의 홈' : 'Today Home',
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _TodayWeatherButton(
+                              l10n: AppLocalizations.of(context)!,
+                              weatherLoading: _weatherLoading,
+                              weatherSummary: _weatherSummary.trim(),
+                              weatherCode: _weatherCode,
+                              onTap: _openWeatherDetails,
+                            ),
+                          ],
                         ),
                         if (data.todayPlanCount > 0) ...[
                           const SizedBox(height: 8),
@@ -1628,19 +1632,15 @@ class _TodayWeatherButton extends StatelessWidget {
   final AppLocalizations l10n;
   final bool weatherLoading;
   final String weatherSummary;
-  final String weatherLocation;
   final int? weatherCode;
   final VoidCallback onTap;
-  final VoidCallback onOutfitTap;
 
   const _TodayWeatherButton({
     required this.l10n,
     required this.weatherLoading,
     required this.weatherSummary,
-    required this.weatherLocation,
     required this.weatherCode,
     required this.onTap,
-    required this.onOutfitTap,
   });
 
   IconData _weatherIcon(int? code) {
@@ -1773,227 +1773,70 @@ class _TodayWeatherButton extends StatelessWidget {
     final theme = Theme.of(context);
     final hasWeather = weatherSummary.isNotEmpty;
     final palette = _palette(theme);
-    final summaryParts = _WeatherSummaryParts.parse(weatherSummary);
-    final primaryText = hasWeather
-        ? summaryParts.primary
-        : l10n.homeWeatherTitle;
-    final secondaryText = hasWeather
-        ? (summaryParts.secondary ?? l10n.homeWeatherSubtitle)
-        : weatherLoading
-        ? l10n.homeWeatherLoading
-        : l10n.homeWeatherSubtitle;
-    final locationLabel = weatherLocation.isNotEmpty
-        ? weatherLocation
-        : l10n.homeWeatherLocationUnknown;
-    final showOutfitAction = hasWeather;
-    final primaryLooksLikeTemperature = primaryText.contains('°C');
+    final title = hasWeather ? weatherSummary : l10n.homeWeatherTitle;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: palette.gradientColors,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: palette.outline),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                blurRadius: 24,
-                offset: const Offset(0, 14),
-              ),
-            ],
           ),
-          child: Stack(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Positioned(
-                top: -16,
-                right: -10,
-                child: Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    color: palette.surface.withValues(alpha: 0.42),
-                    shape: BoxShape.circle,
-                  ),
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: palette.surface,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              Positioned(
-                left: -28,
-                bottom: -40,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: palette.surface.withValues(alpha: 0.28),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: palette.surface,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          l10n.homeWeatherTitle,
-                          style: theme.textTheme.labelLarge?.copyWith(
+                child: Center(
+                  child: weatherLoading
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.1,
                             color: palette.foreground,
-                            fontWeight: FontWeight.w800,
                           ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 22,
-                        color: palette.foreground.withValues(alpha: 0.78),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              primaryText,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  (primaryLooksLikeTemperature
-                                          ? theme.textTheme.displayMedium
-                                          : theme.textTheme.headlineMedium)
-                                      ?.copyWith(
-                                        color: palette.foreground,
-                                        fontWeight: FontWeight.w900,
-                                        height: 0.96,
-                                      ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              secondaryText,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: palette.foreground.withValues(
-                                  alpha: 0.8,
-                                ),
-                                fontWeight: FontWeight.w700,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: palette.surface,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Center(
-                          child: weatherLoading
-                              ? SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.4,
-                                    color: palette.foreground,
-                                  ),
-                                )
-                              : Icon(
-                                  hasWeather
-                                      ? _weatherIcon(weatherCode)
-                                      : Icons.cloud_outlined,
-                                  size: 40,
-                                  color: palette.foreground,
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 9,
-                        ),
-                        decoration: BoxDecoration(
-                          color: palette.surface,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.place_outlined,
-                              size: 16,
-                              color: palette.foreground,
-                            ),
-                            const SizedBox(width: 6),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 190),
-                              child: Text(
-                                locationLabel,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.labelLarge?.copyWith(
-                                  color: palette.foreground,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      FilledButton.tonalIcon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: theme.colorScheme.surface.withValues(
-                            alpha: 0.88,
-                          ),
-                        ),
-                        onPressed: showOutfitAction ? onOutfitTap : onTap,
-                        icon: Icon(
-                          showOutfitAction
-                              ? Icons.checkroom_outlined
-                              : Icons.my_location_rounded,
+                        )
+                      : Icon(
+                          hasWeather
+                              ? _weatherIcon(weatherCode)
+                              : Icons.cloud_outlined,
                           size: 18,
+                          color: palette.foreground,
                         ),
-                        label: Text(
-                          showOutfitAction
-                              ? l10n.homeWeatherOutfitButton
-                              : l10n.homeWeatherLoad,
-                        ),
-                      ),
-                    ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 132),
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: palette.foreground,
+                    fontWeight: FontWeight.w900,
                   ),
-                ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: palette.foreground.withValues(alpha: 0.72),
               ),
             ],
           ),
@@ -2015,28 +1858,6 @@ class _WeatherHeroPalette {
     required this.surface,
     required this.outline,
   });
-}
-
-class _WeatherSummaryParts {
-  final String primary;
-  final String? secondary;
-
-  const _WeatherSummaryParts({required this.primary, required this.secondary});
-
-  factory _WeatherSummaryParts.parse(String summary) {
-    final trimmed = summary.trim();
-    if (trimmed.isEmpty) {
-      return const _WeatherSummaryParts(primary: '', secondary: null);
-    }
-    final match = RegExp(r'^(.+?)\s+(-?\d+(?:\.\d+)?°C)$').firstMatch(trimmed);
-    if (match == null) {
-      return _WeatherSummaryParts(primary: trimmed, secondary: null);
-    }
-    return _WeatherSummaryParts(
-      primary: match.group(2)!,
-      secondary: match.group(1)!,
-    );
-  }
 }
 
 class _PlanDaysCard extends StatelessWidget {
