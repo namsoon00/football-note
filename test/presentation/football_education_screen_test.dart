@@ -23,7 +23,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('태오의 축구 역사책'), findsOneWidget);
+      expect(find.text('태오의 월드컵 역사책'), findsOneWidget);
       expect(
         find.text(
           '공놀이의 뿌리, 규칙의 탄생, 월드컵과 클럽 축구, 전술 혁신, 여자 축구, 한국과 아시아의 흐름까지 길게 읽는 책 형식의 교육 화면입니다.',
@@ -38,7 +38,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.textContaining('1863년, 1904년, 1930년, 1991년, 2002년, 2018년'),
+        find.textContaining(
+          '1930, 1950, 1958, 1970, 1986, 1998, 2002, 2010, 2018, 2022, 2026',
+        ),
         findsOneWidget,
       );
 
@@ -48,7 +50,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('1863년부터 2018년까지 이어지는 기준 연도'), findsOneWidget);
+      expect(
+        find.textContaining('가장 최근 완료 대회인 2022와 다음 장의 문 앞에 선 2026'),
+        findsOneWidget,
+      );
 
       await tester.drag(
         find.byKey(const ValueKey<String>('education-book-page-view')),
@@ -56,11 +61,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('공놀이의 뿌리와 규칙의 탄생'), findsNWidgets(2));
-      expect(
-        find.textContaining('1848년 케임브리지 규칙, 1863년 축구협회 규칙'),
-        findsOneWidget,
-      );
+      expect(find.text('바다를 건너 시작된 첫 세 번의 월드컵'), findsNWidgets(2));
+      expect(find.textContaining('유럽 팀들이 몇 주씩 항해해 우루과이로 향했고'), findsOneWidget);
 
       await tester.drag(
         find.byKey(const ValueKey<String>('education-page-scroll-1')),
@@ -68,7 +70,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('1848년과 1863년, 1871년과 1872년'), findsOneWidget);
+      expect(find.textContaining('세계정치와 이동 기술이 함께 만든 무대였습니다.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
