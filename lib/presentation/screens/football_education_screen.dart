@@ -96,8 +96,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _BookHeroCard(l10n: l10n),
-                    const SizedBox(height: 12),
                     _BookProgressCard(
                       title: currentChapter.title,
                       chapterLabel: currentChapter.chapterLabel,
@@ -115,6 +113,7 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
               const SizedBox(height: 8),
               Expanded(
                 child: PageView.builder(
+                  key: const ValueKey<String>('education-book-page-view'),
                   controller: _pageController,
                   itemCount: chapters.length,
                   onPageChanged: (index) {
@@ -129,6 +128,7 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
                     return AnimatedBuilder(
                       animation: _pageController,
                       child: _BookPageCard(
+                        pageIndex: index,
                         chapter: chapters[index],
                         pageLabel: l10n.educationBookProgressLabel(
                           index + 1,
@@ -345,164 +345,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
   }
 }
 
-class _BookHeroCard extends StatelessWidget {
-  final AppLocalizations l10n;
-
-  const _BookHeroCard({required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: <Color>[Color(0xFFE7B36A), Color(0xFFB16945)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: const <BoxShadow>[
-          BoxShadow(
-            color: Color(0x1F3B220D),
-            blurRadius: 24,
-            offset: Offset(0, 16),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -10,
-            top: -16,
-            child: Container(
-              width: 128,
-              height: 128,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 18,
-            bottom: 0,
-            child: Icon(
-              Icons.menu_book_rounded,
-              size: 86,
-              color: Colors.white.withValues(alpha: 0.16),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  l10n.educationBookHeaderEyebrow,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFF3C1F0D),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: Text(
-                  l10n.educationBookHeaderTitle,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: const Color(0xFF24150D),
-                    fontWeight: FontWeight.w900,
-                    height: 1.14,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 330),
-                child: Text(
-                  l10n.educationBookHeaderBody,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: const Color(0xFF3C2518),
-                    height: 1.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _HeroChip(
-                    icon: Icons.auto_stories_outlined,
-                    label: l10n.educationBookHeaderChipChapters,
-                  ),
-                  _HeroChip(
-                    icon: Icons.history_edu_outlined,
-                    label: l10n.educationBookHeaderChipRoots,
-                  ),
-                  _HeroChip(
-                    icon: Icons.schema_outlined,
-                    label: l10n.educationBookHeaderChipTactics,
-                  ),
-                  _HeroChip(
-                    icon: Icons.swipe_rounded,
-                    label: l10n.educationBookHeaderChipSwipe,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _HeroChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF3F2617)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: const Color(0xFF3F2617),
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _BookProgressCard extends StatelessWidget {
   final String title;
   final String chapterLabel;
@@ -607,6 +449,7 @@ class _BookProgressCard extends StatelessWidget {
 }
 
 class _BookPageCard extends StatelessWidget {
+  final int pageIndex;
   final _BookChapter chapter;
   final String pageLabel;
   final String storyLabel;
@@ -615,6 +458,7 @@ class _BookPageCard extends StatelessWidget {
   final String noteLabel;
 
   const _BookPageCard({
+    required this.pageIndex,
     required this.chapter,
     required this.pageLabel,
     required this.storyLabel,
@@ -662,6 +506,7 @@ class _BookPageCard extends StatelessWidget {
               border: Border.all(color: accent.withValues(alpha: 0.34)),
             ),
             child: Stack(
+              fit: StackFit.expand,
               children: [
                 Positioned(
                   left: 24,
@@ -724,7 +569,8 @@ class _BookPageCard extends StatelessWidget {
                   ),
                 ),
                 SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(32, 28, 28, 28),
+                  key: ValueKey<String>('education-page-scroll-$pageIndex'),
+                  padding: const EdgeInsets.fromLTRB(32, 28, 28, 40),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
