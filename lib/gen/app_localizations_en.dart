@@ -2471,7 +2471,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'not enough stable step events';
 
   @override
-  String get headerEducationTooltip => 'Football education';
+  String get headerEducationTooltip => 'Football history book';
 
   @override
   String get homeWeatherNeedsLocationTitle => 'Need location';
@@ -2530,7 +2530,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeStreakActionReview => 'Weekly flow';
 
   @override
-  String get educationScreenTitle => 'Youth Football Education';
+  String get educationScreenTitle => 'Taeo\'s Football History Book';
 
   @override
   String get educationHeroEyebrow => 'YOUTH SESSION KIT';
@@ -2750,4 +2750,322 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get educationPrincipleThreeBody =>
       'Ask what felt easy today and what they want to change next time. That reflection helps the lesson stick.';
+
+  @override
+  String get educationBookHeaderEyebrow => 'TAEO FOOTBALL ARCHIVE';
+
+  @override
+  String get educationBookHeaderTitle =>
+      'Football history that Taeo turns page by page';
+
+  @override
+  String get educationBookHeaderBody =>
+      'This book-style education screen stretches from the roots of ball games to formal rules, World Cups, club football, tactical revolutions, women\'s football, and the timeline of Korea and Asia.';
+
+  @override
+  String get educationBookHeaderChipChapters => '10 chapters';
+
+  @override
+  String get educationBookHeaderChipRoots => 'Ancient to modern';
+
+  @override
+  String get educationBookHeaderChipTactics => 'Tactics and legends';
+
+  @override
+  String get educationBookHeaderChipSwipe => 'Page-turn UX';
+
+  @override
+  String get educationBookSectionStory => 'Taeo\'s Scene';
+
+  @override
+  String get educationBookSectionTimeline => 'Core Timeline';
+
+  @override
+  String get educationBookSectionFacts => 'Memory Data';
+
+  @override
+  String get educationBookSectionNote => 'Taeo\'s Note';
+
+  @override
+  String get educationBookSwipeHint =>
+      'Swipe sideways to turn pages and scroll vertically inside each page.';
+
+  @override
+  String get educationBookPreviousButton => 'Previous';
+
+  @override
+  String get educationBookNextButton => 'Next';
+
+  @override
+  String educationBookProgressLabel(int current, int total) {
+    return '$current/$total chapters';
+  }
+
+  @override
+  String get educationBookCoverLabel => 'Prologue';
+
+  @override
+  String get educationBookCoverTitle => 'Taeo\'s Football Time Travel';
+
+  @override
+  String get educationBookCoverSubtitle =>
+      'One long volume of rules, tournaments, tactics, and legends';
+
+  @override
+  String get educationBookCoverStory =>
+      'After training, Taeo walks into an archive packed with old football books. The moment he opens the first page, the roots of ball games and the age of modern data football connect into one long story.\n\nTaeo is the main character of this book, but every page also introduces the players, coaches, crowds, and rules that changed the game. As he keeps turning pages, he learns that football is more than a match. It is a language shaped by culture, industry, and education together.';
+
+  @override
+  String get educationBookCoverTimeline =>
+      'Ancient-era cuju and kemari remained as early traditions of playing with the feet.\nIn 1863, the Football Association in England drew the starting line of modern football by codifying rules.\nThe founding of FIFA in 1904 and the first World Cup in 1930 created a shared global stage.\nThe 1991 Women\'s World Cup and the 2018 men\'s World Cup use of VAR show how football kept expanding in scope and officiating.';
+
+  @override
+  String get educationBookCoverFacts =>
+      'Taeo\'s bookmark 1: each chapter mixes story, timeline, and memory anchors.\nTaeo\'s bookmark 2: World Cup and league history stick faster when year, place, and champion are grouped together.\nTaeo\'s bookmark 3: tactical history makes more sense when read beside rule changes.\nTaeo\'s bookmark 4: women\'s football and Asian football become clearer when followed as their own timelines.';
+
+  @override
+  String get educationBookCoverNote =>
+      'Taeo decides that after finishing the book, he will write down five years that stayed in his head. History study becomes much easier once you build your own anchor points.';
+
+  @override
+  String get educationBookOriginsLabel => 'Chapter 1';
+
+  @override
+  String get educationBookOriginsTitle =>
+      'The roots of ball games and the birth of rules';
+
+  @override
+  String get educationBookOriginsSubtitle =>
+      'From cuju, kemari, and folk football to the 1863 rule book';
+
+  @override
+  String get educationBookOriginsStory =>
+      'In the oldest chapter, Taeo meets ball games that look nothing like the modern version. In some eras people kicked the ball, in others they kept it in the air like a ritual, and in many towns entire streets became part of the contest.\n\nOnce matches spread across regions, everyone needed the same set of promises. Taeo underlines a key lesson: football did not truly begin with the first goal, but with agreement on the rules.';
+
+  @override
+  String get educationBookOriginsTimeline =>
+      'Cuju from Han-era China is often cited as one of the clearest early records of kicking a leather ball.\nJapan\'s kemari valued technique and rhythm over direct competition.\nMedieval European folk football was closer to a rough town-wide festival than an organized sport.\nThe Cambridge Rules of 1848 helped create an early shared draft for schools and universities.\nIn 1863, the Football Association separated association football from rugby-style handling.\nThe FA Cup began in 1871, and England vs Scotland in 1872 is recorded as the first official international match.';
+
+  @override
+  String get educationBookOriginsFacts =>
+      'Early offside rules were far stricter than today\'s version, so forward passing was much harder.\nThe penalty kick arrived in 1891 and clarified responsibility around fouls near goal.\nAs crossbars, nets, and referee systems became standardized, scoring decisions grew more stable.\nTaeo notes that once rules were unified, skill comparison and tactical experimentation became possible.';
+
+  @override
+  String get educationBookOriginsNote =>
+      'Taeo writes that football was never a finished sport from day one. It was the result of a long negotiation that turned chaotic play into a common language.';
+
+  @override
+  String get educationBookWorldCupLabel => 'Chapter 2';
+
+  @override
+  String get educationBookWorldCupTitle =>
+      'The start of FIFA and the World Cup';
+
+  @override
+  String get educationBookWorldCupSubtitle =>
+      'An international body, the first world event, and the restart after war';
+
+  @override
+  String get educationBookWorldCupStory =>
+      'When Taeo turns the next page, he sees a meeting room in Paris and a stadium in Uruguay inside the same chapter. A handful of countries gather to build an international body, and soon after, a new stage appears to crown a world champion.\n\nTo Taeo, World Cup history feels like more than a list of matches. It looks like a global announcement that the world now shares one football language. That is why he starts reading year, host, and champion as a single unit.';
+
+  @override
+  String get educationBookWorldCupTimeline =>
+      'FIFA was founded in Paris in 1904, creating a center for international football governance.\nFootball at the 1908 London Olympics helped strengthen the structure of international competition.\nUruguay won the 1924 and 1928 Olympic tournaments, boosting the symbolism of hosting the first World Cup.\nThe first FIFA World Cup was held in Uruguay in 1930, and the hosts became the inaugural champions.\nThe 1942 and 1946 tournaments were not played because of World War II.\nThe 1950 World Cup in Brazil left behind the historic Maracana shock delivered by Uruguay.\nThe current FIFA World Cup Trophy has been used since 1974.';
+
+  @override
+  String get educationBookWorldCupFacts =>
+      'The Jules Rimet Trophy was the prize lifted by World Cup champions through 1970.\nBrazil remains the standard reference for the most men\'s World Cup titles.\nMiroslav Klose\'s 16 goals are the all-time men\'s World Cup scoring record.\nTaeo studies World Cup history by grouping host nation, champion, and iconic scene together.';
+
+  @override
+  String get educationBookWorldCupNote =>
+      'Taeo writes that the World Cup feels less like a single tournament and more like the largest presentation in the world proving that one set of rules can connect everyone.';
+
+  @override
+  String get educationBookClubLabel => 'Chapter 3';
+
+  @override
+  String get educationBookClubTitle =>
+      'The expansion of club football and the European stage';
+
+  @override
+  String get educationBookClubSubtitle =>
+      'League launches, the European Cup, and the Premier League era';
+
+  @override
+  String get educationBookClubStory =>
+      'Taeo watches industrial-city weekends and European away nights merge inside one chapter. If the World Cup is the calendar of nations, club football feels like the weekly rhythm of cities.\n\nPeople who follow one club for life, streets waiting for derby day, and the global fandom created by broadcasting all show up in this section. Taeo is struck by how football can hold local identity and global industry at the same time.';
+
+  @override
+  String get educationBookClubTimeline =>
+      'The Football League launched in England in 1888, establishing regular home-and-away league structure.\nThe European Cup began in 1955 and created an ongoing story for the strongest clubs in Europe.\nReal Madrid\'s first five European Cups quickly raised the prestige of the competition.\nThe Premier League launched in 1992, and Manchester United won the inaugural 1992-93 title.\nFrom the 1992-93 season, the European Cup was reorganized as the UEFA Champions League.\nThe 1995 Bosman ruling changed player movement and squad-building across Europe.';
+
+  @override
+  String get educationBookClubFacts =>
+      'Arsenal\'s 2003-04 Invincibles remain the classic example of an unbeaten league title.\nThe Champions League accelerated the globalization of club football through group stages and broadcast growth.\nClub badges, kits, songs, and derby culture show how deeply football can merge with local identity.\nTaeo writes down league launch years, dominant dynasties, and media-capital turning points together.';
+
+  @override
+  String get educationBookClubNote =>
+      'Taeo concludes that knowing club football history is not just about counting trophies. It is about understanding which era belonged to which team.';
+
+  @override
+  String get educationBookTacticsLabel => 'Chapter 4';
+
+  @override
+  String get educationBookTacticsTitle =>
+      'How tactical revolutions changed the picture of the game';
+
+  @override
+  String get educationBookTacticsSubtitle =>
+      'Pyramid, WM, catenaccio, total football, tiki-taka, and gegenpressing';
+
+  @override
+  String get educationBookTacticsStory =>
+      'Inside the tactical chapter, Taeo learns that formations are not just codes. The same numbers can describe very different teams depending on where the ball starts, who empties a space, and who triggers the press.\n\nThis chapter teaches him that tactical study is not about memorizing names alone. It is about seeing how rule changes and player profiles reshape the entire picture of a match. That is why he always adds the question why next to the timeline.';
+
+  @override
+  String get educationBookTacticsTimeline =>
+      'Early football often used the 2-3-5 pyramid, with large numbers committed to attack.\nAfter the 1925 offside law change, Herbert Chapman\'s WM helped rebuild defensive balance.\nCatenaccio, widely associated with Inter in the 1960s, emphasized cover defense and efficient transition.\nAjax and the Netherlands in the 1970s made total football the ideal of rotation, pressing, and position exchange.\nArrigo Sacchi\'s Milan in the 1980s refined spacing between lines and collective pressing.\nFrom 2008 onward, Barcelona and Spain pushed tiki-taka and positional play toward global standard status.\nKlopp teams in the 2010s made the reaction immediately after losing the ball a tactical center through gegenpressing.';
+
+  @override
+  String get educationBookTacticsFacts =>
+      'Tactical change moves together with rule changes, player athleticism, pitch conditions, and refereeing trends.\nThe 1992 back-pass rule change sharply altered build-up speed by restricting goalkeeper hand use.\nModern analysis uses tools such as xG, pressing intensity, and field position to read tactics through numbers.\nTaeo writes that real tactical study means understanding where the ball moved and why, not only reciting a formation name.';
+
+  @override
+  String get educationBookTacticsNote =>
+      'Taeo decides not to stare only at number shapes on the board. Even one 4-3-3 can become a completely different team depending on press height, fullback roles, and the personality of the number 6.';
+
+  @override
+  String get educationBookLegendsLabel => 'Chapter 5';
+
+  @override
+  String get educationBookLegendsTitle =>
+      'Legends and iconic scenes build football memory';
+
+  @override
+  String get educationBookLegendsSubtitle =>
+      'The reference points left by Pele, Maradona, Cruyff, Zidane, and Messi';
+
+  @override
+  String get educationBookLegendsStory =>
+      'When Taeo enters the chapter of film archives, he sees one era-defining scene after another. One player ruled the World Cup as a teenager, another left a whole football language inside one turn, and another ended decades of waiting with a final title.\n\nThis is where Taeo realizes that a truly great player is not remembered only for volume of records. Greatness also means leaving an image that people immediately recall whenever football history is discussed.';
+
+  @override
+  String get educationBookLegendsTimeline =>
+      'Pele stunned the world in 1958 by winning the World Cup at age 17.\nThe Cruyff Turn at the 1974 World Cup showed that one move can become a symbol of an era.\nAt Mexico 1986, Maradona left both the Hand of God and the solo goal past five players in the same tournament.\nAt France 1998, Zidane led the hosts to the title with two headed goals in the final.\nThe 2006 World Cup final is remembered as a peak of drama, including Zidane\'s final red card.\nThe 2022 World Cup in Qatar ended with Messi winning the trophy and Argentina closing a long wait.';
+
+  @override
+  String get educationBookLegendsFacts =>
+      'Pele owns the unmatched reference point of three men\'s World Cup titles.\nDiego Maradona, Johan Cruyff, Zinedine Zidane, and Lionel Messi are remembered as era symbols as much as elite performers.\nThe Ballon d\'Or compresses an individual story, but many supporters still judge players through both World Cup and club legacy.\nTaeo memorizes big moments by pairing the player, year, opponent, stage, and why the scene mattered.';
+
+  @override
+  String get educationBookLegendsNote =>
+      'Taeo writes that the greatest players are not only the most skilled ones. They are the people who leave scenes that instantly appear in everyone\'s mind when football is explained.';
+
+  @override
+  String get educationBookAsiaLabel => 'Chapter 6';
+
+  @override
+  String get educationBookAsiaTitle =>
+      'The timetable of Asian and Korean football';
+
+  @override
+  String get educationBookAsiaSubtitle =>
+      'From the founding of the AFC to the 2002 World Cup and today\'s Korea';
+
+  @override
+  String get educationBookAsiaStory =>
+      'Now Taeo follows city names such as Seoul, Tokyo, and Doha as the book opens the map of Asian football. Even with huge travel distances, different climates, and uneven investment, football across the continent built its own timeline of growth.\n\nThe Korean section keeps repeating one lesson: national-team results alone do not tell the whole story. Pro league structure, overseas careers, and generation change moved together. Taeo decides that he should never separate the national team from the league base when reading a country\'s football history.';
+
+  @override
+  String get educationBookAsiaTimeline =>
+      'The AFC was founded in 1954, establishing a continental organization for Asian football.\nThe first AFC Asian Cup was held in 1956, and South Korea won back-to-back titles in 1956 and 1960.\nThe K League launched in 1983 and began the full professional era of Korean football.\nSouth Korea and Japan co-hosted the 2002 World Cup, and Korea reached the semifinals to set a new Asian benchmark.\nJapan\'s women\'s World Cup triumph in 2011 proved that Asia could reach the top of the global women\'s game.\nSon Heung-min\'s success in Europe raised the perceived ceiling of a Korean player\'s career once again.';
+
+  @override
+  String get educationBookAsiaFacts =>
+      'Cha Bum-kun, Park Ji-sung, and Son Heung-min are often linked as overseas reference points from different generations.\nKorean football makes more sense when World Cups, youth tournaments, the domestic league, and overseas growth are read together.\nAsian football development is tied to travel distance, climate, league investment, and youth-system differences.\nTaeo writes down how the league base changed alongside national-team results.';
+
+  @override
+  String get educationBookAsiaNote =>
+      'Taeo refuses to see 2002 as just a single miracle. He notes that major scenes are built when preparation, hosting, generational change, and league experience come together.';
+
+  @override
+  String get educationBookWomenLabel => 'Chapter 7';
+
+  @override
+  String get educationBookWomenTitle =>
+      'Women\'s football grew through bans, return, and expansion';
+
+  @override
+  String get educationBookWomenSubtitle =>
+      'The 1921 ban, the 1991 World Cup, and the growth of professional leagues';
+
+  @override
+  String get educationBookWomenStory =>
+      'When Taeo reaches the chapter on women\'s football, he first meets the history of closed doors before he reaches the trophy lifts. Many players had to fight a lack of access before they could even fight opponents on the field.\n\nThat is why this chapter treats institutional change and the return of crowds as seriously as the list of champions. Taeo decides not to forget that the starting line of football was never equal for everyone.';
+
+  @override
+  String get educationBookWomenTimeline =>
+      'In 1920, Dick, Kerr Ladies drew huge crowds in England and showed the scale of women\'s football potential.\nThe Football Association ban of 1921 cast a long shadow over the development of the women\'s game.\nThe ban was lifted in 1971, allowing women\'s football to move back into official structures.\nThe first FIFA Women\'s World Cup was held in China in 1991.\nWomen\'s football became an Olympic sport in 1996.\nThe 1999 Women\'s World Cup final in the United States proved mainstream appeal in front of more than 90,000 fans.\nSpain announced a new power in 2023 by winning its first Women\'s World Cup title.';
+
+  @override
+  String get educationBookWomenFacts =>
+      'The history of women\'s football is not only about expansion of a sport, but also about the recovery of opportunity.\nThe United States, Germany, Norway, Japan, and Spain are among the clearest examples of era-specific power cycles.\nJapan\'s 2011 title remains the first Women\'s World Cup won by an Asian nation.\nTaeo uses this page to think about how one major tournament can shift participation for the next generation.';
+
+  @override
+  String get educationBookWomenNote =>
+      'Taeo feels that a real history book cannot list only the champions. It also has to record whose door was closed, and when that door opened again.';
+
+  @override
+  String get educationBookModernLabel => 'Chapter 8';
+
+  @override
+  String get educationBookModernTitle =>
+      'Modern football is read again through data and technology';
+
+  @override
+  String get educationBookModernSubtitle =>
+      'Back-pass reform, goal-line technology, VAR, and analytical football';
+
+  @override
+  String get educationBookModernStory =>
+      'As the book reaches the modern era, Taeo finds graphs, heat maps, and video tags on the page beside match scenes. Analysts sit near coaches, and player movement gets stored as both numbers and images.\n\nEven so, Taeo notices that the central football questions remain familiar. Who scanned first, who created the better space, and who made the faster decision still define the match.';
+
+  @override
+  String get educationBookModernTimeline =>
+      'The 1992 back-pass rule change altered the build-up language of goalkeepers and defensive lines.\nIn 2012, FIFA approved goal-line technology, and it was used at the 2014 World Cup.\nThe 2018 men\'s World Cup was the first tournament to apply VAR at full scale.\nWearable GPS, video tagging, and event data became standard tools in training and scouting through the 2010s.\nModern clubs often work with set-piece coaches, data analysts, and performance scientists together.';
+
+  @override
+  String get educationBookModernFacts =>
+      'xG is a useful headline measure of shot quality, but it needs context such as pressing and field position.\nData is not a tool that removes a coach\'s feel. It is a second language that sharpens the basis for decisions.\nAs technical review expands, fairness rises, but arguments about rhythm and emotion in the game also grow.\nTaeo writes that the latest football still demands a way of reading numbers, video, and field feel together.';
+
+  @override
+  String get educationBookModernNote =>
+      'Taeo concludes that modern players are not fundamentally different from the old ones. There is more data around them, but first touch, speed of thought, and connection with teammates remain the center of the sport.';
+
+  @override
+  String get educationBookFinaleLabel => 'Epilogue';
+
+  @override
+  String get educationBookFinaleTitle => 'Taeo\'s final bookmark';
+
+  @override
+  String get educationBookFinaleSubtitle =>
+      'Now it is time to turn history into training language';
+
+  @override
+  String get educationBookFinaleStory =>
+      'When Taeo closes the last page, he understands that what he read is not just memory work for a quiz score. It is a lens for seeing football more deeply.\n\nSome coaches search rule changes for ideas. Some players draw courage from legendary scenes. Some supporters love their club more fiercely once they understand which era it represented. Taeo now feels he can practice one simple action on the field while still seeing the long history behind it.';
+
+  @override
+  String get educationBookFinaleTimeline =>
+      'From the history of rules, Taeo learned that football is a sport of shared agreement.\nFrom the history of the World Cup, he saw how one match can compress the memory of a nation.\nFrom tactical history, he confirmed that the answer is never only one shape, but something that changes with era and players.\nFrom the history of women\'s football and Asian football, he learned how strongly opportunity and environment shape growth.';
+
+  @override
+  String get educationBookFinaleFacts =>
+      'Review anchor 1: memorize years such as 1863, 1904, 1930, 1991, 2002, and 2018 first.\nReview anchor 2: connect era-defining names such as Pele, Maradona, Cruyff, Zidane, Messi, and Son Heung-min to the timeline.\nReview anchor 3: understand WM, total football, tiki-taka, and gegenpressing alongside their historical background.\nReview anchor 4: keep the World Cup, Champions League, Asian Cup, and Women\'s World Cup as separate competition axes in memory.';
+
+  @override
+  String get educationBookFinaleNote =>
+      'As Taeo shuts the book, he writes the first line of his next training diary: seeing football well means not only watching the action in front of you, but tracing where that action came from all the way back.';
 }
