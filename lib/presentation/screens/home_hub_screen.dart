@@ -1774,37 +1774,38 @@ class _TodayWeatherButton extends StatelessWidget {
     final hasWeather = weatherSummary.isNotEmpty;
     final palette = _palette(theme);
     final title = hasWeather ? weatherSummary : l10n.homeWeatherTitle;
+    final parts = _HomeWeatherBadgeParts.parse(title);
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: palette.gradientColors,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: palette.outline),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 30,
-                height: 30,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: palette.surface,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
                   child: weatherLoading
                       ? SizedBox(
-                          width: 16,
-                          height: 16,
+                          width: 14,
+                          height: 14,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.1,
                             color: palette.foreground,
@@ -1814,34 +1815,75 @@ class _TodayWeatherButton extends StatelessWidget {
                           hasWeather
                               ? _weatherIcon(weatherCode)
                               : Icons.cloud_outlined,
-                          size: 18,
+                          size: 17,
                           color: palette.foreground,
                         ),
                 ),
               ),
               const SizedBox(width: 8),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 132),
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: palette.foreground,
-                    fontWeight: FontWeight.w900,
-                  ),
+                constraints: const BoxConstraints(maxWidth: 110),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      parts.primary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: palette.foreground,
+                        fontWeight: FontWeight.w900,
+                        height: 1.0,
+                      ),
+                    ),
+                    if (parts.secondary != null) ...[
+                      const SizedBox(height: 1),
+                      Text(
+                        parts.secondary!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: palette.foreground.withValues(alpha: 0.78),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Icon(
                 Icons.chevron_right_rounded,
-                size: 18,
+                size: 16,
                 color: palette.foreground.withValues(alpha: 0.72),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _HomeWeatherBadgeParts {
+  final String primary;
+  final String? secondary;
+
+  const _HomeWeatherBadgeParts({
+    required this.primary,
+    required this.secondary,
+  });
+
+  factory _HomeWeatherBadgeParts.parse(String text) {
+    final trimmed = text.trim();
+    final match = RegExp(r'^(.+?)\s+(-?\d+(?:\.\d+)?°C)$').firstMatch(trimmed);
+    if (match == null) {
+      return _HomeWeatherBadgeParts(primary: trimmed, secondary: null);
+    }
+    return _HomeWeatherBadgeParts(
+      primary: match.group(2)!,
+      secondary: match.group(1)!,
     );
   }
 }

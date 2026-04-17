@@ -263,7 +263,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       final shouldRequestPermission =
           widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
           _summary.isEmpty;
-      unawaited(_loadWeather(requestPermission: shouldRequestPermission));
+      unawaited(
+        _loadWeather(
+          requestPermission: shouldRequestPermission,
+          showFailureFeedback: false,
+        ),
+      );
     });
   }
 
@@ -275,7 +280,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final airLevel = _aqiLevel(l10n, _aqi);
     final pm10Level = _pm10Level(l10n, _pm10);
     final pm25Level = _pm25Level(l10n, _pm25);
-    final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo);
+    final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
@@ -290,12 +295,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 helper: null,
                 icon: _weatherIcon(_weatherCode),
                 loading: _loading,
-                buttonLabel: _loading
-                    ? l10n.homeWeatherLoading
-                    : l10n.homeWeatherLoad,
                 onRefresh: _loading
                     ? null
-                    : () => _loadWeather(requestPermission: true),
+                    : () => _loadWeather(
+                        requestPermission: true,
+                        showFailureFeedback: true,
+                      ),
                 metrics: hasWeather
                     ? [
                         _CompactMetricData(
@@ -328,6 +333,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   trainingLabel: l10n.homeWeatherSuggestionButton,
                   onOutfitTap: () => _showOutfitGuideSheet(
                     isKo: isKo,
+                    l10n: l10n,
                     guide: detailedOutfitGuide,
                   ),
                   onTrainingTap: () =>
@@ -396,7 +402,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     );
   }
 
-  Future<void> _loadWeather({required bool requestPermission}) async {
+  Future<void> _loadWeather({
+    required bool requestPermission,
+    required bool showFailureFeedback,
+  }) async {
     if (_loading || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -414,7 +423,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     setState(() => _loading = true);
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        if (showFailureFeedback && mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.homeWeatherLoadFailed)));
+        }
+        return;
+      }
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied && requestPermission) {
@@ -422,10 +438,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        if (requestPermission && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.homeWeatherPermissionNeeded)),
-          );
+        if (showFailureFeedback && mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.homeWeatherLoadFailed)));
         }
         return;
       }
@@ -458,7 +474,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         fetchedAt: DateTime.now(),
       );
     } catch (_) {
-      if (requestPermission && mounted) {
+      if (showFailureFeedback && mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(l10n.homeWeatherLoadFailed)));
@@ -508,7 +524,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final isKo = Localizations.localeOf(context).languageCode == 'ko';
-      _showOutfitGuideSheet(isKo: isKo, guide: _buildDetailedOutfitGuide(isKo));
+      final l10n = AppLocalizations.of(context)!;
+      _showOutfitGuideSheet(
+        isKo: isKo,
+        l10n: l10n,
+        guide: _buildDetailedOutfitGuide(isKo, l10n),
+      );
     });
   }
 
@@ -733,10 +754,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     );
   }
 
-  _DetailedOutfitGuide _buildDetailedOutfitGuide(bool isKo) {
+  _DetailedOutfitGuide _buildDetailedOutfitGuide(
+    bool isKo,
+    AppLocalizations l10n,
+  ) {
     final apparentTemperature = _apparentTemperature ?? _temperatureMax;
     final windSpeed = _windSpeed ?? 0;
     final weatherCode = _weatherCode;
+    final airLevel = _worstAirQualityLevel();
     final isRainy =
         weatherCode != null &&
         <int>{
@@ -766,6 +791,20 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     String bottom;
     String accessories;
     final notes = <String>[];
+    final callouts = <_OutfitCoachCallout>[
+      _OutfitCoachCallout(
+        icon: apparentTemperature != null && apparentTemperature >= 24
+            ? Icons.wb_sunny_outlined
+            : apparentTemperature != null && apparentTemperature <= 8
+            ? Icons.ac_unit_rounded
+            : Icons.tune_rounded,
+        text: apparentTemperature != null && apparentTemperature >= 24
+            ? l10n.homeWeatherOutfitBaseHot
+            : apparentTemperature != null && apparentTemperature <= 8
+            ? l10n.homeWeatherOutfitBaseCold
+            : l10n.homeWeatherOutfitBaseMild,
+      ),
+    ];
 
     if (apparentTemperature == null) {
       layers = isKo ? '기능성 이너 + 반팔 훈련복' : 'Base layer + short-sleeve top';
@@ -824,6 +863,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             ? '강풍: 바람막이/넥워머 필수'
             : 'Strong wind: windbreaker and neck warmer required',
       );
+      callouts.add(
+        _OutfitCoachCallout(
+          icon: Icons.air_rounded,
+          text: l10n.homeWeatherOutfitWind,
+        ),
+      );
     }
     if (isRainy) {
       outer = isKo
@@ -833,12 +878,32 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           ? '$accessories, 방수 양말 또는 여벌 양말'
           : '$accessories, waterproof or spare socks';
       notes.add(isKo ? '젖은 잔디 미끄럼 주의' : 'Watch slippery wet grass');
+      callouts.add(
+        _OutfitCoachCallout(
+          icon: Icons.umbrella_outlined,
+          text: l10n.homeWeatherOutfitRain,
+        ),
+      );
     } else if (isSnowy) {
       outer = isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket';
       accessories = isKo
           ? '$accessories, 손난로(선택)'
           : '$accessories, hand warmers (optional)';
       notes.add(isKo ? '빙판 구간 피해서 훈련' : 'Avoid icy zones');
+      callouts.add(
+        _OutfitCoachCallout(
+          icon: Icons.ac_unit_rounded,
+          text: l10n.homeWeatherOutfitSnow,
+        ),
+      );
+    }
+    if (airLevel.index >= _AirQualityLevel.sensitive.index) {
+      callouts.add(
+        _OutfitCoachCallout(
+          icon: Icons.masks_outlined,
+          text: l10n.homeWeatherOutfitAirCaution,
+        ),
+      );
     }
 
     return _DetailedOutfitGuide(
@@ -846,6 +911,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       outer: outer,
       bottom: bottom,
       accessories: accessories,
+      coachSummary: callouts.first.text,
+      callouts: callouts.skip(1).toList(growable: false),
       caution: notes.isEmpty
           ? (isKo
                 ? '현재 조건에서 일반 강도 훈련 가능'
@@ -972,6 +1039,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   void _showOutfitGuideSheet({
     required bool isKo,
+    required AppLocalizations l10n,
     required _DetailedOutfitGuide guide,
   }) {
     showModalBottomSheet<void>(
@@ -983,19 +1051,20 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: _StructuredOutfitGuideCard(
             title: isKo ? '추천 복장' : 'Recommended Outfit',
-            subtitle: _location.isEmpty
-                ? (isKo
-                      ? '현재 날씨 기준 추천입니다.'
-                      : 'Recommended for current weather conditions.')
-                : (isKo
-                      ? '$_location 날씨 기준 추천입니다.'
-                      : 'Recommended for $_location weather.'),
+            subtitle: _headerLocationLabel(l10n),
             layersLabel: isKo ? '레이어' : 'Layers',
             outerLabel: isKo ? '아우터' : 'Outerwear',
             bottomLabel: isKo ? '하의' : 'Bottom',
             accessoriesLabel: isKo ? '준비물' : 'Accessories',
             cautionLabel: isKo ? '주의 포인트' : 'Notes',
             buttonLabel: isKo ? '모든 복장 케이스 보기' : 'View all outfit cases',
+            weatherSummary: _summary,
+            feelsLikeLabel: l10n.homeWeatherFeelsLike,
+            feelsLikeValue: _formatTemperature(_apparentTemperature),
+            windLabel: l10n.homeWeatherWindSpeed,
+            windValue: _formatWind(_windSpeed),
+            airLabel: l10n.homeWeatherAqi,
+            airValue: _aqi == null ? '--' : '$_aqi',
             guide: guide,
             onViewAll: () => _showAllOutfitCasesSheet(isKo),
           ),
@@ -1164,7 +1233,6 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
   final String? helper;
   final IconData icon;
   final bool loading;
-  final String buttonLabel;
   final VoidCallback? onRefresh;
   final List<_CompactMetricData> metrics;
 
@@ -1174,7 +1242,6 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
     this.helper,
     required this.icon,
     required this.loading,
-    required this.buttonLabel,
     required this.onRefresh,
     required this.metrics,
   });
@@ -1234,34 +1301,81 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: theme.colorScheme.surface.withValues(alpha: 0.18),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.place_rounded, size: 16, color: onGradient),
-                    const SizedBox(width: 6),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: onGradient,
-                        fontWeight: FontWeight.w800,
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withValues(
+                          alpha: 0.22,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: theme.colorScheme.surface.withValues(
+                            alpha: 0.18,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.place_rounded,
+                            size: 16,
+                            color: onGradient,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: onGradient,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.surface.withValues(
+                          alpha: 0.16,
+                        ),
+                      ),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: onRefresh,
+                      icon: loading
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.1,
+                                color: onGradient,
+                              ),
+                            )
+                          : Icon(
+                              Icons.refresh_rounded,
+                              size: 20,
+                              color: onGradient,
+                            ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 18),
               Row(
@@ -1331,26 +1445,8 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.surface.withValues(
-                    alpha: 0.86,
-                  ),
-                  foregroundColor: theme.colorScheme.onSurface,
-                ),
-                onPressed: onRefresh,
-                icon: loading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                      )
-                    : const Icon(Icons.my_location_rounded),
-                label: Text(buttonLabel),
-              ),
               if (metrics.isNotEmpty) ...[
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -1610,6 +1706,13 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
   final String accessoriesLabel;
   final String cautionLabel;
   final String buttonLabel;
+  final String weatherSummary;
+  final String feelsLikeLabel;
+  final String feelsLikeValue;
+  final String windLabel;
+  final String windValue;
+  final String airLabel;
+  final String airValue;
   final _DetailedOutfitGuide guide;
   final VoidCallback onViewAll;
 
@@ -1622,13 +1725,28 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
     required this.accessoriesLabel,
     required this.cautionLabel,
     required this.buttonLabel,
+    required this.weatherSummary,
+    required this.feelsLikeLabel,
+    required this.feelsLikeValue,
+    required this.windLabel,
+    required this.windValue,
+    required this.airLabel,
+    required this.airValue,
     required this.guide,
     required this.onViewAll,
   });
 
+  List<String> _splitItems(String raw, Pattern separator) => raw
+      .split(separator)
+      .map((item) => item.trim())
+      .where((item) => item.isNotEmpty)
+      .toList(growable: false);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accessoryItems = _splitItems(guide.accessories, ',');
+    final cautionItems = _splitItems(guide.caution, '·');
     final items = [
       (
         label: layersLabel,
@@ -1709,6 +1827,37 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
                           height: 1.35,
                         ),
                       ),
+                      if (weatherSummary.trim().isNotEmpty ||
+                          feelsLikeValue != '--' ||
+                          windValue != '--' ||
+                          airValue != '--') ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            if (weatherSummary.trim().isNotEmpty)
+                              _NeutralInfoChip(label: weatherSummary.trim()),
+                            if (feelsLikeValue != '--')
+                              _NeutralInfoChip(
+                                label: '$feelsLikeLabel $feelsLikeValue',
+                              ),
+                            if (windValue != '--')
+                              _NeutralInfoChip(label: '$windLabel $windValue'),
+                            if (airValue != '--')
+                              _NeutralInfoChip(label: '$airLabel $airValue'),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      Text(
+                        guide.coachSummary,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w800,
+                          height: 1.4,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1730,6 +1879,15 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          if (guide.callouts.isNotEmpty) ...[
+            ...guide.callouts.map(
+              (callout) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _OutfitCoachCalloutCard(callout: callout),
+              ),
+            ),
+            const SizedBox(height: 2),
+          ],
           LayoutBuilder(
             builder: (context, constraints) {
               final cardWidth = (constraints.maxWidth - 10) / 2;
@@ -1753,6 +1911,23 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
               );
             },
           ),
+          if (accessoryItems.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text(
+              accessoriesLabel,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: accessoryItems
+                  .map((item) => _NeutralInfoChip(label: item))
+                  .toList(growable: false),
+            ),
+          ],
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -1761,22 +1936,55 @@ class _StructuredOutfitGuideCard extends StatelessWidget {
               color: theme.colorScheme.primaryContainer.withValues(alpha: 0.55),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.tips_and_updates_outlined,
-                  size: 18,
-                  color: theme.colorScheme.primary,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.tips_and_updates_outlined,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        cautionLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '$cautionLabel · ${guide.caution}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: theme.colorScheme.onSurface,
-                      height: 1.35,
+                const SizedBox(height: 8),
+                ...cautionItems.map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '•',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            item,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: theme.colorScheme.onSurface,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1817,40 +2025,113 @@ class _OutfitVisualCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
+      height: 148,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        gradient: LinearGradient(
+          colors: [
+            accent.withValues(alpha: 0.92),
+            theme.colorScheme.surface.withValues(alpha: 0.96),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
         ),
       ),
-      child: Column(
+      child: Stack(
+        children: [
+          Positioned(
+            top: -8,
+            right: -4,
+            child: Icon(
+              icon,
+              size: 72,
+              color: foreground.withValues(alpha: 0.12),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.58),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, size: 22, color: foreground),
+              ),
+              const Spacer(),
+              Text(
+                label,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OutfitCoachCalloutCard extends StatelessWidget {
+  final _OutfitCoachCallout callout;
+
+  const _OutfitCoachCalloutCard({required this.callout});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: accent,
-              borderRadius: BorderRadius.circular(14),
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 22, color: foreground),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w800,
+            child: Icon(
+              callout.icon,
+              size: 18,
+              color: theme.colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.35,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              callout.text,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -2747,6 +3028,8 @@ class _DetailedOutfitGuide {
   final String outer;
   final String bottom;
   final String accessories;
+  final String coachSummary;
+  final List<_OutfitCoachCallout> callouts;
   final String caution;
 
   const _DetailedOutfitGuide({
@@ -2754,8 +3037,17 @@ class _DetailedOutfitGuide {
     required this.outer,
     required this.bottom,
     required this.accessories,
+    required this.coachSummary,
+    this.callouts = const <_OutfitCoachCallout>[],
     required this.caution,
   });
+}
+
+class _OutfitCoachCallout {
+  final IconData icon;
+  final String text;
+
+  const _OutfitCoachCallout({required this.icon, required this.text});
 }
 
 class _TrainingGuide {
