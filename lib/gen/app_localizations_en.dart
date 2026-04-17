@@ -2765,7 +2765,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookSwipeHint =>
-      'Swipe sideways to turn pages and scroll vertically inside each page.';
+      'Pages turn only with a side swipe. Read each chapter by slowly scrolling downward.';
 
   @override
   String get educationBookPreviousButton => 'Previous';
@@ -2782,15 +2782,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get educationBookCoverLabel => 'Prologue';
 
   @override
-  String get educationBookCoverTitle => 'A World Cup Chronicle With Taeo';
+  String get educationBookCoverTitle =>
+      'Taking the World Cup Down From a Shelf at Night';
 
   @override
   String get educationBookCoverSubtitle =>
-      'From Uruguay 1930 to a preview of North America 2026';
+      'How Taeo opens the first page of a history book';
 
   @override
   String get educationBookCoverStory =>
-      'After training, Taeo stops in front of a shelf filled with old World Cup programmes. The moment he opens the first page, the port of Montevideo, the stands of the Maracana, the altitude of the Azteca, and the night sky above Lusail all connect into one book.\n\nThis volume does not cover all of football history. It follows only the men\'s FIFA World Cup, from the first tournament in 1930 to the most recently completed edition in Qatar in 2022, then adds a look ahead to the still-upcoming 2026 tournament in Canada, Mexico, and the United States. Taeo does not memorize only the champions. He reads who changed the era, which events shook the tournament, and why some scenes are still replayed decades later.\n\nBefore he turns another page, Taeo writes down 1930, 1950, 1958, 1970, 1986, 1998, 2002, 2010, 2018, 2022, and 2026. The first launch, the most famous shock, Pele\'s arrival, the golden Brazil side, Maradona\'s summer, the 32-team era, Korea\'s semifinal run, the first World Cup in Africa, the VAR era, Messi\'s completion, and the 48-team expansion make the whole map much easier to hold in one line.';
+      'On some nights after training, paper feels heavier than the ball. Taeo runs a cooling hand along a shelf of old World Cup programmes. The pages smell faintly of dust, and inside them lie the port of Montevideo, the steps of the Maracana, the sunlight over the Azteca, and the polished night above Lusail. It feels as if someone folded whole seasons into paper and left them here for later.\n\nThis book does not try to explain all of football. It follows only one river: the World Cup. It begins in Uruguay in 1930, passes through Qatar in 2022, and pauses at the far edge of 2026 in North America, still waiting to be written. Taeo likes that restraint. Sometimes looking at one thing for a long time is more exact than trying to hold everything at once.\n\nSo he writes down 1930, 1950, 1958, 1970, 1986, 1998, 2002, 2010, 2018, 2022, and 2026 on a blank page. Years look like numbers, but if you stare at them long enough, they begin to feel like rooms with different temperatures. One room holds Pele\'s smile. One holds the silence of the Maracana. Another keeps the moment Messi finally lets himself exhale. Tonight Taeo decides to touch each doorknob in turn.';
 
   @override
   String get educationBookCoverTimeline =>
@@ -2808,8 +2809,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get educationBookOriginsLabel => 'Chapter 1';
 
   @override
-  String get educationBookOriginsTitle =>
-      'The first three World Cups began with long sea journeys';
+  String get educationBookOriginsTitle => 'The First Summer Arrived By Ship';
 
   @override
   String get educationBookOriginsSubtitle =>
@@ -2817,7 +2817,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookOriginsStory =>
-      'In the first main chapter, Taeo meets a World Cup era when teams traveled by ship more often than by plane. European sides spent weeks crossing the Atlantic to reach Uruguay, while the hosts rushed to complete the Estadio Centenario as part of a centenary celebration. The World Cup began like an adventure story before it fully became a modern media event.\n\nUruguay beat Argentina 4-2 in the 1930 final and became the inaugural champions, while Guillermo Stabile of Argentina finished as the first top scorer. Yet the early years were never only romantic. Italy\'s 1934 tournament took place in the shadow of Mussolini\'s regime, and France 1938 was staged under the growing tension of a continent moving toward war.\n\nTaeo is struck by how quickly the World Cup already carried long-distance travel, political pressure, boycotts, and refereeing arguments. So when he studies the first three editions, he reads not only who lifted the trophy, but also how fast the competition moved into the middle of world history.';
+      'The first chapter begins in an age when ships mattered more than planes. European teams spent weeks crossing the sea to reach Uruguay, and the hosts finished the Estadio Centenario in a rush thick with the heat of a centenary celebration. By modern standards everything was slow and inconvenient, yet that slowness makes the tournament seem sharper. Big events often arrive carrying a little discomfort with them. The World Cup knew that from the start.\n\nAs Uruguay become the first champions in 1930 and Italy follow with titles in 1934 and 1938, Taeo finds himself reading the air around the results before the scorelines themselves. Mussolini\'s shadow stretches over one tournament. War has not yet begun, but it is already walking quietly through the corridors of Europe. The World Cup starts resembling the world much earlier than he expected. Travel, politics, boycotts, and refereeing arguments all enter the same cover.\n\nReading this period, Taeo learns that the World Cup was never innocent in its earliest form. The sea delayed the teams, but it also made the tournament look like legend. Things that take a long time to arrive are rarely forgotten. So he decides to remember 1930, 1934, and 1938 not only as numbers, but as the smell of salt, the tone of speeches, and the sound of uneasy applause.';
 
   @override
   String get educationBookOriginsTimeline =>
@@ -2836,14 +2836,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookWorldCupTitle =>
-      'The World Cup returned after war and built Brazil\'s golden age';
+      'How Silence and Celebration Stay in the Same Stadium';
 
   @override
   String get educationBookWorldCupSubtitle => 'From Brazil 1950 to Mexico 1970';
 
   @override
   String get educationBookWorldCupStory =>
-      'After the cancellations of 1942 and 1946, Brazil 1950 looked like the joyful return of world football. Taeo\'s first memory there, however, is not celebration but silence. Uruguay\'s win over Brazil in the decisive final group match created the Maracana shock and proved that the World Cup could also crush the dreams of a host nation in front of its own people.\n\nThe next pages are even more legendary. West Germany\'s Miracle of Bern in 1954, the arrival of 17-year-old Pele in 1958, Garrincha carrying Brazil in 1962 when Pele was hurt, England\'s only title in 1966, and the complete golden Brazil team of 1970 follow without pause.\n\nTaeo learns that this era is not just a list of winners. It is the age in which new heroes appeared, some countries took national scars, and some styles became the global reference for what great football should look like. He summarizes 1950 through 1970 with five words: restart, shock, genius, revenge, and completion.';
+      'When the World Cup returned in Brazil in 1950 after two empty summers lost to war, people probably expected celebration first. But the first scene Taeo meets is silence. Uruguay\'s win over Brazil in the decisive match at the Maracana shows him that one result can alter the volume of an entire country. From that point on, the World Cup looks less like a sports event than a machine for making collective memory.\n\nThe pages that follow turn into legend with surprising speed. The Miracle of Bern in 1954. Seventeen-year-old Pele arriving in 1958. Brazil carried by Garrincha in 1962. England\'s one and only title in 1966. The golden Brazil of 1970 in Mexico. The more Taeo reads, the clearer it becomes that history books borrow faces and movement in order to stay alive. Someone falls. Someone appears. Someone becomes so complete that he starts to look invented.\n\nSo Taeo folds 1950 through 1970 into five words: restart, shock, birth, revenge, completion. On paper that feels small enough to fit in one hand. But the feelings inside those words do not shrink with them. The silence of the Maracana and the smile of Pele remain, each in a different direction, for a very long time.';
 
   @override
   String get educationBookWorldCupTimeline =>
@@ -2862,7 +2862,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookClubTitle =>
-      'A new trophy, total football, and an age full of argument';
+      'An Era Where Beauty and Discomfort Grow Together';
 
   @override
   String get educationBookClubSubtitle =>
@@ -2870,7 +2870,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookClubStory =>
-      'From 1974 onward, Taeo sees a new trophy. The Netherlands, led by Johan Cruyff, played total football with constant movement and position exchange, only for West Germany and Franz Beckenbauer to stop that revolution in the final. The World Cup looked like a laboratory where beautiful ideas and cold realism collided in public.\n\nYet this period can never be explained by football alone. Argentina 1978 was played under the shadow of a military dictatorship. Spain 1982 is remembered both for Paolo Rossi\'s return and for the violent collision and shootout drama of France against West Germany. Then Mexico 1986 pushed Diego Maradona to the top of World Cup mythology when he left both the Hand of God and the solo goal past five players in the same campaign.\n\nBy the time Taeo reaches Italy 1990, he understands how emotionally crowded the World Cup can be. Roger Milla\'s dancing, Beckenbauer winning as a coach, and Maradona crying after defeat in the final all live in the same stretch of history. He writes down this era as a blend of tactical innovation, political shadows, superhuman skill, and permanent debate.';
+      'By 1974, the air inside the book changes. The trophy changes too. The Netherlands shake the coordinates of the pitch with total football, and West Germany finally arranges that beautiful chaos into a result. Whenever Taeo reads this chapter, he thinks football is one of the few places where idealism and reality collide in full public view. Grace is easy to love, but the trophy usually leans toward something heavier.\n\nYet this era cannot be explained by tactics alone. Argentina 1978 carries the chill of military rule. In 1982, Battiston\'s fall tears open the time of the match itself. Maradona in 1986 appears less like a player than a weather system. The Hand of God and the goal past five men happen in the same summer, and the contradiction only makes the face of the World Cup clearer.\n\nBy the time Taeo reaches 1990, he understands that an era does not always end in a tidy sentence. Roger Milla\'s dancing, Beckenbauer\'s title as a coach, and Maradona\'s tears remain at different temperatures. History lasts longer when it is slightly mixed rather than perfectly arranged. So he binds this stretch together only loosely, with four words: beauty, discomfort, talent, and argument.';
 
   @override
   String get educationBookClubTimeline =>
@@ -2889,7 +2889,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookTacticsTitle =>
-      'A globalized World Cup and finals that felt like theater';
+      'When the World Cup Walked From Television Into the Living Room';
 
   @override
   String get educationBookTacticsSubtitle =>
@@ -2897,7 +2897,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookTacticsStory =>
-      'By USA 1994, Taeo feels that the World Cup has fully become a global mega-event. Enormous American stadiums, Romario\'s smile, and Roberto Baggio\'s shot flying over the bar in the shootout all belong to the same memory. The tournament proved that the World Cup could become enormous even in a country where football was not the main sport.\n\nFrance 1998 opened the 32-team era and left behind Zinedine Zidane\'s two headed goals in the final together with the mystery and tension around Ronaldo\'s physical condition before kickoff. Korea and Japan 2002 brought Korea\'s semifinal run, Guus Hiddink\'s leadership, scenes from Ahn Jung-hwan and Park Ji-sung, and Ronaldo\'s eight-goal redemption arc into one unforgettable tournament.\n\nGermany 2006 restored the smile of a football festival, but the final ended with Zidane\'s headbutt turning the whole emotional weather of the night. Taeo learns that as the World Cup grows bigger, the drama grows with it. He summarizes 1994 through 2006 as globalization, expansion, Korea\'s summer, and one final reversal.';
+      'By USA 1994, Taeo sees the tournament acquiring a completely different size. Giant stadiums, the brightness of the advertising boards, the heat spreading through television screens, and Baggio\'s kick rising into the sky all settle into the same memory. The World Cup no longer feels like a distant celebration in another country. It feels like a huge piece of furniture suddenly placed in the middle of the living room. No one passes it without noticing.\n\nAs he moves through Zidane\'s France in 1998, Korea\'s semi-final run and Ronaldo\'s redemption in 2002, and Zidane\'s headbutt in the 2006 final, Taeo starts to feel that these tournaments are unusually friendly to replay. Strong scenes are easy to repeat, and repeated scenes become shared memory for a generation. For him, 2002 is not someone else\'s history at all. It comes with the shouting in nearby streets, the empty cans under the television, and the night air that took a long time to settle after the final whistle.\n\nSeen that way, the World Cup is always slightly wider than the scoreline. Some tournaments are remembered less for who scored than for what kind of night they became. When Taeo thinks of 1994, 1998, 2002, and 2006, he remembers faces, noise, and camera angles before he remembers the numbers. Maybe that is how modern history books are written now.';
 
   @override
   String get educationBookTacticsTimeline =>
@@ -2916,7 +2916,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookLegendsTitle =>
-      'The data era, and Messi\'s final completion';
+      'The More Numbers There Were, the Sharper the Scenes Became';
 
   @override
   String get educationBookLegendsSubtitle =>
@@ -2924,7 +2924,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookLegendsStory =>
-      'When Taeo opens the 2010 South Africa chapter, he hears vuvuzelas before anything else. The first men\'s World Cup on African soil looked and sounded different from the start, and Spain completed its era through Andres Iniesta\'s extra-time winner in the final. The same tournament also gave him Luis Suarez\'s goal-line handball against Ghana and even the bizarre fame of Paul the Octopus, proving once more that the World Cup can be serious history and internet folklore at the same time.\n\nBrazil 2014 left the Mineirazo, Germany\'s 7-1 destruction of the host nation, and Miroslav Klose\'s 16th career World Cup goal. Russia 2018 delivered Kylian Mbappe\'s breakout, France\'s second title, Croatia\'s exhausting run through extra time, and the first full use of VAR in a men\'s World Cup.\n\nThen Qatar 2022 gave Taeo Messi\'s title at last. Morocco became the first African semi-finalist, Argentina and France played one of the wildest finals the tournament has ever seen, Mbappe scored a hat-trick in defeat, and Emiliano Martinez made the save that helped close the story. Taeo realizes that some World Cups finish a career, while others reset what an entire continent believes is possible.';
+      'When Taeo opens South Africa 2010, he hears the vuvuzelas first. Some tournaments are remembered through the ears before the eyes. Spain\'s title, Suarez\'s handball on the line, Ghana\'s exit, and the strange fame of Paul the Octopus show him that different kinds of seriousness can live inside the same month. The World Cup remains a history book, but it is also a storage room for rumor, jokes, and collective obsession.\n\nBy the time he reaches Brazil\'s 7-1 collapse in 2014, the full arrival of VAR in 2018, and the final in Qatar in 2022, Taeo starts to feel that more numbers do not blur the story. They sharpen the scenes instead. Klose\'s sixteenth goal, Mbappe\'s acceleration, the final missing piece in Messi\'s career, and Morocco\'s run to the semi-finals all push history from different angles. Data helps explain things, but what remains in the body is never data alone.\n\nWhenever Taeo reads the recent World Cups, he returns to the same conclusion. People remember scenes longer than tables. The 7-1 scoreboard. The silence in front of the VAR monitor. The brief moment when Messi lowers his head after extra time. Records are filed away on shelves. Scenes stick to the inside of the body.';
 
   @override
   String get educationBookLegendsTimeline =>
@@ -2943,7 +2943,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookAsiaTitle =>
-      'How to remember the World Cup through people';
+      'The Moment Faces Come to Mind Before Years';
 
   @override
   String get educationBookAsiaSubtitle =>
@@ -2951,7 +2951,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookAsiaStory =>
-      'At some point, Taeo realizes he no longer remembers the World Cup only through years. He starts to remember it through people. Jules Rimet, who pushed the tournament into existence. Vittorio Pozzo, who won two straight titles. Pele, who won three. Beckenbauer, who reached the summit as both player and coach. Maradona, who turned one World Cup into an entire mythology.\n\nThis chapter is not filled only with heroes. Garrincha carried a hurt Brazil side in 1962. Ronaldo turned the pain of one final into redemption four years later. Zidane left both genius and explosion behind. Messi finally closed the last open chapter in his own story. Taeo understands that the World Cup is where human narratives become loudest.\n\nThat is why he refuses to memorize names by themselves. Pele means 1958 and 1970. Maradona means England in 1986. Beckenbauer means 1974 and 1990. Ronaldo means 2002. Messi means 2022. A name only becomes history once the year and the scene are attached to it.';
+      'At some point Taeo begins to remember the World Cup through faces before he remembers it through years. Jules Rimet, who helped make the tournament possible. Pozzo, who shaped back-to-back titles. Pele, who stood at the top three times. Beckenbauer, who passed through both the door of player and the door of coach. Maradona, who turned one summer into myth. Read one by one, these names give history a surprisingly personal expression. Even a massive tournament can end up summarized by the breathing of a few people.\n\nNone of the figures in this chapter are complete. Garrincha carries an injured team. Ronaldo turns the memory of one lost final inside out four years later. Zidane leaves behind both genius and fracture. Messi finishes his own sentence only at the end. So Taeo feels that the World Cup is not really a place that creates heroes from nothing. It is a place that enlarges the outline of people who were already shaking.\n\nHe always writes a year and a scene next to the name. Pele means 1958 and 1970. Maradona means 1986. Ronaldo means 2002. Messi means 2022. Names alone feel like exam notes. Add the scene, and suddenly they become stories. Perhaps history books survive only in that form.';
 
   @override
   String get educationBookAsiaTimeline =>
@@ -2970,15 +2970,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookWomenTitle =>
-      'Upsets, arguments, and the stories beyond the pitch';
+      'How to Read the Air Outside the Stadium Too';
 
   @override
   String get educationBookWomenSubtitle =>
-      'War, dictatorship, a stolen trophy, and technological review';
+      'War, politics, theft, and the technology of judgement';
 
   @override
   String get educationBookWomenStory =>
-      'This chapter teaches Taeo that a World Cup history book explains only half the truth if it lists nothing but champions. Some tournaments never happened because of war. Some were played under dictatorships. In others, the off-field events became almost as famous as the football itself. The World Cup always absorbs the air of the wider world.\n\nIn 1966, the Jules Rimet Trophy was stolen before the tournament opened and later found by a dog called Pickles. In 1982, the Battiston collision left a lasting argument about sportsmanship. In 2010, Frank Lampard\'s disallowed goal pushed the demand for technology harder. By the time Taeo reaches goal-line technology in 2014, VAR in 2018, and semi-automated offside in 2022, he understands that the World Cup is also a history of how football tries to judge itself.\n\nSo Taeo starts writing down two questions for every tournament. Who won on the pitch, and what changed outside it? He feels that only by keeping both questions together can a real history book exist.';
+      'At some point Taeo decides that a history book listing only champions is slightly rude. The World Cup has never happened only inside the stadium. Some tournaments disappeared completely because of war. Some were played beneath dictatorship. Some are remembered as much for events beyond the pitch as for the football itself. The air of the wider world always seeps onto the grass.\n\nThe theft of the Jules Rimet Trophy in 1966 and its recovery by a dog called Pickles is so strange it almost refuses to feel true. Battiston falling in 1982, Lampard\'s disallowed goal in 2010, goal-line technology in 2014, VAR in 2018, and semi-automated offside in 2022 show how long football has wrestled with human imperfection in judgement. The sport always wants to become fairer, while knowing it can never become perfectly fair.\n\nSo Taeo writes two questions next to every tournament. Who won. And what changed. Put those sentences together, and the outline of an event becomes much clearer. History does not end at the scoreboard. It has to be read together with the air behind it.';
 
   @override
   String get educationBookWomenTimeline =>
@@ -2997,15 +2997,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookModernTitle =>
-      'The next page is 2026, Taeo\'s prediction notebook';
+      'Things Worth Writing Down While Waiting for the Next Tournament';
 
   @override
   String get educationBookModernSubtitle =>
-      'What a 48-team World Cup may change';
+      'Taeo\'s notes toward North America 2026';
 
   @override
   String get educationBookModernStory =>
-      'In the final main chapter, Taeo looks at the still-unplayed 2026 World Cup in North America. A 48-team field, 104 matches, and a three-country host setup already make it feel different from previous tournaments. The longer schedule suggests that squad depth, recovery management, and adaptation to long travel will matter more than ever.\n\nInstead of naming a champion too quickly, Taeo writes down the conditions that usually favor one. A midfield that can press and build, set-piece detail that can decide a tight knockout match, goal output spread beyond one star, and a coaching staff that can analyze unfamiliar opponents quickly all feel more valuable in an expanded event. Traditional powers will still be powerful, but a 48-team structure may also create more strange paths and more dark horses.\n\nSo Taeo treats 2026 less like a guessing game and more like an exercise in observation. He wonders which of the three host nations will go furthest, which South American and European powers will define the new standard, and which Asian or African side might push the ceiling higher again.';
+      'Now the book walks slowly toward a tournament that has not yet been played. North America 2026 already wears a different expression: 48 teams, 104 matches, three host nations. When Taeo looks at those numbers, he thinks first not of favorites but of travel distance, recovery time, and the breathing of the bench. The longer a tournament becomes, the more it seems to depend on a whole way of enduring rather than on one star.\n\nThat is why this chapter feels closer to observation than prophecy. Which teams can decode unfamiliar opponents quickly. Which teams can survive the minutes when set pieces begin to tilt a match. Which teams can keep their rhythm over a long road. Taeo believes that the conditions of a strong side are usually born from dull detail rather than glamorous sentences. History, strangely enough, agrees with him more often than not.\n\nIt feels risky to speak too loudly about a tournament that has not yet arrived. The future usually comes in a drier form than expected, and predictions often miss. Even so, Taeo leaves a few pages blank. He thinks the last virtue of a history book is always the space it keeps for the next sentence.';
 
   @override
   String get educationBookModernTimeline =>
@@ -3023,15 +3023,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get educationBookFinaleLabel => 'Epilogue';
 
   @override
-  String get educationBookFinaleTitle => 'Taeo\'s final bookmark';
+  String get educationBookFinaleTitle =>
+      'The Final Page Always Closes a Little More Slowly';
 
   @override
   String get educationBookFinaleSubtitle =>
-      'How to tie together 1930 and 2026 in one line';
+      'An epilogue tying 1930 and 2026 into one line';
 
   @override
   String get educationBookFinaleStory =>
-      'After closing the final page, Taeo realizes that the World Cup is really a giant summary written once every four years. Players sailing to Uruguay and modern stars playing under satellite cameras and VAR all belong to the same tournament line.\n\nSome eras are remembered through giants such as Pele, Maradona, and Messi. Some are remembered through scores like the Maracana shock or 7-1. Others survive because of a stolen trophy, war, or arguments over technology. Taeo concludes that reading World Cup history is not simple memorization. It is training the eye to read world history through the language of one competition.\n\nSo before he puts the book away, he repeats 1930, 1950, 1958, 1970, 1986, 1998, 2002, 2010, 2018, 2022, and 2026 in order one more time. If the year, host, leading figures, and defining event all rise together in his head, he believes every future match will feel much deeper.';
+      'By the last page, Taeo starts to think the World Cup is really a very thick magazine published once every four years. The era keeps changing, but the title on the cover stays the same, and inside it the air, faces, and arguments of that moment are compressed together. The players who sailed to Uruguay and the players running under cameras and sensors today end up resting on the same spine. That feels slightly strange, and also exactly right.\n\nSome years remain because of names such as Pele, Maradona, and Messi. Some remain because of scores like the Maracana shock or 7-1. Some remain because of war, dictatorship, or the technology of judgement. So Taeo decides that reading the World Cup is not really about memorizing football. It is closer to running a hand along the grain of time. Once you realize that an era is folded behind a single match, even the score begins to weigh more.\n\nBefore he closes the book, he reads 1930, 1950, 1958, 1970, 1986, 1998, 2002, 2010, 2018, 2022, and 2026 one more time. Now they no longer sound like cold dates. They sound like room names under different lights. Some rooms are already behind him. One is still about to open. That, Taeo thinks, is why history books matter. They let you walk slowly through the space in between.';
 
   @override
   String get educationBookFinaleTimeline =>

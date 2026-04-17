@@ -27,14 +27,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
     super.dispose();
   }
 
-  Future<void> _animateToPage(int index) async {
-    await _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 360),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -134,10 +126,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
                           index + 1,
                           chapters.length,
                         ),
-                        storyLabel: l10n.educationBookSectionStory,
-                        timelineLabel: l10n.educationBookSectionTimeline,
-                        factsLabel: l10n.educationBookSectionFacts,
-                        noteLabel: l10n.educationBookSectionNote,
                       ),
                       builder: (context, child) {
                         final currentPage =
@@ -180,32 +168,7 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
                   },
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.tonalIcon(
-                        onPressed: _currentIndex == 0
-                            ? null
-                            : () => _animateToPage(_currentIndex - 1),
-                        icon: const Icon(Icons.chevron_left_rounded),
-                        label: Text(l10n.educationBookPreviousButton),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _currentIndex == chapters.length - 1
-                            ? null
-                            : () => _animateToPage(_currentIndex + 1),
-                        icon: const Icon(Icons.chevron_right_rounded),
-                        label: Text(l10n.educationBookNextButton),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -220,10 +183,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookCoverTitle,
         subtitle: l10n.educationBookCoverSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookCoverStory),
-        timelineEntries: _splitLines(l10n.educationBookCoverTimeline),
-        factEntries: _splitLines(l10n.educationBookCoverFacts),
-        note: l10n.educationBookCoverNote,
-        icon: Icons.auto_stories_rounded,
         accentColors: const <Color>[Color(0xFFD9874D), Color(0xFF6A422D)],
       ),
       _BookChapter(
@@ -231,10 +190,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookOriginsTitle,
         subtitle: l10n.educationBookOriginsSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookOriginsStory),
-        timelineEntries: _splitLines(l10n.educationBookOriginsTimeline),
-        factEntries: _splitLines(l10n.educationBookOriginsFacts),
-        note: l10n.educationBookOriginsNote,
-        icon: Icons.account_balance_rounded,
         accentColors: const <Color>[Color(0xFFE4AF63), Color(0xFF5C4731)],
       ),
       _BookChapter(
@@ -242,10 +197,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookWorldCupTitle,
         subtitle: l10n.educationBookWorldCupSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookWorldCupStory),
-        timelineEntries: _splitLines(l10n.educationBookWorldCupTimeline),
-        factEntries: _splitLines(l10n.educationBookWorldCupFacts),
-        note: l10n.educationBookWorldCupNote,
-        icon: Icons.public_rounded,
         accentColors: const <Color>[Color(0xFFE17C52), Color(0xFF633537)],
       ),
       _BookChapter(
@@ -253,10 +204,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookClubTitle,
         subtitle: l10n.educationBookClubSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookClubStory),
-        timelineEntries: _splitLines(l10n.educationBookClubTimeline),
-        factEntries: _splitLines(l10n.educationBookClubFacts),
-        note: l10n.educationBookClubNote,
-        icon: Icons.shield_rounded,
         accentColors: const <Color>[Color(0xFF5E9D89), Color(0xFF234D45)],
       ),
       _BookChapter(
@@ -264,10 +211,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookTacticsTitle,
         subtitle: l10n.educationBookTacticsSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookTacticsStory),
-        timelineEntries: _splitLines(l10n.educationBookTacticsTimeline),
-        factEntries: _splitLines(l10n.educationBookTacticsFacts),
-        note: l10n.educationBookTacticsNote,
-        icon: Icons.ssid_chart_rounded,
         accentColors: const <Color>[Color(0xFF678DD8), Color(0xFF2D416B)],
       ),
       _BookChapter(
@@ -275,10 +218,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookLegendsTitle,
         subtitle: l10n.educationBookLegendsSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookLegendsStory),
-        timelineEntries: _splitLines(l10n.educationBookLegendsTimeline),
-        factEntries: _splitLines(l10n.educationBookLegendsFacts),
-        note: l10n.educationBookLegendsNote,
-        icon: Icons.emoji_events_rounded,
         accentColors: const <Color>[Color(0xFFC26AA7), Color(0xFF5A3153)],
       ),
       _BookChapter(
@@ -286,10 +225,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookAsiaTitle,
         subtitle: l10n.educationBookAsiaSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookAsiaStory),
-        timelineEntries: _splitLines(l10n.educationBookAsiaTimeline),
-        factEntries: _splitLines(l10n.educationBookAsiaFacts),
-        note: l10n.educationBookAsiaNote,
-        icon: Icons.flag_circle_rounded,
         accentColors: const <Color>[Color(0xFF4D9EB7), Color(0xFF204A57)],
       ),
       _BookChapter(
@@ -297,10 +232,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookWomenTitle,
         subtitle: l10n.educationBookWomenSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookWomenStory),
-        timelineEntries: _splitLines(l10n.educationBookWomenTimeline),
-        factEntries: _splitLines(l10n.educationBookWomenFacts),
-        note: l10n.educationBookWomenNote,
-        icon: Icons.groups_2_rounded,
         accentColors: const <Color>[Color(0xFFD97070), Color(0xFF63363A)],
       ),
       _BookChapter(
@@ -308,10 +239,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookModernTitle,
         subtitle: l10n.educationBookModernSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookModernStory),
-        timelineEntries: _splitLines(l10n.educationBookModernTimeline),
-        factEntries: _splitLines(l10n.educationBookModernFacts),
-        note: l10n.educationBookModernNote,
-        icon: Icons.query_stats_rounded,
         accentColors: const <Color>[Color(0xFF8A6BE0), Color(0xFF413563)],
       ),
       _BookChapter(
@@ -319,10 +246,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
         title: l10n.educationBookFinaleTitle,
         subtitle: l10n.educationBookFinaleSubtitle,
         storyParagraphs: _splitParagraphs(l10n.educationBookFinaleStory),
-        timelineEntries: _splitLines(l10n.educationBookFinaleTimeline),
-        factEntries: _splitLines(l10n.educationBookFinaleFacts),
-        note: l10n.educationBookFinaleNote,
-        icon: Icons.bookmark_added_rounded,
         accentColors: const <Color>[Color(0xFFB07A45), Color(0xFF4F3A2A)],
       ),
     ];
@@ -331,14 +254,6 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
   List<String> _splitParagraphs(String value) {
     return value
         .split('\n\n')
-        .map((entry) => entry.trim())
-        .where((entry) => entry.isNotEmpty)
-        .toList(growable: false);
-  }
-
-  List<String> _splitLines(String value) {
-    return value
-        .split('\n')
         .map((entry) => entry.trim())
         .where((entry) => entry.isNotEmpty)
         .toList(growable: false);
@@ -452,19 +367,11 @@ class _BookPageCard extends StatelessWidget {
   final int pageIndex;
   final _BookChapter chapter;
   final String pageLabel;
-  final String storyLabel;
-  final String timelineLabel;
-  final String factsLabel;
-  final String noteLabel;
 
   const _BookPageCard({
     required this.pageIndex,
     required this.chapter,
     required this.pageLabel,
-    required this.storyLabel,
-    required this.timelineLabel,
-    required this.factsLabel,
-    required this.noteLabel,
   });
 
   @override
@@ -555,8 +462,6 @@ class _BookPageCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(chapter.icon, size: 15, color: accent),
-                        const SizedBox(width: 6),
                         Text(
                           pageLabel,
                           style: theme.textTheme.labelLarge?.copyWith(
@@ -604,19 +509,30 @@ class _BookPageCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 22),
-                      _BookSection(
-                        label: storyLabel,
-                        icon: Icons.edit_note_rounded,
-                        accent: accent,
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withValues(
+                            alpha: theme.brightness == Brightness.dark
+                                ? 0.26
+                                : 0.5,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.16),
+                          ),
+                        ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: chapter.storyParagraphs
                               .map(
                                 (paragraph) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.only(bottom: 16),
                                   child: Text(
                                     paragraph,
                                     style: theme.textTheme.bodyLarge?.copyWith(
-                                      height: 1.62,
+                                      height: 1.8,
                                       fontWeight: FontWeight.w600,
                                       color: theme.colorScheme.onSurface,
                                     ),
@@ -624,51 +540,6 @@ class _BookPageCard extends StatelessWidget {
                                 ),
                               )
                               .toList(growable: false),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      _BookSection(
-                        label: timelineLabel,
-                        icon: Icons.timeline_rounded,
-                        accent: accent,
-                        child: _BookBulletList(
-                          entries: chapter.timelineEntries,
-                          accent: accent,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      _BookSection(
-                        label: factsLabel,
-                        icon: Icons.fact_check_outlined,
-                        accent: accent,
-                        child: _BookBulletList(
-                          entries: chapter.factEntries,
-                          accent: accent,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      _BookSection(
-                        label: noteLabel,
-                        icon: Icons.bookmark_rounded,
-                        accent: accent,
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: accent.withValues(alpha: 0.18),
-                            ),
-                          ),
-                          child: Text(
-                            chapter.note,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              height: 1.55,
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
                         ),
                       ),
                     ],
@@ -683,113 +554,11 @@ class _BookPageCard extends StatelessWidget {
   }
 }
 
-class _BookSection extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color accent;
-  final Widget child;
-
-  const _BookSection({
-    required this.label,
-    required this.icon,
-    required this.accent,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 18, color: accent),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        child,
-      ],
-    );
-  }
-}
-
-class _BookBulletList extends StatelessWidget {
-  final List<String> entries;
-  final Color accent;
-
-  const _BookBulletList({required this.entries, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      children: entries
-          .map(
-            (entry) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 20,
-                    height: 20,
-                    margin: const EdgeInsets.only(top: 2),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.14),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.circle, size: 8, color: accent),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      entry,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        height: 1.52,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(growable: false),
-    );
-  }
-}
-
 class _BookChapter {
   final String chapterLabel;
   final String title;
   final String subtitle;
   final List<String> storyParagraphs;
-  final List<String> timelineEntries;
-  final List<String> factEntries;
-  final String note;
-  final IconData icon;
   final List<Color> accentColors;
 
   const _BookChapter({
@@ -797,10 +566,6 @@ class _BookChapter {
     required this.title,
     required this.subtitle,
     required this.storyParagraphs,
-    required this.timelineEntries,
-    required this.factEntries,
-    required this.note,
-    required this.icon,
     required this.accentColors,
   });
 }
