@@ -2553,10 +2553,97 @@ class AppLocalizationsEn extends AppLocalizations {
   String get educationHeroStatPrinciples => 'Coach cues included';
 
   @override
+  String get educationHeroStatHistory => 'Quiz history included';
+
+  @override
   String get educationSectionLessonsTitle => 'Ready Lessons';
 
   @override
+  String get educationSectionHistoryTitle => 'Quiz History Study';
+
+  @override
+  String get educationSectionHistoryBody =>
+      'These cards group together the years, competition names, and iconic moments that appear often in the quiz. Review one card, then jump straight into a round while the timeline is still fresh.';
+
+  @override
   String get educationSectionPrinciplesTitle => 'Coaching Principles';
+
+  @override
+  String get educationHistoryWorldCupEyebrow => 'WORLD CUP ROOTS';
+
+  @override
+  String get educationHistoryWorldCupTitle => 'World Cup Foundations';
+
+  @override
+  String get educationHistoryWorldCupSummary =>
+      'Use one card to lock in the first tournament, trophy change, and headline records that frame many World Cup history questions.';
+
+  @override
+  String get educationHistoryWorldCupFocus => 'Year + host';
+
+  @override
+  String get educationHistoryWorldCupFact1 =>
+      'The first FIFA World Cup was held in Uruguay in 1930.';
+
+  @override
+  String get educationHistoryWorldCupFact2 =>
+      'The Jules Rimet Trophy was used through 1970, and the current FIFA World Cup Trophy has been used since 1974.';
+
+  @override
+  String get educationHistoryWorldCupFact3 =>
+      'Brazil is the most common answer for the most men’s World Cup titles, and Miroslav Klose is the landmark all-time scorer.';
+
+  @override
+  String get educationHistoryCompetitionEyebrow => 'COMPETITION TIMELINE';
+
+  @override
+  String get educationHistoryCompetitionTitle =>
+      'Competition Names And Launches';
+
+  @override
+  String get educationHistoryCompetitionSummary =>
+      'League and European competition questions get easier when you pair launch years with inaugural champions or rebrand seasons.';
+
+  @override
+  String get educationHistoryCompetitionFocus => 'Launch + first champion';
+
+  @override
+  String get educationHistoryCompetitionFact1 =>
+      'The Premier League launched in 1992, and Manchester United won the inaugural 1992-93 title.';
+
+  @override
+  String get educationHistoryCompetitionFact2 =>
+      'The European Cup began operating as the UEFA Champions League from the 1992-93 season.';
+
+  @override
+  String get educationHistoryCompetitionFact3 =>
+      'Arsenal’s 2003-04 Invincibles season is one of the most common Premier League history anchors.';
+
+  @override
+  String get educationHistoryMomentsEyebrow => 'ICONIC MOMENTS';
+
+  @override
+  String get educationHistoryMomentsTitle =>
+      'Iconic Moments And Women’s Football';
+
+  @override
+  String get educationHistoryMomentsSummary =>
+      'Pair famous scenes with both the year and the opponent, and keep women’s football on its own timeline for faster recall.';
+
+  @override
+  String get educationHistoryMomentsFocus => 'Moment + opponent';
+
+  @override
+  String get educationHistoryMomentsFact1 =>
+      'Maradona’s “Hand of God” happened against England at the 1986 World Cup.';
+
+  @override
+  String get educationHistoryMomentsFact2 =>
+      'Zidane’s headbutt is an iconic scene from the 2006 FIFA World Cup final.';
+
+  @override
+  String get educationHistoryMomentsFact3 =>
+      'The first FIFA Women’s World Cup was held in China in 1991.';
 
   @override
   String get educationModuleBallEyebrow => 'BALL MASTERY';

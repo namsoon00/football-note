@@ -2488,10 +2488,93 @@ class AppLocalizationsKo extends AppLocalizations {
   String get educationHeroStatPrinciples => '코칭 원칙 포함';
 
   @override
+  String get educationHeroStatHistory => '퀴즈 역사 포함';
+
+  @override
   String get educationSectionLessonsTitle => '바로 쓰는 레슨';
 
   @override
+  String get educationSectionHistoryTitle => '퀴즈 대비 역사';
+
+  @override
+  String get educationSectionHistoryBody =>
+      '퀴즈에 자주 나오는 연도, 대회 이름, 상징 장면을 묶어서 정리했어요. 카드 한 장씩 보고 바로 퀴즈로 넘어가면 흐름을 잡기 좋습니다.';
+
+  @override
   String get educationSectionPrinciplesTitle => '지도 포인트';
+
+  @override
+  String get educationHistoryWorldCupEyebrow => 'WORLD CUP ROOTS';
+
+  @override
+  String get educationHistoryWorldCupTitle => '월드컵 시작점';
+
+  @override
+  String get educationHistoryWorldCupSummary =>
+      '첫 대회, 트로피 변화, 대표 기록을 한 번에 묶어서 월드컵 역사 문제의 뼈대를 잡는 카드입니다.';
+
+  @override
+  String get educationHistoryWorldCupFocus => '연도 + 개최국';
+
+  @override
+  String get educationHistoryWorldCupFact1 => '1930년 첫 FIFA 월드컵은 우루과이에서 열렸습니다.';
+
+  @override
+  String get educationHistoryWorldCupFact2 =>
+      '쥘 리메 트로피는 1970년까지, 현재 FIFA 월드컵 트로피는 1974년부터 쓰입니다.';
+
+  @override
+  String get educationHistoryWorldCupFact3 =>
+      '브라질은 남자 월드컵 최다 우승국으로, 미로슬라프 클로제는 통산 최다 득점자로 자주 나옵니다.';
+
+  @override
+  String get educationHistoryCompetitionEyebrow => 'COMPETITION TIMELINE';
+
+  @override
+  String get educationHistoryCompetitionTitle => '대회 이름과 출범';
+
+  @override
+  String get educationHistoryCompetitionSummary =>
+      '리그와 유럽 대회는 출범 연도와 초대 우승팀을 함께 외우면 퀴즈 풀이 속도가 빨라집니다.';
+
+  @override
+  String get educationHistoryCompetitionFocus => '출범 + 첫 우승';
+
+  @override
+  String get educationHistoryCompetitionFact1 =>
+      '프리미어리그는 1992년에 출범했고 1992-93 초대 우승팀은 맨체스터 유나이티드입니다.';
+
+  @override
+  String get educationHistoryCompetitionFact2 =>
+      '유러피언컵은 1992-93 시즌부터 UEFA 챔피언스리그라는 이름으로 운영됐습니다.';
+
+  @override
+  String get educationHistoryCompetitionFact3 =>
+      '아스널의 2003-04 인빈서블스 시즌은 프리미어리그 역사 문제의 대표 포인트입니다.';
+
+  @override
+  String get educationHistoryMomentsEyebrow => 'ICONIC MOMENTS';
+
+  @override
+  String get educationHistoryMomentsTitle => '역사 장면과 여자 축구';
+
+  @override
+  String get educationHistoryMomentsSummary =>
+      '유명 장면은 연도와 상대를 같이 묶고, 여자 축구는 별도 타임라인으로 정리해 두면 기억이 오래갑니다.';
+
+  @override
+  String get educationHistoryMomentsFocus => '장면 + 상대';
+
+  @override
+  String get educationHistoryMomentsFact1 =>
+      '마라도나의 \'신의 손\'은 1986년 월드컵 잉글랜드전에서 나왔습니다.';
+
+  @override
+  String get educationHistoryMomentsFact2 =>
+      '지단의 헤더 사건은 2006 FIFA 월드컵 결승전의 상징 장면입니다.';
+
+  @override
+  String get educationHistoryMomentsFact3 => '첫 FIFA 여자 월드컵은 1991년 중국에서 열렸습니다.';
 
   @override
   String get educationModuleBallEyebrow => 'BALL MASTERY';

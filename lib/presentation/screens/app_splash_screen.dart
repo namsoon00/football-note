@@ -69,9 +69,6 @@ class _AppSplashScreenState extends State<AppSplashScreen>
         animation: _controller,
         builder: (context, _) {
           final t = reducedMotion ? 0.78 : _controller.value;
-          final expand = Curves.easeInOutCubic.transform(
-            const Interval(0.0, 0.72).transform(t),
-          );
           final reveal = Curves.easeOutCubic.transform(
             const Interval(0.06, 0.78).transform(t),
           );
@@ -90,7 +87,6 @@ class _AppSplashScreenState extends State<AppSplashScreen>
               size: Size.infinite,
               painter: _GrassOnlySplashPainter(
                 progress: t,
-                expand: expand,
                 reveal: reveal,
                 shimmer: shimmer,
                 cameraDrift: cameraDrift,
@@ -105,14 +101,12 @@ class _AppSplashScreenState extends State<AppSplashScreen>
 
 class _GrassOnlySplashPainter extends CustomPainter {
   final double progress;
-  final double expand;
   final double reveal;
   final double shimmer;
   final double cameraDrift;
 
   const _GrassOnlySplashPainter({
     required this.progress,
-    required this.expand,
     required this.reveal,
     required this.shimmer,
     required this.cameraDrift,
@@ -122,30 +116,16 @@ class _GrassOnlySplashPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final screenRect = Offset.zero & size;
     final fieldRect = _fieldRectFor(size);
-    final fieldRadius = lerpDouble(
-      min(fieldRect.height * 0.42, 40.0),
-      0.0,
-      Curves.easeOut.transform(expand),
-    )!;
-    final fieldClip = RRect.fromRectAndRadius(
-      fieldRect,
-      Radius.circular(fieldRadius),
-    );
 
     _paintBackdrop(canvas, screenRect, fieldRect);
-    _paintFieldShadow(canvas, fieldRect, fieldRadius);
 
     canvas.save();
-    canvas.clipRRect(fieldClip);
-
-    final zoom = lerpDouble(1.08, 1.0, cameraDrift)!;
     final shiftY = lerpDouble(
-      fieldRect.height * 0.025,
-      -fieldRect.height * 0.015,
+      fieldRect.height * 0.018,
+      -fieldRect.height * 0.012,
       cameraDrift,
     )!;
     canvas.translate(fieldRect.center.dx, fieldRect.center.dy + shiftY);
-    canvas.scale(zoom, zoom);
     canvas.translate(-fieldRect.center.dx, -fieldRect.center.dy);
 
     _paintBaseGrass(canvas, fieldRect);
@@ -158,19 +138,14 @@ class _GrassOnlySplashPainter extends CustomPainter {
 
     canvas.restore();
 
-    _paintFieldEdge(canvas, fieldRect, fieldRadius);
     _paintScreenVignette(canvas, screenRect);
   }
 
   Rect _fieldRectFor(Size size) {
-    final initialWidth = size.shortestSide * 0.54;
-    final initialHeight = initialWidth * 0.62;
-    final finalWidth = size.width * 1.18;
-    final finalHeight = size.height * 1.18;
-    final width = lerpDouble(initialWidth, finalWidth, expand)!;
-    final height = lerpDouble(initialHeight, finalHeight, expand)!;
+    final width = size.width * 1.18;
+    final height = size.height * 1.18;
     final centerY = lerpDouble(
-      size.height * 0.54,
+      size.height * 0.535,
       size.height * 0.52,
       cameraDrift,
     )!;
@@ -189,11 +164,7 @@ class _GrassOnlySplashPainter extends CustomPainter {
         ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF020503),
-            Color(0xFF06140B),
-            Color(0xFF071009),
-          ],
+          colors: [Color(0xFF020503), Color(0xFF06140B), Color(0xFF071009)],
           stops: [0.0, 0.45, 1.0],
         ).createShader(screenRect),
     );
@@ -219,19 +190,6 @@ class _GrassOnlySplashPainter extends CustomPainter {
           ],
           stops: const [0.0, 0.42, 1.0],
         ).createShader(glowRect),
-    );
-  }
-
-  void _paintFieldShadow(Canvas canvas, Rect fieldRect, double fieldRadius) {
-    final shadowInflate = lerpDouble(26.0, 8.0, expand)!;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        fieldRect.inflate(shadowInflate),
-        Radius.circular(fieldRadius + shadowInflate),
-      ),
-      Paint()
-        ..color = Colors.black.withValues(alpha: 0.26 - (expand * 0.08))
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 24),
     );
   }
 
@@ -388,25 +346,6 @@ class _GrassOnlySplashPainter extends CustomPainter {
     );
   }
 
-  void _paintFieldEdge(Canvas canvas, Rect rect, double radius) {
-    final strokeWidth = lerpDouble(1.6, 0.0, Curves.easeOut.transform(expand))!;
-    if (strokeWidth <= 0) {
-      return;
-    }
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        rect.deflate(strokeWidth * 0.5),
-        Radius.circular(max(0.0, radius - (strokeWidth * 0.5))),
-      ),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..color = Colors.white.withValues(
-          alpha: ((1 - expand) * 0.22) + (shimmer * 0.03),
-        ),
-    );
-  }
-
   void _paintScreenVignette(Canvas canvas, Rect rect) {
     canvas.drawRect(
       rect,
@@ -427,7 +366,6 @@ class _GrassOnlySplashPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _GrassOnlySplashPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.expand != expand ||
         oldDelegate.reveal != reveal ||
         oldDelegate.shimmer != shimmer ||
         oldDelegate.cameraDrift != cameraDrift;

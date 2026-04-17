@@ -4478,17 +4478,161 @@ abstract class AppLocalizations {
   /// **'Coach cues included'**
   String get educationHeroStatPrinciples;
 
+  /// No description provided for @educationHeroStatHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz history included'**
+  String get educationHeroStatHistory;
+
   /// No description provided for @educationSectionLessonsTitle.
   ///
   /// In en, this message translates to:
   /// **'Ready Lessons'**
   String get educationSectionLessonsTitle;
 
+  /// No description provided for @educationSectionHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz History Study'**
+  String get educationSectionHistoryTitle;
+
+  /// No description provided for @educationSectionHistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These cards group together the years, competition names, and iconic moments that appear often in the quiz. Review one card, then jump straight into a round while the timeline is still fresh.'**
+  String get educationSectionHistoryBody;
+
   /// No description provided for @educationSectionPrinciplesTitle.
   ///
   /// In en, this message translates to:
   /// **'Coaching Principles'**
   String get educationSectionPrinciplesTitle;
+
+  /// No description provided for @educationHistoryWorldCupEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'WORLD CUP ROOTS'**
+  String get educationHistoryWorldCupEyebrow;
+
+  /// No description provided for @educationHistoryWorldCupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'World Cup Foundations'**
+  String get educationHistoryWorldCupTitle;
+
+  /// No description provided for @educationHistoryWorldCupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Use one card to lock in the first tournament, trophy change, and headline records that frame many World Cup history questions.'**
+  String get educationHistoryWorldCupSummary;
+
+  /// No description provided for @educationHistoryWorldCupFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Year + host'**
+  String get educationHistoryWorldCupFocus;
+
+  /// No description provided for @educationHistoryWorldCupFact1.
+  ///
+  /// In en, this message translates to:
+  /// **'The first FIFA World Cup was held in Uruguay in 1930.'**
+  String get educationHistoryWorldCupFact1;
+
+  /// No description provided for @educationHistoryWorldCupFact2.
+  ///
+  /// In en, this message translates to:
+  /// **'The Jules Rimet Trophy was used through 1970, and the current FIFA World Cup Trophy has been used since 1974.'**
+  String get educationHistoryWorldCupFact2;
+
+  /// No description provided for @educationHistoryWorldCupFact3.
+  ///
+  /// In en, this message translates to:
+  /// **'Brazil is the most common answer for the most men’s World Cup titles, and Miroslav Klose is the landmark all-time scorer.'**
+  String get educationHistoryWorldCupFact3;
+
+  /// No description provided for @educationHistoryCompetitionEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'COMPETITION TIMELINE'**
+  String get educationHistoryCompetitionEyebrow;
+
+  /// No description provided for @educationHistoryCompetitionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition Names And Launches'**
+  String get educationHistoryCompetitionTitle;
+
+  /// No description provided for @educationHistoryCompetitionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'League and European competition questions get easier when you pair launch years with inaugural champions or rebrand seasons.'**
+  String get educationHistoryCompetitionSummary;
+
+  /// No description provided for @educationHistoryCompetitionFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch + first champion'**
+  String get educationHistoryCompetitionFocus;
+
+  /// No description provided for @educationHistoryCompetitionFact1.
+  ///
+  /// In en, this message translates to:
+  /// **'The Premier League launched in 1992, and Manchester United won the inaugural 1992-93 title.'**
+  String get educationHistoryCompetitionFact1;
+
+  /// No description provided for @educationHistoryCompetitionFact2.
+  ///
+  /// In en, this message translates to:
+  /// **'The European Cup began operating as the UEFA Champions League from the 1992-93 season.'**
+  String get educationHistoryCompetitionFact2;
+
+  /// No description provided for @educationHistoryCompetitionFact3.
+  ///
+  /// In en, this message translates to:
+  /// **'Arsenal’s 2003-04 Invincibles season is one of the most common Premier League history anchors.'**
+  String get educationHistoryCompetitionFact3;
+
+  /// No description provided for @educationHistoryMomentsEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'ICONIC MOMENTS'**
+  String get educationHistoryMomentsEyebrow;
+
+  /// No description provided for @educationHistoryMomentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Iconic Moments And Women’s Football'**
+  String get educationHistoryMomentsTitle;
+
+  /// No description provided for @educationHistoryMomentsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair famous scenes with both the year and the opponent, and keep women’s football on its own timeline for faster recall.'**
+  String get educationHistoryMomentsSummary;
+
+  /// No description provided for @educationHistoryMomentsFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Moment + opponent'**
+  String get educationHistoryMomentsFocus;
+
+  /// No description provided for @educationHistoryMomentsFact1.
+  ///
+  /// In en, this message translates to:
+  /// **'Maradona’s “Hand of God” happened against England at the 1986 World Cup.'**
+  String get educationHistoryMomentsFact1;
+
+  /// No description provided for @educationHistoryMomentsFact2.
+  ///
+  /// In en, this message translates to:
+  /// **'Zidane’s headbutt is an iconic scene from the 2006 FIFA World Cup final.'**
+  String get educationHistoryMomentsFact2;
+
+  /// No description provided for @educationHistoryMomentsFact3.
+  ///
+  /// In en, this message translates to:
+  /// **'The first FIFA Women’s World Cup was held in China in 1991.'**
+  String get educationHistoryMomentsFact3;
 
   /// No description provided for @educationModuleBallEyebrow.
   ///
