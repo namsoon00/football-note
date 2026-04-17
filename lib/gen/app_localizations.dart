@@ -4345,6 +4345,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'not enough stable step events'**
   String get runningCoachSprintFeatureUnavailableStepEvents;
+
+  /// No description provided for @headerEducationTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Football education'**
+  String get headerEducationTooltip;
+
+  /// No description provided for @homeWeatherNeedsLocationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Need location'**
+  String get homeWeatherNeedsLocationTitle;
+
+  /// No description provided for @homeWeatherNeedsLocationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn location on'**
+  String get homeWeatherNeedsLocationSubtitle;
+
+  /// No description provided for @homeStreakBadgeActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Momentum'**
+  String get homeStreakBadgeActive;
+
+  /// No description provided for @homeStreakBadgeResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart'**
+  String get homeStreakBadgeResume;
+
+  /// No description provided for @homeStreakActiveTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} straight days are alive'**
+  String homeStreakActiveTodayTitle(int count);
+
+  /// No description provided for @homeStreakActiveYesterdayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You logged {count} straight days through yesterday'**
+  String homeStreakActiveYesterdayTitle(int count);
+
+  /// No description provided for @homeStreakPausedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {count}-day streak paused for a moment'**
+  String homeStreakPausedTitle(int count);
+
+  /// No description provided for @homeStreakActiveTodayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s session is already in. One more short log tomorrow keeps the rhythm building.'**
+  String get homeStreakActiveTodayBody;
+
+  /// No description provided for @homeStreakActiveYesterdayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one more session today and the recent rhythm carries straight forward.'**
+  String get homeStreakActiveYesterdayBody;
+
+  /// No description provided for @homeStreakPausedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have been away for {gap} days. Restart with a short session and the rhythm comes back quickly.'**
+  String homeStreakPausedBody(int gap);
+
+  /// No description provided for @homeStreakLastLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Last log {date}'**
+  String homeStreakLastLogged(Object date);
+
+  /// No description provided for @homeStreakDaysValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String homeStreakDaysValue(int count);
+
+  /// No description provided for @homeStreakActionContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Log today'**
+  String get homeStreakActionContinue;
+
+  /// No description provided for @homeStreakActionReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly flow'**
+  String get homeStreakActionReview;
+
+  /// No description provided for @educationScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Youth Football Education'**
+  String get educationScreenTitle;
+
+  /// No description provided for @educationHeroEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUTH SESSION KIT'**
+  String get educationHeroEyebrow;
+
+  /// No description provided for @educationHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Youth football content you can coach right away'**
+  String get educationHeroTitle;
+
+  /// No description provided for @educationHeroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the explanations short, the repetitions high, and finish with one question. These three sessions are built for that flow.'**
+  String get educationHeroBody;
+
+  /// No description provided for @educationHeroStatLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'3 ready lessons'**
+  String get educationHeroStatLessons;
+
+  /// No description provided for @educationHeroStatMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'45-minute flow'**
+  String get educationHeroStatMinutes;
+
+  /// No description provided for @educationHeroStatPrinciples.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach cues included'**
+  String get educationHeroStatPrinciples;
+
+  /// No description provided for @educationSectionLessonsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready Lessons'**
+  String get educationSectionLessonsTitle;
+
+  /// No description provided for @educationSectionPrinciplesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coaching Principles'**
+  String get educationSectionPrinciplesTitle;
+
+  /// No description provided for @educationModuleBallEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'BALL MASTERY'**
+  String get educationModuleBallEyebrow;
+
+  /// No description provided for @educationModuleBallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase Touch Count'**
+  String get educationModuleBallTitle;
+
+  /// No description provided for @educationModuleBallSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'A session that keeps both-foot inside and outside touches plus turns connected so younger players get comfortable with the ball.'**
+  String get educationModuleBallSummary;
+
+  /// No description provided for @educationModuleBallAge.
+  ///
+  /// In en, this message translates to:
+  /// **'U8-U10'**
+  String get educationModuleBallAge;
+
+  /// No description provided for @educationModuleBallDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'12 min'**
+  String get educationModuleBallDuration;
+
+  /// No description provided for @educationModuleBallCue1.
+  ///
+  /// In en, this message translates to:
+  /// **'Let the eyes come up sometimes while the feet stay light and active.'**
+  String get educationModuleBallCue1;
+
+  /// No description provided for @educationModuleBallCue2.
+  ///
+  /// In en, this message translates to:
+  /// **'Before asking for speed, check that the ball stays close to the body.'**
+  String get educationModuleBallCue2;
+
+  /// No description provided for @educationModuleBallCue3.
+  ///
+  /// In en, this message translates to:
+  /// **'After mistakes, encourage the next touch instead of stopping the drill.'**
+  String get educationModuleBallCue3;
+
+  /// No description provided for @educationModulePassEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'FIRST TOUCH & PASS'**
+  String get educationModulePassEyebrow;
+
+  /// No description provided for @educationModulePassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First Touch Into Pass'**
+  String get educationModulePassTitle;
+
+  /// No description provided for @educationModulePassSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive, turn, and release. This session links touch direction with passing accuracy in one flow.'**
+  String get educationModulePassSummary;
+
+  /// No description provided for @educationModulePassAge.
+  ///
+  /// In en, this message translates to:
+  /// **'U10-U12'**
+  String get educationModulePassAge;
+
+  /// No description provided for @educationModulePassDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'15 min'**
+  String get educationModulePassDuration;
+
+  /// No description provided for @educationModulePassCue1.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask players to scan over the shoulder once before receiving.'**
+  String get educationModulePassCue1;
+
+  /// No description provided for @educationModulePassCue2.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach the first touch into the space where the next pass should go.'**
+  String get educationModulePassCue2;
+
+  /// No description provided for @educationModulePassCue3.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the body shape and contact surface before asking for stronger pace.'**
+  String get educationModulePassCue3;
+
+  /// No description provided for @educationModuleDecisionEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'1V1 DECISION'**
+  String get educationModuleDecisionEyebrow;
+
+  /// No description provided for @educationModuleDecisionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1v1 Breakthrough And Choice'**
+  String get educationModuleDecisionTitle;
+
+  /// No description provided for @educationModuleDecisionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'A decision session built around changing speed, freezing the defender, then finishing with either a shot or a pass.'**
+  String get educationModuleDecisionSummary;
+
+  /// No description provided for @educationModuleDecisionAge.
+  ///
+  /// In en, this message translates to:
+  /// **'U11-U13'**
+  String get educationModuleDecisionAge;
+
+  /// No description provided for @educationModuleDecisionDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'18 min'**
+  String get educationModuleDecisionDuration;
+
+  /// No description provided for @educationModuleDecisionCue1.
+  ///
+  /// In en, this message translates to:
+  /// **'Make the first step big, then keep the direction change short and sharp.'**
+  String get educationModuleDecisionCue1;
+
+  /// No description provided for @educationModuleDecisionCue2.
+  ///
+  /// In en, this message translates to:
+  /// **'Praise the timing and preparation first, not only the final result.'**
+  String get educationModuleDecisionCue2;
+
+  /// No description provided for @educationModuleDecisionCue3.
+  ///
+  /// In en, this message translates to:
+  /// **'After a success, revisit why it worked in one short sentence.'**
+  String get educationModuleDecisionCue3;
+
+  /// No description provided for @educationPrincipleOneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One cue at a time'**
+  String get educationPrincipleOneTitle;
+
+  /// No description provided for @educationPrincipleOneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep instructions short and actionable. Single-word cues such as \"open\", \"scan\", and \"connect\" work well.'**
+  String get educationPrincipleOneBody;
+
+  /// No description provided for @educationPrincipleTwoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find praise right after mistakes'**
+  String get educationPrincipleTwoTitle;
+
+  /// No description provided for @educationPrincipleTwoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you praise the preparation instead of only the outcome, players keep trying instead of freezing.'**
+  String get educationPrincipleTwoBody;
+
+  /// No description provided for @educationPrincipleThreeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the last two minutes for questions'**
+  String get educationPrincipleThreeTitle;
+
+  /// No description provided for @educationPrincipleThreeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask what felt easy today and what they want to change next time. That reflection helps the lesson stick.'**
+  String get educationPrincipleThreeBody;
 }
 
 class _AppLocalizationsDelegate

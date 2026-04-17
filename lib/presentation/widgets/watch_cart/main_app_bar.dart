@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:football_note/gen/app_localizations.dart';
 
 class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onLeadingTap;
@@ -38,6 +39,8 @@ class WatchCartAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    const actionConstraints = BoxConstraints(minWidth: 44, minHeight: 44);
+    const actionPadding = EdgeInsets.all(6);
     final leadingButton = Container(
       width: 44,
       height: 44,
@@ -53,8 +56,10 @@ class WatchCartAppBar extends StatelessWidget {
                 'assets/watch_cart/svg/menu.svg',
                 width: 18,
                 height: 18,
-                colorFilter:
-                    ColorFilter.mode(scheme.onSurface, BlendMode.srcIn),
+                colorFilter: ColorFilter.mode(
+                  scheme.onSurface,
+                  BlendMode.srcIn,
+                ),
               )
             : Icon(leadingIcon, size: 22, color: scheme.onSurface),
       ),
@@ -111,8 +116,8 @@ class WatchCartAppBar extends StatelessWidget {
                     ? '오늘의 소식'
                     : 'Today news',
                 iconSize: 28,
-                padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
+                padding: actionPadding,
+                constraints: actionConstraints,
                 onPressed: onNewsTap,
               ),
             if (onQuizTap != null)
@@ -122,26 +127,24 @@ class WatchCartAppBar extends StatelessWidget {
                     ? '퀴즈'
                     : 'Quiz',
                 iconSize: 28,
-                padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
+                padding: actionPadding,
+                constraints: actionConstraints,
                 onPressed: onQuizTap,
               ),
             if (onCoachTap != null)
               IconButton(
-                icon: const Icon(Icons.auto_stories_outlined),
-                tooltip: Localizations.localeOf(context).languageCode == 'ko'
-                    ? '다이어리'
-                    : 'Diary',
-                iconSize: 30,
-                padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
+                icon: const Icon(Icons.school_outlined),
+                tooltip: AppLocalizations.of(context)!.headerEducationTooltip,
+                iconSize: 28,
+                padding: actionPadding,
+                constraints: actionConstraints,
                 onPressed: onCoachTap,
               ),
             IconButton(
               icon: _ProfileAppBarAvatar(photoSource: profilePhotoSource),
               iconSize: 30,
-              padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
+              padding: actionPadding,
+              constraints: actionConstraints,
               onPressed: onProfileTap,
             ),
             if (onNotificationTap != null)
@@ -185,15 +188,15 @@ class WatchCartAppBar extends StatelessWidget {
                     ? '알림'
                     : 'Notifications',
                 iconSize: 30,
-                padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
+                padding: actionPadding,
+                constraints: actionConstraints,
                 onPressed: onNotificationTap,
               ),
             IconButton(
               icon: const Icon(Icons.settings),
               iconSize: 30,
-              padding: const EdgeInsets.all(10),
-              constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
+              padding: actionPadding,
+              constraints: actionConstraints,
               onPressed: onSettingsTap,
             ),
           ],
