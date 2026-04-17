@@ -4439,8 +4439,92 @@ abstract class AppLocalizations {
   /// No description provided for @educationScreenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Taeo\'s World Cup History Book'**
+  /// **'The World Cup Story Dad Tells Taeo'**
   String get educationScreenTitle;
+
+  /// No description provided for @educationStoryIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo, tonight I do not want you to flip through the World Cup like a workbook. I want you to read it like one long story. It lasts much longer when you remember not only the names of the champions, but also the smell, the noise, and the expressions each tournament left behind. I want you to grow into the kind of player who looks at the faces and the air of an era as carefully as the scoreline.\n\nThat is why this screen no longer chops the story into little pages. You can read it in one long stretch now. Instead of turning chapters with your thumb, just keep moving slowly through the years. I want Uruguay 1930 and the still-unopened page of North America 2026 to feel connected in one line.'**
+  String get educationStoryIntroBody;
+
+  /// No description provided for @educationStoryOriginsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1930-1938, the first World Cup arrived by ship'**
+  String get educationStoryOriginsTitle;
+
+  /// No description provided for @educationStoryOriginsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo, the first World Cup began in an age when ships mattered more than planes. European teams spent weeks crossing the sea to reach Uruguay, and the hosts hurried the Estadio Centenario to completion inside the heat of a centenary celebration. By modern standards the whole thing looks inconvenient, but that very slowness is why the first tournament still feels so sharp. The World Cup was teaching us from the start that big occasions often arrive carrying a little discomfort.\n\nAnd when the story moves into Italy 1934 and France 1938, I do not want you to look only at the result sheet. Look at Mussolini\'s shadow, the long travel, the resentment around participation, and the refereeing arguments too. The World Cup was never only football. Travel technology, politics, and the emotions between nations were already sticking to the grass.\n\nSo when you remember 1930, 1934, and 1938, do not keep only three numbers. Keep the smell of salt, the tone of speeches, and the sound of uneasy applause with them. History stops feeling like an exam answer when you remember it as a real scene.'**
+  String get educationStoryOriginsBody;
+
+  /// No description provided for @educationStoryReturnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1950-1970, when silence and a smile stayed in the same tournament'**
+  String get educationStoryReturnTitle;
+
+  /// No description provided for @educationStoryReturnBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After the years emptied out by war, the World Cup returned in Brazil in 1950, and people probably expected celebration first. But Taeo, whenever I talk about that tournament, I start with the silence of the Maracana. Uruguay beating Brazil showed that one result can change the volume of an entire country.\n\nThen the story runs quickly through the Miracle of Bern in 1954, seventeen-year-old Pele in 1958, Garrincha in 1962, England in 1966, and the golden Brazil of 1970. By then the World Cup had become more than a tournament. It had turned into a machine for making collective memory. Someone falls, someone appears, and someone becomes so complete that he starts to look like legend.\n\nWhen you read this stretch, I want you to keep five words beside it: restart, shock, birth, revenge, and completion. Those words fold a long era into your hand without shrinking any of its feeling.'**
+  String get educationStoryReturnBody;
+
+  /// No description provided for @educationStoryMiddleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1974-2006, beauty and argument have to be remembered together'**
+  String get educationStoryMiddleTitle;
+
+  /// No description provided for @educationStoryMiddleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'By 1974 the texture of the air changes again. The trophy changes, the Netherlands shake the coordinates of the pitch with total football, and West Germany turn that beautiful chaos into a result. Taeo, every time I read this era I am reminded that football is one of the few places where idealism and reality collide in full public view. Grace is easy to love, but trophies usually lean toward something heavier.\n\nBut this period never fits inside tactics alone. Argentina 1978 carries the chill of military rule. Battiston\'s fall in 1982 stays in the mind far too long. Maradona in 1986 feels almost like weather. Then Roger Milla\'s dance in 1990, Korea\'s semi-final run in 2002, and Zidane\'s headbutt in 2006 show how the World Cup can spill out of the television and change the atmosphere inside a home.\n\nAnd 2002 is not somebody else\'s timeline for us. It includes the shouting in the streets, the late-night surge, and the air that refused to settle after the whistle. So when you read this era, do not remember only who scored. Remember what kind of night it was.'**
+  String get educationStoryMiddleBody;
+
+  /// No description provided for @educationStoryRecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'2010-2022, the more numbers arrived, the sharper the scenes became'**
+  String get educationStoryRecentTitle;
+
+  /// No description provided for @educationStoryRecentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open South Africa 2010 and you hear the vuvuzelas first. Open Brazil 2014 and the 7-1 scoreboard appears before anything else. In Russia 2018 there is the silence in front of the VAR monitor, and in Qatar 2022 Messi and Mbappe hold both a passing of generations and a collision of generations inside one final. Taeo, it sounds as if more data and more technology should blur the story, but the World Cup somehow moved in the opposite direction. The more numbers arrived, the more strongly the scenes stayed inside the body.\n\nKlose\'s sixteenth goal, Morocco reaching the semi-finals, and Suarez\'s handball on the line can all be listed in a record book. But what people hold onto for years is still the human expression of the moment. That is what I most want to tell you. Tables organize. Scenes make you understand.\n\nSo when you watch the recent World Cups, do not stop at the scoreline and the data. Ask why people were shocked, why they kept talking, and why the image lingered. That is how your football map grows wider.'**
+  String get educationStoryRecentBody;
+
+  /// No description provided for @educationStoryPeopleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You need the people, the politics, and the technology too'**
+  String get educationStoryPeopleTitle;
+
+  /// No description provided for @educationStoryPeopleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo, the World Cup can never be explained by a champions table alone. You need the faces that pulled whole eras forward: Jules Rimet, Pozzo, Pele, Beckenbauer, Maradona, Ronaldo, Messi. You also need moments such as the cancelled tournaments of 1942 and 1946, when war was strong enough to stop even football\'s grandest calendar. Only then do you see how quickly the World Cup began to resemble the wider world.\n\nThe dog Pickles recovering the Jules Rimet Trophy in 1966, the Schumacher-Battiston collision in 1982, Lampard\'s disallowed goal in 2010, goal-line technology in 2014, VAR in 2018, and semi-automated offside in 2022 all belong on the same line. Football always wants to become fairer, while also revealing that perfect fairness never fully arrives.\n\nSo keep writing two questions beside every tournament. Who won. And what changed. Once you start holding those two lines together, history becomes less stiff and more accurate at the same time.'**
+  String get educationStoryPeopleBody;
+
+  /// No description provided for @educationStoryFutureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Beyond 2026, how to read a page that has not opened yet'**
+  String get educationStoryFutureTitle;
+
+  /// No description provided for @educationStoryFutureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Now look toward North America 2026. A field of 48 teams, 104 matches, and three host nations already gives it a different face from older tournaments. Taeo, when I see those numbers, I think before anything else about travel distance, recovery time, bench strength, and the ability to decode unfamiliar opponents quickly. The longer a tournament becomes, the more it depends on a whole structure of endurance rather than one star.\n\nSo reading the future is not the same as guessing one winner like a fortune teller. It is practice in seeing which team can survive the minutes when set-pieces begin to tilt a match, which side can keep its rhythm over a long road, and which squad can hold real competitive level from players eighteen through twenty-three. The longer you read World Cup history, the sooner those conditions begin to stand out.\n\nI want you to read 2026 the same way you read the past. Do not write down only the team name. Write down the pressing, the transitions, the set-pieces, and the defensive line stability beside it. Then you will understand that good prediction grows out of good memory.'**
+  String get educationStoryFutureBody;
+
+  /// No description provided for @educationStoryClosingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In the end, Taeo, watching the World Cup well is not about memorizing one final score. It is about following the long thread from the first voyage in 1930 to the next question waiting in 2026. Every time you read that story, I hope you learn to see people more clearly than numbers, the air more clearly than the result, and an era more clearly than a single match.'**
+  String get educationStoryClosingBody;
 
   /// No description provided for @educationHeroEyebrow.
   ///

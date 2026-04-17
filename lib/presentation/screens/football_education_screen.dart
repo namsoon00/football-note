@@ -3,172 +3,36 @@ import 'package:football_note/gen/app_localizations.dart';
 
 import '../widgets/app_background.dart';
 
-class FootballEducationScreen extends StatefulWidget {
+class FootballEducationScreen extends StatelessWidget {
   const FootballEducationScreen({super.key});
-
-  @override
-  State<FootballEducationScreen> createState() =>
-      _FootballEducationScreenState();
-}
-
-class _FootballEducationScreenState extends State<FootballEducationScreen> {
-  late final PageController _pageController;
-  int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(viewportFraction: 0.9);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final chapters = _buildChapters(l10n);
-    final currentChapter = chapters[_currentIndex];
 
     return Scaffold(
       body: AppBackground(
         child: SafeArea(
-          child: Column(
+          child: ListView(
+            key: const ValueKey<String>('education-story-scroll'),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        IconButton.filledTonal(
-                          onPressed: () => Navigator.of(context).maybePop(),
-                          icon: const Icon(Icons.arrow_back_rounded),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            l10n.educationScreenTitle,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface.withValues(
-                              alpha: 0.9,
-                            ),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: theme.colorScheme.outline.withValues(
-                                alpha: 0.2,
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            l10n.educationBookProgressLabel(
-                              _currentIndex + 1,
-                              chapters.length,
-                            ),
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _BookProgressCard(
-                      title: currentChapter.title,
-                      chapterLabel: currentChapter.chapterLabel,
-                      progressLabel: l10n.educationBookProgressLabel(
-                        _currentIndex + 1,
-                        chapters.length,
-                      ),
-                      swipeHint: l10n.educationBookSwipeHint,
-                      pageCount: chapters.length,
-                      currentIndex: _currentIndex,
-                    ),
-                  ],
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton.filledTonal(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.arrow_back_rounded),
                 ),
               ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: PageView.builder(
-                  key: const ValueKey<String>('education-book-page-view'),
-                  controller: _pageController,
-                  itemCount: chapters.length,
-                  onPageChanged: (index) {
-                    if (_currentIndex == index) {
-                      return;
-                    }
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  },
-                  itemBuilder: (context, index) {
-                    return AnimatedBuilder(
-                      animation: _pageController,
-                      child: _BookPageCard(
-                        pageIndex: index,
-                        chapter: chapters[index],
-                        pageLabel: l10n.educationBookProgressLabel(
-                          index + 1,
-                          chapters.length,
-                        ),
-                      ),
-                      builder: (context, child) {
-                        final currentPage =
-                            _pageController.hasClients &&
-                                _pageController.page != null
-                            ? _pageController.page!
-                            : _currentIndex.toDouble();
-                        final distance = (index - currentPage)
-                            .clamp(-1.0, 1.0)
-                            .toDouble();
-                        final scale = (1 - (distance.abs() * 0.08)).clamp(
-                          0.92,
-                          1.0,
-                        );
-                        final opacity = (1 - (distance.abs() * 0.26)).clamp(
-                          0.72,
-                          1.0,
-                        );
-
-                        return Opacity(
-                          opacity: opacity,
-                          child: Transform.translate(
-                            offset: Offset(distance * 22, 0),
-                            child: Transform(
-                              alignment: distance >= 0
-                                  ? Alignment.centerLeft
-                                  : Alignment.centerRight,
-                              transform: Matrix4.identity()
-                                ..setEntry(3, 2, 0.001)
-                                ..rotateY(distance * 0.09),
-                              child: Transform.scale(
-                                scale: scale,
-                                child: child,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+              const SizedBox(height: 12),
+              _StoryPaper(
+                title: l10n.educationScreenTitle,
+                introParagraphs: _splitParagraphs(l10n.educationStoryIntroBody),
+                sections: _buildSections(l10n),
+                closingParagraphs: _splitParagraphs(
+                  l10n.educationStoryClosingBody,
                 ),
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -176,82 +40,36 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
     );
   }
 
-  List<_BookChapter> _buildChapters(AppLocalizations l10n) {
-    return <_BookChapter>[
-      _BookChapter(
-        chapterLabel: l10n.educationBookCoverLabel,
-        title: l10n.educationBookCoverTitle,
-        subtitle: l10n.educationBookCoverSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookCoverStory),
-        accentColors: const <Color>[Color(0xFFD9874D), Color(0xFF6A422D)],
+  List<_StorySection> _buildSections(AppLocalizations l10n) {
+    return <_StorySection>[
+      _StorySection(
+        title: l10n.educationStoryOriginsTitle,
+        paragraphs: _splitParagraphs(l10n.educationStoryOriginsBody),
       ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookOriginsLabel,
-        title: l10n.educationBookOriginsTitle,
-        subtitle: l10n.educationBookOriginsSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookOriginsStory),
-        accentColors: const <Color>[Color(0xFFE4AF63), Color(0xFF5C4731)],
+      _StorySection(
+        title: l10n.educationStoryReturnTitle,
+        paragraphs: _splitParagraphs(l10n.educationStoryReturnBody),
       ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookWorldCupLabel,
-        title: l10n.educationBookWorldCupTitle,
-        subtitle: l10n.educationBookWorldCupSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookWorldCupStory),
-        accentColors: const <Color>[Color(0xFFE17C52), Color(0xFF633537)],
+      _StorySection(
+        title: l10n.educationStoryMiddleTitle,
+        paragraphs: _splitParagraphs(l10n.educationStoryMiddleBody),
       ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookClubLabel,
-        title: l10n.educationBookClubTitle,
-        subtitle: l10n.educationBookClubSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookClubStory),
-        accentColors: const <Color>[Color(0xFF5E9D89), Color(0xFF234D45)],
+      _StorySection(
+        title: l10n.educationStoryRecentTitle,
+        paragraphs: _splitParagraphs(l10n.educationStoryRecentBody),
       ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookTacticsLabel,
-        title: l10n.educationBookTacticsTitle,
-        subtitle: l10n.educationBookTacticsSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookTacticsStory),
-        accentColors: const <Color>[Color(0xFF678DD8), Color(0xFF2D416B)],
+      _StorySection(
+        title: l10n.educationStoryPeopleTitle,
+        paragraphs: _splitParagraphs(l10n.educationStoryPeopleBody),
       ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookLegendsLabel,
-        title: l10n.educationBookLegendsTitle,
-        subtitle: l10n.educationBookLegendsSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookLegendsStory),
-        accentColors: const <Color>[Color(0xFFC26AA7), Color(0xFF5A3153)],
-      ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookAsiaLabel,
-        title: l10n.educationBookAsiaTitle,
-        subtitle: l10n.educationBookAsiaSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookAsiaStory),
-        accentColors: const <Color>[Color(0xFF4D9EB7), Color(0xFF204A57)],
-      ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookWomenLabel,
-        title: l10n.educationBookWomenTitle,
-        subtitle: l10n.educationBookWomenSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookWomenStory),
-        accentColors: const <Color>[Color(0xFFD97070), Color(0xFF63363A)],
-      ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookModernLabel,
-        title: l10n.educationBookModernTitle,
-        subtitle: l10n.educationBookModernSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookModernStory),
-        accentColors: const <Color>[Color(0xFF8A6BE0), Color(0xFF413563)],
-      ),
-      _BookChapter(
-        chapterLabel: l10n.educationBookFinaleLabel,
-        title: l10n.educationBookFinaleTitle,
-        subtitle: l10n.educationBookFinaleSubtitle,
-        storyParagraphs: _splitParagraphs(l10n.educationBookFinaleStory),
-        accentColors: const <Color>[Color(0xFFB07A45), Color(0xFF4F3A2A)],
+      _StorySection(
+        title: l10n.educationStoryFutureTitle,
+        paragraphs: _splitParagraphs(l10n.educationStoryFutureBody),
       ),
     ];
   }
 
-  List<String> _splitParagraphs(String value) {
+  static List<String> _splitParagraphs(String value) {
     return value
         .split('\n\n')
         .map((entry) => entry.trim())
@@ -260,293 +78,181 @@ class _FootballEducationScreenState extends State<FootballEducationScreen> {
   }
 }
 
-class _BookProgressCard extends StatelessWidget {
+class _StoryPaper extends StatelessWidget {
   final String title;
-  final String chapterLabel;
-  final String progressLabel;
-  final String swipeHint;
-  final int pageCount;
-  final int currentIndex;
+  final List<String> introParagraphs;
+  final List<_StorySection> sections;
+  final List<String> closingParagraphs;
 
-  const _BookProgressCard({
+  const _StoryPaper({
     required this.title,
-    required this.chapterLabel,
-    required this.progressLabel,
-    required this.swipeHint,
-    required this.pageCount,
-    required this.currentIndex,
+    required this.introParagraphs,
+    required this.sections,
+    required this.closingParagraphs,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    const accent = Color(0xFF8E5A36);
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.16),
-        ),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: theme.brightness == Brightness.dark
             ? null
             : const <BoxShadow>[
                 BoxShadow(
-                  color: Color(0x120E1726),
-                  blurRadius: 16,
-                  offset: Offset(0, 8),
+                  color: Color(0x24161F2F),
+                  blurRadius: 24,
+                  offset: Offset(0, 16),
                 ),
               ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: <Color>[
+                theme.brightness == Brightness.dark
+                    ? theme.colorScheme.surface
+                    : const Color(0xFFFBF3E3),
+                theme.brightness == Brightness.dark
+                    ? theme.colorScheme.surfaceContainerHighest
+                    : const Color(0xFFF4E2C5),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(color: accent.withValues(alpha: 0.3)),
+          ),
+          child: Stack(
             children: [
-              Expanded(
-                child: Text(
-                  chapterLabel,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ),
-              Text(
-                progressLabel,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: List<Widget>.generate(pageCount, (index) {
-              final isActive = currentIndex == index;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                margin: EdgeInsets.only(right: index == pageCount - 1 ? 0 : 6),
-                width: isActive ? 22 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.outline.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            swipeHint,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BookPageCard extends StatelessWidget {
-  final int pageIndex;
-  final _BookChapter chapter;
-  final String pageLabel;
-
-  const _BookPageCard({
-    required this.pageIndex,
-    required this.chapter,
-    required this.pageLabel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final accent = chapter.accentColors.last;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(6, 4, 6, 8),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: theme.brightness == Brightness.dark
-              ? null
-              : const <BoxShadow>[
-                  BoxShadow(
-                    color: Color(0x24161F2F),
-                    blurRadius: 26,
-                    offset: Offset(0, 16),
-                  ),
-                ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: <Color>[
-                  theme.brightness == Brightness.dark
-                      ? theme.colorScheme.surface
-                      : const Color(0xFFFAF4E6),
-                  theme.brightness == Brightness.dark
-                      ? theme.colorScheme.surfaceContainerHighest
-                      : const Color(0xFFF4E7D1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              border: Border.all(color: accent.withValues(alpha: 0.34)),
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Positioned(
-                  left: 24,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 4,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: <Color>[
-                          accent.withValues(alpha: 0.2),
-                          accent.withValues(alpha: 0.45),
-                          accent.withValues(alpha: 0.2),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: -30,
-                  top: -24,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.08),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 24,
-                  top: 22,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          pageLabel,
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: accent,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
+              Positioned(
+                left: 24,
+                top: 0,
+                bottom: 0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: <Color>[
+                        accent.withValues(alpha: 0.08),
+                        accent.withValues(alpha: 0.42),
+                        accent.withValues(alpha: 0.08),
                       ],
                     ),
                   ),
+                  child: const SizedBox(width: 4),
                 ),
-                SingleChildScrollView(
-                  key: ValueKey<String>('education-page-scroll-$pageIndex'),
-                  padding: const EdgeInsets.fromLTRB(32, 28, 28, 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        chapter.chapterLabel,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: accent,
+              ),
+              Positioned(
+                right: -20,
+                top: -18,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const SizedBox(width: 124, height: 124),
+                ),
+              ),
+              Positioned(
+                right: 28,
+                top: 28,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      '1930-2026',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: accent,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(36, 28, 28, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 300),
+                      child: Text(
+                        title,
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
+                          height: 1.12,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 300),
-                        child: Text(
-                          chapter.title,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            height: 1.12,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
+                    ),
+                    const SizedBox(height: 20),
+                    _StoryParagraphBlock(
+                      paragraphs: introParagraphs,
+                      lead: true,
+                    ),
+                    for (var index = 0; index < sections.length; index++) ...[
+                      const SizedBox(height: 28),
+                      _SectionDivider(
+                        isLast:
+                            index == sections.length - 1 &&
+                            closingParagraphs.isEmpty,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 18),
                       Text(
-                        chapter.subtitle,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                          height: 1.35,
+                        sections[index].title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          height: 1.2,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 12),
+                      _StoryParagraphBlock(
+                        paragraphs: sections[index].paragraphs,
+                      ),
+                    ],
+                    if (closingParagraphs.isNotEmpty) ...[
+                      const SizedBox(height: 28),
+                      const _SectionDivider(isLast: true),
+                      const SizedBox(height: 18),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.surface.withValues(
                             alpha: theme.brightness == Brightness.dark
-                                ? 0.26
-                                : 0.5,
+                                ? 0.24
+                                : 0.52,
                           ),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
                             color: accent.withValues(alpha: 0.16),
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: chapter.storyParagraphs
-                              .map(
-                                (paragraph) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 16),
-                                  child: Text(
-                                    paragraph,
-                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                      height: 1.8,
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(growable: false),
+                        child: _StoryParagraphBlock(
+                          paragraphs: closingParagraphs,
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -554,18 +260,71 @@ class _BookPageCard extends StatelessWidget {
   }
 }
 
-class _BookChapter {
-  final String chapterLabel;
-  final String title;
-  final String subtitle;
-  final List<String> storyParagraphs;
-  final List<Color> accentColors;
+class _StoryParagraphBlock extends StatelessWidget {
+  final List<String> paragraphs;
+  final bool lead;
 
-  const _BookChapter({
-    required this.chapterLabel,
-    required this.title,
-    required this.subtitle,
-    required this.storyParagraphs,
-    required this.accentColors,
-  });
+  const _StoryParagraphBlock({required this.paragraphs, this.lead = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: paragraphs
+          .map(
+            (paragraph) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                paragraph,
+                style:
+                    (lead
+                            ? theme.textTheme.bodyLarge
+                            : theme.textTheme.bodyMedium)
+                        ?.copyWith(
+                          height: lead ? 1.9 : 1.85,
+                          fontWeight: lead ? FontWeight.w700 : FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+              ),
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+}
+
+class _SectionDivider extends StatelessWidget {
+  final bool isLast;
+
+  const _SectionDivider({required this.isLast});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.outline.withValues(alpha: 0.22);
+
+    return Row(
+      children: [
+        Expanded(child: Container(height: 1, color: color)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Icon(
+            isLast ? Icons.auto_stories_rounded : Icons.circle,
+            size: isLast ? 18 : 8,
+            color: theme.colorScheme.primary.withValues(alpha: 0.72),
+          ),
+        ),
+        Expanded(child: Container(height: 1, color: color)),
+      ],
+    );
+  }
+}
+
+class _StorySection {
+  final String title;
+  final List<String> paragraphs;
+
+  const _StorySection({required this.title, required this.paragraphs});
 }
