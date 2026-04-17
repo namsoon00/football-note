@@ -1119,5 +1119,99 @@
     }
   },
   "runningCoachSprintFeatureUnavailableJointWindow": "not enough stable joint frames",
-  "runningCoachSprintFeatureUnavailableStepEvents": "not enough stable step events"
+  "runningCoachSprintFeatureUnavailableStepEvents": "not enough stable step events",
+  "headerEducationTooltip": "Football education",
+  "homeWeatherNeedsLocationTitle": "Need location",
+  "homeWeatherNeedsLocationSubtitle": "Turn location on",
+  "homeStreakBadgeActive": "Momentum",
+  "homeStreakBadgeResume": "Restart",
+  "homeStreakActiveTodayTitle": "{count} straight days are alive",
+  "@homeStreakActiveTodayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakActiveYesterdayTitle": "You logged {count} straight days through yesterday",
+  "@homeStreakActiveYesterdayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakPausedTitle": "Your {count}-day streak paused for a moment",
+  "@homeStreakPausedTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakActiveTodayBody": "Today's session is already in. One more short log tomorrow keeps the rhythm building.",
+  "homeStreakActiveYesterdayBody": "Add one more session today and the recent rhythm carries straight forward.",
+  "homeStreakPausedBody": "You have been away for {gap} days. Restart with a short session and the rhythm comes back quickly.",
+  "@homeStreakPausedBody": {
+    "placeholders": {
+      "gap": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakLastLogged": "Last log {date}",
+  "@homeStreakLastLogged": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "homeStreakDaysValue": "{count} days",
+  "@homeStreakDaysValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeStreakActionContinue": "Log today",
+  "homeStreakActionReview": "Weekly flow",
+  "educationScreenTitle": "Youth Football Education",
+  "educationHeroEyebrow": "YOUTH SESSION KIT",
+  "educationHeroTitle": "Youth football content you can coach right away",
+  "educationHeroBody": "Keep the explanations short, the repetitions high, and finish with one question. These three sessions are built for that flow.",
+  "educationHeroStatLessons": "3 ready lessons",
+  "educationHeroStatMinutes": "45-minute flow",
+  "educationHeroStatPrinciples": "Coach cues included",
+  "educationSectionLessonsTitle": "Ready Lessons",
+  "educationSectionPrinciplesTitle": "Coaching Principles",
+  "educationModuleBallEyebrow": "BALL MASTERY",
+  "educationModuleBallTitle": "Increase Touch Count",
+  "educationModuleBallSummary": "A session that keeps both-foot inside and outside touches plus turns connected so younger players get comfortable with the ball.",
+  "educationModuleBallAge": "U8-U10",
+  "educationModuleBallDuration": "12 min",
+  "educationModuleBallCue1": "Let the eyes come up sometimes while the feet stay light and active.",
+  "educationModuleBallCue2": "Before asking for speed, check that the ball stays close to the body.",
+  "educationModuleBallCue3": "After mistakes, encourage the next touch instead of stopping the drill.",
+  "educationModulePassEyebrow": "FIRST TOUCH & PASS",
+  "educationModulePassTitle": "First Touch Into Pass",
+  "educationModulePassSummary": "Receive, turn, and release. This session links touch direction with passing accuracy in one flow.",
+  "educationModulePassAge": "U10-U12",
+  "educationModulePassDuration": "15 min",
+  "educationModulePassCue1": "Ask players to scan over the shoulder once before receiving.",
+  "educationModulePassCue2": "Coach the first touch into the space where the next pass should go.",
+  "educationModulePassCue3": "Set the body shape and contact surface before asking for stronger pace.",
+  "educationModuleDecisionEyebrow": "1V1 DECISION",
+  "educationModuleDecisionTitle": "1v1 Breakthrough And Choice",
+  "educationModuleDecisionSummary": "A decision session built around changing speed, freezing the defender, then finishing with either a shot or a pass.",
+  "educationModuleDecisionAge": "U11-U13",
+  "educationModuleDecisionDuration": "18 min",
+  "educationModuleDecisionCue1": "Make the first step big, then keep the direction change short and sharp.",
+  "educationModuleDecisionCue2": "Praise the timing and preparation first, not only the final result.",
+  "educationModuleDecisionCue3": "After a success, revisit why it worked in one short sentence.",
+  "educationPrincipleOneTitle": "One cue at a time",
+  "educationPrincipleOneBody": "Keep instructions short and actionable. Single-word cues such as \"open\", \"scan\", and \"connect\" work well.",
+  "educationPrincipleTwoTitle": "Find praise right after mistakes",
+  "educationPrincipleTwoBody": "If you praise the preparation instead of only the outcome, players keep trying instead of freezing.",
+  "educationPrincipleThreeTitle": "Use the last two minutes for questions",
+  "educationPrincipleThreeBody": "Ask what felt easy today and what they want to change next time. That reflection helps the lesson stick."
 }

@@ -2469,4 +2469,198 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get runningCoachSprintFeatureUnavailableStepEvents =>
       'not enough stable step events';
+
+  @override
+  String get headerEducationTooltip => 'Football education';
+
+  @override
+  String get homeWeatherNeedsLocationTitle => 'Need location';
+
+  @override
+  String get homeWeatherNeedsLocationSubtitle => 'Turn location on';
+
+  @override
+  String get homeStreakBadgeActive => 'Momentum';
+
+  @override
+  String get homeStreakBadgeResume => 'Restart';
+
+  @override
+  String homeStreakActiveTodayTitle(int count) {
+    return '$count straight days are alive';
+  }
+
+  @override
+  String homeStreakActiveYesterdayTitle(int count) {
+    return 'You logged $count straight days through yesterday';
+  }
+
+  @override
+  String homeStreakPausedTitle(int count) {
+    return 'Your $count-day streak paused for a moment';
+  }
+
+  @override
+  String get homeStreakActiveTodayBody =>
+      'Today\'s session is already in. One more short log tomorrow keeps the rhythm building.';
+
+  @override
+  String get homeStreakActiveYesterdayBody =>
+      'Add one more session today and the recent rhythm carries straight forward.';
+
+  @override
+  String homeStreakPausedBody(int gap) {
+    return 'You have been away for $gap days. Restart with a short session and the rhythm comes back quickly.';
+  }
+
+  @override
+  String homeStreakLastLogged(Object date) {
+    return 'Last log $date';
+  }
+
+  @override
+  String homeStreakDaysValue(int count) {
+    return '$count days';
+  }
+
+  @override
+  String get homeStreakActionContinue => 'Log today';
+
+  @override
+  String get homeStreakActionReview => 'Weekly flow';
+
+  @override
+  String get educationScreenTitle => 'Youth Football Education';
+
+  @override
+  String get educationHeroEyebrow => 'YOUTH SESSION KIT';
+
+  @override
+  String get educationHeroTitle =>
+      'Youth football content you can coach right away';
+
+  @override
+  String get educationHeroBody =>
+      'Keep the explanations short, the repetitions high, and finish with one question. These three sessions are built for that flow.';
+
+  @override
+  String get educationHeroStatLessons => '3 ready lessons';
+
+  @override
+  String get educationHeroStatMinutes => '45-minute flow';
+
+  @override
+  String get educationHeroStatPrinciples => 'Coach cues included';
+
+  @override
+  String get educationSectionLessonsTitle => 'Ready Lessons';
+
+  @override
+  String get educationSectionPrinciplesTitle => 'Coaching Principles';
+
+  @override
+  String get educationModuleBallEyebrow => 'BALL MASTERY';
+
+  @override
+  String get educationModuleBallTitle => 'Increase Touch Count';
+
+  @override
+  String get educationModuleBallSummary =>
+      'A session that keeps both-foot inside and outside touches plus turns connected so younger players get comfortable with the ball.';
+
+  @override
+  String get educationModuleBallAge => 'U8-U10';
+
+  @override
+  String get educationModuleBallDuration => '12 min';
+
+  @override
+  String get educationModuleBallCue1 =>
+      'Let the eyes come up sometimes while the feet stay light and active.';
+
+  @override
+  String get educationModuleBallCue2 =>
+      'Before asking for speed, check that the ball stays close to the body.';
+
+  @override
+  String get educationModuleBallCue3 =>
+      'After mistakes, encourage the next touch instead of stopping the drill.';
+
+  @override
+  String get educationModulePassEyebrow => 'FIRST TOUCH & PASS';
+
+  @override
+  String get educationModulePassTitle => 'First Touch Into Pass';
+
+  @override
+  String get educationModulePassSummary =>
+      'Receive, turn, and release. This session links touch direction with passing accuracy in one flow.';
+
+  @override
+  String get educationModulePassAge => 'U10-U12';
+
+  @override
+  String get educationModulePassDuration => '15 min';
+
+  @override
+  String get educationModulePassCue1 =>
+      'Ask players to scan over the shoulder once before receiving.';
+
+  @override
+  String get educationModulePassCue2 =>
+      'Coach the first touch into the space where the next pass should go.';
+
+  @override
+  String get educationModulePassCue3 =>
+      'Set the body shape and contact surface before asking for stronger pace.';
+
+  @override
+  String get educationModuleDecisionEyebrow => '1V1 DECISION';
+
+  @override
+  String get educationModuleDecisionTitle => '1v1 Breakthrough And Choice';
+
+  @override
+  String get educationModuleDecisionSummary =>
+      'A decision session built around changing speed, freezing the defender, then finishing with either a shot or a pass.';
+
+  @override
+  String get educationModuleDecisionAge => 'U11-U13';
+
+  @override
+  String get educationModuleDecisionDuration => '18 min';
+
+  @override
+  String get educationModuleDecisionCue1 =>
+      'Make the first step big, then keep the direction change short and sharp.';
+
+  @override
+  String get educationModuleDecisionCue2 =>
+      'Praise the timing and preparation first, not only the final result.';
+
+  @override
+  String get educationModuleDecisionCue3 =>
+      'After a success, revisit why it worked in one short sentence.';
+
+  @override
+  String get educationPrincipleOneTitle => 'One cue at a time';
+
+  @override
+  String get educationPrincipleOneBody =>
+      'Keep instructions short and actionable. Single-word cues such as \"open\", \"scan\", and \"connect\" work well.';
+
+  @override
+  String get educationPrincipleTwoTitle => 'Find praise right after mistakes';
+
+  @override
+  String get educationPrincipleTwoBody =>
+      'If you praise the preparation instead of only the outcome, players keep trying instead of freezing.';
+
+  @override
+  String get educationPrincipleThreeTitle =>
+      'Use the last two minutes for questions';
+
+  @override
+  String get educationPrincipleThreeBody =>
+      'Ask what felt easy today and what they want to change next time. That reflection helps the lesson stick.';
 }

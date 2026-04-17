@@ -2405,4 +2405,188 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get runningCoachSprintFeatureUnavailableStepEvents =>
       '안정적인 스텝 이벤트가 부족함';
+
+  @override
+  String get headerEducationTooltip => '축구 교육';
+
+  @override
+  String get homeWeatherNeedsLocationTitle => '위치 연결 필요';
+
+  @override
+  String get homeWeatherNeedsLocationSubtitle => '위치 켜고 확인';
+
+  @override
+  String get homeStreakBadgeActive => '연속 중';
+
+  @override
+  String get homeStreakBadgeResume => '다시 시작';
+
+  @override
+  String homeStreakActiveTodayTitle(int count) {
+    return '$count일 연속 흐름을 이어가고 있어요';
+  }
+
+  @override
+  String homeStreakActiveYesterdayTitle(int count) {
+    return '어제까지 $count일 연속으로 기록했어요';
+  }
+
+  @override
+  String homeStreakPausedTitle(int count) {
+    return '$count일 연속 흐름이 잠시 멈췄어요';
+  }
+
+  @override
+  String get homeStreakActiveTodayBody =>
+      '오늘 기록까지 완료했어요. 내일도 짧게라도 남기면 연속 흐름이 더 단단해집니다.';
+
+  @override
+  String get homeStreakActiveYesterdayBody =>
+      '오늘 한 번 더 남기면 최근의 좋은 리듬을 그대로 이어갈 수 있어요.';
+
+  @override
+  String homeStreakPausedBody(int gap) {
+    return '$gap일 쉬었어요. 짧은 훈련부터 다시 적으면 리듬을 빠르게 되찾을 수 있어요.';
+  }
+
+  @override
+  String homeStreakLastLogged(Object date) {
+    return '마지막 기록 $date';
+  }
+
+  @override
+  String homeStreakDaysValue(int count) {
+    return '$count일';
+  }
+
+  @override
+  String get homeStreakActionContinue => '오늘 기록';
+
+  @override
+  String get homeStreakActionReview => '주간 흐름';
+
+  @override
+  String get educationScreenTitle => '유소년 축구 교육';
+
+  @override
+  String get educationHeroEyebrow => 'YOUTH SESSION KIT';
+
+  @override
+  String get educationHeroTitle => '바로 지도할 수 있는 유소년 축구 컨텐츠';
+
+  @override
+  String get educationHeroBody =>
+      '설명은 짧게, 반복은 많이, 마무리는 질문으로 가져가는 3가지 세션을 담았어요.';
+
+  @override
+  String get educationHeroStatLessons => '3개 세션';
+
+  @override
+  String get educationHeroStatMinutes => '45분 흐름';
+
+  @override
+  String get educationHeroStatPrinciples => '코칭 원칙 포함';
+
+  @override
+  String get educationSectionLessonsTitle => '바로 쓰는 레슨';
+
+  @override
+  String get educationSectionPrinciplesTitle => '지도 포인트';
+
+  @override
+  String get educationModuleBallEyebrow => 'BALL MASTERY';
+
+  @override
+  String get educationModuleBallTitle => '터치 수 늘리기';
+
+  @override
+  String get educationModuleBallSummary =>
+      '양발 인사이드와 아웃사이드, 방향 전환을 끊기지 않게 이어서 공과 친해지는 세션입니다.';
+
+  @override
+  String get educationModuleBallAge => 'U8-U10';
+
+  @override
+  String get educationModuleBallDuration => '12분';
+
+  @override
+  String get educationModuleBallCue1 => '시선은 가끔 앞을 보고, 발은 잔걸음으로 가볍게 움직입니다.';
+
+  @override
+  String get educationModuleBallCue2 => '빠른 속도보다 공이 몸 가까이에 머무는지 먼저 확인합니다.';
+
+  @override
+  String get educationModuleBallCue3 => '실수 뒤 멈추기보다 바로 다음 터치로 이어가게 격려합니다.';
+
+  @override
+  String get educationModulePassEyebrow => 'FIRST TOUCH & PASS';
+
+  @override
+  String get educationModulePassTitle => '첫 터치 후 패스';
+
+  @override
+  String get educationModulePassSummary =>
+      '받고, 돌리고, 내주는 흐름으로 첫 터치 방향과 패스 정확도를 함께 익히는 세션입니다.';
+
+  @override
+  String get educationModulePassAge => 'U10-U12';
+
+  @override
+  String get educationModulePassDuration => '15분';
+
+  @override
+  String get educationModulePassCue1 => '받기 전에 어깨 너머를 한 번 보고 시작하게 합니다.';
+
+  @override
+  String get educationModulePassCue2 => '첫 터치는 다음 패스가 나갈 공간으로 두게 지도합니다.';
+
+  @override
+  String get educationModulePassCue3 => '패스 강도보다 정확한 발면과 몸 방향을 먼저 잡아줍니다.';
+
+  @override
+  String get educationModuleDecisionEyebrow => '1V1 DECISION';
+
+  @override
+  String get educationModuleDecisionTitle => '1대1 돌파와 선택';
+
+  @override
+  String get educationModuleDecisionSummary =>
+      '속도 변화와 멈춤 동작으로 수비를 흔든 뒤 슈팅이나 패스로 끝내는 판단 세션입니다.';
+
+  @override
+  String get educationModuleDecisionAge => 'U11-U13';
+
+  @override
+  String get educationModuleDecisionDuration => '18분';
+
+  @override
+  String get educationModuleDecisionCue1 =>
+      '첫 한 걸음은 크게, 방향 전환은 짧고 빠르게 가져가게 합니다.';
+
+  @override
+  String get educationModuleDecisionCue2 => '결과보다 타이밍을 보는 눈과 준비 동작을 먼저 칭찬합니다.';
+
+  @override
+  String get educationModuleDecisionCue3 => '성공 장면 뒤에는 왜 좋았는지 한 문장으로 되짚어 줍니다.';
+
+  @override
+  String get educationPrincipleOneTitle => '한 번에 한 가지';
+
+  @override
+  String get educationPrincipleOneBody =>
+      '지시어는 짧고 바로 행동으로 옮길 수 있게 주세요. \"열어\", \"보고\", \"붙여\"처럼 한 단어가 좋습니다.';
+
+  @override
+  String get educationPrincipleTwoTitle => '실수 직후 칭찬 포인트 찾기';
+
+  @override
+  String get educationPrincipleTwoBody =>
+      '결과가 아닌 준비 동작을 칭찬하면 아이가 도전을 멈추지 않고 다시 시도합니다.';
+
+  @override
+  String get educationPrincipleThreeTitle => '마지막 2분은 질문';
+
+  @override
+  String get educationPrincipleThreeBody =>
+      '무엇이 쉬웠는지, 다음엔 무엇을 바꾸고 싶은지 묻게 하면 배운 내용이 더 오래 남습니다.';
 }

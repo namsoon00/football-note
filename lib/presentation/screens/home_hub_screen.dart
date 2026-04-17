@@ -35,6 +35,7 @@ import 'skill_quiz_screen.dart';
 import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
+import 'football_education_screen.dart';
 import 'player_level_guide_screen.dart';
 import 'training_method_board_screen.dart';
 import 'weather_detail_screen.dart';
@@ -92,6 +93,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       'home_priority_focus_override_v1';
   final MealCoachingService _mealCoachingService = const MealCoachingService();
   bool _weatherLoading = false;
+  bool _weatherNeedsLocation = true;
   String _weatherLocation = '';
   String _weatherSummary = '';
   int? _weatherCode;
@@ -192,6 +194,10 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 onNewsTap: _openNews,
                                 newsBadgeCount: newsCount,
                                 onQuizTap: _openQuizShortcut,
+                                onCoachTap: _trackedAction(
+                                  'header_education',
+                                  _openEducation,
+                                ),
                                 onProfileTap: () => _openProfile(context),
                                 onNotificationTap: _openNotifications,
                                 notificationBadgeCount: reminderUnreadCount,
@@ -206,6 +212,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           isKo: isKo,
                           onTap: _openLevelGuide,
                         ),
+                        if (data.showStreakHighlight) ...[
+                          const SizedBox(height: 10),
+                          _TrainingStreakSpotlightCard(
+                            data: data,
+                            l10n: AppLocalizations.of(context)!,
+                            onTap: data.latestTrainingGapDays == 0
+                                ? widget.onOpenWeeklyStats
+                                : () => _openTodayEntryOrCreate(data),
+                          ),
+                        ],
                         const SizedBox(height: 10),
                         RiceBowlSummaryCard(
                           entry: data.todayMealEntry,
@@ -232,6 +248,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                             _TodayWeatherButton(
                               l10n: AppLocalizations.of(context)!,
                               weatherLoading: _weatherLoading,
+                              weatherNeedsLocation: _weatherNeedsLocation,
                               weatherSummary: _weatherSummary.trim(),
                               weatherCode: _weatherCode,
                               onTap: _openWeatherDetails,
@@ -363,7 +380,16 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     setState(() => _weatherLoading = true);
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        if (!mounted) return;
+        setState(() {
+          _weatherNeedsLocation = true;
+          _weatherLocation = '';
+          _weatherCode = null;
+          _weatherSummary = '';
+        });
+        return;
+      }
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied && requestPermission) {
@@ -371,6 +397,14 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          setState(() {
+            _weatherNeedsLocation = true;
+            _weatherLocation = '';
+            _weatherCode = null;
+            _weatherSummary = '';
+          });
+        }
         if (requestPermission && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(l10n.homeWeatherPermissionNeeded)),
@@ -397,6 +431,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
       );
       if (!mounted) return;
       setState(() {
+        _weatherNeedsLocation = place.trim().isEmpty;
         _weatherLocation = place;
         _weatherCode = weather.code;
         _weatherSummary = weather.summary;
@@ -413,6 +448,15 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         ),
       );
     } catch (_) {
+      if (mounted) {
+        final shouldNeedLocation = _weatherLocation.trim().isEmpty;
+        setState(() {
+          _weatherNeedsLocation = shouldNeedLocation;
+          _weatherLocation = '';
+          _weatherCode = null;
+          _weatherSummary = '';
+        });
+      }
       if (requestPermission && mounted) {
         ScaffoldMessenger.of(
           context,
@@ -597,6 +641,12 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
+  }
+
+  Future<void> _openEducation() async {
+    await Navigator.of(
+      context,
+    ).push(AppPageRoute(builder: (_) => const FootballEducationScreen()));
   }
 
   Future<void> _openNotifications() async {
@@ -797,6 +847,9 @@ class _HomeHubData {
   final int weeklyTrainingCount;
   final int weeklyMinutes;
   final int streakDays;
+  final DateTime? latestTrainingDay;
+  final int? latestTrainingGapDays;
+  final List<_RecentTrainingMarker> recentTrainingMarkers;
   final int boardCount;
   final DateTime? latestBoardUpdatedAt;
   final TrainingBoard? latestBoard;
@@ -821,6 +874,9 @@ class _HomeHubData {
     required this.weeklyTrainingCount,
     required this.weeklyMinutes,
     required this.streakDays,
+    required this.latestTrainingDay,
+    required this.latestTrainingGapDays,
+    required this.recentTrainingMarkers,
     required this.boardCount,
     required this.latestBoardUpdatedAt,
     required this.latestBoard,
@@ -841,6 +897,14 @@ class _HomeHubData {
     required this.todayMealEntry,
     required this.quizResumeSummary,
   });
+
+  bool get showStreakHighlight =>
+      streakDays >= 2 &&
+      latestTrainingGapDays != null &&
+      latestTrainingGapDays! <= 5;
+
+  bool get streakIsActive =>
+      latestTrainingGapDays != null && latestTrainingGapDays! <= 1;
 
   factory _HomeHubData.build({
     required List<TrainingEntry> entries,
@@ -924,18 +988,24 @@ class _HomeHubData {
               DateTime(entry.date.year, entry.date.month, entry.date.day),
         )
         .toSet();
-    var streakDays = 0;
-    DateTime? cursor = latestTrainingEntry == null
+    final latestTrainingDay = entryDays.isEmpty
         ? null
-        : DateTime(
-            latestTrainingEntry.date.year,
-            latestTrainingEntry.date.month,
-            latestTrainingEntry.date.day,
-          );
+        : entryDays.reduce((latest, day) => day.isAfter(latest) ? day : latest);
+    var streakDays = 0;
+    DateTime? cursor = latestTrainingDay;
     while (cursor != null && entryDays.contains(cursor)) {
       streakDays++;
       cursor = cursor.subtract(const Duration(days: 1));
     }
+    final latestTrainingGapDays = latestTrainingDay == null
+        ? null
+        : today.difference(latestTrainingDay).inDays;
+    final recentTrainingMarkers = List<_RecentTrainingMarker>.generate(5, (
+      index,
+    ) {
+      final day = today.subtract(Duration(days: 4 - index));
+      return _RecentTrainingMarker(day: day, recorded: entryDays.contains(day));
+    });
 
     final todayPlanCount = plans.where((plan) {
       final day = DateTime(
@@ -1012,6 +1082,9 @@ class _HomeHubData {
       weeklyTrainingCount: weeklyEntries.length,
       weeklyMinutes: weeklyMinutes,
       streakDays: streakDays,
+      latestTrainingDay: latestTrainingDay,
+      latestTrainingGapDays: latestTrainingGapDays,
+      recentTrainingMarkers: recentTrainingMarkers,
       boardCount: boards.length,
       latestBoardUpdatedAt: boards.isEmpty ? null : boards.first.updatedAt,
       latestBoard: boards.isEmpty ? null : boards.first,
@@ -1054,6 +1127,13 @@ class _PlanDaySummary {
   final int count;
 
   const _PlanDaySummary({required this.day, required this.count});
+}
+
+class _RecentTrainingMarker {
+  final DateTime day;
+  final bool recorded;
+
+  const _RecentTrainingMarker({required this.day, required this.recorded});
 }
 
 bool _hasCompletedJumpRope(TrainingEntry entry) {
@@ -1628,9 +1708,291 @@ class _PriorityActionCard extends StatelessWidget {
   }
 }
 
+class _TrainingStreakSpotlightCard extends StatelessWidget {
+  final _HomeHubData data;
+  final AppLocalizations l10n;
+  final VoidCallback onTap;
+
+  const _TrainingStreakSpotlightCard({
+    required this.data,
+    required this.l10n,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final gapDays = data.latestTrainingGapDays ?? 0;
+    final isActive = data.streakIsActive;
+    final badgeLabel = isActive
+        ? l10n.homeStreakBadgeActive
+        : l10n.homeStreakBadgeResume;
+    final title = gapDays == 0
+        ? l10n.homeStreakActiveTodayTitle(data.streakDays)
+        : gapDays == 1
+        ? l10n.homeStreakActiveYesterdayTitle(data.streakDays)
+        : l10n.homeStreakPausedTitle(data.streakDays);
+    final body = gapDays == 0
+        ? l10n.homeStreakActiveTodayBody
+        : gapDays == 1
+        ? l10n.homeStreakActiveYesterdayBody
+        : l10n.homeStreakPausedBody(gapDays);
+    final actionLabel = gapDays == 0
+        ? l10n.homeStreakActionReview
+        : l10n.homeStreakActionContinue;
+    final gradientColors = isActive
+        ? const <Color>[Color(0xFFFFCB8E), Color(0xFFF56E56)]
+        : const <Color>[Color(0xFFF0E7CE), Color(0xFFD6DDE8)];
+    final foreground = isActive
+        ? const Color(0xFF4A1C07)
+        : const Color(0xFF1F3344);
+    final lastLoggedLabel = data.latestTrainingDay == null
+        ? ''
+        : l10n.homeStreakLastLogged(
+            _formatShortDate(
+              data.latestTrainingDay!,
+              locale: Localizations.localeOf(context),
+            ),
+          );
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x17111827),
+            blurRadius: 18,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -18,
+            top: -22,
+            child: Container(
+              width: 116,
+              height: 116,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 14,
+            bottom: -8,
+            child: Icon(
+              isActive
+                  ? Icons.local_fire_department_rounded
+                  : Icons.replay_rounded,
+              size: 76,
+              color: Colors.white.withValues(alpha: 0.18),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      isActive
+                          ? Icons.local_fire_department_rounded
+                          : Icons.route_rounded,
+                      color: foreground,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            badgeLabel,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: foreground,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          title,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: foreground,
+                            fontWeight: FontWeight.w900,
+                            height: 1.15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Text(
+                      l10n.homeStreakDaysValue(data.streakDays),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Text(
+                  body,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: foreground.withValues(alpha: 0.88),
+                    fontWeight: FontWeight.w600,
+                    height: 1.45,
+                  ),
+                ),
+              ),
+              if (lastLoggedLabel.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  lastLoggedLabel,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: foreground.withValues(alpha: 0.72),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: data.recentTrainingMarkers
+                          .map(
+                            (marker) => Expanded(
+                              child: _RecentTrainingMarkerChip(
+                                marker: marker,
+                                foreground: foreground,
+                              ),
+                            ),
+                          )
+                          .toList(growable: false),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: onTap,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: foreground,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(actionLabel),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatShortDate(DateTime date, {required Locale locale}) {
+    final pattern = locale.languageCode == 'ko' ? 'M월 d일' : 'MMM d';
+    return DateFormat(pattern, locale.toString()).format(date);
+  }
+}
+
+class _RecentTrainingMarkerChip extends StatelessWidget {
+  final _RecentTrainingMarker marker;
+  final Color foreground;
+
+  const _RecentTrainingMarkerChip({
+    required this.marker,
+    required this.foreground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: marker.recorded
+                ? Colors.white.withValues(alpha: 0.24)
+                : Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: marker.recorded
+                  ? Colors.white.withValues(alpha: 0.34)
+                  : Colors.white.withValues(alpha: 0.18),
+            ),
+          ),
+          child: Icon(
+            marker.recorded ? Icons.check_rounded : Icons.remove_rounded,
+            size: 15,
+            color: foreground,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          DateFormat('d').format(marker.day),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: foreground.withValues(alpha: 0.74),
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _TodayWeatherButton extends StatelessWidget {
   final AppLocalizations l10n;
   final bool weatherLoading;
+  final bool weatherNeedsLocation;
   final String weatherSummary;
   final int? weatherCode;
   final VoidCallback onTap;
@@ -1638,6 +2000,7 @@ class _TodayWeatherButton extends StatelessWidget {
   const _TodayWeatherButton({
     required this.l10n,
     required this.weatherLoading,
+    required this.weatherNeedsLocation,
     required this.weatherSummary,
     required this.weatherCode,
     required this.onTap,
@@ -1685,6 +2048,25 @@ class _TodayWeatherButton extends StatelessWidget {
   }
 
   _WeatherHeroPalette _palette(ThemeData theme) {
+    if (weatherNeedsLocation && weatherSummary.isEmpty) {
+      return _WeatherHeroPalette(
+        gradientColors: [
+          Color.lerp(
+            theme.colorScheme.surfaceContainerHighest,
+            theme.colorScheme.primaryContainer,
+            0.36,
+          )!,
+          Color.lerp(
+            theme.colorScheme.secondaryContainer,
+            theme.colorScheme.surfaceContainerHighest,
+            0.42,
+          )!,
+        ],
+        foreground: theme.colorScheme.onPrimaryContainer,
+        surface: Colors.white.withValues(alpha: 0.24),
+        outline: theme.colorScheme.outline.withValues(alpha: 0.22),
+      );
+    }
     switch (weatherCode) {
       case 0:
         return _WeatherHeroPalette(
@@ -1773,8 +2155,16 @@ class _TodayWeatherButton extends StatelessWidget {
     final theme = Theme.of(context);
     final hasWeather = weatherSummary.isNotEmpty;
     final palette = _palette(theme);
-    final title = hasWeather ? weatherSummary : l10n.homeWeatherTitle;
-    final parts = _HomeWeatherBadgeParts.parse(title);
+    final parts = hasWeather
+        ? _HomeWeatherBadgeParts.parse(weatherSummary)
+        : _HomeWeatherBadgeParts(
+            primary: weatherNeedsLocation
+                ? l10n.homeWeatherNeedsLocationTitle
+                : l10n.homeWeatherTitle,
+            secondary: weatherNeedsLocation
+                ? l10n.homeWeatherNeedsLocationSubtitle
+                : null,
+          );
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1814,7 +2204,9 @@ class _TodayWeatherButton extends StatelessWidget {
                       : Icon(
                           hasWeather
                               ? _weatherIcon(weatherCode)
-                              : Icons.cloud_outlined,
+                              : weatherNeedsLocation
+                              ? Icons.location_searching_rounded
+                              : Icons.cloud_off_outlined,
                           size: 17,
                           color: palette.foreground,
                         ),
