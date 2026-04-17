@@ -71,6 +71,47 @@ class FootballEducationScreen extends StatelessWidget {
         icon: Icons.forum_outlined,
       ),
     ];
+    final historyTracks = <_HistoryStudyTrack>[
+      _HistoryStudyTrack(
+        eyebrow: l10n.educationHistoryWorldCupEyebrow,
+        title: l10n.educationHistoryWorldCupTitle,
+        summary: l10n.educationHistoryWorldCupSummary,
+        focusLabel: l10n.educationHistoryWorldCupFocus,
+        facts: <String>[
+          l10n.educationHistoryWorldCupFact1,
+          l10n.educationHistoryWorldCupFact2,
+          l10n.educationHistoryWorldCupFact3,
+        ],
+        icon: Icons.emoji_events_rounded,
+        gradientColors: const <Color>[Color(0xFFFFE0A3), Color(0xFFF79D65)],
+      ),
+      _HistoryStudyTrack(
+        eyebrow: l10n.educationHistoryCompetitionEyebrow,
+        title: l10n.educationHistoryCompetitionTitle,
+        summary: l10n.educationHistoryCompetitionSummary,
+        focusLabel: l10n.educationHistoryCompetitionFocus,
+        facts: <String>[
+          l10n.educationHistoryCompetitionFact1,
+          l10n.educationHistoryCompetitionFact2,
+          l10n.educationHistoryCompetitionFact3,
+        ],
+        icon: Icons.timeline_rounded,
+        gradientColors: const <Color>[Color(0xFFB9E6F6), Color(0xFF5B87F5)],
+      ),
+      _HistoryStudyTrack(
+        eyebrow: l10n.educationHistoryMomentsEyebrow,
+        title: l10n.educationHistoryMomentsTitle,
+        summary: l10n.educationHistoryMomentsSummary,
+        focusLabel: l10n.educationHistoryMomentsFocus,
+        facts: <String>[
+          l10n.educationHistoryMomentsFact1,
+          l10n.educationHistoryMomentsFact2,
+          l10n.educationHistoryMomentsFact3,
+        ],
+        icon: Icons.movie_creation_outlined,
+        gradientColors: const <Color>[Color(0xFFFFC8D4), Color(0xFFE56F7D)],
+      ),
+    ];
 
     return Scaffold(
       body: AppBackground(
@@ -109,6 +150,29 @@ class FootballEducationScreen extends StatelessWidget {
                 (module) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _EducationModuleCard(module: module),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.educationSectionHistoryTitle,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.educationSectionHistoryBody,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  height: 1.5,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...historyTracks.map(
+                (track) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _HistoryStudyTrackCard(track: track),
                 ),
               ),
               const SizedBox(height: 8),
@@ -242,6 +306,10 @@ class _EducationHeroCard extends StatelessWidget {
                   _HeroStatChip(
                     icon: Icons.record_voice_over_outlined,
                     label: l10n.educationHeroStatPrinciples,
+                  ),
+                  _HeroStatChip(
+                    icon: Icons.history_edu_outlined,
+                    label: l10n.educationHeroStatHistory,
                   ),
                 ],
               ),
@@ -509,6 +577,126 @@ class _CoachingPrincipleCard extends StatelessWidget {
   }
 }
 
+class _HistoryStudyTrackCard extends StatelessWidget {
+  final _HistoryStudyTrack track;
+
+  const _HistoryStudyTrackCard({required this.track});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(1.2),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: track.gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: WatchCartCard(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: track.gradientColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(track.icon, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        track.eyebrow,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        track.title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          height: 1.12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              track.summary,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                height: 1.45,
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ModuleMetaChip(icon: Icons.quiz_outlined, label: track.focusLabel),
+            const SizedBox(height: 14),
+            ...track.facts.map(
+              (fact) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 20,
+                      margin: const EdgeInsets.only(top: 1),
+                      decoration: BoxDecoration(
+                        color: track.gradientColors.last.withValues(
+                          alpha: 0.14,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Icon(
+                        Icons.menu_book_rounded,
+                        size: 12,
+                        color: track.gradientColors.last,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        fact,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          height: 1.4,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _EducationModule {
   final String eyebrow;
   final String title;
@@ -526,6 +714,26 @@ class _EducationModule {
     required this.ageBand,
     required this.duration,
     required this.cues,
+    required this.icon,
+    required this.gradientColors,
+  });
+}
+
+class _HistoryStudyTrack {
+  final String eyebrow;
+  final String title;
+  final String summary;
+  final String focusLabel;
+  final List<String> facts;
+  final IconData icon;
+  final List<Color> gradientColors;
+
+  const _HistoryStudyTrack({
+    required this.eyebrow,
+    required this.title,
+    required this.summary,
+    required this.focusLabel,
+    required this.facts,
     required this.icon,
     required this.gradientColors,
   });
