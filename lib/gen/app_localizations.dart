@@ -4349,7 +4349,7 @@ abstract class AppLocalizations {
   /// No description provided for @headerEducationTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Football education'**
+  /// **'Football history book'**
   String get headerEducationTooltip;
 
   /// No description provided for @homeWeatherNeedsLocationTitle.
@@ -4439,7 +4439,7 @@ abstract class AppLocalizations {
   /// No description provided for @educationScreenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Youth Football Education'**
+  /// **'Taeo\'s Football History Book'**
   String get educationScreenTitle;
 
   /// No description provided for @educationHeroEyebrow.
@@ -4813,6 +4813,516 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask what felt easy today and what they want to change next time. That reflection helps the lesson stick.'**
   String get educationPrincipleThreeBody;
+
+  /// No description provided for @educationBookHeaderEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'TAEO FOOTBALL ARCHIVE'**
+  String get educationBookHeaderEyebrow;
+
+  /// No description provided for @educationBookHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Football history that Taeo turns page by page'**
+  String get educationBookHeaderTitle;
+
+  /// No description provided for @educationBookHeaderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This book-style education screen stretches from the roots of ball games to formal rules, World Cups, club football, tactical revolutions, women\'s football, and the timeline of Korea and Asia.'**
+  String get educationBookHeaderBody;
+
+  /// No description provided for @educationBookHeaderChipChapters.
+  ///
+  /// In en, this message translates to:
+  /// **'10 chapters'**
+  String get educationBookHeaderChipChapters;
+
+  /// No description provided for @educationBookHeaderChipRoots.
+  ///
+  /// In en, this message translates to:
+  /// **'Ancient to modern'**
+  String get educationBookHeaderChipRoots;
+
+  /// No description provided for @educationBookHeaderChipTactics.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactics and legends'**
+  String get educationBookHeaderChipTactics;
+
+  /// No description provided for @educationBookHeaderChipSwipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Page-turn UX'**
+  String get educationBookHeaderChipSwipe;
+
+  /// No description provided for @educationBookSectionStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo\'s Scene'**
+  String get educationBookSectionStory;
+
+  /// No description provided for @educationBookSectionTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Core Timeline'**
+  String get educationBookSectionTimeline;
+
+  /// No description provided for @educationBookSectionFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory Data'**
+  String get educationBookSectionFacts;
+
+  /// No description provided for @educationBookSectionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo\'s Note'**
+  String get educationBookSectionNote;
+
+  /// No description provided for @educationBookSwipeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe sideways to turn pages and scroll vertically inside each page.'**
+  String get educationBookSwipeHint;
+
+  /// No description provided for @educationBookPreviousButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get educationBookPreviousButton;
+
+  /// No description provided for @educationBookNextButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get educationBookNextButton;
+
+  /// No description provided for @educationBookProgressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total} chapters'**
+  String educationBookProgressLabel(int current, int total);
+
+  /// No description provided for @educationBookCoverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prologue'**
+  String get educationBookCoverLabel;
+
+  /// No description provided for @educationBookCoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo\'s Football Time Travel'**
+  String get educationBookCoverTitle;
+
+  /// No description provided for @educationBookCoverSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One long volume of rules, tournaments, tactics, and legends'**
+  String get educationBookCoverSubtitle;
+
+  /// No description provided for @educationBookCoverStory.
+  ///
+  /// In en, this message translates to:
+  /// **'After training, Taeo walks into an archive packed with old football books. The moment he opens the first page, the roots of ball games and the age of modern data football connect into one long story.\n\nTaeo is the main character of this book, but every page also introduces the players, coaches, crowds, and rules that changed the game. As he keeps turning pages, he learns that football is more than a match. It is a language shaped by culture, industry, and education together.'**
+  String get educationBookCoverStory;
+
+  /// No description provided for @educationBookCoverTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Ancient-era cuju and kemari remained as early traditions of playing with the feet.\nIn 1863, the Football Association in England drew the starting line of modern football by codifying rules.\nThe founding of FIFA in 1904 and the first World Cup in 1930 created a shared global stage.\nThe 1991 Women\'s World Cup and the 2018 men\'s World Cup use of VAR show how football kept expanding in scope and officiating.'**
+  String get educationBookCoverTimeline;
+
+  /// No description provided for @educationBookCoverFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo\'s bookmark 1: each chapter mixes story, timeline, and memory anchors.\nTaeo\'s bookmark 2: World Cup and league history stick faster when year, place, and champion are grouped together.\nTaeo\'s bookmark 3: tactical history makes more sense when read beside rule changes.\nTaeo\'s bookmark 4: women\'s football and Asian football become clearer when followed as their own timelines.'**
+  String get educationBookCoverFacts;
+
+  /// No description provided for @educationBookCoverNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo decides that after finishing the book, he will write down five years that stayed in his head. History study becomes much easier once you build your own anchor points.'**
+  String get educationBookCoverNote;
+
+  /// No description provided for @educationBookOriginsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 1'**
+  String get educationBookOriginsLabel;
+
+  /// No description provided for @educationBookOriginsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The roots of ball games and the birth of rules'**
+  String get educationBookOriginsTitle;
+
+  /// No description provided for @educationBookOriginsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From cuju, kemari, and folk football to the 1863 rule book'**
+  String get educationBookOriginsSubtitle;
+
+  /// No description provided for @educationBookOriginsStory.
+  ///
+  /// In en, this message translates to:
+  /// **'In the oldest chapter, Taeo meets ball games that look nothing like the modern version. In some eras people kicked the ball, in others they kept it in the air like a ritual, and in many towns entire streets became part of the contest.\n\nOnce matches spread across regions, everyone needed the same set of promises. Taeo underlines a key lesson: football did not truly begin with the first goal, but with agreement on the rules.'**
+  String get educationBookOriginsStory;
+
+  /// No description provided for @educationBookOriginsTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuju from Han-era China is often cited as one of the clearest early records of kicking a leather ball.\nJapan\'s kemari valued technique and rhythm over direct competition.\nMedieval European folk football was closer to a rough town-wide festival than an organized sport.\nThe Cambridge Rules of 1848 helped create an early shared draft for schools and universities.\nIn 1863, the Football Association separated association football from rugby-style handling.\nThe FA Cup began in 1871, and England vs Scotland in 1872 is recorded as the first official international match.'**
+  String get educationBookOriginsTimeline;
+
+  /// No description provided for @educationBookOriginsFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Early offside rules were far stricter than today\'s version, so forward passing was much harder.\nThe penalty kick arrived in 1891 and clarified responsibility around fouls near goal.\nAs crossbars, nets, and referee systems became standardized, scoring decisions grew more stable.\nTaeo notes that once rules were unified, skill comparison and tactical experimentation became possible.'**
+  String get educationBookOriginsFacts;
+
+  /// No description provided for @educationBookOriginsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo writes that football was never a finished sport from day one. It was the result of a long negotiation that turned chaotic play into a common language.'**
+  String get educationBookOriginsNote;
+
+  /// No description provided for @educationBookWorldCupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 2'**
+  String get educationBookWorldCupLabel;
+
+  /// No description provided for @educationBookWorldCupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The start of FIFA and the World Cup'**
+  String get educationBookWorldCupTitle;
+
+  /// No description provided for @educationBookWorldCupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An international body, the first world event, and the restart after war'**
+  String get educationBookWorldCupSubtitle;
+
+  /// No description provided for @educationBookWorldCupStory.
+  ///
+  /// In en, this message translates to:
+  /// **'When Taeo turns the next page, he sees a meeting room in Paris and a stadium in Uruguay inside the same chapter. A handful of countries gather to build an international body, and soon after, a new stage appears to crown a world champion.\n\nTo Taeo, World Cup history feels like more than a list of matches. It looks like a global announcement that the world now shares one football language. That is why he starts reading year, host, and champion as a single unit.'**
+  String get educationBookWorldCupStory;
+
+  /// No description provided for @educationBookWorldCupTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA was founded in Paris in 1904, creating a center for international football governance.\nFootball at the 1908 London Olympics helped strengthen the structure of international competition.\nUruguay won the 1924 and 1928 Olympic tournaments, boosting the symbolism of hosting the first World Cup.\nThe first FIFA World Cup was held in Uruguay in 1930, and the hosts became the inaugural champions.\nThe 1942 and 1946 tournaments were not played because of World War II.\nThe 1950 World Cup in Brazil left behind the historic Maracana shock delivered by Uruguay.\nThe current FIFA World Cup Trophy has been used since 1974.'**
+  String get educationBookWorldCupTimeline;
+
+  /// No description provided for @educationBookWorldCupFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'The Jules Rimet Trophy was the prize lifted by World Cup champions through 1970.\nBrazil remains the standard reference for the most men\'s World Cup titles.\nMiroslav Klose\'s 16 goals are the all-time men\'s World Cup scoring record.\nTaeo studies World Cup history by grouping host nation, champion, and iconic scene together.'**
+  String get educationBookWorldCupFacts;
+
+  /// No description provided for @educationBookWorldCupNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo writes that the World Cup feels less like a single tournament and more like the largest presentation in the world proving that one set of rules can connect everyone.'**
+  String get educationBookWorldCupNote;
+
+  /// No description provided for @educationBookClubLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 3'**
+  String get educationBookClubLabel;
+
+  /// No description provided for @educationBookClubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The expansion of club football and the European stage'**
+  String get educationBookClubTitle;
+
+  /// No description provided for @educationBookClubSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'League launches, the European Cup, and the Premier League era'**
+  String get educationBookClubSubtitle;
+
+  /// No description provided for @educationBookClubStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo watches industrial-city weekends and European away nights merge inside one chapter. If the World Cup is the calendar of nations, club football feels like the weekly rhythm of cities.\n\nPeople who follow one club for life, streets waiting for derby day, and the global fandom created by broadcasting all show up in this section. Taeo is struck by how football can hold local identity and global industry at the same time.'**
+  String get educationBookClubStory;
+
+  /// No description provided for @educationBookClubTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'The Football League launched in England in 1888, establishing regular home-and-away league structure.\nThe European Cup began in 1955 and created an ongoing story for the strongest clubs in Europe.\nReal Madrid\'s first five European Cups quickly raised the prestige of the competition.\nThe Premier League launched in 1992, and Manchester United won the inaugural 1992-93 title.\nFrom the 1992-93 season, the European Cup was reorganized as the UEFA Champions League.\nThe 1995 Bosman ruling changed player movement and squad-building across Europe.'**
+  String get educationBookClubTimeline;
+
+  /// No description provided for @educationBookClubFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Arsenal\'s 2003-04 Invincibles remain the classic example of an unbeaten league title.\nThe Champions League accelerated the globalization of club football through group stages and broadcast growth.\nClub badges, kits, songs, and derby culture show how deeply football can merge with local identity.\nTaeo writes down league launch years, dominant dynasties, and media-capital turning points together.'**
+  String get educationBookClubFacts;
+
+  /// No description provided for @educationBookClubNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo concludes that knowing club football history is not just about counting trophies. It is about understanding which era belonged to which team.'**
+  String get educationBookClubNote;
+
+  /// No description provided for @educationBookTacticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 4'**
+  String get educationBookTacticsLabel;
+
+  /// No description provided for @educationBookTacticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How tactical revolutions changed the picture of the game'**
+  String get educationBookTacticsTitle;
+
+  /// No description provided for @educationBookTacticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pyramid, WM, catenaccio, total football, tiki-taka, and gegenpressing'**
+  String get educationBookTacticsSubtitle;
+
+  /// No description provided for @educationBookTacticsStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inside the tactical chapter, Taeo learns that formations are not just codes. The same numbers can describe very different teams depending on where the ball starts, who empties a space, and who triggers the press.\n\nThis chapter teaches him that tactical study is not about memorizing names alone. It is about seeing how rule changes and player profiles reshape the entire picture of a match. That is why he always adds the question why next to the timeline.'**
+  String get educationBookTacticsStory;
+
+  /// No description provided for @educationBookTacticsTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Early football often used the 2-3-5 pyramid, with large numbers committed to attack.\nAfter the 1925 offside law change, Herbert Chapman\'s WM helped rebuild defensive balance.\nCatenaccio, widely associated with Inter in the 1960s, emphasized cover defense and efficient transition.\nAjax and the Netherlands in the 1970s made total football the ideal of rotation, pressing, and position exchange.\nArrigo Sacchi\'s Milan in the 1980s refined spacing between lines and collective pressing.\nFrom 2008 onward, Barcelona and Spain pushed tiki-taka and positional play toward global standard status.\nKlopp teams in the 2010s made the reaction immediately after losing the ball a tactical center through gegenpressing.'**
+  String get educationBookTacticsTimeline;
+
+  /// No description provided for @educationBookTacticsFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Tactical change moves together with rule changes, player athleticism, pitch conditions, and refereeing trends.\nThe 1992 back-pass rule change sharply altered build-up speed by restricting goalkeeper hand use.\nModern analysis uses tools such as xG, pressing intensity, and field position to read tactics through numbers.\nTaeo writes that real tactical study means understanding where the ball moved and why, not only reciting a formation name.'**
+  String get educationBookTacticsFacts;
+
+  /// No description provided for @educationBookTacticsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo decides not to stare only at number shapes on the board. Even one 4-3-3 can become a completely different team depending on press height, fullback roles, and the personality of the number 6.'**
+  String get educationBookTacticsNote;
+
+  /// No description provided for @educationBookLegendsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 5'**
+  String get educationBookLegendsLabel;
+
+  /// No description provided for @educationBookLegendsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Legends and iconic scenes build football memory'**
+  String get educationBookLegendsTitle;
+
+  /// No description provided for @educationBookLegendsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The reference points left by Pele, Maradona, Cruyff, Zidane, and Messi'**
+  String get educationBookLegendsSubtitle;
+
+  /// No description provided for @educationBookLegendsStory.
+  ///
+  /// In en, this message translates to:
+  /// **'When Taeo enters the chapter of film archives, he sees one era-defining scene after another. One player ruled the World Cup as a teenager, another left a whole football language inside one turn, and another ended decades of waiting with a final title.\n\nThis is where Taeo realizes that a truly great player is not remembered only for volume of records. Greatness also means leaving an image that people immediately recall whenever football history is discussed.'**
+  String get educationBookLegendsStory;
+
+  /// No description provided for @educationBookLegendsTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Pele stunned the world in 1958 by winning the World Cup at age 17.\nThe Cruyff Turn at the 1974 World Cup showed that one move can become a symbol of an era.\nAt Mexico 1986, Maradona left both the Hand of God and the solo goal past five players in the same tournament.\nAt France 1998, Zidane led the hosts to the title with two headed goals in the final.\nThe 2006 World Cup final is remembered as a peak of drama, including Zidane\'s final red card.\nThe 2022 World Cup in Qatar ended with Messi winning the trophy and Argentina closing a long wait.'**
+  String get educationBookLegendsTimeline;
+
+  /// No description provided for @educationBookLegendsFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Pele owns the unmatched reference point of three men\'s World Cup titles.\nDiego Maradona, Johan Cruyff, Zinedine Zidane, and Lionel Messi are remembered as era symbols as much as elite performers.\nThe Ballon d\'Or compresses an individual story, but many supporters still judge players through both World Cup and club legacy.\nTaeo memorizes big moments by pairing the player, year, opponent, stage, and why the scene mattered.'**
+  String get educationBookLegendsFacts;
+
+  /// No description provided for @educationBookLegendsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo writes that the greatest players are not only the most skilled ones. They are the people who leave scenes that instantly appear in everyone\'s mind when football is explained.'**
+  String get educationBookLegendsNote;
+
+  /// No description provided for @educationBookAsiaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 6'**
+  String get educationBookAsiaLabel;
+
+  /// No description provided for @educationBookAsiaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The timetable of Asian and Korean football'**
+  String get educationBookAsiaTitle;
+
+  /// No description provided for @educationBookAsiaSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From the founding of the AFC to the 2002 World Cup and today\'s Korea'**
+  String get educationBookAsiaSubtitle;
+
+  /// No description provided for @educationBookAsiaStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Now Taeo follows city names such as Seoul, Tokyo, and Doha as the book opens the map of Asian football. Even with huge travel distances, different climates, and uneven investment, football across the continent built its own timeline of growth.\n\nThe Korean section keeps repeating one lesson: national-team results alone do not tell the whole story. Pro league structure, overseas careers, and generation change moved together. Taeo decides that he should never separate the national team from the league base when reading a country\'s football history.'**
+  String get educationBookAsiaStory;
+
+  /// No description provided for @educationBookAsiaTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'The AFC was founded in 1954, establishing a continental organization for Asian football.\nThe first AFC Asian Cup was held in 1956, and South Korea won back-to-back titles in 1956 and 1960.\nThe K League launched in 1983 and began the full professional era of Korean football.\nSouth Korea and Japan co-hosted the 2002 World Cup, and Korea reached the semifinals to set a new Asian benchmark.\nJapan\'s women\'s World Cup triumph in 2011 proved that Asia could reach the top of the global women\'s game.\nSon Heung-min\'s success in Europe raised the perceived ceiling of a Korean player\'s career once again.'**
+  String get educationBookAsiaTimeline;
+
+  /// No description provided for @educationBookAsiaFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Cha Bum-kun, Park Ji-sung, and Son Heung-min are often linked as overseas reference points from different generations.\nKorean football makes more sense when World Cups, youth tournaments, the domestic league, and overseas growth are read together.\nAsian football development is tied to travel distance, climate, league investment, and youth-system differences.\nTaeo writes down how the league base changed alongside national-team results.'**
+  String get educationBookAsiaFacts;
+
+  /// No description provided for @educationBookAsiaNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo refuses to see 2002 as just a single miracle. He notes that major scenes are built when preparation, hosting, generational change, and league experience come together.'**
+  String get educationBookAsiaNote;
+
+  /// No description provided for @educationBookWomenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 7'**
+  String get educationBookWomenLabel;
+
+  /// No description provided for @educationBookWomenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Women\'s football grew through bans, return, and expansion'**
+  String get educationBookWomenTitle;
+
+  /// No description provided for @educationBookWomenSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The 1921 ban, the 1991 World Cup, and the growth of professional leagues'**
+  String get educationBookWomenSubtitle;
+
+  /// No description provided for @educationBookWomenStory.
+  ///
+  /// In en, this message translates to:
+  /// **'When Taeo reaches the chapter on women\'s football, he first meets the history of closed doors before he reaches the trophy lifts. Many players had to fight a lack of access before they could even fight opponents on the field.\n\nThat is why this chapter treats institutional change and the return of crowds as seriously as the list of champions. Taeo decides not to forget that the starting line of football was never equal for everyone.'**
+  String get educationBookWomenStory;
+
+  /// No description provided for @educationBookWomenTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'In 1920, Dick, Kerr Ladies drew huge crowds in England and showed the scale of women\'s football potential.\nThe Football Association ban of 1921 cast a long shadow over the development of the women\'s game.\nThe ban was lifted in 1971, allowing women\'s football to move back into official structures.\nThe first FIFA Women\'s World Cup was held in China in 1991.\nWomen\'s football became an Olympic sport in 1996.\nThe 1999 Women\'s World Cup final in the United States proved mainstream appeal in front of more than 90,000 fans.\nSpain announced a new power in 2023 by winning its first Women\'s World Cup title.'**
+  String get educationBookWomenTimeline;
+
+  /// No description provided for @educationBookWomenFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'The history of women\'s football is not only about expansion of a sport, but also about the recovery of opportunity.\nThe United States, Germany, Norway, Japan, and Spain are among the clearest examples of era-specific power cycles.\nJapan\'s 2011 title remains the first Women\'s World Cup won by an Asian nation.\nTaeo uses this page to think about how one major tournament can shift participation for the next generation.'**
+  String get educationBookWomenFacts;
+
+  /// No description provided for @educationBookWomenNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo feels that a real history book cannot list only the champions. It also has to record whose door was closed, and when that door opened again.'**
+  String get educationBookWomenNote;
+
+  /// No description provided for @educationBookModernLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chapter 8'**
+  String get educationBookModernLabel;
+
+  /// No description provided for @educationBookModernTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern football is read again through data and technology'**
+  String get educationBookModernTitle;
+
+  /// No description provided for @educationBookModernSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back-pass reform, goal-line technology, VAR, and analytical football'**
+  String get educationBookModernSubtitle;
+
+  /// No description provided for @educationBookModernStory.
+  ///
+  /// In en, this message translates to:
+  /// **'As the book reaches the modern era, Taeo finds graphs, heat maps, and video tags on the page beside match scenes. Analysts sit near coaches, and player movement gets stored as both numbers and images.\n\nEven so, Taeo notices that the central football questions remain familiar. Who scanned first, who created the better space, and who made the faster decision still define the match.'**
+  String get educationBookModernStory;
+
+  /// No description provided for @educationBookModernTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'The 1992 back-pass rule change altered the build-up language of goalkeepers and defensive lines.\nIn 2012, FIFA approved goal-line technology, and it was used at the 2014 World Cup.\nThe 2018 men\'s World Cup was the first tournament to apply VAR at full scale.\nWearable GPS, video tagging, and event data became standard tools in training and scouting through the 2010s.\nModern clubs often work with set-piece coaches, data analysts, and performance scientists together.'**
+  String get educationBookModernTimeline;
+
+  /// No description provided for @educationBookModernFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'xG is a useful headline measure of shot quality, but it needs context such as pressing and field position.\nData is not a tool that removes a coach\'s feel. It is a second language that sharpens the basis for decisions.\nAs technical review expands, fairness rises, but arguments about rhythm and emotion in the game also grow.\nTaeo writes that the latest football still demands a way of reading numbers, video, and field feel together.'**
+  String get educationBookModernFacts;
+
+  /// No description provided for @educationBookModernNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo concludes that modern players are not fundamentally different from the old ones. There is more data around them, but first touch, speed of thought, and connection with teammates remain the center of the sport.'**
+  String get educationBookModernNote;
+
+  /// No description provided for @educationBookFinaleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Epilogue'**
+  String get educationBookFinaleLabel;
+
+  /// No description provided for @educationBookFinaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Taeo\'s final bookmark'**
+  String get educationBookFinaleTitle;
+
+  /// No description provided for @educationBookFinaleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Now it is time to turn history into training language'**
+  String get educationBookFinaleSubtitle;
+
+  /// No description provided for @educationBookFinaleStory.
+  ///
+  /// In en, this message translates to:
+  /// **'When Taeo closes the last page, he understands that what he read is not just memory work for a quiz score. It is a lens for seeing football more deeply.\n\nSome coaches search rule changes for ideas. Some players draw courage from legendary scenes. Some supporters love their club more fiercely once they understand which era it represented. Taeo now feels he can practice one simple action on the field while still seeing the long history behind it.'**
+  String get educationBookFinaleStory;
+
+  /// No description provided for @educationBookFinaleTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'From the history of rules, Taeo learned that football is a sport of shared agreement.\nFrom the history of the World Cup, he saw how one match can compress the memory of a nation.\nFrom tactical history, he confirmed that the answer is never only one shape, but something that changes with era and players.\nFrom the history of women\'s football and Asian football, he learned how strongly opportunity and environment shape growth.'**
+  String get educationBookFinaleTimeline;
+
+  /// No description provided for @educationBookFinaleFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Review anchor 1: memorize years such as 1863, 1904, 1930, 1991, 2002, and 2018 first.\nReview anchor 2: connect era-defining names such as Pele, Maradona, Cruyff, Zidane, Messi, and Son Heung-min to the timeline.\nReview anchor 3: understand WM, total football, tiki-taka, and gegenpressing alongside their historical background.\nReview anchor 4: keep the World Cup, Champions League, Asian Cup, and Women\'s World Cup as separate competition axes in memory.'**
+  String get educationBookFinaleFacts;
+
+  /// No description provided for @educationBookFinaleNote.
+  ///
+  /// In en, this message translates to:
+  /// **'As Taeo shuts the book, he writes the first line of his next training diary: seeing football well means not only watching the action in front of you, but tracing where that action came from all the way back.'**
+  String get educationBookFinaleNote;
 }
 
 class _AppLocalizationsDelegate
