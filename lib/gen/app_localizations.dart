@@ -4349,7 +4349,7 @@ abstract class AppLocalizations {
   /// No description provided for @headerEducationTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Football history book'**
+  /// **'World Cup history book'**
   String get headerEducationTooltip;
 
   /// No description provided for @homeWeatherNeedsLocationTitle.
@@ -4439,7 +4439,7 @@ abstract class AppLocalizations {
   /// No description provided for @educationScreenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Taeo\'s Football History Book'**
+  /// **'Taeo\'s World Cup History Book'**
   String get educationScreenTitle;
 
   /// No description provided for @educationHeroEyebrow.
@@ -4871,37 +4871,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookCoverTitle.
   ///
   /// In en, this message translates to:
-  /// **'Taeo\'s Football Time Travel'**
+  /// **'A World Cup Chronicle With Taeo'**
   String get educationBookCoverTitle;
 
   /// No description provided for @educationBookCoverSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One long volume of rules, tournaments, tactics, and legends'**
+  /// **'From Uruguay 1930 to a preview of North America 2026'**
   String get educationBookCoverSubtitle;
 
   /// No description provided for @educationBookCoverStory.
   ///
   /// In en, this message translates to:
-  /// **'After training, Taeo walks into an archive packed with old football books. The moment he opens the first page, the roots of ball games and the age of modern data football connect into one long story.\n\nTaeo is the main character of this book, but every page also introduces the players, coaches, crowds, and rules that changed the game. As he keeps turning pages, he learns that football is more than a match. It is a language shaped by culture, industry, and education together.\n\nBefore he keeps reading, Taeo writes down 1863, 1904, 1930, 1991, 2002, and 2018 on a blank page. To him, those years feel like door labels for rule codification, the birth of a global body, the first World Cup, the Women\'s World Cup, a Korean benchmark, and the arrival of VAR.'**
+  /// **'After training, Taeo stops in front of a shelf filled with old World Cup programmes. The moment he opens the first page, the port of Montevideo, the stands of the Maracana, the altitude of the Azteca, and the night sky above Lusail all connect into one book.\n\nThis volume does not cover all of football history. It follows only the men\'s FIFA World Cup, from the first tournament in 1930 to the most recently completed edition in Qatar in 2022, then adds a look ahead to the still-upcoming 2026 tournament in Canada, Mexico, and the United States. Taeo does not memorize only the champions. He reads who changed the era, which events shook the tournament, and why some scenes are still replayed decades later.\n\nBefore he turns another page, Taeo writes down 1930, 1950, 1958, 1970, 1986, 1998, 2002, 2010, 2018, 2022, and 2026. The first launch, the most famous shock, Pele\'s arrival, the golden Brazil side, Maradona\'s summer, the 32-team era, Korea\'s semifinal run, the first World Cup in Africa, the VAR era, Messi\'s completion, and the 48-team expansion make the whole map much easier to hold in one line.'**
   String get educationBookCoverStory;
 
   /// No description provided for @educationBookCoverTimeline.
   ///
   /// In en, this message translates to:
-  /// **'Ancient-era cuju and kemari remained as early traditions of playing with the feet.\nIn 1863, the Football Association in England drew the starting line of modern football by codifying rules.\nThe founding of FIFA in 1904 and the first World Cup in 1930 created a shared global stage.\nThe 1991 Women\'s World Cup and the 2018 men\'s World Cup use of VAR show how football kept expanding in scope and officiating.'**
+  /// **'FIFA was founded in 1904, building the administrative frame that later made the World Cup possible.\nThe first men\'s FIFA World Cup was held in Uruguay in 1930.\nThe 1942 and 1946 editions were cancelled because of World War II.\nFrom 1974 onward, the current FIFA World Cup Trophy replaced the Jules Rimet Trophy.\nFrance 1998 expanded the finals to a 32-team format.\nRussia 2018 was the first men\'s World Cup with full VAR implementation.\nCanada, Mexico, and the United States are due to stage a 48-team, 104-match tournament in 2026.'**
   String get educationBookCoverTimeline;
 
   /// No description provided for @educationBookCoverFacts.
   ///
   /// In en, this message translates to:
-  /// **'Taeo\'s bookmark 1: each chapter mixes story, timeline, and memory anchors.\nTaeo\'s bookmark 2: World Cup and league history stick faster when year, place, and champion are grouped together.\nTaeo\'s bookmark 3: tactical history makes more sense when read beside rule changes.\nTaeo\'s bookmark 4: women\'s football and Asian football become clearer when followed as their own timelines.'**
+  /// **'Taeo\'s bookmark 1: through Qatar 2022, the men\'s World Cup has been completed 22 times.\nTaeo\'s bookmark 2: Brazil with 5 titles, Germany with 4, Italy with 4, and Argentina with 3 are the main title anchors.\nTaeo\'s bookmark 3: Miroslav Klose\'s 16 goals remain the all-time men\'s World Cup scoring record.\nTaeo\'s bookmark 4: World Cup history sticks best when year, host, champion, iconic scene, and leading figure are grouped together.'**
   String get educationBookCoverFacts;
 
   /// No description provided for @educationBookCoverNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo decides that after finishing the book, he will write down five years that stayed in his head. He especially wants to rewrite the key years running from 1863 to 2018 in his own order. History study becomes much easier once you build your own anchor points.'**
+  /// **'Taeo writes that this book is not just a list of winners. It is a chronicle of what kind of face the world showed every four years. That is why he chooses to remember the latest completed tournament in 2022 and the next door opening in 2026 side by side.'**
   String get educationBookCoverNote;
 
   /// No description provided for @educationBookOriginsLabel.
@@ -4913,37 +4913,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookOriginsTitle.
   ///
   /// In en, this message translates to:
-  /// **'The roots of ball games and the birth of rules'**
+  /// **'The first three World Cups began with long sea journeys'**
   String get educationBookOriginsTitle;
 
   /// No description provided for @educationBookOriginsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'From cuju, kemari, and folk football to the 1863 rule book'**
+  /// **'Uruguay 1930, Italy 1934, and France 1938'**
   String get educationBookOriginsSubtitle;
 
   /// No description provided for @educationBookOriginsStory.
   ///
   /// In en, this message translates to:
-  /// **'In the oldest chapter, Taeo meets ball games that look nothing like the modern version. In some eras people kicked the ball, in others they kept it in the air like a ritual, and in many towns entire streets became part of the contest.\n\nOnce matches spread across regions, everyone needed the same set of promises. Taeo underlines a key lesson: football did not truly begin with the first goal, but with agreement on the rules.\n\nWhen he lines up the Cambridge Rules of 1848, the Football Association rules of 1863, the FA Cup of 1871, and the first official international in 1872, Taeo can finally see football moving from local play into an organized sport. In the margin, he writes that rules build the match and tournaments build memory.'**
+  /// **'In the first main chapter, Taeo meets a World Cup era when teams traveled by ship more often than by plane. European sides spent weeks crossing the Atlantic to reach Uruguay, while the hosts rushed to complete the Estadio Centenario as part of a centenary celebration. The World Cup began like an adventure story before it fully became a modern media event.\n\nUruguay beat Argentina 4-2 in the 1930 final and became the inaugural champions, while Guillermo Stabile of Argentina finished as the first top scorer. Yet the early years were never only romantic. Italy\'s 1934 tournament took place in the shadow of Mussolini\'s regime, and France 1938 was staged under the growing tension of a continent moving toward war.\n\nTaeo is struck by how quickly the World Cup already carried long-distance travel, political pressure, boycotts, and refereeing arguments. So when he studies the first three editions, he reads not only who lifted the trophy, but also how fast the competition moved into the middle of world history.'**
   String get educationBookOriginsStory;
 
   /// No description provided for @educationBookOriginsTimeline.
   ///
   /// In en, this message translates to:
-  /// **'Cuju from Han-era China is often cited as one of the clearest early records of kicking a leather ball.\nJapan\'s kemari valued technique and rhythm over direct competition.\nMedieval European folk football was closer to a rough town-wide festival than an organized sport.\nThe Cambridge Rules of 1848 helped create an early shared draft for schools and universities.\nIn 1863, the Football Association separated association football from rugby-style handling.\nThe FA Cup began in 1871, and England vs Scotland in 1872 is recorded as the first official international match.'**
+  /// **'Uruguay 1930 featured only 13 teams, but the hosts became the first champions and set the tone of the tournament.\nThe 1930 final ended as a South American duel, with Uruguay beating Argentina 4-2.\nItaly 1934 was the first World Cup to apply a fully developed qualification path before the finals.\nUruguay skipped the 1934 tournament in protest after many European teams had stayed away from 1930.\nUnder coach Vittorio Pozzo, Italy won back-to-back titles in 1934 and 1938.\nAt France 1938, the Dutch East Indies became the first Asian team to appear in the men\'s World Cup finals.'**
   String get educationBookOriginsTimeline;
 
   /// No description provided for @educationBookOriginsFacts.
   ///
   /// In en, this message translates to:
-  /// **'Early offside rules were far stricter than today\'s version, so forward passing was much harder.\nThe penalty kick arrived in 1891 and clarified responsibility around fouls near goal.\nAs crossbars, nets, and referee systems became standardized, scoring decisions grew more stable.\nTaeo notes that once rules were unified, skill comparison and tactical experimentation became possible.'**
+  /// **'Jules Rimet was the central administrator who pushed the tournament into existence and later gave his name to the original trophy.\nVittorio Pozzo is still the only coach to win back-to-back men\'s World Cups.\nThe long travel distance between Europe and South America shaped participation more heavily than modern fans often expect.\nTaeo files away 1930, 1934, and 1938 as the first tournament, the first full qualifying era, and the first back-to-back title run.'**
   String get educationBookOriginsFacts;
 
   /// No description provided for @educationBookOriginsNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo writes that football was never a finished sport from day one. It was the result of a long negotiation that turned chaotic play into a common language. That is why he memorizes 1848 and 1863, then 1871 and 1872, as one connected set.'**
+  /// **'Taeo keeps 1930, 1934, and 1938 as one cluster. The first tournament, the first qualification era, and the first repeat champions all arrived together. From the very beginning, the World Cup was already more than football.'**
   String get educationBookOriginsNote;
 
   /// No description provided for @educationBookWorldCupLabel.
@@ -4955,37 +4955,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookWorldCupTitle.
   ///
   /// In en, this message translates to:
-  /// **'The start of FIFA and the World Cup'**
+  /// **'The World Cup returned after war and built Brazil\'s golden age'**
   String get educationBookWorldCupTitle;
 
   /// No description provided for @educationBookWorldCupSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'An international body, the first world event, and the restart after war'**
+  /// **'From Brazil 1950 to Mexico 1970'**
   String get educationBookWorldCupSubtitle;
 
   /// No description provided for @educationBookWorldCupStory.
   ///
   /// In en, this message translates to:
-  /// **'When Taeo turns the next page, he sees a meeting room in Paris and a stadium in Uruguay inside the same chapter. A handful of countries gather to build an international body, and soon after, a new stage appears to crown a world champion.\n\nTo Taeo, World Cup history feels like more than a list of matches. It looks like a global announcement that the world now shares one football language. That is why he starts reading year, host, and champion as a single unit.\n\nOnce he reaches 1930, the shock of 1950, the new trophy of 1974, and Messi\'s title in 2022, Taeo starts to see the World Cup as a giant timeline that compresses the emotion of each era. He studies every tournament by linking year, host, champion, and the scene people still replay.'**
+  /// **'After the cancellations of 1942 and 1946, Brazil 1950 looked like the joyful return of world football. Taeo\'s first memory there, however, is not celebration but silence. Uruguay\'s win over Brazil in the decisive final group match created the Maracana shock and proved that the World Cup could also crush the dreams of a host nation in front of its own people.\n\nThe next pages are even more legendary. West Germany\'s Miracle of Bern in 1954, the arrival of 17-year-old Pele in 1958, Garrincha carrying Brazil in 1962 when Pele was hurt, England\'s only title in 1966, and the complete golden Brazil team of 1970 follow without pause.\n\nTaeo learns that this era is not just a list of winners. It is the age in which new heroes appeared, some countries took national scars, and some styles became the global reference for what great football should look like. He summarizes 1950 through 1970 with five words: restart, shock, genius, revenge, and completion.'**
   String get educationBookWorldCupStory;
 
   /// No description provided for @educationBookWorldCupTimeline.
   ///
   /// In en, this message translates to:
-  /// **'FIFA was founded in Paris in 1904, creating a center for international football governance.\nFootball at the 1908 London Olympics helped strengthen the structure of international competition.\nUruguay won the 1924 and 1928 Olympic tournaments, boosting the symbolism of hosting the first World Cup.\nThe first FIFA World Cup was held in Uruguay in 1930, and the hosts became the inaugural champions.\nThe 1942 and 1946 tournaments were not played because of World War II.\nThe 1950 World Cup in Brazil left behind the historic Maracana shock delivered by Uruguay.\nThe current FIFA World Cup Trophy has been used since 1974.'**
+  /// **'Brazil 1950 used a final group instead of a one-match final, and Uruguay\'s win over Brazil became the Maracana shock.\nWest Germany beat mighty Hungary in 1954 to create the Miracle of Bern.\nAt Sweden 1958, 17-year-old Pele rose as the game\'s brightest new star.\nBrazil retained the trophy in Chile 1962 with Garrincha carrying the side through key matches.\nEngland won their only men\'s World Cup in 1966, with Geoff Hurst scoring a famous hat-trick in the final.\nBrazil\'s third title in Mexico 1970 gave them permanent ownership of the Jules Rimet Trophy.\nCarlos Alberto\'s goal in the 1970 final is still replayed as the symbol of collective team football.'**
   String get educationBookWorldCupTimeline;
 
   /// No description provided for @educationBookWorldCupFacts.
   ///
   /// In en, this message translates to:
-  /// **'The Jules Rimet Trophy was the prize lifted by World Cup champions through 1970.\nBrazil remains the standard reference for the most men\'s World Cup titles.\nMiroslav Klose\'s 16 goals are the all-time men\'s World Cup scoring record.\nTaeo studies World Cup history by grouping host nation, champion, and iconic scene together.'**
+  /// **'Hungary arrived at the 1954 final as the team many saw as the strongest in the world.\nJairzinho scored in every match Brazil played during their 1970 title run.\nGordon Banks\' save from Pele\'s header is still labeled by many as the save of the century.\nTaeo groups together the Maracana shock of 1950, the emergence of Pele in 1958, and Brazil\'s masterpiece in 1970.'**
   String get educationBookWorldCupFacts;
 
   /// No description provided for @educationBookWorldCupNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo writes that the World Cup feels less like a single tournament and more like the largest presentation in the world proving that one set of rules can connect everyone. He marks 1930, 1950, 1974, and 2022 as the anchor years of this chapter.'**
+  /// **'Taeo writes that the World Cup from 1950 to 1970 was both a return ceremony after war and the biggest stage in the world for introducing a new genius.'**
   String get educationBookWorldCupNote;
 
   /// No description provided for @educationBookClubLabel.
@@ -4997,37 +4997,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookClubTitle.
   ///
   /// In en, this message translates to:
-  /// **'The expansion of club football and the European stage'**
+  /// **'A new trophy, total football, and an age full of argument'**
   String get educationBookClubTitle;
 
   /// No description provided for @educationBookClubSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'League launches, the European Cup, and the Premier League era'**
+  /// **'From West Germany 1974 to Italy 1990'**
   String get educationBookClubSubtitle;
 
   /// No description provided for @educationBookClubStory.
   ///
   /// In en, this message translates to:
-  /// **'Taeo watches industrial-city weekends and European away nights merge inside one chapter. If the World Cup is the calendar of nations, club football feels like the weekly rhythm of cities.\n\nPeople who follow one club for life, streets waiting for derby day, and the global fandom created by broadcasting all show up in this section. Taeo is struck by how football can hold local identity and global industry at the same time.\n\nWhen he places 1888, 1955, 1992, and 1995 beside one another, Taeo understands that club football grew not only through tactics on the field, but also through television, capital, and transfer rules. That is why he now reads great teams together with the structure of their era, not only their trophy count.'**
+  /// **'From 1974 onward, Taeo sees a new trophy. The Netherlands, led by Johan Cruyff, played total football with constant movement and position exchange, only for West Germany and Franz Beckenbauer to stop that revolution in the final. The World Cup looked like a laboratory where beautiful ideas and cold realism collided in public.\n\nYet this period can never be explained by football alone. Argentina 1978 was played under the shadow of a military dictatorship. Spain 1982 is remembered both for Paolo Rossi\'s return and for the violent collision and shootout drama of France against West Germany. Then Mexico 1986 pushed Diego Maradona to the top of World Cup mythology when he left both the Hand of God and the solo goal past five players in the same campaign.\n\nBy the time Taeo reaches Italy 1990, he understands how emotionally crowded the World Cup can be. Roger Milla\'s dancing, Beckenbauer winning as a coach, and Maradona crying after defeat in the final all live in the same stretch of history. He writes down this era as a blend of tactical innovation, political shadows, superhuman skill, and permanent debate.'**
   String get educationBookClubStory;
 
   /// No description provided for @educationBookClubTimeline.
   ///
   /// In en, this message translates to:
-  /// **'The Football League launched in England in 1888, establishing regular home-and-away league structure.\nThe European Cup began in 1955 and created an ongoing story for the strongest clubs in Europe.\nReal Madrid\'s first five European Cups quickly raised the prestige of the competition.\nThe Premier League launched in 1992, and Manchester United won the inaugural 1992-93 title.\nFrom the 1992-93 season, the European Cup was reorganized as the UEFA Champions League.\nThe 1995 Bosman ruling changed player movement and squad-building across Europe.'**
+  /// **'West Germany 1974 was the first tournament to award the current FIFA World Cup Trophy.\nCruyff\'s turn and the Netherlands\' total football left images that outlived even the final result.\nArgentina won their first title in 1978, but the tournament remains tied to the political climate of the junta.\nSpain 1982 was the first men\'s World Cup with 24 teams.\nFrance against West Germany in the 1982 semifinal was the first World Cup match decided by a penalty shootout and is also remembered for the Schumacher-Battiston collision.\nMaradona\'s 1986 performance against England gave football both the Hand of God and the Goal of the Century.\nCameroon reached the quarter-finals in 1990, becoming the first African team to go that far in the men\'s World Cup.'**
   String get educationBookClubTimeline;
 
   /// No description provided for @educationBookClubFacts.
   ///
   /// In en, this message translates to:
-  /// **'Arsenal\'s 2003-04 Invincibles remain the classic example of an unbeaten league title.\nThe Champions League accelerated the globalization of club football through group stages and broadcast growth.\nClub badges, kits, songs, and derby culture show how deeply football can merge with local identity.\nTaeo writes down league launch years, dominant dynasties, and media-capital turning points together.'**
+  /// **'Franz Beckenbauer stands as a defining symbol because he won the World Cup as a player in 1974 and as a coach in 1990.\nPaolo Rossi returned from suspension in time to become the face of Italy\'s 1982 title.\nItaly 1990 is often cited as a tournament whose defensive trend helped push later rule discussions.\nTaeo groups 1974, 1978, 1982, 1986, and 1990 as World Cup years that left both beauty and discomfort behind.'**
   String get educationBookClubFacts;
 
   /// No description provided for @educationBookClubNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo concludes that knowing club football history is not just about counting trophies. It is about understanding which era belonged to which team. He marks 1888, 1955, 1992, and 1995 as the structural turning points of this chapter.'**
+  /// **'Taeo writes that this period proves the World Cup does not leave behind only clean, beautiful stories. That is also why it lasts. History has to remember what made people uncomfortable as well as what made them cheer.'**
   String get educationBookClubNote;
 
   /// No description provided for @educationBookTacticsLabel.
@@ -5039,37 +5039,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookTacticsTitle.
   ///
   /// In en, this message translates to:
-  /// **'How tactical revolutions changed the picture of the game'**
+  /// **'A globalized World Cup and finals that felt like theater'**
   String get educationBookTacticsTitle;
 
   /// No description provided for @educationBookTacticsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Pyramid, WM, catenaccio, total football, tiki-taka, and gegenpressing'**
+  /// **'USA 1994, France 1998, Korea and Japan 2002, Germany 2006'**
   String get educationBookTacticsSubtitle;
 
   /// No description provided for @educationBookTacticsStory.
   ///
   /// In en, this message translates to:
-  /// **'Inside the tactical chapter, Taeo learns that formations are not just codes. The same numbers can describe very different teams depending on where the ball starts, who empties a space, and who triggers the press.\n\nThis chapter teaches him that tactical study is not about memorizing names alone. It is about seeing how rule changes and player profiles reshape the entire picture of a match. That is why he always adds the question why next to the timeline.\n\nBy following the 1925 offside reform, total football in the 1970s, the 1992 back-pass rule, positional play after 2008, and gegenpressing in the 2010s, Taeo sees that tactical revolutions always begin with a new problem in a new era. From then on, whenever he hears a tactical label, he asks which problem it solved first.'**
+  /// **'By USA 1994, Taeo feels that the World Cup has fully become a global mega-event. Enormous American stadiums, Romario\'s smile, and Roberto Baggio\'s shot flying over the bar in the shootout all belong to the same memory. The tournament proved that the World Cup could become enormous even in a country where football was not the main sport.\n\nFrance 1998 opened the 32-team era and left behind Zinedine Zidane\'s two headed goals in the final together with the mystery and tension around Ronaldo\'s physical condition before kickoff. Korea and Japan 2002 brought Korea\'s semifinal run, Guus Hiddink\'s leadership, scenes from Ahn Jung-hwan and Park Ji-sung, and Ronaldo\'s eight-goal redemption arc into one unforgettable tournament.\n\nGermany 2006 restored the smile of a football festival, but the final ended with Zidane\'s headbutt turning the whole emotional weather of the night. Taeo learns that as the World Cup grows bigger, the drama grows with it. He summarizes 1994 through 2006 as globalization, expansion, Korea\'s summer, and one final reversal.'**
   String get educationBookTacticsStory;
 
   /// No description provided for @educationBookTacticsTimeline.
   ///
   /// In en, this message translates to:
-  /// **'Early football often used the 2-3-5 pyramid, with large numbers committed to attack.\nAfter the 1925 offside law change, Herbert Chapman\'s WM helped rebuild defensive balance.\nCatenaccio, widely associated with Inter in the 1960s, emphasized cover defense and efficient transition.\nAjax and the Netherlands in the 1970s made total football the ideal of rotation, pressing, and position exchange.\nArrigo Sacchi\'s Milan in the 1980s refined spacing between lines and collective pressing.\nFrom 2008 onward, Barcelona and Spain pushed tiki-taka and positional play toward global standard status.\nKlopp teams in the 2010s made the reaction immediately after losing the ball a tactical center through gegenpressing.'**
+  /// **'The 1994 final was the first men\'s World Cup final decided by a penalty shootout.\nRoberto Baggio\'s miss in 1994 became one of the best-known images in World Cup history.\nFrance 1998 marked the beginning of the 32-team finals format.\nLaurent Blanc scored the first golden goal in World Cup history at France 1998.\nKorea and Japan 2002 became the first co-hosts of a men\'s World Cup, and South Korea reached the semi-finals.\nRonaldo scored eight times in 2002 and turned the pain of the 1998 final into a story of redemption.\nGermany 2006 ended with Zidane\'s red card in the final and Italy taking the title.'**
   String get educationBookTacticsTimeline;
 
   /// No description provided for @educationBookTacticsFacts.
   ///
   /// In en, this message translates to:
-  /// **'Tactical change moves together with rule changes, player athleticism, pitch conditions, and refereeing trends.\nThe 1992 back-pass rule change sharply altered build-up speed by restricting goalkeeper hand use.\nModern analysis uses tools such as xG, pressing intensity, and field position to read tactics through numbers.\nTaeo writes that real tactical study means understanding where the ball moved and why, not only reciting a formation name.'**
+  /// **'Names such as Hiddink, Scolari, and Lippi are attached to the memory of this era as strongly as the players are.\nCroatia\'s Davor Suker won the Golden Boot in 1998 while his team surged to third place.\nSenegal\'s run to the quarter-finals and Turkey\'s run to the semi-finals in 2002 showed again that the World Cup is never moved only by the giants.\nTaeo writes that 1994, 1998, 2002, and 2006 have to be remembered through their final scenes to stay alive.'**
   String get educationBookTacticsFacts;
 
   /// No description provided for @educationBookTacticsNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo decides not to stare only at number shapes on the board. Even one 4-3-3 can become a completely different team depending on press height, fullback roles, and the personality of the number 6. He groups 1925, 1992, 2008, and the 2010s as the major tactical checkpoints.'**
+  /// **'Taeo lingers especially long over the 2002 chapter. For Korean fans, World Cup history is not a distant timeline. It is a memory line that touches home directly. That is why he decides to remember not only the result sheet, but the atmosphere and the sound around it too.'**
   String get educationBookTacticsNote;
 
   /// No description provided for @educationBookLegendsLabel.
@@ -5081,37 +5081,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookLegendsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Legends and iconic scenes build football memory'**
+  /// **'The data era, and Messi\'s final completion'**
   String get educationBookLegendsTitle;
 
   /// No description provided for @educationBookLegendsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'The reference points left by Pele, Maradona, Cruyff, Zidane, and Messi'**
+  /// **'From South Africa 2010 to Qatar 2022'**
   String get educationBookLegendsSubtitle;
 
   /// No description provided for @educationBookLegendsStory.
   ///
   /// In en, this message translates to:
-  /// **'When Taeo enters the chapter of film archives, he sees one era-defining scene after another. One player ruled the World Cup as a teenager, another left a whole football language inside one turn, and another ended decades of waiting with a final title.\n\nThis is where Taeo realizes that a truly great player is not remembered only for volume of records. Greatness also means leaving an image that people immediately recall whenever football history is discussed.\n\nAs he moves from Pele in 1958 to Cruyff in 1974, Maradona in 1986, Zidane in 1998, and Messi in 2022, Taeo learns that the easiest way to remember legends is to grab the defining scene before the full career. In this chapter, he always writes down the emotional temperature of the moment beside the record.'**
+  /// **'When Taeo opens the 2010 South Africa chapter, he hears vuvuzelas before anything else. The first men\'s World Cup on African soil looked and sounded different from the start, and Spain completed its era through Andres Iniesta\'s extra-time winner in the final. The same tournament also gave him Luis Suarez\'s goal-line handball against Ghana and even the bizarre fame of Paul the Octopus, proving once more that the World Cup can be serious history and internet folklore at the same time.\n\nBrazil 2014 left the Mineirazo, Germany\'s 7-1 destruction of the host nation, and Miroslav Klose\'s 16th career World Cup goal. Russia 2018 delivered Kylian Mbappe\'s breakout, France\'s second title, Croatia\'s exhausting run through extra time, and the first full use of VAR in a men\'s World Cup.\n\nThen Qatar 2022 gave Taeo Messi\'s title at last. Morocco became the first African semi-finalist, Argentina and France played one of the wildest finals the tournament has ever seen, Mbappe scored a hat-trick in defeat, and Emiliano Martinez made the save that helped close the story. Taeo realizes that some World Cups finish a career, while others reset what an entire continent believes is possible.'**
   String get educationBookLegendsStory;
 
   /// No description provided for @educationBookLegendsTimeline.
   ///
   /// In en, this message translates to:
-  /// **'Pele stunned the world in 1958 by winning the World Cup at age 17.\nThe Cruyff Turn at the 1974 World Cup showed that one move can become a symbol of an era.\nAt Mexico 1986, Maradona left both the Hand of God and the solo goal past five players in the same tournament.\nAt France 1998, Zidane led the hosts to the title with two headed goals in the final.\nThe 2006 World Cup final is remembered as a peak of drama, including Zidane\'s final red card.\nThe 2022 World Cup in Qatar ended with Messi winning the trophy and Argentina closing a long wait.'**
+  /// **'South Africa 2010 was the first men\'s World Cup held on the African continent.\nSpain won their first World Cup in 2010 thanks to Iniesta\'s extra-time goal in the final.\nSuarez\'s handball against Ghana in 2010 became one of the hottest argument scenes in World Cup memory.\nGermany beat Brazil 7-1 in the 2014 semi-final and then went on to win the title.\nKlose\'s goal against Brazil in 2014 set the men\'s World Cup all-time scoring record at 16.\nRussia 2018 was the first men\'s World Cup with full VAR use throughout the tournament.\nAt Qatar 2022, Morocco reached the semi-finals and Argentina won with Messi at the center.'**
   String get educationBookLegendsTimeline;
 
   /// No description provided for @educationBookLegendsFacts.
   ///
   /// In en, this message translates to:
-  /// **'Pele owns the unmatched reference point of three men\'s World Cup titles.\nDiego Maradona, Johan Cruyff, Zinedine Zidane, and Lionel Messi are remembered as era symbols as much as elite performers.\nThe Ballon d\'Or compresses an individual story, but many supporters still judge players through both World Cup and club legacy.\nTaeo memorizes big moments by pairing the player, year, opponent, stage, and why the scene mattered.'**
+  /// **'Paul the Octopus became a prediction icon in 2010 by repeatedly getting match outcomes right.\nKylian Mbappe\'s 2018 title and 2022 final hat-trick built the strongest young World Cup narrative since Pele.\nLionel Messi used 2022 to fill the final empty space in his World Cup career.\nTaeo remembers 2010, 2014, 2018, and 2022 through five feelings: sound, collapse, technology, youth, and completion.'**
   String get educationBookLegendsFacts;
 
   /// No description provided for @educationBookLegendsNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo writes that the greatest players are not only the most skilled ones. They are the people who leave scenes that instantly appear in everyone\'s mind when football is explained. He keeps 1958, 1986, 1998, and 2022 as his review years for this chapter.'**
+  /// **'Taeo writes that even in the most data-heavy World Cups, people still remember scenes first. The vuvuzelas, the 7-1 scoreboard, the VAR check, and Messi\'s smile stay longer than any spreadsheet.'**
   String get educationBookLegendsNote;
 
   /// No description provided for @educationBookAsiaLabel.
@@ -5123,37 +5123,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookAsiaTitle.
   ///
   /// In en, this message translates to:
-  /// **'The timetable of Asian and Korean football'**
+  /// **'How to remember the World Cup through people'**
   String get educationBookAsiaTitle;
 
   /// No description provided for @educationBookAsiaSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'From the founding of the AFC to the 2002 World Cup and today\'s Korea'**
+  /// **'From Jules Rimet to Pele, Maradona, Beckenbauer, and Messi'**
   String get educationBookAsiaSubtitle;
 
   /// No description provided for @educationBookAsiaStory.
   ///
   /// In en, this message translates to:
-  /// **'Now Taeo follows city names such as Seoul, Tokyo, and Doha as the book opens the map of Asian football. Even with huge travel distances, different climates, and uneven investment, football across the continent built its own timeline of growth.\n\nThe Korean section keeps repeating one lesson: national-team results alone do not tell the whole story. Pro league structure, overseas careers, and generation change moved together. Taeo decides that he should never separate the national team from the league base when reading a country\'s football history.\n\nBy tracing 1954, 1956, 1983, 2002, and 2011, Taeo realizes that Asian football is not only a story of following Europe. Different countries built their own benchmarks by growing leagues, youth systems, and overseas competitiveness at different speeds.'**
+  /// **'At some point, Taeo realizes he no longer remembers the World Cup only through years. He starts to remember it through people. Jules Rimet, who pushed the tournament into existence. Vittorio Pozzo, who won two straight titles. Pele, who won three. Beckenbauer, who reached the summit as both player and coach. Maradona, who turned one World Cup into an entire mythology.\n\nThis chapter is not filled only with heroes. Garrincha carried a hurt Brazil side in 1962. Ronaldo turned the pain of one final into redemption four years later. Zidane left both genius and explosion behind. Messi finally closed the last open chapter in his own story. Taeo understands that the World Cup is where human narratives become loudest.\n\nThat is why he refuses to memorize names by themselves. Pele means 1958 and 1970. Maradona means England in 1986. Beckenbauer means 1974 and 1990. Ronaldo means 2002. Messi means 2022. A name only becomes history once the year and the scene are attached to it.'**
   String get educationBookAsiaStory;
 
   /// No description provided for @educationBookAsiaTimeline.
   ///
   /// In en, this message translates to:
-  /// **'The AFC was founded in 1954, establishing a continental organization for Asian football.\nThe first AFC Asian Cup was held in 1956, and South Korea won back-to-back titles in 1956 and 1960.\nThe K League launched in 1983 and began the full professional era of Korean football.\nSouth Korea and Japan co-hosted the 2002 World Cup, and Korea reached the semifinals to set a new Asian benchmark.\nJapan\'s women\'s World Cup triumph in 2011 proved that Asia could reach the top of the global women\'s game.\nSon Heung-min\'s success in Europe raised the perceived ceiling of a Korean player\'s career once again.'**
+  /// **'Jules Rimet gave the competition both its early political drive and the name of its first trophy.\nVittorio Pozzo coached Italy to back-to-back titles in 1934 and 1938.\nPele won the men\'s World Cup in 1958, 1962, and 1970, a record no other male player has matched.\nFranz Beckenbauer won the trophy as a player in 1974 and as a coach in 1990.\nMaradona\'s 1986 campaign is still large enough to explain a huge part of World Cup mythology by itself.\nRonaldo\'s eight goals in 2002 turned the pain of 1998 into one of football\'s cleanest redemption arcs.\nMessi and Mbappe used the 2022 final to show both a passing of generations and a collision of generations at once.'**
   String get educationBookAsiaTimeline;
 
   /// No description provided for @educationBookAsiaFacts.
   ///
   /// In en, this message translates to:
-  /// **'Cha Bum-kun, Park Ji-sung, and Son Heung-min are often linked as overseas reference points from different generations.\nKorean football makes more sense when World Cups, youth tournaments, the domestic league, and overseas growth are read together.\nAsian football development is tied to travel distance, climate, league investment, and youth-system differences.\nTaeo writes down how the league base changed alongside national-team results.'**
+  /// **'Just Fontaine\'s 13 goals remain the all-time record for one single World Cup tournament.\nMiroslav Klose\'s 16 goals remain the all-time men\'s World Cup scoring record across multiple editions.\nMario Zagallo, Franz Beckenbauer, and Didier Deschamps are among the iconic figures who won the World Cup both as players and as coaches.\nTaeo records each figure in one line by pairing name, country, defining tournament, and defining scene.'**
   String get educationBookAsiaFacts;
 
   /// No description provided for @educationBookAsiaNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo refuses to see 2002 as just a single miracle. He notes that major scenes are built when preparation, hosting, generational change, and league experience come together. He keeps 1954, 1983, 2002, and 2011 at the center of his review notes.'**
+  /// **'Taeo decides that the fastest way to remember the World Cup is to remember it through people. Years alone feel like a test. Faces and scenes turn it into a story.'**
   String get educationBookAsiaNote;
 
   /// No description provided for @educationBookWomenLabel.
@@ -5165,37 +5165,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookWomenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Women\'s football grew through bans, return, and expansion'**
+  /// **'Upsets, arguments, and the stories beyond the pitch'**
   String get educationBookWomenTitle;
 
   /// No description provided for @educationBookWomenSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'The 1921 ban, the 1991 World Cup, and the growth of professional leagues'**
+  /// **'War, dictatorship, a stolen trophy, and technological review'**
   String get educationBookWomenSubtitle;
 
   /// No description provided for @educationBookWomenStory.
   ///
   /// In en, this message translates to:
-  /// **'When Taeo reaches the chapter on women\'s football, he first meets the history of closed doors before he reaches the trophy lifts. Many players had to fight a lack of access before they could even fight opponents on the field.\n\nThat is why this chapter treats institutional change and the return of crowds as seriously as the list of champions. Taeo decides not to forget that the starting line of football was never equal for everyone.\n\nFollowing the ban of 1921, the lifting of 1971, the first Women\'s World Cup in 1991, the explosion of attention in 1999, and Spain\'s title in 2023, Taeo feels that this history is not only a results sheet. It is a long record of recovered opportunity. That is why he writes down the return of institutions and crowds beside the champions.'**
+  /// **'This chapter teaches Taeo that a World Cup history book explains only half the truth if it lists nothing but champions. Some tournaments never happened because of war. Some were played under dictatorships. In others, the off-field events became almost as famous as the football itself. The World Cup always absorbs the air of the wider world.\n\nIn 1966, the Jules Rimet Trophy was stolen before the tournament opened and later found by a dog called Pickles. In 1982, the Battiston collision left a lasting argument about sportsmanship. In 2010, Frank Lampard\'s disallowed goal pushed the demand for technology harder. By the time Taeo reaches goal-line technology in 2014, VAR in 2018, and semi-automated offside in 2022, he understands that the World Cup is also a history of how football tries to judge itself.\n\nSo Taeo starts writing down two questions for every tournament. Who won on the pitch, and what changed outside it? He feels that only by keeping both questions together can a real history book exist.'**
   String get educationBookWomenStory;
 
   /// No description provided for @educationBookWomenTimeline.
   ///
   /// In en, this message translates to:
-  /// **'In 1920, Dick, Kerr Ladies drew huge crowds in England and showed the scale of women\'s football potential.\nThe Football Association ban of 1921 cast a long shadow over the development of the women\'s game.\nThe ban was lifted in 1971, allowing women\'s football to move back into official structures.\nThe first FIFA Women\'s World Cup was held in China in 1991.\nWomen\'s football became an Olympic sport in 1996.\nThe 1999 Women\'s World Cup final in the United States proved mainstream appeal in front of more than 90,000 fans.\nSpain announced a new power in 2023 by winning its first Women\'s World Cup title.'**
+  /// **'The cancellations of 1942 and 1946 showed that world war could halt even football\'s grandest calendar.\nBefore England 1966 began, the Jules Rimet Trophy was stolen and then found by a dog named Pickles.\nArgentina 1978 remains tied to the political pressure of the ruling military regime.\nThe Schumacher-Battiston collision in the 1982 semi-final expanded the argument about sportsmanship and refereeing.\nFrank Lampard\'s disallowed goal against Germany in 2010 made the case for technical review even louder.\nGoal-line technology was used at Brazil 2014.\nVAR arrived in 2018 and semi-automated offside followed in 2022, changing the look of elite refereeing again.'**
   String get educationBookWomenTimeline;
 
   /// No description provided for @educationBookWomenFacts.
   ///
   /// In en, this message translates to:
-  /// **'The history of women\'s football is not only about expansion of a sport, but also about the recovery of opportunity.\nThe United States, Germany, Norway, Japan, and Spain are among the clearest examples of era-specific power cycles.\nJapan\'s 2011 title remains the first Women\'s World Cup won by an Asian nation.\nTaeo uses this page to think about how one major tournament can shift participation for the next generation.'**
+  /// **'Pickles became the most famous dog in football history after helping recover the World Cup trophy.\nTechnology does not erase World Cup controversy. It changes the kind of controversy people argue about.\nPolitics and social conditions reshape host memory, crowd emotion, and the way a tournament is remembered.\nTaeo always writes the social setting next to the scoreline when he studies historic events.'**
   String get educationBookWomenFacts;
 
   /// No description provided for @educationBookWomenNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo feels that a real history book cannot list only the champions. It also has to record whose door was closed, and when that door opened again. He highlights 1921, 1971, 1991, 1999, and 2023 as the key years of this chapter.'**
+  /// **'Taeo writes that the World Cup is not only the biggest football tournament. It is also a place where the era\'s politics, technology, and fairness arguments all gather at once. That is why he refuses to treat the off-field story as a footnote.'**
   String get educationBookWomenNote;
 
   /// No description provided for @educationBookModernLabel.
@@ -5207,37 +5207,37 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookModernTitle.
   ///
   /// In en, this message translates to:
-  /// **'Modern football is read again through data and technology'**
+  /// **'The next page is 2026, Taeo\'s prediction notebook'**
   String get educationBookModernTitle;
 
   /// No description provided for @educationBookModernSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Back-pass reform, goal-line technology, VAR, and analytical football'**
+  /// **'What a 48-team World Cup may change'**
   String get educationBookModernSubtitle;
 
   /// No description provided for @educationBookModernStory.
   ///
   /// In en, this message translates to:
-  /// **'As the book reaches the modern era, Taeo finds graphs, heat maps, and video tags on the page beside match scenes. Analysts sit near coaches, and player movement gets stored as both numbers and images.\n\nEven so, Taeo notices that the central football questions remain familiar. Who scanned first, who created the better space, and who made the faster decision still define the match.\n\nBy following the 1992 back-pass reform, the approval of goal-line technology in 2012, the full-scale arrival of VAR in 2018, and the expansion of specialist data staff in the 2020s, Taeo sees that modern football did not simply add new devices. It changed the speed of decisions and the whole language of training. He now writes down what each tool changed before he memorizes its name.'**
+  /// **'In the final main chapter, Taeo looks at the still-unplayed 2026 World Cup in North America. A 48-team field, 104 matches, and a three-country host setup already make it feel different from previous tournaments. The longer schedule suggests that squad depth, recovery management, and adaptation to long travel will matter more than ever.\n\nInstead of naming a champion too quickly, Taeo writes down the conditions that usually favor one. A midfield that can press and build, set-piece detail that can decide a tight knockout match, goal output spread beyond one star, and a coaching staff that can analyze unfamiliar opponents quickly all feel more valuable in an expanded event. Traditional powers will still be powerful, but a 48-team structure may also create more strange paths and more dark horses.\n\nSo Taeo treats 2026 less like a guessing game and more like an exercise in observation. He wonders which of the three host nations will go furthest, which South American and European powers will define the new standard, and which Asian or African side might push the ceiling higher again.'**
   String get educationBookModernStory;
 
   /// No description provided for @educationBookModernTimeline.
   ///
   /// In en, this message translates to:
-  /// **'The 1992 back-pass rule change altered the build-up language of goalkeepers and defensive lines.\nIn 2012, FIFA approved goal-line technology, and it was used at the 2014 World Cup.\nThe 2018 men\'s World Cup was the first tournament to apply VAR at full scale.\nWearable GPS, video tagging, and event data became standard tools in training and scouting through the 2010s.\nModern clubs often work with set-piece coaches, data analysts, and performance scientists together.'**
+  /// **'The 2026 World Cup will be the first men\'s edition jointly hosted by Canada, Mexico, and the United States.\nFrom 2026 onward, the men\'s World Cup finals expand to 48 teams.\nA 48-team format means 104 matches, giving scheduling and rotation even more strategic weight.\nLong travel routes and climate variation are likely to matter more than in many previous editions.\nSet-pieces, bench scoring, and the speed of analytical preparation should rise in value in a longer event.\nTaeo decides to treat 2026 as a search for the conditions of strength rather than only a hunt for the winner.'**
   String get educationBookModernTimeline;
 
   /// No description provided for @educationBookModernFacts.
   ///
   /// In en, this message translates to:
-  /// **'xG is a useful headline measure of shot quality, but it needs context such as pressing and field position.\nData is not a tool that removes a coach\'s feel. It is a second language that sharpens the basis for decisions.\nAs technical review expands, fairness rises, but arguments about rhythm and emotion in the game also grow.\nTaeo writes that the latest football still demands a way of reading numbers, video, and field feel together.'**
+  /// **'The longer a tournament becomes, the more the real competitive level of players 18 through 23 matters along with the starting eleven.\nA 48-team field also increases the chance of surprise runs from Asia, Africa, and Concacaf.\nTraditional giants still carry the greatest baseline, but the number of possible twists may grow with the format.\nWhen Taeo writes a prediction, he adds pressing, transitions, set-pieces, and defensive stability beside the team name.'**
   String get educationBookModernFacts;
 
   /// No description provided for @educationBookModernNote.
   ///
   /// In en, this message translates to:
-  /// **'Taeo concludes that modern players are not fundamentally different from the old ones. There is more data around them, but first touch, speed of thought, and connection with teammates remain the center of the sport. He keeps 1992, 2012, 2018, and the 2020s as the benchmark years of modern change.'**
+  /// **'Taeo writes that prediction is not a game of lucky guesses. It is practice in reading the conditions of a strong team. That is why he writes more about why a side looks powerful than about the name itself.'**
   String get educationBookModernNote;
 
   /// No description provided for @educationBookFinaleLabel.
@@ -5255,31 +5255,31 @@ abstract class AppLocalizations {
   /// No description provided for @educationBookFinaleSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Now it is time to turn history into training language'**
+  /// **'How to tie together 1930 and 2026 in one line'**
   String get educationBookFinaleSubtitle;
 
   /// No description provided for @educationBookFinaleStory.
   ///
   /// In en, this message translates to:
-  /// **'When Taeo closes the last page, he understands that what he read is not just memory work for a quiz score. It is a lens for seeing football more deeply.\n\nSome coaches search rule changes for ideas. Some players draw courage from legendary scenes. Some supporters love their club more fiercely once they understand which era it represented. Taeo now feels he can practice one simple action on the field while still seeing the long history behind it.\n\nBefore shutting the book, Taeo reads 1863, 1904, 1930, 1954, 1991, 2002, and 2018 in order one more time. He believes that if he can attach each scene to its year and context, he will remember it longer both in quizzes and on the training ground.'**
+  /// **'After closing the final page, Taeo realizes that the World Cup is really a giant summary written once every four years. Players sailing to Uruguay and modern stars playing under satellite cameras and VAR all belong to the same tournament line.\n\nSome eras are remembered through giants such as Pele, Maradona, and Messi. Some are remembered through scores like the Maracana shock or 7-1. Others survive because of a stolen trophy, war, or arguments over technology. Taeo concludes that reading World Cup history is not simple memorization. It is training the eye to read world history through the language of one competition.\n\nSo before he puts the book away, he repeats 1930, 1950, 1958, 1970, 1986, 1998, 2002, 2010, 2018, 2022, and 2026 in order one more time. If the year, host, leading figures, and defining event all rise together in his head, he believes every future match will feel much deeper.'**
   String get educationBookFinaleStory;
 
   /// No description provided for @educationBookFinaleTimeline.
   ///
   /// In en, this message translates to:
-  /// **'From the history of rules, Taeo learned that football is a sport of shared agreement.\nFrom the history of the World Cup, he saw how one match can compress the memory of a nation.\nFrom tactical history, he confirmed that the answer is never only one shape, but something that changes with era and players.\nFrom the history of women\'s football and Asian football, he learned how strongly opportunity and environment shape growth.'**
+  /// **'Taeo learned from the early World Cups how quickly the tournament moved into the center of world history.\nTaeo learned from the post-war era that one match can become a nation\'s memory.\nTaeo learned from recent tournaments that even in a data-heavy age, people still remember scenes and faces first.\nTaeo learned from the 2026 preview that reading the future begins by seeing the patterns of the past.'**
   String get educationBookFinaleTimeline;
 
   /// No description provided for @educationBookFinaleFacts.
   ///
   /// In en, this message translates to:
-  /// **'Review anchor 1: memorize years such as 1863, 1904, 1930, 1991, 2002, and 2018 first.\nReview anchor 2: connect era-defining names such as Pele, Maradona, Cruyff, Zidane, Messi, and Son Heung-min to the timeline.\nReview anchor 3: understand WM, total football, tiki-taka, and gegenpressing alongside their historical background.\nReview anchor 4: keep the World Cup, Champions League, Asian Cup, and Women\'s World Cup as separate competition axes in memory.'**
+  /// **'Review anchor 1: tie together the year, host, champion, iconic scene, and leading figure in one line.\nReview anchor 2: 1930, 1950, 1970, 1986, 1998, 2002, 2018, and 2022 are non-negotiable review years.\nReview anchor 3: connect records to signature numbers such as Pele\'s 3 titles, Brazil\'s 5 titles, and Klose\'s 16 goals.\nReview anchor 4: predictions get stronger when tactics, fitness, and squad depth are written beside the team name.'**
   String get educationBookFinaleFacts;
 
   /// No description provided for @educationBookFinaleNote.
   ///
   /// In en, this message translates to:
-  /// **'As Taeo shuts the book, he writes the first line of his next training diary: seeing football well means not only watching the action in front of you, but tracing where that action came from all the way from the 1863 rule book to the 2018 arrival of VAR.'**
+  /// **'As he closes the book, Taeo writes the first line of his next journal like this. To really watch the World Cup well is not to memorize only one final score, but to follow the whole long story from the first kick in 1930 to the next question waiting in 2026.'**
   String get educationBookFinaleNote;
 }
 
