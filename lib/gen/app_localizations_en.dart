@@ -2752,29 +2752,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ask what felt easy today and what they want to change next time. That reflection helps the lesson stick.';
 
   @override
-  String get educationBookHeaderEyebrow => 'TAEO FOOTBALL ARCHIVE';
-
-  @override
-  String get educationBookHeaderTitle =>
-      'Football history that Taeo turns page by page';
-
-  @override
-  String get educationBookHeaderBody =>
-      'This book-style education screen stretches from the roots of ball games to formal rules, World Cups, club football, tactical revolutions, women\'s football, and the timeline of Korea and Asia.';
-
-  @override
-  String get educationBookHeaderChipChapters => '10 chapters';
-
-  @override
-  String get educationBookHeaderChipRoots => 'Ancient to modern';
-
-  @override
-  String get educationBookHeaderChipTactics => 'Tactics and legends';
-
-  @override
-  String get educationBookHeaderChipSwipe => 'Page-turn UX';
-
-  @override
   String get educationBookSectionStory => 'Taeo\'s Scene';
 
   @override
@@ -2813,7 +2790,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookCoverStory =>
-      'After training, Taeo walks into an archive packed with old football books. The moment he opens the first page, the roots of ball games and the age of modern data football connect into one long story.\n\nTaeo is the main character of this book, but every page also introduces the players, coaches, crowds, and rules that changed the game. As he keeps turning pages, he learns that football is more than a match. It is a language shaped by culture, industry, and education together.';
+      'After training, Taeo walks into an archive packed with old football books. The moment he opens the first page, the roots of ball games and the age of modern data football connect into one long story.\n\nTaeo is the main character of this book, but every page also introduces the players, coaches, crowds, and rules that changed the game. As he keeps turning pages, he learns that football is more than a match. It is a language shaped by culture, industry, and education together.\n\nBefore he keeps reading, Taeo writes down 1863, 1904, 1930, 1991, 2002, and 2018 on a blank page. To him, those years feel like door labels for rule codification, the birth of a global body, the first World Cup, the Women\'s World Cup, a Korean benchmark, and the arrival of VAR.';
 
   @override
   String get educationBookCoverTimeline =>
@@ -2825,7 +2802,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookCoverNote =>
-      'Taeo decides that after finishing the book, he will write down five years that stayed in his head. History study becomes much easier once you build your own anchor points.';
+      'Taeo decides that after finishing the book, he will write down five years that stayed in his head. He especially wants to rewrite the key years running from 1863 to 2018 in his own order. History study becomes much easier once you build your own anchor points.';
 
   @override
   String get educationBookOriginsLabel => 'Chapter 1';
@@ -2840,7 +2817,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookOriginsStory =>
-      'In the oldest chapter, Taeo meets ball games that look nothing like the modern version. In some eras people kicked the ball, in others they kept it in the air like a ritual, and in many towns entire streets became part of the contest.\n\nOnce matches spread across regions, everyone needed the same set of promises. Taeo underlines a key lesson: football did not truly begin with the first goal, but with agreement on the rules.';
+      'In the oldest chapter, Taeo meets ball games that look nothing like the modern version. In some eras people kicked the ball, in others they kept it in the air like a ritual, and in many towns entire streets became part of the contest.\n\nOnce matches spread across regions, everyone needed the same set of promises. Taeo underlines a key lesson: football did not truly begin with the first goal, but with agreement on the rules.\n\nWhen he lines up the Cambridge Rules of 1848, the Football Association rules of 1863, the FA Cup of 1871, and the first official international in 1872, Taeo can finally see football moving from local play into an organized sport. In the margin, he writes that rules build the match and tournaments build memory.';
 
   @override
   String get educationBookOriginsTimeline =>
@@ -2852,7 +2829,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookOriginsNote =>
-      'Taeo writes that football was never a finished sport from day one. It was the result of a long negotiation that turned chaotic play into a common language.';
+      'Taeo writes that football was never a finished sport from day one. It was the result of a long negotiation that turned chaotic play into a common language. That is why he memorizes 1848 and 1863, then 1871 and 1872, as one connected set.';
 
   @override
   String get educationBookWorldCupLabel => 'Chapter 2';
@@ -2867,7 +2844,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookWorldCupStory =>
-      'When Taeo turns the next page, he sees a meeting room in Paris and a stadium in Uruguay inside the same chapter. A handful of countries gather to build an international body, and soon after, a new stage appears to crown a world champion.\n\nTo Taeo, World Cup history feels like more than a list of matches. It looks like a global announcement that the world now shares one football language. That is why he starts reading year, host, and champion as a single unit.';
+      'When Taeo turns the next page, he sees a meeting room in Paris and a stadium in Uruguay inside the same chapter. A handful of countries gather to build an international body, and soon after, a new stage appears to crown a world champion.\n\nTo Taeo, World Cup history feels like more than a list of matches. It looks like a global announcement that the world now shares one football language. That is why he starts reading year, host, and champion as a single unit.\n\nOnce he reaches 1930, the shock of 1950, the new trophy of 1974, and Messi\'s title in 2022, Taeo starts to see the World Cup as a giant timeline that compresses the emotion of each era. He studies every tournament by linking year, host, champion, and the scene people still replay.';
 
   @override
   String get educationBookWorldCupTimeline =>
@@ -2879,7 +2856,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookWorldCupNote =>
-      'Taeo writes that the World Cup feels less like a single tournament and more like the largest presentation in the world proving that one set of rules can connect everyone.';
+      'Taeo writes that the World Cup feels less like a single tournament and more like the largest presentation in the world proving that one set of rules can connect everyone. He marks 1930, 1950, 1974, and 2022 as the anchor years of this chapter.';
 
   @override
   String get educationBookClubLabel => 'Chapter 3';
@@ -2894,7 +2871,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookClubStory =>
-      'Taeo watches industrial-city weekends and European away nights merge inside one chapter. If the World Cup is the calendar of nations, club football feels like the weekly rhythm of cities.\n\nPeople who follow one club for life, streets waiting for derby day, and the global fandom created by broadcasting all show up in this section. Taeo is struck by how football can hold local identity and global industry at the same time.';
+      'Taeo watches industrial-city weekends and European away nights merge inside one chapter. If the World Cup is the calendar of nations, club football feels like the weekly rhythm of cities.\n\nPeople who follow one club for life, streets waiting for derby day, and the global fandom created by broadcasting all show up in this section. Taeo is struck by how football can hold local identity and global industry at the same time.\n\nWhen he places 1888, 1955, 1992, and 1995 beside one another, Taeo understands that club football grew not only through tactics on the field, but also through television, capital, and transfer rules. That is why he now reads great teams together with the structure of their era, not only their trophy count.';
 
   @override
   String get educationBookClubTimeline =>
@@ -2906,7 +2883,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookClubNote =>
-      'Taeo concludes that knowing club football history is not just about counting trophies. It is about understanding which era belonged to which team.';
+      'Taeo concludes that knowing club football history is not just about counting trophies. It is about understanding which era belonged to which team. He marks 1888, 1955, 1992, and 1995 as the structural turning points of this chapter.';
 
   @override
   String get educationBookTacticsLabel => 'Chapter 4';
@@ -2921,7 +2898,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookTacticsStory =>
-      'Inside the tactical chapter, Taeo learns that formations are not just codes. The same numbers can describe very different teams depending on where the ball starts, who empties a space, and who triggers the press.\n\nThis chapter teaches him that tactical study is not about memorizing names alone. It is about seeing how rule changes and player profiles reshape the entire picture of a match. That is why he always adds the question why next to the timeline.';
+      'Inside the tactical chapter, Taeo learns that formations are not just codes. The same numbers can describe very different teams depending on where the ball starts, who empties a space, and who triggers the press.\n\nThis chapter teaches him that tactical study is not about memorizing names alone. It is about seeing how rule changes and player profiles reshape the entire picture of a match. That is why he always adds the question why next to the timeline.\n\nBy following the 1925 offside reform, total football in the 1970s, the 1992 back-pass rule, positional play after 2008, and gegenpressing in the 2010s, Taeo sees that tactical revolutions always begin with a new problem in a new era. From then on, whenever he hears a tactical label, he asks which problem it solved first.';
 
   @override
   String get educationBookTacticsTimeline =>
@@ -2933,7 +2910,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookTacticsNote =>
-      'Taeo decides not to stare only at number shapes on the board. Even one 4-3-3 can become a completely different team depending on press height, fullback roles, and the personality of the number 6.';
+      'Taeo decides not to stare only at number shapes on the board. Even one 4-3-3 can become a completely different team depending on press height, fullback roles, and the personality of the number 6. He groups 1925, 1992, 2008, and the 2010s as the major tactical checkpoints.';
 
   @override
   String get educationBookLegendsLabel => 'Chapter 5';
@@ -2948,7 +2925,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookLegendsStory =>
-      'When Taeo enters the chapter of film archives, he sees one era-defining scene after another. One player ruled the World Cup as a teenager, another left a whole football language inside one turn, and another ended decades of waiting with a final title.\n\nThis is where Taeo realizes that a truly great player is not remembered only for volume of records. Greatness also means leaving an image that people immediately recall whenever football history is discussed.';
+      'When Taeo enters the chapter of film archives, he sees one era-defining scene after another. One player ruled the World Cup as a teenager, another left a whole football language inside one turn, and another ended decades of waiting with a final title.\n\nThis is where Taeo realizes that a truly great player is not remembered only for volume of records. Greatness also means leaving an image that people immediately recall whenever football history is discussed.\n\nAs he moves from Pele in 1958 to Cruyff in 1974, Maradona in 1986, Zidane in 1998, and Messi in 2022, Taeo learns that the easiest way to remember legends is to grab the defining scene before the full career. In this chapter, he always writes down the emotional temperature of the moment beside the record.';
 
   @override
   String get educationBookLegendsTimeline =>
@@ -2960,7 +2937,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookLegendsNote =>
-      'Taeo writes that the greatest players are not only the most skilled ones. They are the people who leave scenes that instantly appear in everyone\'s mind when football is explained.';
+      'Taeo writes that the greatest players are not only the most skilled ones. They are the people who leave scenes that instantly appear in everyone\'s mind when football is explained. He keeps 1958, 1986, 1998, and 2022 as his review years for this chapter.';
 
   @override
   String get educationBookAsiaLabel => 'Chapter 6';
@@ -2975,7 +2952,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookAsiaStory =>
-      'Now Taeo follows city names such as Seoul, Tokyo, and Doha as the book opens the map of Asian football. Even with huge travel distances, different climates, and uneven investment, football across the continent built its own timeline of growth.\n\nThe Korean section keeps repeating one lesson: national-team results alone do not tell the whole story. Pro league structure, overseas careers, and generation change moved together. Taeo decides that he should never separate the national team from the league base when reading a country\'s football history.';
+      'Now Taeo follows city names such as Seoul, Tokyo, and Doha as the book opens the map of Asian football. Even with huge travel distances, different climates, and uneven investment, football across the continent built its own timeline of growth.\n\nThe Korean section keeps repeating one lesson: national-team results alone do not tell the whole story. Pro league structure, overseas careers, and generation change moved together. Taeo decides that he should never separate the national team from the league base when reading a country\'s football history.\n\nBy tracing 1954, 1956, 1983, 2002, and 2011, Taeo realizes that Asian football is not only a story of following Europe. Different countries built their own benchmarks by growing leagues, youth systems, and overseas competitiveness at different speeds.';
 
   @override
   String get educationBookAsiaTimeline =>
@@ -2987,7 +2964,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookAsiaNote =>
-      'Taeo refuses to see 2002 as just a single miracle. He notes that major scenes are built when preparation, hosting, generational change, and league experience come together.';
+      'Taeo refuses to see 2002 as just a single miracle. He notes that major scenes are built when preparation, hosting, generational change, and league experience come together. He keeps 1954, 1983, 2002, and 2011 at the center of his review notes.';
 
   @override
   String get educationBookWomenLabel => 'Chapter 7';
@@ -3002,7 +2979,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookWomenStory =>
-      'When Taeo reaches the chapter on women\'s football, he first meets the history of closed doors before he reaches the trophy lifts. Many players had to fight a lack of access before they could even fight opponents on the field.\n\nThat is why this chapter treats institutional change and the return of crowds as seriously as the list of champions. Taeo decides not to forget that the starting line of football was never equal for everyone.';
+      'When Taeo reaches the chapter on women\'s football, he first meets the history of closed doors before he reaches the trophy lifts. Many players had to fight a lack of access before they could even fight opponents on the field.\n\nThat is why this chapter treats institutional change and the return of crowds as seriously as the list of champions. Taeo decides not to forget that the starting line of football was never equal for everyone.\n\nFollowing the ban of 1921, the lifting of 1971, the first Women\'s World Cup in 1991, the explosion of attention in 1999, and Spain\'s title in 2023, Taeo feels that this history is not only a results sheet. It is a long record of recovered opportunity. That is why he writes down the return of institutions and crowds beside the champions.';
 
   @override
   String get educationBookWomenTimeline =>
@@ -3014,7 +2991,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookWomenNote =>
-      'Taeo feels that a real history book cannot list only the champions. It also has to record whose door was closed, and when that door opened again.';
+      'Taeo feels that a real history book cannot list only the champions. It also has to record whose door was closed, and when that door opened again. He highlights 1921, 1971, 1991, 1999, and 2023 as the key years of this chapter.';
 
   @override
   String get educationBookModernLabel => 'Chapter 8';
@@ -3029,7 +3006,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookModernStory =>
-      'As the book reaches the modern era, Taeo finds graphs, heat maps, and video tags on the page beside match scenes. Analysts sit near coaches, and player movement gets stored as both numbers and images.\n\nEven so, Taeo notices that the central football questions remain familiar. Who scanned first, who created the better space, and who made the faster decision still define the match.';
+      'As the book reaches the modern era, Taeo finds graphs, heat maps, and video tags on the page beside match scenes. Analysts sit near coaches, and player movement gets stored as both numbers and images.\n\nEven so, Taeo notices that the central football questions remain familiar. Who scanned first, who created the better space, and who made the faster decision still define the match.\n\nBy following the 1992 back-pass reform, the approval of goal-line technology in 2012, the full-scale arrival of VAR in 2018, and the expansion of specialist data staff in the 2020s, Taeo sees that modern football did not simply add new devices. It changed the speed of decisions and the whole language of training. He now writes down what each tool changed before he memorizes its name.';
 
   @override
   String get educationBookModernTimeline =>
@@ -3041,7 +3018,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookModernNote =>
-      'Taeo concludes that modern players are not fundamentally different from the old ones. There is more data around them, but first touch, speed of thought, and connection with teammates remain the center of the sport.';
+      'Taeo concludes that modern players are not fundamentally different from the old ones. There is more data around them, but first touch, speed of thought, and connection with teammates remain the center of the sport. He keeps 1992, 2012, 2018, and the 2020s as the benchmark years of modern change.';
 
   @override
   String get educationBookFinaleLabel => 'Epilogue';
@@ -3055,7 +3032,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookFinaleStory =>
-      'When Taeo closes the last page, he understands that what he read is not just memory work for a quiz score. It is a lens for seeing football more deeply.\n\nSome coaches search rule changes for ideas. Some players draw courage from legendary scenes. Some supporters love their club more fiercely once they understand which era it represented. Taeo now feels he can practice one simple action on the field while still seeing the long history behind it.';
+      'When Taeo closes the last page, he understands that what he read is not just memory work for a quiz score. It is a lens for seeing football more deeply.\n\nSome coaches search rule changes for ideas. Some players draw courage from legendary scenes. Some supporters love their club more fiercely once they understand which era it represented. Taeo now feels he can practice one simple action on the field while still seeing the long history behind it.\n\nBefore shutting the book, Taeo reads 1863, 1904, 1930, 1954, 1991, 2002, and 2018 in order one more time. He believes that if he can attach each scene to its year and context, he will remember it longer both in quizzes and on the training ground.';
 
   @override
   String get educationBookFinaleTimeline =>
@@ -3067,5 +3044,5 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get educationBookFinaleNote =>
-      'As Taeo shuts the book, he writes the first line of his next training diary: seeing football well means not only watching the action in front of you, but tracing where that action came from all the way back.';
+      'As Taeo shuts the book, he writes the first line of his next training diary: seeing football well means not only watching the action in front of you, but tracing where that action came from all the way from the 1863 rule book to the 2018 arrival of VAR.';
 }
