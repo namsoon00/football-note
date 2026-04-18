@@ -135,7 +135,7 @@ void main() {
       expect(snapshot.precipitation, 0);
     });
 
-    test('falls back to Open-Meteo when KMA requests fail', () async {
+    test('returns empty KMA snapshot when KMA requests fail', () async {
       final client = MockClient((request) async {
         if (request.url.host == 'apis.data.go.kr') {
           return http.Response.bytes(
@@ -152,21 +152,7 @@ void main() {
             200,
           );
         }
-        expect(request.url.host, 'api.open-meteo.com');
-        return http.Response.bytes(
-          utf8.encode(
-            jsonEncode(<String, dynamic>{
-              'current': <String, dynamic>{
-                'temperature_2m': 16.1,
-                'weather_code': 61,
-                'relative_humidity_2m': 78,
-                'precipitation': 2.1,
-                'wind_speed_10m': 5.4,
-              },
-            }),
-          ),
-          200,
-        );
+        fail('Unexpected request: ${request.url}');
       });
 
       final snapshot = await WeatherCurrentService.fetchCurrentWeather(
@@ -177,11 +163,11 @@ void main() {
         now: DateTime.utc(2026, 4, 18, 3, 20),
       );
 
-      expect(snapshot.provider, WeatherDataProvider.openMeteo);
-      expect(snapshot.temperature, 16.1);
-      expect(snapshot.weatherCode, 61);
-      expect(snapshot.humidity, 78);
-      expect(snapshot.windSpeed, 5.4);
+      expect(
+        snapshot.provider,
+        WeatherDataProvider.koreaMeteorologicalAdministration,
+      );
+      expect(snapshot.hasData, isFalse);
     });
 
     test('uses KMA detailed forecast for Korean coordinates when key exists',
@@ -497,6 +483,8 @@ void main() {
           );
         }
         if (request.url.path.endsWith('/getFcstZoneCd')) {
+          expect(request.url.queryParameters['tmSt'], '201004300900');
+          expect(request.url.queryParameters['tmEd'], '210012310900');
           return http.Response.bytes(
             utf8.encode(
               jsonEncode(<String, dynamic>{
@@ -513,6 +501,7 @@ void main() {
                           'regName': '서울',
                           'regSp': 'C',
                           'regUp': '11B00000',
+                          'stnFw': '109',
                           'lat': '37.5665',
                           'lon': '126.9780',
                         },
@@ -521,6 +510,7 @@ void main() {
                           'regName': '서울,인천,경기도',
                           'regSp': 'A',
                           'regUp': '',
+                          'stnFw': '109',
                           'lat': '37.5665',
                           'lon': '126.9780',
                         },
@@ -533,8 +523,8 @@ void main() {
             200,
           );
         }
-        if (request.url.path.endsWith('/getMidLandFcst')) {
-          expect(request.url.queryParameters['regId'], '11B00000');
+        if (request.url.path.endsWith('/getMidFcst')) {
+          expect(request.url.queryParameters['stnId'], '109');
           return http.Response.bytes(
             utf8.encode(
               jsonEncode(<String, dynamic>{
@@ -547,7 +537,6 @@ void main() {
                     'items': <String, dynamic>{
                       'item': <Map<String, dynamic>>[
                         <String, dynamic>{
-                          'regId': '11B00000',
                           'wf3Am': '구름많음',
                           'wf3Pm': '흐림',
                           'wf4Am': '맑음',
@@ -561,31 +550,6 @@ void main() {
                           'wf8': '맑음',
                           'wf9': '구름많음',
                           'wf10': '비',
-                        },
-                      ],
-                    },
-                  },
-                },
-              }),
-            ),
-            200,
-          );
-        }
-        if (request.url.path.endsWith('/getMidTa')) {
-          expect(request.url.queryParameters['regId'], '11B10101');
-          return http.Response.bytes(
-            utf8.encode(
-              jsonEncode(<String, dynamic>{
-                'response': <String, dynamic>{
-                  'header': <String, dynamic>{
-                    'resultCode': '00',
-                    'resultMsg': 'NORMAL_SERVICE',
-                  },
-                  'body': <String, dynamic>{
-                    'items': <String, dynamic>{
-                      'item': <Map<String, dynamic>>[
-                        <String, dynamic>{
-                          'regId': '11B10101',
                           'taMin4': '10',
                           'taMax4': '19',
                           'taMin5': '11',
@@ -653,7 +617,7 @@ void main() {
       expect(snapshot.dailyForecasts[6].weatherCode, 61);
     });
 
-    test('falls back to Open-Meteo detailed forecast when KMA fails', () async {
+    test('returns empty KMA detailed forecast when KMA fails', () async {
       final client = MockClient((request) async {
         if (request.url.host == 'apis.data.go.kr') {
           return http.Response.bytes(
@@ -670,31 +634,7 @@ void main() {
             200,
           );
         }
-        expect(request.url.host, 'api.open-meteo.com');
-        return http.Response.bytes(
-          utf8.encode(
-            jsonEncode(<String, dynamic>{
-              'current': <String, dynamic>{
-                'temperature_2m': 16.1,
-                'weather_code': 61,
-                'apparent_temperature': 14.2,
-                'relative_humidity_2m': 78,
-                'precipitation': 2.1,
-                'wind_speed_10m': 5.4,
-              },
-              'daily': <String, dynamic>{
-                'time': <String>['2026-04-18', '2026-04-19'],
-                'weather_code': <int>[61, 3],
-                'temperature_2m_max': <double>[18.0, 20.0],
-                'temperature_2m_min': <double>[11.0, 10.0],
-                'precipitation_sum': <double>[5.0, 0.0],
-                'wind_speed_10m_max': <double>[7.0, 4.0],
-                'uv_index_max': <double>[5.0, 6.0],
-              },
-            }),
-          ),
-          200,
-        );
+        fail('Unexpected request: ${request.url}');
       });
 
       final snapshot = await WeatherCurrentService.fetchDetailedWeather(
@@ -705,14 +645,11 @@ void main() {
         now: DateTime.utc(2026, 4, 18, 3, 20),
       );
 
-      expect(snapshot.provider, WeatherDataProvider.openMeteo);
-      expect(snapshot.temperature, 16.1);
-      expect(snapshot.apparentTemperature, 14.2);
-      expect(snapshot.temperatureMax, 18);
-      expect(snapshot.temperatureMin, 11);
-      expect(snapshot.dailyForecasts, hasLength(2));
-      expect(snapshot.dailyForecasts.first.weatherCode, 61);
-      expect(snapshot.dailyForecasts.first.uvIndexMax, 5);
+      expect(
+        snapshot.provider,
+        WeatherDataProvider.koreaMeteorologicalAdministration,
+      );
+      expect(snapshot.hasData, isFalse);
     });
   });
 }
