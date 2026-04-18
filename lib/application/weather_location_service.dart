@@ -18,7 +18,7 @@ class WeatherLocationService {
     final localClient = client ?? http.Client();
     final ownsClient = client == null;
     try {
-      if (_isLikelyInKorea(latitude, longitude)) {
+      if (isLikelyInKorea(latitude, longitude)) {
         final koreanPlace = await _resolveKoreanPlaceName(
           latitude: latitude,
           longitude: longitude,
@@ -42,7 +42,7 @@ class WeatherLocationService {
     }
   }
 
-  static bool _isLikelyInKorea(double latitude, double longitude) {
+  static bool isLikelyInKorea(double latitude, double longitude) {
     return latitude >= 32.8 &&
         latitude <= 39.0 &&
         longitude >= 124.0 &&

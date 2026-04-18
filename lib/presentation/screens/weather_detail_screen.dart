@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+import '../../application/weather_current_service.dart';
 import '../../application/weather_forecast_service.dart';
 import '../../application/weather_location_service.dart';
 import '../widgets/app_background.dart';
@@ -60,6 +61,10 @@ class WeatherDetailScreen extends StatefulWidget {
     required double longitude,
     required AppLocalizations l10n,
   }) async {
+    final currentWeatherFuture = WeatherCurrentService.fetchCurrentWeather(
+      latitude: latitude,
+      longitude: longitude,
+    );
     final weatherUri = WeatherForecastService.buildForecastUri(
       latitude: latitude,
       longitude: longitude,
@@ -89,56 +94,100 @@ class WeatherDetailScreen extends StatefulWidget {
       'timezone': 'auto',
     });
     final responses = await Future.wait([
+      currentWeatherFuture,
       http.get(weatherUri),
       http.get(airQualityUri),
     ]);
-    if (responses[0].statusCode != 200 || responses[1].statusCode != 200) {
-      return const _WeatherDetailsSnapshot(summary: '');
+    final currentSnapshot = responses[0] as WeatherCurrentSnapshot;
+    final weatherResponse = responses[1] as http.Response;
+    final airResponse = responses[2] as http.Response;
+
+    Map<String, dynamic>? weatherDecoded;
+    if (weatherResponse.statusCode == 200) {
+      final decoded = jsonDecode(weatherResponse.body);
+      if (decoded is Map<String, dynamic>) {
+        weatherDecoded = decoded;
+      }
     }
-    final weatherDecoded = jsonDecode(responses[0].body);
-    final airDecoded = jsonDecode(responses[1].body);
-    if (weatherDecoded is! Map<String, dynamic> ||
-        airDecoded is! Map<String, dynamic>) {
+
+    Map<String, dynamic>? airDecoded;
+    if (airResponse.statusCode == 200) {
+      final decoded = jsonDecode(airResponse.body);
+      if (decoded is Map<String, dynamic>) {
+        airDecoded = decoded;
+      }
+    }
+
+    if (weatherDecoded == null &&
+        airDecoded == null &&
+        !currentSnapshot.hasData) {
       return const _WeatherDetailsSnapshot(summary: '');
     }
 
-    final current = weatherDecoded['current'];
-    final daily = weatherDecoded['daily'];
-    final airCurrent = airDecoded['current'];
-    if (current is! Map<String, dynamic> ||
-        daily is! Map<String, dynamic> ||
-        airCurrent is! Map<String, dynamic>) {
-      return const _WeatherDetailsSnapshot(summary: '');
-    }
+    final current = weatherDecoded?['current'];
+    final daily = weatherDecoded?['daily'];
+    final airCurrent = airDecoded?['current'];
+    final openMeteoCurrent =
+        current is Map<String, dynamic> ? current : const <String, dynamic>{};
+    final openMeteoDaily =
+        daily is Map<String, dynamic> ? daily : const <String, dynamic>{};
+    final openMeteoAir = airCurrent is Map<String, dynamic>
+        ? airCurrent
+        : const <String, dynamic>{};
 
-    final temperature = (current['temperature_2m'] as num?)?.toDouble();
     final localizer = _WeatherLocalizer(l10n: l10n);
-    final weatherCode = (current['weather_code'] as num?)?.toInt();
-    final weatherText = _weatherLabelFromCodeStatic(
-      weatherCode,
+    final weatherCode = currentSnapshot.weatherCode ??
+        (openMeteoCurrent['weather_code'] as num?)?.toInt();
+    final temperature = currentSnapshot.temperature ??
+        (openMeteoCurrent['temperature_2m'] as num?)?.toDouble();
+    final summary = _buildWeatherSummaryStatic(
+      temperature: temperature,
+      weatherCode: weatherCode,
       localizer: localizer,
     );
-    final summary = temperature == null
-        ? weatherText
-        : '$weatherText ${temperature.toStringAsFixed(1)}°C';
-    final dailyMax = _firstDailyNumberStatic(daily['temperature_2m_max']);
-    final dailyMin = _firstDailyNumberStatic(daily['temperature_2m_min']);
-    final forecasts = _buildDailyForecastsStatic(daily, localizer: localizer);
+    final dailyMax =
+        _firstDailyNumberStatic(openMeteoDaily['temperature_2m_max']);
+    final dailyMin =
+        _firstDailyNumberStatic(openMeteoDaily['temperature_2m_min']);
+    final forecasts = _buildDailyForecastsStatic(
+      openMeteoDaily,
+      localizer: localizer,
+    );
 
     return _WeatherDetailsSnapshot(
       summary: summary,
       weatherCode: weatherCode,
       apparentTemperature:
-          (current['apparent_temperature'] as num?)?.toDouble(),
-      humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
-      windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
+          (openMeteoCurrent['apparent_temperature'] as num?)?.toDouble(),
+      humidity: currentSnapshot.humidity ??
+          (openMeteoCurrent['relative_humidity_2m'] as num?)?.toDouble(),
+      windSpeed: currentSnapshot.windSpeed ??
+          (openMeteoCurrent['wind_speed_10m'] as num?)?.toDouble(),
       temperatureMax: dailyMax,
       temperatureMin: dailyMin,
-      pm10: (airCurrent['pm10'] as num?)?.toDouble(),
-      pm25: (airCurrent['pm2_5'] as num?)?.toDouble(),
-      aqi: (airCurrent['us_aqi'] as num?)?.toInt(),
+      pm10: (openMeteoAir['pm10'] as num?)?.toDouble(),
+      pm25: (openMeteoAir['pm2_5'] as num?)?.toDouble(),
+      aqi: (openMeteoAir['us_aqi'] as num?)?.toInt(),
       dailyForecasts: forecasts,
     );
+  }
+
+  static String _buildWeatherSummaryStatic({
+    required double? temperature,
+    required int? weatherCode,
+    required _WeatherLabelLocalizer localizer,
+  }) {
+    final weatherText = weatherCode == null
+        ? ''
+        : _weatherLabelFromCodeStatic(
+            weatherCode,
+            localizer: localizer,
+          );
+    final tempText =
+        temperature == null ? '' : '${temperature.toStringAsFixed(1)}°C';
+    if (weatherText.isEmpty) return tempText;
+    if (tempText.isEmpty) return weatherText;
+    return '$weatherText $tempText';
   }
 
   static String _weatherLabelFromCodeStatic(
