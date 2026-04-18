@@ -5,7 +5,7 @@ import 'package:football_note/presentation/screens/football_education_screen.dar
 
 void main() {
   testWidgets(
-    'football education screen keeps the long father-to-son story scrollable on small displays',
+    'football education screen shows a hub layout and expandable story chapters on small displays',
     (tester) async {
       addTearDown(() async {
         await tester.binding.setSurfaceSize(null);
@@ -23,41 +23,59 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+      expect(find.text('바로 지도할 수 있는 유소년 축구 컨텐츠'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey<String>('education-track-history')),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey<String>('education-track-history')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('education-track-lessons')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('education-track-story')),
+        findsOneWidget,
+      );
+
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey<String>('education-lessons-section')),
+        260,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('터치 수 늘리기'), findsOneWidget);
+      expect(find.text('한 번에 한 가지'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey<String>('education-story-section')),
+        320,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
       expect(find.text('아빠가 태오에게 들려주는 월드컵 이야기'), findsOneWidget);
-      expect(find.text('이전 장'), findsNothing);
-      expect(find.text('다음 장'), findsNothing);
-      expect(
-        find.byKey(const ValueKey<String>('education-book-page-view')),
-        findsNothing,
-      );
-      expect(
-        find.textContaining('책장을 열었다 닫았다 하는 식보다 한 번에 길게 읽을 수 있게'),
-        findsOneWidget,
-      );
-
       await tester.scrollUntilVisible(
-        find.text('2026 이후, 아직 안 열린 페이지를 읽는 방법'),
-        300,
+        find.byKey(const ValueKey<String>('education-book-chapter-0')),
+        180,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('48개국, 104경기, 세 나라 공동 개최라는 조건만으로도'),
-        findsOneWidget,
-      );
-
-      await tester.scrollUntilVisible(
-        find.textContaining('1930년의 첫 항해부터 2026년의 다음 질문까지'),
-        250,
-        scrollable: find.byType(Scrollable).first,
-      );
+      await tester
+          .tap(find.byKey(const ValueKey<String>('education-book-chapter-0')));
       await tester.pumpAndSettle();
 
-      expect(
-        find.textContaining('숫자보다 사람을, 결과보다 공기를, 한 경기보다 한 시대를'),
-        findsOneWidget,
-      );
+      expect(find.text('핵심 연표'), findsOneWidget);
+      expect(find.textContaining('1904년 FIFA가 창설되며'), findsOneWidget);
+      expect(find.textContaining('우승국 리스트가 아니라'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
