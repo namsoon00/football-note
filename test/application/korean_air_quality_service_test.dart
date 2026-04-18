@@ -45,6 +45,9 @@ void main() {
                   'body': <String, dynamic>{
                     'items': <Map<String, dynamic>>[
                       <String, dynamic>{
+                        'stationName': '점검소',
+                      },
+                      <String, dynamic>{
                         'stationName': '강남대로',
                       },
                     ],
@@ -56,7 +59,33 @@ void main() {
           );
         }
         if (request.url.path.endsWith('/getMsrstnAcctoRltmMesureDnsty')) {
-          expect(request.url.queryParameters['stationName'], '강남대로');
+          final stationName = request.url.queryParameters['stationName'];
+          expect(request.url.queryParameters['numOfRows'], '24');
+          if (stationName == '점검소') {
+            return http.Response.bytes(
+              utf8.encode(
+                jsonEncode(<String, dynamic>{
+                  'response': <String, dynamic>{
+                    'header': <String, dynamic>{
+                      'resultCode': '00',
+                      'resultMsg': 'NORMAL_SERVICE',
+                    },
+                    'body': <String, dynamic>{
+                      'items': <Map<String, dynamic>>[
+                        <String, dynamic>{
+                          'pm10Value': '-',
+                          'pm25Value': '-',
+                          'khaiValue': '-',
+                        },
+                      ],
+                    },
+                  },
+                }),
+              ),
+              200,
+            );
+          }
+          expect(stationName, '강남대로');
           return http.Response.bytes(
             utf8.encode(
               jsonEncode(<String, dynamic>{
@@ -105,6 +134,25 @@ void main() {
         }
 
         expect(request.url.host, 'apis.data.go.kr');
+        if (request.url.path.endsWith('/getCtprvnRltmMesureDnsty')) {
+          expect(request.url.queryParameters['sidoName'], '서울');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'response': <String, dynamic>{
+                  'header': <String, dynamic>{
+                    'resultCode': '00',
+                    'resultMsg': 'NORMAL_SERVICE',
+                  },
+                  'body': <String, dynamic>{
+                    'items': <Map<String, dynamic>>[],
+                  },
+                },
+              }),
+            ),
+            200,
+          );
+        }
         if (request.url.path.endsWith('/getMsrstnList')) {
           expect(request.url.queryParameters['addr'], '서울특별시 강남구');
           return http.Response.bytes(
@@ -130,6 +178,7 @@ void main() {
         }
         if (request.url.path.endsWith('/getMsrstnAcctoRltmMesureDnsty')) {
           expect(request.url.queryParameters['stationName'], '강남구');
+          expect(request.url.queryParameters['numOfRows'], '24');
           return http.Response.bytes(
             utf8.encode(
               jsonEncode(<String, dynamic>{
@@ -168,6 +217,90 @@ void main() {
       expect(snapshot.pm10, 42);
       expect(snapshot.pm25, 18);
       expect(snapshot.aqi, 87);
+      expect(snapshot.scale, AirQualityScale.khai);
+    });
+
+    test(
+        'falls back to province measurements when nearby station endpoint returns invalid body',
+        () async {
+      final client = MockClient((request) async {
+        if (request.url.host == 'dapi.kakao.com') {
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'documents': <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'x': '203000.0',
+                    'y': '442000.0',
+                  },
+                ],
+              }),
+            ),
+            200,
+          );
+        }
+
+        expect(request.url.host, 'apis.data.go.kr');
+        if (request.url.path.endsWith('/getNearbyMsrstnList')) {
+          return http.Response('Forbidden', 200);
+        }
+        if (request.url.path.endsWith('/getCtprvnRltmMesureDnsty')) {
+          expect(request.url.queryParameters['sidoName'], '서울');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'response': <String, dynamic>{
+                  'header': <String, dynamic>{
+                    'resultCode': '00',
+                    'resultMsg': 'NORMAL_SERVICE',
+                  },
+                  'body': <String, dynamic>{
+                    'items': <Map<String, dynamic>>[
+                      <String, dynamic>{
+                        'stationName': '중구',
+                        'pm10Value': '21',
+                        'pm25Value': '9',
+                        'khaiValue': '44',
+                      },
+                      <String, dynamic>{
+                        'stationName': '강남대로',
+                        'pm10Value': '-',
+                        'pm10Value24': '37',
+                        'pm25Value': '-',
+                        'pm25Value24': '16',
+                        'khaiValue': '79',
+                      },
+                    ],
+                  },
+                },
+              }),
+            ),
+            200,
+          );
+        }
+        if (request.url.path.endsWith('/getMsrstnList') ||
+            request.url.path.endsWith('/getMsrstnAcctoRltmMesureDnsty')) {
+          fail(
+              'Regional fallback should resolve before station lookup: ${request.url}');
+        }
+        fail('Unexpected request: ${request.url}');
+      });
+
+      final snapshot = await KoreanAirQualityService.fetchCurrentAirQuality(
+        latitude: 37.4981,
+        longitude: 127.0276,
+        client: client,
+        serviceKey: 'test-key',
+        kakaoRestApiKey: 'test-kakao',
+        administrativeAreaQueries: const <String>[
+          '서울특별시 강남구',
+          '강남구 역삼1동',
+        ],
+      );
+
+      expect(snapshot.pm10, 37);
+      expect(snapshot.pm25, 16);
+      expect(snapshot.aqi, 79);
       expect(snapshot.scale, AirQualityScale.khai);
     });
 

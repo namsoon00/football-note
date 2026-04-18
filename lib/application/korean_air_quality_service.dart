@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 
@@ -53,22 +54,20 @@ class KoreanAirQualityService {
       final normalizedKakaoKey =
           (kakaoRestApiKey ?? GovernmentApiCredentials.kakaoRestApiKey).trim();
 
-      final nearbyStationName = await _resolveNearbyStationName(
+      final nearbyStationNames = await _resolveNearbyStationNames(
         client: localClient,
         kakaoRestApiKey: normalizedKakaoKey,
         latitude: latitude,
         longitude: longitude,
         serviceKey: normalizedKey,
       );
-      if (nearbyStationName.isNotEmpty) {
-        final nearbySnapshot = await _fetchStationMeasurement(
-          client: localClient,
-          serviceKey: normalizedKey,
-          stationName: nearbyStationName,
-        );
-        if (nearbySnapshot.hasData) {
-          return nearbySnapshot;
-        }
+      final nearbySnapshot = await _fetchFirstAvailableStationMeasurement(
+        client: localClient,
+        serviceKey: normalizedKey,
+        stationNames: nearbyStationNames,
+      );
+      if (nearbySnapshot.hasData) {
+        return nearbySnapshot;
       }
 
       final queries = administrativeAreaQueries ??
@@ -83,19 +82,24 @@ class KoreanAirQualityService {
         return const AirQualitySnapshot();
       }
 
-      final stationName = await _resolveStationName(
+      final regionalSnapshot = await _fetchRegionalMeasurement(
         client: localClient,
         serviceKey: normalizedKey,
         queries: queries,
       );
-      if (stationName.isEmpty) {
-        return const AirQualitySnapshot();
+      if (regionalSnapshot.hasData) {
+        return regionalSnapshot;
       }
 
-      return _fetchStationMeasurement(
+      final stationNames = await _resolveStationNames(
         client: localClient,
         serviceKey: normalizedKey,
-        stationName: stationName,
+        queries: queries,
+      );
+      return _fetchFirstAvailableStationMeasurement(
+        client: localClient,
+        serviceKey: normalizedKey,
+        stationNames: stationNames,
       );
     } finally {
       if (ownsClient) {
@@ -104,14 +108,14 @@ class KoreanAirQualityService {
     }
   }
 
-  static Future<String> _resolveNearbyStationName({
+  static Future<List<String>> _resolveNearbyStationNames({
     required http.Client client,
     required String kakaoRestApiKey,
     required double latitude,
     required double longitude,
     required String serviceKey,
   }) async {
-    if (kakaoRestApiKey.isEmpty) return '';
+    if (kakaoRestApiKey.isEmpty) return const <String>[];
 
     final tmCoordinates = await _convertToTmCoordinates(
       client: client,
@@ -119,7 +123,7 @@ class KoreanAirQualityService {
       latitude: latitude,
       longitude: longitude,
     );
-    if (tmCoordinates == null) return '';
+    if (tmCoordinates == null) return const <String>[];
 
     for (final keyName in const <String>['serviceKey', 'ServiceKey']) {
       final uri = Uri.https(
@@ -135,25 +139,28 @@ class KoreanAirQualityService {
         },
       );
       final response = await client.get(uri);
-      if (response.statusCode != 200) continue;
+      if (response.statusCode != 200) {
+        _logApiFailure(
+          service: 'MsrstnInfoInqireSvc/getNearbyMsrstnList',
+          message:
+              'status=${response.statusCode} body=${_truncateBody(response.body)}',
+        );
+        continue;
+      }
       final items = _parseAirKoreaItems(response.bodyBytes);
       if (items == null || items.isEmpty) continue;
-      for (final item in items) {
-        final stationName = (item['stationName'] ?? '').toString().trim();
-        if (stationName.isNotEmpty) {
-          return stationName;
-        }
-      }
+      return _extractStationNames(items);
     }
 
-    return '';
+    return const <String>[];
   }
 
-  static Future<String> _resolveStationName({
+  static Future<List<String>> _resolveStationNames({
     required http.Client client,
     required String serviceKey,
     required List<String> queries,
   }) async {
+    final stationNames = <String>[];
     for (final keyName in const <String>['serviceKey', 'ServiceKey']) {
       for (final query in queries) {
         final uri = Uri.https(
@@ -168,16 +175,86 @@ class KoreanAirQualityService {
           },
         );
         final response = await client.get(uri);
-        if (response.statusCode != 200) continue;
+        if (response.statusCode != 200) {
+          _logApiFailure(
+            service: 'MsrstnInfoInqireSvc/getMsrstnList',
+            message:
+                'query=$query status=${response.statusCode} body=${_truncateBody(response.body)}',
+          );
+          continue;
+        }
         final items = _parseAirKoreaItems(response.bodyBytes);
         if (items == null || items.isEmpty) continue;
-        for (final item in items) {
-          final stationName = (item['stationName'] ?? '').toString().trim();
-          if (stationName.isNotEmpty) return stationName;
-        }
+        stationNames.addAll(_extractStationNames(items));
       }
     }
-    return '';
+    return _dedupeStationNames(stationNames);
+  }
+
+  static Future<AirQualitySnapshot> _fetchFirstAvailableStationMeasurement({
+    required http.Client client,
+    required String serviceKey,
+    required List<String> stationNames,
+  }) async {
+    for (final stationName in stationNames) {
+      final snapshot = await _fetchStationMeasurement(
+        client: client,
+        serviceKey: serviceKey,
+        stationName: stationName,
+      );
+      if (snapshot.hasData) {
+        return snapshot;
+      }
+    }
+    return const AirQualitySnapshot();
+  }
+
+  static Future<AirQualitySnapshot> _fetchRegionalMeasurement({
+    required http.Client client,
+    required String serviceKey,
+    required List<String> queries,
+  }) async {
+    final sidoName = _resolveSidoName(queries);
+    if (sidoName.isEmpty) {
+      return const AirQualitySnapshot();
+    }
+
+    for (final keyName in const <String>['serviceKey', 'ServiceKey']) {
+      final uri = Uri.https(
+        'apis.data.go.kr',
+        '/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty',
+        <String, String>{
+          keyName: serviceKey,
+          'returnType': 'json',
+          'numOfRows': '200',
+          'pageNo': '1',
+          'sidoName': sidoName,
+          'ver': '1.3',
+        },
+      );
+      final response = await client.get(uri);
+      if (response.statusCode != 200) {
+        _logApiFailure(
+          service: 'ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty',
+          message:
+              'sidoName=$sidoName status=${response.statusCode} body=${_truncateBody(response.body)}',
+        );
+        continue;
+      }
+      final items = _parseAirKoreaItems(response.bodyBytes);
+      if (items == null || items.isEmpty) continue;
+      final selectedItem = _selectRegionalMeasurementItem(
+        items: items,
+        queries: queries,
+      );
+      if (selectedItem == null) continue;
+      final snapshot = _snapshotFromMeasurementItem(selectedItem);
+      if (snapshot.hasData) {
+        return snapshot;
+      }
+    }
+
+    return const AirQualitySnapshot();
   }
 
   static Future<AirQualitySnapshot> _fetchStationMeasurement({
@@ -192,7 +269,7 @@ class KoreanAirQualityService {
         <String, String>{
           keyName: serviceKey,
           'returnType': 'json',
-          'numOfRows': '1',
+          'numOfRows': '24',
           'pageNo': '1',
           'stationName': stationName,
           'dataTerm': 'DAILY',
@@ -200,20 +277,22 @@ class KoreanAirQualityService {
         },
       );
       final response = await client.get(uri);
-      if (response.statusCode != 200) continue;
+      if (response.statusCode != 200) {
+        _logApiFailure(
+          service: 'ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty',
+          message:
+              'stationName=$stationName status=${response.statusCode} body=${_truncateBody(response.body)}',
+        );
+        continue;
+      }
       final items = _parseAirKoreaItems(response.bodyBytes);
       if (items == null || items.isEmpty) continue;
-      final item = items.first;
-      final pm10 = _parseAirKoreaDouble(item['pm10Value']);
-      final pm25 = _parseAirKoreaDouble(item['pm25Value']);
-      final khai = _parseAirKoreaInt(item['khaiValue']);
-      if (pm10 == null && pm25 == null && khai == null) continue;
-      return AirQualitySnapshot(
-        pm10: pm10,
-        pm25: pm25,
-        aqi: khai,
-        scale: AirQualityScale.khai,
-      );
+      for (final item in items) {
+        final snapshot = _snapshotFromMeasurementItem(item);
+        if (snapshot.hasData) {
+          return snapshot;
+        }
+      }
     }
     return const AirQualitySnapshot();
   }
@@ -256,28 +335,41 @@ class KoreanAirQualityService {
   }
 
   static List<Map<String, dynamic>>? _parseAirKoreaItems(List<int> bodyBytes) {
-    final decoded = jsonDecode(utf8.decode(bodyBytes));
-    if (decoded is! Map<String, dynamic>) return null;
-    final response = decoded['response'];
-    if (response is! Map<String, dynamic>) return null;
-    final header = response['header'];
-    if (header is! Map<String, dynamic>) return null;
-    if ((header['resultCode'] ?? '').toString() != '00') {
+    try {
+      final decoded = jsonDecode(utf8.decode(bodyBytes, allowMalformed: true));
+      if (decoded is! Map<String, dynamic>) return null;
+      final response = decoded['response'];
+      if (response is! Map<String, dynamic>) return null;
+      final header = response['header'];
+      if (header is! Map<String, dynamic>) return null;
+      if ((header['resultCode'] ?? '').toString() != '00') {
+        _logApiFailure(
+          service: 'AirKorea',
+          message:
+              'resultCode=${header['resultCode']} resultMsg=${header['resultMsg']}',
+        );
+        return null;
+      }
+      final body = response['body'];
+      if (body is! Map<String, dynamic>) return null;
+      final items = body['items'];
+      if (items is List) {
+        return items
+            .whereType<Map>()
+            .map((value) => value.cast<String, dynamic>())
+            .toList(growable: false);
+      }
+      if (items is Map<String, dynamic>) {
+        return <Map<String, dynamic>>[items];
+      }
+      return null;
+    } catch (_) {
+      _logApiFailure(
+        service: 'AirKorea',
+        message: 'failed to parse body=${_truncateBodyBytes(bodyBytes)}',
+      );
       return null;
     }
-    final body = response['body'];
-    if (body is! Map<String, dynamic>) return null;
-    final items = body['items'];
-    if (items is List) {
-      return items
-          .whereType<Map>()
-          .map((value) => value.cast<String, dynamic>())
-          .toList(growable: false);
-    }
-    if (items is Map<String, dynamic>) {
-      return <Map<String, dynamic>>[items];
-    }
-    return null;
   }
 
   static double? _parseAirKoreaDouble(Object? value) {
@@ -290,6 +382,193 @@ class KoreanAirQualityService {
     final normalized = value?.toString().trim() ?? '';
     if (normalized.isEmpty || normalized == '-') return null;
     return int.tryParse(normalized);
+  }
+
+  static AirQualitySnapshot _snapshotFromMeasurementItem(
+    Map<String, dynamic> item,
+  ) {
+    final pm10 = _parseAirKoreaDouble(item['pm10Value']) ??
+        _parseAirKoreaDouble(item['pm10Value24']);
+    final pm25 = _parseAirKoreaDouble(item['pm25Value']) ??
+        _parseAirKoreaDouble(item['pm25Value24']);
+    final khai = _parseAirKoreaInt(item['khaiValue']);
+    if (pm10 == null && pm25 == null && khai == null) {
+      return const AirQualitySnapshot();
+    }
+    return AirQualitySnapshot(
+      pm10: pm10,
+      pm25: pm25,
+      aqi: khai,
+      scale: AirQualityScale.khai,
+    );
+  }
+
+  static List<String> _extractStationNames(List<Map<String, dynamic>> items) {
+    return _dedupeStationNames(
+      items
+          .map((item) => (item['stationName'] ?? '').toString().trim())
+          .where((stationName) => stationName.isNotEmpty)
+          .toList(growable: false),
+    );
+  }
+
+  static List<String> _dedupeStationNames(List<String> stationNames) {
+    final deduped = <String>[];
+    final seen = <String>{};
+    for (final stationName in stationNames) {
+      final normalized = stationName.trim();
+      if (normalized.isEmpty || !seen.add(normalized)) continue;
+      deduped.add(normalized);
+    }
+    return deduped;
+  }
+
+  static String _resolveSidoName(List<String> queries) {
+    for (final query in queries) {
+      for (final token in query.split(RegExp(r'[\s,]+'))) {
+        final normalized = _normalizeSidoName(token);
+        if (normalized.isNotEmpty) {
+          return normalized;
+        }
+      }
+    }
+    return '';
+  }
+
+  static String _normalizeSidoName(String raw) {
+    final normalized = raw.trim();
+    if (normalized.isEmpty) return '';
+
+    const directMap = <String, String>{
+      '서울특별시': '서울',
+      '부산광역시': '부산',
+      '대구광역시': '대구',
+      '인천광역시': '인천',
+      '광주광역시': '광주',
+      '대전광역시': '대전',
+      '울산광역시': '울산',
+      '세종특별자치시': '세종',
+      '경기도': '경기',
+      '강원도': '강원',
+      '강원특별자치도': '강원',
+      '충청북도': '충북',
+      '충청남도': '충남',
+      '전라북도': '전북',
+      '전북특별자치도': '전북',
+      '전라남도': '전남',
+      '경상북도': '경북',
+      '경상남도': '경남',
+      '제주도': '제주',
+      '제주특별자치도': '제주',
+    };
+    return directMap[normalized] ?? '';
+  }
+
+  static Map<String, dynamic>? _selectRegionalMeasurementItem({
+    required List<Map<String, dynamic>> items,
+    required List<String> queries,
+  }) {
+    final keywords = _buildStationMatchKeywords(queries);
+    Map<String, dynamic>? selected;
+    var selectedScore = 0;
+
+    for (final item in items) {
+      final snapshot = _snapshotFromMeasurementItem(item);
+      if (!snapshot.hasData) continue;
+      final stationName = (item['stationName'] ?? '').toString().trim();
+      if (stationName.isEmpty) continue;
+      final score = _stationMatchScore(
+        stationName: stationName,
+        keywords: keywords,
+      );
+      if (selected == null || score > selectedScore) {
+        selected = item;
+        selectedScore = score;
+      }
+    }
+
+    if (selected != null && selectedScore > 0) {
+      return selected;
+    }
+    return null;
+  }
+
+  static List<String> _buildStationMatchKeywords(List<String> queries) {
+    final keywords = <String>[];
+    for (final query in queries) {
+      for (final token in query.split(RegExp(r'[\s,]+'))) {
+        final trimmed = token.trim();
+        if (trimmed.isEmpty || trimmed == '대한민국') continue;
+        keywords.add(trimmed);
+        final compact = _compactStationKeyword(trimmed);
+        if (compact.isNotEmpty && compact != trimmed) {
+          keywords.add(compact);
+        }
+      }
+    }
+    return _dedupeStationNames(keywords);
+  }
+
+  static String _compactStationKeyword(String raw) {
+    var normalized = raw.trim();
+    if (normalized.isEmpty) return '';
+    normalized = normalized.replaceAll(
+      RegExp(r'(특별자치시|특별자치도|특별시|광역시)$'),
+      '',
+    );
+    normalized = normalized.replaceAll(
+      RegExp(r'(자치시|자치도|시|도|군|구|읍|면|동|로|대로|가)$'),
+      '',
+    );
+    return normalized.trim();
+  }
+
+  static int _stationMatchScore({
+    required String stationName,
+    required List<String> keywords,
+  }) {
+    final compactStationName = _compactStationKeyword(stationName);
+    var score = 0;
+    for (final keyword in keywords) {
+      if (keyword == stationName) {
+        score += 100;
+        continue;
+      }
+      if (stationName.contains(keyword) || keyword.contains(stationName)) {
+        score += 40;
+      }
+      final compactKeyword = _compactStationKeyword(keyword);
+      if (compactKeyword.isEmpty) continue;
+      if (compactKeyword == compactStationName) {
+        score += 80;
+        continue;
+      }
+      if (compactStationName.contains(compactKeyword) ||
+          compactKeyword.contains(compactStationName)) {
+        score += 20;
+      }
+    }
+    return score;
+  }
+
+  static String _truncateBody(String body) {
+    final normalized = body.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.length <= 180) return normalized;
+    return '${normalized.substring(0, 180)}...';
+  }
+
+  static String _truncateBodyBytes(List<int> bodyBytes) {
+    return _truncateBody(utf8.decode(bodyBytes, allowMalformed: true));
+  }
+
+  static void _logApiFailure({
+    required String service,
+    required String message,
+  }) {
+    developer.log(
+      message,
+      name: 'KoreanAirQualityService.$service',
+    );
   }
 }
 

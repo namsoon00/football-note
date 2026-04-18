@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
@@ -527,7 +528,14 @@ class WeatherCurrentService {
           },
         );
         final response = await client.get(uri);
-        if (response.statusCode != 200) continue;
+        if (response.statusCode != 200) {
+          _logKmaFailure(
+            service: endpoint,
+            message:
+                'baseDate=${baseTime.date} baseTime=${baseTime.time} status=${response.statusCode} body=${_truncateBody(response.body)}',
+          );
+          continue;
+        }
         final items = _parseKmaItems(response.bodyBytes);
         if (items != null && items.isNotEmpty) {
           return items;
@@ -558,7 +566,14 @@ class WeatherCurrentService {
           },
         );
         final response = await client.get(uri);
-        if (response.statusCode != 200) continue;
+        if (response.statusCode != 200) {
+          _logKmaFailure(
+            service: 'getMidFcst',
+            message:
+                'tmFc=$tmFc stnId=$stationId status=${response.statusCode} body=${_truncateBody(response.body)}',
+          );
+          continue;
+        }
         final items = _parseKmaItems(response.bodyBytes);
         if (items == null || items.isEmpty) continue;
         return _KmaMidForecastResponse(
@@ -596,7 +611,14 @@ class WeatherCurrentService {
           },
         );
         final response = await client.get(uri);
-        if (response.statusCode != 200) break;
+        if (response.statusCode != 200) {
+          _logKmaFailure(
+            service: 'getFcstZoneCd',
+            message:
+                'page=$page status=${response.statusCode} body=${_truncateBody(response.body)}',
+          );
+          break;
+        }
         final items = _parseKmaItems(response.bodyBytes);
         if (items == null || items.isEmpty) break;
         zones.addAll(
@@ -905,30 +927,63 @@ class WeatherCurrentService {
   }
 
   static List<Map<String, dynamic>>? _parseKmaItems(List<int> bodyBytes) {
-    final decoded = jsonDecode(utf8.decode(bodyBytes));
-    if (decoded is! Map<String, dynamic>) return null;
-    final response = decoded['response'];
-    if (response is! Map<String, dynamic>) return null;
-    final header = response['header'];
-    if (header is! Map<String, dynamic>) return null;
-    if ((header['resultCode'] ?? '').toString() != '00') {
+    try {
+      final decoded = jsonDecode(utf8.decode(bodyBytes, allowMalformed: true));
+      if (decoded is! Map<String, dynamic>) return null;
+      final response = decoded['response'];
+      if (response is! Map<String, dynamic>) return null;
+      final header = response['header'];
+      if (header is! Map<String, dynamic>) return null;
+      if ((header['resultCode'] ?? '').toString() != '00') {
+        _logKmaFailure(
+          service: 'KMA',
+          message:
+              'resultCode=${header['resultCode']} resultMsg=${header['resultMsg']}',
+        );
+        return null;
+      }
+      final body = response['body'];
+      if (body is! Map<String, dynamic>) return null;
+      final items = body['items'];
+      if (items is! Map<String, dynamic>) return null;
+      final item = items['item'];
+      if (item is List) {
+        return item
+            .whereType<Map>()
+            .map((value) => value.cast<String, dynamic>())
+            .toList(growable: false);
+      }
+      if (item is Map<String, dynamic>) {
+        return <Map<String, dynamic>>[item];
+      }
+      return null;
+    } catch (_) {
+      _logKmaFailure(
+        service: 'KMA',
+        message: 'failed to parse body=${_truncateBodyBytes(bodyBytes)}',
+      );
       return null;
     }
-    final body = response['body'];
-    if (body is! Map<String, dynamic>) return null;
-    final items = body['items'];
-    if (items is! Map<String, dynamic>) return null;
-    final item = items['item'];
-    if (item is List) {
-      return item
-          .whereType<Map>()
-          .map((value) => value.cast<String, dynamic>())
-          .toList(growable: false);
-    }
-    if (item is Map<String, dynamic>) {
-      return <Map<String, dynamic>>[item];
-    }
-    return null;
+  }
+
+  static String _truncateBody(String body) {
+    final normalized = body.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.length <= 180) return normalized;
+    return '${normalized.substring(0, 180)}...';
+  }
+
+  static String _truncateBodyBytes(List<int> bodyBytes) {
+    return _truncateBody(utf8.decode(bodyBytes, allowMalformed: true));
+  }
+
+  static void _logKmaFailure({
+    required String service,
+    required String message,
+  }) {
+    developer.log(
+      message,
+      name: 'WeatherCurrentService.$service',
+    );
   }
 
   static List<_KmaBaseTime> _ultraShortBaseTimes(DateTime now) {
