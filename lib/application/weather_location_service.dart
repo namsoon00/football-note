@@ -17,21 +17,34 @@ class WeatherLocationService {
     final ownsClient = client == null;
     try {
       if (isLikelyInKorea(latitude, longitude)) {
-        final koreanPlace = await _resolveKoreanPlaceName(
+        try {
+          final koreanPlace = await _resolveKoreanPlaceName(
+            latitude: latitude,
+            longitude: longitude,
+            koreaLabel: koreaLabel,
+            client: localClient,
+            kakaoRestApiKey: kakaoRestApiKey ?? _kakaoRestApiKey,
+          );
+          if (koreanPlace.isNotEmpty) return koreanPlace;
+        } catch (_) {
+          // Fall through to secondary geocoding sources.
+        }
+      }
+      try {
+        final openMeteoPlace = await _resolveOpenMeteoPlaceName(
           latitude: latitude,
           longitude: longitude,
+          isKo: isKo,
           koreaLabel: koreaLabel,
           client: localClient,
-          kakaoRestApiKey: kakaoRestApiKey ?? _kakaoRestApiKey,
         );
-        if (koreanPlace.isNotEmpty) return koreanPlace;
+        if (openMeteoPlace.isNotEmpty) return openMeteoPlace;
+      } catch (_) {
+        // Return a coordinate label if every geocoder fails.
       }
-      return _resolveOpenMeteoPlaceName(
+      return _formatCoordinateLabel(
         latitude: latitude,
         longitude: longitude,
-        isKo: isKo,
-        koreaLabel: koreaLabel,
-        client: localClient,
       );
     } finally {
       if (ownsClient) {
@@ -57,6 +70,83 @@ class WeatherLocationService {
     final normalizedKey = kakaoRestApiKey.trim();
     if (normalizedKey.isEmpty) return '';
 
+    final addressLabel = await _resolveKakaoAddressName(
+      latitude: latitude,
+      longitude: longitude,
+      koreaLabel: koreaLabel,
+      client: client,
+      kakaoRestApiKey: normalizedKey,
+    );
+    if (addressLabel.isNotEmpty) return addressLabel;
+
+    return _resolveKakaoRegionName(
+      latitude: latitude,
+      longitude: longitude,
+      koreaLabel: koreaLabel,
+      client: client,
+      kakaoRestApiKey: normalizedKey,
+    );
+  }
+
+  static Future<String> _resolveKakaoAddressName({
+    required double latitude,
+    required double longitude,
+    required String koreaLabel,
+    required http.Client client,
+    required String kakaoRestApiKey,
+  }) async {
+    final uri = Uri.https(
+      'dapi.kakao.com',
+      '/v2/local/geo/coord2address.json',
+      <String, String>{
+        'x': longitude.toString(),
+        'y': latitude.toString(),
+        'input_coord': 'WGS84',
+      },
+    );
+    final decoded = await _requestKakaoJson(
+      uri: uri,
+      client: client,
+      kakaoRestApiKey: kakaoRestApiKey,
+    );
+    if (decoded == null) return '';
+    final documents = decoded['documents'];
+    if (documents is! List || documents.isEmpty) return '';
+    final first = documents.first;
+    if (first is! Map<String, dynamic>) return '';
+
+    final roadAddress = first['road_address'];
+    if (roadAddress is Map<String, dynamic>) {
+      final roadAddressName =
+          (roadAddress['address_name'] ?? '').toString().trim();
+      if (roadAddressName.isNotEmpty) {
+        return _compactKoreanAddress(
+          addressName: roadAddressName,
+          koreaLabel: koreaLabel,
+        );
+      }
+    }
+
+    final address = first['address'];
+    if (address is Map<String, dynamic>) {
+      final addressName = (address['address_name'] ?? '').toString().trim();
+      if (addressName.isNotEmpty) {
+        return _compactKoreanAddress(
+          addressName: addressName,
+          koreaLabel: koreaLabel,
+        );
+      }
+    }
+    return '';
+  }
+
+  static Future<String> _resolveKakaoRegionName({
+    required double latitude,
+    required double longitude,
+    required String koreaLabel,
+    required http.Client client,
+    required String kakaoRestApiKey,
+  }) async {
     final uri = Uri.https(
       'dapi.kakao.com',
       '/v2/local/geo/coord2regioncode.json',
@@ -67,16 +157,12 @@ class WeatherLocationService {
         'output_coord': 'WGS84',
       },
     );
-    final response = await client.get(
-      uri,
-      headers: <String, String>{
-        'Authorization': 'KakaoAK $normalizedKey',
-      },
+    final decoded = await _requestKakaoJson(
+      uri: uri,
+      client: client,
+      kakaoRestApiKey: kakaoRestApiKey,
     );
-    if (response.statusCode != 200) return '';
-
-    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-    if (decoded is! Map<String, dynamic>) return '';
+    if (decoded == null) return '';
     final documents = decoded['documents'];
     if (documents is! List || documents.isEmpty) return '';
 
@@ -120,6 +206,23 @@ class WeatherLocationService {
     }
     if (region1.isNotEmpty) return '$region1, $koreaLabel';
     return koreaLabel;
+  }
+
+  static Future<Map<String, dynamic>?> _requestKakaoJson({
+    required Uri uri,
+    required http.Client client,
+    required String kakaoRestApiKey,
+  }) async {
+    final response = await client.get(
+      uri,
+      headers: <String, String>{
+        'Authorization': 'KakaoAK $kakaoRestApiKey',
+      },
+    );
+    if (response.statusCode != 200) return null;
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    if (decoded is! Map<String, dynamic>) return null;
+    return decoded;
   }
 
   static Future<String> _resolveOpenMeteoPlaceName({
@@ -214,5 +317,25 @@ class WeatherLocationService {
         normalized == 'republic of korea' ||
         country == '대한민국' ||
         country == '한국';
+  }
+
+  static String _compactKoreanAddress({
+    required String addressName,
+    required String koreaLabel,
+  }) {
+    final parts = addressName
+        .split(RegExp(r'\s+'))
+        .where((part) => part.trim().isNotEmpty)
+        .toList(growable: false);
+    if (parts.isEmpty) return koreaLabel;
+    final compact = parts.length > 3 ? parts.sublist(parts.length - 3) : parts;
+    return '${compact.join(' ')}, $koreaLabel';
+  }
+
+  static String _formatCoordinateLabel({
+    required double latitude,
+    required double longitude,
+  }) {
+    return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
   }
 }
