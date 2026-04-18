@@ -3171,6 +3171,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use one shared Drive backup without a server. Child mode owns core records, while parent mode only syncs the family layer.';
 
   @override
+  String get familyBackupIncludesMedia =>
+      'Back up profile photos and training photos too when those files can be collected locally.';
+
+  @override
   String get familyRoleChild => 'Child';
 
   @override
@@ -3258,6 +3262,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyMessageSent => 'Family message sent.';
+
+  @override
+  String get driveConnectedAccount => 'Connected Drive account';
+
+  @override
+  String get driveConnectedAccountEmpty =>
+      'No Google Drive account is connected yet.';
+
+  @override
+  String get driveSharedChildAccount => 'Shared child Drive';
+
+  @override
+  String get driveSharedChildAccountEmpty =>
+      'No child Drive account is known yet. Create at least one child backup first.';
+
+  @override
+  String get familyParentUsesChildDriveHint =>
+      'In parent mode, sign in with the child\'s Google Drive account to sync feedback and family messages into the same backup file.';
+
+  @override
+  String get familyParentUsesChildDriveWarning =>
+      'Parent mode should connect to the child\'s Google Drive account to sync safely into the same family backup.';
+
+  @override
+  String get familyParentFamilyMismatch =>
+      'The connected Drive backup does not match this family data.';
 
   @override
   String get parentReadOnlyProfileDescription =>

@@ -1,4 +1,5 @@
 import '../domain/repositories/backup_repository.dart';
+import 'drive_connection_info.dart';
 import 'drive_backup_service.dart';
 
 class BackupService {
@@ -60,6 +61,27 @@ class BackupService {
       return drive.isSignedIn();
     }
     return false;
+  }
+
+  Future<DriveConnectionInfo?> getDriveConnectionInfo() async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getDriveConnectionInfo();
+    }
+    return null;
+  }
+
+  String getSharedChildDriveEmail() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getSharedChildDriveEmail();
+    }
+    return '';
+  }
+
+  String getSharedChildDriveLabel() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getSharedChildDriveLabel();
+    }
+    return '';
   }
 
   Future<void> signOut() async {
