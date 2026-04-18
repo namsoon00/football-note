@@ -7,20 +7,63 @@ import 'package:http/testing.dart';
 
 void main() {
   group('WeatherLocationService', () {
-    test('uses Kakao address geocoding for Korean coordinates when key exists',
+    test(
+        'uses Kakao administrative region for Korean coordinates when key exists',
         () async {
       final client = MockClient((request) async {
         expect(request.url.host, 'dapi.kakao.com');
         expect(request.headers['Authorization'], 'KakaoAK test-key');
+        expect(request.url.path, '/v2/local/geo/coord2regioncode.json');
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode(<String, dynamic>{
+              'documents': <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'region_type': 'H',
+                  'region_1depth_name': '서울특별시',
+                  'region_2depth_name': '강남구',
+                  'region_3depth_name': '역삼동',
+                  'address_name': '서울특별시 강남구 역삼동',
+                },
+              ],
+            }),
+          ),
+          200,
+        );
+      });
+
+      final place = await WeatherLocationService.resolvePlaceName(
+        latitude: 37.4981,
+        longitude: 127.0276,
+        isKo: true,
+        koreaLabel: '대한민국',
+        kakaoRestApiKey: 'test-key',
+        client: client,
+      );
+
+      expect(place, '강남구 역삼동, 대한민국');
+    });
+
+    test('falls back to Kakao address when region lookup is empty', () async {
+      final client = MockClient((request) async {
+        expect(request.url.host, 'dapi.kakao.com');
+        expect(request.headers['Authorization'], 'KakaoAK test-key');
+        if (request.url.path == '/v2/local/geo/coord2regioncode.json') {
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'documents': <Map<String, dynamic>>[],
+              }),
+            ),
+            200,
+          );
+        }
         expect(request.url.path, '/v2/local/geo/coord2address.json');
         return http.Response.bytes(
           utf8.encode(
             jsonEncode(<String, dynamic>{
               'documents': <Map<String, dynamic>>[
                 <String, dynamic>{
-                  'address': <String, dynamic>{
-                    'address_name': '서울 강남구 역삼동',
-                  },
                   'road_address': <String, dynamic>{
                     'address_name': '서울 강남구 테헤란로 123',
                   },

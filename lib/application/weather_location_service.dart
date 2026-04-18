@@ -70,16 +70,16 @@ class WeatherLocationService {
     final normalizedKey = kakaoRestApiKey.trim();
     if (normalizedKey.isEmpty) return '';
 
-    final addressLabel = await _resolveKakaoAddressName(
+    final regionLabel = await _resolveKakaoRegionName(
       latitude: latitude,
       longitude: longitude,
       koreaLabel: koreaLabel,
       client: client,
       kakaoRestApiKey: normalizedKey,
     );
-    if (addressLabel.isNotEmpty) return addressLabel;
+    if (regionLabel.isNotEmpty) return regionLabel;
 
-    return _resolveKakaoRegionName(
+    return _resolveKakaoAddressName(
       latitude: latitude,
       longitude: longitude,
       koreaLabel: koreaLabel,

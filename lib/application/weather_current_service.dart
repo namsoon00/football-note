@@ -98,6 +98,7 @@ class WeatherCurrentService {
 
   static const String _kmaApiKey =
       '5b3956b221d8776d5c6a9ed898c4a9c31fdf60d6b7e39f41e84385d31de0b82c';
+  static List<_KmaForecastZone>? _forecastZoneCache;
 
   static Future<WeatherCurrentSnapshot> fetchCurrentWeather({
     required double latitude,
@@ -399,7 +400,26 @@ class WeatherCurrentService {
     final precipitationType = _parseKmaInt(currentValues['PTY']) ??
         _parseKmaInt(nearestForecastValues['PTY']);
     final sky = _parseKmaInt(nearestForecastValues['SKY']);
-    final dailyForecasts = _buildKmaDailyForecasts(forecastValuesByTime);
+    final shortRangeDailyForecasts =
+        _buildKmaDailyForecasts(forecastValuesByTime);
+    List<WeatherDailyForecast> midRangeDailyForecasts =
+        const <WeatherDailyForecast>[];
+    try {
+      midRangeDailyForecasts = await _fetchKmaMidRangeDailyForecasts(
+        latitude: latitude,
+        longitude: longitude,
+        client: client,
+        apiKey: apiKey,
+        now: now,
+      );
+    } catch (_) {
+      midRangeDailyForecasts = const <WeatherDailyForecast>[];
+    }
+    final dailyForecasts = _mergeKmaDailyForecasts(
+      shortRange: shortRangeDailyForecasts,
+      midRange: midRangeDailyForecasts,
+      anchorDate: _toKst(now),
+    );
 
     return WeatherDetailsSnapshot(
       provider: WeatherDataProvider.koreaMeteorologicalAdministration,
@@ -422,6 +442,78 @@ class WeatherCurrentService {
           dailyForecasts.isEmpty ? null : dailyForecasts.first.temperatureMin,
       dailyForecasts: dailyForecasts,
     );
+  }
+
+  static Future<List<WeatherDailyForecast>> _fetchKmaMidRangeDailyForecasts({
+    required double latitude,
+    required double longitude,
+    required http.Client client,
+    required String apiKey,
+    required DateTime now,
+  }) async {
+    final forecastZones = await _fetchKmaForecastZones(
+      client: client,
+      apiKey: apiKey,
+    );
+    if (forecastZones.isEmpty) return const <WeatherDailyForecast>[];
+
+    final zone = _selectNearestForecastZone(
+      latitude: latitude,
+      longitude: longitude,
+      zones: forecastZones,
+    );
+    if (zone == null) return const <WeatherDailyForecast>[];
+
+    final zoneById = <String, _KmaForecastZone>{
+      for (final forecastZone in forecastZones)
+        forecastZone.regId: forecastZone,
+    };
+    final landRegIds = _midLandRegIdCandidates(
+      zone: zone,
+      zonesById: zoneById,
+    );
+    final temperatureRegIds = _midTemperatureRegIdCandidates(
+      zone: zone,
+      zonesById: zoneById,
+    );
+    if (landRegIds.isEmpty && temperatureRegIds.isEmpty) {
+      return const <WeatherDailyForecast>[];
+    }
+
+    for (final tmFc in _midForecastBaseTimes(now)) {
+      final landForecastResponse = landRegIds.isEmpty
+          ? null
+          : await _requestKmaMidForecastItemForTmFc(
+              client: client,
+              apiKey: apiKey,
+              endpoint: 'getMidLandFcst',
+              tmFc: tmFc,
+              regIds: landRegIds,
+            );
+      final temperatureForecastResponse = temperatureRegIds.isEmpty
+          ? null
+          : await _requestKmaMidForecastItemForTmFc(
+              client: client,
+              apiKey: apiKey,
+              endpoint: 'getMidTa',
+              tmFc: tmFc,
+              regIds: temperatureRegIds,
+            );
+      if (landForecastResponse == null && temperatureForecastResponse == null) {
+        continue;
+      }
+
+      final forecasts = _buildKmaMidRangeDailyForecasts(
+        landForecast: landForecastResponse?.item,
+        temperatureForecast: temperatureForecastResponse?.item,
+        tmFc: landForecastResponse?.tmFc ?? temperatureForecastResponse!.tmFc,
+      );
+      if (forecasts.isNotEmpty) {
+        return forecasts;
+      }
+    }
+
+    return const <WeatherDailyForecast>[];
   }
 
   static Future<List<Map<String, dynamic>>?> _requestKmaItems({
@@ -457,6 +549,391 @@ class WeatherCurrentService {
       }
     }
     return null;
+  }
+
+  static Future<_KmaMidForecastResponse?> _requestKmaMidForecastItemForTmFc({
+    required http.Client client,
+    required String apiKey,
+    required String endpoint,
+    required String tmFc,
+    required List<String> regIds,
+  }) async {
+    for (final serviceKeyName in const <String>['ServiceKey', 'serviceKey']) {
+      for (final regId in regIds) {
+        final uri = Uri.https(
+          'apis.data.go.kr',
+          '/1360000/MidFcstInfoService/$endpoint',
+          <String, String>{
+            serviceKeyName: apiKey,
+            'pageNo': '1',
+            'numOfRows': '10',
+            'dataType': 'JSON',
+            'regId': regId,
+            'tmFc': tmFc,
+          },
+        );
+        final response = await client.get(uri);
+        if (response.statusCode != 200) continue;
+        final items = _parseKmaItems(response.bodyBytes);
+        if (items == null || items.isEmpty) continue;
+        return _KmaMidForecastResponse(
+          tmFc: tmFc,
+          regId: regId,
+          item: items.first,
+        );
+      }
+    }
+    return null;
+  }
+
+  static Future<List<_KmaForecastZone>> _fetchKmaForecastZones({
+    required http.Client client,
+    required String apiKey,
+  }) async {
+    final cached = _forecastZoneCache;
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+
+    for (final serviceKeyName in const <String>['ServiceKey', 'serviceKey']) {
+      final zones = <_KmaForecastZone>[];
+      for (var page = 1; page <= 10; page++) {
+        final uri = Uri.https(
+          'apis.data.go.kr',
+          '/1360000/FcstZoneInfoService/getFcstZoneCd',
+          <String, String>{
+            serviceKeyName: apiKey,
+            'pageNo': '$page',
+            'numOfRows': '999',
+            'dataType': 'JSON',
+          },
+        );
+        final response = await client.get(uri);
+        if (response.statusCode != 200) break;
+        final items = _parseKmaItems(response.bodyBytes);
+        if (items == null || items.isEmpty) break;
+        zones.addAll(
+          items.map(_KmaForecastZone.fromItem).whereType<_KmaForecastZone>(),
+        );
+        if (items.length < 999) break;
+      }
+      if (zones.isNotEmpty) {
+        final deduped = _dedupeForecastZones(zones);
+        _forecastZoneCache = deduped;
+        return deduped;
+      }
+    }
+
+    return const <_KmaForecastZone>[];
+  }
+
+  static List<_KmaForecastZone> _dedupeForecastZones(
+    List<_KmaForecastZone> zones,
+  ) {
+    final deduped = <String, _KmaForecastZone>{};
+    for (final zone in zones) {
+      final existing = deduped[zone.regId];
+      if (existing == null) {
+        deduped[zone.regId] = zone;
+        continue;
+      }
+      final currentScore = _forecastZoneCompletenessScore(zone);
+      final existingScore = _forecastZoneCompletenessScore(existing);
+      if (currentScore > existingScore) {
+        deduped[zone.regId] = zone;
+      }
+    }
+    return deduped.values.toList(growable: false);
+  }
+
+  static int _forecastZoneCompletenessScore(_KmaForecastZone zone) {
+    var score = 0;
+    if (zone.latitude != null && zone.longitude != null) score += 2;
+    if (zone.regUp.isNotEmpty) score += 1;
+    if (zone.regName.isNotEmpty) score += 1;
+    return score;
+  }
+
+  static _KmaForecastZone? _selectNearestForecastZone({
+    required double latitude,
+    required double longitude,
+    required List<_KmaForecastZone> zones,
+  }) {
+    _KmaForecastZone? selected;
+    var selectedTypeRank = 1 << 30;
+    var selectedDistance = double.infinity;
+
+    for (final zone in zones) {
+      if (!_isLandForecastZone(zone.regSp)) continue;
+      final zoneLatitude = zone.latitude;
+      final zoneLongitude = zone.longitude;
+      if (zoneLatitude == null || zoneLongitude == null) continue;
+
+      final typeRank = _forecastZoneTypeRank(zone.regSp);
+      final distance = _squaredDistance(
+        latitude,
+        longitude,
+        zoneLatitude,
+        zoneLongitude,
+      );
+      if (typeRank < selectedTypeRank ||
+          (typeRank == selectedTypeRank && distance < selectedDistance)) {
+        selected = zone;
+        selectedTypeRank = typeRank;
+        selectedDistance = distance;
+      }
+    }
+
+    if (selected != null) return selected;
+    for (final zone in zones) {
+      if (_isLandForecastZone(zone.regSp)) {
+        return zone;
+      }
+    }
+    return null;
+  }
+
+  static bool _isLandForecastZone(String regSp) {
+    return regSp.startsWith('A') ||
+        regSp.startsWith('B') ||
+        regSp.startsWith('C') ||
+        regSp.startsWith('D') ||
+        regSp.startsWith('E');
+  }
+
+  static int _forecastZoneTypeRank(String regSp) {
+    if (regSp.startsWith('C')) return 0;
+    if (regSp.startsWith('B')) return 1;
+    if (regSp.startsWith('D') || regSp.startsWith('E')) return 2;
+    if (regSp.startsWith('A')) return 3;
+    return 4;
+  }
+
+  static double _squaredDistance(
+    double latitude,
+    double longitude,
+    double otherLatitude,
+    double otherLongitude,
+  ) {
+    final latDelta = latitude - otherLatitude;
+    final lonDelta = longitude - otherLongitude;
+    return (latDelta * latDelta) + (lonDelta * lonDelta);
+  }
+
+  static List<String> _midLandRegIdCandidates({
+    required _KmaForecastZone zone,
+    required Map<String, _KmaForecastZone> zonesById,
+  }) {
+    final lineage = _zoneLineage(zone: zone, zonesById: zonesById);
+    return _dedupeStrings(<String>[
+      for (final candidate in lineage)
+        if (candidate.regSp.startsWith('A')) candidate.regId,
+      for (final candidate in lineage)
+        if (candidate.regSp.startsWith('B')) candidate.regId,
+      zone.regId,
+    ]);
+  }
+
+  static List<String> _midTemperatureRegIdCandidates({
+    required _KmaForecastZone zone,
+    required Map<String, _KmaForecastZone> zonesById,
+  }) {
+    final lineage = _zoneLineage(zone: zone, zonesById: zonesById);
+    return _dedupeStrings(<String>[
+      for (final candidate in lineage)
+        if (candidate.regSp.startsWith('C') ||
+            candidate.regSp.startsWith('B') ||
+            candidate.regSp.startsWith('D') ||
+            candidate.regSp.startsWith('E'))
+          candidate.regId,
+      for (final candidate in lineage)
+        if (candidate.regSp.startsWith('A')) candidate.regId,
+    ]);
+  }
+
+  static List<_KmaForecastZone> _zoneLineage({
+    required _KmaForecastZone zone,
+    required Map<String, _KmaForecastZone> zonesById,
+  }) {
+    final lineage = <_KmaForecastZone>[];
+    final visited = <String>{};
+    _KmaForecastZone? current = zone;
+    while (current != null && visited.add(current.regId)) {
+      lineage.add(current);
+      current = current.regUp.isEmpty ? null : zonesById[current.regUp];
+    }
+    return lineage;
+  }
+
+  static List<String> _dedupeStrings(List<String> values) {
+    final deduped = <String>[];
+    final seen = <String>{};
+    for (final value in values) {
+      final normalized = value.trim();
+      if (normalized.isEmpty || !seen.add(normalized)) continue;
+      deduped.add(normalized);
+    }
+    return deduped;
+  }
+
+  static List<String> _midForecastBaseTimes(DateTime now) {
+    final kst = _toKst(now).subtract(const Duration(minutes: 40));
+    final candidates = <String>[];
+    for (var daysBack = 0; daysBack <= 1; daysBack++) {
+      final day = DateTime(kst.year, kst.month, kst.day)
+          .subtract(Duration(days: daysBack));
+      for (final hour in const <int>[18, 6]) {
+        final candidate = DateTime(day.year, day.month, day.day, hour);
+        if (!candidate.isAfter(kst)) {
+          final baseTime = _formatKmaBaseTime(candidate);
+          candidates.add('${baseTime.date}${baseTime.time}');
+        }
+      }
+    }
+    return candidates;
+  }
+
+  static List<WeatherDailyForecast> _buildKmaMidRangeDailyForecasts({
+    required Map<String, dynamic>? landForecast,
+    required Map<String, dynamic>? temperatureForecast,
+    required String tmFc,
+  }) {
+    if (landForecast == null && temperatureForecast == null) {
+      return const <WeatherDailyForecast>[];
+    }
+
+    final anchorDate = _parseKmaAnchorDate(tmFc);
+    if (anchorDate == null) return const <WeatherDailyForecast>[];
+
+    final forecasts = <WeatherDailyForecast>[];
+    for (var dayOffset = 3; dayOffset <= 10; dayOffset++) {
+      final date = anchorDate.add(Duration(days: dayOffset));
+      final weatherCode = _kmaMidRangeWeatherCode(
+        landForecast: landForecast,
+        dayOffset: dayOffset,
+      );
+      final temperatureMin = dayOffset >= 4
+          ? _parseKmaDouble(
+              temperatureForecast?['taMin$dayOffset']?.toString(),
+            )
+          : null;
+      final temperatureMax = dayOffset >= 4
+          ? _parseKmaDouble(
+              temperatureForecast?['taMax$dayOffset']?.toString(),
+            )
+          : null;
+      if (weatherCode == null &&
+          temperatureMin == null &&
+          temperatureMax == null) {
+        continue;
+      }
+
+      forecasts.add(
+        WeatherDailyForecast(
+          date: date,
+          weatherCode: weatherCode,
+          temperatureMax: temperatureMax,
+          temperatureMin: temperatureMin,
+        ),
+      );
+    }
+    return forecasts;
+  }
+
+  static DateTime? _parseKmaAnchorDate(String tmFc) {
+    if (tmFc.length < 8) return null;
+    final year = int.tryParse(tmFc.substring(0, 4));
+    final month = int.tryParse(tmFc.substring(4, 6));
+    final day = int.tryParse(tmFc.substring(6, 8));
+    if (year == null || month == null || day == null) return null;
+    return DateTime(year, month, day);
+  }
+
+  static int? _kmaMidRangeWeatherCode({
+    required Map<String, dynamic>? landForecast,
+    required int dayOffset,
+  }) {
+    if (landForecast == null) return null;
+    if (dayOffset <= 7) {
+      final amText = landForecast['wf${dayOffset}Am']?.toString();
+      final pmText = landForecast['wf${dayOffset}Pm']?.toString();
+      return _mapKmaMidWeatherTextPairToCode(
+        morningText: amText,
+        afternoonText: pmText,
+      );
+    }
+    return _mapKmaMidWeatherTextToCode(
+      landForecast['wf$dayOffset']?.toString(),
+    );
+  }
+
+  static int? _mapKmaMidWeatherTextPairToCode({
+    required String? morningText,
+    required String? afternoonText,
+  }) {
+    final morningCode = _mapKmaMidWeatherTextToCode(morningText);
+    final afternoonCode = _mapKmaMidWeatherTextToCode(afternoonText);
+    if (morningCode == null) return afternoonCode;
+    if (afternoonCode == null) return morningCode;
+    final morningSeverity = _weatherCodeSeverity(morningCode);
+    final afternoonSeverity = _weatherCodeSeverity(afternoonCode);
+    if (morningSeverity > afternoonSeverity) return morningCode;
+    if (afternoonSeverity > morningSeverity) return afternoonCode;
+    return morningCode >= afternoonCode ? morningCode : afternoonCode;
+  }
+
+  static int? _mapKmaMidWeatherTextToCode(String? weatherText) {
+    if (weatherText == null) return null;
+    final normalized = weatherText.trim();
+    if (normalized.isEmpty) return null;
+
+    if ((normalized.contains('비') && normalized.contains('눈')) ||
+        normalized.contains('진눈깨비')) {
+      return 67;
+    }
+    if (normalized.contains('눈')) return 71;
+    if (normalized.contains('비') || normalized.contains('소나기')) return 61;
+    if (normalized.contains('흐림')) return 3;
+    if (normalized.contains('구름많')) return 2;
+    if (normalized.contains('구름조금')) return 1;
+    if (normalized.contains('맑')) return 0;
+    return null;
+  }
+
+  static List<WeatherDailyForecast> _mergeKmaDailyForecasts({
+    required List<WeatherDailyForecast> shortRange,
+    required List<WeatherDailyForecast> midRange,
+    required DateTime anchorDate,
+  }) {
+    final today = DateTime(anchorDate.year, anchorDate.month, anchorDate.day);
+    final mergedByDate = <DateTime, WeatherDailyForecast>{};
+
+    for (final forecast in [...shortRange, ...midRange]) {
+      final date = DateTime(
+        forecast.date.year,
+        forecast.date.month,
+        forecast.date.day,
+      );
+      if (date.isBefore(today)) continue;
+      mergedByDate.putIfAbsent(
+        date,
+        () => WeatherDailyForecast(
+          date: date,
+          weatherCode: forecast.weatherCode,
+          temperatureMax: forecast.temperatureMax,
+          temperatureMin: forecast.temperatureMin,
+          precipitationSum: forecast.precipitationSum,
+          windSpeedMax: forecast.windSpeedMax,
+          uvIndexMax: forecast.uvIndexMax,
+        ),
+      );
+    }
+
+    final dates = mergedByDate.keys.toList()..sort();
+    return dates
+        .take(7)
+        .map((date) => mergedByDate[date]!)
+        .toList(growable: false);
   }
 
   static List<Map<String, dynamic>>? _parseKmaItems(List<int> bodyBytes) {
@@ -807,6 +1284,49 @@ class _ForecastGrid {
 
   final int x;
   final int y;
+}
+
+class _KmaForecastZone {
+  const _KmaForecastZone({
+    required this.regId,
+    required this.regName,
+    required this.regSp,
+    required this.regUp,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  final String regId;
+  final String regName;
+  final String regSp;
+  final String regUp;
+  final double? latitude;
+  final double? longitude;
+
+  static _KmaForecastZone? fromItem(Map<String, dynamic> item) {
+    final regId = (item['regId'] ?? item['regid'] ?? '').toString().trim();
+    if (regId.isEmpty) return null;
+    return _KmaForecastZone(
+      regId: regId,
+      regName: (item['regName'] ?? item['regname'] ?? '').toString().trim(),
+      regSp: (item['regSp'] ?? item['regsp'] ?? '').toString().trim(),
+      regUp: (item['regUp'] ?? item['regup'] ?? '').toString().trim(),
+      latitude: WeatherCurrentService._parseKmaDouble(item['lat']?.toString()),
+      longitude: WeatherCurrentService._parseKmaDouble(item['lon']?.toString()),
+    );
+  }
+}
+
+class _KmaMidForecastResponse {
+  const _KmaMidForecastResponse({
+    required this.tmFc,
+    required this.regId,
+    required this.item,
+  });
+
+  final String tmFc;
+  final String regId;
+  final Map<String, dynamic> item;
 }
 
 class _KmaBaseTime {
