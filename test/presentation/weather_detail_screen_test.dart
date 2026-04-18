@@ -36,6 +36,9 @@ void main() {
     expect(find.text('강남구 역삼1동, 한국'), findsOneWidget);
     expect(find.text('21.0°C'), findsOneWidget);
     expect(find.text('맑음'), findsOneWidget);
+    expect(find.text('미세먼지 PM10'), findsOneWidget);
+    expect(find.text('초미세먼지 PM2.5'), findsOneWidget);
+    expect(find.text('대기질'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

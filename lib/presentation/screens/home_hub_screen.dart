@@ -17,7 +17,6 @@ import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
-import '../../application/weather_current_service.dart';
 import '../../application/weather_location_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/entities/meal_entry.dart';
@@ -470,35 +469,28 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         _weatherLocation = place;
       });
 
-      _HomeWeatherSnapshot weather = const _HomeWeatherSnapshot(summary: '');
+      WeatherHomeWarmupResult weather = const WeatherHomeWarmupResult(
+        summary: '',
+      );
       try {
-        weather = await _fetchCurrentWeather(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          l10n: l10n,
-        );
-      } catch (_) {
-        weather = const _HomeWeatherSnapshot(summary: '');
-      }
-
-      if (!mounted) return;
-      if (weather.summary.trim().isNotEmpty || weather.code != null) {
-        setState(() {
-          _weatherCode = weather.code;
-          _weatherSummary = weather.summary;
-        });
-      }
-      unawaited(
-        WeatherDetailScreen.warmUpFromHomeSync(
+        weather = await WeatherDetailScreen.fetchForHome(
           latitude: position.latitude,
           longitude: position.longitude,
           location: place,
           l10n: l10n,
           locale: locale,
-          summary: weather.summary,
-          weatherCode: weather.code,
-        ),
-      );
+        );
+      } catch (_) {
+        weather = const WeatherHomeWarmupResult(summary: '');
+      }
+
+      if (!mounted) return;
+      if (weather.summary.trim().isNotEmpty || weather.weatherCode != null) {
+        setState(() {
+          _weatherCode = weather.weatherCode;
+          _weatherSummary = weather.summary;
+        });
+      }
     } catch (_) {
       if (mounted) {
         final shouldNeedLocation = _weatherLocation.trim().isEmpty;
@@ -533,84 +525,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         isKo: isKo,
         koreaLabel: koreaLabel,
       );
-
-  Future<_HomeWeatherSnapshot> _fetchCurrentWeather({
-    required double latitude,
-    required double longitude,
-    required AppLocalizations l10n,
-  }) async {
-    final snapshot = await WeatherCurrentService.fetchCurrentWeather(
-      latitude: latitude,
-      longitude: longitude,
-    );
-    final temp = snapshot.temperature;
-    final code = snapshot.weatherCode;
-    if (temp == null && code == null) {
-      return const _HomeWeatherSnapshot(summary: '');
-    }
-    final summary = _buildWeatherSummary(
-      temperature: temp,
-      weatherCode: code,
-      l10n: l10n,
-    );
-    return _HomeWeatherSnapshot(code: code, summary: summary);
-  }
-
-  String _buildWeatherSummary({
-    required double? temperature,
-    required int? weatherCode,
-    required AppLocalizations l10n,
-  }) {
-    final weatherText =
-        weatherCode == null ? '' : _weatherLabelFromCode(weatherCode, l10n);
-    final tempText =
-        temperature == null ? '' : '${temperature.toStringAsFixed(1)}°C';
-    if (weatherText.isEmpty) return tempText;
-    if (tempText.isEmpty) return weatherText;
-    return '$weatherText $tempText';
-  }
-
-  String _weatherLabelFromCode(int? code, AppLocalizations l10n) {
-    switch (code) {
-      case 0:
-        return l10n.weatherLabelClear;
-      case 1:
-      case 2:
-      case 3:
-        return l10n.weatherLabelCloudy;
-      case 45:
-      case 48:
-        return l10n.weatherLabelFog;
-      case 51:
-      case 53:
-      case 55:
-      case 56:
-      case 57:
-        return l10n.weatherLabelDrizzle;
-      case 61:
-      case 63:
-      case 65:
-      case 66:
-      case 67:
-      case 80:
-      case 81:
-      case 82:
-        return l10n.weatherLabelRain;
-      case 71:
-      case 73:
-      case 75:
-      case 77:
-      case 85:
-      case 86:
-        return l10n.weatherLabelSnow;
-      case 95:
-      case 96:
-      case 99:
-        return l10n.weatherLabelThunderstorm;
-      default:
-        return l10n.weatherLabelDefault;
-    }
-  }
 
   Future<void> _openWeatherDetails({
     WeatherDetailInitialAction initialAction = WeatherDetailInitialAction.none,
@@ -3080,11 +2994,4 @@ class _TodoChip extends StatelessWidget {
       ),
     );
   }
-}
-
-class _HomeWeatherSnapshot {
-  final int? code;
-  final String summary;
-
-  const _HomeWeatherSnapshot({this.code, required this.summary});
 }
