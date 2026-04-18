@@ -12,6 +12,16 @@ import '../../application/weather_current_service.dart';
 import '../../application/weather_location_service.dart';
 import '../widgets/app_background.dart';
 
+class WeatherHomeWarmupResult {
+  final String summary;
+  final int? weatherCode;
+
+  const WeatherHomeWarmupResult({
+    required this.summary,
+    this.weatherCode,
+  });
+}
+
 enum WeatherDetailInitialAction { none, outfitGuide }
 
 class WeatherDetailScreen extends StatefulWidget {
@@ -28,26 +38,34 @@ class WeatherDetailScreen extends StatefulWidget {
     this.initialAction = WeatherDetailInitialAction.none,
   });
 
-  static Future<void> warmUpFromHomeSync({
+  static Future<WeatherHomeWarmupResult> fetchForHome({
     required double latitude,
     required double longitude,
     required String location,
     required AppLocalizations l10n,
     required Locale locale,
-    required String summary,
-    required int? weatherCode,
   }) async {
-    final fetched = await _fetchWeatherSnapshotStatic(
+    final snapshot = await _fetchWeatherSnapshotStatic(
       latitude: latitude,
       longitude: longitude,
       l10n: l10n,
     );
-    final snapshot = fetched.summary.trim().isEmpty
-        ? _WeatherDetailsSnapshot(
-            summary: summary.trim(),
-            weatherCode: weatherCode,
-          )
-        : fetched;
+    _cacheHomeSnapshot(
+      location: location,
+      snapshot: snapshot,
+      locale: locale,
+    );
+    return WeatherHomeWarmupResult(
+      summary: snapshot.summary,
+      weatherCode: snapshot.weatherCode,
+    );
+  }
+
+  static void _cacheHomeSnapshot({
+    required String location,
+    required _WeatherDetailsSnapshot snapshot,
+    required Locale locale,
+  }) {
     _WeatherDetailScreenState._cachedDetails = _CachedWeatherDetails(
       location: location.trim(),
       snapshot: snapshot,
@@ -309,9 +327,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final hasWeather = _summary.isNotEmpty;
-    final airLevel = _aqiLevel(l10n, _aqi, _airQualityScale);
     final pm10Level = _pm10Level(l10n, _pm10);
     final pm25Level = _pm25Level(l10n, _pm25);
+    final pm10Metric = _buildParticleMetricValue(_pm10, pm10Level);
+    final pm25Metric = _buildParticleMetricValue(_pm25, pm25Level);
     final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
     return Scaffold(
@@ -363,6 +382,16 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                           value: _formatWind(_windSpeed),
                           icon: Icons.air_rounded,
                         ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherPm10,
+                          value: pm10Metric,
+                          icon: Icons.grain_rounded,
+                        ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherPm25,
+                          value: pm25Metric,
+                          icon: Icons.blur_on_rounded,
+                        ),
                       ]
                     : const <_CompactMetricData>[],
               ),
@@ -377,30 +406,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   ),
                   onTrainingTap: () =>
                       _showTrainingGuideSheet(isKo: isKo, guide: trainingGuide),
-                ),
-                const SizedBox(height: 16),
-                _AirQualityCard(
-                  title: l10n.homeWeatherAirQualityTitle,
-                  subtitle: l10n.homeWeatherAirQualitySubtitle,
-                  status: airLevel.label,
-                  aqiLabel: l10n.homeWeatherAqiLabel,
-                  aqiDescription: l10n.homeWeatherAqiDescription,
-                  aqiValue: _aqi == null ? '--' : '$_aqi',
-                  aqiStatus: airLevel.label,
-                  aqiLevel: airLevel.level,
-                  pm10Label: l10n.homeWeatherPm10,
-                  pm10Value: _formatParticles(_pm10),
-                  pm10Status: pm10Level.label,
-                  pm10Level: pm10Level.level,
-                  pm25Label: l10n.homeWeatherPm25,
-                  pm25Value: _formatParticles(_pm25),
-                  pm25Status: pm25Level.label,
-                  pm25Level: pm25Level.level,
-                  scaleLabels: <String>[
-                    l10n.homeWeatherAqiScaleGood,
-                    l10n.homeWeatherAqiScaleModerate,
-                    l10n.homeWeatherAqiScaleSensitive,
-                  ],
                 ),
                 const SizedBox(height: 16),
                 _TomorrowWeatherCard(
@@ -804,6 +809,14 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatParticles(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} µg/m³';
 
+  String _buildParticleMetricValue(double? value, _AirLevelLabel level) {
+    final particles = _formatParticles(value);
+    if (particles == '--' || level.label == '--') {
+      return particles;
+    }
+    return '$particles · ${level.label}';
+  }
+
   double? get _todayPrecipitation {
     if (_dailyForecasts.isNotEmpty) {
       return _dailyForecasts.first.precipitationSum ?? _precipitation;
@@ -876,6 +889,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         isKo: isKo,
         l10n: l10n,
         apparentTemperature: _apparentTemperature ?? _temperatureMax,
+        precipitationMm: _todayPrecipitation,
         windSpeed: _windSpeed ?? 0,
         weatherCode: _weatherCode,
         airLevel: _worstAirQualityLevel(),
@@ -885,31 +899,39 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required bool isKo,
     required AppLocalizations l10n,
     required double? apparentTemperature,
+    required double? precipitationMm,
     required double windSpeed,
     required int? weatherCode,
     required _AirQualityLevel airLevel,
   }) {
+    final isStormy =
+        weatherCode != null && <int>{95, 96, 99}.contains(weatherCode);
+    final hasPrecipitation = (precipitationMm ?? 0) >= 1;
+    final hasHeavyPrecipitation = (precipitationMm ?? 0) >= 8;
     final isRainy = weatherCode != null &&
-        <int>{
-          51,
-          53,
-          55,
-          56,
-          57,
-          61,
-          63,
-          65,
-          66,
-          67,
-          80,
-          81,
-          82,
-          95,
-          96,
-          99,
-        }.contains(weatherCode);
+            <int>{
+              51,
+              53,
+              55,
+              56,
+              57,
+              61,
+              63,
+              65,
+              66,
+              67,
+              80,
+              81,
+              82,
+              95,
+              96,
+              99,
+            }.contains(weatherCode) ||
+        hasPrecipitation;
     final isSnowy = weatherCode != null &&
         <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
+    final isWindy = windSpeed >= 20;
+    final isVeryWindy = windSpeed >= 28;
 
     String layers;
     String outer;
@@ -978,7 +1000,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       );
     }
 
-    if (windSpeed >= 20) {
+    if (isWindy) {
       notes.add(
         isKo
             ? '강풍: 바람막이/넥워머 필수'
@@ -992,20 +1014,28 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       );
     }
     if (isRainy) {
-      outer = isKo
-          ? '생활방수 자켓 + 얇은 미들레이어'
-          : 'Water-resistant jacket + light midlayer';
+      outer = isStormy || hasHeavyPrecipitation || isVeryWindy
+          ? (isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket')
+          : (isKo
+              ? '생활방수 자켓 + 얇은 미들레이어'
+              : 'Water-resistant jacket + light midlayer');
       accessories = isKo
           ? '$accessories, 방수 양말 또는 여벌 양말'
           : '$accessories, waterproof or spare socks';
       notes.add(isKo ? '젖은 잔디 미끄럼 주의' : 'Watch slippery wet grass');
+      if (hasHeavyPrecipitation ||
+          isStormy ||
+          (apparentTemperature != null && apparentTemperature < 18)) {
+        bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
+      }
       callouts.add(
         _OutfitCoachCallout(
           icon: Icons.umbrella_outlined,
           text: l10n.homeWeatherOutfitRain,
         ),
       );
-    } else if (isSnowy) {
+    }
+    if (isSnowy) {
       outer = isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket';
       accessories = isKo
           ? '$accessories, 손난로(선택)'
@@ -1018,7 +1048,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         ),
       );
     }
-    if ((isSnowy || windSpeed >= 25) &&
+    if ((isSnowy || isRainy || windSpeed >= 25) &&
         apparentTemperature != null &&
         apparentTemperature < 8) {
       bottom = isKo ? '기모 긴바지' : 'Fleece-lined pants';
@@ -1053,6 +1083,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       isKo: isKo,
       l10n: l10n,
       apparentTemperature: 31,
+      precipitationMm: 0,
       windSpeed: 8,
       weatherCode: 0,
       airLevel: _AirQualityLevel.good,
@@ -1061,6 +1092,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       isKo: isKo,
       l10n: l10n,
       apparentTemperature: 25,
+      precipitationMm: 0,
       windSpeed: 10,
       weatherCode: 1,
       airLevel: _AirQualityLevel.good,
@@ -1069,6 +1101,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       isKo: isKo,
       l10n: l10n,
       apparentTemperature: 18,
+      precipitationMm: 0,
       windSpeed: 11,
       weatherCode: 1,
       airLevel: _AirQualityLevel.good,
@@ -1077,6 +1110,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       isKo: isKo,
       l10n: l10n,
       apparentTemperature: 11,
+      precipitationMm: 0,
       windSpeed: 15,
       weatherCode: 2,
       airLevel: _AirQualityLevel.good,
@@ -1085,6 +1119,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       isKo: isKo,
       l10n: l10n,
       apparentTemperature: 5,
+      precipitationMm: 0,
       windSpeed: 12,
       weatherCode: 0,
       airLevel: _AirQualityLevel.good,
@@ -1093,6 +1128,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       isKo: isKo,
       l10n: l10n,
       apparentTemperature: 6,
+      precipitationMm: 12,
       windSpeed: 18,
       weatherCode: 61,
       airLevel: _AirQualityLevel.moderate,
@@ -1637,165 +1673,6 @@ class _MetricCard extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AirQualityCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String status;
-  final String aqiLabel;
-  final String aqiDescription;
-  final String aqiValue;
-  final String aqiStatus;
-  final _AirQualityLevel aqiLevel;
-  final String pm10Label;
-  final String pm10Value;
-  final String pm10Status;
-  final _AirQualityLevel pm10Level;
-  final String pm25Label;
-  final String pm25Value;
-  final String pm25Status;
-  final _AirQualityLevel pm25Level;
-  final List<String> scaleLabels;
-
-  const _AirQualityCard({
-    required this.title,
-    required this.subtitle,
-    required this.status,
-    required this.aqiLabel,
-    required this.aqiDescription,
-    required this.aqiValue,
-    required this.aqiStatus,
-    required this.aqiLevel,
-    required this.pm10Label,
-    required this.pm10Value,
-    required this.pm10Status,
-    required this.pm10Level,
-    required this.pm25Label,
-    required this.pm25Value,
-    required this.pm25Status,
-    required this.pm25Level,
-    required this.scaleLabels,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _StatusBadge(label: status, level: aqiLevel),
-              for (final scaleLabel in scaleLabels)
-                _NeutralInfoChip(label: scaleLabel),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  aqiLabel,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text(
-                      aqiValue,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: _airQualityPalette(theme, aqiLevel).foreground,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    _StatusBadge(label: aqiStatus, level: aqiLevel),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  aqiDescription,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.4,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _AirQualityMetric(
-                  label: aqiLabel,
-                  value: aqiValue,
-                  status: aqiStatus,
-                  level: aqiLevel,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _AirQualityMetric(
-                  label: pm10Label,
-                  value: pm10Value,
-                  status: pm10Status,
-                  level: pm10Level,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _AirQualityMetric(
-                  label: pm25Label,
-                  value: pm25Value,
-                  status: pm25Status,
-                  level: pm25Level,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -3141,99 +3018,6 @@ class _NeutralInfoChip extends StatelessWidget {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
-  final String label;
-  final _AirQualityLevel level;
-
-  const _StatusBadge({required this.label, required this.level});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = _airQualityPalette(theme, level);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: palette.background,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: palette.border),
-      ),
-      child: Text(
-        label,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: palette.foreground,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
-class _AirQualityMetric extends StatelessWidget {
-  final String label;
-  final String value;
-  final String status;
-  final _AirQualityLevel level;
-
-  const _AirQualityMetric({
-    required this.label,
-    required this.value,
-    required this.status,
-    required this.level,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = _airQualityPalette(theme, level);
-    return SizedBox(
-      height: 124,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: palette.background,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: palette.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: palette.foreground,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              status,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: palette.foreground,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 abstract interface class _WeatherLabelLocalizer {
   String get clear;
   String get cloudy;
@@ -3290,112 +3074,6 @@ class _AirLevelLabel {
   final _AirQualityLevel level;
 
   const _AirLevelLabel(this.label, this.level);
-}
-
-class _AirQualityPalette {
-  final Color background;
-  final Color border;
-  final Color foreground;
-
-  const _AirQualityPalette({
-    required this.background,
-    required this.border,
-    required this.foreground,
-  });
-}
-
-_AirQualityPalette _airQualityPalette(ThemeData theme, _AirQualityLevel level) {
-  final isDark = theme.brightness == Brightness.dark;
-  if (isDark) {
-    switch (level) {
-      case _AirQualityLevel.good:
-        return const _AirQualityPalette(
-          background: Color(0xFF0D2B1A),
-          border: Color(0xFF2F8A54),
-          foreground: Color(0xFFA6E9C0),
-        );
-      case _AirQualityLevel.moderate:
-        return const _AirQualityPalette(
-          background: Color(0xFF2D260E),
-          border: Color(0xFF9B7A2F),
-          foreground: Color(0xFFF3D585),
-        );
-      case _AirQualityLevel.sensitive:
-        return const _AirQualityPalette(
-          background: Color(0xFF2D1F10),
-          border: Color(0xFFB67933),
-          foreground: Color(0xFFFFC37A),
-        );
-      case _AirQualityLevel.unhealthy:
-        return const _AirQualityPalette(
-          background: Color(0xFF32191A),
-          border: Color(0xFFB45353),
-          foreground: Color(0xFFFFADAD),
-        );
-      case _AirQualityLevel.veryUnhealthy:
-        return const _AirQualityPalette(
-          background: Color(0xFF2A1A33),
-          border: Color(0xFF8F63B8),
-          foreground: Color(0xFFD6B7F4),
-        );
-      case _AirQualityLevel.hazardous:
-        return const _AirQualityPalette(
-          background: Color(0xFF351426),
-          border: Color(0xFFB64F81),
-          foreground: Color(0xFFFFAED1),
-        );
-      case _AirQualityLevel.unknown:
-        return _AirQualityPalette(
-          background: theme.colorScheme.surfaceContainerHigh,
-          border: theme.colorScheme.outlineVariant,
-          foreground: theme.colorScheme.onSurfaceVariant,
-        );
-    }
-  }
-  switch (level) {
-    case _AirQualityLevel.good:
-      return const _AirQualityPalette(
-        background: Color(0xFFE7F7EC),
-        border: Color(0xFF6FC38A),
-        foreground: Color(0xFF1C6B3D),
-      );
-    case _AirQualityLevel.moderate:
-      return const _AirQualityPalette(
-        background: Color(0xFFFFF6DE),
-        border: Color(0xFFE6C15A),
-        foreground: Color(0xFF8A6A07),
-      );
-    case _AirQualityLevel.sensitive:
-      return const _AirQualityPalette(
-        background: Color(0xFFFFF0DF),
-        border: Color(0xFFF0A860),
-        foreground: Color(0xFF9B5B17),
-      );
-    case _AirQualityLevel.unhealthy:
-      return const _AirQualityPalette(
-        background: Color(0xFFFDE8E8),
-        border: Color(0xFFE07A7A),
-        foreground: Color(0xFF9B2E2E),
-      );
-    case _AirQualityLevel.veryUnhealthy:
-      return const _AirQualityPalette(
-        background: Color(0xFFF2E8FA),
-        border: Color(0xFFB089D9),
-        foreground: Color(0xFF64358E),
-      );
-    case _AirQualityLevel.hazardous:
-      return const _AirQualityPalette(
-        background: Color(0xFFFFE3F0),
-        border: Color(0xFFE06AA3),
-        foreground: Color(0xFF8E1E57),
-      );
-    case _AirQualityLevel.unknown:
-      return _AirQualityPalette(
-        background: theme.colorScheme.surfaceContainerHighest,
-        border: theme.colorScheme.outlineVariant,
-        foreground: theme.colorScheme.onSurfaceVariant,
-      );
-  }
 }
 
 class _WeatherDetailsSnapshot {
