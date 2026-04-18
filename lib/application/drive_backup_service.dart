@@ -89,6 +89,7 @@ class DriveBackupService implements BackupRepository {
     _lastBackupKey,
     _localPreRestoreKey,
     _localPreRestoreAtKey,
+    FamilyAccessService.messagesKey,
     connectedDriveEmailLocalKey,
     connectedDriveLabelLocalKey,
     connectedDriveSubjectLocalKey,

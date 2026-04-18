@@ -12,7 +12,6 @@ void main() {
     expect(state.currentRole, FamilyRole.child);
     expect(state.childName, 'Minjun');
     expect(state.parentName, isEmpty);
-    expect(state.messages, isEmpty);
     expect(state.backupPolicy.childOwnsCoreData, isTrue);
     expect(state.backupPolicy.parentMergesFamilyLayerOnly, isTrue);
   });
@@ -27,31 +26,6 @@ void main() {
     expect(state.familyId, startsWith('family-'));
     expect(state.childName, 'Minjun');
     expect(state.parentName, 'Dad');
-  });
-
-  test('adding message stores newest first with parent feedback type',
-      () async {
-    final repository = _MemoryOptionRepository();
-    final service = FamilyAccessService(repository);
-    await service.saveMembers(childName: 'Minjun', parentName: 'Dad');
-    await service.setCurrentRole(FamilyRole.parent);
-
-    final first = await service.addMessage(
-      body: 'Great recovery after training.',
-      createdAt: DateTime(2026, 4, 18, 9),
-      authorName: 'Dad',
-    );
-    final second = await service.addMessage(
-      body: 'Let us talk about tomorrow.',
-      createdAt: DateTime(2026, 4, 18, 10),
-      authorName: 'Dad',
-    );
-
-    final state = service.loadState();
-    expect(state.messages, hasLength(2));
-    expect(state.messages.first.id, second.id);
-    expect(state.messages.first.kind, FamilyMessageKind.feedback);
-    expect(state.messages.last.id, first.id);
   });
 
   test('shared backup keys exclude local role and include reward names', () {
@@ -72,6 +46,12 @@ void main() {
         'player_custom_reward_names_v1',
       ),
       isTrue,
+    );
+    expect(
+      FamilyAccessService.isSharedBackupOptionKey(
+        FamilyAccessService.messagesKey,
+      ),
+      isFalse,
     );
   });
 }
