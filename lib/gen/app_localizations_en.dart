@@ -3175,6 +3175,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Back up profile photos and training photos too when those files can be collected locally.';
 
   @override
+  String get familyChildDriveConnectionTitle => 'Connect child\'s Google Drive';
+
+  @override
+  String get familyChildDriveConnectionDescription =>
+      'In parent mode, connect the same Google Drive account the child uses so both roles can share one family backup file.';
+
+  @override
+  String get familyConnectChildDrive => 'Connect child Drive';
+
+  @override
+  String get familyDisconnectChildDrive => 'Disconnect child Drive';
+
+  @override
   String get familyRoleChild => 'Child';
 
   @override

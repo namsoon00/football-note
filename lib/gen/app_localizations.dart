@@ -5504,6 +5504,30 @@ abstract class AppLocalizations {
   /// **'Back up profile photos and training photos too when those files can be collected locally.'**
   String get familyBackupIncludesMedia;
 
+  /// No description provided for @familyChildDriveConnectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect child\'s Google Drive'**
+  String get familyChildDriveConnectionTitle;
+
+  /// No description provided for @familyChildDriveConnectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'In parent mode, connect the same Google Drive account the child uses so both roles can share one family backup file.'**
+  String get familyChildDriveConnectionDescription;
+
+  /// No description provided for @familyConnectChildDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect child Drive'**
+  String get familyConnectChildDrive;
+
+  /// No description provided for @familyDisconnectChildDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect child Drive'**
+  String get familyDisconnectChildDrive;
+
   /// No description provided for @familyRoleChild.
   ///
   /// In en, this message translates to:

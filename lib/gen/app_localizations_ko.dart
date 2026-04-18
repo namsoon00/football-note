@@ -3074,6 +3074,19 @@ class AppLocalizationsKo extends AppLocalizations {
       '프로필 사진과 훈련 사진처럼 기기 파일로 저장된 항목도 가능한 범위에서 함께 백업합니다.';
 
   @override
+  String get familyChildDriveConnectionTitle => '아이 Google Drive 연결';
+
+  @override
+  String get familyChildDriveConnectionDescription =>
+      '부모 모드에서는 아이가 쓰는 Google Drive 계정으로 연결해야 같은 가족 백업 파일을 함께 사용할 수 있어요.';
+
+  @override
+  String get familyConnectChildDrive => '아이 Drive 연결';
+
+  @override
+  String get familyDisconnectChildDrive => '아이 Drive 연결 해제';
+
+  @override
   String get familyRoleChild => '아이';
 
   @override
