@@ -366,7 +366,7 @@ void main() {
     );
   });
 
-  test('stores player drive account separately', () async {
+  test('stores record mode drive account separately', () async {
     service = DriveBackupService(
       trainingBox,
       optionBox,
@@ -378,14 +378,96 @@ void main() {
       ),
     );
 
-    await service.rememberPlayerDriveConnection();
+    await service.rememberRecordDriveConnection();
 
-    expect(service.getSavedPlayerDriveEmail(), 'player@example.com');
-    expect(service.getSavedPlayerDriveLabel(), 'Player · player@example.com');
+    expect(service.getSavedRecordDriveEmail(), 'player@example.com');
+    expect(service.getSavedRecordDriveLabel(), 'Player · player@example.com');
     expect(
-      optionBox.get(DriveBackupService.playerDriveSubjectLocalKey),
+      optionBox.get(DriveBackupService.recordDriveSubjectLocalKey),
       'player-subject',
     );
+  });
+
+  test('stores parent mode drive account separately', () async {
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'parent@example.com',
+        displayName: 'Parent',
+        subjectId: 'parent-subject',
+      ),
+    );
+
+    await service.rememberParentDriveConnection();
+
+    expect(service.getSavedParentDriveEmail(), 'parent@example.com');
+    expect(service.getSavedParentDriveLabel(), 'Parent · parent@example.com');
+    expect(
+      optionBox.get(DriveBackupService.parentDriveSubjectLocalKey),
+      'parent-subject',
+    );
+  });
+
+  test('restore keeps saved record and parent drive caches unchanged',
+      () async {
+    await optionBox.put(
+      DriveBackupService.recordDriveEmailLocalKey,
+      'record@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveLabelLocalKey,
+      'Record · record@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.recordDriveSubjectLocalKey,
+      'record-subject',
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveEmailLocalKey,
+      'parent@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveLabelLocalKey,
+      'Parent · parent@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.parentDriveSubjectLocalKey,
+      'parent-subject',
+    );
+
+    await service.restoreFromMapForTesting(<String, dynamic>{
+      'version': 5,
+      'createdAt': '2026-04-19T08:00:00.000',
+      'entries': const <dynamic>[],
+      'options': <String, dynamic>{'theme_mode': 'dark'},
+      'optionRecords': const <Map<String, dynamic>>[
+        <String, dynamic>{'key': 'theme_mode', 'value': 'dark'},
+      ],
+      'family': const <String, dynamic>{
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
+    });
+
+    expect(
+      optionBox.get(DriveBackupService.recordDriveEmailLocalKey),
+      'record@example.com',
+    );
+    expect(
+      optionBox.get(DriveBackupService.recordDriveLabelLocalKey),
+      'Record · record@example.com',
+    );
+    expect(
+      optionBox.get(DriveBackupService.parentDriveEmailLocalKey),
+      'parent@example.com',
+    );
+    expect(
+      optionBox.get(DriveBackupService.parentDriveLabelLocalKey),
+      'Parent · parent@example.com',
+    );
+    expect(optionBox.get('theme_mode'), 'dark');
   });
 
   test('parent merge keeps remote entries and updates family layer only',

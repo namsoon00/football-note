@@ -74,9 +74,15 @@ class DriveBackupService implements BackupRepository {
   static const connectedDriveLabelLocalKey = 'drive_connected_label_local_v1';
   static const connectedDriveSubjectLocalKey =
       'drive_connected_subject_local_v1';
+  static const recordDriveEmailLocalKey = 'drive_player_email_local_v1';
+  static const recordDriveLabelLocalKey = 'drive_player_label_local_v1';
+  static const recordDriveSubjectLocalKey = 'drive_player_subject_local_v1';
   static const playerDriveEmailLocalKey = 'drive_player_email_local_v1';
   static const playerDriveLabelLocalKey = 'drive_player_label_local_v1';
   static const playerDriveSubjectLocalKey = 'drive_player_subject_local_v1';
+  static const parentDriveEmailLocalKey = 'drive_parent_email_local_v1';
+  static const parentDriveLabelLocalKey = 'drive_parent_label_local_v1';
+  static const parentDriveSubjectLocalKey = 'drive_parent_subject_local_v1';
   static const sharedChildDriveEmailKey = 'drive_child_email_v1';
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
   static const _folderName = 'Football Note';
@@ -84,7 +90,9 @@ class DriveBackupService implements BackupRepository {
   static const _driveScope = 'https://www.googleapis.com/auth/drive.file';
   static const parentDriveMismatchErrorCode = 'parent_drive_mismatch';
   static const parentFamilyMismatchErrorCode = 'parent_family_mismatch';
-  static const playerDriveMismatchErrorCode = 'player_drive_mismatch';
+  static const recordDriveMismatchErrorCode = 'record_drive_mismatch';
+  static const playerDriveMismatchErrorCode = recordDriveMismatchErrorCode;
+  static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
     _localPreRestoreKey,
@@ -93,9 +101,12 @@ class DriveBackupService implements BackupRepository {
     connectedDriveEmailLocalKey,
     connectedDriveLabelLocalKey,
     connectedDriveSubjectLocalKey,
-    playerDriveEmailLocalKey,
-    playerDriveLabelLocalKey,
-    playerDriveSubjectLocalKey,
+    recordDriveEmailLocalKey,
+    recordDriveLabelLocalKey,
+    recordDriveSubjectLocalKey,
+    parentDriveEmailLocalKey,
+    parentDriveLabelLocalKey,
+    parentDriveSubjectLocalKey,
     ...FamilyAccessService.localOnlyOptionKeys,
   };
   static const _backupVersion = 5;
@@ -238,12 +249,28 @@ class DriveBackupService implements BackupRepository {
     return (_optionBox.get(sharedChildDriveLabelKey) as String?)?.trim() ?? '';
   }
 
+  String getSavedRecordDriveEmail() {
+    return (_optionBox.get(recordDriveEmailLocalKey) as String?)?.trim() ?? '';
+  }
+
+  String getSavedRecordDriveLabel() {
+    return (_optionBox.get(recordDriveLabelLocalKey) as String?)?.trim() ?? '';
+  }
+
   String getSavedPlayerDriveEmail() {
-    return (_optionBox.get(playerDriveEmailLocalKey) as String?)?.trim() ?? '';
+    return getSavedRecordDriveEmail();
   }
 
   String getSavedPlayerDriveLabel() {
-    return (_optionBox.get(playerDriveLabelLocalKey) as String?)?.trim() ?? '';
+    return getSavedRecordDriveLabel();
+  }
+
+  String getSavedParentDriveEmail() {
+    return (_optionBox.get(parentDriveEmailLocalKey) as String?)?.trim() ?? '';
+  }
+
+  String getSavedParentDriveLabel() {
+    return (_optionBox.get(parentDriveLabelLocalKey) as String?)?.trim() ?? '';
   }
 
   @override
@@ -341,35 +368,50 @@ class DriveBackupService implements BackupRepository {
     await _clearConnectedDriveAccountCache();
   }
 
-  Future<void> rememberPlayerDriveConnection() async {
-    final info = await getDriveConnectionInfo();
-    if (info == null || info.isEmpty) {
-      return;
-    }
-    await _optionBox.put(playerDriveEmailLocalKey, info.email.trim());
-    await _optionBox.put(playerDriveLabelLocalKey, info.label.trim());
-    await _optionBox.put(playerDriveSubjectLocalKey, info.subjectId.trim());
+  Future<void> rememberRecordDriveConnection() {
+    return _rememberDriveConnection(
+      emailKey: recordDriveEmailLocalKey,
+      labelKey: recordDriveLabelLocalKey,
+      subjectKey: recordDriveSubjectLocalKey,
+    );
   }
 
-  Future<void> signInForSavedPlayer() async {
-    final expectedEmail = _normalizedEmail(getSavedPlayerDriveEmail());
-    final current = await getDriveConnectionInfo();
-    if (expectedEmail.isNotEmpty &&
-        _normalizedEmail(current?.email) == expectedEmail) {
-      await rememberPlayerDriveConnection();
+  Future<void> rememberPlayerDriveConnection() =>
+      rememberRecordDriveConnection();
+
+  Future<void> rememberParentDriveConnection() {
+    return _rememberDriveConnection(
+      emailKey: parentDriveEmailLocalKey,
+      labelKey: parentDriveLabelLocalKey,
+      subjectKey: parentDriveSubjectLocalKey,
+    );
+  }
+
+  Future<void> rememberCurrentRoleDriveConnection() async {
+    final role = _familyService.loadState().currentRole;
+    if (role == FamilyRole.parent) {
+      await rememberParentDriveConnection();
       return;
     }
-    if (current != null && !current.isEmpty) {
-      await signOut();
-    }
-    await signIn();
-    final refreshed = await getDriveConnectionInfo();
-    if (expectedEmail.isNotEmpty &&
-        _normalizedEmail(refreshed?.email) != expectedEmail) {
-      await signOut();
-      throw StateError(playerDriveMismatchErrorCode);
-    }
-    await rememberPlayerDriveConnection();
+    await rememberRecordDriveConnection();
+  }
+
+  Future<void> signInForSavedRecord() {
+    return _signInForSavedDrive(
+      expectedEmail: _normalizedEmail(getSavedRecordDriveEmail()),
+      rememberConnection: rememberRecordDriveConnection,
+      mismatchErrorCode: recordDriveMismatchErrorCode,
+    );
+  }
+
+  Future<void> signInForSavedPlayer() => signInForSavedRecord();
+
+  Future<void> signInForSavedParent() {
+    return _signInForSavedDrive(
+      expectedEmail: _normalizedEmail(getSavedParentDriveEmail()),
+      rememberConnection: rememberParentDriveConnection,
+      mismatchErrorCode: parentModeDriveMismatchErrorCode,
+    );
   }
 
   Future<void> _reauthenticateForDriveScope() async {
@@ -746,6 +788,12 @@ class DriveBackupService implements BackupRepository {
       connectedDriveSubjectLocalKey: _optionBox.get(
         connectedDriveSubjectLocalKey,
       ),
+      recordDriveEmailLocalKey: _optionBox.get(recordDriveEmailLocalKey),
+      recordDriveLabelLocalKey: _optionBox.get(recordDriveLabelLocalKey),
+      recordDriveSubjectLocalKey: _optionBox.get(recordDriveSubjectLocalKey),
+      parentDriveEmailLocalKey: _optionBox.get(parentDriveEmailLocalKey),
+      parentDriveLabelLocalKey: _optionBox.get(parentDriveLabelLocalKey),
+      parentDriveSubjectLocalKey: _optionBox.get(parentDriveSubjectLocalKey),
     };
 
     await _trainingBox.clear();
@@ -1032,6 +1080,44 @@ class DriveBackupService implements BackupRepository {
 
   String _normalizedEmail(String? raw) {
     return raw?.trim().toLowerCase() ?? '';
+  }
+
+  Future<void> _rememberDriveConnection({
+    required String emailKey,
+    required String labelKey,
+    required String subjectKey,
+  }) async {
+    final info = await getDriveConnectionInfo();
+    if (info == null || info.isEmpty) {
+      return;
+    }
+    await _optionBox.put(emailKey, info.email.trim());
+    await _optionBox.put(labelKey, info.label.trim());
+    await _optionBox.put(subjectKey, info.subjectId.trim());
+  }
+
+  Future<void> _signInForSavedDrive({
+    required String expectedEmail,
+    required Future<void> Function() rememberConnection,
+    required String mismatchErrorCode,
+  }) async {
+    final current = await getDriveConnectionInfo();
+    if (expectedEmail.isNotEmpty &&
+        _normalizedEmail(current?.email) == expectedEmail) {
+      await rememberConnection();
+      return;
+    }
+    if (current != null && !current.isEmpty) {
+      await signOut();
+    }
+    await signIn();
+    final refreshed = await getDriveConnectionInfo();
+    if (expectedEmail.isNotEmpty &&
+        _normalizedEmail(refreshed?.email) != expectedEmail) {
+      await signOut();
+      throw StateError(mismatchErrorCode);
+    }
+    await rememberConnection();
   }
 
   bool hasLocalPreRestoreBackup() {

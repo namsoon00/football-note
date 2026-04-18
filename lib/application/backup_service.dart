@@ -84,29 +84,77 @@ class BackupService {
     return '';
   }
 
-  String getSavedPlayerDriveEmail() {
+  String getSavedRecordDriveEmail() {
     if (_repository case final DriveBackupService drive) {
-      return drive.getSavedPlayerDriveEmail();
+      return drive.getSavedRecordDriveEmail();
     }
     return '';
+  }
+
+  String getSavedRecordDriveLabel() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getSavedRecordDriveLabel();
+    }
+    return '';
+  }
+
+  String getSavedPlayerDriveEmail() {
+    return getSavedRecordDriveEmail();
   }
 
   String getSavedPlayerDriveLabel() {
+    return getSavedRecordDriveLabel();
+  }
+
+  String getSavedParentDriveEmail() {
     if (_repository case final DriveBackupService drive) {
-      return drive.getSavedPlayerDriveLabel();
+      return drive.getSavedParentDriveEmail();
     }
     return '';
   }
 
-  Future<void> rememberPlayerDriveConnection() async {
+  String getSavedParentDriveLabel() {
     if (_repository case final DriveBackupService drive) {
-      await drive.rememberPlayerDriveConnection();
+      return drive.getSavedParentDriveLabel();
+    }
+    return '';
+  }
+
+  Future<void> rememberRecordDriveConnection() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.rememberRecordDriveConnection();
+    }
+  }
+
+  Future<void> rememberPlayerDriveConnection() async {
+    await rememberRecordDriveConnection();
+  }
+
+  Future<void> rememberParentDriveConnection() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.rememberParentDriveConnection();
+    }
+  }
+
+  Future<void> rememberCurrentRoleDriveConnection() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.rememberCurrentRoleDriveConnection();
+    }
+  }
+
+  Future<void> signInForSavedRecord() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.signInForSavedRecord();
     }
   }
 
   Future<void> signInForSavedPlayer() async {
+    await signInForSavedRecord();
+  }
+
+  Future<void> signInForSavedParent() async {
     if (_repository case final DriveBackupService drive) {
-      await drive.signInForSavedPlayer();
+      await drive.signInForSavedParent();
     }
   }
 
