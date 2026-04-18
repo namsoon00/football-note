@@ -10,6 +10,8 @@ import 'package:http/http.dart' as http;
 
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/backup_repository.dart';
+import '../infrastructure/hive_option_repository.dart';
+import 'family_access_service.dart';
 
 class DriveBackupService implements BackupRepository {
   DriveBackupService(
@@ -65,11 +67,13 @@ class DriveBackupService implements BackupRepository {
     _lastBackupKey,
     _localPreRestoreKey,
     _localPreRestoreAtKey,
+    ...FamilyAccessService.localOnlyOptionKeys,
   };
-  static const _backupVersion = 3;
+  static const _backupVersion = 4;
   static const _typedValueKey = '__type';
   static const _typedDataKey = 'data';
   static const _optionRecordsKey = 'optionRecords';
+  static const _familyMetadataKey = 'family';
 
   @override
   Future<void> backup() async {
@@ -196,7 +200,10 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<void> _saveLocalPreRestore() async {
-    final data = _buildBackup();
+    final data = _buildBackup(
+      updatedByRole: _familyService.loadState().currentRole,
+      familyLayerOnly: false,
+    );
     final json = jsonEncode(data);
     await _optionBox.put(_localPreRestoreKey, json);
     await _optionBox.put(
@@ -402,11 +409,18 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _backupWithApi(drive.DriveApi driveApi) async {
     final folderId = await _findOrCreateFolder(driveApi);
-    final data = _buildBackup();
+    final existing = await _findBackupFile(driveApi, folderId);
+    final familyState = _familyService.loadState();
+    final remote =
+        existing != null && familyState.currentRole == FamilyRole.parent
+            ? await _downloadBackupMap(driveApi, existing.id!)
+            : null;
+    final data = _buildUploadPayload(
+      currentRole: familyState.currentRole,
+      remote: remote,
+    );
     final bytes = utf8.encode(jsonEncode(data));
     final media = drive.Media(Stream.value(bytes), bytes.length);
-
-    final existing = await _findBackupFile(driveApi, folderId);
     if (existing != null) {
       await driveApi.files.update(
         drive.File(name: _fileName),
@@ -414,6 +428,8 @@ class DriveBackupService implements BackupRepository {
         uploadMedia: media,
       );
       await _cleanupDuplicateBackups(driveApi, folderId, existing.id!);
+      await _familyService.recordSharedBackupSync(
+          role: familyState.currentRole);
       await _setLastBackup(DateTime.now());
       return;
     }
@@ -423,6 +439,7 @@ class DriveBackupService implements BackupRepository {
       uploadMedia: media,
     );
 
+    await _familyService.recordSharedBackupSync(role: familyState.currentRole);
     await _setLastBackup(DateTime.now());
     if (created.id != null) {
       await _cleanupDuplicateBackups(driveApi, folderId, created.id!);
@@ -446,7 +463,10 @@ class DriveBackupService implements BackupRepository {
     await _restoreFromMap(data);
   }
 
-  Map<String, dynamic> _buildBackup() {
+  Map<String, dynamic> _buildBackup({
+    required FamilyRole updatedByRole,
+    required bool familyLayerOnly,
+  }) {
     final entries = _trainingBox.values.map(_entryToMap).toList();
     final options = <String, dynamic>{};
     final optionRecords = <Map<String, dynamic>>[];
@@ -468,21 +488,44 @@ class DriveBackupService implements BackupRepository {
         options[key] = encodedValue;
       }
     }
+    final familyState = _familyService.loadState();
     return {
       'version': _backupVersion,
       'createdAt': DateTime.now().toIso8601String(),
       'entries': entries,
       'options': options,
       _optionRecordsKey: optionRecords,
+      _familyMetadataKey: FamilyAccessService.backupMetadataFromState(
+        familyState,
+        updatedByRole: updatedByRole,
+        familyLayerOnly: familyLayerOnly,
+      ),
     };
   }
 
   @visibleForTesting
-  Map<String, dynamic> buildBackupForTesting() => _buildBackup();
+  Map<String, dynamic> buildBackupForTesting({
+    FamilyRole updatedByRole = FamilyRole.child,
+    bool familyLayerOnly = false,
+  }) =>
+      _buildBackup(
+        updatedByRole: updatedByRole,
+        familyLayerOnly: familyLayerOnly,
+      );
 
   @visibleForTesting
   Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
       _restoreFromMap(data);
+
+  @visibleForTesting
+  Map<String, dynamic> mergeParentBackupForTesting({
+    required Map<String, dynamic> remote,
+  }) {
+    return _buildUploadPayload(
+      currentRole: FamilyRole.parent,
+      remote: remote,
+    );
+  }
 
   Future<void> _restoreFromMap(Map<String, dynamic> data) async {
     final version = (data['version'] as num?)?.toInt() ?? 1;
@@ -492,6 +535,10 @@ class DriveBackupService implements BackupRepository {
     final lastBackupRaw = _optionBox.get(_lastBackupKey);
     final localPreRestoreRaw = _optionBox.get(_localPreRestoreKey);
     final localPreRestoreAtRaw = _optionBox.get(_localPreRestoreAtKey);
+    final preservedLocalOnly = <String, dynamic>{
+      for (final key in FamilyAccessService.localOnlyOptionKeys)
+        key: _optionBox.get(key),
+    };
 
     await _trainingBox.clear();
     for (final raw in entries) {
@@ -532,6 +579,11 @@ class DriveBackupService implements BackupRepository {
     }
     if (lastBackupRaw is String) {
       await _optionBox.put(_lastBackupKey, lastBackupRaw);
+    }
+    for (final entry in preservedLocalOnly.entries) {
+      if (entry.value != null) {
+        await _optionBox.put(entry.key, entry.value);
+      }
     }
   }
 
@@ -697,6 +749,137 @@ class DriveBackupService implements BackupRepository {
         msg.contains('invalid credentials') ||
         msg.contains('unauthenticated') ||
         msg.contains('request is missing required authentication credential');
+  }
+
+  FamilyAccessService get _familyService {
+    return FamilyAccessService(HiveOptionRepository(_optionBox));
+  }
+
+  Future<Map<String, dynamic>> _downloadBackupMap(
+    drive.DriveApi driveApi,
+    String fileId,
+  ) async {
+    final media = await driveApi.files.get(
+      fileId,
+      downloadOptions: drive.DownloadOptions.fullMedia,
+    ) as drive.Media;
+    final content = await utf8.decoder.bind(media.stream).join();
+    final data = jsonDecode(content);
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    if (data is Map) {
+      return data.cast<String, dynamic>();
+    }
+    throw StateError('Invalid backup payload.');
+  }
+
+  Map<String, dynamic> _buildUploadPayload({
+    required FamilyRole currentRole,
+    required Map<String, dynamic>? remote,
+  }) {
+    final local = _buildBackup(
+      updatedByRole: currentRole,
+      familyLayerOnly: false,
+    );
+    if (currentRole != FamilyRole.parent) {
+      return local;
+    }
+    if (remote == null) {
+      throw StateError(
+        'Parent mode needs an existing child backup before syncing family data.',
+      );
+    }
+    return _mergeParentFamilyBackup(remote: remote, local: local);
+  }
+
+  Map<String, dynamic> _mergeParentFamilyBackup({
+    required Map<String, dynamic> remote,
+    required Map<String, dynamic> local,
+  }) {
+    final remoteVersion = (remote['version'] as num?)?.toInt() ?? 1;
+    final localVersion = (local['version'] as num?)?.toInt() ?? _backupVersion;
+    final mergedOptions = _copyStringOptions(remote);
+    final localOptions = _copyStringOptions(local);
+    for (final key in FamilyAccessService.sharedBackupOptionKeys) {
+      if (localOptions.containsKey(key)) {
+        mergedOptions[key] = localOptions[key];
+      } else {
+        mergedOptions.remove(key);
+      }
+    }
+    final familyState = _familyService.loadState();
+    return <String, dynamic>{
+      ...remote,
+      'version': _backupVersion,
+      'createdAt': DateTime.now().toIso8601String(),
+      'entries':
+          (remote['entries'] as List?)?.toList(growable: true) ?? const [],
+      'options': mergedOptions,
+      _optionRecordsKey: _mergeOptionRecords(
+        remote: remote,
+        remoteVersion: remoteVersion,
+        local: local,
+        localVersion: localVersion,
+      ),
+      _familyMetadataKey: FamilyAccessService.backupMetadataFromState(
+        familyState,
+        updatedByRole: FamilyRole.parent,
+        familyLayerOnly: true,
+      ),
+    };
+  }
+
+  Map<String, dynamic> _copyStringOptions(Map<String, dynamic> backup) {
+    final raw = backup['options'];
+    if (raw is! Map) return <String, dynamic>{};
+    return raw.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
+  }
+
+  List<Map<String, dynamic>> _mergeOptionRecords({
+    required Map<String, dynamic> remote,
+    required int remoteVersion,
+    required Map<String, dynamic> local,
+    required int localVersion,
+  }) {
+    final keptRemote = _extractOptionRecords(remote).where((record) {
+      final key = _fromBackupValue(record['key'], version: remoteVersion);
+      return key is! String ||
+          !FamilyAccessService.isSharedBackupOptionKey(key);
+    });
+    final localShared = _extractOptionRecords(local).where((record) {
+      final key = _fromBackupValue(record['key'], version: localVersion);
+      return key is String && FamilyAccessService.isSharedBackupOptionKey(key);
+    });
+    return <Map<String, dynamic>>[
+      ...keptRemote,
+      ...localShared,
+    ];
+  }
+
+  List<Map<String, dynamic>> _extractOptionRecords(
+      Map<String, dynamic> backup) {
+    final raw = backup[_optionRecordsKey];
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((item) => item.cast<String, dynamic>())
+          .toList(growable: true);
+    }
+    final options = backup['options'];
+    if (options is! Map) {
+      return <Map<String, dynamic>>[];
+    }
+    return options.entries
+        .map(
+          (entry) => <String, dynamic>{
+            'key': _toBackupValue(entry.key.toString()),
+            'value': entry.value,
+          },
+        )
+        .toList(growable: true);
   }
 
   Map<String, dynamic> _entryToMap(TrainingEntry entry) => {

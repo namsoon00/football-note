@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_coaching_service.dart';
 import '../../application/meal_log_service.dart';
@@ -36,6 +37,7 @@ import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
 import 'entry_form_screen.dart';
+import 'family_space_screen.dart';
 import 'football_education_screen.dart';
 import 'player_level_guide_screen.dart';
 import 'training_method_board_screen.dart';
@@ -141,6 +143,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                   final levelState = PlayerLevelService(
                     widget.optionRepository,
                   ).loadState();
+                  final familyState = FamilyAccessService(
+                    widget.optionRepository,
+                  ).loadState();
                   final mealEntries = widget.mealLogService.mergedEntries(
                     directEntries: mealSnapshot.data ?? const <MealEntry>[],
                     legacyEntries: allEntries,
@@ -211,6 +216,29 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           levelState: levelState,
                           isKo: isKo,
                           onTap: _openLevelGuide,
+                        ),
+                        const SizedBox(height: 10),
+                        _FamilySpacePreviewCard(
+                          title: AppLocalizations.of(context)!.familySharing,
+                          roleLabel: familyState.isParentMode
+                              ? AppLocalizations.of(context)!.familyRoleParent
+                              : AppLocalizations.of(context)!.familyRoleChild,
+                          body: familyState.messages.isEmpty
+                              ? (familyState.isParentMode
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!
+                                      .familySpaceSubtitleParent
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!
+                                      .familySpaceSubtitleChild)
+                              : familyState.messages.first.body,
+                          actionLabel: AppLocalizations.of(
+                            context,
+                          )!
+                              .familyOpenSpace,
+                          onTap: _openFamilySpace,
                         ),
                         if (data.showStreakHighlight) ...[
                           const SizedBox(height: 10),
@@ -895,9 +923,23 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         builder: (_) => PlayerLevelGuideScreen(
           currentLevel: levelState.level,
           optionRepository: widget.optionRepository,
+          driveBackupService: widget.driveBackupService,
         ),
       ),
     );
+  }
+
+  Future<void> _openFamilySpace() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FamilySpaceScreen(
+          optionRepository: widget.optionRepository,
+          driveBackupService: widget.driveBackupService,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {});
   }
 
   bool _openedNewsToday() {
@@ -1308,6 +1350,84 @@ class _TodayPlanHighlightCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FamilySpacePreviewCard extends StatelessWidget {
+  final String title;
+  final String roleLabel;
+  final String body;
+  final String actionLabel;
+  final VoidCallback onTap;
+
+  const _FamilySpacePreviewCard({
+    required this.title,
+    required this.roleLabel,
+    required this.body,
+    required this.actionLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return WatchCartCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        roleLabel,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  body,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.35),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          FilledButton.tonal(
+            onPressed: onTap,
+            child: Text(actionLabel),
+          ),
+        ],
       ),
     );
   }

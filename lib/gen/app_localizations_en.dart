@@ -3162,4 +3162,159 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get educationBookFinaleNote =>
       'As he closes the book, Taeo writes the first line of his next journal like this. To really watch the World Cup well is not to memorize only one final score, but to follow the whole long story from the first kick in 1930 to the next question waiting in 2026.';
+
+  @override
+  String get familySharing => 'Family sharing';
+
+  @override
+  String get familySharedBackupDescription =>
+      'Use one shared Drive backup without a server. Child mode owns core records, while parent mode only syncs the family layer.';
+
+  @override
+  String get familyRoleChild => 'Child';
+
+  @override
+  String get familyRoleParent => 'Parent';
+
+  @override
+  String get familyChildName => 'Child name';
+
+  @override
+  String get familyParentName => 'Parent name';
+
+  @override
+  String get familyChildNameEmpty => 'Set the child name';
+
+  @override
+  String get familyParentNameEmpty => 'Set the parent name';
+
+  @override
+  String get familyEditNames => 'Edit family names';
+
+  @override
+  String get familyPolicyTitle => 'Shared backup policy';
+
+  @override
+  String get familyPolicyChildOwnsData =>
+      'Child mode backs up training, profile, diary, meals, and plans as the source of truth.';
+
+  @override
+  String get familyPolicyParentWritesOnly =>
+      'Parent mode can save feedback messages, family messages, and level reward names only.';
+
+  @override
+  String get familyPolicyParentSeedRequired =>
+      'Connect the parent device after at least one child backup already exists.';
+
+  @override
+  String get familyOpenSpace => 'Open family space';
+
+  @override
+  String get familyRoleChildActivated => 'Child mode activated.';
+
+  @override
+  String get familyRoleParentActivated => 'Parent mode activated.';
+
+  @override
+  String get familyNamesSaved => 'Family names saved.';
+
+  @override
+  String get familySpaceTitle => 'Family space';
+
+  @override
+  String get familySpaceSubtitleChild =>
+      'Leave notes for your parent and check shared feedback here.';
+
+  @override
+  String get familySpaceSubtitleParent =>
+      'Leave feedback for your child here while the rest of the app stays read-only.';
+
+  @override
+  String get familyMessagesEmpty =>
+      'No family messages yet. Start the first note here.';
+
+  @override
+  String get familyMessageTypeFeedback => 'Feedback';
+
+  @override
+  String get familyMessageTypeNote => 'Note';
+
+  @override
+  String get familyMessageComposerLabel => 'Family message';
+
+  @override
+  String get familyMessageComposerHintParent =>
+      'Write feedback for today’s training or mood.';
+
+  @override
+  String get familyMessageComposerHintChild =>
+      'Share how today felt or what you want help with.';
+
+  @override
+  String get familyMessageComposerEmpty => 'Please enter a family message.';
+
+  @override
+  String get familyMessageSend => 'Send';
+
+  @override
+  String get familyMessageSent => 'Family message sent.';
+
+  @override
+  String get parentReadOnlyProfileDescription =>
+      'Parent mode keeps the profile read-only. Use family sharing for feedback and the level guide for reward naming.';
+
+  @override
+  String get parentReadOnlyEntryTitle =>
+      'Parent mode cannot edit training notes.';
+
+  @override
+  String get parentReadOnlyEntryBody =>
+      'Core records like training, meals, and diary stay in child mode. Parent mode is limited to family sharing and reward naming.';
+
+  @override
+  String get parentReadOnlyMealLog =>
+      'Parent mode cannot edit meal logs. Update meals in child mode.';
+
+  @override
+  String get parentReadOnlyQuiz =>
+      'Parent mode does not run the quiz. Quiz history and XP stay in child mode.';
+
+  @override
+  String get parentReadOnlyDrawerMessage =>
+      'Parent mode keeps core records read-only. Use family sharing and reward naming instead.';
+
+  @override
+  String get parentReadOnlyCalendarBanner =>
+      'Parent mode keeps the calendar read-only. Update plans, matches, and meals in child mode.';
+
+  @override
+  String get parentReadOnlyCalendarMessage =>
+      'Parent mode cannot edit the calendar.';
+
+  @override
+  String get parentReadOnlyDiaryMessage => 'Parent mode cannot edit the diary.';
+
+  @override
+  String get parentReadOnlyDiaryBadge => 'Parent read-only';
+
+  @override
+  String get parentReadOnlySketchMessage =>
+      'Parent mode cannot edit training sketches.';
+
+  @override
+  String get levelGuideParentModeLabel => 'Parent mode';
+
+  @override
+  String get levelGuideChildModeLabel => 'Child mode';
+
+  @override
+  String get levelGuideParentModeDescription =>
+      'Parent mode can save reward names only. Reward claims stay in child mode.';
+
+  @override
+  String get levelGuideChildModeDescription =>
+      'Child mode can claim rewards. Reward naming stays in parent mode.';
+
+  @override
+  String get levelGuideClaimChildOnly => 'Claim in child mode';
 }

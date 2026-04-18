@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
@@ -131,6 +133,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   }
 
   Future<void> _editBoard(TrainingBoard board) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     await Navigator.of(context).push<void>(
       AppPageRoute(
         builder: (_) => TrainingMethodBoardScreen(
@@ -153,6 +159,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   }
 
   Future<void> _renameBoard(TrainingBoard board) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final title = await _promptTitle(initialValue: board.title);
     if (!mounted || title == null || title == board.title) return;
     await _boardService.saveBoard(board.copyWith(title: title));
@@ -176,6 +186,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   }
 
   Future<void> _createBoard() async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final template = await _pickTemplate(isKo);
     if (!mounted || template == null) return;
@@ -505,6 +519,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   }
 
   Future<void> _copyFromPreviousBoard() async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     if (_boards.isEmpty) {
       AppFeedback.showSuccess(
@@ -577,6 +595,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   }
 
   Future<void> _deleteBoard(TrainingBoard board) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final shouldDelete = await showDialog<bool>(
       context: context,
@@ -681,6 +703,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     final listTitle = isKo ? '훈련 스케치 리스트' : 'Training sketch list';
     final visibleBoards = _visibleBoards();
     final isFiltered = _searchQuery.trim().isNotEmpty;
+    final isParentMode = _isParentMode;
     return Scaffold(
       appBar: AppBar(
         title: Text(listTitle),
@@ -718,6 +741,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
               tooltip: isKo ? '훈련 스케치 추가' : 'Add training sketch',
               icon: const Icon(Icons.add),
               onSelected: (value) {
+                if (isParentMode) {
+                  _showParentReadOnlyMessage();
+                  return;
+                }
                 switch (value) {
                   case 'new':
                     unawaited(_createBoard());
@@ -870,6 +897,10 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                 isThreeLine: true,
                                 trailing: PopupMenuButton<String>(
                                   onSelected: (value) {
+                                    if (isParentMode) {
+                                      _showParentReadOnlyMessage();
+                                      return;
+                                    }
                                     switch (value) {
                                       case 'rename':
                                         unawaited(_renameBoard(board));
@@ -927,9 +958,19 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                       board.id,
                                     ),
                                   );
+                                  if (isParentMode) {
+                                    _showParentReadOnlyMessage();
+                                    return;
+                                  }
                                   unawaited(_editBoard(board));
                                 },
-                                onLongPress: () => unawaited(_editBoard(board)),
+                                onLongPress: () {
+                                  if (isParentMode) {
+                                    _showParentReadOnlyMessage();
+                                    return;
+                                  }
+                                  unawaited(_editBoard(board));
+                                },
                               );
                             },
                           ),
@@ -940,7 +981,24 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
     );
   }
 
+  bool get _isParentMode {
+    return FamilyAccessService(widget.optionRepository)
+        .loadState()
+        .isParentMode;
+  }
+
+  void _showParentReadOnlyMessage() {
+    AppFeedback.showMessage(
+      context,
+      text: AppLocalizations.of(context)!.parentReadOnlySketchMessage,
+    );
+  }
+
   Future<void> _duplicateBoardDirectly(TrainingBoard source) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final copiedTitle = await _promptTitle(
       initialValue: isKo ? '${source.title} 복사본' : '${source.title} Copy',

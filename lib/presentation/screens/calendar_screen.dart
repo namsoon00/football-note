@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/locale_service.dart';
@@ -246,6 +247,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isParentMode =
+        FamilyAccessService(widget.optionRepository).loadState().isParentMode;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       drawer: AppDrawer(
         trainingService: widget.trainingService,
@@ -293,6 +297,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                   return Column(
                     children: [
+                      if (isParentMode)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          child: WatchCartCard(
+                            child: Text(l10n.parentReadOnlyCalendarBanner),
+                          ),
+                        ),
                       ValueListenableBuilder<int>(
                         valueListenable: NewsBadgeService.listenable(
                           widget.optionRepository,
@@ -694,6 +705,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           dayEntries: dayEntries,
                           dayMealEntry: dayMealEntry,
                           onEditEntry: (entry) {
+                            if (isParentMode) {
+                              _showParentReadOnlyMessage();
+                              return;
+                            }
                             if (entry.isMatch) {
                               unawaited(
                                 _openMatchSheet(
@@ -706,11 +721,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             }
                             widget.onEdit(entry);
                           },
-                          onEditPlan: (plan) => _openPlanSheet(
-                            day: plan.scheduledAt,
-                            editingPlan: plan,
-                          ),
+                          onEditPlan: (plan) {
+                            if (isParentMode) {
+                              _showParentReadOnlyMessage();
+                              return;
+                            }
+                            _openPlanSheet(
+                              day: plan.scheduledAt,
+                              editingPlan: plan,
+                            );
+                          },
                           onEditMealEntry: (entry) {
+                            if (isParentMode) {
+                              _showParentReadOnlyMessage();
+                              return;
+                            }
                             unawaited(
                               _openMealLog(day: entry.date, entry: entry),
                             );
@@ -739,7 +764,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
       ),
-      floatingActionButton: widget.onCreate == null
+      floatingActionButton: widget.onCreate == null || isParentMode
           ? null
           : FloatingActionButton(
               heroTag: 'calendar_fab',
@@ -754,6 +779,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _showCreateActionSheet(List<TrainingEntry> entries) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final selectedDay = _selectedDay ?? _focusedDay;
@@ -865,6 +894,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _openMealLog({required DateTime day, MealEntry? entry}) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     if (!mounted) return;
     final existingEntry = entry ?? widget.mealLogService.entryForDay(day);
     await Navigator.of(context).push(
@@ -881,6 +914,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<bool> _confirmDeleteMealEntry(MealEntry entry) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return false;
+    }
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1015,6 +1052,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     required DateTime day,
     _TrainingPlan? editingPlan,
   }) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     await _showReminderPermissionNoticeIfNeeded();
     if (!mounted) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -1654,6 +1695,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     TrainingEntry? editingEntry,
     required List<TrainingEntry> entries,
   }) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
     final initialDay = editingEntry?.date ?? day;
@@ -1926,6 +1971,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _movePlanSchedule(_TrainingPlan plan) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final pickedDate = await showDatePicker(
       context: context,
@@ -1981,6 +2030,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _confirmDeletePlan(_TrainingPlan plan) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final scope = await _pickPlanDeleteScope(plan);
     if (!mounted) return;
@@ -2227,6 +2280,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<bool> _confirmDeleteEntry(TrainingEntry entry) async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return false;
+    }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final shouldDelete = await showDialog<bool>(
       context: context,
@@ -2274,9 +2331,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _savePlans() async {
+    if (_isParentMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final raw = jsonEncode(_plans.map((plan) => plan.toMap()).toList());
     await widget.optionRepository.setValue(_plansStorageKey, raw);
     await _badgeService.syncFromStorage();
+  }
+
+  bool get _isParentMode {
+    return FamilyAccessService(widget.optionRepository)
+        .loadState()
+        .isParentMode;
+  }
+
+  void _showParentReadOnlyMessage() {
+    AppFeedback.showMessage(
+      context,
+      text: AppLocalizations.of(context)!.parentReadOnlyCalendarMessage,
+    );
   }
 
   Map<DateTime, List<TrainingEntry>> _groupByDay(List<TrainingEntry> entries) {

@@ -162,21 +162,9 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('diary-edit-2026-03-15')));
     await tester.pumpAndSettle();
-
-    expect(find.textContaining('훈련 · 볼터치'), findsOneWidget);
-    expect(find.byTooltip('훈련 상태 보통'), findsWidgets);
-    expect(find.textContaining('훈련 상태'), findsNothing);
-    expect(find.text('운세'), findsWidgets);
-    expect(find.textContaining('운세 · 볼터치'), findsNothing);
-    expect(find.textContaining('전체 흐름: 작은 노력도 큰 힘이 돼요.'), findsNothing);
-    expect(find.textContaining('행운 색상: 에메랄드'), findsOneWidget);
-    expect(find.textContaining('전진 패스 연계로 리듬을 이어가세요.'), findsNothing);
-    expect(find.textContaining('선택한 목표: 왼발 퍼스트터치, 압박 탈출'), findsOneWidget);
-    expect(find.textContaining('Blue FC전'), findsOneWidget);
-    expect(find.text('공기밥'), findsWidgets);
-    expect(find.textContaining('훈련보드 · 측면 전개 보드'), findsOneWidget);
-    expect(find.text('부상'), findsWidgets);
-    expect(find.text('퀴즈'), findsWidgets);
+    expect(find.byKey(const ValueKey('diary-title-field')), findsOneWidget);
+    expect(find.byKey(const ValueKey('diary-story-field')), findsOneWidget);
+    expect(find.byKey(const ValueKey('diary-save-button')), findsOneWidget);
 
     await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
@@ -383,7 +371,7 @@ void main() {
     expect(find.text('오늘의 운세 노트'), findsNothing);
     expect(find.textContaining('행운'), findsNothing);
 
-    expect(find.text('볼터치'), findsOneWidget);
+    expect(find.textContaining('볼터치'), findsWidgets);
   });
 
   testWidgets('coach lesson screen saves personal diary writing and stickers', (

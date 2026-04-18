@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:football_note/gen/app_localizations.dart';
 
+import '../../application/backup_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
@@ -11,11 +14,13 @@ import 'player_xp_history_screen.dart';
 class PlayerLevelGuideScreen extends StatefulWidget {
   final int currentLevel;
   final OptionRepository optionRepository;
+  final BackupService? driveBackupService;
 
   const PlayerLevelGuideScreen({
     super.key,
     required this.currentLevel,
     required this.optionRepository,
+    this.driveBackupService,
   });
 
   @override
@@ -34,8 +39,11 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
     final thresholds = PlayerLevelService.levelThresholds;
     final currentState = _levelService.loadState();
+    final familyState =
+        FamilyAccessService(widget.optionRepository).loadState();
     final rewardByLevel = {
       for (final item in _levelService.loadRewardStatuses())
         item.reward.level: item,
@@ -67,6 +75,12 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 currentLevel: currentState.level,
                 totalXp: currentState.totalXp,
                 xpToNextLevel: currentState.xpToNextLevel,
+                roleLabel: familyState.isParentMode
+                    ? l10n.levelGuideParentModeLabel
+                    : l10n.levelGuideChildModeLabel,
+                roleMessage: familyState.isParentMode
+                    ? l10n.levelGuideParentModeDescription
+                    : l10n.levelGuideChildModeDescription,
               ),
               for (var levelIndex = 0;
                   levelIndex < thresholds.length;
@@ -82,8 +96,11 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                   rewardStatus: rewardByLevel[levelIndex + 1],
                   isKo: isKo,
                   spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
+                  canClaimReward: familyState.isChildMode,
+                  claimDisabledLabel: l10n.levelGuideClaimChildOnly,
                   onClaimReward: () => _claimReward(levelIndex + 1, isKo),
-                  onEditRewardName: rewardByLevel[levelIndex + 1] == null
+                  onEditRewardName: rewardByLevel[levelIndex + 1] == null ||
+                          !familyState.isParentMode
                       ? null
                       : () => _editRewardName(
                             context,
@@ -102,6 +119,8 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   Future<void> _claimReward(int level, bool isKo) async {
     final claim = await _levelService.claimRewardForLevel(level);
     if (!mounted || claim == null) return;
+    await _syncSharedBackupSilently();
+    if (!mounted) return;
     setState(() {});
     final rewardName = claim.customRewardName.trim().isNotEmpty
         ? claim.customRewardName
@@ -124,6 +143,7 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     );
     if (saved == null) return;
     await _levelService.setCustomRewardName(status.reward.level, saved);
+    await _syncSharedBackupSilently();
     if (!context.mounted) return;
     setState(() {});
     AppFeedback.showSuccess(
@@ -151,6 +171,16 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
       ),
     );
   }
+
+  Future<void> _syncSharedBackupSilently() async {
+    final backup = widget.driveBackupService;
+    if (backup == null) return;
+    try {
+      await backup.backupIfSignedIn();
+    } catch (_) {
+      // Reward changes still remain local if the shared backup is unavailable.
+    }
+  }
 }
 
 class _LevelGuideSummaryCard extends StatelessWidget {
@@ -158,12 +188,16 @@ class _LevelGuideSummaryCard extends StatelessWidget {
   final int currentLevel;
   final int totalXp;
   final int xpToNextLevel;
+  final String roleLabel;
+  final String roleMessage;
 
   const _LevelGuideSummaryCard({
     required this.isKo,
     required this.currentLevel,
     required this.totalXp,
     required this.xpToNextLevel,
+    required this.roleLabel,
+    required this.roleMessage,
   });
 
   @override
@@ -200,6 +234,28 @@ class _LevelGuideSummaryCard extends StatelessWidget {
                 ? '다음 레벨까지 $xpToNextLevel XP 남았습니다. 우측 상단에서 경험치 가이드와 히스토리를 바로 열 수 있어요.'
                 : '$xpToNextLevel XP left until the next level. Use the top-right actions for the XP guide and history.',
             style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  roleLabel,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(roleMessage, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
           ),
         ],
       ),
@@ -295,6 +351,8 @@ class _LevelGuideCard extends StatelessWidget {
   final PlayerLevelRewardStatus? rewardStatus;
   final bool isKo;
   final PlayerLevelVisualSpec spec;
+  final bool canClaimReward;
+  final String claimDisabledLabel;
   final VoidCallback onClaimReward;
   final VoidCallback? onEditRewardName;
 
@@ -306,6 +364,8 @@ class _LevelGuideCard extends StatelessWidget {
     required this.rewardStatus,
     required this.isKo,
     required this.spec,
+    required this.canClaimReward,
+    required this.claimDisabledLabel,
     required this.onClaimReward,
     required this.onEditRewardName,
   });
@@ -430,19 +490,20 @@ class _LevelGuideCard extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  TextButton(
-                                    onPressed: onEditRewardName,
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      minimumSize: const Size(1, 32),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
+                                  if (onEditRewardName != null)
+                                    TextButton(
+                                      onPressed: onEditRewardName,
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                        minimumSize: const Size(1, 32),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                        ),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
                                       ),
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      child: Text(isKo ? '입력' : 'Edit'),
                                     ),
-                                    child: Text(isKo ? '입력' : 'Edit'),
-                                  ),
                                 ],
                               ),
                               const SizedBox(height: 4),
@@ -470,7 +531,7 @@ class _LevelGuideCard extends StatelessWidget {
                     _WhitePill(
                       label: isKo ? '이미 받음' : 'Already claimed',
                     )
-                  else if (rewardStatus!.isAvailable)
+                  else if (rewardStatus!.isAvailable && canClaimReward)
                     FilledButton.tonal(
                       onPressed: onClaimReward,
                       style: FilledButton.styleFrom(
@@ -479,6 +540,8 @@ class _LevelGuideCard extends StatelessWidget {
                       ),
                       child: Text(isKo ? '선물 받기' : 'Claim reward'),
                     )
+                  else if (rewardStatus!.isAvailable)
+                    _WhitePill(label: claimDisabledLabel)
                   else
                     _WhitePill(
                       label:

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:football_note/application/drive_backup_service.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -74,7 +75,9 @@ void main() {
 
     final backup = service.buildBackupForTesting();
     final backupOptions = backup['options'] as Map<String, dynamic>;
+    final family = backup['family'] as Map<String, dynamic>;
 
+    expect(backup['version'], 4);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['theme_mode'], 'dark');
     expect(backupOptions['reminder_enabled'], false);
@@ -83,6 +86,8 @@ void main() {
     expect(backupOptions.containsKey('drive_last_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup'), isFalse);
     expect(backupOptions.containsKey('local_pre_restore_backup_at'), isFalse);
+    expect(family['updatedByRole'], 'child');
+    expect(family['familyLayerOnly'], isFalse);
 
     await trainingBox.clear();
     await optionBox.clear();
@@ -107,7 +112,7 @@ void main() {
   test('restore keeps local backup metadata unchanged', () async {
     await optionBox.put('drive_last_backup', '2026-02-01T08:00:00.000');
     final backup = <String, dynamic>{
-      'version': 3,
+      'version': 4,
       'createdAt': '2026-02-02T08:00:00.000',
       'entries': const [],
       'options': <String, dynamic>{
@@ -124,6 +129,10 @@ void main() {
           'value': 'dark',
         },
       ],
+      'family': const <String, dynamic>{
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
     };
 
     await service.restoreFromMapForTesting(backup);
@@ -149,7 +158,7 @@ void main() {
 
   test('backs up and restores non-string option keys with v3 schema', () async {
     await optionBox.put(404, 'legacy_key_data');
-    await optionBox.put(true, 123);
+    await optionBox.put(405, 123);
 
     final backup = service.buildBackupForTesting();
     await optionBox.clear();
@@ -157,7 +166,7 @@ void main() {
     await service.restoreFromMapForTesting(backup);
 
     expect(optionBox.get(404), 'legacy_key_data');
-    expect(optionBox.get(true), 123);
+    expect(optionBox.get(405), 123);
   });
 
   test('restores legacy v1 backup payload', () async {
@@ -175,5 +184,128 @@ void main() {
 
     expect(optionBox.get('theme_mode'), 'dark');
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
+  });
+
+  test('parent merge keeps remote entries and updates family layer only',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.parentNameKey, 'Dad');
+    await optionBox.put(FamilyAccessService.childNameKey, 'Minjun');
+    await optionBox.put(
+      FamilyAccessService.messagesKey,
+      <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'local-1',
+          'authorRole': 'parent',
+          'authorName': 'Dad',
+          'kind': 'feedback',
+          'body': 'Nice effort today.',
+          'createdAt': '2026-04-18T09:00:00.000',
+        },
+      ],
+    );
+    await optionBox.put(
+      'player_custom_reward_names_v1',
+      <String, String>{'3': 'New boots'},
+    );
+    await optionBox.put('profile_name', 'Parent local stale value');
+
+    final remote = <String, dynamic>{
+      'version': 3,
+      'createdAt': '2026-04-18T08:00:00.000',
+      'entries': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'date': '2026-04-18T00:00:00.000',
+          'createdAt': '2026-04-18T08:10:00.000',
+          'durationMinutes': 75,
+          'intensity': 4,
+          'type': 'dribble',
+          'mood': 4,
+          'injury': false,
+          'notes': 'remote child data',
+          'location': 'main field',
+          'program': 'Finishing',
+          'drills': '',
+          'club': '',
+          'injuryPart': '',
+          'rehab': false,
+          'goal': '',
+          'feedback': '',
+          'imagePath': '',
+          'imagePaths': <String>[],
+          'status': 'normal',
+          'liftingByPart': <String, int>{},
+          'goalFocuses': <String>[],
+          'goodPoints': '',
+          'improvements': '',
+          'nextGoal': '',
+          'jumpRopeCount': 0,
+          'jumpRopeMinutes': 0,
+          'jumpRopeEnabled': false,
+          'jumpRopeNote': '',
+          'breakfastDone': false,
+          'breakfastRiceBowls': 0,
+          'lunchDone': false,
+          'lunchRiceBowls': 0,
+          'dinnerDone': false,
+          'dinnerRiceBowls': 0,
+        },
+      ],
+      'options': <String, dynamic>{
+        'profile_name': 'Real child profile',
+        FamilyAccessService.messagesKey: <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'old-1',
+            'authorRole': 'child',
+            'authorName': 'Minjun',
+            'kind': 'note',
+            'body': 'Old note',
+            'createdAt': '2026-04-17T09:00:00.000',
+          },
+        ],
+        'player_custom_reward_names_v1': <String, String>{'2': 'Ball'},
+      },
+      'optionRecords': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'key': FamilyAccessService.messagesKey,
+          'value': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 'old-1',
+              'authorRole': 'child',
+              'authorName': 'Minjun',
+              'kind': 'note',
+              'body': 'Old note',
+              'createdAt': '2026-04-17T09:00:00.000',
+            },
+          ]
+        },
+        <String, dynamic>{'key': 'profile_name', 'value': 'Real child profile'},
+        <String, dynamic>{
+          'key': 'player_custom_reward_names_v1',
+          'value': <String, String>{'2': 'Ball'}
+        },
+      ],
+    };
+
+    final merged = service.mergeParentBackupForTesting(remote: remote);
+    final mergedOptions = merged['options'] as Map<String, dynamic>;
+    final family = merged['family'] as Map<String, dynamic>;
+
+    expect((merged['entries'] as List), hasLength(1));
+    expect(
+      ((merged['entries'] as List).first as Map<String, dynamic>)['notes'],
+      'remote child data',
+    );
+    expect(mergedOptions['profile_name'], 'Real child profile');
+    expect(
+      (mergedOptions[FamilyAccessService.messagesKey] as List).first['body'],
+      'Nice effort today.',
+    );
+    expect(
+      (mergedOptions['player_custom_reward_names_v1'] as Map)['3'],
+      'New boots',
+    );
+    expect(family['updatedByRole'], 'parent');
+    expect(family['familyLayerOnly'], isTrue);
   });
 }

@@ -3061,4 +3061,152 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get educationBookFinaleNote =>
       '태오는 책장을 닫으며 다음 훈련 일지 첫 줄에 이렇게 적습니다. 월드컵을 잘 본다는 것은 결승 스코어 하나만 외우는 것이 아니라, 1930년의 첫 출발부터 2026년의 다음 질문까지 그 긴 이야기를 끝까지 따라가는 일이다.';
+
+  @override
+  String get familySharing => '가족 공유';
+
+  @override
+  String get familySharedBackupDescription =>
+      '서버 없이 Google Drive 백업 파일 하나를 함께 사용합니다. 아이 모드는 핵심 기록을 맡고, 부모 모드는 가족 공유 레이어만 동기화합니다.';
+
+  @override
+  String get familyRoleChild => '아이';
+
+  @override
+  String get familyRoleParent => '부모';
+
+  @override
+  String get familyChildName => '아이 이름';
+
+  @override
+  String get familyParentName => '부모 이름';
+
+  @override
+  String get familyChildNameEmpty => '아이 이름을 입력해 주세요';
+
+  @override
+  String get familyParentNameEmpty => '부모 이름을 입력해 주세요';
+
+  @override
+  String get familyEditNames => '가족 이름 수정';
+
+  @override
+  String get familyPolicyTitle => '공유 백업 정책';
+
+  @override
+  String get familyPolicyChildOwnsData =>
+      '아이 모드는 훈련, 프로필, 다이어리, 식사, 계획을 원본으로 백업합니다.';
+
+  @override
+  String get familyPolicyParentWritesOnly =>
+      '부모 모드는 피드백 메세지, 가족 메세지, 레벨 선물 이름만 저장할 수 있습니다.';
+
+  @override
+  String get familyPolicyParentSeedRequired =>
+      '부모 기기는 아이 백업이 한 번 이상 만들어진 뒤 연결해야 합니다.';
+
+  @override
+  String get familyOpenSpace => '가족 공간 열기';
+
+  @override
+  String get familyRoleChildActivated => '아이 모드로 전환했어요.';
+
+  @override
+  String get familyRoleParentActivated => '부모 모드로 전환했어요.';
+
+  @override
+  String get familyNamesSaved => '가족 이름을 저장했어요.';
+
+  @override
+  String get familySpaceTitle => '가족 공간';
+
+  @override
+  String get familySpaceSubtitleChild => '부모님께 남길 메모와 공유 피드백을 여기에서 확인하세요.';
+
+  @override
+  String get familySpaceSubtitleParent =>
+      '앱의 다른 핵심 기록은 읽기 전용으로 두고, 이곳에 아이에게 피드백을 남기세요.';
+
+  @override
+  String get familyMessagesEmpty => '아직 가족 메세지가 없어요. 첫 메모를 남겨 보세요.';
+
+  @override
+  String get familyMessageTypeFeedback => '피드백';
+
+  @override
+  String get familyMessageTypeNote => '메모';
+
+  @override
+  String get familyMessageComposerLabel => '가족 메세지';
+
+  @override
+  String get familyMessageComposerHintParent => '오늘 훈련이나 컨디션에 대한 피드백을 남겨 주세요.';
+
+  @override
+  String get familyMessageComposerHintChild => '오늘 어땠는지, 어떤 도움이 필요한지 적어 보세요.';
+
+  @override
+  String get familyMessageComposerEmpty => '가족 메세지를 입력해 주세요.';
+
+  @override
+  String get familyMessageSend => '보내기';
+
+  @override
+  String get familyMessageSent => '가족 메세지를 보냈어요.';
+
+  @override
+  String get parentReadOnlyProfileDescription =>
+      '부모 모드에서는 프로필이 읽기 전용입니다. 피드백은 가족 공유에서, 레벨 선물 입력은 레벨 가이드에서 진행해 주세요.';
+
+  @override
+  String get parentReadOnlyEntryTitle => '부모 모드에서는 훈련 노트를 수정할 수 없어요.';
+
+  @override
+  String get parentReadOnlyEntryBody =>
+      '훈련, 식사, 다이어리 같은 핵심 기록은 아이 모드에서 작성해 주세요. 부모 모드는 가족 공유와 선물 입력만 저장합니다.';
+
+  @override
+  String get parentReadOnlyMealLog =>
+      '부모 모드에서는 식사 기록을 수정할 수 없어요. 식사 입력은 아이 모드에서 진행해 주세요.';
+
+  @override
+  String get parentReadOnlyQuiz =>
+      '부모 모드에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 아이 모드에서만 쌓입니다.';
+
+  @override
+  String get parentReadOnlyDrawerMessage =>
+      '부모 모드에서는 핵심 기록을 수정할 수 없어요. 가족 공유와 선물 입력을 이용해 주세요.';
+
+  @override
+  String get parentReadOnlyCalendarBanner =>
+      '부모 모드에서는 캘린더를 읽기 전용으로 보여줍니다. 계획, 시합, 식사 수정은 아이 모드에서 진행해 주세요.';
+
+  @override
+  String get parentReadOnlyCalendarMessage => '부모 모드에서는 캘린더를 수정할 수 없어요.';
+
+  @override
+  String get parentReadOnlyDiaryMessage => '부모 모드에서는 다이어리를 수정할 수 없어요.';
+
+  @override
+  String get parentReadOnlyDiaryBadge => '부모 모드 읽기 전용';
+
+  @override
+  String get parentReadOnlySketchMessage => '부모 모드에서는 훈련 스케치를 수정할 수 없어요.';
+
+  @override
+  String get levelGuideParentModeLabel => '부모 모드';
+
+  @override
+  String get levelGuideChildModeLabel => '아이 모드';
+
+  @override
+  String get levelGuideParentModeDescription =>
+      '부모 모드에서는 레벨 선물 이름만 저장할 수 있고, 선물 수령은 아이 모드에서 진행합니다.';
+
+  @override
+  String get levelGuideChildModeDescription =>
+      '아이 모드에서는 레벨 선물을 수령할 수 있고, 선물 이름 입력은 부모 모드에서 관리합니다.';
+
+  @override
+  String get levelGuideClaimChildOnly => '아이 모드에서 수령';
 }
