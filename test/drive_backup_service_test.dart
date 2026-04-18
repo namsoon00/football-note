@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:football_note/application/backup_asset_store_types.dart';
 import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -14,6 +16,7 @@ void main() {
   late Box<TrainingEntry> trainingBox;
   late Box optionBox;
   late DriveBackupService service;
+  late _FakeBackupAssetFileStore assetStore;
 
   setUpAll(() async {
     tempDir = await Directory.systemTemp.createTemp('football_note_backup');
@@ -21,7 +24,15 @@ void main() {
     Hive.registerAdapter(TrainingEntryAdapter());
     trainingBox = await Hive.openBox<TrainingEntry>('training_entries');
     optionBox = await Hive.openBox('options');
-    service = DriveBackupService(trainingBox, optionBox);
+  });
+
+  setUp(() {
+    assetStore = _FakeBackupAssetFileStore();
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+    );
   });
 
   tearDown(() async {
@@ -77,7 +88,7 @@ void main() {
     final backupOptions = backup['options'] as Map<String, dynamic>;
     final family = backup['family'] as Map<String, dynamic>;
 
-    expect(backup['version'], 4);
+    expect(backup['version'], 5);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['theme_mode'], 'dark');
     expect(backupOptions['reminder_enabled'], false);
@@ -112,7 +123,7 @@ void main() {
   test('restore keeps local backup metadata unchanged', () async {
     await optionBox.put('drive_last_backup', '2026-02-01T08:00:00.000');
     final backup = <String, dynamic>{
-      'version': 4,
+      'version': 5,
       'createdAt': '2026-02-02T08:00:00.000',
       'entries': const [],
       'options': <String, dynamic>{
@@ -189,6 +200,7 @@ void main() {
   test('parent merge keeps remote entries and updates family layer only',
       () async {
     await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
     await optionBox.put(FamilyAccessService.parentNameKey, 'Dad');
     await optionBox.put(FamilyAccessService.childNameKey, 'Minjun');
     await optionBox.put(
@@ -209,9 +221,13 @@ void main() {
       <String, String>{'3': 'New boots'},
     );
     await optionBox.put('profile_name', 'Parent local stale value');
+    await optionBox.put(
+      DriveBackupService.connectedDriveEmailLocalKey,
+      'child@example.com',
+    );
 
     final remote = <String, dynamic>{
-      'version': 3,
+      'version': 5,
       'createdAt': '2026-04-18T08:00:00.000',
       'entries': <Map<String, dynamic>>[
         <String, dynamic>{
@@ -253,6 +269,8 @@ void main() {
       ],
       'options': <String, dynamic>{
         'profile_name': 'Real child profile',
+        FamilyAccessService.familyIdKey: 'family-1',
+        DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
         FamilyAccessService.messagesKey: <Map<String, dynamic>>[
           <String, dynamic>{
             'id': 'old-1',
@@ -277,14 +295,27 @@ void main() {
               'body': 'Old note',
               'createdAt': '2026-04-17T09:00:00.000',
             },
-          ]
+          ],
+        },
+        <String, dynamic>{
+          'key': FamilyAccessService.familyIdKey,
+          'value': 'family-1',
+        },
+        <String, dynamic>{
+          'key': DriveBackupService.sharedChildDriveEmailKey,
+          'value': 'child@example.com',
         },
         <String, dynamic>{'key': 'profile_name', 'value': 'Real child profile'},
         <String, dynamic>{
           'key': 'player_custom_reward_names_v1',
-          'value': <String, String>{'2': 'Ball'}
+          'value': <String, String>{'2': 'Ball'},
         },
       ],
+      'family': const <String, dynamic>{
+        'familyId': 'family-1',
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
     };
 
     final merged = service.mergeParentBackupForTesting(remote: remote);
@@ -307,5 +338,181 @@ void main() {
     );
     expect(family['updatedByRole'], 'parent');
     expect(family['familyLayerOnly'], isTrue);
+  });
+
+  test('backs up and restores local media files through asset records',
+      () async {
+    await optionBox.put('profile_photo_url', '/tmp/profile_photo.jpg');
+    await trainingBox.add(
+      TrainingEntry(
+        date: DateTime(2026, 1, 5),
+        createdAt: DateTime(2026, 1, 5, 10),
+        durationMinutes: 50,
+        intensity: 3,
+        type: 'dribble',
+        mood: 4,
+        injury: false,
+        notes: 'media backup',
+        location: 'ground',
+        imagePath: '/tmp/training_photo.jpg',
+        imagePaths: const ['/tmp/training_photo.jpg'],
+      ),
+    );
+    assetStore.seedRead(
+      '/tmp/profile_photo.jpg',
+      fileName: 'profile_photo.jpg',
+      bytes: Uint8List.fromList(<int>[1, 2, 3]),
+      restoredPath: '/restored/profile_photo.jpg',
+    );
+    assetStore.seedRead(
+      '/tmp/training_photo.jpg',
+      fileName: 'training_photo.jpg',
+      bytes: Uint8List.fromList(<int>[4, 5, 6]),
+      restoredPath: '/restored/training_photo.jpg',
+    );
+
+    final backup = service.buildBackupForTesting();
+    final backupOptions = backup['options'] as Map<String, dynamic>;
+    final assetRecords = backup['assetRecords'] as Map<String, dynamic>;
+    final entry = (backup['entries'] as List).first as Map<String, dynamic>;
+
+    expect(
+      backupOptions['profile_photo_url'],
+      'backup_asset://option:profile_photo_url',
+    );
+    expect(assetRecords.containsKey('option:profile_photo_url'), isTrue);
+    expect(entry['imagePath'], startsWith('backup_asset://training:'));
+
+    await trainingBox.clear();
+    await optionBox.clear();
+
+    await service.restoreFromMapForTesting(backup);
+
+    expect(optionBox.get('profile_photo_url'), '/restored/profile_photo.jpg');
+    expect(trainingBox.values.first.imagePath, '/restored/training_photo.jpg');
+    expect(
+      trainingBox.values.first.imagePaths,
+      const <String>['/restored/training_photo.jpg'],
+    );
+  });
+
+  test('parent merge is blocked when family id differs', () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-local');
+    await optionBox.put(
+      DriveBackupService.connectedDriveEmailLocalKey,
+      'child@example.com',
+    );
+
+    expect(
+      () => service.mergeParentBackupForTesting(
+        remote: <String, dynamic>{
+          'version': 5,
+          'entries': const <dynamic>[],
+          'options': <String, dynamic>{
+            FamilyAccessService.familyIdKey: 'family-remote',
+            DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
+          },
+          'optionRecords': const <dynamic>[],
+          'family': const <String, dynamic>{'familyId': 'family-remote'},
+        },
+      ),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.parentFamilyMismatchErrorCode,
+        ),
+      ),
+    );
+  });
+
+  test('parent merge is blocked when connected drive is not the child drive',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+    await optionBox.put(
+      DriveBackupService.connectedDriveEmailLocalKey,
+      'parent@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.sharedChildDriveEmailKey,
+      'child@example.com',
+    );
+
+    expect(
+      () => service.mergeParentBackupForTesting(
+        remote: <String, dynamic>{
+          'version': 5,
+          'entries': const <dynamic>[],
+          'options': <String, dynamic>{
+            FamilyAccessService.familyIdKey: 'family-1',
+            DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
+          },
+          'optionRecords': const <dynamic>[],
+          'family': const <String, dynamic>{'familyId': 'family-1'},
+        },
+      ),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.parentDriveMismatchErrorCode,
+        ),
+      ),
+    );
+  });
+}
+
+class _FakeBackupAssetFileStore implements BackupAssetFileStore {
+  final Map<String, _SeededAsset> _seededByPath = <String, _SeededAsset>{};
+  final Map<String, String> _restoredByAssetId = <String, String>{};
+
+  void seedRead(
+    String sourcePath, {
+    required String fileName,
+    required Uint8List bytes,
+    required String restoredPath,
+  }) {
+    _seededByPath[sourcePath] = _SeededAsset(
+      fileName: fileName,
+      bytesBase64: base64Encode(bytes),
+      restoredPath: restoredPath,
+    );
+  }
+
+  @override
+  BackupAssetRecord? readFileSync({
+    required String assetId,
+    required String sourcePath,
+    String? preferredFileName,
+  }) {
+    final seeded = _seededByPath[sourcePath];
+    if (seeded == null) {
+      return null;
+    }
+    _restoredByAssetId[assetId] = seeded.restoredPath;
+    return BackupAssetRecord(
+      assetId: assetId,
+      fileName: preferredFileName ?? seeded.fileName,
+      bytesBase64: seeded.bytesBase64,
+    );
+  }
+
+  @override
+  Future<String?> restoreFile(BackupAssetRecord record) async {
+    return _restoredByAssetId[record.assetId];
+  }
+}
+
+class _SeededAsset {
+  final String fileName;
+  final String bytesBase64;
+  final String restoredPath;
+
+  const _SeededAsset({
+    required this.fileName,
+    required this.bytesBase64,
+    required this.restoredPath,
   });
 }

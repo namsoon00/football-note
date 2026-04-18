@@ -8,6 +8,9 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
+import 'backup_asset_store.dart';
+import 'backup_asset_store_types.dart';
+import 'drive_connection_info.dart';
 import '../domain/entities/training_entry.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../infrastructure/hive_option_repository.dart';
@@ -19,6 +22,8 @@ class DriveBackupService implements BackupRepository {
     this._optionBox, {
     GoogleSignIn? googleSignIn,
     FirebaseAuth? firebaseAuth,
+    BackupAssetFileStore? backupAssetFileStore,
+    Future<DriveConnectionInfo?> Function()? driveConnectionLoader,
     String? webClientId,
   })  : _googleSignIn = googleSignIn ??
             (kIsWeb
@@ -30,12 +35,17 @@ class DriveBackupService implements BackupRepository {
                             : null,
                     scopes: const ['email', _driveScope],
                   )),
-        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth();
+        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
+        _backupAssetFileStore =
+            backupAssetFileStore ?? createBackupAssetFileStore(),
+        _driveConnectionLoader = driveConnectionLoader;
 
   final Box<TrainingEntry> _trainingBox;
   final Box _optionBox;
   final GoogleSignIn? _googleSignIn;
   final FirebaseAuth? _firebaseAuth;
+  final BackupAssetFileStore _backupAssetFileStore;
+  final Future<DriveConnectionInfo?> Function()? _driveConnectionLoader;
   String? _webAccessToken;
 
   static FirebaseAuth? _safeFirebaseAuth() {
@@ -60,25 +70,41 @@ class DriveBackupService implements BackupRepository {
   static const _lastBackupKey = 'drive_last_backup';
   static const _localPreRestoreKey = 'local_pre_restore_backup';
   static const _localPreRestoreAtKey = 'local_pre_restore_backup_at';
+  static const connectedDriveEmailLocalKey = 'drive_connected_email_local_v1';
+  static const connectedDriveLabelLocalKey = 'drive_connected_label_local_v1';
+  static const connectedDriveSubjectLocalKey =
+      'drive_connected_subject_local_v1';
+  static const sharedChildDriveEmailKey = 'drive_child_email_v1';
+  static const sharedChildDriveLabelKey = 'drive_child_label_v1';
   static const _folderName = 'Football Note';
   static const _fileName = 'football_note_backup.json';
   static const _driveScope = 'https://www.googleapis.com/auth/drive.file';
+  static const parentDriveMismatchErrorCode = 'parent_drive_mismatch';
+  static const parentFamilyMismatchErrorCode = 'parent_family_mismatch';
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
     _localPreRestoreKey,
     _localPreRestoreAtKey,
+    connectedDriveEmailLocalKey,
+    connectedDriveLabelLocalKey,
+    connectedDriveSubjectLocalKey,
     ...FamilyAccessService.localOnlyOptionKeys,
   };
-  static const _backupVersion = 4;
+  static const _backupVersion = 5;
   static const _typedValueKey = '__type';
   static const _typedDataKey = 'data';
   static const _optionRecordsKey = 'optionRecords';
   static const _familyMetadataKey = 'family';
+  static const _assetRecordsKey = 'assetRecords';
+  static const _assetRefPrefix = 'backup_asset://';
+  static const _profilePhotoOptionKey = 'profile_photo_url';
 
   @override
   Future<void> backup() async {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
+      await _refreshConnectedDriveAccountCache();
+      await _syncSharedChildDriveMetadataIfNeeded();
       await _backupWithApi(driveApi);
     } catch (e, st) {
       if (!_isAuthError(e)) rethrow;
@@ -88,6 +114,8 @@ class DriveBackupService implements BackupRepository {
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
+      await _refreshConnectedDriveAccountCache();
+      await _syncSharedChildDriveMetadataIfNeeded();
       await _backupWithApi(retriedApi);
     }
   }
@@ -103,6 +131,8 @@ class DriveBackupService implements BackupRepository {
       }
       try {
         final driveApi = await _driveApi(requireInteractive: false);
+        await _refreshConnectedDriveAccountCache();
+        await _syncSharedChildDriveMetadataIfNeeded();
         await _backupWithApi(driveApi);
         return true;
       } catch (e, st) {
@@ -124,6 +154,8 @@ class DriveBackupService implements BackupRepository {
       if (account == null) {
         return false;
       }
+      await _refreshConnectedDriveAccountCache();
+      await _syncSharedChildDriveMetadataIfNeeded();
       final authHeaders = await account.authHeaders;
       final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
       await _backupWithApi(driveApi);
@@ -181,6 +213,20 @@ class DriveBackupService implements BackupRepository {
   @override
   DateTime? getLastBackup() => _getLastBackup();
 
+  Future<DriveConnectionInfo?> getDriveConnectionInfo() async {
+    await _refreshConnectedDriveAccountCache();
+    final cached = _loadCachedDriveConnectionInfo();
+    return cached?.isEmpty ?? true ? null : cached;
+  }
+
+  String getSharedChildDriveEmail() {
+    return (_optionBox.get(sharedChildDriveEmailKey) as String?)?.trim() ?? '';
+  }
+
+  String getSharedChildDriveLabel() {
+    return (_optionBox.get(sharedChildDriveLabelKey) as String?)?.trim() ?? '';
+  }
+
   @override
   Future<void> restoreLatest() async {
     await _saveLocalPreRestore();
@@ -233,19 +279,28 @@ class DriveBackupService implements BackupRepository {
   Future<void> signIn() async {
     if (kIsWeb) {
       await _ensureWebAccessToken(requireInteractive: true);
+      await _refreshConnectedDriveAccountCache();
       return;
     }
     await _ensureSignedIn(requireInteractive: true);
+    await _refreshConnectedDriveAccountCache();
   }
 
   Future<bool> isSignedIn() async {
     if (kIsWeb) {
-      return _firebaseAuth?.currentUser != null;
+      final signedIn = _firebaseAuth?.currentUser != null;
+      if (signedIn) {
+        await _refreshConnectedDriveAccountCache();
+      }
+      return signedIn;
     }
     final google = _googleSignIn;
     if (google == null) return false;
     var account = google.currentUser;
     account ??= await google.signInSilently();
+    if (account != null) {
+      await _refreshConnectedDriveAccountCache();
+    }
     return account != null;
   }
 
@@ -253,6 +308,7 @@ class DriveBackupService implements BackupRepository {
     _webAccessToken = null;
     if (kIsWeb) {
       await _firebaseAuth?.signOut();
+      await _clearConnectedDriveAccountCache();
       return;
     }
     final google = _googleSignIn;
@@ -263,6 +319,7 @@ class DriveBackupService implements BackupRepository {
       // Ignore disconnect failures.
     }
     await google.signOut();
+    await _clearConnectedDriveAccountCache();
   }
 
   Future<void> _reauthenticateForDriveScope() async {
@@ -355,6 +412,81 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
+  Future<void> _refreshConnectedDriveAccountCache() async {
+    final info = await _loadDriveConnectionInfo();
+    if (info == null || info.isEmpty) return;
+    await _optionBox.put(connectedDriveEmailLocalKey, info.email.trim());
+    await _optionBox.put(
+      connectedDriveLabelLocalKey,
+      info.displayName.trim(),
+    );
+    await _optionBox.put(connectedDriveSubjectLocalKey, info.subjectId.trim());
+  }
+
+  Future<void> _clearConnectedDriveAccountCache() async {
+    await _optionBox.delete(connectedDriveEmailLocalKey);
+    await _optionBox.delete(connectedDriveLabelLocalKey);
+    await _optionBox.delete(connectedDriveSubjectLocalKey);
+  }
+
+  DriveConnectionInfo? _loadCachedDriveConnectionInfo() {
+    final email =
+        (_optionBox.get(connectedDriveEmailLocalKey) as String?)?.trim() ?? '';
+    final displayName =
+        (_optionBox.get(connectedDriveLabelLocalKey) as String?)?.trim() ?? '';
+    final subjectId =
+        (_optionBox.get(connectedDriveSubjectLocalKey) as String?)?.trim() ??
+            '';
+    if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
+      return null;
+    }
+    return DriveConnectionInfo(
+      email: email,
+      displayName: displayName,
+      subjectId: subjectId,
+    );
+  }
+
+  Future<DriveConnectionInfo?> _loadDriveConnectionInfo() async {
+    if (_driveConnectionLoader != null) {
+      return _driveConnectionLoader();
+    }
+    if (kIsWeb) {
+      final user = _firebaseAuth?.currentUser;
+      if (user == null) return null;
+      return DriveConnectionInfo(
+        email: user.email?.trim() ?? '',
+        displayName: user.displayName?.trim() ?? '',
+        subjectId: user.uid,
+      );
+    }
+    final google = _googleSignIn;
+    if (google == null) return null;
+    var account = google.currentUser;
+    account ??= await google.signInSilently();
+    if (account == null) return null;
+    return DriveConnectionInfo(
+      email: account.email.trim(),
+      displayName: account.displayName?.trim() ?? '',
+      subjectId: account.id,
+    );
+  }
+
+  Future<void> _syncSharedChildDriveMetadataIfNeeded() async {
+    final state = _familyService.loadState();
+    if (state.currentRole != FamilyRole.child) {
+      return;
+    }
+    final info = _loadCachedDriveConnectionInfo();
+    if (info == null || info.email.trim().isEmpty) {
+      return;
+    }
+    await _optionBox.put(sharedChildDriveEmailKey, info.email.trim());
+    if (info.label.trim().isNotEmpty) {
+      await _optionBox.put(sharedChildDriveLabelKey, info.label.trim());
+    }
+  }
+
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {
     final result = await api.files.list(
       q: "mimeType='application/vnd.google-apps.folder' and "
@@ -415,6 +547,7 @@ class DriveBackupService implements BackupRepository {
         existing != null && familyState.currentRole == FamilyRole.parent
             ? await _downloadBackupMap(driveApi, existing.id!)
             : null;
+    _validateParentRemoteBinding(remote);
     final data = _buildUploadPayload(
       currentRole: familyState.currentRole,
       remote: remote,
@@ -460,6 +593,7 @@ class DriveBackupService implements BackupRepository {
 
     final content = await utf8.decoder.bind(media.stream).join();
     final data = jsonDecode(content) as Map<String, dynamic>;
+    _validateRestoreBinding(data);
     await _restoreFromMap(data);
   }
 
@@ -467,7 +601,17 @@ class DriveBackupService implements BackupRepository {
     required FamilyRole updatedByRole,
     required bool familyLayerOnly,
   }) {
-    final entries = _trainingBox.values.map(_entryToMap).toList();
+    final assetRecords = <String, dynamic>{};
+    final assetIdBySourcePath = <String, String>{};
+    final entries = _trainingBox.values
+        .map(
+          (entry) => _entryToMap(
+            entry,
+            assetRecords: assetRecords,
+            assetIdBySourcePath: assetIdBySourcePath,
+          ),
+        )
+        .toList();
     final options = <String, dynamic>{};
     final optionRecords = <Map<String, dynamic>>[];
     for (final key in _optionBox.keys) {
@@ -475,7 +619,14 @@ class DriveBackupService implements BackupRepository {
         continue;
       }
       final encodedKey = _toBackupValue(key);
-      final encodedValue = _toBackupValue(_optionBox.get(key));
+      final encodedValue = key is String
+          ? _encodeOptionValueForBackup(
+              key: key,
+              value: _optionBox.get(key),
+              assetRecords: assetRecords,
+              assetIdBySourcePath: assetIdBySourcePath,
+            )
+          : _toBackupValue(_optionBox.get(key));
       if (encodedKey == _unsupportedValue ||
           encodedValue == _unsupportedValue) {
         continue;
@@ -495,6 +646,7 @@ class DriveBackupService implements BackupRepository {
       'entries': entries,
       'options': options,
       _optionRecordsKey: optionRecords,
+      _assetRecordsKey: assetRecords,
       _familyMetadataKey: FamilyAccessService.backupMetadataFromState(
         familyState,
         updatedByRole: updatedByRole,
@@ -532,18 +684,28 @@ class DriveBackupService implements BackupRepository {
     final entries = (data['entries'] as List?) ?? const [];
     final optionRecords = (data[_optionRecordsKey] as List?) ?? const [];
     final options = (data['options'] as Map?) ?? const {};
+    final assetRecords = _extractAssetRecords(data);
     final lastBackupRaw = _optionBox.get(_lastBackupKey);
     final localPreRestoreRaw = _optionBox.get(_localPreRestoreKey);
     final localPreRestoreAtRaw = _optionBox.get(_localPreRestoreAtKey);
     final preservedLocalOnly = <String, dynamic>{
       for (final key in FamilyAccessService.localOnlyOptionKeys)
         key: _optionBox.get(key),
+      connectedDriveEmailLocalKey: _optionBox.get(connectedDriveEmailLocalKey),
+      connectedDriveLabelLocalKey: _optionBox.get(connectedDriveLabelLocalKey),
+      connectedDriveSubjectLocalKey: _optionBox.get(
+        connectedDriveSubjectLocalKey,
+      ),
     };
 
     await _trainingBox.clear();
     for (final raw in entries) {
       if (raw is Map) {
-        await _trainingBox.add(_entryFromMap(raw.cast<String, dynamic>()));
+        final entry = await _restoreEntryAssets(
+          _entryFromMap(raw.cast<String, dynamic>()),
+          assetRecords,
+        );
+        await _trainingBox.add(entry);
       }
     }
 
@@ -571,6 +733,7 @@ class DriveBackupService implements BackupRepository {
         }
       }
     }
+    await _restoreOptionAssets(assetRecords);
     if (localPreRestoreRaw is String) {
       await _optionBox.put(_localPreRestoreKey, localPreRestoreRaw);
     }
@@ -585,6 +748,240 @@ class DriveBackupService implements BackupRepository {
         await _optionBox.put(entry.key, entry.value);
       }
     }
+  }
+
+  dynamic _encodeOptionValueForBackup({
+    required String key,
+    required dynamic value,
+    required Map<String, dynamic> assetRecords,
+    required Map<String, String> assetIdBySourcePath,
+  }) {
+    if (key == _profilePhotoOptionKey && value is String) {
+      return _toBackupValue(
+        _replacePathWithAssetReferenceIfNeeded(
+          assetId: 'option:$_profilePhotoOptionKey',
+          sourcePath: value,
+          assetRecords: assetRecords,
+          assetIdBySourcePath: assetIdBySourcePath,
+          preferredFileName: 'profile_photo${_fileExtension(value)}',
+        ),
+      );
+    }
+    return _toBackupValue(value);
+  }
+
+  String _replacePathWithAssetReferenceIfNeeded({
+    required String assetId,
+    required String sourcePath,
+    required Map<String, dynamic> assetRecords,
+    required Map<String, String> assetIdBySourcePath,
+    String? preferredFileName,
+  }) {
+    final trimmed = sourcePath.trim();
+    if (trimmed.isEmpty || trimmed.startsWith('data:')) {
+      return sourcePath;
+    }
+    final existingAssetId = assetIdBySourcePath[trimmed];
+    if (existingAssetId != null) {
+      return '$_assetRefPrefix$existingAssetId';
+    }
+    final record = _backupAssetFileStore.readFileSync(
+      assetId: assetId,
+      sourcePath: trimmed,
+      preferredFileName: preferredFileName,
+    );
+    if (record == null) {
+      return sourcePath;
+    }
+    assetIdBySourcePath[trimmed] = record.assetId;
+    assetRecords[record.assetId] = record.toMap();
+    return '$_assetRefPrefix${record.assetId}';
+  }
+
+  Map<String, BackupAssetRecord> _extractAssetRecords(
+      Map<String, dynamic> data) {
+    final raw = data[_assetRecordsKey];
+    if (raw is! Map) {
+      return const <String, BackupAssetRecord>{};
+    }
+    final records = <String, BackupAssetRecord>{};
+    raw.forEach((key, value) {
+      final record = BackupAssetRecord.tryParse(key.toString(), value);
+      if (record != null) {
+        records[record.assetId] = record;
+      }
+    });
+    return records;
+  }
+
+  Future<void> _restoreOptionAssets(
+    Map<String, BackupAssetRecord> assetRecords,
+  ) async {
+    final raw = _optionBox.get(_profilePhotoOptionKey);
+    if (raw is! String || !_isAssetReference(raw)) {
+      return;
+    }
+    final restored = await _restoreAssetReference(raw, assetRecords);
+    if (restored == null) {
+      return;
+    }
+    await _optionBox.put(_profilePhotoOptionKey, restored);
+  }
+
+  Future<TrainingEntry> _restoreEntryAssets(
+    TrainingEntry entry,
+    Map<String, BackupAssetRecord> assetRecords,
+  ) async {
+    final restoredPaths = <String>[];
+    for (final path in entry.imagePaths) {
+      restoredPaths
+          .add(await _restoreAssetReference(path, assetRecords) ?? path);
+    }
+    final restoredPrimary =
+        await _restoreAssetReference(entry.imagePath, assetRecords) ??
+            (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
+    return TrainingEntry(
+      date: entry.date,
+      durationMinutes: entry.durationMinutes,
+      intensity: entry.intensity,
+      type: entry.type,
+      mood: entry.mood,
+      injury: entry.injury,
+      notes: entry.notes,
+      location: entry.location,
+      program: entry.program,
+      drills: entry.drills,
+      club: entry.club,
+      injuryPart: entry.injuryPart,
+      painLevel: entry.painLevel,
+      rehab: entry.rehab,
+      goal: entry.goal,
+      feedback: entry.feedback,
+      heightCm: entry.heightCm,
+      weightKg: entry.weightKg,
+      imagePath: restoredPrimary,
+      imagePaths: restoredPaths,
+      status: entry.status,
+      liftingByPart: entry.liftingByPart,
+      coachComment: entry.coachComment,
+      fortuneComment: entry.fortuneComment,
+      fortuneRecommendation: entry.fortuneRecommendation,
+      fortuneRecommendedProgram: entry.fortuneRecommendedProgram,
+      goalFocuses: entry.goalFocuses,
+      goodPoints: entry.goodPoints,
+      improvements: entry.improvements,
+      nextGoal: entry.nextGoal,
+      createdAt: entry.createdAt,
+      jumpRopeCount: entry.jumpRopeCount,
+      jumpRopeMinutes: entry.jumpRopeMinutes,
+      jumpRopeEnabled: entry.jumpRopeEnabled,
+      jumpRopeNote: entry.jumpRopeNote,
+      opponentTeam: entry.opponentTeam,
+      scoredGoals: entry.scoredGoals,
+      concededGoals: entry.concededGoals,
+      playerGoals: entry.playerGoals,
+      playerAssists: entry.playerAssists,
+      minutesPlayed: entry.minutesPlayed,
+      matchLocation: entry.matchLocation,
+      breakfastDone: entry.breakfastDone,
+      breakfastRiceBowls: entry.breakfastRiceBowls,
+      lunchDone: entry.lunchDone,
+      lunchRiceBowls: entry.lunchRiceBowls,
+      dinnerDone: entry.dinnerDone,
+      dinnerRiceBowls: entry.dinnerRiceBowls,
+    );
+  }
+
+  Future<String?> _restoreAssetReference(
+    String raw,
+    Map<String, BackupAssetRecord> assetRecords,
+  ) async {
+    if (!_isAssetReference(raw)) {
+      return null;
+    }
+    final assetId = raw.substring(_assetRefPrefix.length);
+    final record = assetRecords[assetId];
+    if (record == null) {
+      return null;
+    }
+    return _backupAssetFileStore.restoreFile(record);
+  }
+
+  bool _isAssetReference(String raw) {
+    return raw.trim().startsWith(_assetRefPrefix);
+  }
+
+  String _fileExtension(String path) {
+    final trimmed = path.trim();
+    final dotIndex = trimmed.lastIndexOf('.');
+    if (dotIndex < 0 || dotIndex == trimmed.length - 1) {
+      return '.bin';
+    }
+    final extension = trimmed.substring(dotIndex);
+    if (!RegExp(r'^\.[A-Za-z0-9]+$').hasMatch(extension)) {
+      return '.bin';
+    }
+    return extension;
+  }
+
+  void _validateParentRemoteBinding(Map<String, dynamic>? remote) {
+    final state = _familyService.loadState();
+    if (state.currentRole != FamilyRole.parent || remote == null) {
+      return;
+    }
+    final localFamilyId = state.familyId.trim();
+    final remoteFamilyId = _extractFamilyId(remote);
+    if (localFamilyId.isNotEmpty &&
+        remoteFamilyId.isNotEmpty &&
+        localFamilyId != remoteFamilyId) {
+      throw StateError(parentFamilyMismatchErrorCode);
+    }
+    final connectedEmail = _normalizedEmail(
+      _optionBox.get(connectedDriveEmailLocalKey) as String?,
+    );
+    final expectedChildDriveEmail = _normalizedEmail(
+      _extractSharedChildDriveEmail(remote).isNotEmpty
+          ? _extractSharedChildDriveEmail(remote)
+          : _optionBox.get(sharedChildDriveEmailKey) as String?,
+    );
+    if (expectedChildDriveEmail.isNotEmpty &&
+        connectedEmail.isNotEmpty &&
+        expectedChildDriveEmail != connectedEmail) {
+      throw StateError(parentDriveMismatchErrorCode);
+    }
+  }
+
+  void _validateRestoreBinding(Map<String, dynamic> remote) {
+    final state = _familyService.loadState();
+    final localFamilyId = state.familyId.trim();
+    final remoteFamilyId = _extractFamilyId(remote);
+    if (state.currentRole == FamilyRole.parent &&
+        localFamilyId.isNotEmpty &&
+        remoteFamilyId.isNotEmpty &&
+        localFamilyId != remoteFamilyId) {
+      throw StateError(parentFamilyMismatchErrorCode);
+    }
+  }
+
+  String _extractFamilyId(Map<String, dynamic> backup) {
+    final familyRaw = backup[_familyMetadataKey];
+    if (familyRaw is Map) {
+      final value = familyRaw['familyId']?.toString().trim() ?? '';
+      if (value.isNotEmpty) {
+        return value;
+      }
+    }
+    final options = _copyStringOptions(backup);
+    return options[FamilyAccessService.familyIdKey]?.toString().trim() ?? '';
+  }
+
+  String _extractSharedChildDriveEmail(Map<String, dynamic> backup) {
+    final options = _copyStringOptions(backup);
+    return options[sharedChildDriveEmailKey]?.toString().trim() ?? '';
+  }
+
+  String _normalizedEmail(String? raw) {
+    return raw?.trim().toLowerCase() ?? '';
   }
 
   bool hasLocalPreRestoreBackup() {
@@ -778,6 +1175,9 @@ class DriveBackupService implements BackupRepository {
     required FamilyRole currentRole,
     required Map<String, dynamic>? remote,
   }) {
+    if (currentRole == FamilyRole.parent) {
+      _validateParentRemoteBinding(remote);
+    }
     final local = _buildBackup(
       updatedByRole: currentRole,
       familyLayerOnly: false,
@@ -882,56 +1282,80 @@ class DriveBackupService implements BackupRepository {
         .toList(growable: true);
   }
 
-  Map<String, dynamic> _entryToMap(TrainingEntry entry) => {
-        'date': entry.date.toIso8601String(),
-        'createdAt': entry.createdAt.toIso8601String(),
-        'durationMinutes': entry.durationMinutes,
-        'intensity': entry.intensity,
-        'type': entry.type,
-        'mood': entry.mood,
-        'injury': entry.injury,
-        'notes': entry.notes,
-        'location': entry.location,
-        'program': entry.program,
-        'drills': entry.drills,
-        'club': entry.club,
-        'injuryPart': entry.injuryPart,
-        'painLevel': entry.painLevel,
-        'rehab': entry.rehab,
-        'goal': entry.goal,
-        'feedback': entry.feedback,
-        'heightCm': entry.heightCm,
-        'weightKg': entry.weightKg,
-        'imagePath': entry.imagePath,
-        'imagePaths': entry.imagePaths,
-        'status': entry.status,
-        'liftingByPart': entry.liftingByPart,
-        'coachComment': entry.coachComment,
-        'fortuneComment': entry.fortuneComment,
-        'fortuneRecommendation': entry.fortuneRecommendation,
-        'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
-        'goalFocuses': entry.goalFocuses,
-        'goodPoints': entry.goodPoints,
-        'improvements': entry.improvements,
-        'nextGoal': entry.nextGoal,
-        'jumpRopeCount': entry.jumpRopeCount,
-        'jumpRopeMinutes': entry.jumpRopeMinutes,
-        'jumpRopeEnabled': entry.jumpRopeEnabled,
-        'jumpRopeNote': entry.jumpRopeNote,
-        'opponentTeam': entry.opponentTeam,
-        'scoredGoals': entry.scoredGoals,
-        'concededGoals': entry.concededGoals,
-        'playerGoals': entry.playerGoals,
-        'playerAssists': entry.playerAssists,
-        'minutesPlayed': entry.minutesPlayed,
-        'matchLocation': entry.matchLocation,
-        'breakfastDone': entry.breakfastDone,
-        'breakfastRiceBowls': entry.breakfastRiceBowls,
-        'lunchDone': entry.lunchDone,
-        'lunchRiceBowls': entry.lunchRiceBowls,
-        'dinnerDone': entry.dinnerDone,
-        'dinnerRiceBowls': entry.dinnerRiceBowls,
-      };
+  Map<String, dynamic> _entryToMap(
+    TrainingEntry entry, {
+    required Map<String, dynamic> assetRecords,
+    required Map<String, String> assetIdBySourcePath,
+  }) {
+    final assetBaseId = 'training:${entry.createdAt.microsecondsSinceEpoch}';
+    final encodedImagePaths = <String>[
+      for (var i = 0; i < entry.imagePaths.length; i++)
+        _replacePathWithAssetReferenceIfNeeded(
+          assetId: '$assetBaseId:$i',
+          sourcePath: entry.imagePaths[i],
+          assetRecords: assetRecords,
+          assetIdBySourcePath: assetIdBySourcePath,
+        ),
+    ];
+    final encodedPrimaryImage = entry.imagePath.trim().isNotEmpty
+        ? _replacePathWithAssetReferenceIfNeeded(
+            assetId: '$assetBaseId:primary',
+            sourcePath: entry.imagePath,
+            assetRecords: assetRecords,
+            assetIdBySourcePath: assetIdBySourcePath,
+          )
+        : (encodedImagePaths.isNotEmpty ? encodedImagePaths.first : '');
+    return {
+      'date': entry.date.toIso8601String(),
+      'createdAt': entry.createdAt.toIso8601String(),
+      'durationMinutes': entry.durationMinutes,
+      'intensity': entry.intensity,
+      'type': entry.type,
+      'mood': entry.mood,
+      'injury': entry.injury,
+      'notes': entry.notes,
+      'location': entry.location,
+      'program': entry.program,
+      'drills': entry.drills,
+      'club': entry.club,
+      'injuryPart': entry.injuryPart,
+      'painLevel': entry.painLevel,
+      'rehab': entry.rehab,
+      'goal': entry.goal,
+      'feedback': entry.feedback,
+      'heightCm': entry.heightCm,
+      'weightKg': entry.weightKg,
+      'imagePath': encodedPrimaryImage,
+      'imagePaths': encodedImagePaths,
+      'status': entry.status,
+      'liftingByPart': entry.liftingByPart,
+      'coachComment': entry.coachComment,
+      'fortuneComment': entry.fortuneComment,
+      'fortuneRecommendation': entry.fortuneRecommendation,
+      'fortuneRecommendedProgram': entry.fortuneRecommendedProgram,
+      'goalFocuses': entry.goalFocuses,
+      'goodPoints': entry.goodPoints,
+      'improvements': entry.improvements,
+      'nextGoal': entry.nextGoal,
+      'jumpRopeCount': entry.jumpRopeCount,
+      'jumpRopeMinutes': entry.jumpRopeMinutes,
+      'jumpRopeEnabled': entry.jumpRopeEnabled,
+      'jumpRopeNote': entry.jumpRopeNote,
+      'opponentTeam': entry.opponentTeam,
+      'scoredGoals': entry.scoredGoals,
+      'concededGoals': entry.concededGoals,
+      'playerGoals': entry.playerGoals,
+      'playerAssists': entry.playerAssists,
+      'minutesPlayed': entry.minutesPlayed,
+      'matchLocation': entry.matchLocation,
+      'breakfastDone': entry.breakfastDone,
+      'breakfastRiceBowls': entry.breakfastRiceBowls,
+      'lunchDone': entry.lunchDone,
+      'lunchRiceBowls': entry.lunchRiceBowls,
+      'dinnerDone': entry.dinnerDone,
+      'dinnerRiceBowls': entry.dinnerRiceBowls,
+    };
+  }
 
   TrainingEntry _entryFromMap(Map<String, dynamic> map) {
     DateTime parseDate() {

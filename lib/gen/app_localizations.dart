@@ -5498,6 +5498,12 @@ abstract class AppLocalizations {
   /// **'Use one shared Drive backup without a server. Child mode owns core records, while parent mode only syncs the family layer.'**
   String get familySharedBackupDescription;
 
+  /// No description provided for @familyBackupIncludesMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up profile photos and training photos too when those files can be collected locally.'**
+  String get familyBackupIncludesMedia;
+
   /// No description provided for @familyRoleChild.
   ///
   /// In en, this message translates to:
@@ -5659,6 +5665,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Family message sent.'**
   String get familyMessageSent;
+
+  /// No description provided for @driveConnectedAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected Drive account'**
+  String get driveConnectedAccount;
+
+  /// No description provided for @driveConnectedAccountEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No Google Drive account is connected yet.'**
+  String get driveConnectedAccountEmpty;
+
+  /// No description provided for @driveSharedChildAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared child Drive'**
+  String get driveSharedChildAccount;
+
+  /// No description provided for @driveSharedChildAccountEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No child Drive account is known yet. Create at least one child backup first.'**
+  String get driveSharedChildAccountEmpty;
+
+  /// No description provided for @familyParentUsesChildDriveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'In parent mode, sign in with the child\'s Google Drive account to sync feedback and family messages into the same backup file.'**
+  String get familyParentUsesChildDriveHint;
+
+  /// No description provided for @familyParentUsesChildDriveWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode should connect to the child\'s Google Drive account to sync safely into the same family backup.'**
+  String get familyParentUsesChildDriveWarning;
+
+  /// No description provided for @familyParentFamilyMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The connected Drive backup does not match this family data.'**
+  String get familyParentFamilyMismatch;
 
   /// No description provided for @parentReadOnlyProfileDescription.
   ///

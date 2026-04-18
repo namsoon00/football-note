@@ -3070,6 +3070,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '서버 없이 Google Drive 백업 파일 하나를 함께 사용합니다. 아이 모드는 핵심 기록을 맡고, 부모 모드는 가족 공유 레이어만 동기화합니다.';
 
   @override
+  String get familyBackupIncludesMedia =>
+      '프로필 사진과 훈련 사진처럼 기기 파일로 저장된 항목도 가능한 범위에서 함께 백업합니다.';
+
+  @override
   String get familyRoleChild => '아이';
 
   @override
@@ -3153,6 +3157,31 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyMessageSent => '가족 메세지를 보냈어요.';
+
+  @override
+  String get driveConnectedAccount => '현재 연결된 Drive 계정';
+
+  @override
+  String get driveConnectedAccountEmpty => '아직 Google Drive 계정이 연결되지 않았어요.';
+
+  @override
+  String get driveSharedChildAccount => '공유 대상 아이 Drive';
+
+  @override
+  String get driveSharedChildAccountEmpty =>
+      '아직 아이 Drive 정보가 없어요. 아이 모드에서 먼저 한 번 백업해 주세요.';
+
+  @override
+  String get familyParentUsesChildDriveHint =>
+      '부모 모드에서는 아이 Google Drive 계정으로 로그인하면 같은 백업 파일에 피드백과 가족 메세지를 동기화할 수 있어요.';
+
+  @override
+  String get familyParentUsesChildDriveWarning =>
+      '부모 모드에서는 아이 Google Drive 계정으로 연결해야 같은 가족 백업에 안전하게 동기화할 수 있어요.';
+
+  @override
+  String get familyParentFamilyMismatch =>
+      '현재 연결한 Drive 백업이 이 가족 데이터와 일치하지 않아요.';
 
   @override
   String get parentReadOnlyProfileDescription =>

@@ -42,6 +42,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _signedIn = false;
   bool _autoDaily = true;
   bool _autoOnSave = true;
+  String _connectedDriveLabel = '';
+  String _sharedChildDriveLabel = '';
+  String _sharedChildDriveEmail = '';
 
   late List<int> _durationOptions;
   late List<int> _ratingOptions;
@@ -66,8 +69,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _refreshSignInState() async {
     if (widget.driveBackupService == null) return;
     final signedIn = await widget.driveBackupService!.isSignedIn();
+    final connection =
+        await widget.driveBackupService!.getDriveConnectionInfo();
     if (!mounted) return;
-    setState(() => _signedIn = signedIn);
+    setState(() {
+      _signedIn = signedIn;
+      _connectedDriveLabel = connection?.label.trim() ?? '';
+      _sharedChildDriveLabel =
+          widget.driveBackupService!.getSharedChildDriveLabel();
+      _sharedChildDriveEmail =
+          widget.driveBackupService!.getSharedChildDriveEmail();
+    });
   }
 
   @override
@@ -77,6 +89,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final current = widget.localeService.locale?.languageCode ?? 'en';
     final familyState =
         FamilyAccessService(widget.optionRepository).loadState();
+    final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
+        ? _sharedChildDriveLabel.trim()
+        : _sharedChildDriveEmail.trim();
+    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
+        _connectedDriveLabel.trim().isEmpty ||
+        _connectedDriveLabel.toLowerCase().contains(
+              _sharedChildDriveEmail.trim().toLowerCase(),
+            );
 
     if (widget.driveBackupService != null) {
       _autoDaily = widget.driveBackupService!.isAutoDailyEnabled();
@@ -252,6 +272,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: _elevatedActionStyle(),
                 ),
                 const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.cloud_done_outlined, size: 20),
+                  title: Text(l10n.driveConnectedAccount),
+                  subtitle: Text(
+                    _connectedDriveLabel.trim().isEmpty
+                        ? l10n.driveConnectedAccountEmpty
+                        : _connectedDriveLabel.trim(),
+                  ),
+                ),
+                if (familyState.isParentMode) ...[
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.child_care_outlined, size: 20),
+                    title: Text(l10n.driveSharedChildAccount),
+                    subtitle: Text(
+                      expectedChildDriveLabel.isEmpty
+                          ? l10n.driveSharedChildAccountEmpty
+                          : expectedChildDriveLabel,
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: driveMatchesExpected
+                          ? Theme.of(context).colorScheme.surfaceContainerHigh
+                          : Theme.of(
+                              context,
+                            )
+                              .colorScheme
+                              .errorContainer
+                              .withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      driveMatchesExpected
+                          ? l10n.familyParentUsesChildDriveHint
+                          : l10n.familyParentUsesChildDriveWarning,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
                   icon: const Icon(Icons.cloud_upload_outlined),
@@ -341,6 +405,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 l10n.familySharedBackupDescription,
                 style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.familyBackupIncludesMedia,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -1472,7 +1541,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
-          : l10n.backupFailed;
+          : _driveFailureMessage(l10n, e, fallback: l10n.backupFailed);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -1510,7 +1579,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
-          : l10n.restoreFailed;
+          : _driveFailureMessage(l10n, e, fallback: l10n.restoreFailed);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -1570,6 +1639,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     final locale = Localizations.localeOf(context).toString();
     return DateFormat.yMMMd(locale).format(date);
+  }
+
+  String _driveFailureMessage(
+    AppLocalizations l10n,
+    Object error, {
+    required String fallback,
+  }) {
+    final raw = error.toString();
+    if (raw.contains('parent_drive_mismatch')) {
+      return l10n.familyParentUsesChildDriveWarning;
+    }
+    if (raw.contains('parent_family_mismatch')) {
+      return l10n.familyParentFamilyMismatch;
+    }
+    return fallback;
   }
 
   bool _isYesterday(DateTime date, DateTime now) {
