@@ -845,6 +845,67 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherOutfitButton => '추천 복장';
 
   @override
+  String get homeWeatherOutfitLayersLabel => '레이어';
+
+  @override
+  String get homeWeatherOutfitOuterLabel => '아우터';
+
+  @override
+  String get homeWeatherOutfitBottomLabel => '하의';
+
+  @override
+  String get homeWeatherOutfitAccessoriesLabel => '준비물';
+
+  @override
+  String get homeWeatherOutfitNotesLabel => '주의 포인트';
+
+  @override
+  String get homeWeatherOutfitViewAllCases => '모든 복장 케이스 보기';
+
+  @override
+  String get homeWeatherOutfitAllCasesTitle => '전체 복장 케이스';
+
+  @override
+  String get homeWeatherOutfitAllCasesSubtitle =>
+      '날씨대별 추천 복장을 레이어, 하의, 준비물까지 자세히 확인하세요.';
+
+  @override
+  String get homeWeatherOutfitCaseHotTitle => '한여름 더위';
+
+  @override
+  String get homeWeatherOutfitCaseHotRange => '체감 30°C 이상';
+
+  @override
+  String get homeWeatherOutfitCaseWarmTitle => '따뜻한 훈련 날';
+
+  @override
+  String get homeWeatherOutfitCaseWarmRange => '체감 22~29°C';
+
+  @override
+  String get homeWeatherOutfitCaseMildTitle => '선선한 날';
+
+  @override
+  String get homeWeatherOutfitCaseMildRange => '체감 15~21°C';
+
+  @override
+  String get homeWeatherOutfitCaseCoolTitle => '쌀쌀한 날';
+
+  @override
+  String get homeWeatherOutfitCaseCoolRange => '체감 8~14°C';
+
+  @override
+  String get homeWeatherOutfitCaseColdTitle => '추운 날';
+
+  @override
+  String get homeWeatherOutfitCaseColdRange => '체감 2~7°C';
+
+  @override
+  String get homeWeatherOutfitCaseWetTitle => '비·눈 오는 날';
+
+  @override
+  String get homeWeatherOutfitCaseWetRange => '강수 또는 적설 시';
+
+  @override
   String get homeWeatherAirQualityTitle => '대기질';
 
   @override

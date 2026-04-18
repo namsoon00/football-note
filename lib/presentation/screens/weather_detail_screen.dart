@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+import '../../application/weather_forecast_service.dart';
 import '../../application/weather_location_service.dart';
 import '../widgets/app_background.dart';
 
@@ -59,23 +60,34 @@ class WeatherDetailScreen extends StatefulWidget {
     required double longitude,
     required AppLocalizations l10n,
   }) async {
-    final weatherUri = Uri.https('api.open-meteo.com', '/v1/forecast', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current':
-          'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m',
-      'daily':
-          'weather_code,uv_index_max,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
-      'forecast_days': '7',
-      'timezone': 'auto',
-    });
+    final weatherUri = WeatherForecastService.buildForecastUri(
+      latitude: latitude,
+      longitude: longitude,
+      current: const <String>[
+        'temperature_2m',
+        'apparent_temperature',
+        'relative_humidity_2m',
+        'precipitation',
+        'weather_code',
+        'wind_speed_10m',
+      ],
+      daily: const <String>[
+        'weather_code',
+        'uv_index_max',
+        'temperature_2m_max',
+        'temperature_2m_min',
+        'precipitation_sum',
+        'wind_speed_10m_max',
+      ],
+      forecastDays: 7,
+    );
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'current': 'pm10,pm2_5,us_aqi',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
     final responses = await Future.wait([
       http.get(weatherUri),
       http.get(airQualityUri),
@@ -116,8 +128,8 @@ class WeatherDetailScreen extends StatefulWidget {
     return _WeatherDetailsSnapshot(
       summary: summary,
       weatherCode: weatherCode,
-      apparentTemperature: (current['apparent_temperature'] as num?)
-          ?.toDouble(),
+      apparentTemperature:
+          (current['apparent_temperature'] as num?)?.toDouble(),
       humidity: (current['relative_humidity_2m'] as num?)?.toDouble(),
       windSpeed: (current['wind_speed_10m'] as num?)?.toDouble(),
       temperatureMax: dailyMax,
@@ -259,10 +271,19 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _summary = widget.initialSummary.trim();
     _weatherCode = widget.initialWeatherCode;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final localeTag = Localizations.localeOf(context).toLanguageTag();
+      final cachedDetails = _cachedDetails;
+      if (cachedDetails != null &&
+          cachedDetails.localeTag == localeTag &&
+          DateTime.now().difference(cachedDetails.fetchedAt) < _cacheTtl) {
+        setState(() {
+          _applySnapshot(cachedDetails.location, cachedDetails.snapshot);
+        });
+      }
       _maybeHandleInitialAction();
       final shouldRequestPermission =
           widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
-          _summary.isEmpty;
+              _summary.isEmpty;
       unawaited(
         _loadWeather(
           requestPermission: shouldRequestPermission,
@@ -298,9 +319,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 onRefresh: _loading
                     ? null
                     : () => _loadWeather(
-                        requestPermission: true,
-                        showFailureFeedback: true,
-                      ),
+                          requestPermission: true,
+                          showFailureFeedback: true,
+                        ),
                 metrics: hasWeather
                     ? [
                         _CompactMetricData(
@@ -331,8 +352,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 _WeatherRecommendationActions(
                   outfitLabel: l10n.homeWeatherOutfitButton,
                   trainingLabel: l10n.homeWeatherSuggestionButton,
-                  onOutfitTap: () => _showOutfitGuideSheet(
-                    isKo: isKo,
+                  onOutfitTap: () => _openOutfitGuideScreen(
                     l10n: l10n,
                     guide: detailedOutfitGuide,
                   ),
@@ -371,9 +391,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
                   uvLabel: l10n.homeWeatherUvIndex,
-                  tomorrowForecast: _dailyForecasts.length > 1
-                      ? _dailyForecasts[1]
-                      : null,
+                  tomorrowForecast:
+                      _dailyForecasts.length > 1 ? _dailyForecasts[1] : null,
                   tomorrowFallback: l10n.homeWeatherTomorrowFallback,
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
@@ -448,7 +467,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
+          accuracy: LocationAccuracy.high,
         ),
       );
       final place = await _resolvePlaceName(
@@ -483,6 +502,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       if (mounted) {
         setState(() => _loading = false);
       }
+      _maybeHandleInitialAction();
     }
   }
 
@@ -491,22 +511,24 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) => WeatherLocationService.resolvePlaceName(
-    latitude: latitude,
-    longitude: longitude,
-    isKo: isKo,
-    koreaLabel: koreaLabel,
-  );
+  }) =>
+      WeatherLocationService.resolvePlaceName(
+        latitude: latitude,
+        longitude: longitude,
+        isKo: isKo,
+        koreaLabel: koreaLabel,
+      );
 
   Future<_WeatherDetailsSnapshot> _fetchWeatherSnapshot({
     required double latitude,
     required double longitude,
     required AppLocalizations l10n,
-  }) => WeatherDetailScreen._fetchWeatherSnapshotStatic(
-    latitude: latitude,
-    longitude: longitude,
-    l10n: l10n,
-  );
+  }) =>
+      WeatherDetailScreen._fetchWeatherSnapshotStatic(
+        latitude: latitude,
+        longitude: longitude,
+        l10n: l10n,
+      );
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;
@@ -523,12 +545,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _handledInitialAction = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final isKo = Localizations.localeOf(context).languageCode == 'ko';
       final l10n = AppLocalizations.of(context)!;
-      _showOutfitGuideSheet(
-        isKo: isKo,
+      _openOutfitGuideScreen(
         l10n: l10n,
-        guide: _buildDetailedOutfitGuide(isKo, l10n),
+        guide: _buildDetailedOutfitGuide(
+          Localizations.localeOf(context).languageCode == 'ko',
+          l10n,
+        ),
       );
     });
   }
@@ -556,12 +579,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   String _formatForecastWeekday(DateTime date) => DateFormat.E(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   _AirLevelLabel _aqiLevel(AppLocalizations l10n, int? value) {
     if (value == null) {
@@ -757,13 +780,25 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   _DetailedOutfitGuide _buildDetailedOutfitGuide(
     bool isKo,
     AppLocalizations l10n,
-  ) {
-    final apparentTemperature = _apparentTemperature ?? _temperatureMax;
-    final windSpeed = _windSpeed ?? 0;
-    final weatherCode = _weatherCode;
-    final airLevel = _worstAirQualityLevel();
-    final isRainy =
-        weatherCode != null &&
+  ) =>
+      _buildOutfitGuide(
+        isKo: isKo,
+        l10n: l10n,
+        apparentTemperature: _apparentTemperature ?? _temperatureMax,
+        windSpeed: _windSpeed ?? 0,
+        weatherCode: _weatherCode,
+        airLevel: _worstAirQualityLevel(),
+      );
+
+  _DetailedOutfitGuide _buildOutfitGuide({
+    required bool isKo,
+    required AppLocalizations l10n,
+    required double? apparentTemperature,
+    required double windSpeed,
+    required int? weatherCode,
+    required _AirQualityLevel airLevel,
+  }) {
+    final isRainy = weatherCode != null &&
         <int>{
           51,
           53,
@@ -782,8 +817,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           96,
           99,
         }.contains(weatherCode);
-    final isSnowy =
-        weatherCode != null &&
+    final isSnowy = weatherCode != null &&
         <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
 
     String layers;
@@ -796,13 +830,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         icon: apparentTemperature != null && apparentTemperature >= 24
             ? Icons.wb_sunny_outlined
             : apparentTemperature != null && apparentTemperature <= 8
-            ? Icons.ac_unit_rounded
-            : Icons.tune_rounded,
+                ? Icons.ac_unit_rounded
+                : Icons.tune_rounded,
         text: apparentTemperature != null && apparentTemperature >= 24
             ? l10n.homeWeatherOutfitBaseHot
             : apparentTemperature != null && apparentTemperature <= 8
-            ? l10n.homeWeatherOutfitBaseCold
-            : l10n.homeWeatherOutfitBaseMild,
+                ? l10n.homeWeatherOutfitBaseCold
+                : l10n.homeWeatherOutfitBaseMild,
       ),
     ];
 
@@ -812,9 +846,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '기본 반바지' : 'Standard shorts';
       accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
     } else if (apparentTemperature >= 30) {
-      layers = isKo
-          ? '민소매/반팔 + 쿨 이너'
-          : 'Sleeveless/short-sleeve + cooling base';
+      layers =
+          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
       outer = isKo ? '아우터 없음' : 'No outerwear';
       bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
       accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
@@ -835,21 +868,18 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
       accessories = isKo ? '얇은 장갑, 넥워머' : 'Light gloves, neck warmer';
     } else if (apparentTemperature >= 2) {
-      layers = isKo
-          ? '기모 이너 + 긴팔 + 미들레이어'
-          : 'Thermal base + long-sleeve + midlayer';
+      layers =
+          isKo ? '기모 이너 + 긴팔 + 미들레이어' : 'Thermal base + long-sleeve + midlayer';
       outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
-      bottom = isKo ? '기모 긴바지' : 'Fleece-lined pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 귀마개'
-          : 'Winter gloves, neck warmer, ear cover';
+      bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
     } else {
       layers = isKo ? '발열 이너 + 두꺼운 미들레이어' : 'Heat base layer + thick midlayer';
       outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
       bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 비니'
-          : 'Insulated gloves, neck warmer, beanie';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
       notes.add(
         isKo
             ? '실내 워밍업 후 짧은 세트로 진행'
@@ -897,6 +927,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         ),
       );
     }
+    if ((isSnowy || windSpeed >= 25) &&
+        apparentTemperature != null &&
+        apparentTemperature < 8) {
+      bottom = isKo ? '기모 긴바지' : 'Fleece-lined pants';
+    }
     if (airLevel.index >= _AirQualityLevel.sensitive.index) {
       callouts.add(
         _OutfitCoachCallout(
@@ -915,159 +950,129 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       callouts: callouts.skip(1).toList(growable: false),
       caution: notes.isEmpty
           ? (isKo
-                ? '현재 조건에서 일반 강도 훈련 가능'
-                : 'Normal intensity is fine in current conditions')
+              ? '현재 조건에서 일반 강도 훈련 가능'
+              : 'Normal intensity is fine in current conditions')
           : notes.join(isKo ? ' · ' : ' · '),
     );
   }
 
-  List<_OutfitCase> _buildAllOutfitCases(bool isKo) {
+  List<_OutfitCase> _buildAllOutfitCases(AppLocalizations l10n) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final hotGuide = _buildOutfitGuide(
+      isKo: isKo,
+      l10n: l10n,
+      apparentTemperature: 31,
+      windSpeed: 8,
+      weatherCode: 0,
+      airLevel: _AirQualityLevel.good,
+    );
+    final warmGuide = _buildOutfitGuide(
+      isKo: isKo,
+      l10n: l10n,
+      apparentTemperature: 25,
+      windSpeed: 10,
+      weatherCode: 1,
+      airLevel: _AirQualityLevel.good,
+    );
+    final mildGuide = _buildOutfitGuide(
+      isKo: isKo,
+      l10n: l10n,
+      apparentTemperature: 18,
+      windSpeed: 11,
+      weatherCode: 1,
+      airLevel: _AirQualityLevel.good,
+    );
+    final coolGuide = _buildOutfitGuide(
+      isKo: isKo,
+      l10n: l10n,
+      apparentTemperature: 11,
+      windSpeed: 15,
+      weatherCode: 2,
+      airLevel: _AirQualityLevel.good,
+    );
+    final coldGuide = _buildOutfitGuide(
+      isKo: isKo,
+      l10n: l10n,
+      apparentTemperature: 5,
+      windSpeed: 12,
+      weatherCode: 0,
+      airLevel: _AirQualityLevel.good,
+    );
+    final wetGuide = _buildOutfitGuide(
+      isKo: isKo,
+      l10n: l10n,
+      apparentTemperature: 6,
+      windSpeed: 18,
+      weatherCode: 61,
+      airLevel: _AirQualityLevel.moderate,
+    );
     return [
       _OutfitCase(
-        title: isKo ? '한여름 더위' : 'Hot summer',
-        range: isKo ? '체감 30°C 이상' : 'Feels like 30°C+',
-        summary: isKo
-            ? '쿨 이너와 통풍 반바지 중심'
-            : 'Cooling base and breathable shorts',
+        title: l10n.homeWeatherOutfitCaseHotTitle,
+        range: l10n.homeWeatherOutfitCaseHotRange,
+        summary: hotGuide.coachSummary,
+        guide: hotGuide,
       ),
       _OutfitCase(
-        title: isKo ? '따뜻한 훈련 날' : 'Warm training day',
-        range: isKo ? '체감 22~29°C' : 'Feels like 22-29°C',
-        summary: isKo ? '반팔 훈련복과 가벼운 여벌 티' : 'Short-sleeve kit and a spare tee',
+        title: l10n.homeWeatherOutfitCaseWarmTitle,
+        range: l10n.homeWeatherOutfitCaseWarmRange,
+        summary: warmGuide.coachSummary,
+        guide: warmGuide,
       ),
       _OutfitCase(
-        title: isKo ? '선선한 날' : 'Mild day',
-        range: isKo ? '체감 15~21°C' : 'Feels like 15-21°C',
-        summary: isKo ? '기능성 이너와 얇은 집업 준비' : 'Base layer with a light zip-up',
+        title: l10n.homeWeatherOutfitCaseMildTitle,
+        range: l10n.homeWeatherOutfitCaseMildRange,
+        summary: mildGuide.coachSummary,
+        guide: mildGuide,
       ),
       _OutfitCase(
-        title: isKo ? '쌀쌀한 날' : 'Cool day',
-        range: isKo ? '체감 8~14°C' : 'Feels like 8-14°C',
-        summary: isKo
-            ? '긴팔과 바람막이, 긴바지 조합'
-            : 'Long sleeves, windbreaker, and training pants',
+        title: l10n.homeWeatherOutfitCaseCoolTitle,
+        range: l10n.homeWeatherOutfitCaseCoolRange,
+        summary: coolGuide.coachSummary,
+        guide: coolGuide,
       ),
       _OutfitCase(
-        title: isKo ? '추운 날' : 'Cold day',
-        range: isKo ? '체감 2~7°C' : 'Feels like 2-7°C',
-        summary: isKo
-            ? '방풍 자켓과 장갑, 넥워머'
-            : 'Windproof jacket, gloves, and neck warmer',
+        title: l10n.homeWeatherOutfitCaseColdTitle,
+        range: l10n.homeWeatherOutfitCaseColdRange,
+        summary: coldGuide.coachSummary,
+        guide: coldGuide,
       ),
       _OutfitCase(
-        title: isKo ? '비·눈 오는 날' : 'Rainy or snowy day',
-        range: isKo ? '강수/적설 시' : 'When raining or snowing',
-        summary: isKo
-            ? '생활방수 아우터와 여벌 양말 필수'
-            : 'Water-resistant outerwear and spare socks',
+        title: l10n.homeWeatherOutfitCaseWetTitle,
+        range: l10n.homeWeatherOutfitCaseWetRange,
+        summary: wetGuide.coachSummary,
+        guide: wetGuide,
       ),
     ];
   }
 
-  void _showAllOutfitCasesSheet(bool isKo) {
-    final cases = _buildAllOutfitCases(isKo);
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) {
-        final theme = Theme.of(context);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isKo ? '복장 케이스 전체 보기' : 'All outfit cases',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: cases.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final item = cases[index];
-                      return Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.title,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.range,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              item.summary,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showOutfitGuideSheet({
-    required bool isKo,
+  Future<void> _openOutfitGuideScreen({
     required AppLocalizations l10n,
     required _DetailedOutfitGuide guide,
-  }) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: _StructuredOutfitGuideCard(
-            title: isKo ? '추천 복장' : 'Recommended Outfit',
-            subtitle: _headerLocationLabel(l10n),
-            layersLabel: isKo ? '레이어' : 'Layers',
-            outerLabel: isKo ? '아우터' : 'Outerwear',
-            bottomLabel: isKo ? '하의' : 'Bottom',
-            accessoriesLabel: isKo ? '준비물' : 'Accessories',
-            cautionLabel: isKo ? '주의 포인트' : 'Notes',
-            buttonLabel: isKo ? '모든 복장 케이스 보기' : 'View all outfit cases',
-            weatherSummary: _summary,
-            feelsLikeLabel: l10n.homeWeatherFeelsLike,
-            feelsLikeValue: _formatTemperature(_apparentTemperature),
-            windLabel: l10n.homeWeatherWindSpeed,
-            windValue: _formatWind(_windSpeed),
-            airLabel: l10n.homeWeatherAqi,
-            airValue: _aqi == null ? '--' : '$_aqi',
-            guide: guide,
-            onViewAll: () => _showAllOutfitCasesSheet(isKo),
-          ),
+  }) async {
+    final cases = _buildAllOutfitCases(l10n);
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _WeatherOutfitGuideScreen(
+          title: l10n.homeWeatherOutfitTitle,
+          subtitle: _headerLocationLabel(l10n),
+          layersLabel: l10n.homeWeatherOutfitLayersLabel,
+          outerLabel: l10n.homeWeatherOutfitOuterLabel,
+          bottomLabel: l10n.homeWeatherOutfitBottomLabel,
+          accessoriesLabel: l10n.homeWeatherOutfitAccessoriesLabel,
+          cautionLabel: l10n.homeWeatherOutfitNotesLabel,
+          buttonLabel: l10n.homeWeatherOutfitViewAllCases,
+          weatherSummary: _summary,
+          feelsLikeLabel: l10n.homeWeatherFeelsLike,
+          feelsLikeValue: _formatTemperature(_apparentTemperature),
+          windLabel: l10n.homeWeatherWindSpeed,
+          windValue: _formatWind(_windSpeed),
+          airLabel: l10n.homeWeatherAqi,
+          airValue: _aqi == null ? '--' : '$_aqi',
+          guide: guide,
+          casesTitle: l10n.homeWeatherOutfitAllCasesTitle,
+          casesSubtitle: l10n.homeWeatherOutfitAllCasesSubtitle,
+          cases: cases,
         ),
       ),
     );
@@ -1088,11 +1093,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
             subtitle: _location.isEmpty
                 ? (isKo
-                      ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                      : 'Best focus for the current weather.')
+                    ? '지금 날씨에서 효율적인 훈련 방향입니다.'
+                    : 'Best focus for the current weather.')
                 : (isKo
-                      ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                      : 'Tailored to $_location weather.'),
+                    ? '$_location 날씨에 맞춘 훈련 방향입니다.'
+                    : 'Tailored to $_location weather.'),
             focusLabel: isKo ? '오늘 집중' : 'Focus',
             cautionLabel: isKo ? '운영 팁' : 'Execution tip',
             recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
@@ -1691,6 +1696,338 @@ class _AirQualityCard extends StatelessWidget {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeatherOutfitGuideScreen extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String layersLabel;
+  final String outerLabel;
+  final String bottomLabel;
+  final String accessoriesLabel;
+  final String cautionLabel;
+  final String buttonLabel;
+  final String weatherSummary;
+  final String feelsLikeLabel;
+  final String feelsLikeValue;
+  final String windLabel;
+  final String windValue;
+  final String airLabel;
+  final String airValue;
+  final _DetailedOutfitGuide guide;
+  final String casesTitle;
+  final String casesSubtitle;
+  final List<_OutfitCase> cases;
+
+  const _WeatherOutfitGuideScreen({
+    required this.title,
+    required this.subtitle,
+    required this.layersLabel,
+    required this.outerLabel,
+    required this.bottomLabel,
+    required this.accessoriesLabel,
+    required this.cautionLabel,
+    required this.buttonLabel,
+    required this.weatherSummary,
+    required this.feelsLikeLabel,
+    required this.feelsLikeValue,
+    required this.windLabel,
+    required this.windValue,
+    required this.airLabel,
+    required this.airValue,
+    required this.guide,
+    required this.casesTitle,
+    required this.casesSubtitle,
+    required this.cases,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: AppBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            child: _StructuredOutfitGuideCard(
+              title: title,
+              subtitle: subtitle,
+              layersLabel: layersLabel,
+              outerLabel: outerLabel,
+              bottomLabel: bottomLabel,
+              accessoriesLabel: accessoriesLabel,
+              cautionLabel: cautionLabel,
+              buttonLabel: buttonLabel,
+              weatherSummary: weatherSummary,
+              feelsLikeLabel: feelsLikeLabel,
+              feelsLikeValue: feelsLikeValue,
+              windLabel: windLabel,
+              windValue: windValue,
+              airLabel: airLabel,
+              airValue: airValue,
+              guide: guide,
+              onViewAll: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => _AllOutfitCasesScreen(
+                      title: casesTitle,
+                      subtitle: casesSubtitle,
+                      layersLabel: layersLabel,
+                      outerLabel: outerLabel,
+                      bottomLabel: bottomLabel,
+                      accessoriesLabel: accessoriesLabel,
+                      cautionLabel: cautionLabel,
+                      cases: cases,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AllOutfitCasesScreen extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String layersLabel;
+  final String outerLabel;
+  final String bottomLabel;
+  final String accessoriesLabel;
+  final String cautionLabel;
+  final List<_OutfitCase> cases;
+
+  const _AllOutfitCasesScreen({
+    required this.title,
+    required this.subtitle,
+    required this.layersLabel,
+    required this.outerLabel,
+    required this.bottomLabel,
+    required this.accessoriesLabel,
+    required this.cautionLabel,
+    required this.cases,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: AppBackground(
+        child: SafeArea(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            itemCount: cases.length + 1,
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Text(
+                  subtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                    height: 1.45,
+                  ),
+                );
+              }
+              final outfitCase = cases[index - 1];
+              return _OutfitCaseDetailCard(
+                outfitCase: outfitCase,
+                layersLabel: layersLabel,
+                outerLabel: outerLabel,
+                bottomLabel: bottomLabel,
+                accessoriesLabel: accessoriesLabel,
+                cautionLabel: cautionLabel,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OutfitCaseDetailCard extends StatelessWidget {
+  final _OutfitCase outfitCase;
+  final String layersLabel;
+  final String outerLabel;
+  final String bottomLabel;
+  final String accessoriesLabel;
+  final String cautionLabel;
+
+  const _OutfitCaseDetailCard({
+    required this.outfitCase,
+    required this.layersLabel,
+    required this.outerLabel,
+    required this.bottomLabel,
+    required this.accessoriesLabel,
+    required this.cautionLabel,
+  });
+
+  List<String> _splitItems(String raw, Pattern separator) => raw
+      .split(separator)
+      .map((item) => item.trim())
+      .where((item) => item.isNotEmpty)
+      .toList(growable: false);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accessoryItems = _splitItems(outfitCase.guide.accessories, ',');
+    final cautionItems = _splitItems(outfitCase.guide.caution, '·');
+    final items = [
+      (
+        label: layersLabel,
+        value: outfitCase.guide.layers,
+        icon: Icons.checkroom_rounded,
+        accent: theme.colorScheme.primaryContainer,
+        foreground: theme.colorScheme.primary,
+      ),
+      (
+        label: outerLabel,
+        value: outfitCase.guide.outer,
+        icon: Icons.shield_outlined,
+        accent: theme.colorScheme.secondaryContainer,
+        foreground: theme.colorScheme.secondary,
+      ),
+      (
+        label: bottomLabel,
+        value: outfitCase.guide.bottom,
+        icon: Icons.directions_run_rounded,
+        accent: theme.colorScheme.tertiaryContainer,
+        foreground: theme.colorScheme.tertiary,
+      ),
+      (
+        label: accessoriesLabel,
+        value: outfitCase.guide.accessories,
+        icon: Icons.backpack_outlined,
+        accent: theme.colorScheme.surfaceContainerHighest,
+        foreground: theme.colorScheme.onSurfaceVariant,
+      ),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            outfitCase.title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _NeutralInfoChip(label: outfitCase.range),
+              _NeutralInfoChip(label: outfitCase.summary),
+            ],
+          ),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cardWidth = (constraints.maxWidth - 10) / 2;
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: items
+                    .map(
+                      (item) => SizedBox(
+                        width: cardWidth,
+                        child: _OutfitVisualCard(
+                          label: item.label,
+                          value: item.value,
+                          icon: item.icon,
+                          accent: item.accent,
+                          foreground: item.foreground,
+                        ),
+                      ),
+                    )
+                    .toList(growable: false),
+              );
+            },
+          ),
+          if (accessoryItems.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: accessoryItems
+                  .map((item) => _NeutralInfoChip(label: item))
+                  .toList(growable: false),
+            ),
+          ],
+          if (cautionItems.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(
+                  alpha: 0.55,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cautionLabel,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...cautionItems.map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '•',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: theme.colorScheme.onSurface,
+                                height: 1.35,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -3066,11 +3403,13 @@ class _OutfitCase {
   final String title;
   final String range;
   final String summary;
+  final _DetailedOutfitGuide guide;
 
   const _OutfitCase({
     required this.title,
     required this.range,
     required this.summary,
+    required this.guide,
   });
 }
 

@@ -17,6 +17,7 @@ import '../../application/settings_service.dart';
 import '../../application/training_board_service.dart';
 import '../../application/training_plan_reminder_service.dart';
 import '../../application/training_service.dart';
+import '../../application/weather_forecast_service.dart';
 import '../../application/weather_location_service.dart';
 import '../../domain/entities/training_board.dart';
 import '../../domain/entities/meal_entry.dart';
@@ -415,7 +416,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
+          accuracy: LocationAccuracy.high,
         ),
       );
       final place = await _resolvePlaceName(
@@ -486,12 +487,11 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     required double longitude,
     required AppLocalizations l10n,
   }) async {
-    final uri = Uri.https('api.open-meteo.com', '/v1/forecast', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current': 'temperature_2m,weather_code',
-      'timezone': 'auto',
-    });
+    final uri = WeatherForecastService.buildForecastUri(
+      latitude: latitude,
+      longitude: longitude,
+      current: const <String>['temperature_2m', 'weather_code'],
+    );
     final response = await http.get(uri);
     if (response.statusCode != 200) {
       return const _HomeWeatherSnapshot(summary: '');

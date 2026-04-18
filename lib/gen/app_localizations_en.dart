@@ -865,6 +865,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherOutfitButton => 'Outfit guide';
 
   @override
+  String get homeWeatherOutfitLayersLabel => 'Layers';
+
+  @override
+  String get homeWeatherOutfitOuterLabel => 'Outerwear';
+
+  @override
+  String get homeWeatherOutfitBottomLabel => 'Bottom';
+
+  @override
+  String get homeWeatherOutfitAccessoriesLabel => 'Accessories';
+
+  @override
+  String get homeWeatherOutfitNotesLabel => 'Notes';
+
+  @override
+  String get homeWeatherOutfitViewAllCases => 'View all outfit cases';
+
+  @override
+  String get homeWeatherOutfitAllCasesTitle => 'All outfit cases';
+
+  @override
+  String get homeWeatherOutfitAllCasesSubtitle =>
+      'Review each weather band with layer, bottom, and accessory details.';
+
+  @override
+  String get homeWeatherOutfitCaseHotTitle => 'Hot summer';
+
+  @override
+  String get homeWeatherOutfitCaseHotRange => 'Feels like 30°C+';
+
+  @override
+  String get homeWeatherOutfitCaseWarmTitle => 'Warm training day';
+
+  @override
+  String get homeWeatherOutfitCaseWarmRange => 'Feels like 22-29°C';
+
+  @override
+  String get homeWeatherOutfitCaseMildTitle => 'Mild day';
+
+  @override
+  String get homeWeatherOutfitCaseMildRange => 'Feels like 15-21°C';
+
+  @override
+  String get homeWeatherOutfitCaseCoolTitle => 'Cool day';
+
+  @override
+  String get homeWeatherOutfitCaseCoolRange => 'Feels like 8-14°C';
+
+  @override
+  String get homeWeatherOutfitCaseColdTitle => 'Cold day';
+
+  @override
+  String get homeWeatherOutfitCaseColdRange => 'Feels like 2-7°C';
+
+  @override
+  String get homeWeatherOutfitCaseWetTitle => 'Rainy or snowy day';
+
+  @override
+  String get homeWeatherOutfitCaseWetRange => 'When raining or snowing';
+
+  @override
   String get homeWeatherAirQualityTitle => 'Air quality';
 
   @override

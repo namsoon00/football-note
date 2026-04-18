@@ -1706,6 +1706,126 @@ abstract class AppLocalizations {
   /// **'Outfit guide'**
   String get homeWeatherOutfitButton;
 
+  /// No description provided for @homeWeatherOutfitLayersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Layers'**
+  String get homeWeatherOutfitLayersLabel;
+
+  /// No description provided for @homeWeatherOutfitOuterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Outerwear'**
+  String get homeWeatherOutfitOuterLabel;
+
+  /// No description provided for @homeWeatherOutfitBottomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom'**
+  String get homeWeatherOutfitBottomLabel;
+
+  /// No description provided for @homeWeatherOutfitAccessoriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessories'**
+  String get homeWeatherOutfitAccessoriesLabel;
+
+  /// No description provided for @homeWeatherOutfitNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get homeWeatherOutfitNotesLabel;
+
+  /// No description provided for @homeWeatherOutfitViewAllCases.
+  ///
+  /// In en, this message translates to:
+  /// **'View all outfit cases'**
+  String get homeWeatherOutfitViewAllCases;
+
+  /// No description provided for @homeWeatherOutfitAllCasesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All outfit cases'**
+  String get homeWeatherOutfitAllCasesTitle;
+
+  /// No description provided for @homeWeatherOutfitAllCasesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review each weather band with layer, bottom, and accessory details.'**
+  String get homeWeatherOutfitAllCasesSubtitle;
+
+  /// No description provided for @homeWeatherOutfitCaseHotTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hot summer'**
+  String get homeWeatherOutfitCaseHotTitle;
+
+  /// No description provided for @homeWeatherOutfitCaseHotRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Feels like 30°C+'**
+  String get homeWeatherOutfitCaseHotRange;
+
+  /// No description provided for @homeWeatherOutfitCaseWarmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm training day'**
+  String get homeWeatherOutfitCaseWarmTitle;
+
+  /// No description provided for @homeWeatherOutfitCaseWarmRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Feels like 22-29°C'**
+  String get homeWeatherOutfitCaseWarmRange;
+
+  /// No description provided for @homeWeatherOutfitCaseMildTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mild day'**
+  String get homeWeatherOutfitCaseMildTitle;
+
+  /// No description provided for @homeWeatherOutfitCaseMildRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Feels like 15-21°C'**
+  String get homeWeatherOutfitCaseMildRange;
+
+  /// No description provided for @homeWeatherOutfitCaseCoolTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cool day'**
+  String get homeWeatherOutfitCaseCoolTitle;
+
+  /// No description provided for @homeWeatherOutfitCaseCoolRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Feels like 8-14°C'**
+  String get homeWeatherOutfitCaseCoolRange;
+
+  /// No description provided for @homeWeatherOutfitCaseColdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold day'**
+  String get homeWeatherOutfitCaseColdTitle;
+
+  /// No description provided for @homeWeatherOutfitCaseColdRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Feels like 2-7°C'**
+  String get homeWeatherOutfitCaseColdRange;
+
+  /// No description provided for @homeWeatherOutfitCaseWetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rainy or snowy day'**
+  String get homeWeatherOutfitCaseWetTitle;
+
+  /// No description provided for @homeWeatherOutfitCaseWetRange.
+  ///
+  /// In en, this message translates to:
+  /// **'When raining or snowing'**
+  String get homeWeatherOutfitCaseWetRange;
+
   /// No description provided for @homeWeatherAirQualityTitle.
   ///
   /// In en, this message translates to:
