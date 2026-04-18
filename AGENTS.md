@@ -25,6 +25,12 @@
 ## Chat Task Flow (Mandatory)
 - For chat-originated implementation requests in this repository, prefer `./scripts/cli.sh request ...` (or `./scripts/chat_task.sh ...`) so the shared harness normalizes the request, injects repo rules, and runs the verify/repair loop before the normal coding agent flow.
 
+## Temp Workspace (Mandatory)
+- Do not stop to ask for confirmation before editing agent-created temporary files or generated task artifacts inside this repository.
+- You may create, update, and remove temporary files under repo-local paths such as `.tmp/`, `tmp/`, and other generated working directories that live under the repository root.
+- Prefer repo-local temporary paths over external paths such as `/private/tmp/...` to avoid sandbox and approval prompts.
+- If a clean worktree is needed, create it under `.tmp/worktrees/` inside the repository unless that is impossible for a concrete technical reason.
+
 ## Localization (Mandatory)
 - All user-facing text must be added through the localization files under `lib/l10n/` and accessed through generated localization classes.
 - Do not introduce new hardcoded UI strings in screens, widgets, dialogs, snackbars, buttons, labels, or tooltips, even if only English/Korean exists today.
