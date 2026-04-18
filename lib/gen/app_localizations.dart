@@ -5567,25 +5567,25 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Connect player\'s Google Drive'**
+  /// **'Connect child\'s Google Drive'**
   String get familyChildDriveConnectionTitle;
 
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, connect the same Google Drive account the player uses so both roles can share one family backup file.'**
+  /// **'In parent mode, connect the same Google Drive account the child uses so both roles can share one family backup file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Connect player Drive'**
+  /// **'Connect child Drive'**
   String get familyConnectChildDrive;
 
   /// No description provided for @familyDisconnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Disconnect player Drive'**
+  /// **'Disconnect child Drive'**
   String get familyDisconnectChildDrive;
 
   /// No description provided for @familyRoleChild.
@@ -5599,6 +5599,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parent'**
   String get familyRoleParent;
+
+  /// No description provided for @familyParentModeEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable parent mode'**
+  String get familyParentModeEnabled;
+
+  /// No description provided for @familyParentModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn this on for parent mode. Turn it off to return to player mode.'**
+  String get familyParentModeDescription;
 
   /// No description provided for @familyChildName.
   ///
@@ -5762,28 +5774,52 @@ abstract class AppLocalizations {
   /// **'No Google Drive account is connected yet.'**
   String get driveConnectedAccountEmpty;
 
+  /// No description provided for @driveSavedPlayerAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved player Drive'**
+  String get driveSavedPlayerAccount;
+
+  /// No description provided for @driveReconnectSavedPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect saved player Drive'**
+  String get driveReconnectSavedPlayer;
+
+  /// No description provided for @driveReconnectSavedPlayerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'After returning from parent mode, reconnect the saved player Drive account here.'**
+  String get driveReconnectSavedPlayerHint;
+
+  /// No description provided for @driveReconnectSavedPlayerMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Please reconnect with the saved player Drive account.'**
+  String get driveReconnectSavedPlayerMismatch;
+
   /// No description provided for @driveSharedChildAccount.
   ///
   /// In en, this message translates to:
-  /// **'Shared player Drive'**
+  /// **'Shared child Drive'**
   String get driveSharedChildAccount;
 
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No player Drive account is known yet. Create at least one player backup first.'**
+  /// **'No child Drive account is known yet. Create at least one player backup first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the player\'s Google Drive account to sync feedback and family messages into the same backup file.'**
+  /// **'In parent mode, sign in with the child\'s Google Drive account to sync feedback and family messages into the same backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode should connect to the player\'s Google Drive account to sync safely into the same family backup.'**
+  /// **'Parent mode should connect to the child\'s Google Drive account to sync safely into the same family backup.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.
@@ -5813,19 +5849,19 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedRestoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the latest family sharing state from Google Drive? This replaces family sharing data on the current parent device.'**
+  /// **'Restore the latest child backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.'**
   String get familySharedRestoreConfirm;
 
   /// No description provided for @familySharedRestoreSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Family sharing restore completed.'**
+  /// **'Child backup restore completed.'**
   String get familySharedRestoreSuccess;
 
   /// No description provided for @familySharedRestoreFailed.
   ///
   /// In en, this message translates to:
-  /// **'Family sharing restore failed. Please try again.'**
+  /// **'Child backup restore failed. Please try again.'**
   String get familySharedRestoreFailed;
 
   /// No description provided for @familySharedRestoreLocal.
@@ -5837,19 +5873,19 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedRestoreLocalConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the safety copy saved right before the last family restore? This replaces family sharing data on the current parent device.'**
+  /// **'Restore the safety copy saved right before the last restore? This replaces the player records and family sharing data shown on the current parent device.'**
   String get familySharedRestoreLocalConfirm;
 
   /// No description provided for @familySharedRestoreLocalSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Family sharing undo completed.'**
+  /// **'Previous state restored.'**
   String get familySharedRestoreLocalSuccess;
 
   /// No description provided for @familySharedRestoreLocalFailed.
   ///
   /// In en, this message translates to:
-  /// **'Family sharing undo failed. Please try again.'**
+  /// **'Previous state restore failed. Please try again.'**
   String get familySharedRestoreLocalFailed;
 
   /// No description provided for @familyParentFamilyMismatch.
