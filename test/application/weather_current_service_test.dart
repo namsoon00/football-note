@@ -415,6 +415,192 @@ void main() {
                           'fcstTime': '1200',
                           'fcstValue': '강수없음',
                         },
+                        <String, dynamic>{
+                          'category': 'TMP',
+                          'fcstDate': '20260420',
+                          'fcstTime': '0600',
+                          'fcstValue': '14',
+                        },
+                        <String, dynamic>{
+                          'category': 'TMN',
+                          'fcstDate': '20260420',
+                          'fcstTime': '0600',
+                          'fcstValue': '12',
+                        },
+                        <String, dynamic>{
+                          'category': 'SKY',
+                          'fcstDate': '20260420',
+                          'fcstTime': '0600',
+                          'fcstValue': '3',
+                        },
+                        <String, dynamic>{
+                          'category': 'PTY',
+                          'fcstDate': '20260420',
+                          'fcstTime': '0600',
+                          'fcstValue': '0',
+                        },
+                        <String, dynamic>{
+                          'category': 'WSD',
+                          'fcstDate': '20260420',
+                          'fcstTime': '0600',
+                          'fcstValue': '2',
+                        },
+                        <String, dynamic>{
+                          'category': 'PCP',
+                          'fcstDate': '20260420',
+                          'fcstTime': '0600',
+                          'fcstValue': '강수없음',
+                        },
+                        <String, dynamic>{
+                          'category': 'TMP',
+                          'fcstDate': '20260420',
+                          'fcstTime': '1200',
+                          'fcstValue': '21',
+                        },
+                        <String, dynamic>{
+                          'category': 'TMX',
+                          'fcstDate': '20260420',
+                          'fcstTime': '1200',
+                          'fcstValue': '22',
+                        },
+                        <String, dynamic>{
+                          'category': 'SKY',
+                          'fcstDate': '20260420',
+                          'fcstTime': '1200',
+                          'fcstValue': '3',
+                        },
+                        <String, dynamic>{
+                          'category': 'PTY',
+                          'fcstDate': '20260420',
+                          'fcstTime': '1200',
+                          'fcstValue': '0',
+                        },
+                        <String, dynamic>{
+                          'category': 'WSD',
+                          'fcstDate': '20260420',
+                          'fcstTime': '1200',
+                          'fcstValue': '3',
+                        },
+                        <String, dynamic>{
+                          'category': 'PCP',
+                          'fcstDate': '20260420',
+                          'fcstTime': '1200',
+                          'fcstValue': '강수없음',
+                        },
+                      ],
+                    },
+                  },
+                },
+              }),
+            ),
+            200,
+          );
+        }
+        if (request.url.path.endsWith('/getFcstZoneCd')) {
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'response': <String, dynamic>{
+                  'header': <String, dynamic>{
+                    'resultCode': '00',
+                    'resultMsg': 'NORMAL_SERVICE',
+                  },
+                  'body': <String, dynamic>{
+                    'items': <String, dynamic>{
+                      'item': <Map<String, dynamic>>[
+                        <String, dynamic>{
+                          'regId': '11B10101',
+                          'regName': '서울',
+                          'regSp': 'C',
+                          'regUp': '11B00000',
+                          'lat': '37.5665',
+                          'lon': '126.9780',
+                        },
+                        <String, dynamic>{
+                          'regId': '11B00000',
+                          'regName': '서울,인천,경기도',
+                          'regSp': 'A',
+                          'regUp': '',
+                          'lat': '37.5665',
+                          'lon': '126.9780',
+                        },
+                      ],
+                    },
+                  },
+                },
+              }),
+            ),
+            200,
+          );
+        }
+        if (request.url.path.endsWith('/getMidLandFcst')) {
+          expect(request.url.queryParameters['regId'], '11B00000');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'response': <String, dynamic>{
+                  'header': <String, dynamic>{
+                    'resultCode': '00',
+                    'resultMsg': 'NORMAL_SERVICE',
+                  },
+                  'body': <String, dynamic>{
+                    'items': <String, dynamic>{
+                      'item': <Map<String, dynamic>>[
+                        <String, dynamic>{
+                          'regId': '11B00000',
+                          'wf3Am': '구름많음',
+                          'wf3Pm': '흐림',
+                          'wf4Am': '맑음',
+                          'wf4Pm': '구름많음',
+                          'wf5Am': '맑음',
+                          'wf5Pm': '맑음',
+                          'wf6Am': '흐림',
+                          'wf6Pm': '비',
+                          'wf7Am': '구름많음',
+                          'wf7Pm': '구름많음',
+                          'wf8': '맑음',
+                          'wf9': '구름많음',
+                          'wf10': '비',
+                        },
+                      ],
+                    },
+                  },
+                },
+              }),
+            ),
+            200,
+          );
+        }
+        if (request.url.path.endsWith('/getMidTa')) {
+          expect(request.url.queryParameters['regId'], '11B10101');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'response': <String, dynamic>{
+                  'header': <String, dynamic>{
+                    'resultCode': '00',
+                    'resultMsg': 'NORMAL_SERVICE',
+                  },
+                  'body': <String, dynamic>{
+                    'items': <String, dynamic>{
+                      'item': <Map<String, dynamic>>[
+                        <String, dynamic>{
+                          'regId': '11B10101',
+                          'taMin4': '10',
+                          'taMax4': '19',
+                          'taMin5': '11',
+                          'taMax5': '21',
+                          'taMin6': '12',
+                          'taMax6': '18',
+                          'taMin7': '13',
+                          'taMax7': '20',
+                          'taMin8': '12',
+                          'taMax8': '22',
+                          'taMin9': '13',
+                          'taMax9': '21',
+                          'taMin10': '14',
+                          'taMax10': '19',
+                        },
                       ],
                     },
                   },
@@ -446,13 +632,25 @@ void main() {
       expect(snapshot.apparentTemperature, closeTo(16.1, 0.2));
       expect(snapshot.temperatureMax, 24);
       expect(snapshot.temperatureMin, 12);
-      expect(snapshot.dailyForecasts, hasLength(2));
+      expect(snapshot.dailyForecasts, hasLength(7));
       expect(snapshot.dailyForecasts.first.weatherCode, 61);
       expect(snapshot.dailyForecasts.first.precipitationSum, 3);
       expect(snapshot.dailyForecasts.first.windSpeedMax, 5);
       expect(snapshot.dailyForecasts[1].weatherCode, 0);
       expect(snapshot.dailyForecasts[1].temperatureMax, 20);
       expect(snapshot.dailyForecasts[1].temperatureMin, 11);
+      expect(snapshot.dailyForecasts[2].date, DateTime(2026, 4, 20));
+      expect(snapshot.dailyForecasts[2].temperatureMax, 22);
+      expect(snapshot.dailyForecasts[2].weatherCode, 2);
+      expect(snapshot.dailyForecasts[3].date, DateTime(2026, 4, 21));
+      expect(snapshot.dailyForecasts[3].weatherCode, 3);
+      expect(snapshot.dailyForecasts[3].temperatureMax, null);
+      expect(snapshot.dailyForecasts[4].date, DateTime(2026, 4, 22));
+      expect(snapshot.dailyForecasts[4].temperatureMax, 19);
+      expect(snapshot.dailyForecasts[5].date, DateTime(2026, 4, 23));
+      expect(snapshot.dailyForecasts[5].temperatureMin, 11);
+      expect(snapshot.dailyForecasts[6].date, DateTime(2026, 4, 24));
+      expect(snapshot.dailyForecasts[6].weatherCode, 61);
     });
 
     test('falls back to Open-Meteo detailed forecast when KMA fails', () async {
