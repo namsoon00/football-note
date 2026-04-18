@@ -119,6 +119,43 @@ void main() {
       expect(place, '강남구 서울, 대한민국');
     });
 
+    test('builds AirKorea area queries from Kakao administrative region',
+        () async {
+      final client = MockClient((request) async {
+        expect(request.url.host, 'dapi.kakao.com');
+        expect(request.url.path, '/v2/local/geo/coord2regioncode.json');
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode(<String, dynamic>{
+              'documents': <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'region_type': 'H',
+                  'region_1depth_name': '서울특별시',
+                  'region_2depth_name': '강남구',
+                  'region_3depth_name': '역삼동',
+                  'address_name': '서울특별시 강남구 역삼동',
+                },
+              ],
+            }),
+          ),
+          200,
+        );
+      });
+
+      final queries =
+          await WeatherLocationService.resolveAdministrativeAreaQueries(
+        latitude: 37.4981,
+        longitude: 127.0276,
+        kakaoRestApiKey: 'test-key',
+        client: client,
+      );
+
+      expect(
+        queries,
+        const <String>['서울특별시 강남구', '강남구 역삼동', '강남구', '서울특별시'],
+      );
+    });
+
     test('falls back to Open-Meteo when Kakao request fails', () async {
       final client = MockClient((request) async {
         if (request.url.host == 'dapi.kakao.com') {

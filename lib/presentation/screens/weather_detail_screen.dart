@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
+import '../../application/korean_air_quality_service.dart';
 import '../../application/weather_current_service.dart';
 import '../../application/weather_location_service.dart';
 import '../widgets/app_background.dart';
@@ -64,36 +65,20 @@ class WeatherDetailScreen extends StatefulWidget {
       latitude: latitude,
       longitude: longitude,
     );
-    final airQualityUri =
-        Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current': 'pm10,pm2_5,us_aqi',
-      'timezone': 'auto',
-    });
-    final responses = await Future.wait([
+    final airQualityFuture = _fetchAirQualitySnapshot(
+      latitude: latitude,
+      longitude: longitude,
+    );
+    final responses = await Future.wait<Object>([
       weatherDetailsFuture,
-      http.get(airQualityUri),
+      airQualityFuture,
     ]);
     final weatherSnapshot = responses[0] as WeatherDetailsSnapshot;
-    final airResponse = responses[1] as http.Response;
+    final airSnapshot = responses[1] as _ResolvedAirQualitySnapshot;
 
-    Map<String, dynamic>? airDecoded;
-    if (airResponse.statusCode == 200) {
-      final decoded = jsonDecode(airResponse.body);
-      if (decoded is Map<String, dynamic>) {
-        airDecoded = decoded;
-      }
-    }
-
-    if (airDecoded == null && !weatherSnapshot.hasData) {
+    if (!airSnapshot.snapshot.hasData && !weatherSnapshot.hasData) {
       return const _WeatherDetailsSnapshot(summary: '');
     }
-
-    final airCurrent = airDecoded?['current'];
-    final openMeteoAir = airCurrent is Map<String, dynamic>
-        ? airCurrent
-        : const <String, dynamic>{};
 
     final localizer = _WeatherLocalizer(l10n: l10n);
     final weatherCode = weatherSnapshot.weatherCode;
@@ -131,10 +116,66 @@ class WeatherDetailScreen extends StatefulWidget {
       windSpeed: weatherSnapshot.windSpeed,
       temperatureMax: weatherSnapshot.temperatureMax,
       temperatureMin: weatherSnapshot.temperatureMin,
-      pm10: (openMeteoAir['pm10'] as num?)?.toDouble(),
-      pm25: (openMeteoAir['pm2_5'] as num?)?.toDouble(),
-      aqi: (openMeteoAir['us_aqi'] as num?)?.toInt(),
+      pm10: airSnapshot.snapshot.pm10,
+      pm25: airSnapshot.snapshot.pm25,
+      aqi: airSnapshot.snapshot.aqi,
+      airQualityScale: airSnapshot.scale,
       dailyForecasts: forecasts,
+    );
+  }
+
+  static Future<_ResolvedAirQualitySnapshot> _fetchAirQualitySnapshot({
+    required double latitude,
+    required double longitude,
+  }) async {
+    if (WeatherLocationService.isLikelyInKorea(latitude, longitude)) {
+      final koreanAir = await KoreanAirQualityService.fetchCurrentAirQuality(
+        latitude: latitude,
+        longitude: longitude,
+      );
+      return _ResolvedAirQualitySnapshot(
+        snapshot: koreanAir,
+        scale: koreanAir.scale == AirQualityScale.khai
+            ? _AirQualityScale.khai
+            : _AirQualityScale.usAqi,
+      );
+    }
+
+    final airQualityUri =
+        Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
+    final airResponse = await http.get(airQualityUri);
+    if (airResponse.statusCode != 200) {
+      return const _ResolvedAirQualitySnapshot(
+        snapshot: AirQualitySnapshot(),
+        scale: _AirQualityScale.usAqi,
+      );
+    }
+
+    final decoded = jsonDecode(airResponse.body);
+    if (decoded is! Map<String, dynamic>) {
+      return const _ResolvedAirQualitySnapshot(
+        snapshot: AirQualitySnapshot(),
+        scale: _AirQualityScale.usAqi,
+      );
+    }
+    final airCurrent = decoded['current'];
+    final openMeteoAir = airCurrent is Map<String, dynamic>
+        ? airCurrent
+        : const <String, dynamic>{};
+
+    return _ResolvedAirQualitySnapshot(
+      snapshot: AirQualitySnapshot(
+        pm10: (openMeteoAir['pm10'] as num?)?.toDouble(),
+        pm25: (openMeteoAir['pm2_5'] as num?)?.toDouble(),
+        aqi: (openMeteoAir['us_aqi'] as num?)?.toInt(),
+        scale: AirQualityScale.usAqi,
+      ),
+      scale: _AirQualityScale.usAqi,
     );
   }
 
@@ -222,6 +263,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   double? _pm10;
   double? _pm25;
   int? _aqi;
+  _AirQualityScale _airQualityScale = _AirQualityScale.usAqi;
   List<_DailyWeatherForecast> _dailyForecasts = const <_DailyWeatherForecast>[];
 
   @override
@@ -258,7 +300,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final hasWeather = _summary.isNotEmpty;
-    final airLevel = _aqiLevel(l10n, _aqi);
+    final airLevel = _aqiLevel(l10n, _aqi, _airQualityScale);
     final pm10Level = _pm10Level(l10n, _pm10);
     final pm25Level = _pm25Level(l10n, _pm25);
     final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
@@ -367,7 +409,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   highLowLabel: l10n.homeWeatherDailyHighLow,
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
-                  forecasts: _dailyForecasts.skip(1).toList(growable: false),
+                  forecasts: _dailyForecasts.take(7).toList(growable: false),
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
                   formatWind: _formatWind,
@@ -541,6 +583,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _pm10 = snapshot.pm10;
     _pm25 = snapshot.pm25;
     _aqi = snapshot.aqi;
+    _airQualityScale = snapshot.airQualityScale;
     _dailyForecasts = snapshot.dailyForecasts
         .map(
           (forecast) => forecast.copyWith(
@@ -573,9 +616,37 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         Localizations.localeOf(context).toLanguageTag(),
       ).format(date);
 
-  _AirLevelLabel _aqiLevel(AppLocalizations l10n, int? value) {
+  _AirLevelLabel _aqiLevel(
+    AppLocalizations l10n,
+    int? value,
+    _AirQualityScale scale,
+  ) {
     if (value == null) {
       return const _AirLevelLabel('--', _AirQualityLevel.unknown);
+    }
+    if (scale == _AirQualityScale.khai) {
+      if (value <= 50) {
+        return _AirLevelLabel(
+          l10n.homeWeatherStatusGood,
+          _AirQualityLevel.good,
+        );
+      }
+      if (value <= 100) {
+        return _AirLevelLabel(
+          l10n.homeWeatherStatusModerate,
+          _AirQualityLevel.moderate,
+        );
+      }
+      if (value <= 250) {
+        return _AirLevelLabel(
+          l10n.homeWeatherStatusUnhealthy,
+          _AirQualityLevel.unhealthy,
+        );
+      }
+      return _AirLevelLabel(
+        l10n.homeWeatherStatusVeryUnhealthy,
+        _AirQualityLevel.veryUnhealthy,
+      );
     }
     if (value <= 50) {
       return _AirLevelLabel(l10n.homeWeatherStatusGood, _AirQualityLevel.good);
@@ -1137,7 +1208,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   _AirQualityLevel _worstAirQualityLevel() {
     final levels = [
-      _aqiLevel(AppLocalizations.of(context)!, _aqi).level,
+      _aqiLevel(AppLocalizations.of(context)!, _aqi, _airQualityScale).level,
       _pm10Level(AppLocalizations.of(context)!, _pm10).level,
       _pm25Level(AppLocalizations.of(context)!, _pm25).level,
     ];
@@ -3289,6 +3360,7 @@ class _WeatherDetailsSnapshot {
   final double? pm10;
   final double? pm25;
   final int? aqi;
+  final _AirQualityScale airQualityScale;
   final List<_DailyWeatherForecast> dailyForecasts;
 
   const _WeatherDetailsSnapshot({
@@ -3302,8 +3374,24 @@ class _WeatherDetailsSnapshot {
     this.pm10,
     this.pm25,
     this.aqi,
+    this.airQualityScale = _AirQualityScale.usAqi,
     this.dailyForecasts = const <_DailyWeatherForecast>[],
   });
+}
+
+class _ResolvedAirQualitySnapshot {
+  final AirQualitySnapshot snapshot;
+  final _AirQualityScale scale;
+
+  const _ResolvedAirQualitySnapshot({
+    required this.snapshot,
+    required this.scale,
+  });
+}
+
+enum _AirQualityScale {
+  usAqi,
+  khai,
 }
 
 class _DailyWeatherForecast {

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:http/http.dart' as http;
 
+import 'government_api_credentials.dart';
 import 'weather_forecast_service.dart';
 import 'weather_location_service.dart';
 
@@ -96,8 +97,6 @@ class WeatherDailyForecast {
 class WeatherCurrentService {
   const WeatherCurrentService._();
 
-  static const String _kmaApiKey =
-      '5b3956b221d8776d5c6a9ed898c4a9c31fdf60d6b7e39f41e84385d31de0b82c';
   static List<_KmaForecastZone>? _forecastZoneCache;
 
   static Future<WeatherCurrentSnapshot> fetchCurrentWeather({
@@ -110,7 +109,8 @@ class WeatherCurrentService {
     final localClient = client ?? http.Client();
     final ownsClient = client == null;
     try {
-      final normalizedKey = (kmaApiKey ?? _kmaApiKey).trim();
+      final normalizedKey =
+          (kmaApiKey ?? GovernmentApiCredentials.dataGoKrServiceKey).trim();
       if (normalizedKey.isNotEmpty &&
           WeatherLocationService.isLikelyInKorea(latitude, longitude)) {
         final koreanSnapshot = await _fetchKoreanCurrentWeather(
@@ -120,9 +120,10 @@ class WeatherCurrentService {
           apiKey: normalizedKey,
           now: now ?? DateTime.now(),
         );
-        if (koreanSnapshot != null && koreanSnapshot.hasData) {
-          return koreanSnapshot;
-        }
+        return koreanSnapshot ??
+            const WeatherCurrentSnapshot(
+              provider: WeatherDataProvider.koreaMeteorologicalAdministration,
+            );
       }
 
       return _fetchOpenMeteoCurrentWeather(
@@ -147,7 +148,8 @@ class WeatherCurrentService {
     final localClient = client ?? http.Client();
     final ownsClient = client == null;
     try {
-      final normalizedKey = (kmaApiKey ?? _kmaApiKey).trim();
+      final normalizedKey =
+          (kmaApiKey ?? GovernmentApiCredentials.dataGoKrServiceKey).trim();
       if (normalizedKey.isNotEmpty &&
           WeatherLocationService.isLikelyInKorea(latitude, longitude)) {
         final koreanSnapshot = await _fetchKoreanDetailedWeather(
@@ -157,9 +159,10 @@ class WeatherCurrentService {
           apiKey: normalizedKey,
           now: now ?? DateTime.now(),
         );
-        if (koreanSnapshot != null && koreanSnapshot.hasData) {
-          return koreanSnapshot;
-        }
+        return koreanSnapshot ??
+            const WeatherDetailsSnapshot(
+              provider: WeatherDataProvider.koreaMeteorologicalAdministration,
+            );
       }
 
       return _fetchOpenMeteoDetailedWeather(
@@ -468,45 +471,28 @@ class WeatherCurrentService {
       for (final forecastZone in forecastZones)
         forecastZone.regId: forecastZone,
     };
-    final landRegIds = _midLandRegIdCandidates(
+    final stationIds = _midForecastStationIdCandidates(
       zone: zone,
       zonesById: zoneById,
     );
-    final temperatureRegIds = _midTemperatureRegIdCandidates(
-      zone: zone,
-      zonesById: zoneById,
-    );
-    if (landRegIds.isEmpty && temperatureRegIds.isEmpty) {
+    if (stationIds.isEmpty) {
       return const <WeatherDailyForecast>[];
     }
 
     for (final tmFc in _midForecastBaseTimes(now)) {
-      final landForecastResponse = landRegIds.isEmpty
-          ? null
-          : await _requestKmaMidForecastItemForTmFc(
-              client: client,
-              apiKey: apiKey,
-              endpoint: 'getMidLandFcst',
-              tmFc: tmFc,
-              regIds: landRegIds,
-            );
-      final temperatureForecastResponse = temperatureRegIds.isEmpty
-          ? null
-          : await _requestKmaMidForecastItemForTmFc(
-              client: client,
-              apiKey: apiKey,
-              endpoint: 'getMidTa',
-              tmFc: tmFc,
-              regIds: temperatureRegIds,
-            );
-      if (landForecastResponse == null && temperatureForecastResponse == null) {
+      final midForecastResponse = await _requestKmaMidForecastItemForTmFc(
+        client: client,
+        apiKey: apiKey,
+        tmFc: tmFc,
+        stationIds: stationIds,
+      );
+      if (midForecastResponse == null) {
         continue;
       }
 
       final forecasts = _buildKmaMidRangeDailyForecasts(
-        landForecast: landForecastResponse?.item,
-        temperatureForecast: temperatureForecastResponse?.item,
-        tmFc: landForecastResponse?.tmFc ?? temperatureForecastResponse!.tmFc,
+        forecast: midForecastResponse.item,
+        tmFc: midForecastResponse.tmFc,
       );
       if (forecasts.isNotEmpty) {
         return forecasts;
@@ -554,21 +540,20 @@ class WeatherCurrentService {
   static Future<_KmaMidForecastResponse?> _requestKmaMidForecastItemForTmFc({
     required http.Client client,
     required String apiKey,
-    required String endpoint,
     required String tmFc,
-    required List<String> regIds,
+    required List<String> stationIds,
   }) async {
     for (final serviceKeyName in const <String>['ServiceKey', 'serviceKey']) {
-      for (final regId in regIds) {
+      for (final stationId in stationIds) {
         final uri = Uri.https(
           'apis.data.go.kr',
-          '/1360000/MidFcstInfoService/$endpoint',
+          '/1360000/MidFcstInfoService/getMidFcst',
           <String, String>{
             serviceKeyName: apiKey,
             'pageNo': '1',
             'numOfRows': '10',
             'dataType': 'JSON',
-            'regId': regId,
+            'stnId': stationId,
             'tmFc': tmFc,
           },
         );
@@ -578,7 +563,7 @@ class WeatherCurrentService {
         if (items == null || items.isEmpty) continue;
         return _KmaMidForecastResponse(
           tmFc: tmFc,
-          regId: regId,
+          stationId: stationId,
           item: items.first,
         );
       }
@@ -606,6 +591,8 @@ class WeatherCurrentService {
             'pageNo': '$page',
             'numOfRows': '999',
             'dataType': 'JSON',
+            'tmSt': '201004300900',
+            'tmEd': '210012310900',
           },
         );
         final response = await client.get(uri);
@@ -651,6 +638,7 @@ class WeatherCurrentService {
     if (zone.latitude != null && zone.longitude != null) score += 2;
     if (zone.regUp.isNotEmpty) score += 1;
     if (zone.regName.isNotEmpty) score += 1;
+    if (zone.weeklyForecastOfficeId.isNotEmpty) score += 1;
     return score;
   }
 
@@ -720,34 +708,19 @@ class WeatherCurrentService {
     return (latDelta * latDelta) + (lonDelta * lonDelta);
   }
 
-  static List<String> _midLandRegIdCandidates({
+  static List<String> _midForecastStationIdCandidates({
     required _KmaForecastZone zone,
     required Map<String, _KmaForecastZone> zonesById,
   }) {
     final lineage = _zoneLineage(zone: zone, zonesById: zonesById);
     return _dedupeStrings(<String>[
       for (final candidate in lineage)
-        if (candidate.regSp.startsWith('A')) candidate.regId,
+        if (candidate.weeklyForecastOfficeId.isNotEmpty)
+          candidate.weeklyForecastOfficeId,
       for (final candidate in lineage)
-        if (candidate.regSp.startsWith('B')) candidate.regId,
-      zone.regId,
-    ]);
-  }
-
-  static List<String> _midTemperatureRegIdCandidates({
-    required _KmaForecastZone zone,
-    required Map<String, _KmaForecastZone> zonesById,
-  }) {
-    final lineage = _zoneLineage(zone: zone, zonesById: zonesById);
-    return _dedupeStrings(<String>[
-      for (final candidate in lineage)
-        if (candidate.regSp.startsWith('C') ||
-            candidate.regSp.startsWith('B') ||
-            candidate.regSp.startsWith('D') ||
-            candidate.regSp.startsWith('E'))
-          candidate.regId,
-      for (final candidate in lineage)
-        if (candidate.regSp.startsWith('A')) candidate.regId,
+        if (candidate.regSp.startsWith('A') &&
+            candidate.weeklyForecastOfficeId.isNotEmpty)
+          candidate.weeklyForecastOfficeId,
     ]);
   }
 
@@ -794,11 +767,10 @@ class WeatherCurrentService {
   }
 
   static List<WeatherDailyForecast> _buildKmaMidRangeDailyForecasts({
-    required Map<String, dynamic>? landForecast,
-    required Map<String, dynamic>? temperatureForecast,
+    required Map<String, dynamic>? forecast,
     required String tmFc,
   }) {
-    if (landForecast == null && temperatureForecast == null) {
+    if (forecast == null) {
       return const <WeatherDailyForecast>[];
     }
 
@@ -809,19 +781,15 @@ class WeatherCurrentService {
     for (var dayOffset = 3; dayOffset <= 10; dayOffset++) {
       final date = anchorDate.add(Duration(days: dayOffset));
       final weatherCode = _kmaMidRangeWeatherCode(
-        landForecast: landForecast,
+        forecast: forecast,
         dayOffset: dayOffset,
       );
-      final temperatureMin = dayOffset >= 4
-          ? _parseKmaDouble(
-              temperatureForecast?['taMin$dayOffset']?.toString(),
-            )
-          : null;
-      final temperatureMax = dayOffset >= 4
-          ? _parseKmaDouble(
-              temperatureForecast?['taMax$dayOffset']?.toString(),
-            )
-          : null;
+      final temperatureMin = _parseKmaDouble(
+        forecast['taMin$dayOffset']?.toString(),
+      );
+      final temperatureMax = _parseKmaDouble(
+        forecast['taMax$dayOffset']?.toString(),
+      );
       if (weatherCode == null &&
           temperatureMin == null &&
           temperatureMax == null) {
@@ -850,20 +818,20 @@ class WeatherCurrentService {
   }
 
   static int? _kmaMidRangeWeatherCode({
-    required Map<String, dynamic>? landForecast,
+    required Map<String, dynamic>? forecast,
     required int dayOffset,
   }) {
-    if (landForecast == null) return null;
+    if (forecast == null) return null;
     if (dayOffset <= 7) {
-      final amText = landForecast['wf${dayOffset}Am']?.toString();
-      final pmText = landForecast['wf${dayOffset}Pm']?.toString();
+      final amText = forecast['wf${dayOffset}Am']?.toString();
+      final pmText = forecast['wf${dayOffset}Pm']?.toString();
       return _mapKmaMidWeatherTextPairToCode(
         morningText: amText,
         afternoonText: pmText,
       );
     }
     return _mapKmaMidWeatherTextToCode(
-      landForecast['wf$dayOffset']?.toString(),
+      forecast['wf$dayOffset']?.toString(),
     );
   }
 
@@ -1292,6 +1260,7 @@ class _KmaForecastZone {
     required this.regName,
     required this.regSp,
     required this.regUp,
+    required this.weeklyForecastOfficeId,
     required this.latitude,
     required this.longitude,
   });
@@ -1300,6 +1269,7 @@ class _KmaForecastZone {
   final String regName;
   final String regSp;
   final String regUp;
+  final String weeklyForecastOfficeId;
   final double? latitude;
   final double? longitude;
 
@@ -1311,6 +1281,8 @@ class _KmaForecastZone {
       regName: (item['regName'] ?? item['regname'] ?? '').toString().trim(),
       regSp: (item['regSp'] ?? item['regsp'] ?? '').toString().trim(),
       regUp: (item['regUp'] ?? item['regup'] ?? '').toString().trim(),
+      weeklyForecastOfficeId:
+          (item['stnFw'] ?? item['stnfw'] ?? '').toString().trim(),
       latitude: WeatherCurrentService._parseKmaDouble(item['lat']?.toString()),
       longitude: WeatherCurrentService._parseKmaDouble(item['lon']?.toString()),
     );
@@ -1320,12 +1292,12 @@ class _KmaForecastZone {
 class _KmaMidForecastResponse {
   const _KmaMidForecastResponse({
     required this.tmFc,
-    required this.regId,
+    required this.stationId,
     required this.item,
   });
 
   final String tmFc;
-  final String regId;
+  final String stationId;
   final Map<String, dynamic> item;
 }
 

@@ -1,10 +1,11 @@
 import 'dart:convert';
 
+import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 
-class WeatherLocationService {
-  static const String _kakaoRestApiKey = 'b5b196f485859aa04a479539caab76a3';
+import 'government_api_credentials.dart';
 
+class WeatherLocationService {
   static Future<String> resolvePlaceName({
     required double latitude,
     required double longitude,
@@ -23,7 +24,8 @@ class WeatherLocationService {
             longitude: longitude,
             koreaLabel: koreaLabel,
             client: localClient,
-            kakaoRestApiKey: kakaoRestApiKey ?? _kakaoRestApiKey,
+            kakaoRestApiKey:
+                kakaoRestApiKey ?? GovernmentApiCredentials.kakaoRestApiKey,
           );
           if (koreanPlace.isNotEmpty) return koreanPlace;
         } catch (_) {
@@ -60,6 +62,77 @@ class WeatherLocationService {
         longitude <= 132.0;
   }
 
+  static Future<List<String>> resolveAdministrativeAreaQueries({
+    required double latitude,
+    required double longitude,
+    http.Client? client,
+    String? kakaoRestApiKey,
+  }) async {
+    if (!isLikelyInKorea(latitude, longitude)) {
+      return const <String>[];
+    }
+
+    final localClient = client ?? http.Client();
+    final ownsClient = client == null;
+    try {
+      final normalizedKey =
+          (kakaoRestApiKey ?? GovernmentApiCredentials.kakaoRestApiKey).trim();
+      if (normalizedKey.isNotEmpty) {
+        try {
+          final regionDocument = await _requestKakaoRegionDocument(
+            latitude: latitude,
+            longitude: longitude,
+            client: localClient,
+            kakaoRestApiKey: normalizedKey,
+          );
+          final regionQueries = _buildStationQueriesFromRegionDocument(
+            regionDocument,
+          );
+          if (regionQueries.isNotEmpty) {
+            return regionQueries;
+          }
+        } catch (_) {
+          // Fall through to native geocoding and secondary lookups.
+        }
+      }
+
+      final nativeQueries = _buildStationQueriesFromPlacemark(
+        await _resolveNativePlacemark(
+          latitude: latitude,
+          longitude: longitude,
+        ),
+      );
+      if (nativeQueries.isNotEmpty) {
+        return nativeQueries;
+      }
+
+      if (normalizedKey.isNotEmpty) {
+        try {
+          final addressLabel = await _resolveKakaoAddressName(
+            latitude: latitude,
+            longitude: longitude,
+            koreaLabel: '대한민국',
+            client: localClient,
+            kakaoRestApiKey: normalizedKey,
+          );
+          final addressQueries =
+              _buildStationQueriesFromAddressLabel(addressLabel);
+          if (addressQueries.isNotEmpty) {
+            return addressQueries;
+          }
+        } catch (_) {
+          // Return empty queries if every fallback fails.
+        }
+      }
+
+      return const <String>[];
+    } finally {
+      if (ownsClient) {
+        localClient.close();
+      }
+    }
+  }
+
   static Future<String> _resolveKoreanPlaceName({
     required double latitude,
     required double longitude,
@@ -68,16 +141,35 @@ class WeatherLocationService {
     required String kakaoRestApiKey,
   }) async {
     final normalizedKey = kakaoRestApiKey.trim();
-    if (normalizedKey.isEmpty) return '';
+    if (normalizedKey.isNotEmpty) {
+      try {
+        final regionDocument = await _requestKakaoRegionDocument(
+          latitude: latitude,
+          longitude: longitude,
+          client: client,
+          kakaoRestApiKey: normalizedKey,
+        );
+        final regionLabel = _buildRegionLabel(
+          regionDocument: regionDocument,
+          koreaLabel: koreaLabel,
+        );
+        if (regionLabel.isNotEmpty) return regionLabel;
+      } catch (_) {
+        // Continue with native geocoding.
+      }
+    }
 
-    final regionLabel = await _resolveKakaoRegionName(
+    final nativePlacemark = await _resolveNativePlacemark(
       latitude: latitude,
       longitude: longitude,
-      koreaLabel: koreaLabel,
-      client: client,
-      kakaoRestApiKey: normalizedKey,
     );
-    if (regionLabel.isNotEmpty) return regionLabel;
+    final nativeLabel = _buildPlacemarkLabel(
+      placemark: nativePlacemark,
+      koreaLabel: koreaLabel,
+    );
+    if (nativeLabel.isNotEmpty) return nativeLabel;
+
+    if (normalizedKey.isEmpty) return '';
 
     return _resolveKakaoAddressName(
       latitude: latitude,
@@ -140,10 +232,9 @@ class WeatherLocationService {
     return '';
   }
 
-  static Future<String> _resolveKakaoRegionName({
+  static Future<Map<String, dynamic>?> _requestKakaoRegionDocument({
     required double latitude,
     required double longitude,
-    required String koreaLabel,
     required http.Client client,
     required String kakaoRestApiKey,
   }) async {
@@ -162,9 +253,9 @@ class WeatherLocationService {
       client: client,
       kakaoRestApiKey: kakaoRestApiKey,
     );
-    if (decoded == null) return '';
+    if (decoded == null) return null;
     final documents = decoded['documents'];
-    if (documents is! List || documents.isEmpty) return '';
+    if (documents is! List || documents.isEmpty) return null;
 
     Map<String, dynamic>? administrative;
     Map<String, dynamic>? fallback;
@@ -176,14 +267,24 @@ class WeatherLocationService {
         break;
       }
     }
-    final selected = administrative ?? fallback;
-    if (selected == null) return '';
+    return administrative ?? fallback;
+  }
 
-    final region1 = (selected['region_1depth_name'] ?? '').toString().trim();
-    final region2 = (selected['region_2depth_name'] ?? '').toString().trim();
-    final region3 = (selected['region_3depth_name'] ?? '').toString().trim();
-    final region4 = (selected['region_4depth_name'] ?? '').toString().trim();
-    final addressName = (selected['address_name'] ?? '').toString().trim();
+  static String _buildRegionLabel({
+    required Map<String, dynamic>? regionDocument,
+    required String koreaLabel,
+  }) {
+    if (regionDocument == null) return '';
+    final region1 =
+        (regionDocument['region_1depth_name'] ?? '').toString().trim();
+    final region2 =
+        (regionDocument['region_2depth_name'] ?? '').toString().trim();
+    final region3 =
+        (regionDocument['region_3depth_name'] ?? '').toString().trim();
+    final region4 =
+        (regionDocument['region_4depth_name'] ?? '').toString().trim();
+    final addressName =
+        (regionDocument['address_name'] ?? '').toString().trim();
 
     final compactParts = <String>[
       if (region2.isNotEmpty) region2,
@@ -205,7 +306,98 @@ class WeatherLocationService {
       return '${compactAddress.join(' ')}, $koreaLabel';
     }
     if (region1.isNotEmpty) return '$region1, $koreaLabel';
-    return koreaLabel;
+    return '';
+  }
+
+  static List<String> _buildStationQueriesFromRegionDocument(
+    Map<String, dynamic>? regionDocument,
+  ) {
+    if (regionDocument == null) return const <String>[];
+    final region1 =
+        (regionDocument['region_1depth_name'] ?? '').toString().trim();
+    final region2 =
+        (regionDocument['region_2depth_name'] ?? '').toString().trim();
+    final region3 =
+        (regionDocument['region_3depth_name'] ?? '').toString().trim();
+    return _dedupeStationQueries(<String>[
+      if (region1.isNotEmpty && region2.isNotEmpty) '$region1 $region2',
+      if (region2.isNotEmpty && region3.isNotEmpty) '$region2 $region3',
+      if (region2.isNotEmpty) region2,
+      if (region1.isNotEmpty) region1,
+    ]);
+  }
+
+  static List<String> _buildStationQueriesFromAddressLabel(String label) {
+    final normalized = label.split(',').first.trim();
+    if (normalized.isEmpty) return const <String>[];
+    final parts = normalized
+        .split(RegExp(r'\s+'))
+        .where((part) => part.trim().isNotEmpty)
+        .toList(growable: false);
+    if (parts.isEmpty) return const <String>[];
+    return _dedupeStationQueries(<String>[
+      if (parts.length >= 2) '${parts[0]} ${parts[1]}',
+      parts.last,
+      parts.first,
+    ]);
+  }
+
+  static Future<Placemark?> _resolveNativePlacemark({
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isEmpty) return null;
+      return placemarks.first;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static String _buildPlacemarkLabel({
+    required Placemark? placemark,
+    required String koreaLabel,
+  }) {
+    if (placemark == null) return '';
+    final region1 = placemark.administrativeArea?.trim() ?? '';
+    final region2 = _firstNonEmpty(<String?>[
+      placemark.subAdministrativeArea,
+      placemark.locality,
+    ]);
+    final region3 = _firstNonEmpty(<String?>[
+      placemark.subLocality,
+      placemark.thoroughfare,
+      placemark.subThoroughfare,
+    ]);
+    final parts = <String>[
+      if (region2.isNotEmpty) region2,
+      if (region3.isNotEmpty && region3 != region2) region3,
+    ];
+    if (parts.isNotEmpty) {
+      return '${parts.join(' ')}, $koreaLabel';
+    }
+    if (region1.isNotEmpty) return '$region1, $koreaLabel';
+    return '';
+  }
+
+  static List<String> _buildStationQueriesFromPlacemark(Placemark? placemark) {
+    if (placemark == null) return const <String>[];
+    final region1 = placemark.administrativeArea?.trim() ?? '';
+    final region2 = _firstNonEmpty(<String?>[
+      placemark.subAdministrativeArea,
+      placemark.locality,
+    ]);
+    final region3 = _firstNonEmpty(<String?>[
+      placemark.subLocality,
+      placemark.thoroughfare,
+    ]);
+    return _dedupeStationQueries(<String>[
+      if (region1.isNotEmpty && region2.isNotEmpty) '$region1 $region2',
+      if (region2.isNotEmpty && region3.isNotEmpty) '$region2 $region3',
+      if (region2.isNotEmpty) region2,
+      if (region1.isNotEmpty) region1,
+    ]);
   }
 
   static Future<Map<String, dynamic>?> _requestKakaoJson({
@@ -330,6 +522,25 @@ class WeatherLocationService {
     if (parts.isEmpty) return koreaLabel;
     final compact = parts.length > 3 ? parts.sublist(parts.length - 3) : parts;
     return '${compact.join(' ')}, $koreaLabel';
+  }
+
+  static List<String> _dedupeStationQueries(List<String> queries) {
+    final deduped = <String>[];
+    final seen = <String>{};
+    for (final query in queries) {
+      final normalized = query.trim();
+      if (normalized.isEmpty || !seen.add(normalized)) continue;
+      deduped.add(normalized);
+    }
+    return deduped;
+  }
+
+  static String _firstNonEmpty(List<String?> values) {
+    for (final value in values) {
+      final normalized = value?.trim() ?? '';
+      if (normalized.isNotEmpty) return normalized;
+    }
+    return '';
   }
 
   static String _formatCoordinateLabel({
