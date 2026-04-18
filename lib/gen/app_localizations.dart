@@ -5549,7 +5549,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedBackupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Use one shared Drive backup without a server. Player mode owns core records, while parent mode only syncs the family layer.'**
+  /// **'Use one shared Drive backup without a server. Record mode manages core records directly, while parent mode only syncs the family layer.'**
   String get familySharedBackupDescription;
 
   /// No description provided for @familyBackupIncludesMedia.
@@ -5561,7 +5561,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentAutoSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in player mode.'**
+  /// **'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in record mode.'**
   String get familyParentAutoSyncDescription;
 
   /// No description provided for @familyChildDriveConnectionTitle.
@@ -5609,7 +5609,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Turn this on for parent mode. Turn it off to return to player mode.'**
+  /// **'Turn this on for parent mode. Turn it off to return to record mode.'**
   String get familyParentModeDescription;
 
   /// No description provided for @familyChildName.
@@ -5651,7 +5651,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyPolicyChildOwnsData.
   ///
   /// In en, this message translates to:
-  /// **'Player mode backs up training, profile, diary, meals, and plans as the source of truth.'**
+  /// **'Record mode backs up training, profile, diary, meals, and plans as the source of truth.'**
   String get familyPolicyChildOwnsData;
 
   /// No description provided for @familyPolicyParentWritesOnly.
@@ -5669,7 +5669,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleChildActivated.
   ///
   /// In en, this message translates to:
-  /// **'Player mode activated.'**
+  /// **'Record mode activated.'**
   String get familyRoleChildActivated;
 
   /// No description provided for @familyRoleParentActivated.
@@ -5729,7 +5729,7 @@ abstract class AppLocalizations {
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No player Drive account is known yet. Create at least one player backup first.'**
+  /// **'No player Drive account is known yet. Create at least one backup in record mode first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @familyParentUsesChildDriveHint.
@@ -5831,19 +5831,19 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Core records like training, meals, and diary stay in player mode. Parent mode is limited to family sharing and reward naming.'**
+  /// **'Core records like training, meals, and diary stay in record mode. Parent mode is limited to family sharing and reward naming.'**
   String get parentReadOnlyEntryBody;
 
   /// No description provided for @parentReadOnlyMealLog.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode cannot edit meal logs. Update meals in player mode.'**
+  /// **'Parent mode cannot edit meal logs. Update meals in record mode.'**
   String get parentReadOnlyMealLog;
 
   /// No description provided for @parentReadOnlyQuiz.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode does not run the quiz. Quiz history and XP stay in player mode.'**
+  /// **'Parent mode does not run the quiz. Quiz history and XP stay in record mode.'**
   String get parentReadOnlyQuiz;
 
   /// No description provided for @parentReadOnlyDrawerMessage.
@@ -5855,7 +5855,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyCalendarBanner.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.'**
+  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in record mode.'**
   String get parentReadOnlyCalendarBanner;
 
   /// No description provided for @parentReadOnlyCalendarMessage.
@@ -5891,25 +5891,25 @@ abstract class AppLocalizations {
   /// No description provided for @levelGuideChildModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Player mode'**
+  /// **'Record mode'**
   String get levelGuideChildModeLabel;
 
   /// No description provided for @levelGuideParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode can save reward names only. Reward claims stay in player mode.'**
+  /// **'Parent mode can save reward names only. Reward claims stay in record mode.'**
   String get levelGuideParentModeDescription;
 
   /// No description provided for @levelGuideChildModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Player mode can claim rewards. Reward naming stays in parent mode.'**
+  /// **'Record mode can claim rewards. Reward naming stays in parent mode.'**
   String get levelGuideChildModeDescription;
 
   /// No description provided for @levelGuideClaimChildOnly.
   ///
   /// In en, this message translates to:
-  /// **'Claim in player mode'**
+  /// **'Claim in record mode'**
   String get levelGuideClaimChildOnly;
 }
 

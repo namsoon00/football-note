@@ -3100,7 +3100,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familySharedBackupDescription =>
-      '서버 없이 Google Drive 백업 파일 하나를 함께 사용합니다. 선수 모드는 핵심 기록을 맡고, 부모 모드는 가족 공유 레이어만 동기화합니다.';
+      '서버 없이 Google Drive 백업 파일 하나를 함께 사용합니다. 기록 모드에서는 핵심 기록을 직접 관리하고, 부모 모드는 가족 공유 레이어만 동기화합니다.';
 
   @override
   String get familyBackupIncludesMedia =>
@@ -3108,7 +3108,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      '부모 모드에서는 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
+      '부모 모드에서는 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 기록 모드에서 진행해 주세요.';
 
   @override
   String get familyChildDriveConnectionTitle => '선수 Google Drive 연결';
@@ -3133,7 +3133,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get familyParentModeEnabled => '부모 모드 활성화';
 
   @override
-  String get familyParentModeDescription => '켜면 부모 모드로 전환되고, 끄면 선수 모드로 돌아갑니다.';
+  String get familyParentModeDescription => '켜면 부모 모드로 전환되고, 끄면 기록 모드로 돌아갑니다.';
 
   @override
   String get familyChildName => '선수 이름';
@@ -3155,7 +3155,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyPolicyChildOwnsData =>
-      '선수 모드는 훈련, 프로필, 다이어리, 식사, 계획을 원본으로 백업합니다.';
+      '기록 모드에서는 훈련, 프로필, 다이어리, 식사, 계획을 원본으로 백업합니다.';
 
   @override
   String get familyPolicyParentWritesOnly =>
@@ -3166,7 +3166,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '부모 기기는 선수 백업이 한 번 이상 만들어진 뒤 연결해야 합니다.';
 
   @override
-  String get familyRoleChildActivated => '선수 모드로 전환했어요.';
+  String get familyRoleChildActivated => '기록 모드로 전환했어요.';
 
   @override
   String get familyRoleParentActivated => '부모 모드로 전환했어요.';
@@ -3199,7 +3199,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get driveSharedChildAccountEmpty =>
-      '아직 선수 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.';
+      '아직 선수 Drive 정보가 없어요. 기록 모드에서 먼저 한 번 백업해 주세요.';
 
   @override
   String get familyParentUsesChildDriveHint =>
@@ -3259,15 +3259,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentReadOnlyEntryBody =>
-      '훈련, 식사, 다이어리 같은 핵심 기록은 선수 모드에서 작성해 주세요. 부모 모드는 가족 공유와 선물 입력만 저장합니다.';
+      '훈련, 식사, 다이어리 같은 핵심 기록은 기록 모드에서 작성해 주세요. 부모 모드는 가족 공유와 선물 입력만 저장합니다.';
 
   @override
   String get parentReadOnlyMealLog =>
-      '부모 모드에서는 식사 기록을 수정할 수 없어요. 식사 입력은 선수 모드에서 진행해 주세요.';
+      '부모 모드에서는 식사 기록을 수정할 수 없어요. 식사 입력은 기록 모드에서 진행해 주세요.';
 
   @override
   String get parentReadOnlyQuiz =>
-      '부모 모드에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 선수 모드에서만 쌓입니다.';
+      '부모 모드에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 기록 모드에서만 쌓입니다.';
 
   @override
   String get parentReadOnlyDrawerMessage =>
@@ -3275,7 +3275,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentReadOnlyCalendarBanner =>
-      '부모 모드에서는 캘린더를 읽기 전용으로 보여줍니다. 계획, 시합, 식사 수정은 선수 모드에서 진행해 주세요.';
+      '부모 모드에서는 캘린더를 읽기 전용으로 보여줍니다. 계획, 시합, 식사 수정은 기록 모드에서 진행해 주세요.';
 
   @override
   String get parentReadOnlyCalendarMessage => '부모 모드에서는 캘린더를 수정할 수 없어요.';
@@ -3293,16 +3293,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get levelGuideParentModeLabel => '부모 모드';
 
   @override
-  String get levelGuideChildModeLabel => '선수 모드';
+  String get levelGuideChildModeLabel => '기록 모드';
 
   @override
   String get levelGuideParentModeDescription =>
-      '부모 모드에서는 레벨 선물 이름만 저장할 수 있고, 선물 수령은 선수 모드에서 진행합니다.';
+      '부모 모드에서는 레벨 선물 이름만 저장할 수 있고, 선물 수령은 기록 모드에서 진행합니다.';
 
   @override
   String get levelGuideChildModeDescription =>
-      '선수 모드에서는 레벨 선물을 수령할 수 있고, 선물 이름 입력은 부모 모드에서 관리합니다.';
+      '기록 모드에서는 레벨 선물을 수령할 수 있고, 선물 이름 입력은 부모 모드에서 관리합니다.';
 
   @override
-  String get levelGuideClaimChildOnly => '선수 모드에서 수령';
+  String get levelGuideClaimChildOnly => '기록 모드에서 수령';
 }
