@@ -28,6 +28,8 @@
 ## Temp Workspace (Mandatory)
 - Do not stop to ask for confirmation before editing agent-created temporary files or generated task artifacts inside this repository.
 - You may create, update, and remove temporary files under repo-local paths such as `.tmp/`, `tmp/`, and other generated working directories that live under the repository root.
+- Default to modifying the needed repository files directly in the current checkout/work branch for normal implementation tasks. Do not create a separate temporary worktree or alternate checkout just to make routine file edits.
+- Use a separate clean worktree only when there is a concrete git-safety reason, such as protecting unrelated in-progress local changes, satisfying the required `main`-first branch workflow, or completing merge/push/branch-cleanup work without disturbing the primary checkout.
 - Prefer repo-local temporary paths over external paths such as `/private/tmp/...` to avoid sandbox and approval prompts.
 - If a clean worktree is needed, create it under `.tmp/worktrees/` inside the repository unless that is impossible for a concrete technical reason.
 
