@@ -6,12 +6,14 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/benchmark_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/settings_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
+import 'family_space_screen.dart';
 import 'visual_language_preview_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -73,6 +75,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final current = widget.localeService.locale?.languageCode ?? 'en';
+    final familyState =
+        FamilyAccessService(widget.optionRepository).loadState();
 
     if (widget.driveBackupService != null) {
       _autoDaily = widget.driveBackupService!.isAutoDailyEnabled();
@@ -329,6 +333,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
           ],
+          _buildSectionCard(
+            title: l10n.familySharing,
+            icon: Icons.family_restroom_outlined,
+            initiallyExpanded: true,
+            children: [
+              Text(
+                l10n.familySharedBackupDescription,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: Text(l10n.familyRoleChild),
+                    selected: familyState.currentRole == FamilyRole.child,
+                    onSelected: (selected) {
+                      if (!selected) return;
+                      _updateFamilyRole(FamilyRole.child);
+                    },
+                  ),
+                  ChoiceChip(
+                    label: Text(l10n.familyRoleParent),
+                    selected: familyState.currentRole == FamilyRole.parent,
+                    onSelected: (selected) {
+                      if (!selected) return;
+                      _updateFamilyRole(FamilyRole.parent);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.badge_outlined, size: 20),
+                title: Text(l10n.familyChildName),
+                subtitle: Text(
+                  familyState.childName.trim().isEmpty
+                      ? l10n.familyChildNameEmpty
+                      : familyState.childName.trim(),
+                ),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.person_outline, size: 20),
+                title: Text(l10n.familyParentName),
+                subtitle: Text(
+                  familyState.parentName.trim().isEmpty
+                      ? l10n.familyParentNameEmpty
+                      : familyState.parentName.trim(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => _editFamilyMembers(familyState),
+                icon: const Icon(Icons.edit_outlined),
+                label: Text(l10n.familyEditNames),
+                style: _outlinedActionStyle(),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.familyPolicyTitle,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(l10n.familyPolicyChildOwnsData),
+                    const SizedBox(height: 4),
+                    Text(l10n.familyPolicyParentWritesOnly),
+                    const SizedBox(height: 4),
+                    Text(l10n.familyPolicyParentSeedRequired),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: () => _openFamilySpace(),
+                icon: const Icon(Icons.forum_outlined),
+                label: Text(l10n.familyOpenSpace),
+                style: _elevatedActionStyle(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           _buildSectionCard(
             title: isKo ? '일반 설정' : 'General',
             icon: Icons.tune,
@@ -1150,6 +1250,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     return result?.trim();
+  }
+
+  Future<void> _updateFamilyRole(FamilyRole role) async {
+    final familyService = FamilyAccessService(widget.optionRepository);
+    await familyService.setCurrentRole(role);
+    if (!mounted) return;
+    setState(() {});
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          role == FamilyRole.parent
+              ? l10n.familyRoleParentActivated
+              : l10n.familyRoleChildActivated,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editFamilyMembers(FamilyAccessState state) async {
+    final l10n = AppLocalizations.of(context)!;
+    final childController = TextEditingController(text: state.childName);
+    final parentController = TextEditingController(text: state.parentName);
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.familyEditNames),
+        content: SizedBox(
+          width: 360,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: childController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: l10n.familyChildName,
+                  hintText: l10n.familyChildNameEmpty,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: parentController,
+                decoration: InputDecoration(
+                  labelText: l10n.familyParentName,
+                  hintText: l10n.familyParentNameEmpty,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+    if (saved != true) {
+      childController.dispose();
+      parentController.dispose();
+      return;
+    }
+    final familyService = FamilyAccessService(widget.optionRepository);
+    await familyService.saveMembers(
+      childName: childController.text,
+      parentName: parentController.text,
+    );
+    childController.dispose();
+    parentController.dispose();
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.familyNamesSaved)));
+  }
+
+  Future<void> _openFamilySpace() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FamilySpaceScreen(
+          optionRepository: widget.optionRepository,
+          driveBackupService: widget.driveBackupService,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    setState(() {});
   }
 
   String _normalizeDomain(String input) {

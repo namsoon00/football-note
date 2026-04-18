@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/settings_service.dart';
 import '../../application/training_service.dart';
@@ -6,6 +7,7 @@ import '../../application/backup_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../screens/entry_form_screen.dart';
+import '../screens/family_space_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/calendar_screen.dart';
@@ -37,6 +39,8 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final familyState = FamilyAccessService(optionRepository).loadState();
+    final isParentMode = familyState.isParentMode;
     return Drawer(
       child: SafeArea(
         child: ListView(
@@ -99,6 +103,10 @@ class AppDrawer extends StatelessWidget {
                   icon: Icons.note_add_outlined,
                   label: l10n.addEntry,
                   onTap: () {
+                    if (isParentMode) {
+                      _showParentReadOnlyMessage(context);
+                      return;
+                    }
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -116,25 +124,42 @@ class AppDrawer extends StatelessWidget {
                 _DrawerActionTile(
                   icon: Icons.event_note_outlined,
                   label: l10n.drawerTrainingPlan,
-                  onTap: () => _navigateTo(
-                    context,
-                    2,
-                    calendarQuickCreateAction: CalendarQuickCreateAction.plan,
-                  ),
+                  onTap: () {
+                    if (isParentMode) {
+                      _showParentReadOnlyMessage(context);
+                      return;
+                    }
+                    _navigateTo(
+                      context,
+                      2,
+                      calendarQuickCreateAction: CalendarQuickCreateAction.plan,
+                    );
+                  },
                 ),
                 _DrawerActionTile(
                   icon: Icons.sports_soccer_outlined,
                   label: l10n.drawerMatch,
-                  onTap: () => _navigateTo(
-                    context,
-                    2,
-                    calendarQuickCreateAction: CalendarQuickCreateAction.match,
-                  ),
+                  onTap: () {
+                    if (isParentMode) {
+                      _showParentReadOnlyMessage(context);
+                      return;
+                    }
+                    _navigateTo(
+                      context,
+                      2,
+                      calendarQuickCreateAction:
+                          CalendarQuickCreateAction.match,
+                    );
+                  },
                 ),
                 _DrawerActionTile(
                   icon: Icons.developer_board_outlined,
                   label: l10n.drawerAddTrainingSketch,
                   onTap: () {
+                    if (isParentMode) {
+                      _showParentReadOnlyMessage(context);
+                      return;
+                    }
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -153,6 +178,21 @@ class AppDrawer extends StatelessWidget {
               title: l10n.drawerToolsContent,
               icon: Icons.dashboard_customize_outlined,
               children: [
+                _DrawerActionTile(
+                  icon: Icons.forum_outlined,
+                  label: l10n.familyOpenSpace,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => FamilySpaceScreen(
+                          optionRepository: optionRepository,
+                          driveBackupService: driveBackupService,
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 _DrawerActionTile(
                   icon: Icons.newspaper_outlined,
                   label: l10n.tabNews,
@@ -191,6 +231,10 @@ class AppDrawer extends StatelessWidget {
                   icon: Icons.quiz_outlined,
                   label: l10n.drawerQuiz,
                   onTap: () {
+                    if (isParentMode) {
+                      _showParentReadOnlyMessage(context);
+                      return;
+                    }
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -265,6 +309,13 @@ class AppDrawer extends StatelessWidget {
           calendarQuickCreateAction: calendarQuickCreateAction,
         ),
       ),
+    );
+  }
+
+  void _showParentReadOnlyMessage(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.parentReadOnlyDrawerMessage)),
     );
   }
 }

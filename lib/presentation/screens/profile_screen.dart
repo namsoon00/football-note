@@ -6,10 +6,12 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:football_note/gen/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../domain/entities/player_profile.dart';
@@ -83,6 +85,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
+    final familyState =
+        FamilyAccessService(widget.optionRepository).loadState();
+    final isReadOnly = familyState.isParentMode;
     final levelState = PlayerLevelService(widget.optionRepository).loadState();
     final rewardStatuses = PlayerLevelService(
       widget.optionRepository,
@@ -94,13 +100,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _resultChip(
           label:
               '${isKo ? 'MBTI' : 'MBTI'} ${mbtiSummary.title.split('·').first.trim()}',
-          onTap: () => _openProfileTestsScreen(context),
+          onTap: isReadOnly ? null : () => _openProfileTestsScreen(context),
         ),
       if (positionSummary.title.trim().isNotEmpty)
         _resultChip(
           label:
               '${isKo ? '포지션' : 'Position'} ${positionSummary.title.split('·').first.trim()}',
-          onTap: () => _openProfileTestsScreen(context),
+          onTap: isReadOnly ? null : () => _openProfileTestsScreen(context),
         ),
     ];
     // ignore: deprecated_member_use
@@ -115,7 +121,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             IconButton(
               tooltip: isKo ? '성향 테스트' : 'Profile tests',
-              onPressed: () => _openProfileTestsScreen(context),
+              onPressed:
+                  isReadOnly ? null : () => _openProfileTestsScreen(context),
               iconSize: 28,
               constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
               icon: const Icon(Icons.psychology_alt_outlined),
@@ -131,12 +138,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               isKo: isKo,
               onTap: _openLevelGuide,
             ),
+            if (isReadOnly) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(l10n.parentReadOnlyProfileDescription),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
                 _ProfileAvatar(
                   photoSource: _photoPath,
-                  onTap: _pickProfilePhoto,
+                  onTap: isReadOnly ? null : _pickProfilePhoto,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -173,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ],
-                if (_photoPath.isNotEmpty)
+                if (_photoPath.isNotEmpty && !isReadOnly)
                   IconButton(
                     tooltip: isKo ? '사진 삭제' : 'Remove photo',
                     onPressed: () async {
@@ -189,6 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _nameController,
+              enabled: !isReadOnly,
               decoration: InputDecoration(labelText: isKo ? '이름' : 'Name'),
               onChanged: (_) {
                 setState(() {});
@@ -201,6 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Expanded(
                   child: TextField(
                     controller: _heightController,
+                    enabled: !isReadOnly,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -216,6 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Expanded(
                   child: TextField(
                     controller: _weightController,
+                    enabled: !isReadOnly,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -251,10 +272,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(isKo ? '기타' : 'Other'),
                 ),
               ],
-              onChanged: (value) {
-                setState(() => _gender = value ?? '');
-                _scheduleAutoSave();
-              },
+              onChanged: isReadOnly
+                  ? null
+                  : (value) {
+                      setState(() => _gender = value ?? '');
+                      _scheduleAutoSave();
+                    },
             ),
             const SizedBox(height: 4),
             ListTile(
@@ -263,13 +286,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               subtitle: Text(_formatDate(_birthDate, isKo)),
               trailing: IconButton(
                 icon: const Icon(Icons.event),
-                onPressed: () => _pickDate(
-                  initial: _birthDate,
-                  onPicked: (value) {
-                    setState(() => _birthDate = value);
-                    _scheduleAutoSave();
-                  },
-                ),
+                onPressed: isReadOnly
+                    ? null
+                    : () => _pickDate(
+                          initial: _birthDate,
+                          onPicked: (value) {
+                            setState(() => _birthDate = value);
+                            _scheduleAutoSave();
+                          },
+                        ),
               ),
             ),
             ListTile(
@@ -278,13 +303,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               subtitle: Text(_formatDate(_soccerStartDate, isKo)),
               trailing: IconButton(
                 icon: const Icon(Icons.sports_soccer),
-                onPressed: () => _pickDate(
-                  initial: _soccerStartDate,
-                  onPicked: (value) {
-                    setState(() => _soccerStartDate = value);
-                    _scheduleAutoSave();
-                  },
-                ),
+                onPressed: isReadOnly
+                    ? null
+                    : () => _pickDate(
+                          initial: _soccerStartDate,
+                          onPicked: (value) {
+                            setState(() => _soccerStartDate = value);
+                            _scheduleAutoSave();
+                          },
+                        ),
               ),
             ),
           ],
@@ -338,6 +365,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _scheduleAutoSave() {
+    if (_isParentReadOnlyMode) return;
     _saveDebounce?.cancel();
     _saveDebounce = Timer(
       const Duration(milliseconds: 350),
@@ -363,6 +391,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _openProfileTestsScreen(BuildContext context) async {
+    if (_isParentReadOnlyMode) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) =>
@@ -522,11 +551,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _saveLatestNow() async {
+    if (_isParentReadOnlyMode) return;
     _saveDebounce?.cancel();
     await _queueLatestProfileSave();
   }
 
   Future<void> _queueLatestProfileSave() async {
+    if (_isParentReadOnlyMode) return;
     _pendingProfileSave = _buildCurrentProfile();
     await _flushQueuedSaves();
   }
@@ -928,6 +959,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   });
 
   Future<void> _pickProfilePhoto() async {
+    if (_isParentReadOnlyMode) return;
     try {
       final picker = ImagePicker();
       final picked = await picker.pickImage(
@@ -1045,6 +1077,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     if (!mounted) return;
     setState(() {});
+  }
+
+  bool get _isParentReadOnlyMode {
+    return FamilyAccessService(widget.optionRepository)
+        .loadState()
+        .isParentMode;
   }
 }
 

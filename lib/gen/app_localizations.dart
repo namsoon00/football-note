@@ -5485,6 +5485,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'As he closes the book, Taeo writes the first line of his next journal like this. To really watch the World Cup well is not to memorize only one final score, but to follow the whole long story from the first kick in 1930 to the next question waiting in 2026.'**
   String get educationBookFinaleNote;
+
+  /// No description provided for @familySharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sharing'**
+  String get familySharing;
+
+  /// No description provided for @familySharedBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Use one shared Drive backup without a server. Child mode owns core records, while parent mode only syncs the family layer.'**
+  String get familySharedBackupDescription;
+
+  /// No description provided for @familyRoleChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get familyRoleChild;
+
+  /// No description provided for @familyRoleParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get familyRoleParent;
+
+  /// No description provided for @familyChildName.
+  ///
+  /// In en, this message translates to:
+  /// **'Child name'**
+  String get familyChildName;
+
+  /// No description provided for @familyParentName.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent name'**
+  String get familyParentName;
+
+  /// No description provided for @familyChildNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the child name'**
+  String get familyChildNameEmpty;
+
+  /// No description provided for @familyParentNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the parent name'**
+  String get familyParentNameEmpty;
+
+  /// No description provided for @familyEditNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit family names'**
+  String get familyEditNames;
+
+  /// No description provided for @familyPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared backup policy'**
+  String get familyPolicyTitle;
+
+  /// No description provided for @familyPolicyChildOwnsData.
+  ///
+  /// In en, this message translates to:
+  /// **'Child mode backs up training, profile, diary, meals, and plans as the source of truth.'**
+  String get familyPolicyChildOwnsData;
+
+  /// No description provided for @familyPolicyParentWritesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode can save feedback messages, family messages, and level reward names only.'**
+  String get familyPolicyParentWritesOnly;
+
+  /// No description provided for @familyPolicyParentSeedRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the parent device after at least one child backup already exists.'**
+  String get familyPolicyParentSeedRequired;
+
+  /// No description provided for @familyOpenSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Open family space'**
+  String get familyOpenSpace;
+
+  /// No description provided for @familyRoleChildActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Child mode activated.'**
+  String get familyRoleChildActivated;
+
+  /// No description provided for @familyRoleParentActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode activated.'**
+  String get familyRoleParentActivated;
+
+  /// No description provided for @familyNamesSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Family names saved.'**
+  String get familyNamesSaved;
+
+  /// No description provided for @familySpaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family space'**
+  String get familySpaceTitle;
+
+  /// No description provided for @familySpaceSubtitleChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave notes for your parent and check shared feedback here.'**
+  String get familySpaceSubtitleChild;
+
+  /// No description provided for @familySpaceSubtitleParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave feedback for your child here while the rest of the app stays read-only.'**
+  String get familySpaceSubtitleParent;
+
+  /// No description provided for @familyMessagesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No family messages yet. Start the first note here.'**
+  String get familyMessagesEmpty;
+
+  /// No description provided for @familyMessageTypeFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback'**
+  String get familyMessageTypeFeedback;
+
+  /// No description provided for @familyMessageTypeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get familyMessageTypeNote;
+
+  /// No description provided for @familyMessageComposerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Family message'**
+  String get familyMessageComposerLabel;
+
+  /// No description provided for @familyMessageComposerHintParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Write feedback for today’s training or mood.'**
+  String get familyMessageComposerHintParent;
+
+  /// No description provided for @familyMessageComposerHintChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Share how today felt or what you want help with.'**
+  String get familyMessageComposerHintChild;
+
+  /// No description provided for @familyMessageComposerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a family message.'**
+  String get familyMessageComposerEmpty;
+
+  /// No description provided for @familyMessageSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get familyMessageSend;
+
+  /// No description provided for @familyMessageSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Family message sent.'**
+  String get familyMessageSent;
+
+  /// No description provided for @parentReadOnlyProfileDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode keeps the profile read-only. Use family sharing for feedback and the level guide for reward naming.'**
+  String get parentReadOnlyProfileDescription;
+
+  /// No description provided for @parentReadOnlyEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot edit training notes.'**
+  String get parentReadOnlyEntryTitle;
+
+  /// No description provided for @parentReadOnlyEntryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Core records like training, meals, and diary stay in child mode. Parent mode is limited to family sharing and reward naming.'**
+  String get parentReadOnlyEntryBody;
+
+  /// No description provided for @parentReadOnlyMealLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot edit meal logs. Update meals in child mode.'**
+  String get parentReadOnlyMealLog;
+
+  /// No description provided for @parentReadOnlyQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode does not run the quiz. Quiz history and XP stay in child mode.'**
+  String get parentReadOnlyQuiz;
+
+  /// No description provided for @parentReadOnlyDrawerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode keeps core records read-only. Use family sharing and reward naming instead.'**
+  String get parentReadOnlyDrawerMessage;
+
+  /// No description provided for @parentReadOnlyCalendarBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in child mode.'**
+  String get parentReadOnlyCalendarBanner;
+
+  /// No description provided for @parentReadOnlyCalendarMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot edit the calendar.'**
+  String get parentReadOnlyCalendarMessage;
+
+  /// No description provided for @parentReadOnlyDiaryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot edit the diary.'**
+  String get parentReadOnlyDiaryMessage;
+
+  /// No description provided for @parentReadOnlyDiaryBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent read-only'**
+  String get parentReadOnlyDiaryBadge;
+
+  /// No description provided for @parentReadOnlySketchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot edit training sketches.'**
+  String get parentReadOnlySketchMessage;
+
+  /// No description provided for @levelGuideParentModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode'**
+  String get levelGuideParentModeLabel;
+
+  /// No description provided for @levelGuideChildModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Child mode'**
+  String get levelGuideChildModeLabel;
+
+  /// No description provided for @levelGuideParentModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode can save reward names only. Reward claims stay in child mode.'**
+  String get levelGuideParentModeDescription;
+
+  /// No description provided for @levelGuideChildModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Child mode can claim rewards. Reward naming stays in parent mode.'**
+  String get levelGuideChildModeDescription;
+
+  /// No description provided for @levelGuideClaimChildOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim in child mode'**
+  String get levelGuideClaimChildOnly;
 }
 
 class _AppLocalizationsDelegate

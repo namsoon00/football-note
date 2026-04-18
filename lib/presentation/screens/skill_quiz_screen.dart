@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
+import '../../application/family_access_service.dart';
 import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../domain/repositories/option_repository.dart';
@@ -721,6 +722,28 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final l10n = AppLocalizations.of(context)!;
+    final isParentMode =
+        FamilyAccessService(widget.optionRepository).loadState().isParentMode;
+    if (isParentMode) {
+      return Scaffold(
+        appBar: AppBar(title: Text(isKo ? '축구 퀴즈' : 'Football Quiz')),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  l10n.parentReadOnlyQuiz,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return PopScope(
       canPop: !_showEntryHubBackButton,
       onPopInvokedWithResult: (didPop, result) {

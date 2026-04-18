@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../application/family_access_service.dart';
 import '../../application/meal_coaching_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/player_level_service.dart';
@@ -60,6 +61,29 @@ class _MealLogScreenState extends State<MealLogScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final isParentMode =
+        FamilyAccessService(widget.optionRepository).loadState().isParentMode;
+    if (isParentMode) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.mealLogScreenTitle)),
+        body: AppBackground(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    l10n.parentReadOnlyMealLog,
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final status = MealStatus.fromMealEntry(
       MealEntry(
         date: _date,

@@ -10,6 +10,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../application/news_badge_service.dart';
@@ -126,6 +127,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isParentMode = _isParentReadOnlyMode;
     final stream = widget.trainingService?.watchEntries() ??
         Stream<List<TrainingEntry>>.value(const <TrainingEntry>[]);
     final mealStream = widget.mealLogService?.watchEntries() ??
@@ -201,12 +203,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                       children: [
                         _buildEmptyCard(
-                          onCreateDiary: () => _openNewDiaryComposer(
-                            entriesByDay: entriesByDay,
-                            mealEntriesByDay: mealEntriesByDay,
-                            plansByDay: plansByDay,
-                            boardMap: boardMap,
-                          ),
+                          onCreateDiary: isParentMode
+                              ? _showParentReadOnlyMessage
+                              : () => _openNewDiaryComposer(
+                                    entriesByDay: entriesByDay,
+                                    mealEntriesByDay: mealEntriesByDay,
+                                    plansByDay: plansByDay,
+                                    boardMap: boardMap,
+                                  ),
                         ),
                       ],
                     );
@@ -272,6 +276,20 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                             titleTrailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                if (isParentMode)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Text(
+                                      _l10n.parentReadOnlyDiaryBadge,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(
+                                            color: _accentInk,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                  ),
                                 OutlinedButton.icon(
                                   onPressed: _showThemePicker,
                                   icon: const Icon(
@@ -282,12 +300,14 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 OutlinedButton.icon(
-                                  onPressed: () => _openNewDiaryComposer(
-                                    entriesByDay: entriesByDay,
-                                    mealEntriesByDay: mealEntriesByDay,
-                                    plansByDay: plansByDay,
-                                    boardMap: boardMap,
-                                  ),
+                                  onPressed: isParentMode
+                                      ? _showParentReadOnlyMessage
+                                      : () => _openNewDiaryComposer(
+                                            entriesByDay: entriesByDay,
+                                            mealEntriesByDay: mealEntriesByDay,
+                                            plansByDay: plansByDay,
+                                            boardMap: boardMap,
+                                          ),
                                   icon: const Icon(
                                     Icons.add_circle_outline,
                                     size: 18,
@@ -1492,6 +1512,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     _CustomDiaryEntryData data, {
     bool showFeedback = true,
   }) async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final token = _dayStorageToken(date);
     if (data.hasContent) {
       _customDiaryEntries[token] = data.copyWith(updatedAt: DateTime.now());
@@ -1510,6 +1534,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   }
 
   Future<void> _confirmDeleteDiary(DateTime date) async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final token = _dayStorageToken(date);
     final removedDiary = _customDiaryEntries[token];
     if (removedDiary == null) return;
@@ -1592,6 +1620,10 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     required Map<DateTime, List<_DiaryPlan>> plansByDay,
     required Map<String, TrainingBoard> boardMap,
   }) async {
+    if (_isParentReadOnlyMode) {
+      _showParentReadOnlyMessage();
+      return;
+    }
     final today = _normalizeDay(DateTime.now());
     final initialDate = _customDiaryEntries.keys
             .map(DateTime.tryParse)
@@ -1716,6 +1748,19 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         await _movePage(index);
       }
     }
+  }
+
+  bool get _isParentReadOnlyMode {
+    return FamilyAccessService(widget.optionRepository)
+        .loadState()
+        .isParentMode;
+  }
+
+  void _showParentReadOnlyMessage() {
+    AppFeedback.showMessage(
+      context,
+      text: _l10n.parentReadOnlyDiaryMessage,
+    );
   }
 
   void _consumeTodayDiaryOpenRequest({
@@ -1998,7 +2043,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.conditioning,
           title: _l10n.diaryStickerConditioning,
-          summary: '',
+          summary: _conditioningJumpRopeSummary(day),
           metaLabels: [
             if (_totalJumpRopeMinutes(day) > 0)
               _isKo
@@ -2593,6 +2638,30 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return '리프팅 $totalLifting회 · 줄넘기 $totalJumpCount회/$totalJumpMinutes분${noteText.isEmpty ? '' : ' · $noteText'}';
     }
     return 'Lifting $totalLifting reps · Jump rope $totalJumpCount reps/$totalJumpMinutes min${noteText.isEmpty ? '' : ' · $noteText'}';
+  }
+
+  String _conditioningJumpRopeSummary(_DiaryDayData day) {
+    final totalJumpCount = _totalJumpRopeCount(day);
+    final totalJumpMinutes = _totalJumpRopeMinutes(day);
+    if (totalJumpCount <= 0 && totalJumpMinutes <= 0) {
+      return '';
+    }
+    if (_isKo) {
+      if (totalJumpCount > 0 && totalJumpMinutes > 0) {
+        return '줄넘기 $totalJumpCount회/$totalJumpMinutes분';
+      }
+      if (totalJumpCount > 0) {
+        return '줄넘기 $totalJumpCount회';
+      }
+      return '줄넘기 $totalJumpMinutes분';
+    }
+    if (totalJumpCount > 0 && totalJumpMinutes > 0) {
+      return 'Jump rope $totalJumpCount reps/$totalJumpMinutes min';
+    }
+    if (totalJumpCount > 0) {
+      return 'Jump rope $totalJumpCount reps';
+    }
+    return 'Jump rope $totalJumpMinutes min';
   }
 
   List<_DiaryStickerFocusItem> _conditioningFocusItems(_DiaryDayData day) {

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/player_level_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
+import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/player_xp_guide_screen.dart';
 import 'package:football_note/presentation/screens/player_level_guide_screen.dart';
 
@@ -10,21 +11,20 @@ void main() {
   testWidgets('reward dialog keeps action buttons in one row in dark mode', (
     tester,
   ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, 'parent');
+
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
         themeMode: ThemeMode.dark,
         locale: const Locale('ko', 'KR'),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: PlayerLevelGuideScreen(
           currentLevel: 2,
-          optionRepository: _MemoryOptionRepository(),
+          optionRepository: repository,
         ),
       ),
     );
@@ -59,12 +59,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: PlayerLevelGuideScreen(
           currentLevel: 3,
           optionRepository: repository,
@@ -88,12 +84,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko', 'KR'),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: PlayerXpGuideScreen(optionRepository: _MemoryOptionRepository()),
       ),
     );
@@ -102,7 +94,36 @@ void main() {
     expect(find.text('리프팅 기록 추가'), findsOneWidget);
     expect(find.text('줄넘기 기록 추가'), findsOneWidget);
     expect(find.text('리프팅/줄넘기 없이 저장하면 감점'), findsOneWidget);
-    expect(find.text('묶음 계획 생성 보너스'), findsOneWidget);
+    expect(find.text('묶음 계획 생성 보너스', skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('parent mode hides reward claim action and keeps reward edit', (
+    tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, 'parent')
+      ..seed(PlayerLevelService.customRewardNamesKey, <String, String>{
+        '2': '새 축구공',
+      })
+      ..seed(PlayerLevelService.totalXpKey, 120);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko', 'KR'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: PlayerLevelGuideScreen(
+          currentLevel: 2,
+          optionRepository: repository,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('부모 모드'), findsOneWidget);
+    expect(find.text('선물 받기'), findsNothing);
+    expect(find.text('입력').first, findsOneWidget);
+    expect(find.text('아이 모드에서 수령'), findsOneWidget);
   });
 }
 
