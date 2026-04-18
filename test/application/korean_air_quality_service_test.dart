@@ -7,9 +7,103 @@ import 'package:http/testing.dart';
 
 void main() {
   group('KoreanAirQualityService', () {
-    test('uses AirKorea station and measurement APIs for Korean coordinates',
+    test('uses nearby AirKorea station from coordinates when Kakao key exists',
         () async {
       final client = MockClient((request) async {
+        if (request.url.host == 'dapi.kakao.com') {
+          expect(request.headers['Authorization'], 'KakaoAK test-kakao');
+          expect(request.url.path, '/v2/local/geo/transcoord.json');
+          expect(request.url.queryParameters['input_coord'], 'WGS84');
+          expect(request.url.queryParameters['output_coord'], 'TM');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'documents': <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'x': '203000.0',
+                    'y': '442000.0',
+                  },
+                ],
+              }),
+            ),
+            200,
+          );
+        }
+
+        expect(request.url.host, 'apis.data.go.kr');
+        if (request.url.path.endsWith('/getNearbyMsrstnList')) {
+          expect(request.url.queryParameters['tmX'], '203000.0');
+          expect(request.url.queryParameters['tmY'], '442000.0');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'response': <String, dynamic>{
+                  'header': <String, dynamic>{
+                    'resultCode': '00',
+                    'resultMsg': 'NORMAL_SERVICE',
+                  },
+                  'body': <String, dynamic>{
+                    'items': <Map<String, dynamic>>[
+                      <String, dynamic>{
+                        'stationName': '강남대로',
+                      },
+                    ],
+                  },
+                },
+              }),
+            ),
+            200,
+          );
+        }
+        if (request.url.path.endsWith('/getMsrstnAcctoRltmMesureDnsty')) {
+          expect(request.url.queryParameters['stationName'], '강남대로');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'response': <String, dynamic>{
+                  'header': <String, dynamic>{
+                    'resultCode': '00',
+                    'resultMsg': 'NORMAL_SERVICE',
+                  },
+                  'body': <String, dynamic>{
+                    'items': <Map<String, dynamic>>[
+                      <String, dynamic>{
+                        'pm10Value': '42',
+                        'pm25Value': '18',
+                        'khaiValue': '87',
+                      },
+                    ],
+                  },
+                },
+              }),
+            ),
+            200,
+          );
+        }
+        fail('Unexpected request: ${request.url}');
+      });
+
+      final snapshot = await KoreanAirQualityService.fetchCurrentAirQuality(
+        latitude: 37.4981,
+        longitude: 127.0276,
+        client: client,
+        serviceKey: 'test-key',
+        kakaoRestApiKey: 'test-kakao',
+      );
+
+      expect(snapshot.pm10, 42);
+      expect(snapshot.pm25, 18);
+      expect(snapshot.aqi, 87);
+      expect(snapshot.scale, AirQualityScale.khai);
+    });
+
+    test('falls back to address-based AirKorea lookup when nearby lookup fails',
+        () async {
+      final client = MockClient((request) async {
+        if (request.url.host == 'dapi.kakao.com') {
+          return http.Response('kakao unavailable', 500);
+        }
+
         expect(request.url.host, 'apis.data.go.kr');
         if (request.url.path.endsWith('/getMsrstnList')) {
           expect(request.url.queryParameters['addr'], '서울특별시 강남구');
@@ -67,6 +161,7 @@ void main() {
         longitude: 127.0276,
         client: client,
         serviceKey: 'test-key',
+        kakaoRestApiKey: 'test-kakao',
         administrativeAreaQueries: const <String>['서울특별시 강남구'],
       );
 
