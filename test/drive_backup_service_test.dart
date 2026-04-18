@@ -197,6 +197,194 @@ void main() {
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
   });
 
+  test(
+      'parent restore keeps local player records and restores family layer only',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
+    await optionBox.put(FamilyAccessService.childNameKey, 'Local player');
+    await optionBox.put(FamilyAccessService.parentNameKey, 'Local parent');
+    await optionBox.put(
+      FamilyAccessService.messagesKey,
+      <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'local-1',
+          'authorRole': 'parent',
+          'authorName': 'Local parent',
+          'kind': 'feedback',
+          'body': 'Local note',
+          'createdAt': '2026-04-17T09:00:00.000',
+        },
+      ],
+    );
+    await optionBox.put(
+      DriveBackupService.sharedChildDriveEmailKey,
+      'local-player@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.sharedChildDriveLabelKey,
+      'Local player · local-player@example.com',
+    );
+    await optionBox.put(
+      'player_custom_reward_names_v1',
+      <String, String>{'2': 'Local ball'},
+    );
+    await optionBox.put('profile_name', 'Local player profile');
+    await trainingBox.add(
+      TrainingEntry(
+        date: DateTime(2026, 4, 18),
+        createdAt: DateTime(2026, 4, 18, 9),
+        durationMinutes: 40,
+        intensity: 3,
+        type: 'passing',
+        mood: 4,
+        injury: false,
+        notes: 'keep local player record',
+        location: 'local ground',
+      ),
+    );
+
+    final remote = <String, dynamic>{
+      'version': 5,
+      'createdAt': '2026-04-18T10:00:00.000',
+      'entries': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'date': '2026-04-18T00:00:00.000',
+          'createdAt': '2026-04-18T08:10:00.000',
+          'durationMinutes': 75,
+          'intensity': 4,
+          'type': 'dribble',
+          'mood': 4,
+          'injury': false,
+          'notes': 'remote player record',
+          'location': 'remote field',
+          'program': 'Finishing',
+          'drills': '',
+          'club': '',
+          'injuryPart': '',
+          'rehab': false,
+          'goal': '',
+          'feedback': '',
+          'imagePath': '',
+          'imagePaths': <String>[],
+          'status': 'normal',
+          'liftingByPart': <String, int>{},
+          'goalFocuses': <String>[],
+          'goodPoints': '',
+          'improvements': '',
+          'nextGoal': '',
+          'jumpRopeCount': 0,
+          'jumpRopeMinutes': 0,
+          'jumpRopeEnabled': false,
+          'jumpRopeNote': '',
+          'breakfastDone': false,
+          'breakfastRiceBowls': 0,
+          'lunchDone': false,
+          'lunchRiceBowls': 0,
+          'dinnerDone': false,
+          'dinnerRiceBowls': 0,
+        },
+      ],
+      'options': <String, dynamic>{
+        'profile_name': 'Remote player profile',
+        FamilyAccessService.familyIdKey: 'family-1',
+        FamilyAccessService.childNameKey: 'Remote player',
+        FamilyAccessService.parentNameKey: 'Remote parent',
+        FamilyAccessService.messagesKey: <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'remote-1',
+            'authorRole': 'child',
+            'authorName': 'Remote player',
+            'kind': 'note',
+            'body': 'Remote note',
+            'createdAt': '2026-04-18T09:30:00.000',
+          },
+        ],
+        DriveBackupService.sharedChildDriveEmailKey:
+            'remote-player@example.com',
+        DriveBackupService.sharedChildDriveLabelKey:
+            'Remote player · remote-player@example.com',
+        'player_custom_reward_names_v1': <String, String>{'4': 'Remote boots'},
+      },
+      'optionRecords': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'key': FamilyAccessService.familyIdKey,
+          'value': 'family-1',
+        },
+        <String, dynamic>{
+          'key': FamilyAccessService.childNameKey,
+          'value': 'Remote player',
+        },
+        <String, dynamic>{
+          'key': FamilyAccessService.parentNameKey,
+          'value': 'Remote parent',
+        },
+        <String, dynamic>{
+          'key': FamilyAccessService.messagesKey,
+          'value': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 'remote-1',
+              'authorRole': 'child',
+              'authorName': 'Remote player',
+              'kind': 'note',
+              'body': 'Remote note',
+              'createdAt': '2026-04-18T09:30:00.000',
+            },
+          ],
+        },
+        <String, dynamic>{
+          'key': DriveBackupService.sharedChildDriveEmailKey,
+          'value': 'remote-player@example.com',
+        },
+        <String, dynamic>{
+          'key': DriveBackupService.sharedChildDriveLabelKey,
+          'value': 'Remote player · remote-player@example.com',
+        },
+        <String, dynamic>{
+          'key': 'player_custom_reward_names_v1',
+          'value': <String, String>{'4': 'Remote boots'},
+        },
+        <String, dynamic>{
+          'key': 'profile_name',
+          'value': 'Remote player profile',
+        },
+      ],
+      'family': const <String, dynamic>{
+        'familyId': 'family-1',
+        'updatedByRole': 'child',
+        'familyLayerOnly': false,
+      },
+    };
+
+    await service.restoreFromMapForTesting(remote);
+
+    expect(trainingBox.length, 1);
+    expect(trainingBox.values.first.notes, 'keep local player record');
+    expect(optionBox.get('profile_name'), 'Local player profile');
+    expect(optionBox.get(FamilyAccessService.childNameKey), 'Remote player');
+    expect(optionBox.get(FamilyAccessService.parentNameKey), 'Remote parent');
+    expect(
+      (optionBox.get(FamilyAccessService.messagesKey) as List).first['body'],
+      'Remote note',
+    );
+    expect(
+      (optionBox.get('player_custom_reward_names_v1') as Map)['4'],
+      'Remote boots',
+    );
+    expect(
+      (optionBox.get('player_custom_reward_names_v1') as Map).containsKey('2'),
+      isFalse,
+    );
+    expect(
+      optionBox.get(DriveBackupService.sharedChildDriveEmailKey),
+      'remote-player@example.com',
+    );
+    expect(
+      optionBox.get(DriveBackupService.sharedChildDriveLabelKey),
+      'Remote player · remote-player@example.com',
+    );
+  });
+
   test('parent merge keeps remote entries and updates family layer only',
       () async {
     await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');

@@ -48,7 +48,7 @@ void main() {
   });
 
   testWidgets(
-    'parent mode keeps child Drive connection controls in family sharing section',
+    'parent mode keeps player Drive connection and family restore in family sharing section',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();
       await optionRepository.setValue(
@@ -92,16 +92,18 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('아이 Google Drive 연결'),
+        find.text('선수 Google Drive 연결'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('아이 Google Drive 연결'), findsOneWidget);
-      expect(find.text('공유 대상 아이 Drive'), findsOneWidget);
+      expect(find.text('선수 Google Drive 연결'), findsOneWidget);
+      expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
-      expect(find.text('아이 Drive 연결 해제'), findsOneWidget);
+      expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
+      expect(find.text('가족 공유 복원'), findsOneWidget);
+      expect(find.text('Google Drive 백업'), findsNothing);
       expect(find.text('로그아웃'), findsNothing);
     },
   );

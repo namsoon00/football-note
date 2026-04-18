@@ -242,7 +242,7 @@ class FamilyAccessService {
     final resolvedState = state ?? loadState();
     return switch (role) {
       FamilyRole.child => resolvedState.childName.trim().isEmpty
-          ? 'Child'
+          ? 'Player'
           : resolvedState.childName.trim(),
       FamilyRole.parent => resolvedState.parentName.trim().isEmpty
           ? 'Parent'
