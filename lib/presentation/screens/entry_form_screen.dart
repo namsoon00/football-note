@@ -34,6 +34,8 @@ import '../widgets/level_up_dialog.dart';
 import '../theme/app_motion.dart';
 import 'training_method_board_screen.dart';
 
+enum EntryFormInitialFocusTarget { lifting, jumpRope }
+
 class EntryFormScreen extends StatefulWidget {
   final TrainingService trainingService;
   final OptionRepository optionRepository;
@@ -42,6 +44,7 @@ class EntryFormScreen extends StatefulWidget {
   final BackupService? driveBackupService;
   final TrainingEntry? entry;
   final DateTime? initialDate;
+  final EntryFormInitialFocusTarget? initialFocusTarget;
   final bool initialOpenTrainingBoardEditor;
 
   const EntryFormScreen({
@@ -53,6 +56,7 @@ class EntryFormScreen extends StatefulWidget {
     this.driveBackupService,
     this.entry,
     this.initialDate,
+    this.initialFocusTarget,
     this.initialOpenTrainingBoardEditor = false,
   });
 
@@ -79,6 +83,10 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final _jumpRopeController = TextEditingController();
   final _jumpRopeMinutesController = TextEditingController();
   final _jumpRopeNoteController = TextEditingController();
+  final _liftingFieldFocusNode = FocusNode();
+  final _jumpRopeFieldFocusNode = FocusNode();
+  final _liftingFieldKey = GlobalKey();
+  final _jumpRopeFieldKey = GlobalKey();
   final _speech = stt.SpeechToText();
   final _fortuneService = LocalFortuneService();
   final _mealCoachingService = const MealCoachingService();
@@ -109,6 +117,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   final Set<String> _linkedBoardIds = <String>{};
   String _initialSnapshot = '';
   bool _didHandleInitialBoardOpen = false;
+  bool _didRequestInitialFocus = false;
 
   DateTime _date = DateTime.now();
   int _durationMinutes = 60;
@@ -320,6 +329,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
       _weatherSummary = '';
       unawaited(_applyLatestEntryDefaults());
     }
+    _applyInitialFocusTarget();
     _initialSnapshot = _formSnapshot();
     if (widget.initialOpenTrainingBoardEditor && !_didHandleInitialBoardOpen) {
       _didHandleInitialBoardOpen = true;
@@ -333,6 +343,53 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         _weatherSummary.trim().isEmpty) {
       unawaited(_useCurrentLocationWeather(fromAuto: true));
     }
+  }
+
+  void _applyInitialFocusTarget() {
+    if (widget.initialFocusTarget == EntryFormInitialFocusTarget.lifting) {
+      _liftingEnabled = true;
+    }
+    if (widget.initialFocusTarget == EntryFormInitialFocusTarget.jumpRope) {
+      _jumpRopeEnabled = true;
+    }
+    if (widget.initialFocusTarget == null || _didRequestInitialFocus) {
+      return;
+    }
+    _didRequestInitialFocus = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_focusInitialTarget());
+    });
+  }
+
+  Future<void> _focusInitialTarget() async {
+    final targetFocusNode = switch (widget.initialFocusTarget) {
+      EntryFormInitialFocusTarget.lifting => _liftingFieldFocusNode,
+      EntryFormInitialFocusTarget.jumpRope => _jumpRopeFieldFocusNode,
+      null => null,
+    };
+    final targetContext = switch (widget.initialFocusTarget) {
+      EntryFormInitialFocusTarget.lifting => _liftingFieldKey.currentContext,
+      EntryFormInitialFocusTarget.jumpRope => _jumpRopeFieldKey.currentContext,
+      null => null,
+    };
+    if (targetFocusNode == null) {
+      return;
+    }
+    if (targetContext == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_focusInitialTarget());
+      });
+      return;
+    }
+    targetFocusNode.requestFocus();
+    await Scrollable.ensureVisible(
+      targetContext,
+      alignment: 0.24,
+      duration: AppMotion.base(context),
+      curve: AppMotion.curveEnter,
+    );
   }
 
   List<String> _defaultDailyGoals() {
@@ -1024,6 +1081,8 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     _jumpRopeController.dispose();
     _jumpRopeMinutesController.dispose();
     _jumpRopeNoteController.dispose();
+    _liftingFieldFocusNode.dispose();
+    _jumpRopeFieldFocusNode.dispose();
     super.dispose();
   }
 
@@ -1567,7 +1626,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   children: [
                                     Expanded(
                                       child: _buildEmphasizedField(
+                                        fieldKey: _liftingFieldKey,
                                         controller: _liftChestController,
+                                        focusNode: _liftingFieldFocusNode,
                                         enabled: _liftingEnabled,
                                         keyboardType: TextInputType.number,
                                         decoration: InputDecoration(
@@ -1674,7 +1735,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                   children: [
                                     Expanded(
                                       child: _buildEmphasizedField(
+                                        fieldKey: _jumpRopeFieldKey,
                                         controller: _jumpRopeController,
+                                        focusNode: _jumpRopeFieldFocusNode,
                                         enabled: _jumpRopeEnabled,
                                         keyboardType: TextInputType.number,
                                         decoration: InputDecoration(
@@ -1831,7 +1894,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Widget _buildEmphasizedField({
+    Key? fieldKey,
     required TextEditingController controller,
+    FocusNode? focusNode,
     required InputDecoration decoration,
     int minLines = 1,
     int? maxLines = 1,
@@ -1853,7 +1918,9 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
         controller == _jumpRopeNoteController;
     final isListeningFor = _isListening && _listeningController == controller;
     final field = TextFormField(
+      key: fieldKey,
       controller: controller,
+      focusNode: focusNode,
       minLines: minLines,
       maxLines: maxLines,
       enabled: enabled,

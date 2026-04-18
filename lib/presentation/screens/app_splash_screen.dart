@@ -75,8 +75,8 @@ class _AppSplashScreenState extends State<AppSplashScreen>
           final shimmer = Curves.easeInOutSine.transform(
             const Interval(0.0, 1.0).transform(t),
           );
-          final cameraDrift = Curves.easeInOutCubic.transform(
-            const Interval(0.12, 0.88).transform(t),
+          final cameraDrift = Curves.easeOutCubic.transform(
+            const Interval(0.0, 0.36).transform(t),
           );
           final fadeOut = reducedMotion
               ? 0.0
@@ -121,8 +121,8 @@ class _GrassOnlySplashPainter extends CustomPainter {
 
     canvas.save();
     final shiftY = lerpDouble(
-      fieldRect.height * 0.018,
-      -fieldRect.height * 0.012,
+      -fieldRect.height * 0.032,
+      fieldRect.height * 0.014,
       cameraDrift,
     )!;
     canvas.translate(fieldRect.center.dx, fieldRect.center.dy + shiftY);
@@ -145,8 +145,8 @@ class _GrassOnlySplashPainter extends CustomPainter {
     final width = size.width * 1.18;
     final height = size.height * 1.18;
     final centerY = lerpDouble(
-      size.height * 0.535,
-      size.height * 0.52,
+      size.height * 0.46,
+      size.height * 0.61,
       cameraDrift,
     )!;
 
