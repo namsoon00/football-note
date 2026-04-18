@@ -172,6 +172,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _resumeSummary = SkillQuizScreen.loadResumeSummary(widget.optionRepository);
   }
 
+  bool get _isParentMode =>
+      FamilyAccessService(widget.optionRepository).loadState().isParentMode;
+
   Future<void> _selectEntryMode(_QuizEntryAction action) async {
     switch (action) {
       case _QuizEntryAction.resume:
@@ -722,28 +725,6 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final l10n = AppLocalizations.of(context)!;
-    final isParentMode =
-        FamilyAccessService(widget.optionRepository).loadState().isParentMode;
-    if (isParentMode) {
-      return Scaffold(
-        appBar: AppBar(title: Text(isKo ? '축구 퀴즈' : 'Football Quiz')),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  l10n.parentReadOnlyQuiz,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
     return PopScope(
       canPop: !_showEntryHubBackButton,
       onPopInvokedWithResult: (didPop, result) {
@@ -865,9 +846,11 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                       children: [
                         TextField(
                           controller: _shortAnswerController,
-                          enabled: !_answered,
+                          enabled: !_answered && !_isParentMode,
                           textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _submitShortAnswer(),
+                          onSubmitted: _isParentMode
+                              ? null
+                              : (_) => _submitShortAnswer(),
                           decoration: InputDecoration(
                             hintText: isKo ? '정답을 입력하세요' : 'Type your answer',
                             border: const OutlineInputBorder(),
@@ -876,7 +859,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         ),
                         const SizedBox(height: 10),
                         FilledButton(
-                          onPressed: _answered ? null : _submitShortAnswer,
+                          onPressed: (_answered || _isParentMode)
+                              ? null
+                              : _submitShortAnswer,
                           child: Text(isKo ? '정답 확인' : 'Check answer'),
                         ),
                       ],
@@ -909,7 +894,9 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                         borderRadius: BorderRadius.circular(16),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
-                          onTap: () => _selectAnswer(optionIndex),
+                          onTap: _isParentMode
+                              ? null
+                              : () => _selectAnswer(optionIndex),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 14,
@@ -1042,7 +1029,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
         ),
         const SizedBox(height: 10),
         FilledButton.icon(
-          onPressed: canGoNext ? _goNext : null,
+          onPressed: (_isParentMode || !canGoNext) ? null : _goNext,
           icon: const Icon(Icons.navigate_next),
           label: Text(isKo ? '다음' : 'Next'),
         ),
@@ -1242,19 +1229,19 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
           const SizedBox(height: 8),
         ],
         FilledButton.icon(
-          onPressed: _startFocusSession,
+          onPressed: _isParentMode ? null : _startFocusSession,
           icon: const Icon(Icons.center_focus_strong_outlined),
           label: Text(isKo ? '약점 집중으로 바로 다시' : 'Retry with focus mode'),
         ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
-          onPressed: _startChallengeSession,
+          onPressed: _isParentMode ? null : _startChallengeSession,
           icon: const Icon(Icons.sports_soccer_outlined),
           label: Text(isKo ? '챌린지 모드로 확장' : 'Expand with challenge mode'),
         ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
-          onPressed: _startReviewSessionFromQueue,
+          onPressed: _isParentMode ? null : _startReviewSessionFromQueue,
           icon: const Icon(Icons.rule_folder_outlined),
           label: Text(isKo ? '오답 복습 모드' : 'Open review mode'),
         ),
@@ -1736,6 +1723,23 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
 
     return ListView(
       children: [
+        if (_isParentMode) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
+            child: Text(
+              AppLocalizations.of(context)!.parentReadOnlyQuiz,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -1801,7 +1805,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
             padding: const EdgeInsets.only(bottom: 12),
             child: _QuizEntryCard(
               data: item,
-              onTap: () => _selectEntryMode(item.action),
+              onTap: _isParentMode ? null : () => _selectEntryMode(item.action),
             ),
           ),
         ),
@@ -2695,8 +2699,10 @@ class _QuizEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final enabled = onTap != null;
     return Material(
-      color: scheme.surfaceContainerLow,
+      color:
+          enabled ? scheme.surfaceContainerLow : scheme.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(22),
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
@@ -2713,10 +2719,17 @@ class _QuizEntryCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.12),
+                  color: enabled
+                      ? scheme.primary.withValues(alpha: 0.12)
+                      : scheme.outlineVariant.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(data.icon, color: scheme.primary),
+                child: Icon(
+                  data.icon,
+                  color: enabled
+                      ? scheme.primary
+                      : scheme.onSurfaceVariant.withValues(alpha: 0.58),
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -2726,6 +2739,9 @@ class _QuizEntryCard extends StatelessWidget {
                     Text(
                       data.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: enabled
+                                ? null
+                                : scheme.onSurface.withValues(alpha: 0.66),
                             fontWeight: FontWeight.w900,
                           ),
                     ),
@@ -2733,7 +2749,9 @@ class _QuizEntryCard extends StatelessWidget {
                     Text(
                       data.subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.74),
+                            color: scheme.onSurface.withValues(
+                              alpha: enabled ? 0.74 : 0.52,
+                            ),
                             height: 1.4,
                           ),
                     ),
@@ -2750,20 +2768,24 @@ class _QuizEntryCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: scheme.primary.withValues(alpha: 0.12),
+                      color: enabled
+                          ? scheme.primary.withValues(alpha: 0.12)
+                          : scheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
                       data.badge,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: scheme.primary,
+                            color: enabled
+                                ? scheme.primary
+                                : scheme.onSurfaceVariant,
                             fontWeight: FontWeight.w800,
                           ),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Icon(
-                    Icons.arrow_forward_ios,
+                    enabled ? Icons.arrow_forward_ios : Icons.lock_outline,
                     size: 16,
                     color: scheme.onSurface.withValues(alpha: 0.5),
                   ),

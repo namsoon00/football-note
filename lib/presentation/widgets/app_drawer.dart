@@ -215,10 +215,6 @@ class AppDrawer extends StatelessWidget {
                   icon: Icons.quiz_outlined,
                   label: l10n.drawerQuiz,
                   onTap: () {
-                    if (isParentMode) {
-                      _showParentReadOnlyMessage(context);
-                      return;
-                    }
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(

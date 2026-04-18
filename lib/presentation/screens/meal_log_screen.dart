@@ -46,6 +46,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
   bool _saveInProgress = false;
   bool _disposed = false;
 
+  bool get _isParentMode =>
+      FamilyAccessService(widget.optionRepository).loadState().isParentMode;
+
   @override
   void initState() {
     super.initState();
@@ -61,29 +64,6 @@ class _MealLogScreenState extends State<MealLogScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isParentMode =
-        FamilyAccessService(widget.optionRepository).loadState().isParentMode;
-    if (isParentMode) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.mealLogScreenTitle)),
-        body: AppBackground(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    l10n.parentReadOnlyMealLog,
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
     final status = MealStatus.fromMealEntry(
       MealEntry(
         date: _date,
@@ -97,7 +77,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       appBar: AppBar(
         title: Text(l10n.mealLogScreenTitle),
         actions: [
-          if (_persistedEntry != null)
+          if (_persistedEntry != null && !_isParentMode)
             IconButton(
               tooltip: l10n.mealDeleteAction,
               onPressed: _delete,
@@ -110,6 +90,18 @@ class _MealLogScreenState extends State<MealLogScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
+              if (_isParentMode) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      l10n.parentReadOnlyMealLog,
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.calendar_today_outlined),
@@ -129,6 +121,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 label: l10n.mealBreakfast,
                 value: _breakfastRiceBowls,
                 l10n: l10n,
+                enabled: !_isParentMode,
                 onChanged: (value) {
                   setState(() => _breakfastRiceBowls = value);
                   _scheduleAutoSave();
@@ -140,6 +133,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 label: l10n.mealLunch,
                 value: _lunchRiceBowls,
                 l10n: l10n,
+                enabled: !_isParentMode,
                 onChanged: (value) {
                   setState(() => _lunchRiceBowls = value);
                   _scheduleAutoSave();
@@ -151,6 +145,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 label: l10n.mealDinner,
                 value: _dinnerRiceBowls,
                 l10n: l10n,
+                enabled: !_isParentMode,
                 onChanged: (value) {
                   setState(() => _dinnerRiceBowls = value);
                   _scheduleAutoSave();
@@ -214,7 +209,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
     );
     if (picked == null || !mounted) return;
     _autoSaveTimer?.cancel();
-    await _save();
+    if (!_isParentMode) {
+      await _save();
+    }
     if (!mounted) return;
     setState(() {
       _loadEntryForDate(DateTime(picked.year, picked.month, picked.day));
@@ -222,6 +219,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
   }
 
   void _scheduleAutoSave() {
+    if (_isParentMode) return;
     if (_saveInProgress || _disposed) return;
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer(const Duration(milliseconds: 250), () {
@@ -371,6 +369,7 @@ class _MealSelectorCard extends StatelessWidget {
   final String label;
   final double value;
   final AppLocalizations l10n;
+  final bool enabled;
   final ValueChanged<double> onChanged;
 
   const _MealSelectorCard({
@@ -378,6 +377,7 @@ class _MealSelectorCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.l10n,
+    required this.enabled,
     required this.onChanged,
   });
 
@@ -437,7 +437,7 @@ class _MealSelectorCard extends StatelessWidget {
                     key: ValueKey('meal-$mealKey-increment'),
                     tooltip: l10n.mealIncreaseAction,
                     icon: Icons.add_rounded,
-                    enabled: _nextValue(value) != value,
+                    enabled: enabled && _nextValue(value) != value,
                     onTap: () => onChanged(_nextValue(value)),
                   ),
                   const SizedBox(height: 8),
@@ -445,7 +445,7 @@ class _MealSelectorCard extends StatelessWidget {
                     key: ValueKey('meal-$mealKey-decrement'),
                     tooltip: l10n.mealDecreaseAction,
                     icon: Icons.remove_rounded,
-                    enabled: _previousValue(value) != value,
+                    enabled: enabled && _previousValue(value) != value,
                     onTap: () => onChanged(_previousValue(value)),
                   ),
                 ],

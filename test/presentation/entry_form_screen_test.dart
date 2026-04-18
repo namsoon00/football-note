@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/local_fortune_service.dart';
 import 'package:football_note/application/settings_service.dart';
@@ -182,5 +183,63 @@ void main() {
     expect(find.textContaining('행운 시간대: 오전 후반 08:10~08:50'), findsOneWidget);
     expect(find.text('추천 훈련'), findsNothing);
     expect(find.text('운세 코멘트'), findsNothing);
+  });
+
+  testWidgets(
+      'parent mode can view existing entry without save or delete actions', (
+    WidgetTester tester,
+  ) async {
+    final original = TrainingEntry(
+      date: DateTime(2026, 3, 15, 18),
+      createdAt: DateTime(2026, 3, 15, 18),
+      durationMinutes: 70,
+      intensity: 4,
+      type: '드리블',
+      mood: 4,
+      injury: false,
+      notes: '기존 메모',
+      goodPoints: '퍼스트 터치가 안정적이었다.',
+      improvements: '압박 회피가 늦었다.',
+      nextGoal: '턴 동작을 더 빠르게 가져간다.',
+      location: '학교 운동장',
+      program: '볼터치',
+    );
+    await trainingService.add(original);
+    final storedEntry = (await trainingService.allEntries()).single;
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: EntryFormScreen(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            localeService: localeService,
+            settingsService: settingsService,
+            entry: storedEntry,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('부모 모드 읽기 전용'), findsOneWidget);
+    expect(find.text('퍼스트 터치가 안정적이었다.'), findsOneWidget);
+    expect(find.text('압박 회피가 늦었다.'), findsOneWidget);
+    expect(find.text('턴 동작을 더 빠르게 가져간다.'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, '저장'), findsNothing);
+    expect(find.widgetWithText(TextButton, '기록 삭제'), findsNothing);
   });
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
@@ -95,5 +96,41 @@ void main() {
     expect(saved!.breakfastRiceBowls, 1.5);
     expect(saved.lunchRiceBowls, 0);
     expect(saved.dinnerRiceBowls, 0);
+  });
+
+  testWidgets('parent mode can view meal log without editing it',
+      (tester) async {
+    final day = DateTime(2026, 3, 31);
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    await mealLogService.save(
+      MealEntry(
+        date: day,
+        breakfastRiceBowls: 1.5,
+        lunchRiceBowls: 1,
+        dinnerRiceBowls: 0.5,
+      ),
+    );
+
+    await pumpMealLogScreen(tester, initialDate: day);
+
+    expect(
+      find.text(
+        '부모 모드에서는 식사 기록을 수정할 수 없어요. 식사 입력은 선수 모드에서 진행해 주세요.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('meal-breakfast-increment')),
+      warnIfMissed: false,
+    );
+    await tester.pump();
+
+    final saved = mealLogService.entryForDay(day);
+    expect(saved, isNotNull);
+    expect(saved!.breakfastRiceBowls, 1.5);
   });
 }
