@@ -5549,7 +5549,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedBackupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Use one shared Drive backup without a server. Child mode owns core records, while parent mode only syncs the family layer.'**
+  /// **'Use one shared Drive backup without a server. Player mode owns core records, while parent mode only syncs the family layer.'**
   String get familySharedBackupDescription;
 
   /// No description provided for @familyBackupIncludesMedia.
@@ -5558,34 +5558,40 @@ abstract class AppLocalizations {
   /// **'Back up profile photos and training photos too when those files can be collected locally.'**
   String get familyBackupIncludesMedia;
 
+  /// No description provided for @familyParentAutoSyncDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'In parent mode, only family messages, feedback, and reward names sync automatically. Keep player record backup and restore in player mode.'**
+  String get familyParentAutoSyncDescription;
+
   /// No description provided for @familyChildDriveConnectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Connect child\'s Google Drive'**
+  /// **'Connect player\'s Google Drive'**
   String get familyChildDriveConnectionTitle;
 
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, connect the same Google Drive account the child uses so both roles can share one family backup file.'**
+  /// **'In parent mode, connect the same Google Drive account the player uses so both roles can share one family backup file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Connect child Drive'**
+  /// **'Connect player Drive'**
   String get familyConnectChildDrive;
 
   /// No description provided for @familyDisconnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Disconnect child Drive'**
+  /// **'Disconnect player Drive'**
   String get familyDisconnectChildDrive;
 
   /// No description provided for @familyRoleChild.
   ///
   /// In en, this message translates to:
-  /// **'Child'**
+  /// **'Player'**
   String get familyRoleChild;
 
   /// No description provided for @familyRoleParent.
@@ -5597,7 +5603,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildName.
   ///
   /// In en, this message translates to:
-  /// **'Child name'**
+  /// **'Player name'**
   String get familyChildName;
 
   /// No description provided for @familyParentName.
@@ -5609,7 +5615,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildNameEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Set the child name'**
+  /// **'Set the player name'**
   String get familyChildNameEmpty;
 
   /// No description provided for @familyParentNameEmpty.
@@ -5633,7 +5639,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyPolicyChildOwnsData.
   ///
   /// In en, this message translates to:
-  /// **'Child mode backs up training, profile, diary, meals, and plans as the source of truth.'**
+  /// **'Player mode backs up training, profile, diary, meals, and plans as the source of truth.'**
   String get familyPolicyChildOwnsData;
 
   /// No description provided for @familyPolicyParentWritesOnly.
@@ -5645,7 +5651,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyPolicyParentSeedRequired.
   ///
   /// In en, this message translates to:
-  /// **'Connect the parent device after at least one child backup already exists.'**
+  /// **'Connect the parent device after at least one player backup already exists.'**
   String get familyPolicyParentSeedRequired;
 
   /// No description provided for @familyOpenSpace.
@@ -5657,7 +5663,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleChildActivated.
   ///
   /// In en, this message translates to:
-  /// **'Child mode activated.'**
+  /// **'Player mode activated.'**
   String get familyRoleChildActivated;
 
   /// No description provided for @familyRoleParentActivated.
@@ -5687,7 +5693,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySpaceSubtitleParent.
   ///
   /// In en, this message translates to:
-  /// **'Leave feedback for your child here while the rest of the app stays read-only.'**
+  /// **'Leave feedback for your player here while the rest of the app stays read-only.'**
   String get familySpaceSubtitleParent;
 
   /// No description provided for @familyMessagesEmpty.
@@ -5759,26 +5765,92 @@ abstract class AppLocalizations {
   /// No description provided for @driveSharedChildAccount.
   ///
   /// In en, this message translates to:
-  /// **'Shared child Drive'**
+  /// **'Shared player Drive'**
   String get driveSharedChildAccount;
 
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No child Drive account is known yet. Create at least one child backup first.'**
+  /// **'No player Drive account is known yet. Create at least one player backup first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the child\'s Google Drive account to sync feedback and family messages into the same backup file.'**
+  /// **'In parent mode, sign in with the player\'s Google Drive account to sync feedback and family messages into the same backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode should connect to the child\'s Google Drive account to sync safely into the same family backup.'**
+  /// **'Parent mode should connect to the player\'s Google Drive account to sync safely into the same family backup.'**
   String get familyParentUsesChildDriveWarning;
+
+  /// No description provided for @familySharedSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sharing sync'**
+  String get familySharedSyncTitle;
+
+  /// No description provided for @familySharedSyncDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback, family messages, and reward names saved in parent mode are written automatically into the same family backup file.'**
+  String get familySharedSyncDescription;
+
+  /// No description provided for @familySharedLastSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Last family sync'**
+  String get familySharedLastSync;
+
+  /// No description provided for @familySharedRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore family sharing'**
+  String get familySharedRestore;
+
+  /// No description provided for @familySharedRestoreConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the latest family sharing state from Google Drive? This replaces family sharing data on the current parent device.'**
+  String get familySharedRestoreConfirm;
+
+  /// No description provided for @familySharedRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sharing restore completed.'**
+  String get familySharedRestoreSuccess;
+
+  /// No description provided for @familySharedRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sharing restore failed. Please try again.'**
+  String get familySharedRestoreFailed;
+
+  /// No description provided for @familySharedRestoreLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo family restore'**
+  String get familySharedRestoreLocal;
+
+  /// No description provided for @familySharedRestoreLocalConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the safety copy saved right before the last family restore? This replaces family sharing data on the current parent device.'**
+  String get familySharedRestoreLocalConfirm;
+
+  /// No description provided for @familySharedRestoreLocalSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sharing undo completed.'**
+  String get familySharedRestoreLocalSuccess;
+
+  /// No description provided for @familySharedRestoreLocalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Family sharing undo failed. Please try again.'**
+  String get familySharedRestoreLocalFailed;
 
   /// No description provided for @familyParentFamilyMismatch.
   ///
@@ -5801,19 +5873,19 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Core records like training, meals, and diary stay in child mode. Parent mode is limited to family sharing and reward naming.'**
+  /// **'Core records like training, meals, and diary stay in player mode. Parent mode is limited to family sharing and reward naming.'**
   String get parentReadOnlyEntryBody;
 
   /// No description provided for @parentReadOnlyMealLog.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode cannot edit meal logs. Update meals in child mode.'**
+  /// **'Parent mode cannot edit meal logs. Update meals in player mode.'**
   String get parentReadOnlyMealLog;
 
   /// No description provided for @parentReadOnlyQuiz.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode does not run the quiz. Quiz history and XP stay in child mode.'**
+  /// **'Parent mode does not run the quiz. Quiz history and XP stay in player mode.'**
   String get parentReadOnlyQuiz;
 
   /// No description provided for @parentReadOnlyDrawerMessage.
@@ -5825,7 +5897,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyCalendarBanner.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in child mode.'**
+  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.'**
   String get parentReadOnlyCalendarBanner;
 
   /// No description provided for @parentReadOnlyCalendarMessage.
@@ -5861,25 +5933,25 @@ abstract class AppLocalizations {
   /// No description provided for @levelGuideChildModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Child mode'**
+  /// **'Player mode'**
   String get levelGuideChildModeLabel;
 
   /// No description provided for @levelGuideParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode can save reward names only. Reward claims stay in child mode.'**
+  /// **'Parent mode can save reward names only. Reward claims stay in player mode.'**
   String get levelGuideParentModeDescription;
 
   /// No description provided for @levelGuideChildModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Child mode can claim rewards. Reward naming stays in parent mode.'**
+  /// **'Player mode can claim rewards. Reward naming stays in parent mode.'**
   String get levelGuideChildModeDescription;
 
   /// No description provided for @levelGuideClaimChildOnly.
   ///
   /// In en, this message translates to:
-  /// **'Claim in child mode'**
+  /// **'Claim in player mode'**
   String get levelGuideClaimChildOnly;
 }
 

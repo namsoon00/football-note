@@ -89,6 +89,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final current = widget.localeService.locale?.languageCode ?? 'en';
     final familyState =
         FamilyAccessService(widget.optionRepository).loadState();
+    final showPlayerBackupSection =
+        widget.driveBackupService != null && !familyState.isParentMode;
     final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
         ? _sharedChildDriveLabel.trim()
         : _sharedChildDriveEmail.trim();
@@ -220,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (widget.driveBackupService != null) ...[
+          if (showPlayerBackupSection) ...[
             _buildSectionCard(
               title: l10n.account,
               icon: Icons.manage_accounts_outlined,
@@ -237,20 +239,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   formatBackupTime: _formatBackupTime,
                 ),
                 const SizedBox(height: 8),
-                if (!familyState.isParentMode) ...[
-                  _buildDriveAuthButton(
-                    l10n: l10n,
-                    label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildDriveAccountTile(
-                    icon: Icons.cloud_done_outlined,
-                    title: l10n.driveConnectedAccount,
-                    subtitle: _connectedDriveLabel.trim().isEmpty
-                        ? l10n.driveConnectedAccountEmpty
-                        : _connectedDriveLabel.trim(),
-                  ),
-                ],
+                _buildDriveAuthButton(
+                  l10n: l10n,
+                  label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
+                ),
+                const SizedBox(height: 8),
+                _buildDriveAccountTile(
+                  icon: Icons.cloud_done_outlined,
+                  title: l10n.driveConnectedAccount,
+                  subtitle: _connectedDriveLabel.trim().isEmpty
+                      ? l10n.driveConnectedAccountEmpty
+                      : _connectedDriveLabel.trim(),
+                ),
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
@@ -344,7 +344,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                l10n.familyBackupIncludesMedia,
+                familyState.isParentMode
+                    ? l10n.familyParentAutoSyncDescription
+                    : l10n.familyBackupIncludesMedia,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
@@ -472,6 +474,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 8),
+                _buildParentFamilySyncCard(l10n),
               ],
               const SizedBox(height: 8),
               Container(
@@ -1504,6 +1508,78 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildParentFamilySyncCard(AppLocalizations l10n) {
+    final lastBackupAt = widget.driveBackupService?.getLastBackup();
+    final hasLocalRestore =
+        widget.driveBackupService?.hasLocalPreRestoreBackup() ?? false;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.familySharedSyncTitle,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.familySharedSyncDescription,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (lastBackupAt != null) ...[
+            const SizedBox(height: 8),
+            _buildDriveAccountTile(
+              icon: Icons.history,
+              title: l10n.familySharedLastSync,
+              subtitle: _formatBackupTime(lastBackupAt),
+            ),
+          ],
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _restoreBusy
+                ? null
+                : () => _restoreFromDrive(
+                      l10n,
+                      title: l10n.familySharedRestore,
+                      message: l10n.familySharedRestoreConfirm,
+                      successMessage: l10n.familySharedRestoreSuccess,
+                      failedMessage: l10n.familySharedRestoreFailed,
+                    ),
+            icon: const Icon(Icons.cloud_download_outlined),
+            label: Text(
+              _restoreBusy ? l10n.restoreInProgress : l10n.familySharedRestore,
+            ),
+            style: _outlinedActionStyle(),
+          ),
+          if (hasLocalRestore) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _restoreBusy
+                  ? null
+                  : () => _restoreLocalBackup(
+                        l10n,
+                        title: l10n.familySharedRestoreLocal,
+                        message: l10n.familySharedRestoreLocalConfirm,
+                        successMessage: l10n.familySharedRestoreLocalSuccess,
+                        failedMessage: l10n.familySharedRestoreLocalFailed,
+                      ),
+              icon: const Icon(Icons.undo),
+              label: Text(l10n.familySharedRestoreLocal),
+              style: _outlinedActionStyle(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   ButtonStyle _outlinedActionStyle() {
     return ButtonStyle(
       minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
@@ -1617,12 +1693,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _restoreFromDrive(AppLocalizations l10n) async {
+  Future<void> _restoreFromDrive(
+    AppLocalizations l10n, {
+    String? title,
+    String? message,
+    String? successMessage,
+    String? failedMessage,
+  }) async {
     if (widget.driveBackupService == null) return;
     final confirm = await _confirmRestoreAction(
       l10n: l10n,
-      title: l10n.restoreFromDrive,
-      message: l10n.restoreConfirm,
+      title: title ?? l10n.restoreFromDrive,
+      message: message ?? l10n.restoreConfirm,
     );
     if (confirm != true) return;
     setState(() => _restoreBusy = true);
@@ -1635,7 +1717,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {});
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.restoreSuccess)));
+      ).showSnackBar(
+        SnackBar(content: Text(successMessage ?? l10n.restoreSuccess)),
+      );
     } catch (e, st) {
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
@@ -1644,7 +1728,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
-          : _driveFailureMessage(l10n, e, fallback: l10n.restoreFailed);
+          : _driveFailureMessage(
+              l10n,
+              e,
+              fallback: failedMessage ?? l10n.restoreFailed,
+            );
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -1655,12 +1743,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _restoreLocalBackup(AppLocalizations l10n) async {
+  Future<void> _restoreLocalBackup(
+    AppLocalizations l10n, {
+    String? title,
+    String? message,
+    String? successMessage,
+    String? failedMessage,
+  }) async {
     if (widget.driveBackupService == null) return;
     final confirm = await _confirmRestoreAction(
       l10n: l10n,
-      title: l10n.restoreLocalBackup,
-      message: l10n.restoreLocalConfirm,
+      title: title ?? l10n.restoreLocalBackup,
+      message: message ?? l10n.restoreLocalConfirm,
     );
     if (confirm != true) return;
     setState(() => _restoreBusy = true);
@@ -1672,12 +1766,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {});
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.restoreLocalSuccess)));
+      ).showSnackBar(
+        SnackBar(content: Text(successMessage ?? l10n.restoreLocalSuccess)),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.restoreLocalFailed)));
+      ).showSnackBar(
+        SnackBar(content: Text(failedMessage ?? l10n.restoreLocalFailed)),
+      );
     } finally {
       if (mounted) {
         setState(() => _restoreBusy = false);

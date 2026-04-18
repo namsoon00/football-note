@@ -76,6 +76,11 @@ class DriveBackupService implements BackupRepository {
       'drive_connected_subject_local_v1';
   static const sharedChildDriveEmailKey = 'drive_child_email_v1';
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
+  static const Set<String> _parentSharedRestoreOptionKeys = <String>{
+    ...FamilyAccessService.sharedBackupOptionKeys,
+    sharedChildDriveEmailKey,
+    sharedChildDriveLabelKey,
+  };
   static const _folderName = 'Football Note';
   static const _fileName = 'football_note_backup.json';
   static const _driveScope = 'https://www.googleapis.com/auth/drive.file';
@@ -172,6 +177,9 @@ class DriveBackupService implements BackupRepository {
 
   @override
   Future<void> autoBackupDaily() async {
+    if (_familyService.loadState().currentRole == FamilyRole.parent) {
+      return;
+    }
     if (!isAutoDailyEnabled()) {
       return;
     }
@@ -680,6 +688,10 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<void> _restoreFromMap(Map<String, dynamic> data) async {
+    if (_familyService.loadState().currentRole == FamilyRole.parent) {
+      await _restoreParentFamilyLayerFromMap(data);
+      return;
+    }
     final version = (data['version'] as num?)?.toInt() ?? 1;
     final entries = (data['entries'] as List?) ?? const [];
     final optionRecords = (data[_optionRecordsKey] as List?) ?? const [];
@@ -748,6 +760,50 @@ class DriveBackupService implements BackupRepository {
         await _optionBox.put(entry.key, entry.value);
       }
     }
+  }
+
+  Future<void> _restoreParentFamilyLayerFromMap(
+    Map<String, dynamic> data,
+  ) async {
+    final version = (data['version'] as num?)?.toInt() ?? 1;
+    final restoredOptions = _decodeStringOptionsFromBackup(
+      data,
+      version: version,
+    );
+    for (final key in _parentSharedRestoreOptionKeys) {
+      if (restoredOptions.containsKey(key)) {
+        await _optionBox.put(key, restoredOptions[key]);
+      } else {
+        await _optionBox.delete(key);
+      }
+    }
+  }
+
+  Map<String, dynamic> _decodeStringOptionsFromBackup(
+    Map<String, dynamic> data, {
+    required int version,
+  }) {
+    final restored = <String, dynamic>{};
+    final optionRecords = (data[_optionRecordsKey] as List?) ?? const [];
+    if (optionRecords.isNotEmpty) {
+      for (final raw in optionRecords) {
+        if (raw is! Map) continue;
+        final key = _fromBackupValue(raw['key'], version: version);
+        if (key is! String) continue;
+        restored[key] = _fromBackupValue(raw['value'], version: version);
+      }
+      return restored;
+    }
+    final options = data['options'];
+    if (options is! Map) {
+      return restored;
+    }
+    for (final entry in options.entries) {
+      final key = entry.key;
+      if (key is! String) continue;
+      restored[key] = _fromBackupValue(entry.value, version: version);
+    }
+    return restored;
   }
 
   dynamic _encodeOptionValueForBackup({
@@ -1187,7 +1243,7 @@ class DriveBackupService implements BackupRepository {
     }
     if (remote == null) {
       throw StateError(
-        'Parent mode needs an existing child backup before syncing family data.',
+        'Parent mode needs an existing player backup before syncing family data.',
       );
     }
     return _mergeParentFamilyBackup(remote: remote, local: local);
