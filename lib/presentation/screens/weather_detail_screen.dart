@@ -902,8 +902,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatTemperatureDelta(double? value) {
     if (value == null) return '--';
     final normalized = value.abs() < 0.05 ? 0 : value;
-    final prefix = normalized > 0 ? '+' : '';
-    return '$prefix${normalized.toStringAsFixed(1)}°C';
+    if (normalized > 0) {
+      return '↑ ${normalized.toStringAsFixed(1)}°C';
+    }
+    if (normalized < 0) {
+      return '↓ ${normalized.abs().toStringAsFixed(1)}°C';
+    }
+    return '0.0°C';
   }
 
   double? get _todayPrecipitation {
