@@ -407,10 +407,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final hasWeather = _summary.isNotEmpty;
-    final aqiLevel = _aqiLevel(l10n, _aqi, _airQualityScale);
     final pm10Level = _pm10Level(l10n, _pm10);
     final pm25Level = _pm25Level(l10n, _pm25);
-    final outdoorAirLevel = _outdoorActivityAirLevel(l10n);
     final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
     return Scaffold(
@@ -477,9 +475,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 _TodayAirQualitySection(
                   title: l10n.homeWeatherAirQualityTitle,
                   subtitle: l10n.homeWeatherAirQualitySubtitle,
-                  guideTitle: l10n.homeWeatherAirGuideTitle,
-                  guideBody: _outdoorActivityAirGuide(l10n),
-                  guideLevel: outdoorAirLevel.level,
                   pm10Label: l10n.homeWeatherPm10,
                   pm10Value: _formatParticles(_pm10),
                   pm10Status: pm10Level.label,
@@ -488,10 +483,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   pm25Value: _formatParticles(_pm25),
                   pm25Status: pm25Level.label,
                   pm25Level: pm25Level.level,
-                  aqiLabel: l10n.homeWeatherAqi,
-                  aqiValue: _aqi == null ? '--' : '$_aqi',
-                  aqiStatus: aqiLevel.label,
-                  aqiLevel: aqiLevel.level,
                 ),
                 const SizedBox(height: 16),
                 _WeatherRecommendationActions(
@@ -911,8 +902,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatTemperatureDelta(double? value) {
     if (value == null) return '--';
     final normalized = value.abs() < 0.05 ? 0 : value;
-    final prefix = normalized > 0 ? '+' : '';
-    return '$prefix${normalized.toStringAsFixed(1)}°C';
+    if (normalized > 0) {
+      return '↑ ${normalized.toStringAsFixed(1)}°C';
+    }
+    if (normalized < 0) {
+      return '↓ ${normalized.abs().toStringAsFixed(1)}°C';
+    }
+    return '0.0°C';
   }
 
   double? get _todayPrecipitation {
@@ -920,35 +916,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       return _dailyForecasts.first.precipitationSum ?? _precipitation;
     }
     return _precipitation;
-  }
-
-  _AirLevelLabel _outdoorActivityAirLevel(AppLocalizations l10n) {
-    final levels = <_AirLevelLabel>[
-      _pm10Level(l10n, _pm10),
-      _pm25Level(l10n, _pm25),
-      _aqiLevel(l10n, _aqi, _airQualityScale),
-    ];
-    levels.sort((left, right) => right.level.index.compareTo(left.level.index));
-    return levels.first;
-  }
-
-  String _outdoorActivityAirGuide(AppLocalizations l10n) {
-    switch (_outdoorActivityAirLevel(l10n).level) {
-      case _AirQualityLevel.good:
-        return l10n.homeWeatherAirGuideGood;
-      case _AirQualityLevel.moderate:
-        return l10n.homeWeatherAirGuideModerate;
-      case _AirQualityLevel.sensitive:
-        return l10n.homeWeatherAirGuideSensitive;
-      case _AirQualityLevel.unhealthy:
-        return l10n.homeWeatherAirGuideUnhealthy;
-      case _AirQualityLevel.veryUnhealthy:
-        return l10n.homeWeatherAirGuideVeryUnhealthy;
-      case _AirQualityLevel.hazardous:
-        return l10n.homeWeatherAirGuideHazardous;
-      case _AirQualityLevel.unknown:
-        return l10n.homeWeatherAirGuideUnknown;
-    }
   }
 
   _TrainingGuide _buildTrainingGuide(bool isKo, AppLocalizations l10n) {
@@ -1810,9 +1777,6 @@ class _MetricCard extends StatelessWidget {
 class _TodayAirQualitySection extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String guideTitle;
-  final String guideBody;
-  final _AirQualityLevel guideLevel;
   final String pm10Label;
   final String pm10Value;
   final String pm10Status;
@@ -1821,17 +1785,10 @@ class _TodayAirQualitySection extends StatelessWidget {
   final String pm25Value;
   final String pm25Status;
   final _AirQualityLevel pm25Level;
-  final String aqiLabel;
-  final String aqiValue;
-  final String aqiStatus;
-  final _AirQualityLevel aqiLevel;
 
   const _TodayAirQualitySection({
     required this.title,
     required this.subtitle,
-    required this.guideTitle,
-    required this.guideBody,
-    required this.guideLevel,
     required this.pm10Label,
     required this.pm10Value,
     required this.pm10Status,
@@ -1840,16 +1797,11 @@ class _TodayAirQualitySection extends StatelessWidget {
     required this.pm25Value,
     required this.pm25Status,
     required this.pm25Level,
-    required this.aqiLabel,
-    required this.aqiValue,
-    required this.aqiStatus,
-    required this.aqiLevel,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final guidePalette = _airQualityPalette(theme, guideLevel);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1877,97 +1829,26 @@ class _TodayAirQualitySection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              const spacing = 10.0;
-              final cardWidth = (constraints.maxWidth - spacing) / 2;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: [
-                  SizedBox(
-                    width: cardWidth,
-                    child: _AirMetricCard(
-                      label: pm10Label,
-                      value: pm10Value,
-                      status: pm10Status,
-                      level: pm10Level,
-                    ),
-                  ),
-                  SizedBox(
-                    width: cardWidth,
-                    child: _AirMetricCard(
-                      label: pm25Label,
-                      value: pm25Value,
-                      status: pm25Status,
-                      level: pm25Level,
-                    ),
-                  ),
-                  SizedBox(
-                    width: constraints.maxWidth,
-                    child: _AirMetricCard(
-                      label: aqiLabel,
-                      value: aqiValue,
-                      status: aqiStatus,
-                      level: aqiLevel,
-                      compact: true,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 14),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: guidePalette.background,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: guidePalette.border),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: guidePalette.foreground.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.directions_run_rounded,
-                    color: guidePalette.foreground,
-                    size: 20,
-                  ),
+          Row(
+            children: [
+              Expanded(
+                child: _AirMetricCard(
+                  label: pm10Label,
+                  value: pm10Value,
+                  status: pm10Status,
+                  level: pm10Level,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        guideTitle,
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: guidePalette.foreground,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        guideBody,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: guidePalette.foreground,
-                          fontWeight: FontWeight.w700,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _AirMetricCard(
+                  label: pm25Label,
+                  value: pm25Value,
+                  status: pm25Status,
+                  level: pm25Level,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1980,57 +1861,58 @@ class _AirMetricCard extends StatelessWidget {
   final String value;
   final String status;
   final _AirQualityLevel level;
-  final bool compact;
 
   const _AirMetricCard({
     required this.label,
     required this.value,
     required this.status,
     required this.level,
-    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = _airQualityPalette(theme, level);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: palette.background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: palette.border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
+    return SizedBox(
+      height: 118,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: palette.background,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: palette.border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  value,
-                  maxLines: compact ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: palette.foreground,
-                    fontWeight: FontWeight.w900,
+                  const Spacer(),
+                  Text(
+                    value,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: palette.foreground,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          _AirStatusPill(label: status, level: level),
-        ],
+            const SizedBox(width: 8),
+            _AirStatusPill(label: status, level: level),
+          ],
+        ),
       ),
     );
   }
