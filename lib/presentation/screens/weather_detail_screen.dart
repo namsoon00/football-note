@@ -79,6 +79,7 @@ class WeatherDetailScreen extends StatefulWidget {
     required double longitude,
     required AppLocalizations l10n,
   }) async {
+    final referenceTime = DateTime.now();
     final weatherDetailsFuture = WeatherCurrentService.fetchDetailedWeather(
       latitude: latitude,
       longitude: longitude,
@@ -87,12 +88,19 @@ class WeatherDetailScreen extends StatefulWidget {
       latitude: latitude,
       longitude: longitude,
     );
-    final responses = await Future.wait<Object>([
+    final yesterdayTemperatureFuture = _fetchYesterdayTemperatureAtSameHour(
+      latitude: latitude,
+      longitude: longitude,
+      now: referenceTime,
+    );
+    final responses = await Future.wait<Object?>([
       weatherDetailsFuture,
       airQualityFuture,
+      yesterdayTemperatureFuture,
     ]);
     final weatherSnapshot = responses[0] as WeatherDetailsSnapshot;
     final airSnapshot = responses[1] as _ResolvedAirQualitySnapshot;
+    final yesterdayTemperature = responses[2] as double?;
 
     if (!airSnapshot.snapshot.hasData && !weatherSnapshot.hasData) {
       return const _WeatherDetailsSnapshot(summary: '');
@@ -101,6 +109,10 @@ class WeatherDetailScreen extends StatefulWidget {
     final localizer = _WeatherLocalizer(l10n: l10n);
     final weatherCode = weatherSnapshot.weatherCode;
     final temperature = weatherSnapshot.temperature;
+    final temperatureDeltaFromYesterday =
+        temperature == null || yesterdayTemperature == null
+            ? null
+            : temperature - yesterdayTemperature;
     final summary = _buildWeatherSummaryStatic(
       temperature: temperature,
       weatherCode: weatherCode,
@@ -135,12 +147,79 @@ class WeatherDetailScreen extends StatefulWidget {
       windSpeed: weatherSnapshot.windSpeed,
       temperatureMax: weatherSnapshot.temperatureMax,
       temperatureMin: weatherSnapshot.temperatureMin,
+      temperatureDeltaFromYesterday: temperatureDeltaFromYesterday,
       pm10: airSnapshot.snapshot.pm10,
       pm25: airSnapshot.snapshot.pm25,
       aqi: airSnapshot.snapshot.aqi,
       airQualityScale: airSnapshot.scale,
       dailyForecasts: forecasts,
     );
+  }
+
+  static Future<double?> _fetchYesterdayTemperatureAtSameHour({
+    required double latitude,
+    required double longitude,
+    required DateTime now,
+  }) async {
+    final yesterday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 1));
+    final dateLabel = DateFormat('yyyy-MM-dd').format(yesterday);
+    final uri = Uri.https(
+      'archive-api.open-meteo.com',
+      '/v1/archive',
+      <String, String>{
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
+        'start_date': dateLabel,
+        'end_date': dateLabel,
+        'hourly': 'temperature_2m',
+        'timezone': 'auto',
+      },
+    );
+    final response = await http.get(uri);
+    if (response.statusCode != 200) return null;
+
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    if (decoded is! Map<String, dynamic>) return null;
+    final hourly = decoded['hourly'];
+    if (hourly is! Map<String, dynamic>) return null;
+
+    final times = hourly['time'];
+    final temperatures = hourly['temperature_2m'];
+    if (times is! List || temperatures is! List || times.isEmpty) return null;
+
+    final targetTime = DateTime(
+      yesterday.year,
+      yesterday.month,
+      yesterday.day,
+      now.hour,
+    );
+    var bestIndex = -1;
+    var bestDiffSeconds = 1 << 30;
+
+    for (var index = 0;
+        index < times.length && index < temperatures.length;
+        index++) {
+      final rawTime = times[index]?.toString();
+      if (rawTime == null || rawTime.trim().isEmpty) continue;
+      final parsedTime = DateTime.tryParse(rawTime);
+      if (parsedTime == null) continue;
+      final diffSeconds = parsedTime.difference(targetTime).inSeconds.abs();
+      if (diffSeconds < bestDiffSeconds) {
+        bestDiffSeconds = diffSeconds;
+        bestIndex = index;
+      }
+    }
+
+    if (bestIndex < 0 || bestDiffSeconds > const Duration(hours: 3).inSeconds) {
+      return null;
+    }
+    final value = temperatures[bestIndex];
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '');
   }
 
   static Future<_ResolvedAirQualitySnapshot> _fetchAirQualitySnapshot({
@@ -287,6 +366,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   double? _windSpeed;
   double? _temperatureMax;
   double? _temperatureMin;
+  double? _temperatureDeltaFromYesterday;
   double? _pm10;
   double? _pm25;
   int? _aqi;
@@ -327,10 +407,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final hasWeather = _summary.isNotEmpty;
+    final aqiLevel = _aqiLevel(l10n, _aqi, _airQualityScale);
     final pm10Level = _pm10Level(l10n, _pm10);
     final pm25Level = _pm25Level(l10n, _pm25);
-    final pm10Metric = _buildParticleMetricValue(_pm10, pm10Level);
-    final pm25Metric = _buildParticleMetricValue(_pm25, pm25Level);
+    final outdoorAirLevel = _outdoorActivityAirLevel(l10n);
     final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
     return Scaffold(
@@ -368,6 +448,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                           icon: Icons.thermostat_auto_outlined,
                         ),
                         _CompactMetricData(
+                          label: l10n.homeWeatherComparedYesterday,
+                          value: _formatTemperatureDelta(
+                            _temperatureDeltaFromYesterday,
+                          ),
+                          icon: Icons.compare_arrows_rounded,
+                        ),
+                        _CompactMetricData(
                           label: l10n.homeWeatherHumidity,
                           value: _formatPercent(_humidity),
                           icon: Icons.water_drop_outlined,
@@ -382,20 +469,30 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                           value: _formatWind(_windSpeed),
                           icon: Icons.air_rounded,
                         ),
-                        _CompactMetricData(
-                          label: l10n.homeWeatherPm10,
-                          value: pm10Metric,
-                          icon: Icons.grain_rounded,
-                        ),
-                        _CompactMetricData(
-                          label: l10n.homeWeatherPm25,
-                          value: pm25Metric,
-                          icon: Icons.blur_on_rounded,
-                        ),
                       ]
                     : const <_CompactMetricData>[],
               ),
               if (hasWeather) ...[
+                const SizedBox(height: 16),
+                _TodayAirQualitySection(
+                  title: l10n.homeWeatherAirQualityTitle,
+                  subtitle: l10n.homeWeatherAirQualitySubtitle,
+                  guideTitle: l10n.homeWeatherAirGuideTitle,
+                  guideBody: _outdoorActivityAirGuide(l10n),
+                  guideLevel: outdoorAirLevel.level,
+                  pm10Label: l10n.homeWeatherPm10,
+                  pm10Value: _formatParticles(_pm10),
+                  pm10Status: pm10Level.label,
+                  pm10Level: pm10Level.level,
+                  pm25Label: l10n.homeWeatherPm25,
+                  pm25Value: _formatParticles(_pm25),
+                  pm25Status: pm25Level.label,
+                  pm25Level: pm25Level.level,
+                  aqiLabel: l10n.homeWeatherAqi,
+                  aqiValue: _aqi == null ? '--' : '$_aqi',
+                  aqiStatus: aqiLevel.label,
+                  aqiLevel: aqiLevel.level,
+                ),
                 const SizedBox(height: 16),
                 _WeatherRecommendationActions(
                   outfitLabel: l10n.homeWeatherOutfitButton,
@@ -601,6 +698,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _windSpeed = snapshot.windSpeed;
     _temperatureMax = snapshot.temperatureMax;
     _temperatureMin = snapshot.temperatureMin;
+    _temperatureDeltaFromYesterday = snapshot.temperatureDeltaFromYesterday;
     _pm10 = snapshot.pm10;
     _pm25 = snapshot.pm25;
     _aqi = snapshot.aqi;
@@ -624,6 +722,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         snapshot.windSpeed != null ||
         snapshot.temperatureMax != null ||
         snapshot.temperatureMin != null ||
+        snapshot.temperatureDeltaFromYesterday != null ||
         snapshot.pm10 != null ||
         snapshot.pm25 != null ||
         snapshot.aqi != null ||
@@ -809,12 +908,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatParticles(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} µg/m³';
 
-  String _buildParticleMetricValue(double? value, _AirLevelLabel level) {
-    final particles = _formatParticles(value);
-    if (particles == '--' || level.label == '--') {
-      return particles;
-    }
-    return '$particles · ${level.label}';
+  String _formatTemperatureDelta(double? value) {
+    if (value == null) return '--';
+    final normalized = value.abs() < 0.05 ? 0 : value;
+    final prefix = normalized > 0 ? '+' : '';
+    return '$prefix${normalized.toStringAsFixed(1)}°C';
   }
 
   double? get _todayPrecipitation {
@@ -822,6 +920,35 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       return _dailyForecasts.first.precipitationSum ?? _precipitation;
     }
     return _precipitation;
+  }
+
+  _AirLevelLabel _outdoorActivityAirLevel(AppLocalizations l10n) {
+    final levels = <_AirLevelLabel>[
+      _pm10Level(l10n, _pm10),
+      _pm25Level(l10n, _pm25),
+      _aqiLevel(l10n, _aqi, _airQualityScale),
+    ];
+    levels.sort((left, right) => right.level.index.compareTo(left.level.index));
+    return levels.first;
+  }
+
+  String _outdoorActivityAirGuide(AppLocalizations l10n) {
+    switch (_outdoorActivityAirLevel(l10n).level) {
+      case _AirQualityLevel.good:
+        return l10n.homeWeatherAirGuideGood;
+      case _AirQualityLevel.moderate:
+        return l10n.homeWeatherAirGuideModerate;
+      case _AirQualityLevel.sensitive:
+        return l10n.homeWeatherAirGuideSensitive;
+      case _AirQualityLevel.unhealthy:
+        return l10n.homeWeatherAirGuideUnhealthy;
+      case _AirQualityLevel.veryUnhealthy:
+        return l10n.homeWeatherAirGuideVeryUnhealthy;
+      case _AirQualityLevel.hazardous:
+        return l10n.homeWeatherAirGuideHazardous;
+      case _AirQualityLevel.unknown:
+        return l10n.homeWeatherAirGuideUnknown;
+    }
   }
 
   _TrainingGuide _buildTrainingGuide(bool isKo, AppLocalizations l10n) {
@@ -1675,6 +1802,265 @@ class _MetricCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TodayAirQualitySection extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String guideTitle;
+  final String guideBody;
+  final _AirQualityLevel guideLevel;
+  final String pm10Label;
+  final String pm10Value;
+  final String pm10Status;
+  final _AirQualityLevel pm10Level;
+  final String pm25Label;
+  final String pm25Value;
+  final String pm25Status;
+  final _AirQualityLevel pm25Level;
+  final String aqiLabel;
+  final String aqiValue;
+  final String aqiStatus;
+  final _AirQualityLevel aqiLevel;
+
+  const _TodayAirQualitySection({
+    required this.title,
+    required this.subtitle,
+    required this.guideTitle,
+    required this.guideBody,
+    required this.guideLevel,
+    required this.pm10Label,
+    required this.pm10Value,
+    required this.pm10Status,
+    required this.pm10Level,
+    required this.pm25Label,
+    required this.pm25Value,
+    required this.pm25Status,
+    required this.pm25Level,
+    required this.aqiLabel,
+    required this.aqiValue,
+    required this.aqiStatus,
+    required this.aqiLevel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final guidePalette = _airQualityPalette(theme, guideLevel);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const spacing = 10.0;
+              final cardWidth = (constraints.maxWidth - spacing) / 2;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [
+                  SizedBox(
+                    width: cardWidth,
+                    child: _AirMetricCard(
+                      label: pm10Label,
+                      value: pm10Value,
+                      status: pm10Status,
+                      level: pm10Level,
+                    ),
+                  ),
+                  SizedBox(
+                    width: cardWidth,
+                    child: _AirMetricCard(
+                      label: pm25Label,
+                      value: pm25Value,
+                      status: pm25Status,
+                      level: pm25Level,
+                    ),
+                  ),
+                  SizedBox(
+                    width: constraints.maxWidth,
+                    child: _AirMetricCard(
+                      label: aqiLabel,
+                      value: aqiValue,
+                      status: aqiStatus,
+                      level: aqiLevel,
+                      compact: true,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: guidePalette.background,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: guidePalette.border),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: guidePalette.foreground.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.directions_run_rounded,
+                    color: guidePalette.foreground,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        guideTitle,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: guidePalette.foreground,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        guideBody,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: guidePalette.foreground,
+                          fontWeight: FontWeight.w700,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AirMetricCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final String status;
+  final _AirQualityLevel level;
+  final bool compact;
+
+  const _AirMetricCard({
+    required this.label,
+    required this.value,
+    required this.status,
+    required this.level,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = _airQualityPalette(theme, level);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: palette.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: palette.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  value,
+                  maxLines: compact ? 1 : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: palette.foreground,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _AirStatusPill(label: status, level: level),
+        ],
+      ),
+    );
+  }
+}
+
+class _AirStatusPill extends StatelessWidget {
+  final String label;
+  final _AirQualityLevel level;
+
+  const _AirStatusPill({
+    required this.label,
+    required this.level,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = _airQualityPalette(theme, level);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: palette.foreground.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: palette.foreground,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
@@ -3076,6 +3462,112 @@ class _AirLevelLabel {
   const _AirLevelLabel(this.label, this.level);
 }
 
+class _AirQualityPalette {
+  final Color background;
+  final Color border;
+  final Color foreground;
+
+  const _AirQualityPalette({
+    required this.background,
+    required this.border,
+    required this.foreground,
+  });
+}
+
+_AirQualityPalette _airQualityPalette(ThemeData theme, _AirQualityLevel level) {
+  final isDark = theme.brightness == Brightness.dark;
+  if (isDark) {
+    switch (level) {
+      case _AirQualityLevel.good:
+        return const _AirQualityPalette(
+          background: Color(0xFF0D2B1A),
+          border: Color(0xFF2F8A54),
+          foreground: Color(0xFFA6E9C0),
+        );
+      case _AirQualityLevel.moderate:
+        return const _AirQualityPalette(
+          background: Color(0xFF2D260E),
+          border: Color(0xFF9B7A2F),
+          foreground: Color(0xFFF3D585),
+        );
+      case _AirQualityLevel.sensitive:
+        return const _AirQualityPalette(
+          background: Color(0xFF2D1F10),
+          border: Color(0xFFB67933),
+          foreground: Color(0xFFFFC37A),
+        );
+      case _AirQualityLevel.unhealthy:
+        return const _AirQualityPalette(
+          background: Color(0xFF32191A),
+          border: Color(0xFFB45353),
+          foreground: Color(0xFFFFADAD),
+        );
+      case _AirQualityLevel.veryUnhealthy:
+        return const _AirQualityPalette(
+          background: Color(0xFF2A1A33),
+          border: Color(0xFF8F63B8),
+          foreground: Color(0xFFD6B7F4),
+        );
+      case _AirQualityLevel.hazardous:
+        return const _AirQualityPalette(
+          background: Color(0xFF351426),
+          border: Color(0xFFB64F81),
+          foreground: Color(0xFFFFAED1),
+        );
+      case _AirQualityLevel.unknown:
+        return _AirQualityPalette(
+          background: theme.colorScheme.surfaceContainerHigh,
+          border: theme.colorScheme.outlineVariant,
+          foreground: theme.colorScheme.onSurfaceVariant,
+        );
+    }
+  }
+  switch (level) {
+    case _AirQualityLevel.good:
+      return const _AirQualityPalette(
+        background: Color(0xFFE7F7EC),
+        border: Color(0xFF6FC38A),
+        foreground: Color(0xFF1C6B3D),
+      );
+    case _AirQualityLevel.moderate:
+      return const _AirQualityPalette(
+        background: Color(0xFFFFF6DE),
+        border: Color(0xFFE6C15A),
+        foreground: Color(0xFF8A6A07),
+      );
+    case _AirQualityLevel.sensitive:
+      return const _AirQualityPalette(
+        background: Color(0xFFFFF0DF),
+        border: Color(0xFFF0A860),
+        foreground: Color(0xFF9B5B17),
+      );
+    case _AirQualityLevel.unhealthy:
+      return const _AirQualityPalette(
+        background: Color(0xFFFDE8E8),
+        border: Color(0xFFE07A7A),
+        foreground: Color(0xFF9B2E2E),
+      );
+    case _AirQualityLevel.veryUnhealthy:
+      return const _AirQualityPalette(
+        background: Color(0xFFF2E8FA),
+        border: Color(0xFFB089D9),
+        foreground: Color(0xFF64358E),
+      );
+    case _AirQualityLevel.hazardous:
+      return const _AirQualityPalette(
+        background: Color(0xFFFFE3F0),
+        border: Color(0xFFE06AA3),
+        foreground: Color(0xFF8E1E57),
+      );
+    case _AirQualityLevel.unknown:
+      return _AirQualityPalette(
+        background: theme.colorScheme.surfaceContainerHighest,
+        border: theme.colorScheme.outlineVariant,
+        foreground: theme.colorScheme.onSurfaceVariant,
+      );
+  }
+}
+
 class _WeatherDetailsSnapshot {
   final String summary;
   final int? weatherCode;
@@ -3085,6 +3577,7 @@ class _WeatherDetailsSnapshot {
   final double? windSpeed;
   final double? temperatureMax;
   final double? temperatureMin;
+  final double? temperatureDeltaFromYesterday;
   final double? pm10;
   final double? pm25;
   final int? aqi;
@@ -3100,6 +3593,7 @@ class _WeatherDetailsSnapshot {
     this.windSpeed,
     this.temperatureMax,
     this.temperatureMin,
+    this.temperatureDeltaFromYesterday,
     this.pm10,
     this.pm25,
     this.aqi,

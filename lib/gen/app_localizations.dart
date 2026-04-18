@@ -1838,6 +1838,60 @@ abstract class AppLocalizations {
   /// **'Lower numbers usually mean easier breathing outdoors.'**
   String get homeWeatherAirQualitySubtitle;
 
+  /// No description provided for @homeWeatherAirGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoor activity guide'**
+  String get homeWeatherAirGuideTitle;
+
+  /// No description provided for @homeWeatherAirGuideUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh air data to see outdoor activity guidance.'**
+  String get homeWeatherAirGuideUnknown;
+
+  /// No description provided for @homeWeatherAirGuideGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Air quality is stable enough for normal outdoor activity and training.'**
+  String get homeWeatherAirGuideGood;
+
+  /// No description provided for @homeWeatherAirGuideModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Most outdoor activity is fine, but lower the load if your breathing is sensitive.'**
+  String get homeWeatherAirGuideModerate;
+
+  /// No description provided for @homeWeatherAirGuideSensitive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitive groups should reduce long outdoor sessions and hard efforts.'**
+  String get homeWeatherAirGuideSensitive;
+
+  /// No description provided for @homeWeatherAirGuideUnhealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid hard outdoor activity and switch to indoor training or recovery if possible.'**
+  String get homeWeatherAirGuideUnhealthy;
+
+  /// No description provided for @homeWeatherAirGuideVeryUnhealthy.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize outdoor activity and move to indoor recovery or technical work.'**
+  String get homeWeatherAirGuideVeryUnhealthy;
+
+  /// No description provided for @homeWeatherAirGuideHazardous.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop outdoor activity and stay indoors if possible.'**
+  String get homeWeatherAirGuideHazardous;
+
+  /// No description provided for @homeWeatherComparedYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Vs. yesterday at this time'**
+  String get homeWeatherComparedYesterday;
+
   /// No description provided for @homeWeatherPm10.
   ///
   /// In en, this message translates to:

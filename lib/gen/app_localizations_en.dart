@@ -933,6 +933,40 @@ class AppLocalizationsEn extends AppLocalizations {
       'Lower numbers usually mean easier breathing outdoors.';
 
   @override
+  String get homeWeatherAirGuideTitle => 'Outdoor activity guide';
+
+  @override
+  String get homeWeatherAirGuideUnknown =>
+      'Refresh air data to see outdoor activity guidance.';
+
+  @override
+  String get homeWeatherAirGuideGood =>
+      'Air quality is stable enough for normal outdoor activity and training.';
+
+  @override
+  String get homeWeatherAirGuideModerate =>
+      'Most outdoor activity is fine, but lower the load if your breathing is sensitive.';
+
+  @override
+  String get homeWeatherAirGuideSensitive =>
+      'Sensitive groups should reduce long outdoor sessions and hard efforts.';
+
+  @override
+  String get homeWeatherAirGuideUnhealthy =>
+      'Avoid hard outdoor activity and switch to indoor training or recovery if possible.';
+
+  @override
+  String get homeWeatherAirGuideVeryUnhealthy =>
+      'Minimize outdoor activity and move to indoor recovery or technical work.';
+
+  @override
+  String get homeWeatherAirGuideHazardous =>
+      'Stop outdoor activity and stay indoors if possible.';
+
+  @override
+  String get homeWeatherComparedYesterday => 'Vs. yesterday at this time';
+
+  @override
   String get homeWeatherPm10 => 'PM10';
 
   @override

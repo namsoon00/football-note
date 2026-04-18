@@ -912,6 +912,39 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherAirQualitySubtitle => '숫자가 낮을수록 숨쉬기 편한 공기예요.';
 
   @override
+  String get homeWeatherAirGuideTitle => '야외 활동 가이드';
+
+  @override
+  String get homeWeatherAirGuideUnknown =>
+      '대기질 데이터를 다시 불러오면 야외 활동 가이드를 보여드릴게요.';
+
+  @override
+  String get homeWeatherAirGuideGood => '일반 야외 활동과 훈련을 진행하기 무난한 공기 상태예요.';
+
+  @override
+  String get homeWeatherAirGuideModerate =>
+      '대부분의 야외 활동은 가능하지만, 호흡이 예민하면 강도를 조금 낮추세요.';
+
+  @override
+  String get homeWeatherAirGuideSensitive =>
+      '민감군은 장시간 야외 활동이나 고강도 훈련을 줄이는 편이 좋아요.';
+
+  @override
+  String get homeWeatherAirGuideUnhealthy =>
+      '야외 고강도 활동은 피하고, 가능하면 실내 훈련이나 회복 위주로 전환하세요.';
+
+  @override
+  String get homeWeatherAirGuideVeryUnhealthy =>
+      '야외 활동은 최소화하고 실내 회복 또는 기술 훈련으로 바꾸는 편이 안전해요.';
+
+  @override
+  String get homeWeatherAirGuideHazardous =>
+      '야외 활동을 중단하고 실내에서 쉬는 편이 더 안전한 공기 상태예요.';
+
+  @override
+  String get homeWeatherComparedYesterday => '어제 같은 시간 대비';
+
+  @override
   String get homeWeatherPm10 => '미세먼지 PM10';
 
   @override
