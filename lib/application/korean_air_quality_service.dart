@@ -50,12 +50,33 @@ class KoreanAirQualityService {
     final localClient = client ?? http.Client();
     final ownsClient = client == null;
     try {
+      final normalizedKakaoKey =
+          (kakaoRestApiKey ?? GovernmentApiCredentials.kakaoRestApiKey).trim();
+
+      final nearbyStationName = await _resolveNearbyStationName(
+        client: localClient,
+        kakaoRestApiKey: normalizedKakaoKey,
+        latitude: latitude,
+        longitude: longitude,
+        serviceKey: normalizedKey,
+      );
+      if (nearbyStationName.isNotEmpty) {
+        final nearbySnapshot = await _fetchStationMeasurement(
+          client: localClient,
+          serviceKey: normalizedKey,
+          stationName: nearbyStationName,
+        );
+        if (nearbySnapshot.hasData) {
+          return nearbySnapshot;
+        }
+      }
+
       final queries = administrativeAreaQueries ??
           await WeatherLocationService.resolveAdministrativeAreaQueries(
             latitude: latitude,
             longitude: longitude,
             client: localClient,
-            kakaoRestApiKey: kakaoRestApiKey,
+            kakaoRestApiKey: normalizedKakaoKey,
           );
 
       if (queries.isEmpty) {
@@ -81,6 +102,51 @@ class KoreanAirQualityService {
         localClient.close();
       }
     }
+  }
+
+  static Future<String> _resolveNearbyStationName({
+    required http.Client client,
+    required String kakaoRestApiKey,
+    required double latitude,
+    required double longitude,
+    required String serviceKey,
+  }) async {
+    if (kakaoRestApiKey.isEmpty) return '';
+
+    final tmCoordinates = await _convertToTmCoordinates(
+      client: client,
+      kakaoRestApiKey: kakaoRestApiKey,
+      latitude: latitude,
+      longitude: longitude,
+    );
+    if (tmCoordinates == null) return '';
+
+    for (final keyName in const <String>['serviceKey', 'ServiceKey']) {
+      final uri = Uri.https(
+        'apis.data.go.kr',
+        '/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList',
+        <String, String>{
+          keyName: serviceKey,
+          'returnType': 'json',
+          'numOfRows': '10',
+          'pageNo': '1',
+          'tmX': tmCoordinates.x,
+          'tmY': tmCoordinates.y,
+        },
+      );
+      final response = await client.get(uri);
+      if (response.statusCode != 200) continue;
+      final items = _parseAirKoreaItems(response.bodyBytes);
+      if (items == null || items.isEmpty) continue;
+      for (final item in items) {
+        final stationName = (item['stationName'] ?? '').toString().trim();
+        if (stationName.isNotEmpty) {
+          return stationName;
+        }
+      }
+    }
+
+    return '';
   }
 
   static Future<String> _resolveStationName({
@@ -152,6 +218,43 @@ class KoreanAirQualityService {
     return const AirQualitySnapshot();
   }
 
+  static Future<_TmCoordinates?> _convertToTmCoordinates({
+    required http.Client client,
+    required String kakaoRestApiKey,
+    required double latitude,
+    required double longitude,
+  }) async {
+    final uri = Uri.https(
+      'dapi.kakao.com',
+      '/v2/local/geo/transcoord.json',
+      <String, String>{
+        'x': longitude.toString(),
+        'y': latitude.toString(),
+        'input_coord': 'WGS84',
+        'output_coord': 'TM',
+      },
+    );
+    final response = await client.get(
+      uri,
+      headers: <String, String>{
+        'Authorization': 'KakaoAK $kakaoRestApiKey',
+      },
+    );
+    if (response.statusCode != 200) return null;
+
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    if (decoded is! Map<String, dynamic>) return null;
+    final documents = decoded['documents'];
+    if (documents is! List || documents.isEmpty) return null;
+    final first = documents.first;
+    if (first is! Map<String, dynamic>) return null;
+
+    final x = first['x']?.toString().trim() ?? '';
+    final y = first['y']?.toString().trim() ?? '';
+    if (x.isEmpty || y.isEmpty) return null;
+    return _TmCoordinates(x: x, y: y);
+  }
+
   static List<Map<String, dynamic>>? _parseAirKoreaItems(List<int> bodyBytes) {
     final decoded = jsonDecode(utf8.decode(bodyBytes));
     if (decoded is! Map<String, dynamic>) return null;
@@ -188,4 +291,14 @@ class KoreanAirQualityService {
     if (normalized.isEmpty || normalized == '-') return null;
     return int.tryParse(normalized);
   }
+}
+
+class _TmCoordinates {
+  const _TmCoordinates({
+    required this.x,
+    required this.y,
+  });
+
+  final String x;
+  final String y;
 }

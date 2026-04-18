@@ -113,6 +113,7 @@ class WeatherDetailScreen extends StatefulWidget {
       weatherCode: weatherCode,
       apparentTemperature: weatherSnapshot.apparentTemperature,
       humidity: weatherSnapshot.humidity,
+      precipitation: weatherSnapshot.precipitation,
       windSpeed: weatherSnapshot.windSpeed,
       temperatureMax: weatherSnapshot.temperatureMax,
       temperatureMin: weatherSnapshot.temperatureMin,
@@ -129,16 +130,23 @@ class WeatherDetailScreen extends StatefulWidget {
     required double longitude,
   }) async {
     if (WeatherLocationService.isLikelyInKorea(latitude, longitude)) {
-      final koreanAir = await KoreanAirQualityService.fetchCurrentAirQuality(
-        latitude: latitude,
-        longitude: longitude,
-      );
-      return _ResolvedAirQualitySnapshot(
-        snapshot: koreanAir,
-        scale: koreanAir.scale == AirQualityScale.khai
-            ? _AirQualityScale.khai
-            : _AirQualityScale.usAqi,
-      );
+      try {
+        final koreanAir = await KoreanAirQualityService.fetchCurrentAirQuality(
+          latitude: latitude,
+          longitude: longitude,
+        );
+        return _ResolvedAirQualitySnapshot(
+          snapshot: koreanAir,
+          scale: koreanAir.scale == AirQualityScale.khai
+              ? _AirQualityScale.khai
+              : _AirQualityScale.usAqi,
+        );
+      } catch (_) {
+        return const _ResolvedAirQualitySnapshot(
+          snapshot: AirQualitySnapshot(),
+          scale: _AirQualityScale.usAqi,
+        );
+      }
     }
 
     final airQualityUri =
@@ -257,6 +265,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   int? _weatherCode;
   double? _apparentTemperature;
   double? _humidity;
+  double? _precipitation;
   double? _windSpeed;
   double? _temperatureMax;
   double? _temperatureMin;
@@ -328,7 +337,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                     ? [
                         _CompactMetricData(
                           label: l10n.homeWeatherTemperatureRange,
-                          value: _formatRange(_temperatureMax, _temperatureMin),
+                          value: _formatCompactRange(
+                            _temperatureMax,
+                            _temperatureMin,
+                          ),
                           icon: Icons.device_thermostat_outlined,
                         ),
                         _CompactMetricData(
@@ -340,6 +352,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                           label: l10n.homeWeatherHumidity,
                           value: _formatPercent(_humidity),
                           icon: Icons.water_drop_outlined,
+                        ),
+                        _CompactMetricData(
+                          label: l10n.homeWeatherPrecipitation,
+                          value: _formatMillimeter(_todayPrecipitation),
+                          icon: Icons.umbrella_outlined,
                         ),
                         _CompactMetricData(
                           label: l10n.homeWeatherWindSpeed,
@@ -392,14 +409,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   highLowLabel: l10n.homeWeatherDailyHighLow,
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
-                  uvLabel: l10n.homeWeatherUvIndex,
                   tomorrowForecast:
                       _dailyForecasts.length > 1 ? _dailyForecasts[1] : null,
                   tomorrowFallback: l10n.homeWeatherTomorrowFallback,
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
                   formatWind: _formatWind,
-                  formatUv: _formatUv,
                   iconForCode: _weatherIcon,
                 ),
                 const SizedBox(height: 16),
@@ -577,6 +592,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _weatherCode = snapshot.weatherCode;
     _apparentTemperature = snapshot.apparentTemperature;
     _humidity = snapshot.humidity;
+    _precipitation = snapshot.precipitation;
     _windSpeed = snapshot.windSpeed;
     _temperatureMax = snapshot.temperatureMax;
     _temperatureMin = snapshot.temperatureMin;
@@ -599,6 +615,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         snapshot.weatherCode != null ||
         snapshot.apparentTemperature != null ||
         snapshot.humidity != null ||
+        snapshot.precipitation != null ||
         snapshot.windSpeed != null ||
         snapshot.temperatureMax != null ||
         snapshot.temperatureMin != null ||
@@ -758,9 +775,21 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatTemperature(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)}°C';
 
+  String _formatCompactTemperature(double? value) {
+    if (value == null) return '--';
+    final rounded = value.roundToDouble();
+    final precision = (value - rounded).abs() < 0.05 ? 0 : 1;
+    return '${value.toStringAsFixed(precision)}°';
+  }
+
   String _formatRange(double? high, double? low) {
     if (high == null && low == null) return '--';
     return '${_formatTemperature(high)} / ${_formatTemperature(low)}';
+  }
+
+  String _formatCompactRange(double? high, double? low) {
+    if (high == null && low == null) return '--';
+    return '${_formatCompactTemperature(high)} / ${_formatCompactTemperature(low)}';
   }
 
   String _formatPercent(double? value) =>
@@ -772,11 +801,15 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatWind(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} km/h';
 
-  String _formatUv(double? value) =>
-      value == null ? '--' : value.toStringAsFixed(1);
-
   String _formatParticles(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} µg/m³';
+
+  double? get _todayPrecipitation {
+    if (_dailyForecasts.isNotEmpty) {
+      return _dailyForecasts.first.precipitationSum ?? _precipitation;
+    }
+    return _precipitation;
+  }
 
   _TrainingGuide _buildTrainingGuide(bool isKo, AppLocalizations l10n) {
     final apparentTemperature = _apparentTemperature ?? _temperatureMax;
@@ -1510,18 +1543,29 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
               ),
               if (metrics.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: metrics
-                      .map(
-                        (metric) => _MetricCard(
-                          label: metric.label,
-                          value: metric.value,
-                          icon: metric.icon,
-                        ),
-                      )
-                      .toList(growable: false),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    const spacing = 10.0;
+                    final halfWidth = (constraints.maxWidth - spacing) / 2;
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        for (var index = 0; index < metrics.length; index++)
+                          SizedBox(
+                            width: metrics.length.isOdd &&
+                                    index == metrics.length - 1
+                                ? constraints.maxWidth
+                                : halfWidth,
+                            child: _MetricCard(
+                              label: metrics[index].label,
+                              value: metrics[index].value,
+                              icon: metrics[index].icon,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ],
@@ -1546,56 +1590,55 @@ class _MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
-      width: 156,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withValues(alpha: 0.84),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.84),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 18, color: theme.colorScheme.primary),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 18, color: theme.colorScheme.primary),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                    height: 1.15,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -2675,13 +2718,11 @@ class _TomorrowWeatherCard extends StatelessWidget {
   final String highLowLabel;
   final String precipitationLabel;
   final String windLabel;
-  final String uvLabel;
   final _DailyWeatherForecast? tomorrowForecast;
   final String tomorrowFallback;
   final String Function(double?, double?) formatRange;
   final String Function(double?) formatMillimeter;
   final String Function(double?) formatWind;
-  final String Function(double?) formatUv;
   final IconData Function(int?) iconForCode;
 
   const _TomorrowWeatherCard({
@@ -2690,13 +2731,11 @@ class _TomorrowWeatherCard extends StatelessWidget {
     required this.highLowLabel,
     required this.precipitationLabel,
     required this.windLabel,
-    required this.uvLabel,
     required this.tomorrowForecast,
     required this.tomorrowFallback,
     required this.formatRange,
     required this.formatMillimeter,
     required this.formatWind,
-    required this.formatUv,
     required this.iconForCode,
   });
 
@@ -2802,12 +2841,6 @@ class _TomorrowWeatherCard extends StatelessWidget {
                       label: windLabel,
                       value: formatWind(forecast.windSpeedMax),
                       icon: Icons.air_rounded,
-                    ),
-                    const SizedBox(height: 8),
-                    _CompactForecastInfoRow(
-                      label: uvLabel,
-                      value: formatUv(forecast.uvIndexMax),
-                      icon: Icons.wb_sunny_outlined,
                     ),
                   ],
                 ),
@@ -2947,6 +2980,7 @@ class _WeeklyForecastRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 36,
@@ -2959,13 +2993,28 @@ class _WeeklyForecastRow extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  '${forecast.weekdayLabel} · ${forecast.label} · ${forecast.summary}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${forecast.weekdayLabel} · ${forecast.label}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      forecast.summary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -3354,6 +3403,7 @@ class _WeatherDetailsSnapshot {
   final int? weatherCode;
   final double? apparentTemperature;
   final double? humidity;
+  final double? precipitation;
   final double? windSpeed;
   final double? temperatureMax;
   final double? temperatureMin;
@@ -3368,6 +3418,7 @@ class _WeatherDetailsSnapshot {
     this.weatherCode,
     this.apparentTemperature,
     this.humidity,
+    this.precipitation,
     this.windSpeed,
     this.temperatureMax,
     this.temperatureMin,
