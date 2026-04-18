@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/benchmark_service.dart';
+import '../../application/drive_connection_info.dart';
 import '../../application/drive_backup_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
@@ -14,7 +15,6 @@ import '../../application/settings_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
-import 'family_space_screen.dart';
 import 'visual_language_preview_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -69,23 +69,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _refreshSignInState();
   }
 
-  Future<void> _refreshSignInState() async {
+  Future<void> _refreshSignInState({
+    bool allowCachedConnection = false,
+  }) async {
     if (widget.driveBackupService == null) return;
-    final signedIn = await widget.driveBackupService!.isSignedIn();
-    final connection =
-        await widget.driveBackupService!.getDriveConnectionInfo();
+    var signedIn = false;
+    DriveConnectionInfo? connection;
+    try {
+      signedIn = await widget.driveBackupService!.isSignedIn();
+    } catch (e, st) {
+      debugPrint('Drive sign-in check failed: $e');
+      debugPrintStack(stackTrace: st);
+    }
+    try {
+      connection = await widget.driveBackupService!.getDriveConnectionInfo();
+    } catch (e, st) {
+      debugPrint('Drive connection info refresh failed: $e');
+      debugPrintStack(stackTrace: st);
+    }
     final familyState =
         FamilyAccessService(widget.optionRepository).loadState();
     if (familyState.isChildMode &&
         connection != null &&
         !connection.isEmpty &&
         widget.driveBackupService!.getSavedPlayerDriveEmail().trim().isEmpty) {
-      await widget.driveBackupService!.rememberPlayerDriveConnection();
+      try {
+        await widget.driveBackupService!.rememberPlayerDriveConnection();
+      } catch (e, st) {
+        debugPrint('Drive player connection cache refresh failed: $e');
+        debugPrintStack(stackTrace: st);
+      }
     }
+    final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
     if (!mounted) return;
     setState(() {
-      _signedIn = signedIn;
-      _connectedDriveLabel = connection?.label.trim() ?? '';
+      _signedIn = signedIn ||
+          (connection != null && !connection.isEmpty) ||
+          (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
+      _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
+          ? connection!.label.trim()
+          : cachedConnectedDriveLabel;
       _savedPlayerDriveLabel =
           widget.driveBackupService!.getSavedPlayerDriveLabel();
       _savedPlayerDriveEmail =
@@ -95,6 +118,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _sharedChildDriveEmail =
           widget.driveBackupService!.getSharedChildDriveEmail();
     });
+  }
+
+  String _cachedConnectedDriveLabel() {
+    final cachedLabel = widget.optionRepository
+            .getValue<String>(DriveBackupService.connectedDriveLabelLocalKey)
+            ?.trim() ??
+        '';
+    final cachedEmail = widget.optionRepository
+            .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
+            ?.trim() ??
+        '';
+    if (cachedLabel.isEmpty) {
+      return cachedEmail;
+    }
+    if (cachedEmail.isEmpty ||
+        cachedLabel.toLowerCase().contains(cachedEmail.toLowerCase())) {
+      return cachedLabel;
+    }
+    return '$cachedLabel · $cachedEmail';
   }
 
   @override
@@ -538,13 +580,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Text(l10n.familyPolicyParentSeedRequired),
                   ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton.icon(
-                onPressed: () => _openFamilySpace(),
-                icon: const Icon(Icons.forum_outlined),
-                label: Text(l10n.familyOpenSpace),
-                style: _elevatedActionStyle(),
               ),
             ],
           ),
@@ -1380,6 +1415,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         role == FamilyRole.parent &&
         _signedIn) {
       await widget.driveBackupService!.rememberPlayerDriveConnection();
+      await widget.driveBackupService!.signOut();
     }
     await familyService.setCurrentRole(role);
     await _refreshSignInState();
@@ -1460,19 +1496,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.familyNamesSaved)));
-  }
-
-  Future<void> _openFamilySpace() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => FamilySpaceScreen(
-          optionRepository: widget.optionRepository,
-          driveBackupService: widget.driveBackupService,
-        ),
-      ),
-    );
-    if (!mounted) return;
-    setState(() {});
   }
 
   String _normalizeDomain(String input) {
@@ -1723,7 +1746,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           await widget.driveBackupService!.rememberPlayerDriveConnection();
         }
       }
-      await _refreshSignInState();
+      await _refreshSignInState(allowCachedConnection: !wasSignedIn);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1747,7 +1770,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _signInBusy = true);
     try {
       await widget.driveBackupService!.signInForSavedPlayer();
-      await _refreshSignInState();
+      await _refreshSignInState(allowCachedConnection: true);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

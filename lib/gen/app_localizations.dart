@@ -5561,7 +5561,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentAutoSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, only family messages, feedback, and reward names sync automatically. Keep player record backup and restore in player mode.'**
+  /// **'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in player mode.'**
   String get familyParentAutoSyncDescription;
 
   /// No description provided for @familyChildDriveConnectionTitle.
@@ -5657,7 +5657,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyPolicyParentWritesOnly.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode can save feedback messages, family messages, and level reward names only.'**
+  /// **'Parent mode can save feedback and level reward names only.'**
   String get familyPolicyParentWritesOnly;
 
   /// No description provided for @familyPolicyParentSeedRequired.
@@ -5665,12 +5665,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect the parent device after at least one player backup already exists.'**
   String get familyPolicyParentSeedRequired;
-
-  /// No description provided for @familyOpenSpace.
-  ///
-  /// In en, this message translates to:
-  /// **'Open family space'**
-  String get familyOpenSpace;
 
   /// No description provided for @familyRoleChildActivated.
   ///
@@ -5689,78 +5683,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Family names saved.'**
   String get familyNamesSaved;
-
-  /// No description provided for @familySpaceTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Family space'**
-  String get familySpaceTitle;
-
-  /// No description provided for @familySpaceSubtitleChild.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave notes for your parent and check shared feedback here.'**
-  String get familySpaceSubtitleChild;
-
-  /// No description provided for @familySpaceSubtitleParent.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave feedback for your player here while the rest of the app stays read-only.'**
-  String get familySpaceSubtitleParent;
-
-  /// No description provided for @familyMessagesEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No family messages yet. Start the first note here.'**
-  String get familyMessagesEmpty;
-
-  /// No description provided for @familyMessageTypeFeedback.
-  ///
-  /// In en, this message translates to:
-  /// **'Feedback'**
-  String get familyMessageTypeFeedback;
-
-  /// No description provided for @familyMessageTypeNote.
-  ///
-  /// In en, this message translates to:
-  /// **'Note'**
-  String get familyMessageTypeNote;
-
-  /// No description provided for @familyMessageComposerLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Family message'**
-  String get familyMessageComposerLabel;
-
-  /// No description provided for @familyMessageComposerHintParent.
-  ///
-  /// In en, this message translates to:
-  /// **'Write feedback for today’s training or mood.'**
-  String get familyMessageComposerHintParent;
-
-  /// No description provided for @familyMessageComposerHintChild.
-  ///
-  /// In en, this message translates to:
-  /// **'Share how today felt or what you want help with.'**
-  String get familyMessageComposerHintChild;
-
-  /// No description provided for @familyMessageComposerEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'Please enter a family message.'**
-  String get familyMessageComposerEmpty;
-
-  /// No description provided for @familyMessageSend.
-  ///
-  /// In en, this message translates to:
-  /// **'Send'**
-  String get familyMessageSend;
-
-  /// No description provided for @familyMessageSent.
-  ///
-  /// In en, this message translates to:
-  /// **'Family message sent.'**
-  String get familyMessageSent;
 
   /// No description provided for @driveConnectedAccount.
   ///
@@ -5813,7 +5735,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the child\'s Google Drive account to sync feedback and family messages into the same backup file.'**
+  /// **'In parent mode, sign in with the child\'s Google Drive account to sync feedback and reward names into the same backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
@@ -5831,7 +5753,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Feedback, family messages, and reward names saved in parent mode are written automatically into the same family backup file.'**
+  /// **'Feedback and reward names saved in parent mode are written automatically into the same family backup file.'**
   String get familySharedSyncDescription;
 
   /// No description provided for @familySharedLastSync.

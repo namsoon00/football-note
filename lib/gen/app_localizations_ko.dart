@@ -3108,7 +3108,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      '부모 모드에서는 가족 메세지, 피드백, 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
+      '부모 모드에서는 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
 
   @override
   String get familyChildDriveConnectionTitle => '아이 Google Drive 연결';
@@ -3159,14 +3159,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyPolicyParentWritesOnly =>
-      '부모 모드는 피드백 메세지, 가족 메세지, 레벨 선물 이름만 저장할 수 있습니다.';
+      '부모 모드는 피드백과 레벨 선물 이름만 저장할 수 있습니다.';
 
   @override
   String get familyPolicyParentSeedRequired =>
       '부모 기기는 선수 백업이 한 번 이상 만들어진 뒤 연결해야 합니다.';
-
-  @override
-  String get familyOpenSpace => '가족 공간 열기';
 
   @override
   String get familyRoleChildActivated => '선수 모드로 전환했어요.';
@@ -3176,43 +3173,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyNamesSaved => '가족 이름을 저장했어요.';
-
-  @override
-  String get familySpaceTitle => '가족 공간';
-
-  @override
-  String get familySpaceSubtitleChild => '부모님께 남길 메모와 공유 피드백을 여기에서 확인하세요.';
-
-  @override
-  String get familySpaceSubtitleParent =>
-      '앱의 다른 핵심 기록은 읽기 전용으로 두고, 이곳에 선수에게 피드백을 남기세요.';
-
-  @override
-  String get familyMessagesEmpty => '아직 가족 메세지가 없어요. 첫 메모를 남겨 보세요.';
-
-  @override
-  String get familyMessageTypeFeedback => '피드백';
-
-  @override
-  String get familyMessageTypeNote => '메모';
-
-  @override
-  String get familyMessageComposerLabel => '가족 메세지';
-
-  @override
-  String get familyMessageComposerHintParent => '오늘 훈련이나 컨디션에 대한 피드백을 남겨 주세요.';
-
-  @override
-  String get familyMessageComposerHintChild => '오늘 어땠는지, 어떤 도움이 필요한지 적어 보세요.';
-
-  @override
-  String get familyMessageComposerEmpty => '가족 메세지를 입력해 주세요.';
-
-  @override
-  String get familyMessageSend => '보내기';
-
-  @override
-  String get familyMessageSent => '가족 메세지를 보냈어요.';
 
   @override
   String get driveConnectedAccount => '현재 연결된 Drive 계정';
@@ -3243,7 +3203,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '부모 모드에서는 아이 Google Drive 계정으로 로그인하면 같은 백업 파일에 피드백과 가족 메세지를 동기화할 수 있어요.';
+      '부모 모드에서는 아이 Google Drive 계정으로 로그인하면 같은 백업 파일에 피드백과 선물 이름을 동기화할 수 있어요.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
@@ -3254,7 +3214,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familySharedSyncDescription =>
-      '부모 모드에서 저장하는 피드백, 가족 메세지, 선물 이름은 자동으로 같은 가족 백업 파일에 반영됩니다.';
+      '부모 모드에서 저장하는 피드백과 선물 이름은 자동으로 같은 가족 백업 파일에 반영됩니다.';
 
   @override
   String get familySharedLastSync => '최근 가족 공유 동기화';

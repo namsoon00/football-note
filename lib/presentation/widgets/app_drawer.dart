@@ -7,7 +7,6 @@ import '../../application/backup_service.dart';
 import '../../application/meal_log_service.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../screens/entry_form_screen.dart';
-import '../screens/family_space_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/calendar_screen.dart';
@@ -178,21 +177,6 @@ class AppDrawer extends StatelessWidget {
               title: l10n.drawerToolsContent,
               icon: Icons.dashboard_customize_outlined,
               children: [
-                _DrawerActionTile(
-                  icon: Icons.forum_outlined,
-                  label: l10n.familyOpenSpace,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => FamilySpaceScreen(
-                          optionRepository: optionRepository,
-                          driveBackupService: driveBackupService,
-                        ),
-                      ),
-                    );
-                  },
-                ),
                 _DrawerActionTile(
                   icon: Icons.newspaper_outlined,
                   label: l10n.tabNews,

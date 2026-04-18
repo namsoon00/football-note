@@ -104,8 +104,69 @@ void main() {
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('아이 Drive 연결 해제'), findsOneWidget);
       expect(find.text('가족 공유 복원'), findsOneWidget);
+      expect(find.text('가족 공간 열기'), findsNothing);
       expect(find.text('Google Drive 백업'), findsNothing);
       expect(find.text('로그아웃'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'enabling parent mode signs out current player Drive and prepares child connection',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      await optionRepository.setValue(
+        FamilyAccessService.childNameKey,
+        '민수',
+      );
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-player',
+        ),
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('부모 모드 활성화'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('부모 모드 활성화'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('아이 Google Drive 연결'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(backupService.signOutCalled, isTrue);
+      expect(backupService.getSavedPlayerDriveEmail(), 'player@example.com');
+      expect(find.text('아이 Google Drive 연결'), findsOneWidget);
+      expect(find.text('아이 Drive 연결 해제'), findsNothing);
+      expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsOneWidget);
     },
   );
 
@@ -143,52 +204,141 @@ void main() {
     expect(find.text('저장된 선수 Drive'), findsOneWidget);
     expect(find.text('저장된 선수 Drive 연결'), findsOneWidget);
   });
+
+  testWidgets(
+      'settings reflects signed-in Drive account immediately after sign in', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: false,
+      connectionInfo: null,
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      signInConnectionInfo: const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: '민수',
+        subjectId: 'subject-2',
+      ),
+      throwIsSignedInAfterSignInOnce: true,
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Google로 로그인'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('로그아웃'), findsOneWidget);
+    expect(find.text('민수 · player@example.com'), findsWidgets);
+    expect(find.text('Google 로그인이 필요해요.'), findsNothing);
+  });
 }
 
 class _FakeDriveBackupService extends BackupService {
-  final bool signedIn;
-  final DriveConnectionInfo? connectionInfo;
-  final String sharedChildDriveLabel;
-  final String sharedChildDriveEmail;
-  final String savedPlayerDriveLabel;
-  final String savedPlayerDriveEmail;
+  bool _signedIn;
+  DriveConnectionInfo? _connectionInfo;
+  String _sharedChildDriveLabel;
+  String _sharedChildDriveEmail;
+  String _savedPlayerDriveLabel;
+  String _savedPlayerDriveEmail;
+  final DriveConnectionInfo? signInConnectionInfo;
+  bool throwNextIsSignedIn;
+  final bool throwIsSignedInAfterSignInOnce;
+  bool signOutCalled;
 
   _FakeDriveBackupService({
-    required this.signedIn,
-    required this.connectionInfo,
-    required this.sharedChildDriveLabel,
-    required this.sharedChildDriveEmail,
-    this.savedPlayerDriveLabel = '',
-    this.savedPlayerDriveEmail = '',
+    required bool signedIn,
+    required DriveConnectionInfo? connectionInfo,
+    required String sharedChildDriveLabel,
+    required String sharedChildDriveEmail,
+    String savedPlayerDriveLabel = '',
+    String savedPlayerDriveEmail = '',
+    this.signInConnectionInfo,
+    this.throwIsSignedInAfterSignInOnce = false,
     DateTime? lastBackupAt,
-  }) : super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
+  })  : _signedIn = signedIn,
+        signOutCalled = false,
+        throwNextIsSignedIn = false,
+        _connectionInfo = connectionInfo,
+        _sharedChildDriveLabel = sharedChildDriveLabel,
+        _sharedChildDriveEmail = sharedChildDriveEmail,
+        _savedPlayerDriveLabel = savedPlayerDriveLabel,
+        _savedPlayerDriveEmail = savedPlayerDriveEmail,
+        super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
+
+  bool get signedIn => _signedIn;
+  DriveConnectionInfo? get connectionInfo => _connectionInfo;
 
   @override
-  Future<DriveConnectionInfo?> getDriveConnectionInfo() async => connectionInfo;
+  Future<DriveConnectionInfo?> getDriveConnectionInfo() async =>
+      _connectionInfo;
 
   @override
-  String getSharedChildDriveEmail() => sharedChildDriveEmail;
+  String getSharedChildDriveEmail() => _sharedChildDriveEmail;
 
   @override
-  String getSharedChildDriveLabel() => sharedChildDriveLabel;
+  String getSharedChildDriveLabel() => _sharedChildDriveLabel;
 
   @override
-  String getSavedPlayerDriveEmail() => savedPlayerDriveEmail;
+  String getSavedPlayerDriveEmail() => _savedPlayerDriveEmail;
 
   @override
-  String getSavedPlayerDriveLabel() => savedPlayerDriveLabel;
+  String getSavedPlayerDriveLabel() => _savedPlayerDriveLabel;
 
   @override
-  Future<bool> isSignedIn() async => signedIn;
+  Future<bool> isSignedIn() async {
+    if (throwNextIsSignedIn) {
+      throwNextIsSignedIn = false;
+      throw StateError('temporary sign-in refresh failure');
+    }
+    return _signedIn;
+  }
 
   @override
-  Future<void> signIn() async {}
+  Future<void> signIn() async {
+    _signedIn = true;
+    _connectionInfo ??= signInConnectionInfo;
+    if (throwIsSignedInAfterSignInOnce) {
+      throwNextIsSignedIn = true;
+    }
+  }
 
   @override
   Future<void> signInForSavedPlayer() async {}
 
   @override
-  Future<void> signOut() async {}
+  Future<void> rememberPlayerDriveConnection() async {
+    final info = _connectionInfo;
+    if (info == null) return;
+    _savedPlayerDriveEmail = info.email;
+    _savedPlayerDriveLabel = info.label;
+  }
+
+  @override
+  Future<void> signOut() async {
+    signOutCalled = true;
+    _signedIn = false;
+    _connectionInfo = null;
+    _sharedChildDriveLabel = '';
+    _sharedChildDriveEmail = '';
+  }
 }
 
 class _FakeBackupRepository implements BackupRepository {
