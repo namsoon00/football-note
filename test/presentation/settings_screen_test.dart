@@ -92,17 +92,17 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('아이 Google Drive 연결'),
+        find.text('선수 Google Drive 연결'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
       expect(find.text('부모 모드 활성화'), findsOneWidget);
-      expect(find.text('아이 Google Drive 연결'), findsOneWidget);
-      expect(find.text('공유 대상 아이 Drive'), findsOneWidget);
+      expect(find.text('선수 Google Drive 연결'), findsOneWidget);
+      expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
-      expect(find.text('아이 Drive 연결 해제'), findsOneWidget);
+      expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
       expect(find.text('가족 공유 복원'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
       expect(find.text('Google Drive 백업'), findsNothing);
@@ -156,7 +156,7 @@ void main() {
       await tester.tap(find.text('부모 모드 활성화'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('아이 Google Drive 연결'),
+        find.text('선수 Google Drive 연결'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
@@ -164,8 +164,8 @@ void main() {
 
       expect(backupService.signOutCalled, isTrue);
       expect(backupService.getSavedPlayerDriveEmail(), 'player@example.com');
-      expect(find.text('아이 Google Drive 연결'), findsOneWidget);
-      expect(find.text('아이 Drive 연결 해제'), findsNothing);
+      expect(find.text('선수 Google Drive 연결'), findsOneWidget);
+      expect(find.text('선수 Drive 연결 해제'), findsNothing);
       expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsOneWidget);
     },
   );

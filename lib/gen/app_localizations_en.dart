@@ -3213,17 +3213,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in player mode.';
 
   @override
-  String get familyChildDriveConnectionTitle => 'Connect child\'s Google Drive';
+  String get familyChildDriveConnectionTitle => 'Connect player Google Drive';
 
   @override
   String get familyChildDriveConnectionDescription =>
-      'In parent mode, connect the same Google Drive account the child uses so both roles can share one family backup file.';
+      'In parent mode, connect the same Google Drive account the player uses so both roles can share one family backup file.';
 
   @override
-  String get familyConnectChildDrive => 'Connect child Drive';
+  String get familyConnectChildDrive => 'Connect player Drive';
 
   @override
-  String get familyDisconnectChildDrive => 'Disconnect child Drive';
+  String get familyDisconnectChildDrive => 'Disconnect player Drive';
 
   @override
   String get familyRoleChild => 'Player';
@@ -3299,19 +3299,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please reconnect with the saved player Drive account.';
 
   @override
-  String get driveSharedChildAccount => 'Shared child Drive';
+  String get driveSharedChildAccount => 'Shared player Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
-      'No child Drive account is known yet. Create at least one player backup first.';
+      'No player Drive account is known yet. Create at least one player backup first.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In parent mode, sign in with the child\'s Google Drive account to sync feedback and reward names into the same backup file.';
+      'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same backup file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      'Parent mode should connect to the child\'s Google Drive account to sync safely into the same family backup.';
+      'Parent mode should connect to the player\'s Google Drive account to sync safely into the same family backup.';
 
   @override
   String get familySharedSyncTitle => 'Family sharing sync';
@@ -3328,14 +3328,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familySharedRestoreConfirm =>
-      'Restore the latest child backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.';
+      'Restore the latest player backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.';
 
   @override
-  String get familySharedRestoreSuccess => 'Child backup restore completed.';
+  String get familySharedRestoreSuccess => 'Player backup restore completed.';
 
   @override
   String get familySharedRestoreFailed =>
-      'Child backup restore failed. Please try again.';
+      'Player backup restore failed. Please try again.';
 
   @override
   String get familySharedRestoreLocal => 'Undo family restore';
