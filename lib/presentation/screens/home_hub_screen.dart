@@ -36,6 +36,7 @@ import 'skill_quiz_screen.dart';
 import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
+import 'entry_form_screen.dart';
 import 'football_education_screen.dart';
 import 'player_level_guide_screen.dart';
 import 'training_method_board_screen.dart';
@@ -304,11 +305,19 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           ),
                           onLifting: _trackedAction(
                             'daily_flow_lifting',
-                            () => _openTodayEntryOrCreate(data),
+                            () => _openTodayEntryOrCreate(
+                              data,
+                              initialFocusTarget:
+                                  EntryFormInitialFocusTarget.lifting,
+                            ),
                           ),
                           onJumpRope: _trackedAction(
                             'daily_flow_jump_rope',
-                            () => _openTodayEntryOrCreate(data),
+                            () => _openTodayEntryOrCreate(
+                              data,
+                              initialFocusTarget:
+                                  EntryFormInitialFocusTarget.jumpRope,
+                            ),
                           ),
                           onQuiz: _trackedAction(
                             'daily_flow_quiz',
@@ -769,24 +778,76 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     setState(() {});
   }
 
-  void _openTodayEntryOrCreate(_HomeHubData data) {
+  void _openTodayEntryOrCreate(
+    _HomeHubData data, {
+    EntryFormInitialFocusTarget? initialFocusTarget,
+  }) {
     final entry = data.latestTrainingEntry;
     if (entry == null) {
-      widget.onCreate();
+      if (initialFocusTarget == null) {
+        widget.onCreate();
+        return;
+      }
+      unawaited(
+        _openEntryForm(
+          initialDate: _today(),
+          initialFocusTarget: initialFocusTarget,
+        ),
+      );
       return;
     }
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = _today();
     final entryDay = DateTime(
       entry.date.year,
       entry.date.month,
       entry.date.day,
     );
     if (entryDay == today) {
-      widget.onEdit(entry);
+      if (initialFocusTarget == null) {
+        widget.onEdit(entry);
+        return;
+      }
+      unawaited(
+        _openEntryForm(entry: entry, initialFocusTarget: initialFocusTarget),
+      );
       return;
     }
-    widget.onCreate();
+    if (initialFocusTarget == null) {
+      widget.onCreate();
+      return;
+    }
+    unawaited(
+      _openEntryForm(
+        initialDate: today,
+        initialFocusTarget: initialFocusTarget,
+      ),
+    );
+  }
+
+  DateTime _today() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  Future<void> _openEntryForm({
+    TrainingEntry? entry,
+    DateTime? initialDate,
+    EntryFormInitialFocusTarget? initialFocusTarget,
+  }) {
+    return Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => EntryFormScreen(
+          trainingService: widget.trainingService,
+          optionRepository: widget.optionRepository,
+          localeService: widget.localeService,
+          settingsService: widget.settingsService,
+          driveBackupService: widget.driveBackupService,
+          entry: entry,
+          initialDate: initialDate,
+          initialFocusTarget: initialFocusTarget,
+        ),
+      ),
+    );
   }
 
   void _openTodayBoardSketch(_HomeHubData data) {
