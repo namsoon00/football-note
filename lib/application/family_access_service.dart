@@ -3,8 +3,6 @@ import 'player_level_service.dart';
 
 enum FamilyRole { child, parent }
 
-enum FamilyMessageKind { note, feedback }
-
 class FamilyBackupPolicy {
   static const int schemaVersion = 1;
 
@@ -28,64 +26,11 @@ class FamilyBackupPolicy {
   }
 }
 
-class FamilyMessage {
-  final String id;
-  final FamilyRole authorRole;
-  final String authorName;
-  final FamilyMessageKind kind;
-  final String body;
-  final DateTime createdAt;
-
-  const FamilyMessage({
-    required this.id,
-    required this.authorRole,
-    required this.authorName,
-    required this.kind,
-    required this.body,
-    required this.createdAt,
-  });
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
-      'authorRole': authorRole.name,
-      'authorName': authorName,
-      'kind': kind.name,
-      'body': body,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-
-  static FamilyMessage? tryParse(dynamic raw) {
-    if (raw is! Map) return null;
-    final map = raw.cast<String, dynamic>();
-    final id = map['id']?.toString().trim() ?? '';
-    final body = map['body']?.toString().trim() ?? '';
-    final createdAt = DateTime.tryParse(map['createdAt']?.toString() ?? '');
-    if (id.isEmpty || body.isEmpty || createdAt == null) {
-      return null;
-    }
-    return FamilyMessage(
-      id: id,
-      authorRole: FamilyAccessService.roleFromStorage(
-        map['authorRole']?.toString(),
-      ),
-      authorName: map['authorName']?.toString().trim() ?? '',
-      kind: FamilyAccessService.messageKindFromStorage(
-        map['kind']?.toString(),
-      ),
-      body: body,
-      createdAt: createdAt,
-    );
-  }
-}
-
 class FamilyAccessState {
   final FamilyRole currentRole;
   final String familyId;
   final String childName;
   final String parentName;
-  final List<FamilyMessage> messages;
   final FamilyBackupPolicy backupPolicy;
   final DateTime? lastSharedSyncAt;
   final FamilyRole? lastSharedSyncRole;
@@ -95,7 +40,6 @@ class FamilyAccessState {
     required this.familyId,
     required this.childName,
     required this.parentName,
-    required this.messages,
     required this.backupPolicy,
     required this.lastSharedSyncAt,
     required this.lastSharedSyncRole,
@@ -106,8 +50,7 @@ class FamilyAccessState {
   bool get isConfigured =>
       familyId.trim().isNotEmpty ||
       childName.trim().isNotEmpty ||
-      parentName.trim().isNotEmpty ||
-      messages.isNotEmpty;
+      parentName.trim().isNotEmpty;
 }
 
 class FamilyAccessService {
@@ -124,17 +67,15 @@ class FamilyAccessService {
     familyIdKey,
     childNameKey,
     parentNameKey,
-    messagesKey,
     lastSharedSyncAtKey,
     lastSharedSyncRoleKey,
     PlayerLevelService.customRewardNamesKey,
   };
-  static const int maxMessages = 120;
 
   static const FamilyBackupPolicy policy = FamilyBackupPolicy(
     childOwnsCoreData: true,
     parentMergesFamilyLayerOnly: true,
-    parentWritableScopes: <String>['feedback', 'rewards', 'messages'],
+    parentWritableScopes: <String>['feedback', 'rewards'],
   );
 
   final OptionRepository _options;
@@ -146,11 +87,6 @@ class FamilyAccessService {
         _options.getValue<String>('profile_name')?.trim() ??
         '';
     final parentName = _options.getValue<String>(parentNameKey)?.trim() ?? '';
-    final messages = (_options.getValue<List>(messagesKey) ?? const <dynamic>[])
-        .map(FamilyMessage.tryParse)
-        .whereType<FamilyMessage>()
-        .toList(growable: false)
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final syncRoleRaw = _options.getValue<String>(lastSharedSyncRoleKey);
     return FamilyAccessState(
       currentRole: roleFromStorage(
@@ -159,7 +95,6 @@ class FamilyAccessService {
       familyId: _options.getValue<String>(familyIdKey)?.trim() ?? '',
       childName: childName,
       parentName: parentName,
-      messages: messages,
       backupPolicy: policy,
       lastSharedSyncAt: DateTime.tryParse(
         _options.getValue<String>(lastSharedSyncAtKey) ?? '',
@@ -185,46 +120,6 @@ class FamilyAccessService {
     if (trimmedChild.isNotEmpty || trimmedParent.isNotEmpty) {
       await _ensureFamilyId();
     }
-  }
-
-  Future<FamilyMessage> addMessage({
-    required String body,
-    String? authorName,
-    FamilyRole? authorRole,
-    FamilyMessageKind? kind,
-    DateTime? createdAt,
-  }) async {
-    final trimmedBody = body.trim();
-    if (trimmedBody.isEmpty) {
-      throw ArgumentError.value(body, 'body', 'Message body cannot be empty.');
-    }
-    final state = loadState();
-    final resolvedRole = authorRole ?? state.currentRole;
-    if (!canWriteFamilyMessage(resolvedRole)) {
-      throw StateError('Current family role cannot write messages.');
-    }
-    final now = createdAt ?? DateTime.now();
-    final resolvedKind = kind ??
-        (resolvedRole == FamilyRole.parent
-            ? FamilyMessageKind.feedback
-            : FamilyMessageKind.note);
-    final resolvedAuthorName =
-        (authorName ?? displayNameForRole(resolvedRole)).trim();
-    final message = FamilyMessage(
-      id: 'family-msg-${now.microsecondsSinceEpoch}',
-      authorRole: resolvedRole,
-      authorName: resolvedAuthorName,
-      kind: resolvedKind,
-      body: trimmedBody,
-      createdAt: now,
-    );
-    final updated = <Map<String, dynamic>>[
-      message.toMap(),
-      ...state.messages.take(maxMessages - 1).map((item) => item.toMap()),
-    ];
-    await _ensureFamilyId();
-    await _options.setValue(messagesKey, updated);
-    return message;
   }
 
   Future<void> recordSharedBackupSync({
@@ -254,8 +149,6 @@ class FamilyAccessService {
 
   bool canClaimRewards(FamilyRole role) => role == FamilyRole.child;
 
-  bool canWriteFamilyMessage(FamilyRole role) => true;
-
   bool canEditCoreTrainingData(FamilyRole role) => role == FamilyRole.child;
 
   static bool isLocalOnlyOptionKey(String key) {
@@ -270,12 +163,6 @@ class FamilyAccessService {
     return raw == FamilyRole.parent.name ? FamilyRole.parent : FamilyRole.child;
   }
 
-  static FamilyMessageKind messageKindFromStorage(String? raw) {
-    return raw == FamilyMessageKind.feedback.name
-        ? FamilyMessageKind.feedback
-        : FamilyMessageKind.note;
-  }
-
   static Map<String, dynamic> backupMetadataFromState(
     FamilyAccessState state, {
     required FamilyRole updatedByRole,
@@ -285,7 +172,6 @@ class FamilyAccessService {
       'familyId': state.familyId,
       'childName': state.childName,
       'parentName': state.parentName,
-      'messageCount': state.messages.length,
       'updatedByRole': updatedByRole.name,
       'familyLayerOnly': familyLayerOnly,
       'policy': state.backupPolicy.toMap(),

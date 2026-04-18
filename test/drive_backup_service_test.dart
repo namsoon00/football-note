@@ -205,19 +205,6 @@ void main() {
     await optionBox.put(FamilyAccessService.childNameKey, 'Local player');
     await optionBox.put(FamilyAccessService.parentNameKey, 'Local parent');
     await optionBox.put(
-      FamilyAccessService.messagesKey,
-      <Map<String, dynamic>>[
-        <String, dynamic>{
-          'id': 'local-1',
-          'authorRole': 'parent',
-          'authorName': 'Local parent',
-          'kind': 'feedback',
-          'body': 'Local note',
-          'createdAt': '2026-04-17T09:00:00.000',
-        },
-      ],
-    );
-    await optionBox.put(
       DriveBackupService.sharedChildDriveEmailKey,
       'local-player@example.com',
     );
@@ -298,16 +285,6 @@ void main() {
         FamilyAccessService.familyIdKey: 'family-1',
         FamilyAccessService.childNameKey: 'Remote player',
         FamilyAccessService.parentNameKey: 'Remote parent',
-        FamilyAccessService.messagesKey: <Map<String, dynamic>>[
-          <String, dynamic>{
-            'id': 'remote-1',
-            'authorRole': 'child',
-            'authorName': 'Remote player',
-            'kind': 'note',
-            'body': 'Remote note',
-            'createdAt': '2026-04-18T09:30:00.000',
-          },
-        ],
         DriveBackupService.sharedChildDriveEmailKey:
             'remote-player@example.com',
         DriveBackupService.sharedChildDriveLabelKey:
@@ -326,19 +303,6 @@ void main() {
         <String, dynamic>{
           'key': FamilyAccessService.parentNameKey,
           'value': 'Remote parent',
-        },
-        <String, dynamic>{
-          'key': FamilyAccessService.messagesKey,
-          'value': <Map<String, dynamic>>[
-            <String, dynamic>{
-              'id': 'remote-1',
-              'authorRole': 'child',
-              'authorName': 'Remote player',
-              'kind': 'note',
-              'body': 'Remote note',
-              'createdAt': '2026-04-18T09:30:00.000',
-            },
-          ],
         },
         <String, dynamic>{
           'key': DriveBackupService.sharedChildDriveEmailKey,
@@ -371,10 +335,7 @@ void main() {
     expect(optionBox.get('profile_name'), 'Remote player profile');
     expect(optionBox.get(FamilyAccessService.childNameKey), 'Remote player');
     expect(optionBox.get(FamilyAccessService.parentNameKey), 'Remote parent');
-    expect(
-      (optionBox.get(FamilyAccessService.messagesKey) as List).first['body'],
-      'Remote note',
-    );
+    expect(optionBox.get(FamilyAccessService.messagesKey), isNull);
     expect(
       (optionBox.get('player_custom_reward_names_v1') as Map)['4'],
       'Remote boots',
@@ -434,19 +395,6 @@ void main() {
     await optionBox.put(FamilyAccessService.parentNameKey, 'Dad');
     await optionBox.put(FamilyAccessService.childNameKey, 'Minjun');
     await optionBox.put(
-      FamilyAccessService.messagesKey,
-      <Map<String, dynamic>>[
-        <String, dynamic>{
-          'id': 'local-1',
-          'authorRole': 'parent',
-          'authorName': 'Dad',
-          'kind': 'feedback',
-          'body': 'Nice effort today.',
-          'createdAt': '2026-04-18T09:00:00.000',
-        },
-      ],
-    );
-    await optionBox.put(
       'player_custom_reward_names_v1',
       <String, String>{'3': 'New boots'},
     );
@@ -501,32 +449,9 @@ void main() {
         'profile_name': 'Real child profile',
         FamilyAccessService.familyIdKey: 'family-1',
         DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
-        FamilyAccessService.messagesKey: <Map<String, dynamic>>[
-          <String, dynamic>{
-            'id': 'old-1',
-            'authorRole': 'child',
-            'authorName': 'Minjun',
-            'kind': 'note',
-            'body': 'Old note',
-            'createdAt': '2026-04-17T09:00:00.000',
-          },
-        ],
         'player_custom_reward_names_v1': <String, String>{'2': 'Ball'},
       },
       'optionRecords': <Map<String, dynamic>>[
-        <String, dynamic>{
-          'key': FamilyAccessService.messagesKey,
-          'value': <Map<String, dynamic>>[
-            <String, dynamic>{
-              'id': 'old-1',
-              'authorRole': 'child',
-              'authorName': 'Minjun',
-              'kind': 'note',
-              'body': 'Old note',
-              'createdAt': '2026-04-17T09:00:00.000',
-            },
-          ],
-        },
         <String, dynamic>{
           'key': FamilyAccessService.familyIdKey,
           'value': 'family-1',
@@ -558,10 +483,7 @@ void main() {
       'remote child data',
     );
     expect(mergedOptions['profile_name'], 'Real child profile');
-    expect(
-      (mergedOptions[FamilyAccessService.messagesKey] as List).first['body'],
-      'Nice effort today.',
-    );
+    expect(mergedOptions.containsKey(FamilyAccessService.messagesKey), isFalse);
     expect(
       (mergedOptions['player_custom_reward_names_v1'] as Map)['3'],
       'New boots',
