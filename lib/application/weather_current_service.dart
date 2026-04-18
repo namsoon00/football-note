@@ -39,7 +39,8 @@ class WeatherCurrentSnapshot {
 class WeatherCurrentService {
   const WeatherCurrentService._();
 
-  static const String _kmaApiKey = String.fromEnvironment('KMA_API_KEY');
+  static const String _kmaApiKey =
+      '5b3956b221d8776d5c6a9ed898c4a9c31fdf60d6b7e39f41e84385d31de0b82c';
 
   static Future<WeatherCurrentSnapshot> fetchCurrentWeather({
     required double latitude,
