@@ -68,6 +68,34 @@ Repository Settings -> General:
   - localization/testing reminders
   - optional verify + repair retry
 
+## 5-2) Responses API token logging wrapper
+- Use `scripts/openai_responses_wrapper.py` when you want raw `v1/responses` calls to print token estimates before and after the request.
+- The wrapper first calls `POST /v1/responses/input_tokens`, then calls `POST /v1/responses`, and writes token summaries to `stderr`.
+- Built-in model limits currently include the common GPT-5 family defaults and `gpt-4.1`; override with `--context-window` or `OPENAI_CONTEXT_WINDOW` if you use another model snapshot.
+
+Example:
+```bash
+OPENAI_API_KEY=... \
+python3 scripts/openai_responses_wrapper.py \
+  --input-file .tmp/codex_harness/task.prompt \
+  --model gpt-5.2-codex \
+  --reasoning-effort high \
+  --max-output-tokens 12000 \
+  --output-format text
+```
+
+Typical console logs:
+```text
+[responses-wrapper] model=gpt-5.2-codex
+[responses-wrapper] input_tokens=18234
+[responses-wrapper] context_window=400000
+[responses-wrapper] remaining_after_input=381766
+[responses-wrapper] requested_max_output_tokens=12000
+[responses-wrapper] remaining_after_reserved_output=369766
+[responses-wrapper] usage=input:18234 output:2640 reasoning:512 cached_input:0 total:20874
+[responses-wrapper] remaining_after_response=379126
+```
+
 ## 6) Commit and close behavior
 - Commit hook requires issue numbers in messages.
 - If commit includes `#<issue>`, hook auto appends `Closes #<issue>` (except `#0`).
