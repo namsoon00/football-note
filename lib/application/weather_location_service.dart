@@ -3,9 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class WeatherLocationService {
-  static const String _kakaoRestApiKey = String.fromEnvironment(
-    'KAKAO_REST_API_KEY',
-  );
+  static const String _kakaoRestApiKey = 'b5b196f485859aa04a479539caab76a3';
 
   static Future<String> resolvePlaceName({
     required double latitude,
