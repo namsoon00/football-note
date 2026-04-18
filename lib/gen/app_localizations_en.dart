@@ -3213,24 +3213,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'In parent mode, only family messages, feedback, and reward names sync automatically. Keep player record backup and restore in player mode.';
 
   @override
-  String get familyChildDriveConnectionTitle =>
-      'Connect player\'s Google Drive';
+  String get familyChildDriveConnectionTitle => 'Connect child\'s Google Drive';
 
   @override
   String get familyChildDriveConnectionDescription =>
-      'In parent mode, connect the same Google Drive account the player uses so both roles can share one family backup file.';
+      'In parent mode, connect the same Google Drive account the child uses so both roles can share one family backup file.';
 
   @override
-  String get familyConnectChildDrive => 'Connect player Drive';
+  String get familyConnectChildDrive => 'Connect child Drive';
 
   @override
-  String get familyDisconnectChildDrive => 'Disconnect player Drive';
+  String get familyDisconnectChildDrive => 'Disconnect child Drive';
 
   @override
   String get familyRoleChild => 'Player';
 
   @override
   String get familyRoleParent => 'Parent';
+
+  @override
+  String get familyParentModeEnabled => 'Enable parent mode';
+
+  @override
+  String get familyParentModeDescription =>
+      'Turn this on for parent mode. Turn it off to return to player mode.';
 
   @override
   String get familyChildName => 'Player name';
@@ -3323,19 +3329,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'No Google Drive account is connected yet.';
 
   @override
-  String get driveSharedChildAccount => 'Shared player Drive';
+  String get driveSavedPlayerAccount => 'Saved player Drive';
+
+  @override
+  String get driveReconnectSavedPlayer => 'Reconnect saved player Drive';
+
+  @override
+  String get driveReconnectSavedPlayerHint =>
+      'After returning from parent mode, reconnect the saved player Drive account here.';
+
+  @override
+  String get driveReconnectSavedPlayerMismatch =>
+      'Please reconnect with the saved player Drive account.';
+
+  @override
+  String get driveSharedChildAccount => 'Shared child Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
-      'No player Drive account is known yet. Create at least one player backup first.';
+      'No child Drive account is known yet. Create at least one player backup first.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In parent mode, sign in with the player\'s Google Drive account to sync feedback and family messages into the same backup file.';
+      'In parent mode, sign in with the child\'s Google Drive account to sync feedback and family messages into the same backup file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      'Parent mode should connect to the player\'s Google Drive account to sync safely into the same family backup.';
+      'Parent mode should connect to the child\'s Google Drive account to sync safely into the same family backup.';
 
   @override
   String get familySharedSyncTitle => 'Family sharing sync';
@@ -3352,29 +3372,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familySharedRestoreConfirm =>
-      'Restore the latest family sharing state from Google Drive? This replaces family sharing data on the current parent device.';
+      'Restore the latest child backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.';
 
   @override
-  String get familySharedRestoreSuccess => 'Family sharing restore completed.';
+  String get familySharedRestoreSuccess => 'Child backup restore completed.';
 
   @override
   String get familySharedRestoreFailed =>
-      'Family sharing restore failed. Please try again.';
+      'Child backup restore failed. Please try again.';
 
   @override
   String get familySharedRestoreLocal => 'Undo family restore';
 
   @override
   String get familySharedRestoreLocalConfirm =>
-      'Restore the safety copy saved right before the last family restore? This replaces family sharing data on the current parent device.';
+      'Restore the safety copy saved right before the last restore? This replaces the player records and family sharing data shown on the current parent device.';
 
   @override
-  String get familySharedRestoreLocalSuccess =>
-      'Family sharing undo completed.';
+  String get familySharedRestoreLocalSuccess => 'Previous state restored.';
 
   @override
   String get familySharedRestoreLocalFailed =>
-      'Family sharing undo failed. Please try again.';
+      'Previous state restore failed. Please try again.';
 
   @override
   String get familyParentFamilyMismatch =>

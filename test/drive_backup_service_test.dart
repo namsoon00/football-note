@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:football_note/application/backup_asset_store_types.dart';
+import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/drive_backup_service.dart';
 import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -197,8 +198,7 @@ void main() {
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
   });
 
-  test(
-      'parent restore keeps local player records and restores family layer only',
+  test('parent restore applies child backup and keeps parent local flags',
       () async {
     await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
     await optionBox.put(FamilyAccessService.familyIdKey, 'family-1');
@@ -230,6 +230,14 @@ void main() {
       <String, String>{'2': 'Local ball'},
     );
     await optionBox.put('profile_name', 'Local player profile');
+    await optionBox.put(
+      DriveBackupService.connectedDriveEmailLocalKey,
+      'child@example.com',
+    );
+    await optionBox.put(
+      DriveBackupService.connectedDriveLabelLocalKey,
+      'Child Account',
+    );
     await trainingBox.add(
       TrainingEntry(
         date: DateTime(2026, 4, 18),
@@ -359,8 +367,8 @@ void main() {
     await service.restoreFromMapForTesting(remote);
 
     expect(trainingBox.length, 1);
-    expect(trainingBox.values.first.notes, 'keep local player record');
-    expect(optionBox.get('profile_name'), 'Local player profile');
+    expect(trainingBox.values.first.notes, 'remote player record');
+    expect(optionBox.get('profile_name'), 'Remote player profile');
     expect(optionBox.get(FamilyAccessService.childNameKey), 'Remote player');
     expect(optionBox.get(FamilyAccessService.parentNameKey), 'Remote parent');
     expect(
@@ -382,6 +390,40 @@ void main() {
     expect(
       optionBox.get(DriveBackupService.sharedChildDriveLabelKey),
       'Remote player · remote-player@example.com',
+    );
+    expect(
+      optionBox.get(FamilyAccessService.currentRoleLocalKey),
+      FamilyRole.parent.name,
+    );
+    expect(
+      optionBox.get(DriveBackupService.connectedDriveEmailLocalKey),
+      'child@example.com',
+    );
+    expect(
+      optionBox.get(DriveBackupService.connectedDriveLabelLocalKey),
+      'Child Account',
+    );
+  });
+
+  test('stores player drive account separately', () async {
+    service = DriveBackupService(
+      trainingBox,
+      optionBox,
+      backupAssetFileStore: assetStore,
+      driveConnectionLoader: () async => const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: 'Player',
+        subjectId: 'player-subject',
+      ),
+    );
+
+    await service.rememberPlayerDriveConnection();
+
+    expect(service.getSavedPlayerDriveEmail(), 'player@example.com');
+    expect(service.getSavedPlayerDriveLabel(), 'Player · player@example.com');
+    expect(
+      optionBox.get(DriveBackupService.playerDriveSubjectLocalKey),
+      'player-subject',
     );
   });
 

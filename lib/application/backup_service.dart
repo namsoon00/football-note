@@ -84,6 +84,32 @@ class BackupService {
     return '';
   }
 
+  String getSavedPlayerDriveEmail() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getSavedPlayerDriveEmail();
+    }
+    return '';
+  }
+
+  String getSavedPlayerDriveLabel() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getSavedPlayerDriveLabel();
+    }
+    return '';
+  }
+
+  Future<void> rememberPlayerDriveConnection() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.rememberPlayerDriveConnection();
+    }
+  }
+
+  Future<void> signInForSavedPlayer() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.signInForSavedPlayer();
+    }
+  }
+
   Future<void> signOut() async {
     if (_repository case final DriveBackupService drive) {
       await drive.signOut();

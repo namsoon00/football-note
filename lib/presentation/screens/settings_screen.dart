@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
 import '../../application/benchmark_service.dart';
+import '../../application/drive_backup_service.dart';
 import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
@@ -43,6 +44,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoDaily = true;
   bool _autoOnSave = true;
   String _connectedDriveLabel = '';
+  String _savedPlayerDriveLabel = '';
+  String _savedPlayerDriveEmail = '';
   String _sharedChildDriveLabel = '';
   String _sharedChildDriveEmail = '';
 
@@ -71,10 +74,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final signedIn = await widget.driveBackupService!.isSignedIn();
     final connection =
         await widget.driveBackupService!.getDriveConnectionInfo();
+    final familyState =
+        FamilyAccessService(widget.optionRepository).loadState();
+    if (familyState.isChildMode &&
+        connection != null &&
+        !connection.isEmpty &&
+        widget.driveBackupService!.getSavedPlayerDriveEmail().trim().isEmpty) {
+      await widget.driveBackupService!.rememberPlayerDriveConnection();
+    }
     if (!mounted) return;
     setState(() {
       _signedIn = signedIn;
       _connectedDriveLabel = connection?.label.trim() ?? '';
+      _savedPlayerDriveLabel =
+          widget.driveBackupService!.getSavedPlayerDriveLabel();
+      _savedPlayerDriveEmail =
+          widget.driveBackupService!.getSavedPlayerDriveEmail();
       _sharedChildDriveLabel =
           widget.driveBackupService!.getSharedChildDriveLabel();
       _sharedChildDriveEmail =
@@ -91,9 +106,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         FamilyAccessService(widget.optionRepository).loadState();
     final showPlayerBackupSection =
         widget.driveBackupService != null && !familyState.isParentMode;
+    final savedPlayerDriveLabel = _savedPlayerDriveLabel.trim().isNotEmpty
+        ? _savedPlayerDriveLabel.trim()
+        : _savedPlayerDriveEmail.trim();
     final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
         ? _sharedChildDriveLabel.trim()
         : _sharedChildDriveEmail.trim();
+    final playerDriveMatchesSaved = savedPlayerDriveLabel.isEmpty ||
+        _connectedDriveLabel.trim().isEmpty ||
+        _connectedDriveLabel.toLowerCase().contains(
+              _savedPlayerDriveEmail.trim().toLowerCase(),
+            );
     final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _connectedDriveLabel.toLowerCase().contains(
@@ -251,6 +274,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? l10n.driveConnectedAccountEmpty
                       : _connectedDriveLabel.trim(),
                 ),
+                if (savedPlayerDriveLabel.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildDriveAccountTile(
+                    icon: Icons.sports_soccer_outlined,
+                    title: l10n.driveSavedPlayerAccount,
+                    subtitle: savedPlayerDriveLabel,
+                  ),
+                  if (!_signedIn || !playerDriveMatchesSaved) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.driveReconnectSavedPlayerHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: _signInBusy
+                          ? null
+                          : () => _connectSavedPlayerDrive(l10n),
+                      icon: const Icon(Icons.link_outlined),
+                      label: Text(l10n.driveReconnectSavedPlayer),
+                      style: _outlinedActionStyle(),
+                    ),
+                  ],
+                ],
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
@@ -350,27 +397,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ChoiceChip(
-                    label: Text(l10n.familyRoleChild),
-                    selected: familyState.currentRole == FamilyRole.child,
-                    onSelected: (selected) {
-                      if (!selected) return;
-                      _updateFamilyRole(FamilyRole.child);
-                    },
-                  ),
-                  ChoiceChip(
-                    label: Text(l10n.familyRoleParent),
-                    selected: familyState.currentRole == FamilyRole.parent,
-                    onSelected: (selected) {
-                      if (!selected) return;
-                      _updateFamilyRole(FamilyRole.parent);
-                    },
-                  ),
-                ],
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.familyParentModeEnabled),
+                subtitle: Text(l10n.familyParentModeDescription),
+                value: familyState.isParentMode,
+                onChanged: (enabled) {
+                  _updateFamilyRole(
+                    enabled ? FamilyRole.parent : FamilyRole.child,
+                  );
+                },
               ),
               const SizedBox(height: 10),
               ListTile(
@@ -1338,7 +1374,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _updateFamilyRole(FamilyRole role) async {
     final familyService = FamilyAccessService(widget.optionRepository);
+    final currentState = familyService.loadState();
+    if (widget.driveBackupService != null &&
+        currentState.currentRole == FamilyRole.child &&
+        role == FamilyRole.parent &&
+        _signedIn) {
+      await widget.driveBackupService!.rememberPlayerDriveConnection();
+    }
     await familyService.setCurrentRole(role);
+    await _refreshSignInState();
     if (!mounted) return;
     setState(() {});
     final l10n = AppLocalizations.of(context)!;
@@ -1673,6 +1717,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await widget.driveBackupService!.signOut();
       } else {
         await widget.driveBackupService!.signIn();
+        final familyState =
+            FamilyAccessService(widget.optionRepository).loadState();
+        if (familyState.isChildMode) {
+          await widget.driveBackupService!.rememberPlayerDriveConnection();
+        }
       }
       await _refreshSignInState();
       if (!mounted) return;
@@ -1686,6 +1735,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.loginRequired)));
+    } finally {
+      if (mounted) {
+        setState(() => _signInBusy = false);
+      }
+    }
+  }
+
+  Future<void> _connectSavedPlayerDrive(AppLocalizations l10n) async {
+    if (widget.driveBackupService == null) return;
+    setState(() => _signInBusy = true);
+    try {
+      await widget.driveBackupService!.signInForSavedPlayer();
+      await _refreshSignInState();
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.driveReconnectSavedPlayer)));
+    } catch (e) {
+      if (!mounted) return;
+      final message = e.toString().contains(
+                DriveBackupService.playerDriveMismatchErrorCode,
+              )
+          ? l10n.driveReconnectSavedPlayerMismatch
+          : l10n.loginRequired;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
         setState(() => _signInBusy = false);
@@ -1812,6 +1888,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final raw = error.toString();
     if (raw.contains('parent_drive_mismatch')) {
       return l10n.familyParentUsesChildDriveWarning;
+    }
+    if (raw.contains(DriveBackupService.playerDriveMismatchErrorCode)) {
+      return l10n.driveReconnectSavedPlayerMismatch;
     }
     if (raw.contains('parent_family_mismatch')) {
       return l10n.familyParentFamilyMismatch;
