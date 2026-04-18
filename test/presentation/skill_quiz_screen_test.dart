@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/skill_quiz_screen.dart';
@@ -483,6 +484,45 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('테스트 문제'), findsOneWidget);
+  });
+
+  testWidgets('parent mode shows quiz home but does not start sessions', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.parent.name,
+      );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SkillQuizScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        '부모 모드에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 선수 모드에서만 쌓입니다.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('오늘의 문제'), findsOneWidget);
+
+    await tester.tap(find.text('오늘의 문제'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('오늘의 문제'), findsOneWidget);
+    expect(find.textContaining('진행 '), findsNothing);
+
+    await tester.tap(find.byTooltip('전체 문제 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('코치용 퀴즈 라이브러리'), findsOneWidget);
   });
 }
 
