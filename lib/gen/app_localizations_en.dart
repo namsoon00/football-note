@@ -3202,7 +3202,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familySharedBackupDescription =>
-      'Use one shared Drive backup without a server. Player mode owns core records, while parent mode only syncs the family layer.';
+      'Use one shared Drive backup without a server. Record mode manages core records directly, while parent mode only syncs the family layer.';
 
   @override
   String get familyBackupIncludesMedia =>
@@ -3210,7 +3210,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in player mode.';
+      'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in record mode.';
 
   @override
   String get familyChildDriveConnectionTitle => 'Connect player Google Drive';
@@ -3236,7 +3236,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentModeDescription =>
-      'Turn this on for parent mode. Turn it off to return to player mode.';
+      'Turn this on for parent mode. Turn it off to return to record mode.';
 
   @override
   String get familyChildName => 'Player name';
@@ -3258,7 +3258,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyPolicyChildOwnsData =>
-      'Player mode backs up training, profile, diary, meals, and plans as the source of truth.';
+      'Record mode backs up training, profile, diary, meals, and plans as the source of truth.';
 
   @override
   String get familyPolicyParentWritesOnly =>
@@ -3269,7 +3269,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connect the parent device after at least one player backup already exists.';
 
   @override
-  String get familyRoleChildActivated => 'Player mode activated.';
+  String get familyRoleChildActivated => 'Record mode activated.';
 
   @override
   String get familyRoleParentActivated => 'Parent mode activated.';
@@ -3303,7 +3303,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get driveSharedChildAccountEmpty =>
-      'No player Drive account is known yet. Create at least one player backup first.';
+      'No player Drive account is known yet. Create at least one backup in record mode first.';
 
   @override
   String get familyParentUsesChildDriveHint =>
@@ -3365,15 +3365,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentReadOnlyEntryBody =>
-      'Core records like training, meals, and diary stay in player mode. Parent mode is limited to family sharing and reward naming.';
+      'Core records like training, meals, and diary stay in record mode. Parent mode is limited to family sharing and reward naming.';
 
   @override
   String get parentReadOnlyMealLog =>
-      'Parent mode cannot edit meal logs. Update meals in player mode.';
+      'Parent mode cannot edit meal logs. Update meals in record mode.';
 
   @override
   String get parentReadOnlyQuiz =>
-      'Parent mode does not run the quiz. Quiz history and XP stay in player mode.';
+      'Parent mode does not run the quiz. Quiz history and XP stay in record mode.';
 
   @override
   String get parentReadOnlyDrawerMessage =>
@@ -3381,7 +3381,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentReadOnlyCalendarBanner =>
-      'Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.';
+      'Parent mode keeps the calendar read-only. Update plans, matches, and meals in record mode.';
 
   @override
   String get parentReadOnlyCalendarMessage =>
@@ -3401,16 +3401,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get levelGuideParentModeLabel => 'Parent mode';
 
   @override
-  String get levelGuideChildModeLabel => 'Player mode';
+  String get levelGuideChildModeLabel => 'Record mode';
 
   @override
   String get levelGuideParentModeDescription =>
-      'Parent mode can save reward names only. Reward claims stay in player mode.';
+      'Parent mode can save reward names only. Reward claims stay in record mode.';
 
   @override
   String get levelGuideChildModeDescription =>
-      'Player mode can claim rewards. Reward naming stays in parent mode.';
+      'Record mode can claim rewards. Reward naming stays in parent mode.';
 
   @override
-  String get levelGuideClaimChildOnly => 'Claim in player mode';
+  String get levelGuideClaimChildOnly => 'Claim in record mode';
 }
