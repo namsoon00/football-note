@@ -39,6 +39,7 @@ FORCE_MAIN_MERGE="${FORCE_MAIN_MERGE:-1}"
 LOCAL_SYNC_REPO_PATH="${LOCAL_SYNC_REPO_PATH:-/Users/namsoon00/Devel/football_note/football_note}"
 ISSUE_NUMBER=""
 LINKED_DISCUSSION_URL=""
+PR_URL=""
 
 log() {
   echo "[issue-worker] $*"
@@ -181,6 +182,136 @@ notify_issue_and_discussion() {
   fi
   post_issue_comment "${message}"
   post_linked_discussion_comment "${message}" || true
+}
+
+lookup_pr_url_for_head_branch() {
+  curl -sS \
+    -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls?state=all&head=${GITHUB_REPOSITORY%%/*}:${HEAD_BRANCH}&base=${DEFAULT_BRANCH}&per_page=1" \
+    | python3 -c 'import json,sys; d=json.load(sys.stdin); print((d[0].get("html_url","") if isinstance(d,list) and d else "").strip())'
+}
+
+build_workflow_summary_comment() {
+  local status="${1:-작업 완료}" pr_url="${2:-}" main_sha="${3:-}" note="${4:-}" compare_base_ref="${5:-}" compare_head_ref="${6:-}"
+  python3 - <<'PY' \
+"${status}" \
+"${pr_url}" \
+"${main_sha}" \
+"${note}" \
+"${compare_base_ref}" \
+"${compare_head_ref}" \
+"${DEFAULT_BRANCH}" \
+"${HEAD_BRANCH}" \
+"${ISSUE_NUMBER}" \
+"${ISSUE_TITLE:-}" \
+"${ISSUE_URL:-}" \
+"${GITHUB_REPOSITORY}" \
+"${GITHUB_RUN_ID:-}"
+import subprocess
+import sys
+
+status, pr_url, main_sha, note, compare_base_ref, compare_head_ref, base_branch, head_branch, issue_number, issue_title, issue_url, repo, run_id = sys.argv[1:13]
+
+
+def git(*args: str) -> str:
+    completed = subprocess.run(
+        ["git", *args],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return ""
+    return completed.stdout.strip()
+
+
+def first_existing_ref(*refs: str) -> str:
+    for ref in refs:
+        if ref and git("rev-parse", "--verify", ref):
+            return ref
+    return ""
+
+
+base_ref = first_existing_ref(compare_base_ref, f"origin/{base_branch}", base_branch)
+head_ref = first_existing_ref(compare_head_ref, f"origin/{head_branch}", head_branch, "HEAD")
+
+commit_subjects = []
+if base_ref and head_ref:
+    raw_commits = git("log", "--format=%s", f"{base_ref}..{head_ref}")
+    commit_subjects = [line.strip() for line in raw_commits.splitlines() if line.strip()]
+
+changed_files = []
+change_stat = ""
+if base_ref and head_ref:
+    raw_files = git("diff", "--name-only", "--diff-filter=ACMRT", f"{base_ref}...{head_ref}")
+    changed_files = [line.strip() for line in raw_files.splitlines() if line.strip()]
+    change_stat = git("diff", "--shortstat", f"{base_ref}...{head_ref}")
+
+if not commit_subjects and head_ref:
+    fallback_subject = git("log", "-1", "--format=%s", head_ref)
+    if fallback_subject:
+        commit_subjects = [fallback_subject]
+
+
+def bullet_list(items: list[str], limit: int) -> str:
+    if not items:
+        return "- (집계된 항목 없음)"
+    visible = items[:limit]
+    lines = [f"- {item}" for item in visible]
+    hidden = len(items) - len(visible)
+    if hidden > 0:
+        lines.append(f"- ... 외 {hidden}건")
+    return "\n".join(lines)
+
+
+lines = [
+    "## 자동 워커 작업 요약",
+    f"- 상태: {status}",
+    f"- Issue: #{issue_number}",
+]
+if issue_title:
+    lines.append(f"- 제목: {issue_title}")
+if issue_url:
+    lines.append(f"- 링크: {issue_url}")
+lines.extend(
+    [
+        f"- 작업 브랜치: `{head_branch}`",
+        f"- 기준 브랜치: `{base_branch}`",
+    ]
+)
+if pr_url:
+    lines.append(f"- PR: {pr_url}")
+if main_sha:
+    lines.append(f"- main 반영 커밋: `{main_sha}`")
+if change_stat:
+    lines.append(f"- 변경 규모: {change_stat}")
+if repo and run_id:
+    lines.append(f"- 워크플로: https://github.com/{repo}/actions/runs/{run_id}")
+if note:
+    lines.append(f"- 메모: {note}")
+
+lines.extend(
+    [
+        "",
+        "### 포함 커밋",
+        bullet_list(commit_subjects, 8),
+        "",
+        "### 변경 파일",
+        bullet_list(changed_files, 12),
+    ]
+)
+
+print("\n".join(lines).strip())
+PY
+}
+
+post_workflow_summary() {
+  local status="${1:-작업 완료}" main_sha="${2:-}" note="${3:-}" message=""
+  message="$(build_workflow_summary_comment "${status}" "${PR_URL:-}" "${main_sha}" "${note}")"
+  if [[ -n "${message}" ]]; then
+    notify_issue_and_discussion "${message}"
+  fi
 }
 
 is_plan_request_issue() {
@@ -548,7 +679,10 @@ else
 fi
 
 log "Creating/updating PR"
-python3 scripts/create_or_update_pr.py
+PR_URL="$(python3 scripts/create_or_update_pr.py | tail -n1 | tr -d '\r')"
+if [[ -z "${PR_URL}" ]]; then
+  PR_URL="$(lookup_pr_url_for_head_branch)"
+fi
 
 log "FORCE_MAIN_MERGE=$FORCE_MAIN_MERGE"
 if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
@@ -561,11 +695,27 @@ if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then
 
   if git merge --no-ff --no-edit "origin/$HEAD_BRANCH"; then
     git push origin "$DEFAULT_BRANCH"
-    close_issue_completed "$(printf '자동 병합 완료: `%s` -> `%s`\n이슈를 completed로 닫았습니다.' "${HEAD_BRANCH}" "${DEFAULT_BRANCH}")"
+    close_issue_completed "$(
+      build_workflow_summary_comment \
+        "main 반영 완료" \
+        "${PR_URL:-}" \
+        "$(git rev-parse --short HEAD)" \
+        "자동 병합으로 ${DEFAULT_BRANCH} 반영까지 완료했습니다." \
+        "HEAD^1" \
+        "HEAD^2"
+    )"
   else
-    notify_issue_and_discussion "자동 main 병합 실패: 브랜치 충돌 또는 보호 규칙으로 병합되지 않았습니다. 수동 병합이 필요합니다."
+    post_workflow_summary \
+      "작업 브랜치/PR 준비 완료" \
+      "" \
+      "main 병합은 실패했습니다. 브랜치 충돌 또는 보호 규칙으로 수동 병합이 필요합니다."
     exit 1
   fi
+else
+  post_workflow_summary \
+    "작업 브랜치/PR 준비 완료" \
+    "" \
+    "main 자동 병합은 비활성화되어 PR 또는 브랜치 기준으로 후속 검토가 필요합니다."
 fi
 
 ensure_issue_closed_if_merged
