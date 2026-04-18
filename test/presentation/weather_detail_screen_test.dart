@@ -64,10 +64,57 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 450));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('추천 복장'), findsAtLeastNWidgets(1));
+    expect(find.text('오늘의 축구 복장'), findsAtLeastNWidgets(1));
     expect(find.text('레이어'), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('All outfit cases screen shows detailed cold outfit card', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: const MaterialApp(
+          locale: Locale('ko', 'KR'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [Locale('en'), Locale('ko', 'KR')],
+          home: WeatherDetailScreen(
+            initialLocation: '강남구 역삼1동, 한국',
+            initialSummary: '맑음 6.0°C',
+            initialWeatherCode: 0,
+            initialAction: WeatherDetailInitialAction.outfitGuide,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.ensureVisible(find.text('모든 복장 케이스 보기'));
+    await tester.tap(find.text('모든 복장 케이스 보기'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('전체 복장 케이스'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('추운 날'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('추운 날'), findsOneWidget);
+    expect(find.text('긴 트레이닝 팬츠'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }
