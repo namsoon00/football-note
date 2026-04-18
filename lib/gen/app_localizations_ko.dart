@@ -3111,17 +3111,17 @@ class AppLocalizationsKo extends AppLocalizations {
       '부모 모드에서는 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
 
   @override
-  String get familyChildDriveConnectionTitle => '아이 Google Drive 연결';
+  String get familyChildDriveConnectionTitle => '선수 Google Drive 연결';
 
   @override
   String get familyChildDriveConnectionDescription =>
-      '부모 모드에서는 아이가 쓰는 Google Drive 계정으로 연결해야 같은 가족 백업 파일을 함께 사용할 수 있어요.';
+      '부모 모드에서는 선수가 쓰는 Google Drive 계정으로 연결해야 같은 가족 백업 파일을 함께 사용할 수 있어요.';
 
   @override
-  String get familyConnectChildDrive => '아이 Drive 연결';
+  String get familyConnectChildDrive => '선수 Drive 연결';
 
   @override
-  String get familyDisconnectChildDrive => '아이 Drive 연결 해제';
+  String get familyDisconnectChildDrive => '선수 Drive 연결 해제';
 
   @override
   String get familyRoleChild => '선수';
@@ -3195,19 +3195,19 @@ class AppLocalizationsKo extends AppLocalizations {
       '저장된 선수 Drive 계정으로 다시 연결해 주세요.';
 
   @override
-  String get driveSharedChildAccount => '공유 대상 아이 Drive';
+  String get driveSharedChildAccount => '공유 대상 선수 Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
-      '아직 아이 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.';
+      '아직 선수 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '부모 모드에서는 아이 Google Drive 계정으로 로그인하면 같은 백업 파일에 피드백과 선물 이름을 동기화할 수 있어요.';
+      '부모 모드에서는 선수 Google Drive 계정으로 로그인하면 같은 백업 파일에 피드백과 선물 이름을 동기화할 수 있어요.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      '부모 모드에서는 아이 Google Drive 계정으로 연결해야 같은 가족 백업에 안전하게 동기화할 수 있어요.';
+      '부모 모드에서는 선수 Google Drive 계정으로 연결해야 같은 가족 백업에 안전하게 동기화할 수 있어요.';
 
   @override
   String get familySharedSyncTitle => '가족 공유 동기화';
@@ -3224,13 +3224,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familySharedRestoreConfirm =>
-      'Google Drive의 최신 아이 백업 상태로 복원할까요? 현재 부모 기기에서 보이는 선수 기록과 가족 공유 데이터가 교체됩니다.';
+      'Google Drive의 최신 선수 백업 상태로 복원할까요? 현재 부모 기기에서 보이는 선수 기록과 가족 공유 데이터가 교체됩니다.';
 
   @override
-  String get familySharedRestoreSuccess => '아이 백업 복원이 완료되었습니다.';
+  String get familySharedRestoreSuccess => '선수 백업 복원이 완료되었습니다.';
 
   @override
-  String get familySharedRestoreFailed => '아이 백업 복원에 실패했어요. 다시 시도해 주세요.';
+  String get familySharedRestoreFailed => '선수 백업 복원에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get familySharedRestoreLocal => '가족 공유 되돌리기';

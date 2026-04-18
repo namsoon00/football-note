@@ -5567,25 +5567,25 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Connect child\'s Google Drive'**
+  /// **'Connect player Google Drive'**
   String get familyChildDriveConnectionTitle;
 
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, connect the same Google Drive account the child uses so both roles can share one family backup file.'**
+  /// **'In parent mode, connect the same Google Drive account the player uses so both roles can share one family backup file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Connect child Drive'**
+  /// **'Connect player Drive'**
   String get familyConnectChildDrive;
 
   /// No description provided for @familyDisconnectChildDrive.
   ///
   /// In en, this message translates to:
-  /// **'Disconnect child Drive'**
+  /// **'Disconnect player Drive'**
   String get familyDisconnectChildDrive;
 
   /// No description provided for @familyRoleChild.
@@ -5723,25 +5723,25 @@ abstract class AppLocalizations {
   /// No description provided for @driveSharedChildAccount.
   ///
   /// In en, this message translates to:
-  /// **'Shared child Drive'**
+  /// **'Shared player Drive'**
   String get driveSharedChildAccount;
 
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No child Drive account is known yet. Create at least one player backup first.'**
+  /// **'No player Drive account is known yet. Create at least one player backup first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the child\'s Google Drive account to sync feedback and reward names into the same backup file.'**
+  /// **'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode should connect to the child\'s Google Drive account to sync safely into the same family backup.'**
+  /// **'Parent mode should connect to the player\'s Google Drive account to sync safely into the same family backup.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.
@@ -5771,19 +5771,19 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedRestoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the latest child backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.'**
+  /// **'Restore the latest player backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.'**
   String get familySharedRestoreConfirm;
 
   /// No description provided for @familySharedRestoreSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Child backup restore completed.'**
+  /// **'Player backup restore completed.'**
   String get familySharedRestoreSuccess;
 
   /// No description provided for @familySharedRestoreFailed.
   ///
   /// In en, this message translates to:
-  /// **'Child backup restore failed. Please try again.'**
+  /// **'Player backup restore failed. Please try again.'**
   String get familySharedRestoreFailed;
 
   /// No description provided for @familySharedRestoreLocal.
