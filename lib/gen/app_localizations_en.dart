@@ -3285,18 +3285,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'No Google Drive account is connected yet.';
 
   @override
-  String get driveSavedPlayerAccount => 'Saved player Drive';
+  String get driveSavedPlayerAccount => 'Saved record mode Drive';
 
   @override
-  String get driveReconnectSavedPlayer => 'Reconnect saved player Drive';
+  String get driveReconnectSavedPlayer => 'Reconnect saved record Drive';
 
   @override
   String get driveReconnectSavedPlayerHint =>
-      'After returning from parent mode, reconnect the saved player Drive account here.';
+      'After returning from parent mode, reconnect the saved record mode Drive account here.';
 
   @override
   String get driveReconnectSavedPlayerMismatch =>
-      'Please reconnect with the saved player Drive account.';
+      'Please reconnect with the saved record mode Drive account.';
+
+  @override
+  String get driveSavedParentAccount => 'Saved parent mode Drive';
+
+  @override
+  String get driveReconnectSavedParent => 'Reconnect saved parent Drive';
+
+  @override
+  String get driveReconnectSavedParentHint =>
+      'Reconnect the Drive account that was used most recently in parent mode.';
+
+  @override
+  String get driveReconnectSavedParentMismatch =>
+      'Please reconnect with the saved parent mode Drive account.';
 
   @override
   String get driveSharedChildAccount => 'Shared player Drive';

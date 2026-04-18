@@ -5699,26 +5699,50 @@ abstract class AppLocalizations {
   /// No description provided for @driveSavedPlayerAccount.
   ///
   /// In en, this message translates to:
-  /// **'Saved player Drive'**
+  /// **'Saved record mode Drive'**
   String get driveSavedPlayerAccount;
 
   /// No description provided for @driveReconnectSavedPlayer.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect saved player Drive'**
+  /// **'Reconnect saved record Drive'**
   String get driveReconnectSavedPlayer;
 
   /// No description provided for @driveReconnectSavedPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'After returning from parent mode, reconnect the saved player Drive account here.'**
+  /// **'After returning from parent mode, reconnect the saved record mode Drive account here.'**
   String get driveReconnectSavedPlayerHint;
 
   /// No description provided for @driveReconnectSavedPlayerMismatch.
   ///
   /// In en, this message translates to:
-  /// **'Please reconnect with the saved player Drive account.'**
+  /// **'Please reconnect with the saved record mode Drive account.'**
   String get driveReconnectSavedPlayerMismatch;
+
+  /// No description provided for @driveSavedParentAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved parent mode Drive'**
+  String get driveSavedParentAccount;
+
+  /// No description provided for @driveReconnectSavedParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect saved parent Drive'**
+  String get driveReconnectSavedParent;
+
+  /// No description provided for @driveReconnectSavedParentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect the Drive account that was used most recently in parent mode.'**
+  String get driveReconnectSavedParentHint;
+
+  /// No description provided for @driveReconnectSavedParentMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Please reconnect with the saved parent mode Drive account.'**
+  String get driveReconnectSavedParentMismatch;
 
   /// No description provided for @driveSharedChildAccount.
   ///

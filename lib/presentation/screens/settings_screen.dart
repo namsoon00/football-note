@@ -44,8 +44,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoDaily = true;
   bool _autoOnSave = true;
   String _connectedDriveLabel = '';
-  String _savedPlayerDriveLabel = '';
-  String _savedPlayerDriveEmail = '';
+  String _savedRecordDriveLabel = '';
+  String _savedRecordDriveEmail = '';
+  String _savedParentDriveLabel = '';
+  String _savedParentDriveEmail = '';
   String _sharedChildDriveLabel = '';
   String _sharedChildDriveEmail = '';
 
@@ -92,9 +94,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (familyState.isChildMode &&
         connection != null &&
         !connection.isEmpty &&
-        widget.driveBackupService!.getSavedPlayerDriveEmail().trim().isEmpty) {
+        widget.driveBackupService!.getSavedRecordDriveEmail().trim().isEmpty) {
       try {
-        await widget.driveBackupService!.rememberPlayerDriveConnection();
+        await widget.driveBackupService!.rememberRecordDriveConnection();
       } catch (e, st) {
         debugPrint('Drive player connection cache refresh failed: $e');
         debugPrintStack(stackTrace: st);
@@ -109,10 +111,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
           ? connection!.label.trim()
           : cachedConnectedDriveLabel;
-      _savedPlayerDriveLabel =
-          widget.driveBackupService!.getSavedPlayerDriveLabel();
-      _savedPlayerDriveEmail =
-          widget.driveBackupService!.getSavedPlayerDriveEmail();
+      _savedRecordDriveLabel =
+          widget.driveBackupService!.getSavedRecordDriveLabel();
+      _savedRecordDriveEmail =
+          widget.driveBackupService!.getSavedRecordDriveEmail();
+      _savedParentDriveLabel =
+          widget.driveBackupService!.getSavedParentDriveLabel();
+      _savedParentDriveEmail =
+          widget.driveBackupService!.getSavedParentDriveEmail();
       _sharedChildDriveLabel =
           widget.driveBackupService!.getSharedChildDriveLabel();
       _sharedChildDriveEmail =
@@ -139,6 +145,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return '$cachedLabel · $cachedEmail';
   }
 
+  bool _driveLabelMatchesEmail(String label, String email) {
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty || label.trim().isEmpty) {
+      return false;
+    }
+    return label.toLowerCase().contains(normalizedEmail);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -148,29 +162,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
         FamilyAccessService(widget.optionRepository).loadState();
     final showPlayerBackupSection =
         widget.driveBackupService != null && !familyState.isParentMode;
-    final savedPlayerDriveLabel = _savedPlayerDriveLabel.trim().isNotEmpty
-        ? _savedPlayerDriveLabel.trim()
-        : _savedPlayerDriveEmail.trim();
+    final savedRecordDriveLabel = _savedRecordDriveLabel.trim().isNotEmpty
+        ? _savedRecordDriveLabel.trim()
+        : _savedRecordDriveEmail.trim();
+    final savedParentDriveLabel = _savedParentDriveLabel.trim().isNotEmpty
+        ? _savedParentDriveLabel.trim()
+        : _savedParentDriveEmail.trim();
     final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
         ? _sharedChildDriveLabel.trim()
         : _sharedChildDriveEmail.trim();
-    final savedPlayerMatchesCurrentDrive =
-        _savedPlayerDriveEmail.trim().isNotEmpty &&
-        _connectedDriveLabel.toLowerCase().contains(
-              _savedPlayerDriveEmail.trim().toLowerCase(),
-            );
-    final showSavedPlayerDrive =
-        savedPlayerDriveLabel.isNotEmpty && !savedPlayerMatchesCurrentDrive;
-    final playerDriveMatchesSaved = savedPlayerDriveLabel.isEmpty ||
+    final savedRecordMatchesCurrentDrive = _driveLabelMatchesEmail(
+      _connectedDriveLabel,
+      _savedRecordDriveEmail,
+    );
+    final showSavedRecordDrive =
+        savedRecordDriveLabel.isNotEmpty && !savedRecordMatchesCurrentDrive;
+    final recordDriveMatchesSaved = savedRecordDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
-        _connectedDriveLabel.toLowerCase().contains(
-              _savedPlayerDriveEmail.trim().toLowerCase(),
-            );
+        _driveLabelMatchesEmail(_connectedDriveLabel, _savedRecordDriveEmail);
+    final savedParentMatchesCurrentDrive = _driveLabelMatchesEmail(
+      _connectedDriveLabel,
+      _savedParentDriveEmail,
+    );
+    final showSavedParentDrive = savedParentDriveLabel.isNotEmpty;
     final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
-        _connectedDriveLabel.toLowerCase().contains(
-              _sharedChildDriveEmail.trim().toLowerCase(),
-            );
+        _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
     if (widget.driveBackupService != null) {
       _autoDaily = widget.driveBackupService!.isAutoDailyEnabled();
@@ -323,14 +340,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? l10n.driveConnectedAccountEmpty
                       : _connectedDriveLabel.trim(),
                 ),
-                if (showSavedPlayerDrive) ...[
+                if (showSavedRecordDrive) ...[
                   const SizedBox(height: 8),
                   _buildDriveAccountTile(
                     icon: Icons.sports_soccer_outlined,
                     title: l10n.driveSavedPlayerAccount,
-                    subtitle: savedPlayerDriveLabel,
+                    subtitle: savedRecordDriveLabel,
                   ),
-                  if (!_signedIn || !playerDriveMatchesSaved) ...[
+                  if (!_signedIn || !recordDriveMatchesSaved) ...[
                     const SizedBox(height: 4),
                     Text(
                       l10n.driveReconnectSavedPlayerHint,
@@ -340,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     OutlinedButton.icon(
                       onPressed: _signInBusy
                           ? null
-                          : () => _connectSavedPlayerDrive(l10n),
+                          : () => _connectSavedRecordDrive(l10n),
                       icon: const Icon(Icons.link_outlined),
                       label: Text(l10n.driveReconnectSavedPlayer),
                       style: _outlinedActionStyle(),
@@ -520,6 +537,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ? l10n.familyDisconnectChildDrive
                             : l10n.familyConnectChildDrive,
                       ),
+                      if (showSavedParentDrive) ...[
+                        const SizedBox(height: 8),
+                        _buildDriveAccountTile(
+                          icon: Icons.manage_accounts_outlined,
+                          title: l10n.driveSavedParentAccount,
+                          subtitle: savedParentDriveLabel,
+                        ),
+                        if (!_signedIn || !savedParentMatchesCurrentDrive) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.driveReconnectSavedParentHint,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: _signInBusy
+                                ? null
+                                : () => _connectSavedParentDrive(l10n),
+                            icon: const Icon(Icons.link_outlined),
+                            label: Text(l10n.driveReconnectSavedParent),
+                            style: _outlinedActionStyle(),
+                          ),
+                        ],
+                      ],
                       const SizedBox(height: 8),
                       _buildDriveAccountTile(
                         icon: Icons.child_care_outlined,
@@ -1417,12 +1458,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _updateFamilyRole(FamilyRole role) async {
     final familyService = FamilyAccessService(widget.optionRepository);
     final currentState = familyService.loadState();
-    if (widget.driveBackupService != null &&
-        currentState.currentRole == FamilyRole.child &&
-        role == FamilyRole.parent &&
-        _signedIn) {
-      await widget.driveBackupService!.rememberPlayerDriveConnection();
-      await widget.driveBackupService!.signOut();
+    if (widget.driveBackupService != null && _signedIn) {
+      if (currentState.currentRole == FamilyRole.child &&
+          role == FamilyRole.parent) {
+        await widget.driveBackupService!.rememberRecordDriveConnection();
+        await widget.driveBackupService!.signOut();
+      } else if (currentState.currentRole == FamilyRole.parent &&
+          role == FamilyRole.child) {
+        await widget.driveBackupService!.rememberParentDriveConnection();
+        await widget.driveBackupService!.signOut();
+      }
     }
     await familyService.setCurrentRole(role);
     await _refreshSignInState();
@@ -1744,14 +1789,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _signInBusy = true);
     try {
       if (wasSignedIn) {
+        await widget.driveBackupService!.rememberCurrentRoleDriveConnection();
         await widget.driveBackupService!.signOut();
       } else {
         await widget.driveBackupService!.signIn();
-        final familyState =
-            FamilyAccessService(widget.optionRepository).loadState();
-        if (familyState.isChildMode) {
-          await widget.driveBackupService!.rememberPlayerDriveConnection();
-        }
+        await widget.driveBackupService!.rememberCurrentRoleDriveConnection();
       }
       await _refreshSignInState(allowCachedConnection: !wasSignedIn);
       if (!mounted) return;
@@ -1772,11 +1814,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _connectSavedPlayerDrive(AppLocalizations l10n) async {
+  Future<void> _connectSavedRecordDrive(AppLocalizations l10n) async {
     if (widget.driveBackupService == null) return;
     setState(() => _signInBusy = true);
     try {
-      await widget.driveBackupService!.signInForSavedPlayer();
+      await widget.driveBackupService!.signInForSavedRecord();
       await _refreshSignInState(allowCachedConnection: true);
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -1785,9 +1827,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       if (!mounted) return;
       final message = e.toString().contains(
-                DriveBackupService.playerDriveMismatchErrorCode,
+                DriveBackupService.recordDriveMismatchErrorCode,
               )
           ? l10n.driveReconnectSavedPlayerMismatch
+          : l10n.loginRequired;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() => _signInBusy = false);
+      }
+    }
+  }
+
+  Future<void> _connectSavedParentDrive(AppLocalizations l10n) async {
+    if (widget.driveBackupService == null) return;
+    setState(() => _signInBusy = true);
+    try {
+      await widget.driveBackupService!.signInForSavedParent();
+      await _refreshSignInState(allowCachedConnection: true);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.driveReconnectSavedParent)));
+    } catch (e) {
+      if (!mounted) return;
+      final message = e.toString().contains(
+                DriveBackupService.parentModeDriveMismatchErrorCode,
+              )
+          ? l10n.driveReconnectSavedParentMismatch
           : l10n.loginRequired;
       ScaffoldMessenger.of(
         context,
@@ -1921,6 +1990,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     if (raw.contains(DriveBackupService.playerDriveMismatchErrorCode)) {
       return l10n.driveReconnectSavedPlayerMismatch;
+    }
+    if (raw.contains(DriveBackupService.parentModeDriveMismatchErrorCode)) {
+      return l10n.driveReconnectSavedParentMismatch;
     }
     if (raw.contains('parent_family_mismatch')) {
       return l10n.familyParentFamilyMismatch;

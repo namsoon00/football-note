@@ -3181,18 +3181,32 @@ class AppLocalizationsKo extends AppLocalizations {
   String get driveConnectedAccountEmpty => '아직 Google Drive 계정이 연결되지 않았어요.';
 
   @override
-  String get driveSavedPlayerAccount => '저장된 선수 Drive';
+  String get driveSavedPlayerAccount => '저장된 기록 모드 Drive';
 
   @override
-  String get driveReconnectSavedPlayer => '저장된 선수 Drive 연결';
+  String get driveReconnectSavedPlayer => '저장된 기록 Drive 연결';
 
   @override
   String get driveReconnectSavedPlayerHint =>
-      '부모 모드에서 돌아온 뒤에는 저장된 선수 Drive 계정으로 다시 연결할 수 있어요.';
+      '부모 모드에서 돌아온 뒤에는 저장된 기록 모드 Drive 계정으로 다시 연결할 수 있어요.';
 
   @override
   String get driveReconnectSavedPlayerMismatch =>
-      '저장된 선수 Drive 계정으로 다시 연결해 주세요.';
+      '저장된 기록 모드 Drive 계정으로 다시 연결해 주세요.';
+
+  @override
+  String get driveSavedParentAccount => '저장된 부모 모드 Drive';
+
+  @override
+  String get driveReconnectSavedParent => '저장된 부모 Drive 연결';
+
+  @override
+  String get driveReconnectSavedParentHint =>
+      '부모 모드에서 마지막으로 사용한 Drive 계정으로 다시 연결할 수 있어요.';
+
+  @override
+  String get driveReconnectSavedParentMismatch =>
+      '저장된 부모 모드 Drive 계정으로 다시 연결해 주세요.';
 
   @override
   String get driveSharedChildAccount => '공유 대상 선수 Drive';
