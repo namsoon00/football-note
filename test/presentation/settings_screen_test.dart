@@ -206,6 +206,48 @@ void main() {
   });
 
   testWidgets(
+    'player mode hides saved player drive when current account matches it',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-player',
+        ),
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        savedPlayerDriveLabel: '민수 · player@example.com',
+        savedPlayerDriveEmail: 'player@example.com',
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
+      expect(find.text('민수 · player@example.com'), findsWidgets);
+      expect(find.text('저장된 선수 Drive'), findsNothing);
+      expect(find.text('저장된 선수 Drive 연결'), findsNothing);
+    },
+  );
+
+  testWidgets(
       'settings reflects signed-in Drive account immediately after sign in', (
     WidgetTester tester,
   ) async {

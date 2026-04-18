@@ -154,6 +154,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
         ? _sharedChildDriveLabel.trim()
         : _sharedChildDriveEmail.trim();
+    final savedPlayerMatchesCurrentDrive =
+        _savedPlayerDriveEmail.trim().isNotEmpty &&
+        _connectedDriveLabel.toLowerCase().contains(
+              _savedPlayerDriveEmail.trim().toLowerCase(),
+            );
+    final showSavedPlayerDrive =
+        savedPlayerDriveLabel.isNotEmpty && !savedPlayerMatchesCurrentDrive;
     final playerDriveMatchesSaved = savedPlayerDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _connectedDriveLabel.toLowerCase().contains(
@@ -316,7 +323,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? l10n.driveConnectedAccountEmpty
                       : _connectedDriveLabel.trim(),
                 ),
-                if (savedPlayerDriveLabel.isNotEmpty) ...[
+                if (showSavedPlayerDrive) ...[
                   const SizedBox(height: 8),
                   _buildDriveAccountTile(
                     icon: Icons.sports_soccer_outlined,
