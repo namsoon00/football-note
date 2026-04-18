@@ -2,6 +2,11 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+ROOT_DIR="$(pwd)"
+# shellcheck disable=SC1091
+source "${ROOT_DIR}/scripts/flutter_env.sh"
+load_local_flutter_env "${ROOT_DIR}"
+build_flutter_define_args
 
 usage() {
   cat <<'EOF'
@@ -21,6 +26,7 @@ Commands:
   test      Run flutter tests
   analyze   Run flutter analyze
   format    Run dart format
+  run       Run app with local dart-defines forwarded to flutter run
   run-ios   Run app on first available iOS simulator
   help      Show this help
 EOF
@@ -38,7 +44,7 @@ run_ios() {
   fi
 
   echo "==> flutter run (iOS simulator: ${sim_id})"
-  flutter run -d "${sim_id}" --no-resident
+  flutter run "${FLUTTER_DEFINE_ARGS[@]}" -d "${sim_id}" --no-resident "$@"
 }
 
 cmd="${1:-help}"
@@ -75,8 +81,13 @@ case "${cmd}" in
   format)
     dart format .
     ;;
+  run)
+    shift || true
+    flutter run "${FLUTTER_DEFINE_ARGS[@]}" "$@"
+    ;;
   run-ios)
-    run_ios
+    shift || true
+    run_ios "$@"
     ;;
   help|-h|--help)
     usage
