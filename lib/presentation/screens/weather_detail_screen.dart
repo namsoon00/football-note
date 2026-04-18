@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../../application/weather_current_service.dart';
-import '../../application/weather_forecast_service.dart';
 import '../../application/weather_location_service.dart';
 import '../widgets/app_background.dart';
 
@@ -61,30 +60,9 @@ class WeatherDetailScreen extends StatefulWidget {
     required double longitude,
     required AppLocalizations l10n,
   }) async {
-    final currentWeatherFuture = WeatherCurrentService.fetchCurrentWeather(
+    final weatherDetailsFuture = WeatherCurrentService.fetchDetailedWeather(
       latitude: latitude,
       longitude: longitude,
-    );
-    final weatherUri = WeatherForecastService.buildForecastUri(
-      latitude: latitude,
-      longitude: longitude,
-      current: const <String>[
-        'temperature_2m',
-        'apparent_temperature',
-        'relative_humidity_2m',
-        'precipitation',
-        'weather_code',
-        'wind_speed_10m',
-      ],
-      daily: const <String>[
-        'weather_code',
-        'uv_index_max',
-        'temperature_2m_max',
-        'temperature_2m_min',
-        'precipitation_sum',
-        'wind_speed_10m_max',
-      ],
-      forecastDays: 7,
     );
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
@@ -94,21 +72,11 @@ class WeatherDetailScreen extends StatefulWidget {
       'timezone': 'auto',
     });
     final responses = await Future.wait([
-      currentWeatherFuture,
-      http.get(weatherUri),
+      weatherDetailsFuture,
       http.get(airQualityUri),
     ]);
-    final currentSnapshot = responses[0] as WeatherCurrentSnapshot;
-    final weatherResponse = responses[1] as http.Response;
-    final airResponse = responses[2] as http.Response;
-
-    Map<String, dynamic>? weatherDecoded;
-    if (weatherResponse.statusCode == 200) {
-      final decoded = jsonDecode(weatherResponse.body);
-      if (decoded is Map<String, dynamic>) {
-        weatherDecoded = decoded;
-      }
-    }
+    final weatherSnapshot = responses[0] as WeatherDetailsSnapshot;
+    final airResponse = responses[1] as http.Response;
 
     Map<String, dynamic>? airDecoded;
     if (airResponse.statusCode == 200) {
@@ -118,53 +86,51 @@ class WeatherDetailScreen extends StatefulWidget {
       }
     }
 
-    if (weatherDecoded == null &&
-        airDecoded == null &&
-        !currentSnapshot.hasData) {
+    if (airDecoded == null && !weatherSnapshot.hasData) {
       return const _WeatherDetailsSnapshot(summary: '');
     }
 
-    final current = weatherDecoded?['current'];
-    final daily = weatherDecoded?['daily'];
     final airCurrent = airDecoded?['current'];
-    final openMeteoCurrent =
-        current is Map<String, dynamic> ? current : const <String, dynamic>{};
-    final openMeteoDaily =
-        daily is Map<String, dynamic> ? daily : const <String, dynamic>{};
     final openMeteoAir = airCurrent is Map<String, dynamic>
         ? airCurrent
         : const <String, dynamic>{};
 
     final localizer = _WeatherLocalizer(l10n: l10n);
-    final weatherCode = currentSnapshot.weatherCode ??
-        (openMeteoCurrent['weather_code'] as num?)?.toInt();
-    final temperature = currentSnapshot.temperature ??
-        (openMeteoCurrent['temperature_2m'] as num?)?.toDouble();
+    final weatherCode = weatherSnapshot.weatherCode;
+    final temperature = weatherSnapshot.temperature;
     final summary = _buildWeatherSummaryStatic(
       temperature: temperature,
       weatherCode: weatherCode,
       localizer: localizer,
     );
-    final dailyMax =
-        _firstDailyNumberStatic(openMeteoDaily['temperature_2m_max']);
-    final dailyMin =
-        _firstDailyNumberStatic(openMeteoDaily['temperature_2m_min']);
-    final forecasts = _buildDailyForecastsStatic(
-      openMeteoDaily,
-      localizer: localizer,
-    );
+    final forecasts = weatherSnapshot.dailyForecasts
+        .map(
+          (forecast) => _DailyWeatherForecast(
+            date: forecast.date,
+            label: '',
+            weekdayLabel: '',
+            weatherCode: forecast.weatherCode,
+            summary: _weatherLabelFromCodeStatic(
+              forecast.weatherCode,
+              localizer: localizer,
+            ),
+            temperatureMax: forecast.temperatureMax,
+            temperatureMin: forecast.temperatureMin,
+            precipitationSum: forecast.precipitationSum,
+            windSpeedMax: forecast.windSpeedMax,
+            uvIndexMax: forecast.uvIndexMax,
+          ),
+        )
+        .toList(growable: false);
 
     return _WeatherDetailsSnapshot(
       summary: summary,
       weatherCode: weatherCode,
-      apparentTemperature:
-          (openMeteoCurrent['apparent_temperature'] as num?)?.toDouble(),
-      humidity: currentSnapshot.humidity ??
-          (openMeteoCurrent['relative_humidity_2m'] as num?)?.toDouble(),
-      windSpeed: currentSnapshot.windSpeed ??
-          (openMeteoCurrent['wind_speed_10m'] as num?)?.toDouble(),
-      temperatureMax: dailyMax,
-      temperatureMin: dailyMin,
+      apparentTemperature: weatherSnapshot.apparentTemperature,
+      humidity: weatherSnapshot.humidity,
+      windSpeed: weatherSnapshot.windSpeed,
+      temperatureMax: weatherSnapshot.temperatureMax,
+      temperatureMin: weatherSnapshot.temperatureMin,
       pm10: (openMeteoAir['pm10'] as num?)?.toDouble(),
       pm25: (openMeteoAir['pm2_5'] as num?)?.toDouble(),
       aqi: (openMeteoAir['us_aqi'] as num?)?.toInt(),
@@ -233,61 +199,6 @@ class WeatherDetailScreen extends StatefulWidget {
       default:
         return localizer.defaultValue;
     }
-  }
-
-  static double? _firstDailyNumberStatic(Object? value) {
-    if (value is List && value.isNotEmpty) {
-      return (value.first as num?)?.toDouble();
-    }
-    return null;
-  }
-
-  static List<_DailyWeatherForecast> _buildDailyForecastsStatic(
-    Map<String, dynamic> daily, {
-    required _WeatherLabelLocalizer localizer,
-  }) {
-    final times = daily['time'];
-    final codes = daily['weather_code'];
-    final maxTemps = daily['temperature_2m_max'];
-    final minTemps = daily['temperature_2m_min'];
-    final precipitationSums = daily['precipitation_sum'];
-    final maxWinds = daily['wind_speed_10m_max'];
-    final uvIndexMax = daily['uv_index_max'];
-    if (times is! List) return const <_DailyWeatherForecast>[];
-
-    final forecasts = <_DailyWeatherForecast>[];
-    for (var index = 0; index < times.length; index++) {
-      final rawDate = times[index]?.toString();
-      final date = rawDate == null ? null : DateTime.tryParse(rawDate);
-      if (date == null) continue;
-      final weatherCode = _numberAtStatic(codes, index)?.toInt();
-      forecasts.add(
-        _DailyWeatherForecast(
-          date: date,
-          label: '',
-          weekdayLabel: '',
-          weatherCode: weatherCode,
-          summary: _weatherLabelFromCodeStatic(
-            weatherCode,
-            localizer: localizer,
-          ),
-          temperatureMax: _numberAtStatic(maxTemps, index)?.toDouble(),
-          temperatureMin: _numberAtStatic(minTemps, index)?.toDouble(),
-          precipitationSum: _numberAtStatic(
-            precipitationSums,
-            index,
-          )?.toDouble(),
-          windSpeedMax: _numberAtStatic(maxWinds, index)?.toDouble(),
-          uvIndexMax: _numberAtStatic(uvIndexMax, index)?.toDouble(),
-        ),
-      );
-    }
-    return forecasts;
-  }
-
-  static num? _numberAtStatic(Object? values, int index) {
-    if (values is! List || index >= values.length) return null;
-    return values[index] as num?;
   }
 
   @override
