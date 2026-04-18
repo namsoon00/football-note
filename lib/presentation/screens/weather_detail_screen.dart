@@ -436,22 +436,35 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
       );
-      final snapshot = await _fetchWeatherSnapshot(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        l10n: l10n,
-      );
       if (!mounted) return;
       setState(() {
-        _applySnapshot(place, snapshot);
+        _location = place;
       });
-      _maybeHandleInitialAction();
-      _cachedDetails = _CachedWeatherDetails(
-        location: place,
-        snapshot: snapshot,
-        localeTag: localeTag,
-        fetchedAt: DateTime.now(),
-      );
+
+      _WeatherDetailsSnapshot? snapshot;
+      try {
+        snapshot = await _fetchWeatherSnapshot(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          l10n: l10n,
+        );
+      } catch (_) {
+        snapshot = null;
+      }
+
+      if (!mounted) return;
+      if (snapshot != null && _hasSnapshotData(snapshot)) {
+        setState(() {
+          _applySnapshot(place, snapshot!);
+        });
+        _maybeHandleInitialAction();
+        _cachedDetails = _CachedWeatherDetails(
+          location: place,
+          snapshot: snapshot,
+          localeTag: localeTag,
+          fetchedAt: DateTime.now(),
+        );
+      }
     } catch (_) {
       if (showFailureFeedback && mounted) {
         ScaffoldMessenger.of(
@@ -536,6 +549,20 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           ),
         )
         .toList(growable: false);
+  }
+
+  bool _hasSnapshotData(_WeatherDetailsSnapshot snapshot) {
+    return snapshot.summary.trim().isNotEmpty ||
+        snapshot.weatherCode != null ||
+        snapshot.apparentTemperature != null ||
+        snapshot.humidity != null ||
+        snapshot.windSpeed != null ||
+        snapshot.temperatureMax != null ||
+        snapshot.temperatureMin != null ||
+        snapshot.pm10 != null ||
+        snapshot.pm25 != null ||
+        snapshot.aqi != null ||
+        snapshot.dailyForecasts.isNotEmpty;
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(

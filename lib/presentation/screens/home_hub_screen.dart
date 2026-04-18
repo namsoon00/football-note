@@ -436,18 +436,30 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
       );
-      final weather = await _fetchCurrentWeather(
-        latitude: position.latitude,
-        longitude: position.longitude,
-        l10n: l10n,
-      );
       if (!mounted) return;
       setState(() {
         _weatherNeedsLocation = place.trim().isEmpty;
         _weatherLocation = place;
-        _weatherCode = weather.code;
-        _weatherSummary = weather.summary;
       });
+
+      _HomeWeatherSnapshot weather = const _HomeWeatherSnapshot(summary: '');
+      try {
+        weather = await _fetchCurrentWeather(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          l10n: l10n,
+        );
+      } catch (_) {
+        weather = const _HomeWeatherSnapshot(summary: '');
+      }
+
+      if (!mounted) return;
+      if (weather.summary.trim().isNotEmpty || weather.code != null) {
+        setState(() {
+          _weatherCode = weather.code;
+          _weatherSummary = weather.summary;
+        });
+      }
       unawaited(
         WeatherDetailScreen.warmUpFromHomeSync(
           latitude: position.latitude,
@@ -464,9 +476,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         final shouldNeedLocation = _weatherLocation.trim().isEmpty;
         setState(() {
           _weatherNeedsLocation = shouldNeedLocation;
-          _weatherLocation = '';
-          _weatherCode = null;
-          _weatherSummary = '';
+          if (shouldNeedLocation) {
+            _weatherLocation = '';
+          }
         });
       }
       if (requestPermission && mounted) {
