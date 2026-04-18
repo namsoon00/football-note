@@ -3210,7 +3210,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      'In parent mode, only family messages, feedback, and reward names sync automatically. Keep player record backup and restore in player mode.';
+      'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in player mode.';
 
   @override
   String get familyChildDriveConnectionTitle => 'Connect child\'s Google Drive';
@@ -3262,14 +3262,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyPolicyParentWritesOnly =>
-      'Parent mode can save feedback messages, family messages, and level reward names only.';
+      'Parent mode can save feedback and level reward names only.';
 
   @override
   String get familyPolicyParentSeedRequired =>
       'Connect the parent device after at least one player backup already exists.';
-
-  @override
-  String get familyOpenSpace => 'Open family space';
 
   @override
   String get familyRoleChildActivated => 'Player mode activated.';
@@ -3279,47 +3276,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyNamesSaved => 'Family names saved.';
-
-  @override
-  String get familySpaceTitle => 'Family space';
-
-  @override
-  String get familySpaceSubtitleChild =>
-      'Leave notes for your parent and check shared feedback here.';
-
-  @override
-  String get familySpaceSubtitleParent =>
-      'Leave feedback for your player here while the rest of the app stays read-only.';
-
-  @override
-  String get familyMessagesEmpty =>
-      'No family messages yet. Start the first note here.';
-
-  @override
-  String get familyMessageTypeFeedback => 'Feedback';
-
-  @override
-  String get familyMessageTypeNote => 'Note';
-
-  @override
-  String get familyMessageComposerLabel => 'Family message';
-
-  @override
-  String get familyMessageComposerHintParent =>
-      'Write feedback for today’s training or mood.';
-
-  @override
-  String get familyMessageComposerHintChild =>
-      'Share how today felt or what you want help with.';
-
-  @override
-  String get familyMessageComposerEmpty => 'Please enter a family message.';
-
-  @override
-  String get familyMessageSend => 'Send';
-
-  @override
-  String get familyMessageSent => 'Family message sent.';
 
   @override
   String get driveConnectedAccount => 'Connected Drive account';
@@ -3351,7 +3307,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In parent mode, sign in with the child\'s Google Drive account to sync feedback and family messages into the same backup file.';
+      'In parent mode, sign in with the child\'s Google Drive account to sync feedback and reward names into the same backup file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
@@ -3362,7 +3318,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familySharedSyncDescription =>
-      'Feedback, family messages, and reward names saved in parent mode are written automatically into the same family backup file.';
+      'Feedback and reward names saved in parent mode are written automatically into the same family backup file.';
 
   @override
   String get familySharedLastSync => 'Last family sync';
