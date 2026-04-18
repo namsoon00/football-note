@@ -1,4 +1,6 @@
 import 'package:football_note/application/backup_service.dart';
+import 'package:football_note/application/drive_connection_info.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/domain/repositories/backup_repository.dart';
@@ -44,6 +46,98 @@ void main() {
 
     expect(find.textContaining('마지막 클라우드 백업:'), findsOneWidget);
   });
+
+  testWidgets(
+    'parent mode keeps child Drive connection controls in family sharing section',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      await optionRepository.setValue(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.parent.name,
+      );
+      await optionRepository.setValue(
+        FamilyAccessService.childNameKey,
+        '민수',
+      );
+      await optionRepository.setValue(
+        FamilyAccessService.parentNameKey,
+        '아빠',
+      );
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'child@example.com',
+          displayName: '민수',
+          subjectId: 'subject-1',
+        ),
+        sharedChildDriveLabel: '민수 · child@example.com',
+        sharedChildDriveEmail: 'child@example.com',
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('아이 Google Drive 연결'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('아이 Google Drive 연결'), findsOneWidget);
+      expect(find.text('공유 대상 아이 Drive'), findsOneWidget);
+      expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
+      expect(find.text('아이 Drive 연결 해제'), findsOneWidget);
+      expect(find.text('로그아웃'), findsNothing);
+    },
+  );
+}
+
+class _FakeDriveBackupService extends BackupService {
+  final bool signedIn;
+  final DriveConnectionInfo? connectionInfo;
+  final String sharedChildDriveLabel;
+  final String sharedChildDriveEmail;
+
+  _FakeDriveBackupService({
+    required this.signedIn,
+    required this.connectionInfo,
+    required this.sharedChildDriveLabel,
+    required this.sharedChildDriveEmail,
+    DateTime? lastBackupAt,
+  }) : super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
+
+  @override
+  Future<DriveConnectionInfo?> getDriveConnectionInfo() async => connectionInfo;
+
+  @override
+  String getSharedChildDriveEmail() => sharedChildDriveEmail;
+
+  @override
+  String getSharedChildDriveLabel() => sharedChildDriveLabel;
+
+  @override
+  Future<bool> isSignedIn() async => signedIn;
+
+  @override
+  Future<void> signIn() async {}
+
+  @override
+  Future<void> signOut() async {}
 }
 
 class _FakeBackupRepository implements BackupRepository {

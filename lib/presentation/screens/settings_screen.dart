@@ -237,82 +237,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   formatBackupTime: _formatBackupTime,
                 ),
                 const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: _signInBusy
-                      ? null
-                      : () async {
-                          setState(() => _signInBusy = true);
-                          try {
-                            if (_signedIn) {
-                              await widget.driveBackupService!.signOut();
-                              if (!context.mounted) return;
-                              setState(() => _signedIn = false);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(l10n.signOutDone)),
-                              );
-                            } else {
-                              await widget.driveBackupService!.signIn();
-                              if (!context.mounted) return;
-                              setState(() => _signedIn = true);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(l10n.signInWithGoogle)),
-                              );
-                            }
-                          } catch (_) {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(l10n.loginRequired)),
-                            );
-                          } finally {
-                            if (mounted) setState(() => _signInBusy = false);
-                          }
-                        },
-                  icon: Icon(_signedIn ? Icons.logout : Icons.login),
-                  label: Text(_signedIn ? l10n.signOut : l10n.signInWithGoogle),
-                  style: _elevatedActionStyle(),
-                ),
-                const SizedBox(height: 8),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.cloud_done_outlined, size: 20),
-                  title: Text(l10n.driveConnectedAccount),
-                  subtitle: Text(
-                    _connectedDriveLabel.trim().isEmpty
+                if (!familyState.isParentMode) ...[
+                  _buildDriveAuthButton(
+                    l10n: l10n,
+                    label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildDriveAccountTile(
+                    icon: Icons.cloud_done_outlined,
+                    title: l10n.driveConnectedAccount,
+                    subtitle: _connectedDriveLabel.trim().isEmpty
                         ? l10n.driveConnectedAccountEmpty
                         : _connectedDriveLabel.trim(),
-                  ),
-                ),
-                if (familyState.isParentMode) ...[
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.child_care_outlined, size: 20),
-                    title: Text(l10n.driveSharedChildAccount),
-                    subtitle: Text(
-                      expectedChildDriveLabel.isEmpty
-                          ? l10n.driveSharedChildAccountEmpty
-                          : expectedChildDriveLabel,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: driveMatchesExpected
-                          ? Theme.of(context).colorScheme.surfaceContainerHigh
-                          : Theme.of(
-                              context,
-                            )
-                              .colorScheme
-                              .errorContainer
-                              .withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Text(
-                      driveMatchesExpected
-                          ? l10n.familyParentUsesChildDriveHint
-                          : l10n.familyParentUsesChildDriveWarning,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
                   ),
                 ],
                 const SizedBox(height: 8),
@@ -462,6 +398,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 label: Text(l10n.familyEditNames),
                 style: _outlinedActionStyle(),
               ),
+              if (widget.driveBackupService != null &&
+                  familyState.isParentMode) ...[
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.familyChildDriveConnectionTitle,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.familyChildDriveConnectionDescription,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDriveAuthButton(
+                        l10n: l10n,
+                        label: _signedIn
+                            ? l10n.familyDisconnectChildDrive
+                            : l10n.familyConnectChildDrive,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildDriveAccountTile(
+                        icon: Icons.child_care_outlined,
+                        title: l10n.driveSharedChildAccount,
+                        subtitle: expectedChildDriveLabel.isEmpty
+                            ? l10n.driveSharedChildAccountEmpty
+                            : expectedChildDriveLabel,
+                      ),
+                      _buildDriveAccountTile(
+                        icon: Icons.cloud_done_outlined,
+                        title: l10n.driveConnectedAccount,
+                        subtitle: _connectedDriveLabel.trim().isEmpty
+                            ? l10n.driveConnectedAccountEmpty
+                            : _connectedDriveLabel.trim(),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: driveMatchesExpected
+                              ? Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHigh
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .errorContainer
+                                  .withValues(alpha: 0.45),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          driveMatchesExpected
+                              ? l10n.familyParentUsesChildDriveHint
+                              : l10n.familyParentUsesChildDriveWarning,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
@@ -1468,6 +1479,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildDriveAuthButton({
+    required AppLocalizations l10n,
+    required String label,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: _signInBusy ? null : () => _toggleDriveSignIn(l10n),
+      icon: Icon(_signedIn ? Icons.logout : Icons.login),
+      label: Text(label),
+      style: _elevatedActionStyle(),
+    );
+  }
+
+  Widget _buildDriveAccountTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, size: 20),
+      title: Text(title),
+      subtitle: Text(subtitle),
+    );
+  }
+
   ButtonStyle _outlinedActionStyle() {
     return ButtonStyle(
       minimumSize: WidgetStateProperty.all(const Size.fromHeight(56)),
@@ -1548,6 +1584,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } finally {
       if (mounted) {
         setState(() => _backupBusy = false);
+      }
+    }
+  }
+
+  Future<void> _toggleDriveSignIn(AppLocalizations l10n) async {
+    if (widget.driveBackupService == null) return;
+    final wasSignedIn = _signedIn;
+    setState(() => _signInBusy = true);
+    try {
+      if (wasSignedIn) {
+        await widget.driveBackupService!.signOut();
+      } else {
+        await widget.driveBackupService!.signIn();
+      }
+      await _refreshSignInState();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(wasSignedIn ? l10n.signOutDone : l10n.signInWithGoogle),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.loginRequired)));
+    } finally {
+      if (mounted) {
+        setState(() => _signInBusy = false);
       }
     }
   }
