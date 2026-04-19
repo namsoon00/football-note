@@ -104,8 +104,8 @@ class WeatherDetailScreen extends StatefulWidget {
     final temperature = weatherSnapshot.temperature;
     final temperatureDeltaFromYesterday =
         temperature == null || yesterdayTemperature == null
-        ? null
-        : temperature - yesterdayTemperature;
+            ? null
+            : temperature - yesterdayTemperature;
     final summary = _buildWeatherSummaryStatic(
       temperature: temperature,
       weatherCode: weatherCode,
@@ -170,13 +170,13 @@ class WeatherDetailScreen extends StatefulWidget {
     final dateLabel = DateFormat('yyyy-MM-dd').format(yesterday);
     final uri =
         Uri.https('archive-api.open-meteo.com', '/v1/archive', <String, String>{
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'start_date': dateLabel,
-          'end_date': dateLabel,
-          'hourly': 'temperature_2m',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'start_date': dateLabel,
+      'end_date': dateLabel,
+      'hourly': 'temperature_2m',
+      'timezone': 'auto',
+    });
     final response = await http.get(uri);
     if (response.statusCode != 200) return null;
 
@@ -198,11 +198,9 @@ class WeatherDetailScreen extends StatefulWidget {
     var bestIndex = -1;
     var bestDiffSeconds = 1 << 30;
 
-    for (
-      var index = 0;
-      index < times.length && index < temperatures.length;
-      index++
-    ) {
+    for (var index = 0;
+        index < times.length && index < temperatures.length;
+        index++) {
       final rawTime = times[index]?.toString();
       if (rawTime == null || rawTime.trim().isEmpty) continue;
       final parsedTime = DateTime.tryParse(rawTime);
@@ -248,11 +246,11 @@ class WeatherDetailScreen extends StatefulWidget {
 
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'current': 'pm10,pm2_5,us_aqi',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
     final airResponse = await http.get(airQualityUri);
     if (airResponse.statusCode != 200) {
       return const _ResolvedAirQualitySnapshot(
@@ -292,9 +290,8 @@ class WeatherDetailScreen extends StatefulWidget {
     final weatherText = weatherCode == null
         ? ''
         : _weatherLabelFromCodeStatic(weatherCode, localizer: localizer);
-    final tempText = temperature == null
-        ? ''
-        : '${temperature.toStringAsFixed(1)}°C';
+    final tempText =
+        temperature == null ? '' : '${temperature.toStringAsFixed(1)}°C';
     if (weatherText.isEmpty) return tempText;
     if (tempText.isEmpty) return weatherText;
     return '$weatherText $tempText';
@@ -390,7 +387,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       _maybeHandleInitialAction();
       final shouldRequestPermission =
           widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
-          _summary.isEmpty;
+              _summary.isEmpty;
       unawaited(
         _loadWeather(
           requestPermission: shouldRequestPermission,
@@ -425,9 +422,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 onRefresh: _loading
                     ? null
                     : () => _loadWeather(
-                        requestPermission: true,
-                        showFailureFeedback: true,
-                      ),
+                          requestPermission: true,
+                          showFailureFeedback: true,
+                        ),
                 metrics: hasWeather
                     ? [
                         _CompactMetricData(
@@ -509,9 +506,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                   precipitationLabel: l10n.homeWeatherPrecipitation,
                   hourlyPrecipitationLabel: l10n.homeWeatherHourlyPrecipitation,
                   windLabel: l10n.homeWeatherWindSpeed,
-                  tomorrowForecast: _dailyForecasts.length > 1
-                      ? _dailyForecasts[1]
-                      : null,
+                  tomorrowForecast:
+                      _dailyForecasts.length > 1 ? _dailyForecasts[1] : null,
                   tomorrowFallback: l10n.homeWeatherTomorrowFallback,
                   formatRange: _formatRange,
                   formatMillimeter: _formatMillimeter,
@@ -642,22 +638,24 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) => WeatherLocationService.resolvePlaceName(
-    latitude: latitude,
-    longitude: longitude,
-    isKo: isKo,
-    koreaLabel: koreaLabel,
-  );
+  }) =>
+      WeatherLocationService.resolvePlaceName(
+        latitude: latitude,
+        longitude: longitude,
+        isKo: isKo,
+        koreaLabel: koreaLabel,
+      );
 
   Future<_WeatherDetailsSnapshot> _fetchWeatherSnapshot({
     required double latitude,
     required double longitude,
     required AppLocalizations l10n,
-  }) => WeatherDetailScreen._fetchWeatherSnapshotStatic(
-    latitude: latitude,
-    longitude: longitude,
-    l10n: l10n,
-  );
+  }) =>
+      WeatherDetailScreen._fetchWeatherSnapshotStatic(
+        latitude: latitude,
+        longitude: longitude,
+        l10n: l10n,
+      );
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;
@@ -727,12 +725,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   String _formatForecastWeekday(DateTime date) => DateFormat.E(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   _AirLevelLabel _aqiLevel(
     AppLocalizations l10n,
@@ -902,9 +900,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   String _formatCompactMillimeter(double value) =>
       '${value.toStringAsFixed(1)} mm';
 
-  String _formatHourlyTime(DateTime value) => DateFormat.Hm(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(value);
+  String _formatHourlyTime(DateTime value) => DateFormat(
+        'HH:mm',
+      ).format(value);
 
   String _formatWind(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} km/h';
@@ -1000,15 +998,16 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   _DetailedOutfitGuide _buildDetailedOutfitGuide(
     bool isKo,
     AppLocalizations l10n,
-  ) => _buildOutfitGuide(
-    isKo: isKo,
-    l10n: l10n,
-    apparentTemperature: _apparentTemperature ?? _temperatureMax,
-    precipitationMm: _todayPrecipitation,
-    windSpeed: _windSpeed ?? 0,
-    weatherCode: _weatherCode,
-    airLevel: _worstAirQualityLevel(),
-  );
+  ) =>
+      _buildOutfitGuide(
+        isKo: isKo,
+        l10n: l10n,
+        apparentTemperature: _apparentTemperature ?? _temperatureMax,
+        precipitationMm: _todayPrecipitation,
+        windSpeed: _windSpeed ?? 0,
+        weatherCode: _weatherCode,
+        airLevel: _worstAirQualityLevel(),
+      );
 
   _DetailedOutfitGuide _buildOutfitGuide({
     required bool isKo,
@@ -1023,8 +1022,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         weatherCode != null && <int>{95, 96, 99}.contains(weatherCode);
     final hasPrecipitation = (precipitationMm ?? 0) >= 1;
     final hasHeavyPrecipitation = (precipitationMm ?? 0) >= 8;
-    final isRainy =
-        weatherCode != null &&
+    final isRainy = weatherCode != null &&
             <int>{
               51,
               53,
@@ -1044,8 +1042,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               99,
             }.contains(weatherCode) ||
         hasPrecipitation;
-    final isSnowy =
-        weatherCode != null &&
+    final isSnowy = weatherCode != null &&
         <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
     final isWindy = windSpeed >= 20;
     final isVeryWindy = windSpeed >= 28;
@@ -1060,13 +1057,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         icon: apparentTemperature != null && apparentTemperature >= 24
             ? Icons.wb_sunny_outlined
             : apparentTemperature != null && apparentTemperature <= 8
-            ? Icons.ac_unit_rounded
-            : Icons.tune_rounded,
+                ? Icons.ac_unit_rounded
+                : Icons.tune_rounded,
         text: apparentTemperature != null && apparentTemperature >= 24
             ? l10n.homeWeatherOutfitBaseHot
             : apparentTemperature != null && apparentTemperature <= 8
-            ? l10n.homeWeatherOutfitBaseCold
-            : l10n.homeWeatherOutfitBaseMild,
+                ? l10n.homeWeatherOutfitBaseCold
+                : l10n.homeWeatherOutfitBaseMild,
       ),
     ];
 
@@ -1076,9 +1073,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '기본 반바지' : 'Standard shorts';
       accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
     } else if (apparentTemperature >= 30) {
-      layers = isKo
-          ? '민소매/반팔 + 쿨 이너'
-          : 'Sleeveless/short-sleeve + cooling base';
+      layers =
+          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
       outer = isKo ? '아우터 없음' : 'No outerwear';
       bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
       accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
@@ -1099,21 +1095,18 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
       accessories = isKo ? '얇은 장갑, 넥워머' : 'Light gloves, neck warmer';
     } else if (apparentTemperature >= 2) {
-      layers = isKo
-          ? '기모 이너 + 긴팔 + 미들레이어'
-          : 'Thermal base + long-sleeve + midlayer';
+      layers =
+          isKo ? '기모 이너 + 긴팔 + 미들레이어' : 'Thermal base + long-sleeve + midlayer';
       outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 귀마개'
-          : 'Winter gloves, neck warmer, ear cover';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
     } else {
       layers = isKo ? '발열 이너 + 두꺼운 미들레이어' : 'Heat base layer + thick midlayer';
       outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
       bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 비니'
-          : 'Insulated gloves, neck warmer, beanie';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
       notes.add(
         isKo
             ? '실내 워밍업 후 짧은 세트로 진행'
@@ -1138,8 +1131,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       outer = isStormy || hasHeavyPrecipitation || isVeryWindy
           ? (isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket')
           : (isKo
-                ? '생활방수 자켓 + 얇은 미들레이어'
-                : 'Water-resistant jacket + light midlayer');
+              ? '생활방수 자켓 + 얇은 미들레이어'
+              : 'Water-resistant jacket + light midlayer');
       accessories = isKo
           ? '$accessories, 방수 양말 또는 여벌 양말'
           : '$accessories, waterproof or spare socks';
@@ -1192,8 +1185,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       callouts: callouts.skip(1).toList(growable: false),
       caution: notes.isEmpty
           ? (isKo
-                ? '현재 조건에서 일반 강도 훈련 가능'
-                : 'Normal intensity is fine in current conditions')
+              ? '현재 조건에서 일반 강도 훈련 가능'
+              : 'Normal intensity is fine in current conditions')
           : notes.join(isKo ? ' · ' : ' · '),
     );
   }
@@ -1341,11 +1334,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
             subtitle: _location.isEmpty
                 ? (isKo
-                      ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                      : 'Best focus for the current weather.')
+                    ? '지금 날씨에서 효율적인 훈련 방향입니다.'
+                    : 'Best focus for the current weather.')
                 : (isKo
-                      ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                      : 'Tailored to $_location weather.'),
+                    ? '$_location 날씨에 맞춘 훈련 방향입니다.'
+                    : 'Tailored to $_location weather.'),
             focusLabel: isKo ? '오늘 집중' : 'Focus',
             cautionLabel: isKo ? '운영 팁' : 'Execution tip',
             recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
@@ -1712,8 +1705,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                       children: [
                         for (var index = 0; index < metrics.length; index++)
                           SizedBox(
-                            width:
-                                metrics.length.isOdd &&
+                            width: metrics.length.isOdd &&
                                     index == metrics.length - 1
                                 ? constraints.maxWidth
                                 : halfWidth,
@@ -3253,6 +3245,8 @@ class _HourlyPrecipitationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final sortedEntries = [...entries]
+      ..sort((left, right) => left.time.compareTo(right.time));
     final background = accentStyle
         ? theme.colorScheme.surface.withValues(alpha: 0.16)
         : theme.colorScheme.surfaceContainerLow;
@@ -3293,28 +3287,38 @@ class _HourlyPrecipitationSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          for (var index = 0; index < entries.length; index++) ...[
-            _HourlyPrecipitationTimelineRow(
-              timeLabel: formatTime(entries[index].time),
-              precipitationLabel: formatPrecipitation(
-                entries[index].precipitation,
-              ),
-              markerColor: chipTextColor,
-              connectorColor: connectorColor,
-              timeTextColor: timeTextColor,
-              cardColor: chipColor,
-              cardTextColor: chipTextColor,
-              showConnector: index < entries.length - 1,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var index = 0; index < sortedEntries.length; index++) ...[
+                  _HourlyPrecipitationTimelineItem(
+                    timeLabel: formatTime(sortedEntries[index].time),
+                    precipitationLabel: formatPrecipitation(
+                      sortedEntries[index].precipitation,
+                    ),
+                    markerColor: chipTextColor,
+                    connectorColor: connectorColor,
+                    timeTextColor: timeTextColor,
+                    cardColor: chipColor,
+                    cardTextColor: chipTextColor,
+                    showLeadingConnector: index > 0,
+                    showTrailingConnector: index < sortedEntries.length - 1,
+                  ),
+                  if (index < sortedEntries.length - 1)
+                    const SizedBox(width: 6),
+                ],
+              ],
             ),
-            if (index < entries.length - 1) const SizedBox(height: 8),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _HourlyPrecipitationTimelineRow extends StatelessWidget {
+class _HourlyPrecipitationTimelineItem extends StatelessWidget {
   final String timeLabel;
   final String precipitationLabel;
   final Color markerColor;
@@ -3322,9 +3326,10 @@ class _HourlyPrecipitationTimelineRow extends StatelessWidget {
   final Color timeTextColor;
   final Color cardColor;
   final Color cardTextColor;
-  final bool showConnector;
+  final bool showLeadingConnector;
+  final bool showTrailingConnector;
 
-  const _HourlyPrecipitationTimelineRow({
+  const _HourlyPrecipitationTimelineItem({
     required this.timeLabel,
     required this.precipitationLabel,
     required this.markerColor,
@@ -3332,78 +3337,86 @@ class _HourlyPrecipitationTimelineRow extends StatelessWidget {
     required this.timeTextColor,
     required this.cardColor,
     required this.cardTextColor,
-    required this.showConnector,
+    required this.showLeadingConnector,
+    required this.showTrailingConnector,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 52,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              timeLabel,
-              textAlign: TextAlign.right,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: timeTextColor,
-                fontWeight: FontWeight.w800,
-              ),
+    return SizedBox(
+      width: 88,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            timeLabel,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: timeTextColor,
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Column(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: markerColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-            if (showConnector)
-              Container(
-                width: 2,
-                height: 36,
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  color: connectorColor,
-                  borderRadius: BorderRadius.circular(999),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: showLeadingConnector
+                        ? connectorColor
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
               ),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: markerColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  height: 2,
+                  decoration: BoxDecoration(
+                    color: showTrailingConnector
+                        ? connectorColor
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             decoration: BoxDecoration(
               color: cardColor,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.water_drop_outlined, size: 18, color: cardTextColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    precipitationLabel,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: cardTextColor,
-                      fontWeight: FontWeight.w900,
-                    ),
+                const SizedBox(height: 6),
+                Text(
+                  precipitationLabel,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: cardTextColor,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

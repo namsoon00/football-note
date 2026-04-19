@@ -1735,199 +1735,157 @@ class _TrainingStreakSpotlightCard extends StatelessWidget {
         : const <Color>[Color(0xFFF0E7CE), Color(0xFFD6DDE8)];
     final foreground =
         isActive ? const Color(0xFF4A1C07) : const Color(0xFF1F3344);
-    final lastLoggedLabel = data.latestTrainingDay == null
-        ? ''
-        : l10n.homeStreakLastLogged(
-            _formatShortDate(
-              data.latestTrainingDay!,
-              locale: Localizations.localeOf(context),
-            ),
-          );
-
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: gradientColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: const <BoxShadow>[
           BoxShadow(
             color: Color(0x17111827),
-            blurRadius: 18,
-            offset: Offset(0, 10),
+            blurRadius: 12,
+            offset: Offset(0, 8),
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            right: -18,
-            top: -22,
-            child: Container(
-              width: 116,
-              height: 116,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 14,
-            bottom: -8,
-            child: Icon(
-              isActive
-                  ? Icons.local_fire_department_rounded
-                  : Icons.replay_rounded,
-              size: 76,
-              color: Colors.white.withValues(alpha: 0.18),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      isActive
-                          ? Icons.local_fire_department_rounded
-                          : Icons.route_rounded,
-                      color: foreground,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            badgeLabel,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: foreground,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  isActive
+                      ? Icons.local_fire_department_rounded
+                      : Icons.route_rounded,
+                  color: foreground,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        badgeLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: foreground,
+                          fontWeight: FontWeight.w900,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          title,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: foreground,
-                            fontWeight: FontWeight.w900,
-                            height: 1.15,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Text(
-                      l10n.homeStreakDaysValue(data.streakDays),
+                    const SizedBox(height: 6),
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: foreground,
                         fontWeight: FontWeight.w900,
+                        height: 1.1,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Text(
-                  body,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: foreground.withValues(alpha: 0.88),
-                    fontWeight: FontWeight.w600,
-                    height: 1.45,
+                  l10n.homeStreakDaysValue(data.streakDays),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
-              if (lastLoggedLabel.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  lastLoggedLabel,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: foreground.withValues(alpha: 0.72),
-                    fontWeight: FontWeight.w800,
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            body,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: foreground.withValues(alpha: 0.84),
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: data.recentTrainingMarkers
+                      .map(
+                        (marker) => Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: _RecentTrainingMarkerChip(
+                              marker: marker,
+                              foreground: foreground,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+              ),
+              const SizedBox(width: 10),
+              FilledButton(
+                onPressed: onTap,
+                style: FilledButton.styleFrom(
+                  backgroundColor: foreground,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  minimumSize: const Size(0, 36),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-              ],
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: data.recentTrainingMarkers
-                          .map(
-                            (marker) => Expanded(
-                              child: _RecentTrainingMarkerChip(
-                                marker: marker,
-                                foreground: foreground,
-                              ),
-                            ),
-                          )
-                          .toList(growable: false),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  FilledButton(
-                    onPressed: onTap,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: foreground,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(actionLabel),
-                  ),
-                ],
+                child: Text(actionLabel),
               ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  String _formatShortDate(DateTime date, {required Locale locale}) {
-    final pattern = locale.languageCode == 'ko' ? 'M월 d일' : 'MMM d';
-    return DateFormat(pattern, locale.toString()).format(date);
   }
 }
 
@@ -1942,38 +1900,25 @@ class _RecentTrainingMarkerChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: marker.recorded
-                ? Colors.white.withValues(alpha: 0.24)
-                : Colors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: marker.recorded
-                  ? Colors.white.withValues(alpha: 0.34)
-                  : Colors.white.withValues(alpha: 0.18),
-            ),
-          ),
-          child: Icon(
-            marker.recorded ? Icons.check_rounded : Icons.remove_rounded,
-            size: 15,
-            color: foreground,
-          ),
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: marker.recorded
+            ? Colors.white.withValues(alpha: 0.24)
+            : Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: marker.recorded
+              ? Colors.white.withValues(alpha: 0.34)
+              : Colors.white.withValues(alpha: 0.18),
         ),
-        const SizedBox(height: 4),
-        Text(
-          DateFormat('d').format(marker.day),
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: foreground.withValues(alpha: 0.74),
-                fontWeight: FontWeight.w800,
-              ),
-        ),
-      ],
+      ),
+      child: Icon(
+        marker.recorded ? Icons.check_rounded : Icons.remove_rounded,
+        size: 11,
+        color: foreground,
+      ),
     );
   }
 }
