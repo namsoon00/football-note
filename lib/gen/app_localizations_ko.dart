@@ -811,6 +811,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherPrecipitation => '강수량';
 
   @override
+  String get homeWeatherHourlyPrecipitation => '시간별 강수량';
+
+  @override
   String get homeWeatherWindSpeed => '풍속';
 
   @override

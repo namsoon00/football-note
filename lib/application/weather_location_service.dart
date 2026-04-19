@@ -44,10 +44,7 @@ class WeatherLocationService {
       } catch (_) {
         // Return a coordinate label if every geocoder fails.
       }
-      return _formatCoordinateLabel(
-        latitude: latitude,
-        longitude: longitude,
-      );
+      return _formatCoordinateLabel(latitude: latitude, longitude: longitude);
     } finally {
       if (ownsClient) {
         localClient.close();
@@ -97,10 +94,7 @@ class WeatherLocationService {
       }
 
       final nativeQueries = _buildStationQueriesFromPlacemark(
-        await _resolveNativePlacemark(
-          latitude: latitude,
-          longitude: longitude,
-        ),
+        await _resolveNativePlacemark(latitude: latitude, longitude: longitude),
       );
       if (nativeQueries.isNotEmpty) {
         return nativeQueries;
@@ -115,8 +109,9 @@ class WeatherLocationService {
             client: localClient,
             kakaoRestApiKey: normalizedKey,
           );
-          final addressQueries =
-              _buildStationQueriesFromAddressLabel(addressLabel);
+          final addressQueries = _buildStationQueriesFromAddressLabel(
+            addressLabel,
+          );
           if (addressQueries.isNotEmpty) {
             return addressQueries;
           }
@@ -149,10 +144,7 @@ class WeatherLocationService {
           client: client,
           kakaoRestApiKey: normalizedKey,
         );
-        final regionLabel = _buildRegionLabel(
-          regionDocument: regionDocument,
-          koreaLabel: koreaLabel,
-        );
+        final regionLabel = _buildRegionLabel(regionDocument: regionDocument);
         if (regionLabel.isNotEmpty) return regionLabel;
       } catch (_) {
         // Continue with native geocoding.
@@ -163,10 +155,7 @@ class WeatherLocationService {
       latitude: latitude,
       longitude: longitude,
     );
-    final nativeLabel = _buildPlacemarkLabel(
-      placemark: nativePlacemark,
-      koreaLabel: koreaLabel,
-    );
+    final nativeLabel = _buildPlacemarkLabel(placemark: nativePlacemark);
     if (nativeLabel.isNotEmpty) return nativeLabel;
 
     if (normalizedKey.isEmpty) return '';
@@ -209,8 +198,9 @@ class WeatherLocationService {
 
     final roadAddress = first['road_address'];
     if (roadAddress is Map<String, dynamic>) {
-      final roadAddressName =
-          (roadAddress['address_name'] ?? '').toString().trim();
+      final roadAddressName = (roadAddress['address_name'] ?? '')
+          .toString()
+          .trim();
       if (roadAddressName.isNotEmpty) {
         return _compactKoreanAddress(
           addressName: roadAddressName,
@@ -272,19 +262,23 @@ class WeatherLocationService {
 
   static String _buildRegionLabel({
     required Map<String, dynamic>? regionDocument,
-    required String koreaLabel,
   }) {
     if (regionDocument == null) return '';
-    final region1 =
-        (regionDocument['region_1depth_name'] ?? '').toString().trim();
-    final region2 =
-        (regionDocument['region_2depth_name'] ?? '').toString().trim();
-    final region3 =
-        (regionDocument['region_3depth_name'] ?? '').toString().trim();
-    final region4 =
-        (regionDocument['region_4depth_name'] ?? '').toString().trim();
-    final addressName =
-        (regionDocument['address_name'] ?? '').toString().trim();
+    final region1 = (regionDocument['region_1depth_name'] ?? '')
+        .toString()
+        .trim();
+    final region2 = (regionDocument['region_2depth_name'] ?? '')
+        .toString()
+        .trim();
+    final region3 = (regionDocument['region_3depth_name'] ?? '')
+        .toString()
+        .trim();
+    final region4 = (regionDocument['region_4depth_name'] ?? '')
+        .toString()
+        .trim();
+    final addressName = (regionDocument['address_name'] ?? '')
+        .toString()
+        .trim();
 
     final compactParts = <String>[
       if (region2.isNotEmpty) region2,
@@ -292,7 +286,7 @@ class WeatherLocationService {
       if (region4.isNotEmpty && region4 != region3) region4,
     ];
     if (compactParts.isNotEmpty) {
-      return '${compactParts.take(3).join(' ')}, $koreaLabel';
+      return compactParts.take(3).join(' ');
     }
 
     final addressParts = addressName
@@ -303,9 +297,9 @@ class WeatherLocationService {
       final compactAddress = addressParts.length > 3
           ? addressParts.sublist(addressParts.length - 3)
           : addressParts;
-      return '${compactAddress.join(' ')}, $koreaLabel';
+      return compactAddress.join(' ');
     }
-    if (region1.isNotEmpty) return '$region1, $koreaLabel';
+    if (region1.isNotEmpty) return region1;
     return '';
   }
 
@@ -313,12 +307,15 @@ class WeatherLocationService {
     Map<String, dynamic>? regionDocument,
   ) {
     if (regionDocument == null) return const <String>[];
-    final region1 =
-        (regionDocument['region_1depth_name'] ?? '').toString().trim();
-    final region2 =
-        (regionDocument['region_2depth_name'] ?? '').toString().trim();
-    final region3 =
-        (regionDocument['region_3depth_name'] ?? '').toString().trim();
+    final region1 = (regionDocument['region_1depth_name'] ?? '')
+        .toString()
+        .trim();
+    final region2 = (regionDocument['region_2depth_name'] ?? '')
+        .toString()
+        .trim();
+    final region3 = (regionDocument['region_3depth_name'] ?? '')
+        .toString()
+        .trim();
     return _dedupeStationQueries(<String>[
       if (region1.isNotEmpty && region2.isNotEmpty) '$region1 $region2',
       if (region2.isNotEmpty && region3.isNotEmpty) '$region2 $region3',
@@ -355,10 +352,7 @@ class WeatherLocationService {
     }
   }
 
-  static String _buildPlacemarkLabel({
-    required Placemark? placemark,
-    required String koreaLabel,
-  }) {
+  static String _buildPlacemarkLabel({required Placemark? placemark}) {
     if (placemark == null) return '';
     final region1 = placemark.administrativeArea?.trim() ?? '';
     final region2 = _firstNonEmpty(<String?>[
@@ -375,9 +369,9 @@ class WeatherLocationService {
       if (region3.isNotEmpty && region3 != region2) region3,
     ];
     if (parts.isNotEmpty) {
-      return '${parts.join(' ')}, $koreaLabel';
+      return parts.join(' ');
     }
-    if (region1.isNotEmpty) return '$region1, $koreaLabel';
+    if (region1.isNotEmpty) return region1;
     return '';
   }
 
@@ -407,9 +401,7 @@ class WeatherLocationService {
   }) async {
     final response = await client.get(
       uri,
-      headers: <String, String>{
-        'Authorization': 'KakaoAK $kakaoRestApiKey',
-      },
+      headers: <String, String>{'Authorization': 'KakaoAK $kakaoRestApiKey'},
     );
     if (response.statusCode != 200) return null;
     final decoded = jsonDecode(utf8.decode(response.bodyBytes));
@@ -470,36 +462,18 @@ class WeatherLocationService {
           name,
       ];
       if (localParts.isNotEmpty) {
-        return '${localParts.take(2).join(' ')}, $koreaLabel';
+        return localParts.take(2).join(' ');
       }
-      if (region.isNotEmpty) return '$region, $koreaLabel';
+      if (region.isNotEmpty) return region;
       return koreaLabel;
     }
-    final parts = <String>[
-      if (neighborhood.isNotEmpty) neighborhood,
-      if (township.isNotEmpty && township != neighborhood) township,
-      if (city.isNotEmpty) city,
-      if (district.isNotEmpty &&
-          district != neighborhood &&
-          district != township &&
-          district != city)
-        district,
-      if (region.isNotEmpty &&
-          region != neighborhood &&
-          region != township &&
-          region != city &&
-          region != district)
-        region,
-      if (name.isNotEmpty &&
-          name != neighborhood &&
-          name != township &&
-          name != city &&
-          name != district &&
-          name != region)
-        name,
-      if (country.isNotEmpty) country,
-    ];
-    return parts.take(2).join(', ');
+    final primary = city.isNotEmpty ? city : name;
+    if (primary.isNotEmpty && country.isNotEmpty) {
+      return '$primary, $country';
+    }
+    if (primary.isNotEmpty) return primary;
+    if (country.isNotEmpty) return country;
+    return '';
   }
 
   static bool _isKoreaCountry(String country) {
@@ -521,7 +495,7 @@ class WeatherLocationService {
         .toList(growable: false);
     if (parts.isEmpty) return koreaLabel;
     final compact = parts.length > 3 ? parts.sublist(parts.length - 3) : parts;
-    return '${compact.join(' ')}, $koreaLabel';
+    return compact.join(' ');
   }
 
   static List<String> _dedupeStationQueries(List<String> queries) {
