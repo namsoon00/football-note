@@ -1482,7 +1482,6 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (currentState.currentRole == FamilyRole.child &&
           role == FamilyRole.parent) {
         await widget.driveBackupService!.rememberRecordDriveConnection();
-        await widget.driveBackupService!.signOut();
       } else if (currentState.currentRole == FamilyRole.parent &&
           role == FamilyRole.child) {
         await widget.driveBackupService!.rememberParentDriveConnection();
