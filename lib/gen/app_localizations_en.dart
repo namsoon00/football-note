@@ -3448,4 +3448,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get levelGuideClaimChildOnly => 'Claim in record mode';
+
+  @override
+  String get trainingSketchDrawRouteFirst => 'Draw or select a route first.';
+
+  @override
+  String get trainingSketchAddPlayerFirst => 'Add a player icon first.';
+
+  @override
+  String get trainingSketchAddBallFirst => 'Add a ball icon first.';
+
+  @override
+  String get trainingSketchRoutesButton => 'Routes';
+
+  @override
+  String get trainingSketchClearAllRoutesButton => 'Clear all routes';
+
+  @override
+  String get trainingSketchPlayerRoutesTitle => 'Player routes';
+
+  @override
+  String get trainingSketchBallRoutesTitle => 'Ball routes';
+
+  @override
+  String get trainingSketchRoutesEmpty => 'No routes yet for this type.';
+
+  @override
+  String get trainingSketchRedrawRouteButton => 'Redraw selected';
+
+  @override
+  String get trainingSketchDeleteRouteButton => 'Delete selected';
+
+  @override
+  String trainingSketchPlayerRouteChip(int index) {
+    return 'Player $index';
+  }
+
+  @override
+  String trainingSketchBallRouteChip(int index) {
+    return 'Ball $index';
+  }
+
+  @override
+  String get trainingSketchRouteReplaceHint =>
+      'Drag on the board to replace the selected route.';
+
+  @override
+  String get trainingSketchSelectedPlayerRouteHint =>
+      'Drag on the board to add another player route. The selected player will be linked to the new route.';
+
+  @override
+  String get trainingSketchSelectedBallRouteHint =>
+      'Drag on the board to add another ball route. The selected ball will be linked to the new route.';
+
+  @override
+  String get trainingSketchPlayerRouteHint =>
+      'Drag on the board to add a player route. Select a player first if you want the route linked.';
+
+  @override
+  String get trainingSketchBallRouteHint =>
+      'Drag on the board to add a ball route. Select a ball first if you want the route linked.';
+
+  @override
+  String get trainingSketchLinkPlayerHint =>
+      'Open Routes mode to link the next player route to this player.';
+
+  @override
+  String get trainingSketchLinkBallHint =>
+      'Open Routes mode to link the next ball route to this ball.';
 }

@@ -1440,5 +1440,38 @@
   "levelGuideChildModeLabel": "Record mode",
   "levelGuideParentModeDescription": "Parent mode can save reward names only. Reward claims stay in record mode.",
   "levelGuideChildModeDescription": "Record mode can claim rewards. Reward naming stays in parent mode.",
-  "levelGuideClaimChildOnly": "Claim in record mode"
+  "levelGuideClaimChildOnly": "Claim in record mode",
+  "trainingSketchDrawRouteFirst": "Draw or select a route first.",
+  "trainingSketchAddPlayerFirst": "Add a player icon first.",
+  "trainingSketchAddBallFirst": "Add a ball icon first.",
+  "trainingSketchRoutesButton": "Routes",
+  "trainingSketchClearAllRoutesButton": "Clear all routes",
+  "trainingSketchPlayerRoutesTitle": "Player routes",
+  "trainingSketchBallRoutesTitle": "Ball routes",
+  "trainingSketchRoutesEmpty": "No routes yet for this type.",
+  "trainingSketchRedrawRouteButton": "Redraw selected",
+  "trainingSketchDeleteRouteButton": "Delete selected",
+  "trainingSketchPlayerRouteChip": "Player {index}",
+  "@trainingSketchPlayerRouteChip": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchBallRouteChip": "Ball {index}",
+  "@trainingSketchBallRouteChip": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRouteReplaceHint": "Drag on the board to replace the selected route.",
+  "trainingSketchSelectedPlayerRouteHint": "Drag on the board to add another player route. The selected player will be linked to the new route.",
+  "trainingSketchSelectedBallRouteHint": "Drag on the board to add another ball route. The selected ball will be linked to the new route.",
+  "trainingSketchPlayerRouteHint": "Drag on the board to add a player route. Select a player first if you want the route linked.",
+  "trainingSketchBallRouteHint": "Drag on the board to add a ball route. Select a ball first if you want the route linked.",
+  "trainingSketchLinkPlayerHint": "Open Routes mode to link the next player route to this player.",
+  "trainingSketchLinkBallHint": "Open Routes mode to link the next ball route to this ball."
 }

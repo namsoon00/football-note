@@ -1158,13 +1158,6 @@ class _BoardPreviewPainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.55)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
-    final pathPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.7)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
     final centerX = size.width / 2;
     final centerY = size.height / 2;
     canvas.drawRRect(
@@ -1196,16 +1189,23 @@ class _BoardPreviewPainter extends CustomPainter {
       canvas.drawPath(path, strokePaint);
     }
 
-    if (page.playerPath.length >= 2) {
+    for (final route in page.routes) {
+      if (route.points.length < 2) continue;
+      final routePaint = Paint()
+        ..color = Color(route.colorValue).withValues(alpha: 0.84)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = route.width.clamp(1.2, 2.2)
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
       final path = Path()
         ..moveTo(
-          page.playerPath.first.x * size.width,
-          page.playerPath.first.y * size.height,
+          route.points.first.x * size.width,
+          route.points.first.y * size.height,
         );
-      for (final point in page.playerPath.skip(1)) {
+      for (final point in route.points.skip(1)) {
         path.lineTo(point.x * size.width, point.y * size.height);
       }
-      canvas.drawPath(path, pathPaint);
+      canvas.drawPath(path, routePaint);
     }
   }
 

@@ -3340,4 +3340,70 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get levelGuideClaimChildOnly => '기록 모드에서 수령';
+
+  @override
+  String get trainingSketchDrawRouteFirst => '먼저 이동선을 그리거나 선택해 주세요.';
+
+  @override
+  String get trainingSketchAddPlayerFirst => '먼저 사람 아이콘을 추가해 주세요.';
+
+  @override
+  String get trainingSketchAddBallFirst => '먼저 공 아이콘을 추가해 주세요.';
+
+  @override
+  String get trainingSketchRoutesButton => '이동선';
+
+  @override
+  String get trainingSketchClearAllRoutesButton => '이동선 전체 지우기';
+
+  @override
+  String get trainingSketchPlayerRoutesTitle => '사람 이동선';
+
+  @override
+  String get trainingSketchBallRoutesTitle => '공 이동선';
+
+  @override
+  String get trainingSketchRoutesEmpty => '아직 이 종류의 이동선이 없어요.';
+
+  @override
+  String get trainingSketchRedrawRouteButton => '선택 이동선 다시 그리기';
+
+  @override
+  String get trainingSketchDeleteRouteButton => '선택 이동선 삭제';
+
+  @override
+  String trainingSketchPlayerRouteChip(int index) {
+    return '사람 $index';
+  }
+
+  @override
+  String trainingSketchBallRouteChip(int index) {
+    return '공 $index';
+  }
+
+  @override
+  String get trainingSketchRouteReplaceHint => '보드를 드래그하면 선택한 이동선을 다시 그립니다.';
+
+  @override
+  String get trainingSketchSelectedPlayerRouteHint =>
+      '보드를 드래그하면 새 사람 이동선이 추가됩니다. 지금 선택한 사람과 연결해서 저장합니다.';
+
+  @override
+  String get trainingSketchSelectedBallRouteHint =>
+      '보드를 드래그하면 새 공 이동선이 추가됩니다. 지금 선택한 공과 연결해서 저장합니다.';
+
+  @override
+  String get trainingSketchPlayerRouteHint =>
+      '보드를 드래그하면 새 사람 이동선이 추가됩니다. 특정 사람과 연결하려면 먼저 그 사람을 선택해 주세요.';
+
+  @override
+  String get trainingSketchBallRouteHint =>
+      '보드를 드래그하면 새 공 이동선이 추가됩니다. 특정 공과 연결하려면 먼저 공을 선택해 주세요.';
+
+  @override
+  String get trainingSketchLinkPlayerHint =>
+      '이동선 모드에서 다음 사람 이동선을 이 사람과 연결할 수 있어요.';
+
+  @override
+  String get trainingSketchLinkBallHint => '이동선 모드에서 다음 공 이동선을 이 공과 연결할 수 있어요.';
 }

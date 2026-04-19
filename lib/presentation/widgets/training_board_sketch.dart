@@ -146,12 +146,6 @@ class _TrainingBoardSketchPainter extends CustomPainter {
       ..color = Colors.white.withValues(alpha: 0.55)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4;
-    final playerPathPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.72)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
 
     final centerX = size.width / 2;
     final centerY = size.height / 2;
@@ -186,34 +180,30 @@ class _TrainingBoardSketchPainter extends CustomPainter {
       }
     }
 
-    if (showPlayerPath && page.playerPath.length >= 2) {
-      final playerPath = Path()
-        ..moveTo(
-          page.playerPath.first.x * size.width,
-          page.playerPath.first.y * size.height,
-        );
-      for (final point in page.playerPath.skip(1)) {
-        playerPath.lineTo(point.x * size.width, point.y * size.height);
-      }
-      canvas.drawPath(playerPath, playerPathPaint);
-    }
-
-    if (showBallPath && page.ballPath.length >= 2) {
-      final ballPaint = Paint()
-        ..color = const Color(0xFFFFF59D)
+    for (final route in page.routes) {
+      if (route.points.length < 2) continue;
+      final shouldDraw = switch (route.kind) {
+        TrainingMethodRouteKind.player => showPlayerPath,
+        TrainingMethodRouteKind.ball => showBallPath,
+      };
+      if (!shouldDraw) continue;
+      final routePaint = Paint()
+        ..color = Color(route.colorValue).withValues(
+          alpha: route.kind == TrainingMethodRouteKind.player ? 0.78 : 0.92,
+        )
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
+        ..strokeWidth = route.width.clamp(1.6, 3.2)
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
-      final ballPath = Path()
+      final path = Path()
         ..moveTo(
-          page.ballPath.first.x * size.width,
-          page.ballPath.first.y * size.height,
+          route.points.first.x * size.width,
+          route.points.first.y * size.height,
         );
-      for (final point in page.ballPath.skip(1)) {
-        ballPath.lineTo(point.x * size.width, point.y * size.height);
+      for (final point in route.points.skip(1)) {
+        path.lineTo(point.x * size.width, point.y * size.height);
       }
-      canvas.drawPath(ballPath, ballPaint);
+      canvas.drawPath(path, routePaint);
     }
   }
 
