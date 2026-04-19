@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:football_note/application/backup_service.dart';
 import 'package:football_note/application/drive_connection_info.dart';
 import 'package:football_note/application/family_access_service.dart';
@@ -412,6 +414,64 @@ void main() {
     expect(find.text('민수 · player@example.com'), findsWidgets);
     expect(find.text('Google 로그인이 필요해요.'), findsNothing);
   });
+
+  testWidgets('settings reacts immediately to external Drive account changes', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: false,
+      connectionInfo: null,
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Google로 로그인'), findsOneWidget);
+
+    backupService.updateAccountState(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'runner@example.com',
+        displayName: '러너',
+        subjectId: 'runner-1',
+      ),
+    );
+    backupService.emitDriveAccountStateChanged();
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('로그아웃'), findsOneWidget);
+    expect(find.text('러너 · runner@example.com'), findsWidgets);
+
+    backupService.updateAccountState(
+      signedIn: false,
+      connectionInfo: null,
+    );
+    backupService.emitDriveAccountStateChanged();
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Google로 로그인'), findsOneWidget);
+    expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsOneWidget);
+  });
 }
 
 class _FakeDriveBackupService extends BackupService {
@@ -431,6 +491,8 @@ class _FakeDriveBackupService extends BackupService {
   final bool throwIsSignedInAfterSignInOnce;
   bool signOutCalled;
   bool refreshParentSharedDataIfNeededCalled;
+  final StreamController<void> _driveAccountStateController =
+      StreamController<void>.broadcast();
 
   _FakeDriveBackupService({
     required bool signedIn,
@@ -466,9 +528,25 @@ class _FakeDriveBackupService extends BackupService {
   bool get signedIn => _signedIn;
   DriveConnectionInfo? get connectionInfo => _connectionInfo;
 
+  void updateAccountState({
+    required bool signedIn,
+    required DriveConnectionInfo? connectionInfo,
+  }) {
+    _signedIn = signedIn;
+    _connectionInfo = connectionInfo;
+  }
+
+  void emitDriveAccountStateChanged() {
+    _driveAccountStateController.add(null);
+  }
+
   @override
   Future<DriveConnectionInfo?> getDriveConnectionInfo() async =>
       _connectionInfo;
+
+  @override
+  Stream<void> driveAccountStateChanges() =>
+      _driveAccountStateController.stream;
 
   @override
   String getSharedChildDriveEmail() => _sharedChildDriveEmail;

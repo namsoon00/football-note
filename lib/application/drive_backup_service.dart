@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -38,7 +39,9 @@ class DriveBackupService implements BackupRepository {
         _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
         _backupAssetFileStore =
             backupAssetFileStore ?? createBackupAssetFileStore(),
-        _driveConnectionLoader = driveConnectionLoader;
+        _driveConnectionLoader = driveConnectionLoader {
+    _bindDriveAccountStateChanges();
+  }
 
   final Box<TrainingEntry> _trainingBox;
   final Box _optionBox;
@@ -46,7 +49,11 @@ class DriveBackupService implements BackupRepository {
   final FirebaseAuth? _firebaseAuth;
   final BackupAssetFileStore _backupAssetFileStore;
   final Future<DriveConnectionInfo?> Function()? _driveConnectionLoader;
+  final StreamController<void> _driveAccountStateController =
+      StreamController<void>.broadcast();
   String? _webAccessToken;
+  StreamSubscription<GoogleSignInAccount?>? _googleAccountSubscription;
+  StreamSubscription<User?>? _firebaseAuthSubscription;
 
   static FirebaseAuth? _safeFirebaseAuth() {
     if (kIsWeb) {
@@ -126,11 +133,14 @@ class DriveBackupService implements BackupRepository {
   static const _assetRefPrefix = 'backup_asset://';
   static const _profilePhotoOptionKey = 'profile_photo_url';
 
+  Stream<void> driveAccountStateChanges() =>
+      _driveAccountStateController.stream;
+
   @override
   Future<void> backup() async {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
-      await _refreshConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache();
       await _syncSharedChildDriveMetadataIfNeeded();
       await _backupWithApi(driveApi);
     } catch (e, st) {
@@ -141,7 +151,7 @@ class DriveBackupService implements BackupRepository {
       debugPrintStack(stackTrace: st);
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
-      await _refreshConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache();
       await _syncSharedChildDriveMetadataIfNeeded();
       await _backupWithApi(retriedApi);
     }
@@ -158,7 +168,7 @@ class DriveBackupService implements BackupRepository {
       }
       try {
         final driveApi = await _driveApi(requireInteractive: false);
-        await _refreshConnectedDriveAccountCache();
+        await _syncConnectedDriveAccountCache();
         await _syncSharedChildDriveMetadataIfNeeded();
         await _backupWithApi(driveApi);
         return true;
@@ -181,7 +191,7 @@ class DriveBackupService implements BackupRepository {
       if (account == null) {
         return false;
       }
-      await _refreshConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache();
       await _syncSharedChildDriveMetadataIfNeeded();
       final authHeaders = await account.authHeaders;
       final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
@@ -256,7 +266,7 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<DriveConnectionInfo?> getDriveConnectionInfo() async {
-    await _refreshConnectedDriveAccountCache();
+    await _syncConnectedDriveAccountCache();
     final cached = _loadCachedDriveConnectionInfo();
     return cached?.isEmpty ?? true ? null : cached;
   }
@@ -345,18 +355,20 @@ class DriveBackupService implements BackupRepository {
   Future<void> signIn() async {
     if (kIsWeb) {
       await _ensureWebAccessToken(requireInteractive: true);
-      await _refreshConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache();
       return;
     }
     await _ensureSignedIn(requireInteractive: true);
-    await _refreshConnectedDriveAccountCache();
+    await _syncConnectedDriveAccountCache();
   }
 
   Future<bool> isSignedIn() async {
     if (kIsWeb) {
       final signedIn = _firebaseAuth?.currentUser != null;
       if (signedIn) {
-        await _refreshConnectedDriveAccountCache();
+        await _syncConnectedDriveAccountCache();
+      } else {
+        await _clearConnectedDriveAccountCache();
       }
       return signedIn;
     }
@@ -365,7 +377,9 @@ class DriveBackupService implements BackupRepository {
     var account = google.currentUser;
     account ??= await google.signInSilently();
     if (account != null) {
-      await _refreshConnectedDriveAccountCache();
+      await _syncConnectedDriveAccountCache();
+    } else {
+      await _clearConnectedDriveAccountCache();
     }
     return account != null;
   }
@@ -580,9 +594,12 @@ class DriveBackupService implements BackupRepository {
     }
   }
 
-  Future<void> _refreshConnectedDriveAccountCache() async {
+  Future<void> _syncConnectedDriveAccountCache() async {
     final info = await _loadDriveConnectionInfo();
-    if (info == null || info.isEmpty) return;
+    if (info == null || info.isEmpty) {
+      await _clearConnectedDriveAccountCache();
+      return;
+    }
     await _optionBox.put(connectedDriveEmailLocalKey, info.email.trim());
     await _optionBox.put(
       connectedDriveLabelLocalKey,
@@ -595,6 +612,41 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.delete(connectedDriveEmailLocalKey);
     await _optionBox.delete(connectedDriveLabelLocalKey);
     await _optionBox.delete(connectedDriveSubjectLocalKey);
+  }
+
+  void _bindDriveAccountStateChanges() {
+    unawaited(_googleAccountSubscription?.cancel());
+    unawaited(_firebaseAuthSubscription?.cancel());
+    if (kIsWeb) {
+      final auth = _firebaseAuth;
+      if (auth == null) {
+        return;
+      }
+      _firebaseAuthSubscription = auth.authStateChanges().listen(
+            (_) => unawaited(_handleDriveAccountStateChanged()),
+          );
+      return;
+    }
+    final google = _googleSignIn;
+    if (google == null) {
+      return;
+    }
+    _googleAccountSubscription = google.onCurrentUserChanged.listen(
+      (_) => unawaited(_handleDriveAccountStateChanged()),
+    );
+  }
+
+  Future<void> _handleDriveAccountStateChanged() async {
+    try {
+      await _syncConnectedDriveAccountCache();
+    } catch (e, st) {
+      debugPrint('Drive account state sync failed: $e');
+      debugPrintStack(stackTrace: st);
+    } finally {
+      if (!_driveAccountStateController.isClosed) {
+        _driveAccountStateController.add(null);
+      }
+    }
   }
 
   DriveConnectionInfo? _loadCachedDriveConnectionInfo() {
