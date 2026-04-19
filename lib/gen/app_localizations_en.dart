@@ -3338,6 +3338,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familySharedLastSync => 'Last family sync';
 
   @override
+  String get familySharedLastPush => 'Last family push';
+
+  @override
+  String get familySharedLastRefresh => 'Last family refresh';
+
+  @override
+  String get familySharedAutoRefreshDescription =>
+      'When parent mode opens or the app resumes, the latest family sharing state is checked automatically. Auto refresh pauses when local parent-mode changes have not been pushed yet.';
+
+  @override
+  String get familySharedPendingLocalChanges =>
+      'Automatic refresh is paused because local parent-mode changes are still waiting to be pushed.';
+
+  @override
   String get familySharedRestore => 'Restore family sharing';
 
   @override

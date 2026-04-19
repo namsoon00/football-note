@@ -470,6 +470,40 @@ void main() {
     expect(optionBox.get('theme_mode'), 'dark');
   });
 
+  test('parent auto refresh checks remote freshness against last push and pull',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await service.recordFamilySyncPushForTesting(DateTime(2026, 4, 19, 10));
+    await service.recordFamilySyncPullForTesting(DateTime(2026, 4, 19, 11));
+
+    expect(
+      service.shouldRefreshParentSharedDataForTesting(
+        remoteModifiedAt: DateTime(2026, 4, 19, 10, 30),
+      ),
+      isFalse,
+    );
+    expect(
+      service.shouldRefreshParentSharedDataForTesting(
+        remoteModifiedAt: DateTime(2026, 4, 19, 11, 1),
+      ),
+      isTrue,
+    );
+  });
+
+  test('parent auto refresh is blocked while local shared changes are pending',
+      () async {
+    await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');
+    await service.markParentSharedDataDirtyForTesting();
+
+    expect(service.hasPendingParentSharedChanges(), isTrue);
+    expect(
+      service.shouldRefreshParentSharedDataForTesting(
+        remoteModifiedAt: DateTime(2026, 4, 19, 12),
+      ),
+      isFalse,
+    );
+  });
+
   test('parent merge keeps remote entries and updates family layer only',
       () async {
     await optionBox.put(FamilyAccessService.currentRoleLocalKey, 'parent');

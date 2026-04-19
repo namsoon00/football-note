@@ -68,6 +68,10 @@ class DriveBackupService implements BackupRepository {
   static const _autoDailyKey = 'drive_auto_daily';
   static const _autoOnSaveKey = 'drive_auto_on_save';
   static const _lastBackupKey = 'drive_last_backup';
+  static const _lastRecordBackupKey = 'drive_last_record_backup_v1';
+  static const _lastFamilySyncPushAtKey = 'drive_last_family_sync_push_v1';
+  static const _lastFamilySyncPullAtKey = 'drive_last_family_sync_pull_v1';
+  static const _parentSharedDataDirtyKey = 'drive_parent_shared_dirty_v1';
   static const _localPreRestoreKey = 'local_pre_restore_backup';
   static const _localPreRestoreAtKey = 'local_pre_restore_backup_at';
   static const connectedDriveEmailLocalKey = 'drive_connected_email_local_v1';
@@ -95,6 +99,10 @@ class DriveBackupService implements BackupRepository {
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
+    _lastRecordBackupKey,
+    _lastFamilySyncPushAtKey,
+    _lastFamilySyncPullAtKey,
+    _parentSharedDataDirtyKey,
     _localPreRestoreKey,
     _localPreRestoreAtKey,
     FamilyAccessService.messagesKey,
@@ -197,16 +205,13 @@ class DriveBackupService implements BackupRepository {
     if (!isAutoDailyEnabled()) {
       return;
     }
-    final last = _getLastBackup();
+    final last = getLastRecordBackup();
     final now = DateTime.now();
     if (last != null && _isSameDay(last, now)) {
       return;
     }
     try {
-      final didBackup = await backupIfSignedIn();
-      if (didBackup) {
-        await _setLastBackup(now);
-      }
+      await backupIfSignedIn();
     } catch (_) {
       // Ignore auto-backup failures on app start.
     }
@@ -233,7 +238,22 @@ class DriveBackupService implements BackupRepository {
   }
 
   @override
-  DateTime? getLastBackup() => _getLastBackup();
+  DateTime? getLastBackup() => getLastRecordBackup();
+
+  DateTime? getLastRecordBackup() =>
+      _getDateTimeOption(_lastRecordBackupKey) ??
+      _getDateTimeOption(_lastBackupKey);
+
+  DateTime? getLastFamilySyncPush() =>
+      _getDateTimeOption(_lastFamilySyncPushAtKey);
+
+  DateTime? getLastFamilySyncPull() =>
+      _getDateTimeOption(_lastFamilySyncPullAtKey);
+
+  bool hasPendingParentSharedChanges() {
+    return _optionBox.get(_parentSharedDataDirtyKey, defaultValue: false) ==
+        true;
+  }
 
   Future<DriveConnectionInfo?> getDriveConnectionInfo() async {
     await _refreshConnectedDriveAccountCache();
@@ -414,6 +434,62 @@ class DriveBackupService implements BackupRepository {
     );
   }
 
+  Future<void> markParentSharedDataDirty() async {
+    if (_familyService.loadState().currentRole != FamilyRole.parent) {
+      return;
+    }
+    await _setParentSharedDataDirty(true);
+  }
+
+  @visibleForTesting
+  Future<void> markParentSharedDataDirtyForTesting() async {
+    await _setParentSharedDataDirty(true);
+  }
+
+  @visibleForTesting
+  Future<void> recordFamilySyncPushForTesting(DateTime value) async {
+    await _recordFamilySyncPush(value);
+  }
+
+  @visibleForTesting
+  Future<void> recordFamilySyncPullForTesting(DateTime value) async {
+    await _recordFamilySyncPull(value);
+  }
+
+  Future<bool> refreshParentSharedDataIfNeeded() async {
+    final state = _familyService.loadState();
+    if (state.currentRole != FamilyRole.parent) {
+      return false;
+    }
+    try {
+      final driveApi = await _driveApi(requireInteractive: false);
+      final folderId = await _findFolderId(driveApi);
+      if (folderId == null) {
+        return false;
+      }
+      final file = await _findBackupFile(driveApi, folderId);
+      if (file == null) {
+        return false;
+      }
+      if (!_shouldRefreshParentSharedData(
+          remoteModifiedAt: file.modifiedTime)) {
+        return false;
+      }
+      await _saveLocalPreRestore();
+      await _restoreBackupFileWithApi(driveApi, file);
+      await _recordFamilySyncPull(file.modifiedTime ?? DateTime.now());
+      await _setParentSharedDataDirty(false);
+      return true;
+    } catch (e, st) {
+      if (_isAuthError(e)) {
+        return false;
+      }
+      debugPrint('Parent shared refresh skipped: $e');
+      debugPrintStack(stackTrace: st);
+      return false;
+    }
+  }
+
   Future<void> _reauthenticateForDriveScope() async {
     if (kIsWeb) {
       await _firebaseAuth?.signOut();
@@ -580,15 +656,9 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {
-    final result = await api.files.list(
-      q: "mimeType='application/vnd.google-apps.folder' and "
-          "name='$_folderName' and trashed=false",
-      spaces: 'drive',
-      $fields: 'files(id,name)',
-    );
-    final existing = result.files?.firstOrNull;
-    if (existing?.id != null) {
-      return existing!.id!;
+    final existingId = await _findFolderId(api);
+    if (existingId != null) {
+      return existingId;
     }
     final folder = await api.files.create(
       drive.File(
@@ -597,6 +667,17 @@ class DriveBackupService implements BackupRepository {
       ),
     );
     return folder.id!;
+  }
+
+  Future<String?> _findFolderId(drive.DriveApi api) async {
+    final result = await api.files.list(
+      q: "mimeType='application/vnd.google-apps.folder' and "
+          "name='$_folderName' and trashed=false",
+      spaces: 'drive',
+      $fields: 'files(id,name)',
+    );
+    final existing = result.files?.firstOrNull;
+    return existing?.id;
   }
 
   Future<drive.File?> _findBackupFile(
@@ -646,43 +727,62 @@ class DriveBackupService implements BackupRepository {
     );
     final bytes = utf8.encode(jsonEncode(data));
     final media = drive.Media(Stream.value(bytes), bytes.length);
+    late final DateTime syncedAt;
     if (existing != null) {
-      await driveApi.files.update(
+      final updated = await driveApi.files.update(
         drive.File(name: _fileName),
         existing.id!,
         uploadMedia: media,
+        $fields: 'id,modifiedTime',
       );
+      syncedAt = updated.modifiedTime ?? DateTime.now();
       await _cleanupDuplicateBackups(driveApi, folderId, existing.id!);
-      await _familyService.recordSharedBackupSync(
-          role: familyState.currentRole);
-      await _setLastBackup(DateTime.now());
+      await _recordSyncSuccess(
+        role: familyState.currentRole,
+        syncedAt: syncedAt,
+      );
       return;
     }
 
     final created = await driveApi.files.create(
       drive.File(name: _fileName, parents: [folderId]),
       uploadMedia: media,
+      $fields: 'id,modifiedTime',
     );
-
-    await _familyService.recordSharedBackupSync(role: familyState.currentRole);
-    await _setLastBackup(DateTime.now());
+    syncedAt = created.modifiedTime ?? DateTime.now();
+    await _recordSyncSuccess(
+      role: familyState.currentRole,
+      syncedAt: syncedAt,
+    );
     if (created.id != null) {
       await _cleanupDuplicateBackups(driveApi, folderId, created.id!);
     }
   }
 
   Future<void> _restoreLatestWithApi(drive.DriveApi driveApi) async {
-    final folderId = await _findOrCreateFolder(driveApi);
+    final folderId = await _findFolderId(driveApi);
+    if (folderId == null) {
+      throw StateError('No backup file found.');
+    }
     final file = await _findBackupFile(driveApi, folderId);
     if (file == null) {
       throw StateError('No backup file found.');
     }
+    await _restoreBackupFileWithApi(driveApi, file);
+    if (_familyService.loadState().currentRole == FamilyRole.parent) {
+      await _recordFamilySyncPull(file.modifiedTime ?? DateTime.now());
+      await _setParentSharedDataDirty(false);
+    }
+  }
 
+  Future<void> _restoreBackupFileWithApi(
+    drive.DriveApi driveApi,
+    drive.File file,
+  ) async {
     final media = await driveApi.files.get(
       file.id!,
       downloadOptions: drive.DownloadOptions.fullMedia,
     ) as drive.Media;
-
     final content = await utf8.decoder.bind(media.stream).join();
     final data = jsonDecode(content) as Map<String, dynamic>;
     _validateRestoreBinding(data);
@@ -778,6 +878,10 @@ class DriveBackupService implements BackupRepository {
     final options = (data['options'] as Map?) ?? const {};
     final assetRecords = _extractAssetRecords(data);
     final lastBackupRaw = _optionBox.get(_lastBackupKey);
+    final lastRecordBackupRaw = _optionBox.get(_lastRecordBackupKey);
+    final lastFamilySyncPushRaw = _optionBox.get(_lastFamilySyncPushAtKey);
+    final lastFamilySyncPullRaw = _optionBox.get(_lastFamilySyncPullAtKey);
+    final parentSharedDirtyRaw = _optionBox.get(_parentSharedDataDirtyKey);
     final localPreRestoreRaw = _optionBox.get(_localPreRestoreKey);
     final localPreRestoreAtRaw = _optionBox.get(_localPreRestoreAtKey);
     final preservedLocalOnly = <String, dynamic>{
@@ -794,6 +898,10 @@ class DriveBackupService implements BackupRepository {
       parentDriveEmailLocalKey: _optionBox.get(parentDriveEmailLocalKey),
       parentDriveLabelLocalKey: _optionBox.get(parentDriveLabelLocalKey),
       parentDriveSubjectLocalKey: _optionBox.get(parentDriveSubjectLocalKey),
+      _lastRecordBackupKey: lastRecordBackupRaw,
+      _lastFamilySyncPushAtKey: lastFamilySyncPushRaw,
+      _lastFamilySyncPullAtKey: lastFamilySyncPullRaw,
+      _parentSharedDataDirtyKey: parentSharedDirtyRaw,
     };
 
     await _trainingBox.clear();
@@ -1082,6 +1190,51 @@ class DriveBackupService implements BackupRepository {
     return raw?.trim().toLowerCase() ?? '';
   }
 
+  Future<void> _recordSyncSuccess({
+    required FamilyRole role,
+    required DateTime syncedAt,
+  }) async {
+    await _familyService.recordSharedBackupSync(role: role, syncedAt: syncedAt);
+    if (role == FamilyRole.parent) {
+      await _recordFamilySyncPush(syncedAt);
+      await _setParentSharedDataDirty(false);
+      return;
+    }
+    await _setLastRecordBackup(syncedAt);
+  }
+
+  bool _shouldRefreshParentSharedData({required DateTime? remoteModifiedAt}) {
+    if (_familyService.loadState().currentRole != FamilyRole.parent) {
+      return false;
+    }
+    if (hasPendingParentSharedChanges()) {
+      return false;
+    }
+    if (remoteModifiedAt == null) {
+      return getLastFamilySyncPull() == null;
+    }
+    final lastPushAt = getLastFamilySyncPush();
+    final lastPullAt = getLastFamilySyncPull();
+    final knownRemoteAt = switch ((lastPushAt, lastPullAt)) {
+      (final DateTime push, final DateTime pull) =>
+        push.isAfter(pull) ? push : pull,
+      (final DateTime push, null) => push,
+      (null, final DateTime pull) => pull,
+      _ => null,
+    };
+    if (knownRemoteAt == null) {
+      return true;
+    }
+    return remoteModifiedAt.isAfter(knownRemoteAt);
+  }
+
+  @visibleForTesting
+  bool shouldRefreshParentSharedDataForTesting({
+    required DateTime? remoteModifiedAt,
+  }) {
+    return _shouldRefreshParentSharedData(remoteModifiedAt: remoteModifiedAt);
+  }
+
   Future<void> _rememberDriveConnection({
     required String emailKey,
     required String labelKey,
@@ -1139,18 +1292,38 @@ class DriveBackupService implements BackupRepository {
     }
     final data = jsonDecode(raw) as Map<String, dynamic>;
     await _restoreFromMap(data);
+    if (_familyService.loadState().currentRole == FamilyRole.parent) {
+      await _setParentSharedDataDirty(true);
+    }
   }
 
-  DateTime? _getLastBackup() {
-    final value = _optionBox.get(_lastBackupKey);
+  DateTime? _getDateTimeOption(String key) {
+    final value = _optionBox.get(key);
     if (value is String) {
       return DateTime.tryParse(value);
     }
     return null;
   }
 
-  Future<void> _setLastBackup(DateTime value) async {
-    await _optionBox.put(_lastBackupKey, value.toIso8601String());
+  Future<void> _setDateTimeOption(String key, DateTime value) async {
+    await _optionBox.put(key, value.toIso8601String());
+  }
+
+  Future<void> _setLastRecordBackup(DateTime value) async {
+    await _setDateTimeOption(_lastRecordBackupKey, value);
+    await _setDateTimeOption(_lastBackupKey, value);
+  }
+
+  Future<void> _recordFamilySyncPush(DateTime value) async {
+    await _setDateTimeOption(_lastFamilySyncPushAtKey, value);
+  }
+
+  Future<void> _recordFamilySyncPull(DateTime value) async {
+    await _setDateTimeOption(_lastFamilySyncPullAtKey, value);
+  }
+
+  Future<void> _setParentSharedDataDirty(bool value) async {
+    await _optionBox.put(_parentSharedDataDirtyKey, value);
   }
 
   bool _isSameDay(DateTime a, DateTime b) {

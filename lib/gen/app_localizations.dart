@@ -5786,6 +5786,30 @@ abstract class AppLocalizations {
   /// **'Last family sync'**
   String get familySharedLastSync;
 
+  /// No description provided for @familySharedLastPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Last family push'**
+  String get familySharedLastPush;
+
+  /// No description provided for @familySharedLastRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Last family refresh'**
+  String get familySharedLastRefresh;
+
+  /// No description provided for @familySharedAutoRefreshDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'When parent mode opens or the app resumes, the latest family sharing state is checked automatically. Auto refresh pauses when local parent-mode changes have not been pushed yet.'**
+  String get familySharedAutoRefreshDescription;
+
+  /// No description provided for @familySharedPendingLocalChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic refresh is paused because local parent-mode changes are still waiting to be pushed.'**
+  String get familySharedPendingLocalChanges;
+
   /// No description provided for @familySharedRestore.
   ///
   /// In en, this message translates to:

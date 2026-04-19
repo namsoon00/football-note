@@ -175,7 +175,12 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   Future<void> _syncSharedBackupSilently() async {
     final backup = widget.driveBackupService;
     if (backup == null) return;
+    final familyState =
+        FamilyAccessService(widget.optionRepository).loadState();
     try {
+      if (familyState.isParentMode) {
+        await backup.markParentSharedDataDirty();
+      }
       await backup.backupIfSignedIn();
     } catch (_) {
       // Reward changes still remain local if the shared backup is unavailable.

@@ -28,6 +28,34 @@ class BackupService {
 
   DateTime? getLastBackup() => _repository.getLastBackup();
 
+  DateTime? getLastRecordBackup() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getLastRecordBackup();
+    }
+    return _repository.getLastBackup();
+  }
+
+  DateTime? getLastFamilySyncPush() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getLastFamilySyncPush();
+    }
+    return null;
+  }
+
+  DateTime? getLastFamilySyncPull() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getLastFamilySyncPull();
+    }
+    return null;
+  }
+
+  bool hasPendingParentSharedChanges() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.hasPendingParentSharedChanges();
+    }
+    return false;
+  }
+
   bool hasLocalPreRestoreBackup() {
     if (_repository case final DriveBackupService drive) {
       return drive.hasLocalPreRestoreBackup();
@@ -162,5 +190,18 @@ class BackupService {
     if (_repository case final DriveBackupService drive) {
       await drive.signOut();
     }
+  }
+
+  Future<void> markParentSharedDataDirty() async {
+    if (_repository case final DriveBackupService drive) {
+      await drive.markParentSharedDataDirty();
+    }
+  }
+
+  Future<bool> refreshParentSharedDataIfNeeded() async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.refreshParentSharedDataIfNeeded();
+    }
+    return false;
   }
 }
