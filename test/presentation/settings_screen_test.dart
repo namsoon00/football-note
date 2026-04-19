@@ -475,6 +475,60 @@ void main() {
     expect(find.text('Google로 로그인'), findsOneWidget);
     expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsOneWidget);
   });
+
+  testWidgets(
+    'parent mode uses remote backup fallback when shared player drive metadata is missing',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      await optionRepository.setValue(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.parent.name,
+      );
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: true,
+        connectionInfo: const DriveConnectionInfo(
+          email: 'parent@example.com',
+          displayName: '부모',
+          subjectId: 'parent-1',
+        ),
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        hasRemotePlayerBackup: true,
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('선수 Google Drive 연결'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
+      expect(
+          find.text(
+              '원격 선수 백업은 확인됐어요. 기록 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.'),
+          findsOneWidget);
+      expect(find.text('아직 선수 Drive 정보가 없어요. 기록 모드에서 먼저 한 번 백업해 주세요.'),
+          findsNothing);
+    },
+  );
 }
 
 class _FakeDriveBackupService extends BackupService {
@@ -489,6 +543,8 @@ class _FakeDriveBackupService extends BackupService {
   final DateTime? _lastFamilySyncPushAt;
   final DateTime? _lastFamilySyncPullAt;
   final DateTime? _localPreRestoreAt;
+  final DriveConnectionInfo? _remoteSharedChildConnectionInfo;
+  final bool _hasRemotePlayerBackup;
   bool _pendingParentSharedChanges;
   final DriveConnectionInfo? signInConnectionInfo;
   bool throwNextIsSignedIn;
@@ -510,6 +566,8 @@ class _FakeDriveBackupService extends BackupService {
     DateTime? lastFamilySyncPushAt,
     DateTime? lastFamilySyncPullAt,
     DateTime? localPreRestoreAt,
+    DriveConnectionInfo? remoteSharedChildConnectionInfo,
+    bool hasRemotePlayerBackup = false,
     bool pendingParentSharedChanges = false,
     this.signInConnectionInfo,
     this.throwIsSignedInAfterSignInOnce = false,
@@ -528,6 +586,8 @@ class _FakeDriveBackupService extends BackupService {
         _lastFamilySyncPushAt = lastFamilySyncPushAt,
         _lastFamilySyncPullAt = lastFamilySyncPullAt,
         _localPreRestoreAt = localPreRestoreAt,
+        _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
+        _hasRemotePlayerBackup = hasRemotePlayerBackup,
         _pendingParentSharedChanges = pendingParentSharedChanges,
         super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
 
@@ -559,6 +619,38 @@ class _FakeDriveBackupService extends BackupService {
 
   @override
   String getSharedChildDriveLabel() => _sharedChildDriveLabel;
+
+  @override
+  Future<DriveConnectionInfo?> getSharedChildDriveConnectionInfo({
+    bool allowRemoteLookup = false,
+  }) async {
+    final localLabel = _sharedChildDriveLabel.trim();
+    final localEmail = _sharedChildDriveEmail.trim();
+    if (localLabel.isNotEmpty || localEmail.isNotEmpty) {
+      var displayName = localLabel;
+      if (localEmail.isNotEmpty) {
+        final suffix = ' · $localEmail';
+        if (localLabel.endsWith(suffix)) {
+          displayName =
+              localLabel.substring(0, localLabel.length - suffix.length).trim();
+        } else if (localLabel.toLowerCase() == localEmail.toLowerCase()) {
+          displayName = '';
+        }
+      }
+      return DriveConnectionInfo(
+        email: localEmail,
+        displayName: displayName,
+        subjectId: 'shared-child',
+      );
+    }
+    if (allowRemoteLookup) {
+      return _remoteSharedChildConnectionInfo;
+    }
+    return null;
+  }
+
+  @override
+  Future<bool> hasRemotePlayerBackup() async => _hasRemotePlayerBackup;
 
   @override
   String getSavedRecordDriveEmail() => _savedRecordDriveEmail;

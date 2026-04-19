@@ -3320,6 +3320,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No player Drive account is known yet. Create at least one backup in record mode first.';
 
   @override
+  String get driveSharedChildAccountRemoteBackup =>
+      'A remote player backup was found. Connect the same Google Drive account used in record mode.';
+
+  @override
   String get familyParentUsesChildDriveHint =>
       'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same backup file.';
 

@@ -98,6 +98,24 @@ class BackupService {
     return null;
   }
 
+  Future<DriveConnectionInfo?> getSharedChildDriveConnectionInfo({
+    bool allowRemoteLookup = false,
+  }) async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getSharedChildDriveConnectionInfo(
+        allowRemoteLookup: allowRemoteLookup,
+      );
+    }
+    return null;
+  }
+
+  Future<bool> hasRemotePlayerBackup() async {
+    if (_repository case final DriveBackupService drive) {
+      return drive.hasRemotePlayerBackup();
+    }
+    return false;
+  }
+
   Stream<void> driveAccountStateChanges() {
     if (_repository case final DriveBackupService drive) {
       return drive.driveAccountStateChanges();
