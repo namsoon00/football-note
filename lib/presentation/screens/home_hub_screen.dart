@@ -2264,7 +2264,7 @@ class _HomeWeatherBadgeParts {
     }
     return _HomeWeatherBadgeParts(
       primary: match.group(2)!,
-      secondary: match.group(1)!,
+      secondary: null,
     );
   }
 }

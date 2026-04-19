@@ -942,13 +942,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '야외 활동을 중단하고 실내에서 쉬는 편이 더 안전한 공기 상태예요.';
 
   @override
-  String get homeWeatherComparedYesterday => '어제 같은 시간 대비';
+  String get homeWeatherComparedYesterday => '어제 대비';
 
   @override
-  String get homeWeatherPm10 => '미세먼지 PM10';
+  String get homeWeatherPm10 => '미세먼지';
 
   @override
-  String get homeWeatherPm25 => '초미세먼지 PM2.5';
+  String get homeWeatherPm25 => '초미세먼지';
 
   @override
   String get homeWeatherAqi => 'AQI';

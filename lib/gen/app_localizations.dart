@@ -1889,19 +1889,19 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeatherComparedYesterday.
   ///
   /// In en, this message translates to:
-  /// **'Vs. yesterday at this time'**
+  /// **'Vs. yesterday'**
   String get homeWeatherComparedYesterday;
 
   /// No description provided for @homeWeatherPm10.
   ///
   /// In en, this message translates to:
-  /// **'PM10'**
+  /// **'Fine dust'**
   String get homeWeatherPm10;
 
   /// No description provided for @homeWeatherPm25.
   ///
   /// In en, this message translates to:
-  /// **'PM2.5'**
+  /// **'Ultrafine dust'**
   String get homeWeatherPm25;
 
   /// No description provided for @homeWeatherAqi.
