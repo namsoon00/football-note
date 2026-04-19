@@ -65,8 +65,10 @@ void main() {
       routes.where((route) => route.kind == TrainingMethodRouteKind.player),
       hasLength(2),
     );
-    expect(routes.every((route) => route.linkedItemId?.isNotEmpty == true),
-        isTrue);
+    expect(
+      routes.every((route) => route.linkedItemId?.isNotEmpty == true),
+      isTrue,
+    );
   });
 
   testWidgets('selected route can be deleted without clearing others', (
@@ -78,12 +80,7 @@ void main() {
         TrainingMethodPage(
           name: 'Board',
           items: <TrainingMethodItem>[
-            TrainingMethodItem(
-              id: 'player-1',
-              type: 'player',
-              x: 0.2,
-              y: 0.5,
-            ),
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
           ],
           routes: <TrainingMethodRoute>[
             TrainingMethodRoute(
@@ -140,6 +137,90 @@ void main() {
       routes.where((route) => route.kind == TrainingMethodRouteKind.player),
       hasLength(1),
     );
+  });
+
+  testWidgets('dragging a linked item moves all linked routes together', (
+    WidgetTester tester,
+  ) async {
+    String? savedLayout;
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.5),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-1',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.2, y: 0.5),
+                TrainingMethodPoint(x: 0.45, y: 0.35),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-2',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.22, y: 0.55),
+                TrainingMethodPoint(x: 0.62, y: 0.7),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 워밍업',
+          initialLayoutJson: initialLayout,
+          onSaved: (value) => savedLayout = value,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerFinder = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+
+    await tester.drag(playerFinder, const Offset(42, -26));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(TextButton, '저장'));
+    await tester.pumpAndSettle();
+
+    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+    final page = saved.pages.single;
+    final player = page.items.single;
+    final dx = player.x - 0.2;
+    final dy = player.y - 0.5;
+
+    expect(dx.abs(), greaterThan(0.001));
+    expect(dy.abs(), greaterThan(0.001));
+
+    final movedRoute1 = page.routes.firstWhere(
+      (route) => route.id == 'route-1',
+    );
+    expect(movedRoute1.points[0].x, closeTo(0.2 + dx, 0.0001));
+    expect(movedRoute1.points[0].y, closeTo(0.5 + dy, 0.0001));
+    expect(movedRoute1.points[1].x, closeTo(0.45 + dx, 0.0001));
+    expect(movedRoute1.points[1].y, closeTo(0.35 + dy, 0.0001));
+
+    final movedRoute2 = page.routes.firstWhere(
+      (route) => route.id == 'route-2',
+    );
+    expect(movedRoute2.points[0].x, closeTo(0.22 + dx, 0.0001));
+    expect(movedRoute2.points[0].y, closeTo(0.55 + dy, 0.0001));
+    expect(movedRoute2.points[1].x, closeTo(0.62 + dx, 0.0001));
+    expect(movedRoute2.points[1].y, closeTo(0.7 + dy, 0.0001));
   });
 }
 
