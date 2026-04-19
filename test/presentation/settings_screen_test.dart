@@ -78,6 +78,7 @@ void main() {
         sharedChildDriveEmail: 'child@example.com',
         lastFamilySyncPushAt: DateTime(2026, 3, 21, 9),
         lastFamilySyncPullAt: DateTime(2026, 3, 22, 8),
+        localPreRestoreAt: DateTime(2026, 3, 22, 7),
         lastBackupAt: DateTime(2026, 3, 22, 10),
       );
 
@@ -108,6 +109,7 @@ void main() {
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
       expect(find.text('가족 공유 복원'), findsOneWidget);
+      expect(find.text('가족 공유 되돌리기'), findsNothing);
       expect(find.text('최근 가족 공유 반영'), findsOneWidget);
       expect(find.text('최근 가족 공유 새로고침'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
@@ -486,6 +488,7 @@ class _FakeDriveBackupService extends BackupService {
   String _savedParentDriveEmail;
   final DateTime? _lastFamilySyncPushAt;
   final DateTime? _lastFamilySyncPullAt;
+  final DateTime? _localPreRestoreAt;
   bool _pendingParentSharedChanges;
   final DriveConnectionInfo? signInConnectionInfo;
   bool throwNextIsSignedIn;
@@ -506,6 +509,7 @@ class _FakeDriveBackupService extends BackupService {
     String savedParentDriveEmail = '',
     DateTime? lastFamilySyncPushAt,
     DateTime? lastFamilySyncPullAt,
+    DateTime? localPreRestoreAt,
     bool pendingParentSharedChanges = false,
     this.signInConnectionInfo,
     this.throwIsSignedInAfterSignInOnce = false,
@@ -523,6 +527,7 @@ class _FakeDriveBackupService extends BackupService {
         _savedParentDriveEmail = savedParentDriveEmail,
         _lastFamilySyncPushAt = lastFamilySyncPushAt,
         _lastFamilySyncPullAt = lastFamilySyncPullAt,
+        _localPreRestoreAt = localPreRestoreAt,
         _pendingParentSharedChanges = pendingParentSharedChanges,
         super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
 
@@ -578,6 +583,12 @@ class _FakeDriveBackupService extends BackupService {
 
   @override
   DateTime? getLastFamilySyncPull() => _lastFamilySyncPullAt;
+
+  @override
+  bool hasLocalPreRestoreBackup() => _localPreRestoreAt != null;
+
+  @override
+  DateTime? getLocalPreRestoreTime() => _localPreRestoreAt;
 
   @override
   bool hasPendingParentSharedChanges() => _pendingParentSharedChanges;

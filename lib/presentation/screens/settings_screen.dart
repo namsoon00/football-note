@@ -1667,8 +1667,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     final lastPullAt = widget.driveBackupService?.getLastFamilySyncPull();
     final hasPendingChanges =
         widget.driveBackupService?.hasPendingParentSharedChanges() ?? false;
-    final hasLocalRestore =
-        widget.driveBackupService?.hasLocalPreRestoreBackup() ?? false;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -1743,23 +1741,6 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
             style: _outlinedActionStyle(),
           ),
-          if (hasLocalRestore) ...[
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _restoreBusy
-                  ? null
-                  : () => _restoreLocalBackup(
-                        l10n,
-                        title: l10n.familySharedRestoreLocal,
-                        message: l10n.familySharedRestoreLocalConfirm,
-                        successMessage: l10n.familySharedRestoreLocalSuccess,
-                        failedMessage: l10n.familySharedRestoreLocalFailed,
-                      ),
-              icon: const Icon(Icons.undo),
-              label: Text(l10n.familySharedRestoreLocal),
-              style: _outlinedActionStyle(),
-            ),
-          ],
         ],
       ),
     );
