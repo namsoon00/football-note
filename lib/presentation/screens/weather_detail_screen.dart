@@ -474,13 +474,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 const SizedBox(height: 16),
                 _TodayAirQualitySection(
                   title: l10n.homeWeatherAirQualityTitle,
-                  subtitle: l10n.homeWeatherAirQualitySubtitle,
                   pm10Label: l10n.homeWeatherPm10,
-                  pm10Value: _formatParticles(_pm10),
                   pm10Status: pm10Level.label,
                   pm10Level: pm10Level.level,
                   pm25Label: l10n.homeWeatherPm25,
-                  pm25Value: _formatParticles(_pm25),
                   pm25Status: pm25Level.label,
                   pm25Level: pm25Level.level,
                 ),
@@ -895,9 +892,6 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _formatWind(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} km/h';
-
-  String _formatParticles(double? value) =>
-      value == null ? '--' : '${value.toStringAsFixed(1)} µg/m³';
 
   String _formatTemperatureDelta(double? value) {
     if (value == null) return '--';
@@ -1776,25 +1770,19 @@ class _MetricCard extends StatelessWidget {
 
 class _TodayAirQualitySection extends StatelessWidget {
   final String title;
-  final String subtitle;
   final String pm10Label;
-  final String pm10Value;
   final String pm10Status;
   final _AirQualityLevel pm10Level;
   final String pm25Label;
-  final String pm25Value;
   final String pm25Status;
   final _AirQualityLevel pm25Level;
 
   const _TodayAirQualitySection({
     required this.title,
-    required this.subtitle,
     required this.pm10Label,
-    required this.pm10Value,
     required this.pm10Status,
     required this.pm10Level,
     required this.pm25Label,
-    required this.pm25Value,
     required this.pm25Status,
     required this.pm25Level,
   });
@@ -1820,21 +1808,12 @@ class _TodayAirQualitySection extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: _AirMetricCard(
                   label: pm10Label,
-                  value: pm10Value,
                   status: pm10Status,
                   level: pm10Level,
                 ),
@@ -1843,7 +1822,6 @@ class _TodayAirQualitySection extends StatelessWidget {
               Expanded(
                 child: _AirMetricCard(
                   label: pm25Label,
-                  value: pm25Value,
                   status: pm25Status,
                   level: pm25Level,
                 ),
@@ -1858,13 +1836,11 @@ class _TodayAirQualitySection extends StatelessWidget {
 
 class _AirMetricCard extends StatelessWidget {
   final String label;
-  final String value;
   final String status;
   final _AirQualityLevel level;
 
   const _AirMetricCard({
     required this.label,
-    required this.value,
     required this.status,
     required this.level,
   });
@@ -1873,46 +1849,27 @@ class _AirMetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = _airQualityPalette(theme, level);
-    return SizedBox(
-      height: 118,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: palette.background,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: palette.border),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    value,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: palette.foreground,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: palette.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: palette.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(width: 8),
-            _AirStatusPill(label: status, level: level),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          _AirStatusPill(label: status, level: level),
+        ],
       ),
     );
   }

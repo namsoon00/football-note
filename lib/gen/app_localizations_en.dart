@@ -964,13 +964,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Stop outdoor activity and stay indoors if possible.';
 
   @override
-  String get homeWeatherComparedYesterday => 'Vs. yesterday at this time';
+  String get homeWeatherComparedYesterday => 'Vs. yesterday';
 
   @override
-  String get homeWeatherPm10 => 'PM10';
+  String get homeWeatherPm10 => 'Fine dust';
 
   @override
-  String get homeWeatherPm25 => 'PM2.5';
+  String get homeWeatherPm25 => 'Ultrafine dust';
 
   @override
   String get homeWeatherAqi => 'AQI';
