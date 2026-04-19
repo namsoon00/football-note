@@ -21,7 +21,6 @@ import 'application/meal_log_service.dart';
 import 'application/training_plan_badge_service.dart';
 import 'application/training_plan_reminder_service.dart';
 import 'presentation/screens/home_screen.dart';
-import 'presentation/screens/app_splash_screen.dart';
 import 'presentation/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -194,7 +193,6 @@ class _EntryGate extends StatefulWidget {
 }
 
 class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
-  bool _showSplash = true;
   late final HomeScreen _homeScreen;
   bool _parentRefreshBusy = false;
 
@@ -250,21 +248,6 @@ class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        _homeScreen,
-        if (_showSplash)
-          AppSplashScreen(
-            key: const ValueKey('app-splash'),
-            onCompleted: () {
-              if (!mounted) {
-                return;
-              }
-              setState(() => _showSplash = false);
-            },
-          ),
-      ],
-    );
+    return _homeScreen;
   }
 }
