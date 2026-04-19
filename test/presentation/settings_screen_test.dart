@@ -117,7 +117,7 @@ void main() {
   );
 
   testWidgets(
-    'enabling parent mode signs out current record Drive and prepares child connection',
+    'enabling parent mode keeps current player Drive connected',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();
       await optionRepository.setValue(
@@ -168,12 +168,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(backupService.signOutCalled, isTrue);
+      expect(backupService.signOutCalled, isFalse);
       expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
       expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
       expect(find.text('선수 Google Drive 연결'), findsOneWidget);
-      expect(find.text('선수 Drive 연결 해제'), findsNothing);
-      expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsOneWidget);
+      expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
+      expect(find.text('민수 · player@example.com'), findsWidgets);
+      expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsNothing);
     },
   );
 
