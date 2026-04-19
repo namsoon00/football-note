@@ -8,41 +8,42 @@ import 'package:http/testing.dart';
 void main() {
   group('WeatherLocationService', () {
     test(
-        'uses Kakao administrative region for Korean coordinates when key exists',
-        () async {
-      final client = MockClient((request) async {
-        expect(request.url.host, 'dapi.kakao.com');
-        expect(request.headers['Authorization'], 'KakaoAK test-key');
-        expect(request.url.path, '/v2/local/geo/coord2regioncode.json');
-        return http.Response.bytes(
-          utf8.encode(
-            jsonEncode(<String, dynamic>{
-              'documents': <Map<String, dynamic>>[
-                <String, dynamic>{
-                  'region_type': 'H',
-                  'region_1depth_name': '서울특별시',
-                  'region_2depth_name': '강남구',
-                  'region_3depth_name': '역삼동',
-                  'address_name': '서울특별시 강남구 역삼동',
-                },
-              ],
-            }),
-          ),
-          200,
+      'uses Kakao administrative region for Korean coordinates when key exists',
+      () async {
+        final client = MockClient((request) async {
+          expect(request.url.host, 'dapi.kakao.com');
+          expect(request.headers['Authorization'], 'KakaoAK test-key');
+          expect(request.url.path, '/v2/local/geo/coord2regioncode.json');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'documents': <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'region_type': 'H',
+                    'region_1depth_name': '서울특별시',
+                    'region_2depth_name': '강남구',
+                    'region_3depth_name': '역삼동',
+                    'address_name': '서울특별시 강남구 역삼동',
+                  },
+                ],
+              }),
+            ),
+            200,
+          );
+        });
+
+        final place = await WeatherLocationService.resolvePlaceName(
+          latitude: 37.4981,
+          longitude: 127.0276,
+          isKo: true,
+          koreaLabel: '대한민국',
+          kakaoRestApiKey: 'test-key',
+          client: client,
         );
-      });
 
-      final place = await WeatherLocationService.resolvePlaceName(
-        latitude: 37.4981,
-        longitude: 127.0276,
-        isKo: true,
-        koreaLabel: '대한민국',
-        kakaoRestApiKey: 'test-key',
-        client: client,
-      );
-
-      expect(place, '강남구 역삼동, 대한민국');
-    });
+        expect(place, '강남구 역삼동');
+      },
+    );
 
     test('falls back to Kakao address when region lookup is empty', () async {
       final client = MockClient((request) async {
@@ -84,7 +85,7 @@ void main() {
         client: client,
       );
 
-      expect(place, '강남구 테헤란로 123, 대한민국');
+      expect(place, '강남구 테헤란로 123');
     });
 
     test('falls back to Open-Meteo when Kakao key is missing', () async {
@@ -116,45 +117,44 @@ void main() {
         client: client,
       );
 
-      expect(place, '강남구 서울, 대한민국');
+      expect(place, '강남구 서울');
     });
 
-    test('builds AirKorea area queries from Kakao administrative region',
-        () async {
-      final client = MockClient((request) async {
-        expect(request.url.host, 'dapi.kakao.com');
-        expect(request.url.path, '/v2/local/geo/coord2regioncode.json');
-        return http.Response.bytes(
-          utf8.encode(
-            jsonEncode(<String, dynamic>{
-              'documents': <Map<String, dynamic>>[
-                <String, dynamic>{
-                  'region_type': 'H',
-                  'region_1depth_name': '서울특별시',
-                  'region_2depth_name': '강남구',
-                  'region_3depth_name': '역삼동',
-                  'address_name': '서울특별시 강남구 역삼동',
-                },
-              ],
-            }),
-          ),
-          200,
-        );
-      });
+    test(
+      'builds AirKorea area queries from Kakao administrative region',
+      () async {
+        final client = MockClient((request) async {
+          expect(request.url.host, 'dapi.kakao.com');
+          expect(request.url.path, '/v2/local/geo/coord2regioncode.json');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'documents': <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'region_type': 'H',
+                    'region_1depth_name': '서울특별시',
+                    'region_2depth_name': '강남구',
+                    'region_3depth_name': '역삼동',
+                    'address_name': '서울특별시 강남구 역삼동',
+                  },
+                ],
+              }),
+            ),
+            200,
+          );
+        });
 
-      final queries =
-          await WeatherLocationService.resolveAdministrativeAreaQueries(
-        latitude: 37.4981,
-        longitude: 127.0276,
-        kakaoRestApiKey: 'test-key',
-        client: client,
-      );
+        final queries =
+            await WeatherLocationService.resolveAdministrativeAreaQueries(
+              latitude: 37.4981,
+              longitude: 127.0276,
+              kakaoRestApiKey: 'test-key',
+              client: client,
+            );
 
-      expect(
-        queries,
-        const <String>['서울특별시 강남구', '강남구 역삼동', '강남구', '서울특별시'],
-      );
-    });
+        expect(queries, const <String>['서울특별시 강남구', '강남구 역삼동', '강남구', '서울특별시']);
+      },
+    );
 
     test('falls back to Open-Meteo when Kakao request fails', () async {
       final client = MockClient((request) async {
@@ -188,7 +188,7 @@ void main() {
         client: client,
       );
 
-      expect(place, '분당구 성남, 대한민국');
+      expect(place, '분당구 성남');
     });
 
     test('returns coordinate label when every geocoder fails', () async {
@@ -207,5 +207,41 @@ void main() {
 
       expect(place, '37.4981, 127.0276');
     });
+
+    test(
+      'hides overseas administrative areas in reverse geocode labels',
+      () async {
+        final client = MockClient((request) async {
+          expect(request.url.host, 'geocoding-api.open-meteo.com');
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode(<String, dynamic>{
+                'results': <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'name': 'Brooklyn',
+                    'city': 'New York',
+                    'admin2': 'Kings County',
+                    'admin1': 'New York',
+                    'country': 'United States',
+                  },
+                ],
+              }),
+            ),
+            200,
+          );
+        });
+
+        final place = await WeatherLocationService.resolvePlaceName(
+          latitude: 40.6782,
+          longitude: -73.9442,
+          isKo: false,
+          koreaLabel: 'Korea',
+          kakaoRestApiKey: '',
+          client: client,
+        );
+
+        expect(place, 'New York, United States');
+      },
+    );
   });
 }

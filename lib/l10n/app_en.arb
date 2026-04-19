@@ -277,6 +277,7 @@
   "homeWeatherFeelsLike": "Feels like",
   "homeWeatherHumidity": "Humidity",
   "homeWeatherPrecipitation": "Precipitation",
+  "homeWeatherHourlyPrecipitation": "Hourly precipitation",
   "homeWeatherWindSpeed": "Wind",
   "homeWeatherUvIndex": "UV index",
   "homeWeatherOutfitTitle": "Recommended football outfit",

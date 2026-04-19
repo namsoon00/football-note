@@ -277,6 +277,7 @@
   "homeWeatherFeelsLike": "체감 온도",
   "homeWeatherHumidity": "습도",
   "homeWeatherPrecipitation": "강수량",
+  "homeWeatherHourlyPrecipitation": "시간별 강수량",
   "homeWeatherWindSpeed": "풍속",
   "homeWeatherUvIndex": "자외선",
   "homeWeatherOutfitTitle": "오늘의 축구 복장",

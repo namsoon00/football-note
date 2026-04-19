@@ -9,6 +9,7 @@ void main() {
         latitude: 37.5665,
         longitude: 126.9780,
         current: const <String>['temperature_2m', 'weather_code'],
+        hourly: const <String>['precipitation'],
         daily: const <String>['temperature_2m_max'],
         forecastDays: 7,
       );
@@ -17,6 +18,7 @@ void main() {
       expect(uri.path, '/v1/forecast');
       expect(uri.queryParameters['cell_selection'], 'nearest');
       expect(uri.queryParameters['current'], 'temperature_2m,weather_code');
+      expect(uri.queryParameters['hourly'], 'precipitation');
       expect(uri.queryParameters['daily'], 'temperature_2m_max');
       expect(uri.queryParameters['forecast_days'], '7');
     },

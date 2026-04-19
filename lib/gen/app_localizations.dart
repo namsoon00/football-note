@@ -1640,6 +1640,12 @@ abstract class AppLocalizations {
   /// **'Precipitation'**
   String get homeWeatherPrecipitation;
 
+  /// No description provided for @homeWeatherHourlyPrecipitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Hourly precipitation'**
+  String get homeWeatherHourlyPrecipitation;
+
   /// No description provided for @homeWeatherWindSpeed.
   ///
   /// In en, this message translates to:
