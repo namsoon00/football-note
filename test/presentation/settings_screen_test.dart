@@ -74,6 +74,8 @@ void main() {
         ),
         sharedChildDriveLabel: '민수 · child@example.com',
         sharedChildDriveEmail: 'child@example.com',
+        lastFamilySyncPushAt: DateTime(2026, 3, 21, 9),
+        lastFamilySyncPullAt: DateTime(2026, 3, 22, 8),
         lastBackupAt: DateTime(2026, 3, 22, 10),
       );
 
@@ -104,6 +106,8 @@ void main() {
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
       expect(find.text('가족 공유 복원'), findsOneWidget);
+      expect(find.text('최근 가족 공유 반영'), findsOneWidget);
+      expect(find.text('최근 가족 공유 새로고침'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
       expect(find.text('Google Drive 백업'), findsNothing);
       expect(find.text('로그아웃'), findsNothing);
@@ -163,6 +167,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(backupService.signOutCalled, isTrue);
+      expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
       expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
       expect(find.text('선수 Google Drive 연결'), findsOneWidget);
       expect(find.text('선수 Drive 연결 해제'), findsNothing);
@@ -264,6 +269,9 @@ void main() {
         sharedChildDriveEmail: 'child@example.com',
         savedParentDriveLabel: '아빠 · parent@example.com',
         savedParentDriveEmail: 'parent@example.com',
+        lastFamilySyncPushAt: DateTime(2026, 3, 21, 9),
+        lastFamilySyncPullAt: DateTime(2026, 3, 22, 8),
+        pendingParentSharedChanges: true,
         lastBackupAt: DateTime(2026, 3, 22, 10),
       );
 
@@ -293,6 +301,12 @@ void main() {
       expect(find.text('저장된 부모 Drive 연결'), findsOneWidget);
       expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(find.text('민수 · child@example.com'), findsOneWidget);
+      expect(find.text('최근 가족 공유 반영'), findsOneWidget);
+      expect(find.text('최근 가족 공유 새로고침'), findsOneWidget);
+      expect(
+        find.text('아직 원격에 반영하지 못한 부모 모드 로컬 변경이 있어 자동 새로고침을 잠시 보류하고 있어요.'),
+        findsOneWidget,
+      );
     },
   );
 
@@ -409,10 +423,14 @@ class _FakeDriveBackupService extends BackupService {
   String _savedRecordDriveEmail;
   String _savedParentDriveLabel;
   String _savedParentDriveEmail;
+  final DateTime? _lastFamilySyncPushAt;
+  final DateTime? _lastFamilySyncPullAt;
+  bool _pendingParentSharedChanges;
   final DriveConnectionInfo? signInConnectionInfo;
   bool throwNextIsSignedIn;
   final bool throwIsSignedInAfterSignInOnce;
   bool signOutCalled;
+  bool refreshParentSharedDataIfNeededCalled;
 
   _FakeDriveBackupService({
     required bool signedIn,
@@ -423,11 +441,15 @@ class _FakeDriveBackupService extends BackupService {
     String savedRecordDriveEmail = '',
     String savedParentDriveLabel = '',
     String savedParentDriveEmail = '',
+    DateTime? lastFamilySyncPushAt,
+    DateTime? lastFamilySyncPullAt,
+    bool pendingParentSharedChanges = false,
     this.signInConnectionInfo,
     this.throwIsSignedInAfterSignInOnce = false,
     DateTime? lastBackupAt,
   })  : _signedIn = signedIn,
         signOutCalled = false,
+        refreshParentSharedDataIfNeededCalled = false,
         throwNextIsSignedIn = false,
         _connectionInfo = connectionInfo,
         _sharedChildDriveLabel = sharedChildDriveLabel,
@@ -436,6 +458,9 @@ class _FakeDriveBackupService extends BackupService {
         _savedRecordDriveEmail = savedRecordDriveEmail,
         _savedParentDriveLabel = savedParentDriveLabel,
         _savedParentDriveEmail = savedParentDriveEmail,
+        _lastFamilySyncPushAt = lastFamilySyncPushAt,
+        _lastFamilySyncPullAt = lastFamilySyncPullAt,
+        _pendingParentSharedChanges = pendingParentSharedChanges,
         super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
 
   bool get signedIn => _signedIn;
@@ -468,6 +493,15 @@ class _FakeDriveBackupService extends BackupService {
 
   @override
   String getSavedParentDriveLabel() => _savedParentDriveLabel;
+
+  @override
+  DateTime? getLastFamilySyncPush() => _lastFamilySyncPushAt;
+
+  @override
+  DateTime? getLastFamilySyncPull() => _lastFamilySyncPullAt;
+
+  @override
+  bool hasPendingParentSharedChanges() => _pendingParentSharedChanges;
 
   @override
   Future<bool> isSignedIn() async {
@@ -526,6 +560,17 @@ class _FakeDriveBackupService extends BackupService {
   Future<void> rememberCurrentRoleDriveConnection() async {
     await rememberRecordDriveConnection();
     await rememberParentDriveConnection();
+  }
+
+  @override
+  Future<void> markParentSharedDataDirty() async {
+    _pendingParentSharedChanges = true;
+  }
+
+  @override
+  Future<bool> refreshParentSharedDataIfNeeded() async {
+    refreshParentSharedDataIfNeededCalled = true;
+    return false;
   }
 
   @override

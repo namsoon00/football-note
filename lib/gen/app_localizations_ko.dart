@@ -3234,6 +3234,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get familySharedLastSync => '최근 가족 공유 동기화';
 
   @override
+  String get familySharedLastPush => '최근 가족 공유 반영';
+
+  @override
+  String get familySharedLastRefresh => '최근 가족 공유 새로고침';
+
+  @override
+  String get familySharedAutoRefreshDescription =>
+      '부모 모드로 들어오거나 앱으로 돌아오면 최신 가족 공유 상태를 자동으로 확인합니다. 아직 원격에 반영하지 못한 로컬 변경이 있으면 자동 새로고침은 건너뜁니다.';
+
+  @override
+  String get familySharedPendingLocalChanges =>
+      '아직 원격에 반영하지 못한 부모 모드 로컬 변경이 있어 자동 새로고침을 잠시 보류하고 있어요.';
+
+  @override
   String get familySharedRestore => '가족 공유 복원';
 
   @override

@@ -104,6 +104,11 @@ Future<void> _warmStartupServices({
     // Ignore startup backup failures and keep app entry responsive.
   }
   try {
+    await backupService.refreshParentSharedDataIfNeeded();
+  } catch (_) {
+    // Parent shared refresh can recover on later app resumes.
+  }
+  try {
     await reminderService.initialize();
     await reminderService.syncAll(entries: await trainingService.allEntries());
   } catch (_) {
@@ -188,13 +193,15 @@ class _EntryGate extends StatefulWidget {
   State<_EntryGate> createState() => _EntryGateState();
 }
 
-class _EntryGateState extends State<_EntryGate> {
+class _EntryGateState extends State<_EntryGate> with WidgetsBindingObserver {
   bool _showSplash = true;
   late final HomeScreen _homeScreen;
+  bool _parentRefreshBusy = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _homeScreen = HomeScreen(
       key: const ValueKey('home-screen'),
       trainingService: widget.trainingService,
@@ -204,6 +211,41 @@ class _EntryGateState extends State<_EntryGate> {
       settingsService: widget.settingsService,
       driveBackupService: widget.driveBackupService,
     );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      return;
+    }
+    unawaited(_refreshParentSharedDataOnResume());
+  }
+
+  Future<void> _refreshParentSharedDataOnResume() async {
+    final backup = widget.driveBackupService;
+    if (backup == null || _parentRefreshBusy) {
+      return;
+    }
+    _parentRefreshBusy = true;
+    try {
+      final refreshed = await backup.refreshParentSharedDataIfNeeded();
+      if (!refreshed) {
+        return;
+      }
+      widget.localeService.load();
+      widget.settingsService.load();
+      if (mounted) {
+        setState(() {});
+      }
+    } finally {
+      _parentRefreshBusy = false;
+    }
   }
 
   @override

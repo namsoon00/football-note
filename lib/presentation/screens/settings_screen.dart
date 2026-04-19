@@ -1470,6 +1470,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     }
     await familyService.setCurrentRole(role);
+    if (widget.driveBackupService != null && role == FamilyRole.parent) {
+      await widget.driveBackupService!.refreshParentSharedDataIfNeeded();
+      widget.localeService.load();
+      widget.settingsService.load();
+    }
     await _refreshSignInState();
     if (!mounted) return;
     setState(() {});
@@ -1541,6 +1546,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       childName: childController.text,
       parentName: parentController.text,
     );
+    if (widget.driveBackupService != null) {
+      if (state.currentRole == FamilyRole.parent) {
+        await widget.driveBackupService!.markParentSharedDataDirty();
+      }
+      try {
+        await widget.driveBackupService!.backupIfSignedIn();
+      } catch (_) {
+        // Keep local edits even if cloud sync is unavailable.
+      }
+      await _refreshSignInState(allowCachedConnection: true);
+    }
     childController.dispose();
     parentController.dispose();
     if (!mounted) return;
@@ -1628,7 +1644,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildParentFamilySyncCard(AppLocalizations l10n) {
-    final lastBackupAt = widget.driveBackupService?.getLastBackup();
+    final lastPushAt = widget.driveBackupService?.getLastFamilySyncPush();
+    final lastPullAt = widget.driveBackupService?.getLastFamilySyncPull();
+    final hasPendingChanges =
+        widget.driveBackupService?.hasPendingParentSharedChanges() ?? false;
     final hasLocalRestore =
         widget.driveBackupService?.hasLocalPreRestoreBackup() ?? false;
     return Container(
@@ -1652,12 +1671,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
             l10n.familySharedSyncDescription,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          if (lastBackupAt != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.familySharedAutoRefreshDescription,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (hasPendingChanges) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                l10n.familySharedPendingLocalChanges,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+          if (lastPushAt != null) ...[
             const SizedBox(height: 8),
             _buildDriveAccountTile(
               icon: Icons.history,
-              title: l10n.familySharedLastSync,
-              subtitle: _formatBackupTime(lastBackupAt),
+              title: l10n.familySharedLastPush,
+              subtitle: _formatBackupTime(lastPushAt),
+            ),
+          ],
+          if (lastPullAt != null) ...[
+            const SizedBox(height: 8),
+            _buildDriveAccountTile(
+              icon: Icons.refresh_outlined,
+              title: l10n.familySharedLastRefresh,
+              subtitle: _formatBackupTime(lastPullAt),
             ),
           ],
           const SizedBox(height: 8),
