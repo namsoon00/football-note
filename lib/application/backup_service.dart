@@ -98,6 +98,13 @@ class BackupService {
     return null;
   }
 
+  Stream<void> driveAccountStateChanges() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.driveAccountStateChanges();
+    }
+    return const Stream<void>.empty();
+  }
+
   String getSharedChildDriveEmail() {
     if (_repository case final DriveBackupService drive) {
       return drive.getSharedChildDriveEmail();

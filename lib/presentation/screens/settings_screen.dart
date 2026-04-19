@@ -35,7 +35,8 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen>
+    with WidgetsBindingObserver {
   bool _backupBusy = false;
   bool _restoreBusy = false;
   bool _signInBusy = false;
@@ -50,6 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _savedParentDriveEmail = '';
   String _sharedChildDriveLabel = '';
   String _sharedChildDriveEmail = '';
+  StreamSubscription<void>? _driveAccountStateSubscription;
 
   late List<int> _durationOptions;
   late List<int> _ratingOptions;
@@ -68,7 +70,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _refreshSignInState();
+    WidgetsBinding.instance.addObserver(this);
+    _driveAccountStateSubscription = widget.driveBackupService
+        ?.driveAccountStateChanges()
+        .listen((_) => unawaited(_refreshSignInState()));
+    unawaited(_refreshSignInState());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_refreshSignInState());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_driveAccountStateSubscription?.cancel());
+    super.dispose();
   }
 
   Future<void> _refreshSignInState({
