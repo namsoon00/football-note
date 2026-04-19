@@ -475,9 +475,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 _TodayAirQualitySection(
                   title: l10n.homeWeatherAirQualityTitle,
                   pm10Label: l10n.homeWeatherPm10,
+                  pm10Value: _formatAirMetricValue(_pm10),
                   pm10Status: pm10Level.label,
                   pm10Level: pm10Level.level,
                   pm25Label: l10n.homeWeatherPm25,
+                  pm25Value: _formatAirMetricValue(_pm25),
                   pm25Status: pm25Level.label,
                   pm25Level: pm25Level.level,
                 ),
@@ -892,6 +894,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
 
   String _formatWind(double? value) =>
       value == null ? '--' : '${value.toStringAsFixed(1)} km/h';
+
+  String _formatAirMetricValue(double? value) {
+    if (value == null) return '--';
+    final rounded = value.roundToDouble();
+    final precision = (value - rounded).abs() < 0.05 ? 0 : 1;
+    return value.toStringAsFixed(precision);
+  }
 
   String _formatTemperatureDelta(double? value) {
     if (value == null) return '--';
@@ -1771,18 +1780,22 @@ class _MetricCard extends StatelessWidget {
 class _TodayAirQualitySection extends StatelessWidget {
   final String title;
   final String pm10Label;
+  final String pm10Value;
   final String pm10Status;
   final _AirQualityLevel pm10Level;
   final String pm25Label;
+  final String pm25Value;
   final String pm25Status;
   final _AirQualityLevel pm25Level;
 
   const _TodayAirQualitySection({
     required this.title,
     required this.pm10Label,
+    required this.pm10Value,
     required this.pm10Status,
     required this.pm10Level,
     required this.pm25Label,
+    required this.pm25Value,
     required this.pm25Status,
     required this.pm25Level,
   });
@@ -1814,6 +1827,7 @@ class _TodayAirQualitySection extends StatelessWidget {
               Expanded(
                 child: _AirMetricCard(
                   label: pm10Label,
+                  value: pm10Value,
                   status: pm10Status,
                   level: pm10Level,
                 ),
@@ -1822,6 +1836,7 @@ class _TodayAirQualitySection extends StatelessWidget {
               Expanded(
                 child: _AirMetricCard(
                   label: pm25Label,
+                  value: pm25Value,
                   status: pm25Status,
                   level: pm25Level,
                 ),
@@ -1836,11 +1851,13 @@ class _TodayAirQualitySection extends StatelessWidget {
 
 class _AirMetricCard extends StatelessWidget {
   final String label;
+  final String value;
   final String status;
   final _AirQualityLevel level;
 
   const _AirMetricCard({
     required this.label,
+    required this.value,
     required this.status,
     required this.level,
   });
@@ -1865,6 +1882,17 @@ class _AirMetricCard extends StatelessWidget {
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: palette.foreground,
+              fontWeight: FontWeight.w900,
+              height: 1,
             ),
           ),
           const SizedBox(height: 10),
@@ -3084,16 +3112,40 @@ class _WeeklyForecastRow extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+              SizedBox(
+                width: 68,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 18,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      forecast.summary,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, size: 18, color: theme.colorScheme.primary),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3106,16 +3158,6 @@ class _WeeklyForecastRow extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      forecast.summary,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -3123,7 +3165,7 @@ class _WeeklyForecastRow extends StatelessWidget {
           ),
           const SizedBox(height: 7),
           Padding(
-            padding: const EdgeInsets.only(left: 46),
+            padding: const EdgeInsets.only(left: 80),
             child: Text(
               '$highLowLabel $range',
               maxLines: 1,
@@ -3135,7 +3177,7 @@ class _WeeklyForecastRow extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Padding(
-            padding: const EdgeInsets.only(left: 46),
+            padding: const EdgeInsets.only(left: 80),
             child: Row(
               children: [
                 Expanded(
