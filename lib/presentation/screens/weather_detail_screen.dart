@@ -3268,6 +3268,12 @@ class _HourlyPrecipitationSection extends StatelessWidget {
     final chipTextColor = accentStyle
         ? theme.colorScheme.onPrimaryContainer
         : theme.colorScheme.onPrimaryContainer;
+    final connectorColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.24)
+        : theme.colorScheme.primary.withValues(alpha: 0.22);
+    final timeTextColor = accentStyle
+        ? theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.72)
+        : theme.colorScheme.onSurfaceVariant;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -3287,32 +3293,117 @@ class _HourlyPrecipitationSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final entry in entries)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: chipColor,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+          for (var index = 0; index < entries.length; index++) ...[
+            _HourlyPrecipitationTimelineRow(
+              timeLabel: formatTime(entries[index].time),
+              precipitationLabel: formatPrecipitation(
+                entries[index].precipitation,
+              ),
+              markerColor: chipTextColor,
+              connectorColor: connectorColor,
+              timeTextColor: timeTextColor,
+              cardColor: chipColor,
+              cardTextColor: chipTextColor,
+              showConnector: index < entries.length - 1,
+            ),
+            if (index < entries.length - 1) const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _HourlyPrecipitationTimelineRow extends StatelessWidget {
+  final String timeLabel;
+  final String precipitationLabel;
+  final Color markerColor;
+  final Color connectorColor;
+  final Color timeTextColor;
+  final Color cardColor;
+  final Color cardTextColor;
+  final bool showConnector;
+
+  const _HourlyPrecipitationTimelineRow({
+    required this.timeLabel,
+    required this.precipitationLabel,
+    required this.markerColor,
+    required this.connectorColor,
+    required this.timeTextColor,
+    required this.cardColor,
+    required this.cardTextColor,
+    required this.showConnector,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 52,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              timeLabel,
+              textAlign: TextAlign.right,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: timeTextColor,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: markerColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            if (showConnector)
+              Container(
+                width: 2,
+                height: 36,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  color: connectorColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.water_drop_outlined, size: 18, color: cardTextColor),
+                const SizedBox(width: 8),
+                Expanded(
                   child: Text(
-                    '${formatTime(entry.time)}  ${formatPrecipitation(entry.precipitation)}',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: chipTextColor,
+                    precipitationLabel,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: cardTextColor,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
