@@ -5971,6 +5971,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Claim in record mode'**
   String get levelGuideClaimChildOnly;
+
+  /// No description provided for @trainingSketchDrawRouteFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw or select a route first.'**
+  String get trainingSketchDrawRouteFirst;
+
+  /// No description provided for @trainingSketchAddPlayerFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a player icon first.'**
+  String get trainingSketchAddPlayerFirst;
+
+  /// No description provided for @trainingSketchAddBallFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a ball icon first.'**
+  String get trainingSketchAddBallFirst;
+
+  /// No description provided for @trainingSketchRoutesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Routes'**
+  String get trainingSketchRoutesButton;
+
+  /// No description provided for @trainingSketchClearAllRoutesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all routes'**
+  String get trainingSketchClearAllRoutesButton;
+
+  /// No description provided for @trainingSketchPlayerRoutesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Player routes'**
+  String get trainingSketchPlayerRoutesTitle;
+
+  /// No description provided for @trainingSketchBallRoutesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball routes'**
+  String get trainingSketchBallRoutesTitle;
+
+  /// No description provided for @trainingSketchRoutesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No routes yet for this type.'**
+  String get trainingSketchRoutesEmpty;
+
+  /// No description provided for @trainingSketchRedrawRouteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Redraw selected'**
+  String get trainingSketchRedrawRouteButton;
+
+  /// No description provided for @trainingSketchDeleteRouteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete selected'**
+  String get trainingSketchDeleteRouteButton;
+
+  /// No description provided for @trainingSketchPlayerRouteChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Player {index}'**
+  String trainingSketchPlayerRouteChip(int index);
+
+  /// No description provided for @trainingSketchBallRouteChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball {index}'**
+  String trainingSketchBallRouteChip(int index);
+
+  /// No description provided for @trainingSketchRouteReplaceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag on the board to replace the selected route.'**
+  String get trainingSketchRouteReplaceHint;
+
+  /// No description provided for @trainingSketchSelectedPlayerRouteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag on the board to add another player route. The selected player will be linked to the new route.'**
+  String get trainingSketchSelectedPlayerRouteHint;
+
+  /// No description provided for @trainingSketchSelectedBallRouteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag on the board to add another ball route. The selected ball will be linked to the new route.'**
+  String get trainingSketchSelectedBallRouteHint;
+
+  /// No description provided for @trainingSketchPlayerRouteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag on the board to add a player route. Select a player first if you want the route linked.'**
+  String get trainingSketchPlayerRouteHint;
+
+  /// No description provided for @trainingSketchBallRouteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag on the board to add a ball route. Select a ball first if you want the route linked.'**
+  String get trainingSketchBallRouteHint;
+
+  /// No description provided for @trainingSketchLinkPlayerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Routes mode to link the next player route to this player.'**
+  String get trainingSketchLinkPlayerHint;
+
+  /// No description provided for @trainingSketchLinkBallHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Routes mode to link the next ball route to this ball.'**
+  String get trainingSketchLinkBallHint;
 }
 
 class _AppLocalizationsDelegate

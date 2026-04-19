@@ -1440,5 +1440,38 @@
   "levelGuideChildModeLabel": "기록 모드",
   "levelGuideParentModeDescription": "부모 모드에서는 레벨 선물 이름만 저장할 수 있고, 선물 수령은 기록 모드에서 진행합니다.",
   "levelGuideChildModeDescription": "기록 모드에서는 레벨 선물을 수령할 수 있고, 선물 이름 입력은 부모 모드에서 관리합니다.",
-  "levelGuideClaimChildOnly": "기록 모드에서 수령"
+  "levelGuideClaimChildOnly": "기록 모드에서 수령",
+  "trainingSketchDrawRouteFirst": "먼저 이동선을 그리거나 선택해 주세요.",
+  "trainingSketchAddPlayerFirst": "먼저 사람 아이콘을 추가해 주세요.",
+  "trainingSketchAddBallFirst": "먼저 공 아이콘을 추가해 주세요.",
+  "trainingSketchRoutesButton": "이동선",
+  "trainingSketchClearAllRoutesButton": "이동선 전체 지우기",
+  "trainingSketchPlayerRoutesTitle": "사람 이동선",
+  "trainingSketchBallRoutesTitle": "공 이동선",
+  "trainingSketchRoutesEmpty": "아직 이 종류의 이동선이 없어요.",
+  "trainingSketchRedrawRouteButton": "선택 이동선 다시 그리기",
+  "trainingSketchDeleteRouteButton": "선택 이동선 삭제",
+  "trainingSketchPlayerRouteChip": "사람 {index}",
+  "@trainingSketchPlayerRouteChip": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchBallRouteChip": "공 {index}",
+  "@trainingSketchBallRouteChip": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "trainingSketchRouteReplaceHint": "보드를 드래그하면 선택한 이동선을 다시 그립니다.",
+  "trainingSketchSelectedPlayerRouteHint": "보드를 드래그하면 새 사람 이동선이 추가됩니다. 지금 선택한 사람과 연결해서 저장합니다.",
+  "trainingSketchSelectedBallRouteHint": "보드를 드래그하면 새 공 이동선이 추가됩니다. 지금 선택한 공과 연결해서 저장합니다.",
+  "trainingSketchPlayerRouteHint": "보드를 드래그하면 새 사람 이동선이 추가됩니다. 특정 사람과 연결하려면 먼저 그 사람을 선택해 주세요.",
+  "trainingSketchBallRouteHint": "보드를 드래그하면 새 공 이동선이 추가됩니다. 특정 공과 연결하려면 먼저 공을 선택해 주세요.",
+  "trainingSketchLinkPlayerHint": "이동선 모드에서 다음 사람 이동선을 이 사람과 연결할 수 있어요.",
+  "trainingSketchLinkBallHint": "이동선 모드에서 다음 공 이동선을 이 공과 연결할 수 있어요."
 }
