@@ -3216,6 +3216,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '아직 선수 Drive 정보가 없어요. 기록 모드에서 먼저 한 번 백업해 주세요.';
 
   @override
+  String get driveSharedChildAccountRemoteBackup =>
+      '원격 선수 백업은 확인됐어요. 기록 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.';
+
+  @override
   String get familyParentUsesChildDriveHint =>
       '부모 모드에서는 선수 Google Drive 계정으로 로그인하면 같은 백업 파일에 피드백과 선물 이름을 동기화할 수 있어요.';
 

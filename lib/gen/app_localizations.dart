@@ -5756,6 +5756,12 @@ abstract class AppLocalizations {
   /// **'No player Drive account is known yet. Create at least one backup in record mode first.'**
   String get driveSharedChildAccountEmpty;
 
+  /// No description provided for @driveSharedChildAccountRemoteBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'A remote player backup was found. Connect the same Google Drive account used in record mode.'**
+  String get driveSharedChildAccountRemoteBackup;
+
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:

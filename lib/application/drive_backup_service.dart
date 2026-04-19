@@ -271,6 +271,51 @@ class DriveBackupService implements BackupRepository {
     return cached?.isEmpty ?? true ? null : cached;
   }
 
+  Future<DriveConnectionInfo?> getSharedChildDriveConnectionInfo({
+    bool allowRemoteLookup = false,
+  }) async {
+    final local = _loadSharedChildDriveConnectionInfo();
+    if (local != null && !local.isEmpty) {
+      return local;
+    }
+    if (!allowRemoteLookup) {
+      return local;
+    }
+    try {
+      final remote = await _loadLatestRemoteSharedChildDriveConnectionInfo();
+      if (remote == null || remote.isEmpty) {
+        return local;
+      }
+      if (remote.email.trim().isNotEmpty) {
+        await _optionBox.put(sharedChildDriveEmailKey, remote.email.trim());
+        if (remote.label.trim().isNotEmpty) {
+          await _optionBox.put(sharedChildDriveLabelKey, remote.label.trim());
+        }
+      }
+      return remote;
+    } catch (e, st) {
+      if (_isAuthError(e)) {
+        return local;
+      }
+      debugPrint('Drive shared child info refresh failed: $e');
+      debugPrintStack(stackTrace: st);
+      return local;
+    }
+  }
+
+  Future<bool> hasRemotePlayerBackup() async {
+    try {
+      return await _hasRemoteBackupFile();
+    } catch (e, st) {
+      if (_isAuthError(e)) {
+        return false;
+      }
+      debugPrint('Drive remote backup check failed: $e');
+      debugPrintStack(stackTrace: st);
+      return false;
+    }
+  }
+
   String getSharedChildDriveEmail() {
     return (_optionBox.get(sharedChildDriveEmailKey) as String?)?.trim() ?? '';
   }
@@ -612,6 +657,83 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.delete(connectedDriveEmailLocalKey);
     await _optionBox.delete(connectedDriveLabelLocalKey);
     await _optionBox.delete(connectedDriveSubjectLocalKey);
+  }
+
+  DriveConnectionInfo? _loadSharedChildDriveConnectionInfo() {
+    return _buildDriveConnectionInfoFromLabelEmail(
+      label: getSharedChildDriveLabel(),
+      email: getSharedChildDriveEmail(),
+    );
+  }
+
+  DriveConnectionInfo? _buildDriveConnectionInfoFromLabelEmail({
+    required String label,
+    required String email,
+    String subjectId = '',
+  }) {
+    final trimmedLabel = label.trim();
+    final trimmedEmail = email.trim();
+    if (trimmedLabel.isEmpty &&
+        trimmedEmail.isEmpty &&
+        subjectId.trim().isEmpty) {
+      return null;
+    }
+    var displayName = trimmedLabel;
+    if (trimmedEmail.isNotEmpty) {
+      final suffix = ' · $trimmedEmail';
+      if (trimmedLabel.endsWith(suffix)) {
+        displayName = trimmedLabel
+            .substring(0, trimmedLabel.length - suffix.length)
+            .trim();
+      } else if (trimmedLabel.toLowerCase() == trimmedEmail.toLowerCase()) {
+        displayName = '';
+      }
+    }
+    return DriveConnectionInfo(
+      email: trimmedEmail,
+      displayName: displayName,
+      subjectId: subjectId,
+    );
+  }
+
+  Future<bool> _hasRemoteBackupFile() async {
+    final driveApi = await _driveApi(requireInteractive: false);
+    final folderId = await _findFolderId(driveApi);
+    if (folderId == null) {
+      return false;
+    }
+    final file = await _findBackupFile(driveApi, folderId);
+    return file?.id != null;
+  }
+
+  Future<Map<String, dynamic>?> _loadLatestRemoteBackupMap() async {
+    final driveApi = await _driveApi(requireInteractive: false);
+    final folderId = await _findFolderId(driveApi);
+    if (folderId == null) {
+      return null;
+    }
+    final file = await _findBackupFile(driveApi, folderId);
+    if (file?.id == null) {
+      return null;
+    }
+    return _downloadBackupMap(driveApi, file!.id!);
+  }
+
+  Future<DriveConnectionInfo?>
+      _loadLatestRemoteSharedChildDriveConnectionInfo() async {
+    final remote = await _loadLatestRemoteBackupMap();
+    if (remote == null) {
+      return null;
+    }
+    final sharedChildLabel = _extractSharedChildDriveLabel(remote);
+    final sharedChildEmail = _extractSharedChildDriveEmail(remote);
+    final fallbackLabel = sharedChildLabel.isNotEmpty
+        ? sharedChildLabel
+        : _extractChildName(remote);
+    return _buildDriveConnectionInfoFromLabelEmail(
+      label: fallbackLabel,
+      email: sharedChildEmail,
+    );
   }
 
   void _bindDriveAccountStateChanges() {
@@ -1236,6 +1358,19 @@ class DriveBackupService implements BackupRepository {
   String _extractSharedChildDriveEmail(Map<String, dynamic> backup) {
     final options = _copyStringOptions(backup);
     return options[sharedChildDriveEmailKey]?.toString().trim() ?? '';
+  }
+
+  String _extractSharedChildDriveLabel(Map<String, dynamic> backup) {
+    final options = _copyStringOptions(backup);
+    return options[sharedChildDriveLabelKey]?.toString().trim() ?? '';
+  }
+
+  String _extractChildName(Map<String, dynamic> backup) {
+    final familyRaw = backup[_familyMetadataKey];
+    if (familyRaw is Map) {
+      return familyRaw['childName']?.toString().trim() ?? '';
+    }
+    return '';
   }
 
   String _normalizedEmail(String? raw) {

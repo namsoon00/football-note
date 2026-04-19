@@ -51,6 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _savedParentDriveEmail = '';
   String _sharedChildDriveLabel = '';
   String _sharedChildDriveEmail = '';
+  bool _hasRemotePlayerBackup = false;
   StreamSubscription<void>? _driveAccountStateSubscription;
 
   late List<int> _durationOptions;
@@ -111,6 +112,22 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     final familyState =
         FamilyAccessService(widget.optionRepository).loadState();
+    DriveConnectionInfo? sharedChildConnection;
+    var hasRemotePlayerBackup = false;
+    try {
+      sharedChildConnection =
+          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
+        allowRemoteLookup: familyState.isParentMode,
+      );
+      if (familyState.isParentMode &&
+          (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
+        hasRemotePlayerBackup =
+            await widget.driveBackupService!.hasRemotePlayerBackup();
+      }
+    } catch (e, st) {
+      debugPrint('Shared child Drive lookup failed: $e');
+      debugPrintStack(stackTrace: st);
+    }
     if (familyState.isChildMode &&
         connection != null &&
         !connection.isEmpty &&
@@ -139,10 +156,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           widget.driveBackupService!.getSavedParentDriveLabel();
       _savedParentDriveEmail =
           widget.driveBackupService!.getSavedParentDriveEmail();
-      _sharedChildDriveLabel =
-          widget.driveBackupService!.getSharedChildDriveLabel();
-      _sharedChildDriveEmail =
-          widget.driveBackupService!.getSharedChildDriveEmail();
+      _sharedChildDriveLabel = sharedChildConnection?.label.trim() ?? '';
+      _sharedChildDriveEmail = sharedChildConnection?.email.trim() ?? '';
+      _hasRemotePlayerBackup = hasRemotePlayerBackup;
     });
   }
 
@@ -191,6 +207,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     final expectedChildDriveLabel = _sharedChildDriveLabel.trim().isNotEmpty
         ? _sharedChildDriveLabel.trim()
         : _sharedChildDriveEmail.trim();
+    final sharedChildDriveSubtitle = expectedChildDriveLabel.isNotEmpty
+        ? expectedChildDriveLabel
+        : (_hasRemotePlayerBackup
+            ? l10n.driveSharedChildAccountRemoteBackup
+            : l10n.driveSharedChildAccountEmpty);
     final savedRecordMatchesCurrentDrive = _driveLabelMatchesEmail(
       _connectedDriveLabel,
       _savedRecordDriveEmail,
@@ -585,9 +606,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                       _buildDriveAccountTile(
                         icon: Icons.child_care_outlined,
                         title: l10n.driveSharedChildAccount,
-                        subtitle: expectedChildDriveLabel.isEmpty
-                            ? l10n.driveSharedChildAccountEmpty
-                            : expectedChildDriveLabel,
+                        subtitle: sharedChildDriveSubtitle,
                       ),
                       _buildDriveAccountTile(
                         icon: Icons.cloud_done_outlined,
