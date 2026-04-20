@@ -474,7 +474,7 @@ void main() {
     expect(memoRect.left, greaterThan(boardRectWithMemo.right));
   });
 
-  testWidgets('portrait memo and inspector panels are foldable', (
+  testWidgets('portrait inspector starts open and both panels are foldable', (
     WidgetTester tester,
   ) async {
     _setPortraitSurface(tester);
@@ -493,6 +493,16 @@ void main() {
       find.byKey(const ValueKey('training-portrait-memo-panel')),
       findsNothing,
     );
+    expect(
+      find.byKey(const ValueKey('training-portrait-inspector-panel')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('training-portrait-inspector-toggle')),
+    );
+    await tester.pumpAndSettle();
+
     expect(
       find.byKey(const ValueKey('training-portrait-inspector-panel')),
       findsNothing,

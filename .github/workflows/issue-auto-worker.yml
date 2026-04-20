@@ -2,6 +2,11 @@ name: Issue Auto Worker (Local Codex)
 
 on:
   workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Optional issue number to run directly"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -28,10 +33,13 @@ jobs:
           python3 --version
 
       - name: Run issue worker
+        id: run_issue_worker
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           DEFAULT_BRANCH: main
+          WORKFLOW_ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+          ISSUE_WORKER_RESULT_FILE: ${{ github.workspace }}/.tmp/issue_worker_result.json
           # Optional overrides (Repository Variables/Secrets)
           CODEX_RUNNER_CMD: ${{ vars.CODEX_RUNNER_CMD }}
           USE_CUSTOM_CODEX_CMD: ${{ vars.USE_CUSTOM_CODEX_CMD }}
@@ -46,4 +54,19 @@ jobs:
           AUTO_MERGE_METHOD: ${{ vars.AUTO_MERGE_METHOD }}
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
         run: |
+          rm -f "$ISSUE_WORKER_RESULT_FILE"
           bash scripts/run_issue_worker.sh
+
+      - name: Post issue workflow result
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_WORKER_RESULT_FILE: ${{ github.workspace }}/.tmp/issue_worker_result.json
+          ISSUE_WORKER_WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          bash scripts/post_issue_worker_result.sh
+
+      - name: Fail workflow if worker failed
+        if: always() && steps.run_issue_worker.outcome == 'failure'
+        run: exit 1

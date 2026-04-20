@@ -8,23 +8,51 @@ LOCK_DIR="/tmp/football_note_issue_worker.lock"
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
   echo "[issue-worker] Another run is active. Exiting."
   ISSUE_QUEUE_FILE="$ROOT_DIR/docs/ISSUE_QUEUE.md"
-  ISSUE_NUMBER_LOCK="$(
-    (
-      grep -Eo '#[0-9]+' "$ISSUE_QUEUE_FILE" 2>/dev/null || true
-    ) | head -n1 | tr -d '#'
-  )"
+  ISSUE_NUMBER_LOCK="${WORKFLOW_ISSUE_NUMBER:-}"
+  if [[ -z "${ISSUE_NUMBER_LOCK:-}" ]]; then
+    ISSUE_NUMBER_LOCK="$(
+      (
+        grep -Eo '#[0-9]+' "$ISSUE_QUEUE_FILE" 2>/dev/null || true
+      ) | head -n1 | tr -d '#'
+    )"
+  fi
   if [[ -n "${ISSUE_NUMBER_LOCK:-}" && -n "${GITHUB_REPOSITORY:-}" && -n "${GITHUB_TOKEN:-}" ]]; then
-    curl -sS \
+    LOCK_COMMENT_POSTED="0"
+    if curl -sS \
       -H "Authorization: Bearer ${GITHUB_TOKEN}" \
       -H "Accept: application/vnd.github+json" \
       -X POST \
       "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER_LOCK}/comments" \
       -d "{\"body\":\"자동 워커가 이미 실행 중이라 이번 수동 실행은 건너뛰었습니다. 잠시 후 다시 실행해 주세요.\"}" \
-      >/dev/null || true
+      >/dev/null; then
+      LOCK_COMMENT_POSTED="1"
+    fi
+  fi
+  if [[ -n "${ISSUE_NUMBER_LOCK:-}" ]]; then
+    python3 - <<'PY' "${RESULT_FILE:-$ROOT_DIR/.tmp/issue_worker_result.json}" "${ISSUE_NUMBER_LOCK}" "${LOCK_COMMENT_POSTED:-0}"
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+issue_number = sys.argv[2]
+final_comment_posted = sys.argv[3].strip() in {"1", "true", "yes"}
+payload = {
+    "issue_number": issue_number,
+    "status": "실행 건너뜀",
+    "note": "자동 워커가 이미 실행 중이라 이번 수동 실행은 건너뛰었습니다.",
+    "comment_body": "자동 워커가 이미 실행 중이라 이번 수동 실행은 건너뛰었습니다. 잠시 후 다시 실행해 주세요.",
+    "final_comment_posted": final_comment_posted,
+}
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(
+    json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+    encoding="utf-8",
+)
+PY
   fi
   exit 0
 fi
-trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
 
 : "${GITHUB_REPOSITORY:?Missing GITHUB_REPOSITORY}"
 : "${GITHUB_TOKEN:?Missing GITHUB_TOKEN}"
@@ -40,9 +68,89 @@ LOCAL_SYNC_REPO_PATH="${LOCAL_SYNC_REPO_PATH:-/Users/namsoon00/Devel/football_no
 ISSUE_NUMBER=""
 LINKED_DISCUSSION_URL=""
 PR_URL=""
+WORKFLOW_ISSUE_NUMBER="${WORKFLOW_ISSUE_NUMBER:-}"
+RESULT_FILE="${ISSUE_WORKER_RESULT_FILE:-$ROOT_DIR/.tmp/issue_worker_result.json}"
+LAST_ISSUE_COMMENT_POSTED=0
 
 log() {
   echo "[issue-worker] $*"
+}
+
+persist_worker_result() {
+  local status="${1:-}" note="${2:-}" main_sha="${3:-}" comment_body="${4:-}" final_comment_posted="${5:-}"
+  python3 - <<'PY' \
+"${RESULT_FILE}" \
+"${status}" \
+"${note}" \
+"${main_sha}" \
+"${comment_body}" \
+"${final_comment_posted}" \
+"${ISSUE_NUMBER:-}" \
+"${ISSUE_TITLE:-}" \
+"${ISSUE_URL:-}" \
+"${PR_URL:-}" \
+"${HEAD_BRANCH:-}" \
+"${DEFAULT_BRANCH:-}" \
+"${GITHUB_REPOSITORY:-}"
+import json
+import pathlib
+import sys
+
+(
+    path_str,
+    status,
+    note,
+    main_sha,
+    comment_body,
+    final_comment_posted,
+    issue_number,
+    issue_title,
+    issue_url,
+    pr_url,
+    head_branch,
+    default_branch,
+    repository,
+) = sys.argv[1:14]
+
+path = pathlib.Path(path_str)
+payload = {}
+if path.exists():
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        payload = {}
+
+payload["repository"] = repository or payload.get("repository", "")
+payload["issue_number"] = issue_number or payload.get("issue_number", "")
+payload["issue_title"] = issue_title or payload.get("issue_title", "")
+payload["issue_url"] = issue_url or payload.get("issue_url", "")
+payload["pr_url"] = pr_url or payload.get("pr_url", "")
+payload["head_branch"] = head_branch or payload.get("head_branch", "")
+payload["default_branch"] = default_branch or payload.get("default_branch", "")
+
+if status:
+    payload["status"] = status
+if note:
+    payload["note"] = note
+if main_sha:
+    payload["main_sha"] = main_sha
+if comment_body:
+    payload["comment_body"] = comment_body
+if final_comment_posted:
+    payload["final_comment_posted"] = final_comment_posted.lower() in {"1", "true", "yes"}
+elif "final_comment_posted" not in payload:
+    payload["final_comment_posted"] = False
+
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text(
+    json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+    encoding="utf-8",
+)
+PY
+}
+
+mark_final_comment_posted() {
+  persist_worker_result "" "" "" "" "1"
 }
 
 json_body_payload() {
@@ -126,17 +234,22 @@ PY
 
 post_issue_comment() {
   local message="${1:-}" payload
+  LAST_ISSUE_COMMENT_POSTED=0
   if [[ -z "$message" || -z "${ISSUE_NUMBER:-}" ]]; then
     return 0
   fi
   payload="$(json_body_payload "$message")"
-  curl -sS \
+  if curl -sS \
     -H "Authorization: Bearer ${GITHUB_TOKEN}" \
     -H "Accept: application/vnd.github+json" \
     -X POST \
     "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" \
     -d "${payload}" \
-    >/dev/null || true
+    >/dev/null; then
+    LAST_ISSUE_COMMENT_POSTED=1
+    return 0
+  fi
+  return 1
 }
 
 post_linked_discussion_comment() {
@@ -180,7 +293,8 @@ notify_issue_and_discussion() {
   if [[ -z "${message}" ]]; then
     return 0
   fi
-  post_issue_comment "${message}"
+  LAST_ISSUE_COMMENT_POSTED=0
+  post_issue_comment "${message}" || true
   post_linked_discussion_comment "${message}" || true
 }
 
@@ -310,7 +424,7 @@ post_workflow_summary() {
   local status="${1:-작업 완료}" main_sha="${2:-}" note="${3:-}" message=""
   message="$(build_workflow_summary_comment "${status}" "${PR_URL:-}" "${main_sha}" "${note}")"
   if [[ -n "${message}" ]]; then
-    notify_issue_and_discussion "${message}"
+    record_final_result_and_notify "${status}" "${note}" "${main_sha}" "${message}"
   fi
 }
 
@@ -371,7 +485,7 @@ PY
         --body-file "${body_file}"
     )"; then
       LINKED_DISCUSSION_URL="${discussion_target}"
-      post_issue_comment "요청하신 계획을 연결된 Discussion에 남겼습니다: ${discussion_target}"
+      post_issue_comment "요청하신 계획을 연결된 Discussion에 남겼습니다: ${discussion_target}" || true
       log "Plan discussion comment posted: ${discussion_target}"
       return 0
     fi
@@ -385,7 +499,7 @@ PY
       --repo "${GITHUB_REPOSITORY}"
   )"; then
     LINKED_DISCUSSION_URL="${discussion_target}"
-    post_issue_comment "요청하신 계획을 Discussion에 남겼습니다: ${discussion_target}"
+    post_issue_comment "요청하신 계획을 Discussion에 남겼습니다: ${discussion_target}" || true
     log "Plan discussion created: ${discussion_target}"
     return 0
   fi
@@ -404,6 +518,11 @@ issue_state() {
 
 close_issue_completed() {
   local message="${1:-자동 머지 반영으로 이슈를 completed로 닫았습니다.}"
+  local main_sha=""
+  if git rev-parse --verify HEAD >/dev/null 2>&1; then
+    main_sha="$(git rev-parse --short HEAD)"
+  fi
+  record_final_result "main 반영 완료" "자동 병합으로 ${DEFAULT_BRANCH} 반영까지 완료했습니다." "${main_sha}" "${message}"
   curl -sS \
     -H "Authorization: Bearer ${GITHUB_TOKEN}" \
     -H "Accept: application/vnd.github+json" \
@@ -412,6 +531,10 @@ close_issue_completed() {
     -d '{"state":"closed","state_reason":"completed"}' \
     >/dev/null || true
   notify_issue_and_discussion "${message}"
+  if [[ "${LAST_ISSUE_COMMENT_POSTED}" == "1" ]]; then
+    WORKER_RESULT_FINAL_COMMENT_POSTED="1"
+    mark_final_comment_posted
+  fi
 }
 
 ensure_issue_closed_if_merged() {
@@ -457,6 +580,41 @@ TMP_BASE="$ROOT_DIR/.tmp"
 mkdir -p "$TMP_BASE"
 export TMPDIR="$TMP_BASE"
 
+record_final_result() {
+  local status="${1:-}" note="${2:-}" main_sha="${3:-}" comment_body="${4:-}"
+  WORKER_RESULT_STATUS="${status}"
+  WORKER_RESULT_NOTE="${note}"
+  WORKER_RESULT_MAIN_SHA="${main_sha}"
+  WORKER_RESULT_COMMENT_BODY="${comment_body}"
+  persist_worker_result "${status}" "${note}" "${main_sha}" "${comment_body}" ""
+}
+
+record_final_result_and_notify() {
+  local status="${1:-}" note="${2:-}" main_sha="${3:-}" comment_body="${4:-}"
+  record_final_result "${status}" "${note}" "${main_sha}" "${comment_body}"
+  if [[ -n "${comment_body}" ]]; then
+    notify_issue_and_discussion "${comment_body}"
+    if [[ "${LAST_ISSUE_COMMENT_POSTED}" == "1" ]]; then
+      WORKER_RESULT_FINAL_COMMENT_POSTED="1"
+      mark_final_comment_posted
+    fi
+  fi
+}
+
+worker_exit_trap() {
+  local exit_code="$1"
+  if [[ "$exit_code" == "0" ]]; then
+    return 0
+  fi
+  persist_worker_result \
+    "${WORKER_RESULT_STATUS:-실행 실패}" \
+    "${WORKER_RESULT_NOTE:-자동 워커가 비정상 종료되었습니다. 워크플로 로그를 확인해 주세요.}" \
+    "${WORKER_RESULT_MAIN_SHA:-}" \
+    "${WORKER_RESULT_COMMENT_BODY:-}" \
+    "${WORKER_RESULT_FINAL_COMMENT_POSTED:-0}"
+}
+trap 'worker_exit_trap "$?"; rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
+
 cleanup_tmp_artifacts() {
   # Keep repo-local TMPDIR, but ignore transient files from toolchains.
   if [[ -d "$TMP_BASE" ]]; then
@@ -472,19 +630,32 @@ git pull --ff-only origin "$DEFAULT_BRANCH"
 log "Refreshing queue file"
 python3 scripts/sync_issue_queue.py || true
 
-if [[ ! -f "docs/ISSUE_QUEUE.md" ]]; then
+if [[ -n "${WORKFLOW_ISSUE_NUMBER:-}" ]]; then
+  ISSUE_NUMBER="$(tr -cd '0-9' <<<"${WORKFLOW_ISSUE_NUMBER}")"
+  log "Using workflow issue override: #${ISSUE_NUMBER}"
+elif [[ -f "docs/ISSUE_QUEUE.md" ]]; then
+  ISSUE_NUMBER="$(
+    (
+      grep -Eo '#[0-9]+' docs/ISSUE_QUEUE.md || true
+    ) | head -n1 | tr -d '#'
+  )"
+else
   log "Queue file not found. Exiting."
-  post_issue_comment "자동 워커 종료: \`docs/ISSUE_QUEUE.md\` 파일이 없어 작업 대상을 찾지 못했습니다."
+  record_final_result_and_notify \
+    "작업 대상 없음" \
+    "\`docs/ISSUE_QUEUE.md\` 파일이 없어 작업 대상을 찾지 못했습니다." \
+    "" \
+    "자동 워커 종료: \`docs/ISSUE_QUEUE.md\` 파일이 없어 작업 대상을 찾지 못했습니다."
   exit 0
 fi
 
-ISSUE_NUMBER="$(
-  (
-    grep -Eo '#[0-9]+' docs/ISSUE_QUEUE.md || true
-  ) | head -n1 | tr -d '#'
-)"
 if [[ -z "${ISSUE_NUMBER:-}" ]]; then
   log "No queued issue found."
+  record_final_result \
+    "작업 대상 없음" \
+    "실행할 이슈 번호를 찾지 못했습니다." \
+    "" \
+    ""
   exit 0
 fi
 # Queue sync updates docs/ISSUE_QUEUE.md on main; discard it for feature branch work
@@ -495,13 +666,18 @@ ISSUE_JSON="$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: ap
 ISSUE_STATE="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("state",""))' <<< "$ISSUE_JSON")"
 if [[ "$ISSUE_STATE" != "open" ]]; then
   log "Issue #$ISSUE_NUMBER is not open."
-  post_issue_comment "자동 워커 종료: 이슈가 open 상태가 아니어서 작업을 중단했습니다."
+  record_final_result_and_notify \
+    "작업 중단" \
+    "이슈가 open 상태가 아니어서 작업을 중단했습니다." \
+    "" \
+    "자동 워커 종료: 이슈가 open 상태가 아니어서 작업을 중단했습니다."
   exit 0
 fi
 
 ISSUE_TITLE="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("title","").strip())' <<< "$ISSUE_JSON")"
 ISSUE_BODY="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("body","").strip())' <<< "$ISSUE_JSON")"
 ISSUE_URL="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("html_url",""))' <<< "$ISSUE_JSON")"
+persist_worker_result "" "" "" "" ""
 LINKED_DISCUSSION_URL="$(find_linked_discussion_url)"
 if [[ -n "${LINKED_DISCUSSION_URL}" ]]; then
   log "Linked discussion detected: ${LINKED_DISCUSSION_URL}"
@@ -511,6 +687,15 @@ if is_plan_request_issue; then
   log "Plan request detected for issue #${ISSUE_NUMBER}."
   if create_plan_discussion; then
     log "Plan discussion flow completed."
+    record_final_result \
+      "계획 Discussion 작성 완료" \
+      "요청하신 계획을 Discussion에 남겼습니다." \
+      "" \
+      "요청하신 계획을 Discussion에 남겼습니다."
+    if [[ "${LAST_ISSUE_COMMENT_POSTED}" == "1" ]]; then
+      WORKER_RESULT_FINAL_COMMENT_POSTED="1"
+      mark_final_comment_posted
+    fi
     exit 0
   fi
   notify_issue_and_discussion "계획 요청을 감지했지만 Discussion 생성에 실패했습니다. 저장소 Discussions 활성화/권한을 확인해 주세요."
@@ -525,6 +710,7 @@ PY
 )"
 
 HEAD_BRANCH="auto/issue-${ISSUE_NUMBER}-${SAFE_SLUG}"
+persist_worker_result "" "" "" "" ""
 
 if git show-ref --verify --quiet "refs/heads/${HEAD_BRANCH}"; then
   git checkout "$HEAD_BRANCH"
@@ -631,7 +817,11 @@ if \
   HAS_WORKTREE_CHANGES=0
   if [[ "$AHEAD_COUNT" == "0" ]]; then
     log "No changes produced by Codex and no pending commits on ${HEAD_BRANCH}."
-    notify_issue_and_discussion "자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (이미 반영되었거나 추가 수정이 필요합니다)"
+    record_final_result_and_notify \
+      "변경 없음" \
+      "자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다." \
+      "" \
+      "자동 작업이 실행됐지만 코드 변경이 없어 종료했습니다. (이미 반영되었거나 추가 수정이 필요합니다)"
     exit 0
   fi
   log "No local changes, but branch is ${AHEAD_COUNT} commit(s) ahead of ${DEFAULT_BRANCH}. Continuing."
@@ -643,7 +833,11 @@ if [[ "$CODEX_EXIT" != "0" ]]; then
     notify_issue_and_discussion "자동 워커 경고: Codex 실행은 비정상 종료(${CODEX_EXIT})했지만, 브랜치에 기존 커밋이 있어 병합 절차를 계속 진행했습니다."
   else
     log "Failing run because Codex exited non-zero and there are pending changes/commits to inspect."
-    notify_issue_and_discussion "자동 워커 실패: Codex 실행이 비정상 종료(${CODEX_EXIT})했고 변경사항 검증이 필요해 중단했습니다."
+    record_final_result_and_notify \
+      "실행 실패" \
+      "Codex 실행이 비정상 종료(${CODEX_EXIT})했고 변경사항 검증이 필요해 중단했습니다." \
+      "" \
+      "자동 워커 실패: Codex 실행이 비정상 종료(${CODEX_EXIT})했고 변경사항 검증이 필요해 중단했습니다."
     exit "$CODEX_EXIT"
   fi
 fi
@@ -683,6 +877,7 @@ PR_URL="$(python3 scripts/create_or_update_pr.py | tail -n1 | tr -d '\r')"
 if [[ -z "${PR_URL}" ]]; then
   PR_URL="$(lookup_pr_url_for_head_branch)"
 fi
+persist_worker_result "" "" "" "" ""
 
 log "FORCE_MAIN_MERGE=$FORCE_MAIN_MERGE"
 if [[ "$FORCE_MAIN_MERGE" == "1" ]]; then

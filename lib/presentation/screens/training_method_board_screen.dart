@@ -72,7 +72,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   bool _showLandscapeControls = true;
   bool _showLandscapeMemo = false;
   bool _showPortraitMemo = false;
-  bool _showPortraitInspector = false;
+  bool _showPortraitInspector = true;
 
   bool get _isManagedMode => widget.optionRepository != null;
   _BoardPageState get _currentPage => _pages.first;
@@ -1969,8 +1969,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                         setState(() => _showPortraitMemo = !_showPortraitMemo),
                     icon: Icon(
                       _showPortraitMemo
-                          ? Icons.notes_rounded
-                          : Icons.notes_outlined,
+                          ? Icons.description_rounded
+                          : Icons.description_outlined,
                     ),
                     tooltip: _l10n.notes,
                   ),
@@ -2140,7 +2140,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             onPressed: () =>
                 setState(() => _showLandscapeMemo = !_showLandscapeMemo),
             icon: Icon(
-              _showLandscapeMemo ? Icons.notes_rounded : Icons.notes_outlined,
+              _showLandscapeMemo
+                  ? Icons.description_rounded
+                  : Icons.description_outlined,
             ),
             tooltip: _l10n.notes,
           ),
