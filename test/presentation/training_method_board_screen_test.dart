@@ -126,10 +126,7 @@ void main() {
     await tester.tap(find.text('사람 2'));
     await tester.pumpAndSettle();
 
-    final deleteRouteButton = find.widgetWithText(
-      OutlinedButton,
-      '선택 이동선 삭제',
-    );
+    final deleteRouteButton = find.widgetWithText(OutlinedButton, '선택 이동선 삭제');
     await tester.ensureVisible(deleteRouteButton);
     await tester.tap(deleteRouteButton);
     await tester.pumpAndSettle();
@@ -232,6 +229,66 @@ void main() {
     expect(movedRoute2.points[1].y, closeTo(0.7 + dy, 0.0001));
   });
 
+  testWidgets(
+    'new route links to the nearest matching item when none is selected',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
+      String? savedLayout;
+      final initialLayout = const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(
+            name: 'Board',
+            items: <TrainingMethodItem>[
+              TrainingMethodItem(
+                id: 'player-1',
+                type: 'player',
+                x: 0.18,
+                y: 0.28,
+              ),
+              TrainingMethodItem(
+                id: 'player-2',
+                type: 'player',
+                x: 0.72,
+                y: 0.66,
+                colorValue: 0xFFE53935,
+              ),
+            ],
+          ),
+        ],
+      ).encode();
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 워밍업',
+            initialLayoutJson: initialLayout,
+            onSaved: (value) => savedLayout = value,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+      await tester.pumpAndSettle();
+
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await _drawRoute(
+        tester,
+        boardFinder,
+        const Offset(700, 440),
+        const Offset(860, 360),
+      );
+
+      await tester.tap(find.widgetWithText(TextButton, '저장'));
+      await tester.pumpAndSettle();
+
+      final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+      final route = saved.pages.single.routes.single;
+      expect(route.linkedItemId, 'player-2');
+      expect(route.colorValue, 0xFFE53935);
+    },
+  );
+
   testWidgets('landscape controls can collapse and reopen memo tools', (
     WidgetTester tester,
   ) async {
@@ -253,8 +310,9 @@ void main() {
     );
     expect(find.byType(TextField), findsNothing);
 
-    await tester
-        .tap(find.byKey(const ValueKey('training-landscape-panel-toggle')));
+    await tester.tap(
+      find.byKey(const ValueKey('training-landscape-panel-toggle')),
+    );
     await tester.pumpAndSettle();
 
     expect(
@@ -263,8 +321,9 @@ void main() {
     );
     expect(find.byKey(const ValueKey('training-board-canvas')), findsOneWidget);
 
-    await tester
-        .tap(find.byKey(const ValueKey('training-landscape-memo-toggle')));
+    await tester.tap(
+      find.byKey(const ValueKey('training-landscape-memo-toggle')),
+    );
     await tester.pumpAndSettle();
 
     expect(
@@ -275,127 +334,132 @@ void main() {
   });
 
   testWidgets(
-      'new linked routes inherit item color and play animates all items', (
-    WidgetTester tester,
-  ) async {
-    _setLandscapeSurface(tester);
-    String? savedLayout;
-    final initialLayout = const TrainingMethodLayout(
-      pages: <TrainingMethodPage>[
-        TrainingMethodPage(
-          name: 'Board',
-          items: <TrainingMethodItem>[
-            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.2, y: 0.3),
-            TrainingMethodItem(
-              id: 'player-2',
-              type: 'player',
-              x: 0.22,
-              y: 0.72,
-              colorValue: 0xFFFFCA28,
-            ),
-            TrainingMethodItem(
-              id: 'ball-1',
-              type: 'ball',
-              x: 0.32,
-              y: 0.52,
-              colorValue: 0xFFE53935,
-            ),
-          ],
-          routes: <TrainingMethodRoute>[
-            TrainingMethodRoute(
-              id: 'route-player-1',
-              kind: TrainingMethodRouteKind.player,
-              linkedItemId: 'player-1',
-              points: <TrainingMethodPoint>[
-                TrainingMethodPoint(x: 0.2, y: 0.3),
-                TrainingMethodPoint(x: 0.58, y: 0.28),
-              ],
-            ),
-            TrainingMethodRoute(
-              id: 'route-player-2',
-              kind: TrainingMethodRouteKind.player,
-              linkedItemId: 'player-2',
-              points: <TrainingMethodPoint>[
-                TrainingMethodPoint(x: 0.22, y: 0.72),
-                TrainingMethodPoint(x: 0.66, y: 0.74),
-              ],
-            ),
-            TrainingMethodRoute(
-              id: 'route-ball-1',
-              kind: TrainingMethodRouteKind.ball,
-              linkedItemId: 'ball-1',
-              points: <TrainingMethodPoint>[
-                TrainingMethodPoint(x: 0.32, y: 0.52),
-                TrainingMethodPoint(x: 0.72, y: 0.44),
-              ],
-            ),
-          ],
+    'new linked routes inherit item color and play animates all items',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
+      String? savedLayout;
+      final initialLayout = const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(
+            name: 'Board',
+            items: <TrainingMethodItem>[
+              TrainingMethodItem(
+                id: 'player-1',
+                type: 'player',
+                x: 0.2,
+                y: 0.3,
+              ),
+              TrainingMethodItem(
+                id: 'player-2',
+                type: 'player',
+                x: 0.22,
+                y: 0.72,
+                colorValue: 0xFFFFCA28,
+              ),
+              TrainingMethodItem(
+                id: 'ball-1',
+                type: 'ball',
+                x: 0.32,
+                y: 0.52,
+                colorValue: 0xFFE53935,
+              ),
+            ],
+            routes: <TrainingMethodRoute>[
+              TrainingMethodRoute(
+                id: 'route-player-1',
+                kind: TrainingMethodRouteKind.player,
+                linkedItemId: 'player-1',
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.2, y: 0.3),
+                  TrainingMethodPoint(x: 0.58, y: 0.28),
+                ],
+              ),
+              TrainingMethodRoute(
+                id: 'route-player-2',
+                kind: TrainingMethodRouteKind.player,
+                linkedItemId: 'player-2',
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.22, y: 0.72),
+                  TrainingMethodPoint(x: 0.66, y: 0.74),
+                ],
+              ),
+              TrainingMethodRoute(
+                id: 'route-ball-1',
+                kind: TrainingMethodRouteKind.ball,
+                linkedItemId: 'ball-1',
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.32, y: 0.52),
+                  TrainingMethodPoint(x: 0.72, y: 0.44),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ).encode();
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 워밍업',
+            initialLayoutJson: initialLayout,
+            onSaved: (value) => savedLayout = value,
+          ),
         ),
-      ],
-    ).encode();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.pumpWidget(
-      _buildApp(
-        TrainingMethodBoardScreen(
-          boardTitle: '패스 워밍업',
-          initialLayoutJson: initialLayout,
-          onSaved: (value) => savedLayout = value,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
-    await tester.pumpAndSettle();
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await _drawRoute(
+        tester,
+        boardFinder,
+        const Offset(150, 120),
+        const Offset(290, 160),
+      );
 
-    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    await _drawRoute(
-      tester,
-      boardFinder,
-      const Offset(150, 120),
-      const Offset(290, 160),
-    );
+      await tester.tap(find.widgetWithText(TextButton, '저장'));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(TextButton, '저장'));
-    await tester.pumpAndSettle();
+      final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+      final page = saved.pages.single;
+      final newestPlayer = page.items.last;
+      final newestRoute = page.routes.last;
+      expect(newestPlayer.type, 'player');
+      expect(newestRoute.linkedItemId, newestPlayer.id);
+      expect(newestRoute.colorValue, newestPlayer.colorValue);
 
-    final saved = TrainingMethodLayout.decode(savedLayout ?? '');
-    final page = saved.pages.single;
-    final newestPlayer = page.items.last;
-    final newestRoute = page.routes.last;
-    expect(newestPlayer.type, 'player');
-    expect(newestRoute.linkedItemId, newestPlayer.id);
-    expect(newestRoute.colorValue, newestPlayer.colorValue);
+      final playerIcons = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.person),
+      );
+      final ballIcons = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      );
+      expect(playerIcons, findsNWidgets(3));
+      expect(ballIcons, findsOneWidget);
 
-    final playerIcons = find.descendant(
-      of: boardFinder,
-      matching: find.byIcon(Icons.person),
-    );
-    final ballIcons = find.descendant(
-      of: boardFinder,
-      matching: find.byIcon(Icons.sports_soccer),
-    );
-    expect(playerIcons, findsNWidgets(3));
-    expect(ballIcons, findsOneWidget);
+      final player1Before = tester.getCenter(playerIcons.at(0));
+      final player2Before = tester.getCenter(playerIcons.at(1));
+      final ballBefore = tester.getCenter(ballIcons);
 
-    final player1Before = tester.getCenter(playerIcons.at(0));
-    final player2Before = tester.getCenter(playerIcons.at(1));
-    final ballBefore = tester.getCenter(ballIcons);
+      await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
 
-    await tester.tap(find.byIcon(Icons.play_circle_outline).first);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 700));
+      final player1After = tester.getCenter(playerIcons.at(0));
+      final player2After = tester.getCenter(playerIcons.at(1));
+      final ballAfter = tester.getCenter(ballIcons);
 
-    final player1After = tester.getCenter(playerIcons.at(0));
-    final player2After = tester.getCenter(playerIcons.at(1));
-    final ballAfter = tester.getCenter(ballIcons);
-
-    expect((player1After - player1Before).distance, greaterThan(1));
-    expect((player2After - player2Before).distance, greaterThan(1));
-    expect((ballAfter - ballBefore).distance, greaterThan(1));
-  });
+      expect((player1After - player1Before).distance, greaterThan(1));
+      expect((player2After - player2Before).distance, greaterThan(1));
+      expect((ballAfter - ballBefore).distance, greaterThan(1));
+    },
+  );
 }
 
 Widget _buildApp(Widget home) {
