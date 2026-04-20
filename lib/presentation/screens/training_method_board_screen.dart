@@ -473,8 +473,43 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   int _routeableItemCount(_PathDrawMode kind) {
+    return _routeableItems(kind).length;
+  }
+
+  List<_BoardItem> _routeableItems(_PathDrawMode kind) {
     final expectedType = _boardItemTypeForRouteKind(kind);
-    return _currentPage.items.where((item) => item.type == expectedType).length;
+    return _currentPage.items
+        .where((item) => item.type == expectedType)
+        .toList(growable: false);
+  }
+
+  String _routeGroupTitle(_PathDrawMode kind) {
+    return switch (kind) {
+      _PathDrawMode.player => _l10n.trainingSketchPlayerRoutesTitle,
+      _PathDrawMode.ball => _l10n.trainingSketchBallRoutesTitle,
+    };
+  }
+
+  IconData _routeGroupIcon(_PathDrawMode kind) {
+    return switch (kind) {
+      _PathDrawMode.player => Icons.person,
+      _PathDrawMode.ball => Icons.sports_soccer,
+    };
+  }
+
+  Color _routeGroupAccentColor(_PathDrawMode kind) {
+    return switch (kind) {
+      _PathDrawMode.player => _playerItemColors.first,
+      _PathDrawMode.ball => _ballItemColors.first,
+    };
+  }
+
+  List<Color> _colorChoicesForItemType(_BoardItemType? type) {
+    return switch (type) {
+      _BoardItemType.player => _playerItemColors,
+      _BoardItemType.ball => _ballItemColors,
+      _ => _presetColors,
+    };
   }
 
   _BoardItem? _itemById(String id) {
@@ -655,21 +690,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     if (type != _BoardItemType.player && type != _BoardItemType.ball) {
       return _defaultColorFor(type);
     }
-    const palette = _routeableItemColors;
-    final startOffset = type == _BoardItemType.player ? 0 : 1;
+    final palette = _colorChoicesForItemType(type);
     final sameTypeItems = _currentPage.items
         .where((item) => item.type == type)
         .toList(growable: false);
     final usedColors =
         sameTypeItems.map((item) => item.color.toARGB32()).toSet();
     for (var i = 0; i < palette.length; i++) {
-      final color =
-          palette[(sameTypeItems.length + startOffset + i) % palette.length];
+      final color = palette[(sameTypeItems.length + i) % palette.length];
       if (!usedColors.contains(color.toARGB32())) {
         return color;
       }
     }
-    return palette[(sameTypeItems.length + startOffset) % palette.length];
+    return palette[sameTypeItems.length % palette.length];
   }
 
   Color _routeColorFor({required _PathDrawMode kind, String? linkedItemId}) {
@@ -1408,20 +1441,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
   }
 
-  void _selectRoute(_BoardRoute route) {
-    setState(() {
-      _selectedRouteId = route.id;
-      _pathDrawMode = route.kind;
-      _routeReplaceMode = false;
-      _pathMode = true;
-      final linkedItemId = route.linkedItemId;
-      if (linkedItemId != null &&
-          _currentPage.items.any((item) => item.id == linkedItemId)) {
-        _selectedItemId = linkedItemId;
-      }
-    });
-  }
-
   void _startPlayerPath(Offset localPosition, double width, double height) {
     final x = (localPosition.dx / width).clamp(0.0, 1.0);
     final y = (localPosition.dy / height).clamp(0.0, 1.0);
@@ -1504,25 +1523,29 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     });
   }
 
-  void _togglePlayerPathMode() {
+  void _togglePathMode(_PathDrawMode kind) {
     _stopRoutePlayback();
     setState(() {
-      _pathMode = !_pathMode;
+      final closingCurrentMode = _pathMode && _pathDrawMode == kind;
+      _pathMode = !closingCurrentMode;
       if (_pathMode) {
         _penMode = false;
+        _pathDrawMode = kind;
         final selectedRoute = _selectedRoute;
         final selectedItem = _selectedItem;
-        if (selectedRoute != null) {
-          _pathDrawMode = selectedRoute.kind;
-        } else if (selectedItem?.type == _BoardItemType.ball) {
-          _pathDrawMode = _PathDrawMode.ball;
-        } else if (selectedItem?.type == _BoardItemType.player) {
-          _pathDrawMode = _PathDrawMode.player;
+        if (selectedRoute != null && selectedRoute.kind == kind) {
+          _selectedRouteId = selectedRoute.id;
+          if (selectedRoute.linkedItemId != null) {
+            _selectedItemId = selectedRoute.linkedItemId;
+          }
+        } else if (selectedItem != null &&
+            selectedItem.type == _boardItemTypeForRouteKind(kind)) {
+          _selectedRouteId = _routeForItem(selectedItem.id, kind)?.id;
+        } else {
+          _selectedRouteId = null;
         }
-        if (selectedItem != null &&
-            selectedItem.type == _boardItemTypeForRouteKind(_pathDrawMode)) {
-          _selectedRouteId = _routeForItem(selectedItem.id, _pathDrawMode)?.id;
-        }
+      } else {
+        _selectedRouteId = null;
       }
       _activeStroke = null;
       _activeRoutePoints = null;
@@ -1576,6 +1599,44 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _PathDrawMode.player => _l10n.trainingSketchPlayerRouteChip(index),
       _PathDrawMode.ball => _l10n.trainingSketchBallRouteChip(index),
     };
+  }
+
+  String _routeableItemLabel(_BoardItem item) {
+    final kind = item.type == _BoardItemType.ball
+        ? _PathDrawMode.ball
+        : _PathDrawMode.player;
+    final items = _routeableItems(kind);
+    final index = items.indexWhere((entry) => entry.id == item.id);
+    return _routeLabel(kind, index < 0 ? 1 : index + 1);
+  }
+
+  void _selectRouteableItem(_BoardItem item) {
+    final kind = item.type == _BoardItemType.ball
+        ? _PathDrawMode.ball
+        : _PathDrawMode.player;
+    setState(() {
+      _selectedItemId = item.id;
+      _selectedRouteId = _routeForItem(item.id, kind)?.id;
+      _pathDrawMode = kind;
+      _pathMode = true;
+      _penMode = false;
+      _routeReplaceMode = false;
+      _activeStroke = null;
+      _activeRoutePoints = null;
+    });
+  }
+
+  Color _activeRoutePreviewColor() {
+    final replacementRoute = _routeToUpdateForPath(_pathDrawMode);
+    if (replacementRoute != null) {
+      return replacementRoute.color;
+    }
+    final selectedItem = _selectedItem;
+    if (selectedItem != null &&
+        selectedItem.type == _boardItemTypeForRouteKind(_pathDrawMode)) {
+      return selectedItem.color;
+    }
+    return _defaultRouteColor(_pathDrawMode);
   }
 
   String _pathModeHint() {
@@ -2283,7 +2344,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                     routes: _currentPage.routes,
                     selectedRouteId: _selectedRouteId,
                     activeRoutePoints: _activeRoutePoints,
-                    activeRouteKind: _pathDrawMode,
+                    activeRouteColor: _activeRoutePreviewColor(),
                   ),
                 ),
                 CustomPaint(
@@ -2531,15 +2592,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           foregroundColor: _penMode ? const Color(0xFFFFEB3B) : null,
         ),
       ),
-      OutlinedButton.icon(
-        key: const ValueKey('training-path-mode-button'),
-        onPressed: _togglePlayerPathMode,
-        icon: Icon(_pathMode ? Icons.route : Icons.route_outlined),
-        label: Text(l10n.trainingSketchRoutesButton),
-        style: _toolButtonStyle(
-          foregroundColor: _pathMode ? const Color(0xFFFFEB3B) : null,
-        ),
-      ),
+      _routeModeButton(_PathDrawMode.player),
+      _routeModeButton(_PathDrawMode.ball),
       OutlinedButton.icon(
         onPressed: _currentPage.strokes.isEmpty
             ? null
@@ -2580,13 +2634,37 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     ];
   }
 
-  ButtonStyle _toolButtonStyle({Color? foregroundColor}) {
+  Widget _routeModeButton(_PathDrawMode kind) {
+    final isActive = _pathMode && _pathDrawMode == kind;
+    final accentColor = _routeGroupAccentColor(kind);
+    return OutlinedButton.icon(
+      key: ValueKey('training-${kind.name}-path-mode-button'),
+      onPressed: () => _togglePathMode(kind),
+      icon: Icon(_routeGroupIcon(kind)),
+      label: Text(_routeGroupTitle(kind)),
+      style: _toolButtonStyle(
+        foregroundColor: isActive ? accentColor : null,
+        backgroundColor: isActive ? accentColor.withValues(alpha: 0.12) : null,
+        side: isActive
+            ? BorderSide(color: accentColor.withValues(alpha: 0.68))
+            : null,
+      ),
+    );
+  }
+
+  ButtonStyle _toolButtonStyle({
+    Color? foregroundColor,
+    Color? backgroundColor,
+    BorderSide? side,
+  }) {
     return OutlinedButton.styleFrom(
       visualDensity: VisualDensity.compact,
       minimumSize: const Size(1, 40),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+      side: side,
     );
   }
 
@@ -2619,10 +2697,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final selected = _selectedItem;
     final selectedRoute = _selectedRoute;
     final l10n = _l10n;
-    final colorChoices = selected?.type == _BoardItemType.player ||
-            selected?.type == _BoardItemType.ball
-        ? _routeableItemColors
-        : _presetColors;
+    final colorChoices = _colorChoicesForItemType(selected?.type);
     if (_penMode) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2674,80 +2749,114 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     if (_pathMode) {
       final routes = _routesForKind(_pathDrawMode);
-      final routeableCount = _routeableItemCount(_pathDrawMode);
+      final routeableItems = _routeableItems(_pathDrawMode);
+      final routeableCount = routeableItems.length;
       final hasSelectedCurrentRoute =
           selectedRoute != null && selectedRoute.kind == _pathDrawMode;
+      final accentColor = _routeGroupAccentColor(_pathDrawMode);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SegmentedButton<_PathDrawMode>(
-            segments: [
-              ButtonSegment<_PathDrawMode>(
-                value: _PathDrawMode.player,
-                icon: const Icon(Icons.person),
-                label: Text(l10n.trainingSketchPlayerButton),
-              ),
-              ButtonSegment<_PathDrawMode>(
-                value: _PathDrawMode.ball,
-                icon: const Icon(Icons.sports_soccer),
-                label: Text(l10n.trainingSketchBallButton),
-              ),
-            ],
-            selected: {_pathDrawMode},
-            onSelectionChanged: (selection) {
-              final nextMode = selection.first;
-              setState(() {
-                _pathDrawMode = nextMode;
-                _activeRoutePoints = null;
-                _routeReplaceMode = false;
-                final selectedItem = _selectedItem;
-                if (selectedItem != null &&
-                    selectedItem.type == _boardItemTypeForRouteKind(nextMode)) {
-                  _selectedRouteId = _routeForItem(
-                    selectedItem.id,
-                    nextMode,
-                  )?.id;
-                } else if (_selectedRoute?.kind != nextMode) {
-                  _selectedRouteId = null;
-                }
-              });
-            },
-            showSelectedIcon: false,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: accentColor.withValues(alpha: 0.12),
+              border: Border.all(color: accentColor.withValues(alpha: 0.28)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accentColor.withValues(alpha: 0.18),
+                  ),
+                  child: Icon(
+                    _routeGroupIcon(_pathDrawMode),
+                    size: 18,
+                    color: accentColor,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _routeGroupTitle(_pathDrawMode),
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+                Text(
+                  '${routes.length}/$routeableCount',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: accentColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           Text(_pathModeHint(), style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 10),
-          Text(
-            _pathDrawMode == _PathDrawMode.player
-                ? l10n.trainingSketchPlayerRoutesTitle
-                : l10n.trainingSketchBallRoutesTitle,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            '${routes.length}/$routeableCount',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          if (routeableItems.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: routeableItems.map((item) {
+                final route = _routeForItem(item.id, _pathDrawMode);
+                final isSelected = selected?.id == item.id;
+                final textColor = item.color.computeLuminance() < 0.45
+                    ? Colors.white
+                    : Colors.black87;
+                return ChoiceChip(
+                  key: ValueKey(
+                    'training-route-target-${_pathDrawMode.name}-${item.id}',
+                  ),
+                  selected: isSelected,
+                  showCheckmark: false,
+                  avatar: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: item.color,
+                    ),
+                    child: Icon(
+                      _routeGroupIcon(_pathDrawMode),
+                      size: 14,
+                      color: textColor,
+                    ),
+                  ),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_routeableItemLabel(item)),
+                      const SizedBox(width: 4),
+                      Icon(
+                        route == null ? Icons.route_outlined : Icons.route,
+                        size: 14,
+                        color: route?.color ?? accentColor,
+                      ),
+                    ],
+                  ),
+                  selectedColor: accentColor.withValues(alpha: 0.18),
+                  side: BorderSide(
+                    color: (route?.color ?? accentColor).withValues(
+                      alpha: isSelected ? 0.82 : 0.34,
+                    ),
+                  ),
+                  onSelected: (_) => _selectRouteableItem(item),
+                );
+              }).toList(growable: false),
+            ),
+          ],
           const SizedBox(height: 6),
           if (routes.isEmpty)
             Text(
               l10n.trainingSketchRoutesEmpty,
               style: Theme.of(context).textTheme.bodySmall,
-            )
-          else
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: routes.asMap().entries.map((entry) {
-                final index = entry.key;
-                final route = entry.value;
-                return ChoiceChip(
-                  key: ValueKey('training-route-chip-${route.id}'),
-                  selected: route.id == selectedRoute?.id,
-                  label: Text(_routeLabel(route.kind, index + 1)),
-                  onSelected: (_) => _selectRoute(route),
-                );
-              }).toList(growable: false),
             ),
           const SizedBox(height: 10),
           Wrap(
@@ -2944,8 +3053,8 @@ Color _defaultColorFor(_BoardItemType type) {
   return switch (type) {
     _BoardItemType.cone => const Color(0xFFFFB300),
     _BoardItemType.hurdle => const Color(0xFFFFF176),
-    _BoardItemType.player => const Color(0xFF42A5F5),
-    _BoardItemType.ball => const Color(0xFFFFFFFF),
+    _BoardItemType.player => _playerItemColors.first,
+    _BoardItemType.ball => _ballItemColors.first,
     _BoardItemType.ladder => const Color(0xFFE53935),
   };
 }
@@ -2966,8 +3075,8 @@ TrainingMethodRouteKind _routeKindFromPathDrawMode(_PathDrawMode mode) {
 
 Color _defaultRouteColor(_PathDrawMode kind) {
   return switch (kind) {
-    _PathDrawMode.player => const Color(0xFF80D8FF),
-    _PathDrawMode.ball => const Color(0xFFFFCA28),
+    _PathDrawMode.player => _playerItemColors.first,
+    _PathDrawMode.ball => _ballItemColors.first,
   };
 }
 
@@ -2978,13 +3087,22 @@ double _defaultRouteWidth(_PathDrawMode kind) {
   };
 }
 
-const List<Color> _routeableItemColors = <Color>[
+const List<Color> _playerItemColors = <Color>[
   Color(0xFF42A5F5),
+  Color(0xFF1E88E5),
+  Color(0xFF26C6DA),
+  Color(0xFF5C6BC0),
+  Color(0xFF00897B),
+  Color(0xFF7E57C2),
+];
+
+const List<Color> _ballItemColors = <Color>[
   Color(0xFFFFCA28),
-  Color(0xFFE53935),
-  Color(0xFFFFFFFF),
-  Color(0xFF66BB6A),
   Color(0xFFFF7043),
+  Color(0xFFFFB300),
+  Color(0xFFEF5350),
+  Color(0xFFFF8A65),
+  Color(0xFFFFD54F),
 ];
 
 const List<Color> _presetColors = <Color>[
@@ -3053,13 +3171,13 @@ class _PlayerPathPainter extends CustomPainter {
   final List<_BoardRoute> routes;
   final String? selectedRouteId;
   final List<Offset>? activeRoutePoints;
-  final _PathDrawMode activeRouteKind;
+  final Color activeRouteColor;
 
   const _PlayerPathPainter({
     required this.routes,
     required this.selectedRouteId,
     required this.activeRoutePoints,
-    required this.activeRouteKind,
+    required this.activeRouteColor,
   });
 
   @override
@@ -3088,8 +3206,8 @@ class _PlayerPathPainter extends CustomPainter {
         canvas: canvas,
         size: size,
         points: active,
-        color: _defaultRouteColor(activeRouteKind).withValues(alpha: 0.72),
-        width: _defaultRouteWidth(activeRouteKind),
+        color: activeRouteColor.withValues(alpha: 0.72),
+        width: 3.6,
       );
     }
   }
