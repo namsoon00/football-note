@@ -63,9 +63,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text(
-        '부모 모드에서는 식사 기록을 수정할 수 없어요. 식사 입력은 기록 모드에서 진행해 주세요.',
-      ),
+      find.text('부모 모드에서는 식사 기록을 수정할 수 없어요. 식사 입력은 선수 모드에서 진행해 주세요.'),
       findsOneWidget,
     );
 

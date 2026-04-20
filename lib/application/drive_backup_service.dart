@@ -26,20 +26,21 @@ class DriveBackupService implements BackupRepository {
     BackupAssetFileStore? backupAssetFileStore,
     Future<DriveConnectionInfo?> Function()? driveConnectionLoader,
     String? webClientId,
-  })  : _googleSignIn = googleSignIn ??
-            (kIsWeb
-                ? null
-                : GoogleSignIn(
-                    clientId:
-                        webClientId != null && webClientId.trim().isNotEmpty
-                            ? webClientId.trim()
-                            : null,
-                    scopes: const ['email', _driveScope],
-                  )),
-        _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
-        _backupAssetFileStore =
-            backupAssetFileStore ?? createBackupAssetFileStore(),
-        _driveConnectionLoader = driveConnectionLoader {
+  }) : _googleSignIn =
+           googleSignIn ??
+           (kIsWeb
+               ? null
+               : GoogleSignIn(
+                   clientId:
+                       webClientId != null && webClientId.trim().isNotEmpty
+                       ? webClientId.trim()
+                       : null,
+                   scopes: const ['email', _driveScope],
+                 )),
+       _firebaseAuth = firebaseAuth ?? _safeFirebaseAuth(),
+       _backupAssetFileStore =
+           backupAssetFileStore ?? createBackupAssetFileStore(),
+       _driveConnectionLoader = driveConnectionLoader {
     _bindDriveAccountStateChanges();
   }
 
@@ -54,6 +55,8 @@ class DriveBackupService implements BackupRepository {
   String? _webAccessToken;
   StreamSubscription<GoogleSignInAccount?>? _googleAccountSubscription;
   StreamSubscription<User?>? _firebaseAuthSubscription;
+  DriveConnectionInfo? _recentDriveConnection;
+  DateTime? _recentDriveConnectionExpiresAt;
 
   static FirebaseAuth? _safeFirebaseAuth() {
     if (kIsWeb) {
@@ -78,6 +81,8 @@ class DriveBackupService implements BackupRepository {
   static const _lastRecordBackupKey = 'drive_last_record_backup_v1';
   static const _lastFamilySyncPushAtKey = 'drive_last_family_sync_push_v1';
   static const _lastFamilySyncPullAtKey = 'drive_last_family_sync_pull_v1';
+  static const _lastFamilyRemoteSnapshotAtKey =
+      'drive_last_family_remote_snapshot_v1';
   static const _parentSharedDataDirtyKey = 'drive_parent_shared_dirty_v1';
   static const _localPreRestoreKey = 'local_pre_restore_backup';
   static const _localPreRestoreAtKey = 'local_pre_restore_backup_at';
@@ -104,11 +109,13 @@ class DriveBackupService implements BackupRepository {
   static const recordDriveMismatchErrorCode = 'record_drive_mismatch';
   static const playerDriveMismatchErrorCode = recordDriveMismatchErrorCode;
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
+  static const _recentDriveConnectionTtl = Duration(seconds: 10);
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
     _lastRecordBackupKey,
     _lastFamilySyncPushAtKey,
     _lastFamilySyncPullAtKey,
+    _lastFamilyRemoteSnapshotAtKey,
     _parentSharedDataDirtyKey,
     _localPreRestoreKey,
     _localPreRestoreAtKey,
@@ -257,7 +264,9 @@ class DriveBackupService implements BackupRepository {
   DateTime? getLastFamilySyncPush() =>
       _getDateTimeOption(_lastFamilySyncPushAtKey);
 
-  DateTime? getLastFamilySyncPull() =>
+  DateTime? getLastFamilySyncPull() => getLastFamilyRefresh();
+
+  DateTime? getLastFamilyRefresh() =>
       _getDateTimeOption(_lastFamilySyncPullAtKey);
 
   bool hasPendingParentSharedChanges() {
@@ -403,7 +412,14 @@ class DriveBackupService implements BackupRepository {
       await _syncConnectedDriveAccountCache();
       return;
     }
-    await _ensureSignedIn(requireInteractive: true);
+    final account = await _ensureSignedIn(requireInteractive: true);
+    _cacheRecentDriveConnection(
+      DriveConnectionInfo(
+        email: account.email.trim(),
+        displayName: account.displayName?.trim() ?? '',
+        subjectId: account.id,
+      ),
+    );
     await _syncConnectedDriveAccountCache();
   }
 
@@ -422,15 +438,26 @@ class DriveBackupService implements BackupRepository {
     var account = google.currentUser;
     account ??= await google.signInSilently();
     if (account != null) {
+      _cacheRecentDriveConnection(
+        DriveConnectionInfo(
+          email: account.email.trim(),
+          displayName: account.displayName?.trim() ?? '',
+          subjectId: account.id,
+        ),
+      );
       await _syncConnectedDriveAccountCache();
     } else {
-      await _clearConnectedDriveAccountCache();
+      final recent = _loadRecentDriveConnection();
+      if (recent == null || recent.isEmpty) {
+        await _clearConnectedDriveAccountCache();
+      }
     }
-    return account != null;
+    return account != null || _loadRecentDriveConnection() != null;
   }
 
   Future<void> signOut() async {
     _webAccessToken = null;
+    _clearRecentDriveConnection();
     if (kIsWeb) {
       await _firebaseAuth?.signOut();
       await _clearConnectedDriveAccountCache();
@@ -511,8 +538,14 @@ class DriveBackupService implements BackupRepository {
   }
 
   @visibleForTesting
-  Future<void> recordFamilySyncPullForTesting(DateTime value) async {
-    await _recordFamilySyncPull(value);
+  Future<void> recordFamilySyncPullForTesting(
+    DateTime value, {
+    DateTime? remoteModifiedAt,
+  }) async {
+    await _recordFamilySyncPull(
+      value,
+      remoteModifiedAt: remoteModifiedAt ?? value,
+    );
   }
 
   Future<bool> refreshParentSharedDataIfNeeded() async {
@@ -531,12 +564,16 @@ class DriveBackupService implements BackupRepository {
         return false;
       }
       if (!_shouldRefreshParentSharedData(
-          remoteModifiedAt: file.modifiedTime)) {
+        remoteModifiedAt: file.modifiedTime,
+      )) {
         return false;
       }
       await _saveLocalPreRestore();
       await _restoreBackupFileWithApi(driveApi, file);
-      await _recordFamilySyncPull(file.modifiedTime ?? DateTime.now());
+      await _recordFamilySyncPull(
+        DateTime.now(),
+        remoteModifiedAt: file.modifiedTime ?? DateTime.now(),
+      );
       await _setParentSharedDataDirty(false);
       return true;
     } catch (e, st) {
@@ -570,6 +607,13 @@ class DriveBackupService implements BackupRepository {
     if (account == null) {
       throw StateError('Google sign-in cancelled.');
     }
+    _cacheRecentDriveConnection(
+      DriveConnectionInfo(
+        email: account.email.trim(),
+        displayName: account.displayName?.trim() ?? '',
+        subjectId: account.id,
+      ),
+    );
     await _ensureDriveScopeGranted();
   }
 
@@ -595,6 +639,16 @@ class DriveBackupService implements BackupRepository {
       ..addScope(_driveScope)
       ..setCustomParameters(const {'prompt': 'consent'});
     final credential = await auth.signInWithPopup(provider);
+    final user = credential.user;
+    if (user != null) {
+      _cacheRecentDriveConnection(
+        DriveConnectionInfo(
+          email: user.email?.trim() ?? '',
+          displayName: user.displayName?.trim() ?? '',
+          subjectId: user.uid,
+        ),
+      );
+    }
     final oauth = credential.credential;
     final token = oauth is OAuthCredential ? oauth.accessToken : null;
     if (token == null || token.isEmpty) {
@@ -642,14 +696,23 @@ class DriveBackupService implements BackupRepository {
   Future<void> _syncConnectedDriveAccountCache() async {
     final info = await _loadDriveConnectionInfo();
     if (info == null || info.isEmpty) {
-      await _clearConnectedDriveAccountCache();
+      final recent = _loadRecentDriveConnection();
+      if (recent == null || recent.isEmpty) {
+        await _clearConnectedDriveAccountCache();
+        return;
+      }
+      await _storeConnectedDriveAccountCache(recent);
       return;
     }
+    _cacheRecentDriveConnection(info);
+    await _storeConnectedDriveAccountCache(info);
+  }
+
+  Future<void> _storeConnectedDriveAccountCache(
+    DriveConnectionInfo info,
+  ) async {
     await _optionBox.put(connectedDriveEmailLocalKey, info.email.trim());
-    await _optionBox.put(
-      connectedDriveLabelLocalKey,
-      info.displayName.trim(),
-    );
+    await _optionBox.put(connectedDriveLabelLocalKey, info.displayName.trim());
     await _optionBox.put(connectedDriveSubjectLocalKey, info.subjectId.trim());
   }
 
@@ -657,6 +720,32 @@ class DriveBackupService implements BackupRepository {
     await _optionBox.delete(connectedDriveEmailLocalKey);
     await _optionBox.delete(connectedDriveLabelLocalKey);
     await _optionBox.delete(connectedDriveSubjectLocalKey);
+  }
+
+  void _cacheRecentDriveConnection(DriveConnectionInfo info) {
+    if (info.isEmpty) return;
+    _recentDriveConnection = info;
+    _recentDriveConnectionExpiresAt = DateTime.now().add(
+      _recentDriveConnectionTtl,
+    );
+  }
+
+  DriveConnectionInfo? _loadRecentDriveConnection() {
+    final info = _recentDriveConnection;
+    final expiresAt = _recentDriveConnectionExpiresAt;
+    if (info == null || expiresAt == null) {
+      return null;
+    }
+    if (DateTime.now().isAfter(expiresAt)) {
+      _clearRecentDriveConnection();
+      return null;
+    }
+    return info;
+  }
+
+  void _clearRecentDriveConnection() {
+    _recentDriveConnection = null;
+    _recentDriveConnectionExpiresAt = null;
   }
 
   DriveConnectionInfo? _loadSharedChildDriveConnectionInfo() {
@@ -720,7 +809,7 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<DriveConnectionInfo?>
-      _loadLatestRemoteSharedChildDriveConnectionInfo() async {
+  _loadLatestRemoteSharedChildDriveConnectionInfo() async {
     final remote = await _loadLatestRemoteBackupMap();
     if (remote == null) {
       return null;
@@ -745,8 +834,8 @@ class DriveBackupService implements BackupRepository {
         return;
       }
       _firebaseAuthSubscription = auth.authStateChanges().listen(
-            (_) => unawaited(_handleDriveAccountStateChanged()),
-          );
+        (_) => unawaited(_handleDriveAccountStateChanged()),
+      );
       return;
     }
     final google = _googleSignIn;
@@ -760,6 +849,13 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _handleDriveAccountStateChanged() async {
     try {
+      if (kIsWeb) {
+        if (_firebaseAuth?.currentUser == null) {
+          _clearRecentDriveConnection();
+        }
+      } else if (_googleSignIn?.currentUser == null) {
+        _clearRecentDriveConnection();
+      }
       await _syncConnectedDriveAccountCache();
     } catch (e, st) {
       debugPrint('Drive account state sync failed: $e');
@@ -778,7 +874,7 @@ class DriveBackupService implements BackupRepository {
         (_optionBox.get(connectedDriveLabelLocalKey) as String?)?.trim() ?? '';
     final subjectId =
         (_optionBox.get(connectedDriveSubjectLocalKey) as String?)?.trim() ??
-            '';
+        '';
     if (email.isEmpty && displayName.isEmpty && subjectId.isEmpty) {
       return null;
     }
@@ -791,27 +887,35 @@ class DriveBackupService implements BackupRepository {
 
   Future<DriveConnectionInfo?> _loadDriveConnectionInfo() async {
     if (_driveConnectionLoader != null) {
-      return _driveConnectionLoader();
+      final info = await _driveConnectionLoader();
+      if (info != null && !info.isEmpty) {
+        _cacheRecentDriveConnection(info);
+      }
+      return info;
     }
     if (kIsWeb) {
       final user = _firebaseAuth?.currentUser;
-      if (user == null) return null;
-      return DriveConnectionInfo(
+      if (user == null) return _loadRecentDriveConnection();
+      final info = DriveConnectionInfo(
         email: user.email?.trim() ?? '',
         displayName: user.displayName?.trim() ?? '',
         subjectId: user.uid,
       );
+      _cacheRecentDriveConnection(info);
+      return info;
     }
     final google = _googleSignIn;
     if (google == null) return null;
     var account = google.currentUser;
     account ??= await google.signInSilently();
-    if (account == null) return null;
-    return DriveConnectionInfo(
+    if (account == null) return _loadRecentDriveConnection();
+    final info = DriveConnectionInfo(
       email: account.email.trim(),
       displayName: account.displayName?.trim() ?? '',
       subjectId: account.id,
     );
+    _cacheRecentDriveConnection(info);
+    return info;
   }
 
   Future<void> _syncSharedChildDriveMetadataIfNeeded() async {
@@ -845,7 +949,8 @@ class DriveBackupService implements BackupRepository {
 
   Future<String?> _findFolderId(drive.DriveApi api) async {
     final result = await api.files.list(
-      q: "mimeType='application/vnd.google-apps.folder' and "
+      q:
+          "mimeType='application/vnd.google-apps.folder' and "
           "name='$_folderName' and trashed=false",
       spaces: 'drive',
       $fields: 'files(id,name)',
@@ -892,8 +997,8 @@ class DriveBackupService implements BackupRepository {
     final familyState = _familyService.loadState();
     final remote =
         existing != null && familyState.currentRole == FamilyRole.parent
-            ? await _downloadBackupMap(driveApi, existing.id!)
-            : null;
+        ? await _downloadBackupMap(driveApi, existing.id!)
+        : null;
     _validateParentRemoteBinding(remote);
     final data = _buildUploadPayload(
       currentRole: familyState.currentRole,
@@ -924,10 +1029,7 @@ class DriveBackupService implements BackupRepository {
       $fields: 'id,modifiedTime',
     );
     syncedAt = created.modifiedTime ?? DateTime.now();
-    await _recordSyncSuccess(
-      role: familyState.currentRole,
-      syncedAt: syncedAt,
-    );
+    await _recordSyncSuccess(role: familyState.currentRole, syncedAt: syncedAt);
     if (created.id != null) {
       await _cleanupDuplicateBackups(driveApi, folderId, created.id!);
     }
@@ -944,7 +1046,10 @@ class DriveBackupService implements BackupRepository {
     }
     await _restoreBackupFileWithApi(driveApi, file);
     if (_familyService.loadState().currentRole == FamilyRole.parent) {
-      await _recordFamilySyncPull(file.modifiedTime ?? DateTime.now());
+      await _recordFamilySyncPull(
+        DateTime.now(),
+        remoteModifiedAt: file.modifiedTime ?? DateTime.now(),
+      );
       await _setParentSharedDataDirty(false);
     }
   }
@@ -953,10 +1058,12 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     drive.File file,
   ) async {
-    final media = await driveApi.files.get(
-      file.id!,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await driveApi.files.get(
+              file.id!,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
     final data = jsonDecode(content) as Map<String, dynamic>;
     _validateRestoreBinding(data);
@@ -1025,11 +1132,10 @@ class DriveBackupService implements BackupRepository {
   Map<String, dynamic> buildBackupForTesting({
     FamilyRole updatedByRole = FamilyRole.child,
     bool familyLayerOnly = false,
-  }) =>
-      _buildBackup(
-        updatedByRole: updatedByRole,
-        familyLayerOnly: familyLayerOnly,
-      );
+  }) => _buildBackup(
+    updatedByRole: updatedByRole,
+    familyLayerOnly: familyLayerOnly,
+  );
 
   @visibleForTesting
   Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
@@ -1039,10 +1145,7 @@ class DriveBackupService implements BackupRepository {
   Map<String, dynamic> mergeParentBackupForTesting({
     required Map<String, dynamic> remote,
   }) {
-    return _buildUploadPayload(
-      currentRole: FamilyRole.parent,
-      remote: remote,
-    );
+    return _buildUploadPayload(currentRole: FamilyRole.parent, remote: remote);
   }
 
   Future<void> _restoreFromMap(Map<String, dynamic> data) async {
@@ -1179,7 +1282,8 @@ class DriveBackupService implements BackupRepository {
   }
 
   Map<String, BackupAssetRecord> _extractAssetRecords(
-      Map<String, dynamic> data) {
+    Map<String, dynamic> data,
+  ) {
     final raw = data[_assetRecordsKey];
     if (raw is! Map) {
       return const <String, BackupAssetRecord>{};
@@ -1214,12 +1318,13 @@ class DriveBackupService implements BackupRepository {
   ) async {
     final restoredPaths = <String>[];
     for (final path in entry.imagePaths) {
-      restoredPaths
-          .add(await _restoreAssetReference(path, assetRecords) ?? path);
+      restoredPaths.add(
+        await _restoreAssetReference(path, assetRecords) ?? path,
+      );
     }
     final restoredPrimary =
         await _restoreAssetReference(entry.imagePath, assetRecords) ??
-            (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
+        (restoredPaths.isNotEmpty ? restoredPaths.first : entry.imagePath);
     return TrainingEntry(
       date: entry.date,
       durationMinutes: entry.durationMinutes,
@@ -1377,6 +1482,10 @@ class DriveBackupService implements BackupRepository {
     return raw?.trim().toLowerCase() ?? '';
   }
 
+  DateTime? _getLastFamilyRemoteSnapshot() =>
+      _getDateTimeOption(_lastFamilyRemoteSnapshotAtKey) ??
+      _getDateTimeOption(_lastFamilySyncPullAtKey);
+
   Future<void> _recordSyncSuccess({
     required FamilyRole role,
     required DateTime syncedAt,
@@ -1398,10 +1507,10 @@ class DriveBackupService implements BackupRepository {
       return false;
     }
     if (remoteModifiedAt == null) {
-      return getLastFamilySyncPull() == null;
+      return _getLastFamilyRemoteSnapshot() == null;
     }
     final lastPushAt = getLastFamilySyncPush();
-    final lastPullAt = getLastFamilySyncPull();
+    final lastPullAt = _getLastFamilyRemoteSnapshot();
     final knownRemoteAt = switch ((lastPushAt, lastPullAt)) {
       (final DateTime push, final DateTime pull) =>
         push.isAfter(pull) ? push : pull,
@@ -1503,10 +1612,15 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> _recordFamilySyncPush(DateTime value) async {
     await _setDateTimeOption(_lastFamilySyncPushAtKey, value);
+    await _setDateTimeOption(_lastFamilyRemoteSnapshotAtKey, value);
   }
 
-  Future<void> _recordFamilySyncPull(DateTime value) async {
-    await _setDateTimeOption(_lastFamilySyncPullAtKey, value);
+  Future<void> _recordFamilySyncPull(
+    DateTime refreshedAt, {
+    required DateTime remoteModifiedAt,
+  }) async {
+    await _setDateTimeOption(_lastFamilySyncPullAtKey, refreshedAt);
+    await _setDateTimeOption(_lastFamilyRemoteSnapshotAtKey, remoteModifiedAt);
   }
 
   Future<void> _setParentSharedDataDirty(bool value) async {
@@ -1652,10 +1766,12 @@ class DriveBackupService implements BackupRepository {
     drive.DriveApi driveApi,
     String fileId,
   ) async {
-    final media = await driveApi.files.get(
-      fileId,
-      downloadOptions: drive.DownloadOptions.fullMedia,
-    ) as drive.Media;
+    final media =
+        await driveApi.files.get(
+              fileId,
+              downloadOptions: drive.DownloadOptions.fullMedia,
+            )
+            as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
     final data = jsonDecode(content);
     if (data is Map<String, dynamic>) {
@@ -1729,9 +1845,7 @@ class DriveBackupService implements BackupRepository {
   Map<String, dynamic> _copyStringOptions(Map<String, dynamic> backup) {
     final raw = backup['options'];
     if (raw is! Map) return <String, dynamic>{};
-    return raw.map(
-      (key, value) => MapEntry(key.toString(), value),
-    );
+    return raw.map((key, value) => MapEntry(key.toString(), value));
   }
 
   List<Map<String, dynamic>> _mergeOptionRecords({
@@ -1749,14 +1863,12 @@ class DriveBackupService implements BackupRepository {
       final key = _fromBackupValue(record['key'], version: localVersion);
       return key is String && FamilyAccessService.isSharedBackupOptionKey(key);
     });
-    return <Map<String, dynamic>>[
-      ...keptRemote,
-      ...localShared,
-    ];
+    return <Map<String, dynamic>>[...keptRemote, ...localShared];
   }
 
   List<Map<String, dynamic>> _extractOptionRecords(
-      Map<String, dynamic> backup) {
+    Map<String, dynamic> backup,
+  ) {
     final raw = backup[_optionRecordsKey];
     if (raw is List) {
       return raw
@@ -1895,7 +2007,8 @@ class DriveBackupService implements BackupRepository {
       imagePaths:
           (map['imagePaths'] as List?)?.cast<String>() ?? const <String>[],
       status: map['status'] as String? ?? 'normal',
-      liftingByPart: (map['liftingByPart'] as Map?)?.map(
+      liftingByPart:
+          (map['liftingByPart'] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
           ) ??
@@ -1907,7 +2020,7 @@ class DriveBackupService implements BackupRepository {
           map['fortuneRecommendedProgram'] as String? ?? '',
       goalFocuses:
           (map['goalFocuses'] as List?)?.map((e) => e.toString()).toList() ??
-              const <String>[],
+          const <String>[],
       goodPoints:
           (map['goodPoints'] as String?) ?? (map['feedback'] as String? ?? ''),
       improvements:

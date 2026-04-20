@@ -49,6 +49,13 @@ class BackupService {
     return null;
   }
 
+  DateTime? getLastFamilyRefresh() {
+    if (_repository case final DriveBackupService drive) {
+      return drive.getLastFamilyRefresh();
+    }
+    return null;
+  }
+
   bool hasPendingParentSharedChanges() {
     if (_repository case final DriveBackupService drive) {
       return drive.hasPendingParentSharedChanges();

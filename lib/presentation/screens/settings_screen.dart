@@ -37,6 +37,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen>
     with WidgetsBindingObserver {
+  final ScrollController _scrollController = ScrollController();
   bool _backupBusy = false;
   bool _restoreBusy = false;
   bool _signInBusy = false;
@@ -74,14 +75,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     WidgetsBinding.instance.addObserver(this);
     _driveAccountStateSubscription = widget.driveBackupService
         ?.driveAccountStateChanges()
-        .listen((_) => unawaited(_refreshSignInState()));
-    unawaited(_refreshSignInState());
+        .listen((_) => unawaited(_refreshDriveUi()));
+    unawaited(_refreshDriveUi(refreshParentSharedData: true));
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      unawaited(_refreshSignInState());
+      unawaited(_refreshDriveUi(refreshParentSharedData: true));
     }
   }
 
@@ -89,12 +90,53 @@ class _SettingsScreenState extends State<SettingsScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_driveAccountStateSubscription?.cancel());
+    _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _refreshSignInState({
+  Future<void> _refreshDriveUi({
     bool allowCachedConnection = false,
+    bool refreshParentSharedData = false,
   }) async {
+    if (refreshParentSharedData) {
+      await _refreshParentSharedDataIfNeeded();
+    }
+    await _refreshSignInState(allowCachedConnection: allowCachedConnection);
+  }
+
+  Future<void> _refreshParentSharedDataIfNeeded() async {
+    if (widget.driveBackupService == null) return;
+    final familyState = FamilyAccessService(
+      widget.optionRepository,
+    ).loadState();
+    if (!familyState.isParentMode) return;
+    final refreshed = await widget.driveBackupService!
+        .refreshParentSharedDataIfNeeded();
+    if (refreshed) {
+      widget.localeService.load();
+      widget.settingsService.load();
+    }
+  }
+
+  void _scrollToTopAfterLayout() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      final currentOffset = _scrollController.offset;
+      if (currentOffset <= 0) {
+        _scrollController.jumpTo(0);
+        return;
+      }
+      unawaited(
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+        ),
+      );
+    });
+  }
+
+  Future<void> _refreshSignInState({bool allowCachedConnection = false}) async {
     if (widget.driveBackupService == null) return;
     var signedIn = false;
     DriveConnectionInfo? connection;
@@ -110,19 +152,20 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive connection info refresh failed: $e');
       debugPrintStack(stackTrace: st);
     }
-    final familyState =
-        FamilyAccessService(widget.optionRepository).loadState();
+    final familyState = FamilyAccessService(
+      widget.optionRepository,
+    ).loadState();
     DriveConnectionInfo? sharedChildConnection;
     var hasRemotePlayerBackup = false;
     try {
-      sharedChildConnection =
-          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
-        allowRemoteLookup: familyState.isParentMode,
-      );
+      sharedChildConnection = await widget.driveBackupService!
+          .getSharedChildDriveConnectionInfo(
+            allowRemoteLookup: familyState.isParentMode,
+          );
       if (familyState.isParentMode &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
-        hasRemotePlayerBackup =
-            await widget.driveBackupService!.hasRemotePlayerBackup();
+        hasRemotePlayerBackup = await widget.driveBackupService!
+            .hasRemotePlayerBackup();
       }
     } catch (e, st) {
       debugPrint('Shared child Drive lookup failed: $e');
@@ -142,20 +185,21 @@ class _SettingsScreenState extends State<SettingsScreen>
     final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
     if (!mounted) return;
     setState(() {
-      _signedIn = signedIn ||
+      _signedIn =
+          signedIn ||
           (connection != null && !connection.isEmpty) ||
           (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
           ? connection!.label.trim()
           : cachedConnectedDriveLabel;
-      _savedRecordDriveLabel =
-          widget.driveBackupService!.getSavedRecordDriveLabel();
-      _savedRecordDriveEmail =
-          widget.driveBackupService!.getSavedRecordDriveEmail();
-      _savedParentDriveLabel =
-          widget.driveBackupService!.getSavedParentDriveLabel();
-      _savedParentDriveEmail =
-          widget.driveBackupService!.getSavedParentDriveEmail();
+      _savedRecordDriveLabel = widget.driveBackupService!
+          .getSavedRecordDriveLabel();
+      _savedRecordDriveEmail = widget.driveBackupService!
+          .getSavedRecordDriveEmail();
+      _savedParentDriveLabel = widget.driveBackupService!
+          .getSavedParentDriveLabel();
+      _savedParentDriveEmail = widget.driveBackupService!
+          .getSavedParentDriveEmail();
       _sharedChildDriveLabel = sharedChildConnection?.label.trim() ?? '';
       _sharedChildDriveEmail = sharedChildConnection?.email.trim() ?? '';
       _hasRemotePlayerBackup = hasRemotePlayerBackup;
@@ -163,11 +207,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   String _cachedConnectedDriveLabel() {
-    final cachedLabel = widget.optionRepository
+    final cachedLabel =
+        widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveLabelLocalKey)
             ?.trim() ??
         '';
-    final cachedEmail = widget.optionRepository
+    final cachedEmail =
+        widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
             ?.trim() ??
         '';
@@ -194,8 +240,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final current = widget.localeService.locale?.languageCode ?? 'en';
-    final familyState =
-        FamilyAccessService(widget.optionRepository).loadState();
+    final familyState = FamilyAccessService(
+      widget.optionRepository,
+    ).loadState();
     final showPlayerBackupSection =
         widget.driveBackupService != null && !familyState.isParentMode;
     final savedRecordDriveLabel = _savedRecordDriveLabel.trim().isNotEmpty
@@ -210,15 +257,16 @@ class _SettingsScreenState extends State<SettingsScreen>
     final sharedChildDriveSubtitle = expectedChildDriveLabel.isNotEmpty
         ? expectedChildDriveLabel
         : (_hasRemotePlayerBackup
-            ? l10n.driveSharedChildAccountRemoteBackup
-            : l10n.driveSharedChildAccountEmpty);
+              ? l10n.driveSharedChildAccountRemoteBackup
+              : l10n.driveSharedChildAccountEmpty);
     final savedRecordMatchesCurrentDrive = _driveLabelMatchesEmail(
       _connectedDriveLabel,
       _savedRecordDriveEmail,
     );
     final showSavedRecordDrive =
         savedRecordDriveLabel.isNotEmpty && !savedRecordMatchesCurrentDrive;
-    final recordDriveMatchesSaved = savedRecordDriveLabel.isEmpty ||
+    final recordDriveMatchesSaved =
+        savedRecordDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _savedRecordDriveEmail);
     final savedParentMatchesCurrentDrive = _driveLabelMatchesEmail(
@@ -226,7 +274,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       _savedParentDriveEmail,
     );
     final showSavedParentDrive = savedParentDriveLabel.isNotEmpty;
-    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
+    final driveMatchesExpected =
+        expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
@@ -303,7 +352,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-            _durationOptions.first;
+        _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -350,6 +399,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         elevation: 0,
       ),
       body: ListView(
+        controller: _scrollController,
         padding: const EdgeInsets.all(16),
         children: [
           if (showPlayerBackupSection) ...[
@@ -364,8 +414,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                   autoDaily: _autoDaily,
                   autoOnSave: _autoOnSave,
                   lastBackupAt: widget.driveBackupService!.getLastBackup(),
-                  localRestoreAt:
-                      widget.driveBackupService!.getLocalPreRestoreTime(),
+                  localRestoreAt: widget.driveBackupService!
+                      .getLocalPreRestoreTime(),
                   formatBackupTime: _formatBackupTime,
                 ),
                 const SizedBox(height: 8),
@@ -463,8 +513,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed:
-                      _restoreBusy ? null : () => _restoreFromDrive(l10n),
+                  onPressed: _restoreBusy
+                      ? null
+                      : () => _restoreFromDrive(l10n),
                   icon: const Icon(Icons.cloud_download_outlined),
                   label: Text(
                     _restoreBusy
@@ -475,7 +526,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _restoreBusy ||
+                  onPressed:
+                      _restoreBusy ||
                           !widget.driveBackupService!.hasLocalPreRestoreBackup()
                       ? null
                       : () => _restoreLocalBackup(l10n),
@@ -515,34 +567,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                   );
                 },
               ),
-              const SizedBox(height: 10),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.badge_outlined, size: 20),
-                title: Text(l10n.familyChildName),
-                subtitle: Text(
-                  familyState.childName.trim().isEmpty
-                      ? l10n.familyChildNameEmpty
-                      : familyState.childName.trim(),
-                ),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.person_outline, size: 20),
-                title: Text(l10n.familyParentName),
-                subtitle: Text(
-                  familyState.parentName.trim().isEmpty
-                      ? l10n.familyParentNameEmpty
-                      : familyState.parentName.trim(),
-                ),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () => _editFamilyMembers(familyState),
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(l10n.familyEditNames),
-                style: _outlinedActionStyle(),
-              ),
               if (widget.driveBackupService != null &&
                   familyState.isParentMode) ...[
                 const SizedBox(height: 8),
@@ -560,11 +584,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                     children: [
                       Text(
                         l10n.familyChildDriveConnectionTitle,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
@@ -623,10 +645,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                               ? Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHigh
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .errorContainer
-                                  .withValues(alpha: 0.45),
+                              : Theme.of(context).colorScheme.errorContainer
+                                    .withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Text(
@@ -656,8 +676,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                     Text(
                       l10n.familyPolicyTitle,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(l10n.familyPolicyChildOwnsData),
@@ -766,9 +786,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   );
                 },
                 icon: const Icon(Icons.palette_outlined),
-                label: Text(
-                  isKo ? '그림 언어 시안 보기' : 'Preview Visual Language',
-                ),
+                label: Text(isKo ? '그림 언어 시안 보기' : 'Preview Visual Language'),
                 style: _outlinedActionStyle(),
               ),
             ],
@@ -860,8 +878,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor =
-        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
+    final fillColor = isDark
+        ? const Color(0xFF242D3D)
+        : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -922,8 +941,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText =
-        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
+    final defaultDurationText = _defaultDuration <= 0
+        ? l10n.notSet
+        : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1328,8 +1348,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized =
-                            sanitize == null ? added : sanitize(added);
+                        final normalized = sanitize == null
+                            ? added
+                            : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1509,12 +1530,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     await familyService.setCurrentRole(role);
     if (widget.driveBackupService != null && role == FamilyRole.parent) {
-      await widget.driveBackupService!.refreshParentSharedDataIfNeeded();
-      widget.localeService.load();
-      widget.settingsService.load();
+      await _refreshParentSharedDataIfNeeded();
     }
     await _refreshSignInState();
     if (!mounted) return;
+    _scrollToTopAfterLayout();
     setState(() {});
     final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1526,82 +1546,6 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       ),
     );
-  }
-
-  Future<void> _editFamilyMembers(FamilyAccessState state) async {
-    final l10n = AppLocalizations.of(context)!;
-    final childController = TextEditingController(text: state.childName);
-    final parentController = TextEditingController(text: state.parentName);
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.familyEditNames),
-        content: SizedBox(
-          width: 360,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: childController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: l10n.familyChildName,
-                  hintText: l10n.familyChildNameEmpty,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: parentController,
-                decoration: InputDecoration(
-                  labelText: l10n.familyParentName,
-                  hintText: l10n.familyParentNameEmpty,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.save),
-          ),
-        ],
-      ),
-    );
-    if (saved != true) {
-      childController.dispose();
-      parentController.dispose();
-      return;
-    }
-    final familyService = FamilyAccessService(widget.optionRepository);
-    await familyService.saveMembers(
-      childName: childController.text,
-      parentName: parentController.text,
-    );
-    if (widget.driveBackupService != null) {
-      if (state.currentRole == FamilyRole.parent) {
-        await widget.driveBackupService!.markParentSharedDataDirty();
-      }
-      try {
-        await widget.driveBackupService!.backupIfSignedIn();
-      } catch (_) {
-        // Keep local edits even if cloud sync is unavailable.
-      }
-      await _refreshSignInState(allowCachedConnection: true);
-    }
-    childController.dispose();
-    parentController.dispose();
-    if (!mounted) return;
-    setState(() {});
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.familyNamesSaved)));
   }
 
   String _normalizeDomain(String input) {
@@ -1683,7 +1627,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _buildParentFamilySyncCard(AppLocalizations l10n) {
     final lastPushAt = widget.driveBackupService?.getLastFamilySyncPush();
-    final lastPullAt = widget.driveBackupService?.getLastFamilySyncPull();
+    final lastPullAt = widget.driveBackupService?.getLastFamilyRefresh();
     final hasPendingChanges =
         widget.driveBackupService?.hasPendingParentSharedChanges() ?? false;
     return Container(
@@ -1698,9 +1642,9 @@ class _SettingsScreenState extends State<SettingsScreen>
         children: [
           Text(
             l10n.familySharedSyncTitle,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
           Text(
@@ -1748,12 +1692,12 @@ class _SettingsScreenState extends State<SettingsScreen>
             onPressed: _restoreBusy
                 ? null
                 : () => _restoreFromDrive(
-                      l10n,
-                      title: l10n.familySharedRestore,
-                      message: l10n.familySharedRestoreConfirm,
-                      successMessage: l10n.familySharedRestoreSuccess,
-                      failedMessage: l10n.familySharedRestoreFailed,
-                    ),
+                    l10n,
+                    title: l10n.familySharedRestore,
+                    message: l10n.familySharedRestoreConfirm,
+                    successMessage: l10n.familySharedRestoreSuccess,
+                    failedMessage: l10n.familySharedRestoreFailed,
+                  ),
             icon: const Icon(Icons.cloud_download_outlined),
             label: Text(
               _restoreBusy ? l10n.restoreInProgress : l10n.familySharedRestore,
@@ -1834,7 +1778,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1861,18 +1806,37 @@ class _SettingsScreenState extends State<SettingsScreen>
         await widget.driveBackupService!.signIn();
         await widget.driveBackupService!.rememberCurrentRoleDriveConnection();
       }
-      await _refreshSignInState(allowCachedConnection: !wasSignedIn);
+      await _refreshDriveUi(
+        allowCachedConnection: !wasSignedIn,
+        refreshParentSharedData: !wasSignedIn,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(wasSignedIn ? l10n.signOutDone : l10n.signInWithGoogle),
         ),
       );
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Drive sign-in toggle failed: $e');
+      debugPrintStack(stackTrace: st);
+      await _refreshDriveUi(
+        allowCachedConnection: true,
+        refreshParentSharedData: !wasSignedIn,
+      );
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.loginRequired)));
+      if (_signedIn || _connectedDriveLabel.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              wasSignedIn ? l10n.signOutDone : l10n.signInWithGoogle,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.loginRequired)));
+      }
     } finally {
       if (mounted) {
         setState(() => _signInBusy = false);
@@ -1885,16 +1849,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() => _signInBusy = true);
     try {
       await widget.driveBackupService!.signInForSavedRecord();
-      await _refreshSignInState(allowCachedConnection: true);
+      await _refreshDriveUi(allowCachedConnection: true);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.driveReconnectSavedPlayer)));
     } catch (e) {
       if (!mounted) return;
-      final message = e.toString().contains(
-                DriveBackupService.recordDriveMismatchErrorCode,
-              )
+      final message =
+          e.toString().contains(DriveBackupService.recordDriveMismatchErrorCode)
           ? l10n.driveReconnectSavedPlayerMismatch
           : l10n.loginRequired;
       ScaffoldMessenger.of(
@@ -1912,16 +1875,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     setState(() => _signInBusy = true);
     try {
       await widget.driveBackupService!.signInForSavedParent();
-      await _refreshSignInState(allowCachedConnection: true);
+      await _refreshDriveUi(
+        allowCachedConnection: true,
+        refreshParentSharedData: true,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.driveReconnectSavedParent)));
     } catch (e) {
       if (!mounted) return;
-      final message = e.toString().contains(
-                DriveBackupService.parentModeDriveMismatchErrorCode,
-              )
+      final message =
+          e.toString().contains(
+            DriveBackupService.parentModeDriveMismatchErrorCode,
+          )
           ? l10n.driveReconnectSavedParentMismatch
           : l10n.loginRequired;
       ScaffoldMessenger.of(
@@ -1956,16 +1923,15 @@ class _SettingsScreenState extends State<SettingsScreen>
       await _refreshSignInState();
       if (!mounted) return;
       setState(() {});
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(successMessage ?? l10n.restoreSuccess)),
       );
     } catch (e, st) {
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message = e.toString().contains('sign-in') ||
+      final message =
+          e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -2005,16 +1971,12 @@ class _SettingsScreenState extends State<SettingsScreen>
       widget.settingsService.load();
       if (!mounted) return;
       setState(() {});
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(successMessage ?? l10n.restoreLocalSuccess)),
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(failedMessage ?? l10n.restoreLocalFailed)),
       );
     } finally {
@@ -2227,10 +2189,7 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            _summary(),
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(_summary(), style: theme.textTheme.bodyMedium),
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: () => setState(() => _expanded = !_expanded),
@@ -2258,22 +2217,22 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
                   label: widget.isKo
                       ? (widget.signedIn ? '구글 연결됨' : '구글 미연결')
                       : (widget.signedIn
-                          ? 'Google connected'
-                          : 'Google disconnected'),
+                            ? 'Google connected'
+                            : 'Google disconnected'),
                 ),
                 _InfoPill(
                   label: widget.isKo
                       ? (widget.autoDaily ? '일일 자동 백업 켜짐' : '일일 자동 백업 꺼짐')
                       : (widget.autoDaily
-                          ? 'Daily auto-backup on'
-                          : 'Daily auto-backup off'),
+                            ? 'Daily auto-backup on'
+                            : 'Daily auto-backup off'),
                 ),
                 _InfoPill(
                   label: widget.isKo
                       ? (widget.autoOnSave ? '저장 시 자동 백업 켜짐' : '저장 시 자동 백업 꺼짐')
                       : (widget.autoOnSave
-                          ? 'Auto-backup on save on'
-                          : 'Auto-backup on save off'),
+                            ? 'Auto-backup on save on'
+                            : 'Auto-backup on save off'),
                 ),
               ],
             ),
