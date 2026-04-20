@@ -5573,13 +5573,13 @@ abstract class AppLocalizations {
   /// No description provided for @familySharing.
   ///
   /// In en, this message translates to:
-  /// **'Family sharing'**
+  /// **'Parent/player sharing'**
   String get familySharing;
 
   /// No description provided for @familySharedBackupDescription.
   ///
   /// In en, this message translates to:
-  /// **'Use one shared Drive backup without a server. Record mode manages core records directly, while parent mode only syncs the family layer.'**
+  /// **'Use one shared Drive backup without a server. Player mode manages core records directly, while parent mode syncs only the parent/player shared data.'**
   String get familySharedBackupDescription;
 
   /// No description provided for @familyBackupIncludesMedia.
@@ -5591,7 +5591,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentAutoSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in record mode.'**
+  /// **'In parent mode, only feedback and reward names sync automatically. Back up and restore player records from player mode.'**
   String get familyParentAutoSyncDescription;
 
   /// No description provided for @familyChildDriveConnectionTitle.
@@ -5603,7 +5603,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyChildDriveConnectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, connect the same Google Drive account the player uses so both roles can share one family backup file.'**
+  /// **'In parent mode, connect the same Google Drive account the player uses so both roles can share the same player backup file.'**
   String get familyChildDriveConnectionDescription;
 
   /// No description provided for @familyConnectChildDrive.
@@ -5639,7 +5639,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Turn this on for parent mode. Turn it off to return to record mode.'**
+  /// **'Turn this on for parent mode. Turn it off to return to player mode.'**
   String get familyParentModeDescription;
 
   /// No description provided for @familyChildName.
@@ -5675,13 +5675,13 @@ abstract class AppLocalizations {
   /// No description provided for @familyPolicyTitle.
   ///
   /// In en, this message translates to:
-  /// **'Shared backup policy'**
+  /// **'Parent/player sharing policy'**
   String get familyPolicyTitle;
 
   /// No description provided for @familyPolicyChildOwnsData.
   ///
   /// In en, this message translates to:
-  /// **'Record mode backs up training, profile, diary, meals, and plans as the source of truth.'**
+  /// **'Player mode backs up training, profile, diary, meals, and plans as the source of truth.'**
   String get familyPolicyChildOwnsData;
 
   /// No description provided for @familyPolicyParentWritesOnly.
@@ -5699,7 +5699,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleChildActivated.
   ///
   /// In en, this message translates to:
-  /// **'Record mode activated.'**
+  /// **'Player mode activated.'**
   String get familyRoleChildActivated;
 
   /// No description provided for @familyRoleParentActivated.
@@ -5729,25 +5729,25 @@ abstract class AppLocalizations {
   /// No description provided for @driveSavedPlayerAccount.
   ///
   /// In en, this message translates to:
-  /// **'Saved record mode Drive'**
+  /// **'Saved player mode Drive'**
   String get driveSavedPlayerAccount;
 
   /// No description provided for @driveReconnectSavedPlayer.
   ///
   /// In en, this message translates to:
-  /// **'Reconnect saved record Drive'**
+  /// **'Reconnect saved player Drive'**
   String get driveReconnectSavedPlayer;
 
   /// No description provided for @driveReconnectSavedPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'After returning from parent mode, reconnect the saved record mode Drive account here.'**
+  /// **'After leaving parent mode, reconnect the saved player mode Drive account here.'**
   String get driveReconnectSavedPlayerHint;
 
   /// No description provided for @driveReconnectSavedPlayerMismatch.
   ///
   /// In en, this message translates to:
-  /// **'Please reconnect with the saved record mode Drive account.'**
+  /// **'Please reconnect with the saved player mode Drive account.'**
   String get driveReconnectSavedPlayerMismatch;
 
   /// No description provided for @driveSavedParentAccount.
@@ -5783,79 +5783,79 @@ abstract class AppLocalizations {
   /// No description provided for @driveSharedChildAccountEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No player Drive account is known yet. Create at least one backup in record mode first.'**
+  /// **'No player Drive account is known yet. Create at least one backup in player mode first.'**
   String get driveSharedChildAccountEmpty;
 
   /// No description provided for @driveSharedChildAccountRemoteBackup.
   ///
   /// In en, this message translates to:
-  /// **'A remote player backup was found. Connect the same Google Drive account used in record mode.'**
+  /// **'A remote player backup was found. Connect the same Google Drive account used in player mode.'**
   String get driveSharedChildAccountRemoteBackup;
 
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same backup file.'**
+  /// **'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same player backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode should connect to the player\'s Google Drive account to sync safely into the same family backup.'**
+  /// **'Parent mode should connect to the player\'s Google Drive account to sync safely into the same player backup file.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.
   ///
   /// In en, this message translates to:
-  /// **'Family sharing sync'**
+  /// **'Parent/player sharing sync'**
   String get familySharedSyncTitle;
 
   /// No description provided for @familySharedSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Feedback and reward names saved in parent mode are written automatically into the same family backup file.'**
+  /// **'Feedback and reward names saved in parent mode are written automatically into the same player backup file.'**
   String get familySharedSyncDescription;
 
   /// No description provided for @familySharedLastSync.
   ///
   /// In en, this message translates to:
-  /// **'Last family sync'**
+  /// **'Last parent/player sync'**
   String get familySharedLastSync;
 
   /// No description provided for @familySharedLastPush.
   ///
   /// In en, this message translates to:
-  /// **'Last family push'**
+  /// **'Last parent/player push'**
   String get familySharedLastPush;
 
   /// No description provided for @familySharedLastRefresh.
   ///
   /// In en, this message translates to:
-  /// **'Last family refresh'**
+  /// **'Last parent/player refresh'**
   String get familySharedLastRefresh;
 
   /// No description provided for @familySharedAutoRefreshDescription.
   ///
   /// In en, this message translates to:
-  /// **'When parent mode opens or the app resumes, the latest family sharing state is checked automatically. Auto refresh pauses when local parent-mode changes have not been pushed yet.'**
+  /// **'When parent mode opens or the app resumes, the latest parent/player sharing state is checked automatically. Auto refresh pauses when local parent-mode changes have not been pushed yet.'**
   String get familySharedAutoRefreshDescription;
 
   /// No description provided for @familySharedPendingLocalChanges.
   ///
   /// In en, this message translates to:
-  /// **'Automatic refresh is paused because local parent-mode changes are still waiting to be pushed.'**
+  /// **'Automatic refresh is paused because local parent-mode changes are still waiting to be pushed to parent/player sharing.'**
   String get familySharedPendingLocalChanges;
 
   /// No description provided for @familySharedRestore.
   ///
   /// In en, this message translates to:
-  /// **'Restore family sharing'**
+  /// **'Restore player records'**
   String get familySharedRestore;
 
   /// No description provided for @familySharedRestoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the latest player backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.'**
+  /// **'Restore the latest player backup state from Google Drive? This replaces the player records and parent/player sharing data shown on the current parent device.'**
   String get familySharedRestoreConfirm;
 
   /// No description provided for @familySharedRestoreSuccess.
@@ -5873,13 +5873,13 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedRestoreLocal.
   ///
   /// In en, this message translates to:
-  /// **'Undo family restore'**
+  /// **'Restore previous player state'**
   String get familySharedRestoreLocal;
 
   /// No description provided for @familySharedRestoreLocalConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the safety copy saved right before the last restore? This replaces the player records and family sharing data shown on the current parent device.'**
+  /// **'Restore the safety copy saved right before the last restore? This replaces the player records and parent/player sharing data shown on the current parent device.'**
   String get familySharedRestoreLocalConfirm;
 
   /// No description provided for @familySharedRestoreLocalSuccess.
@@ -5897,13 +5897,13 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentFamilyMismatch.
   ///
   /// In en, this message translates to:
-  /// **'The connected Drive backup does not match this family data.'**
+  /// **'The connected Drive backup does not match this parent/player sharing data.'**
   String get familyParentFamilyMismatch;
 
   /// No description provided for @parentReadOnlyProfileDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode keeps the profile read-only. Use family sharing for feedback and the level guide for reward naming.'**
+  /// **'Parent mode keeps the profile read-only. Use parent/player sharing for feedback and the level guide for reward naming.'**
   String get parentReadOnlyProfileDescription;
 
   /// No description provided for @parentReadOnlyEntryTitle.
@@ -5915,31 +5915,31 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Core records like training, meals, and diary stay in record mode. Parent mode is limited to family sharing and reward naming.'**
+  /// **'Core records like training, meals, and diary stay in player mode. Parent mode is limited to parent/player sharing and reward naming.'**
   String get parentReadOnlyEntryBody;
 
   /// No description provided for @parentReadOnlyMealLog.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode cannot edit meal logs. Update meals in record mode.'**
+  /// **'Parent mode cannot edit meal logs. Update meals in player mode.'**
   String get parentReadOnlyMealLog;
 
   /// No description provided for @parentReadOnlyQuiz.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode does not run the quiz. Quiz history and XP stay in record mode.'**
+  /// **'Parent mode does not run the quiz. Quiz history and XP stay in player mode.'**
   String get parentReadOnlyQuiz;
 
   /// No description provided for @parentReadOnlyDrawerMessage.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode keeps core records read-only. Use family sharing and reward naming instead.'**
+  /// **'Parent mode keeps core records read-only. Use parent/player sharing and reward naming instead.'**
   String get parentReadOnlyDrawerMessage;
 
   /// No description provided for @parentReadOnlyCalendarBanner.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in record mode.'**
+  /// **'Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.'**
   String get parentReadOnlyCalendarBanner;
 
   /// No description provided for @parentReadOnlyCalendarMessage.
@@ -5975,25 +5975,25 @@ abstract class AppLocalizations {
   /// No description provided for @levelGuideChildModeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Record mode'**
+  /// **'Player mode'**
   String get levelGuideChildModeLabel;
 
   /// No description provided for @levelGuideParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode can save reward names only. Reward claims stay in record mode.'**
+  /// **'Parent mode can save reward names only. Reward claims stay in player mode.'**
   String get levelGuideParentModeDescription;
 
   /// No description provided for @levelGuideChildModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Record mode can claim rewards. Reward naming stays in parent mode.'**
+  /// **'Player mode can claim rewards. Reward naming stays in parent mode.'**
   String get levelGuideChildModeDescription;
 
   /// No description provided for @levelGuideClaimChildOnly.
   ///
   /// In en, this message translates to:
-  /// **'Claim in record mode'**
+  /// **'Claim in player mode'**
   String get levelGuideClaimChildOnly;
 
   /// No description provided for @trainingSketchControlsPanel.

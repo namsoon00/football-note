@@ -20,9 +20,7 @@ void main() {
     final localeService = LocaleService(optionRepository)..load();
     final settingsService = SettingsService(optionRepository)..load();
     final backupService = BackupService(
-      _FakeBackupRepository(
-        lastBackupAt: DateTime(2026, 3, 22, 10),
-      ),
+      _FakeBackupRepository(lastBackupAt: DateTime(2026, 3, 22, 10)),
     );
 
     await tester.pumpWidget(
@@ -50,21 +48,15 @@ void main() {
   });
 
   testWidgets(
-    'parent mode keeps player Drive connection and family restore in family sharing section',
+    'parent mode keeps player Drive connection and player restore in parent/player sharing section',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();
       await optionRepository.setValue(
         FamilyAccessService.currentRoleLocalKey,
         FamilyRole.parent.name,
       );
-      await optionRepository.setValue(
-        FamilyAccessService.childNameKey,
-        '민수',
-      );
-      await optionRepository.setValue(
-        FamilyAccessService.parentNameKey,
-        '아빠',
-      );
+      await optionRepository.setValue(FamilyAccessService.childNameKey, '민수');
+      await optionRepository.setValue(FamilyAccessService.parentNameKey, '아빠');
       final localeService = LocaleService(optionRepository)..load();
       final settingsService = SettingsService(optionRepository)..load();
       final backupService = _FakeDriveBackupService(
@@ -108,79 +100,76 @@ void main() {
       expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
-      expect(find.text('가족 공유 복원'), findsOneWidget);
-      expect(find.text('가족 공유 되돌리기'), findsNothing);
-      expect(find.text('최근 가족 공유 반영'), findsOneWidget);
-      expect(find.text('최근 가족 공유 새로고침'), findsOneWidget);
+      expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
+      expect(find.text('선수 기록 복원'), findsOneWidget);
+      expect(find.text('이전 선수 기록으로 되돌리기'), findsNothing);
+      expect(find.text('최근 부모/선수 공유 반영'), findsOneWidget);
+      expect(find.text('최근 부모/선수 공유 새로고침'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
       expect(find.text('Google Drive 백업'), findsNothing);
       expect(find.text('로그아웃'), findsNothing);
     },
   );
 
-  testWidgets(
-    'enabling parent mode keeps current player Drive connected',
-    (WidgetTester tester) async {
-      final optionRepository = _MemoryOptionRepository();
-      await optionRepository.setValue(
-        FamilyAccessService.childNameKey,
-        '민수',
-      );
-      final localeService = LocaleService(optionRepository)..load();
-      final settingsService = SettingsService(optionRepository)..load();
-      final backupService = _FakeDriveBackupService(
-        signedIn: true,
-        connectionInfo: const DriveConnectionInfo(
-          email: 'player@example.com',
-          displayName: '민수',
-          subjectId: 'subject-player',
+  testWidgets('enabling parent mode keeps current player Drive connected', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(FamilyAccessService.childNameKey, '민수');
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: '민수',
+        subjectId: 'subject-player',
+      ),
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
         ),
-        sharedChildDriveLabel: '',
-        sharedChildDriveEmail: '',
-        lastBackupAt: DateTime(2026, 3, 22, 10),
-      );
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('부모 모드 활성화'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('ko'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: SettingsScreen(
-            localeService: localeService,
-            settingsService: settingsService,
-            optionRepository: optionRepository,
-            driveBackupService: backupService,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('부모 모드 활성화'),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('부모 모드 활성화'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('선수 Google Drive 연결'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('부모 모드 활성화'));
-      await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('선수 Google Drive 연결'),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
+    expect(backupService.signOutCalled, isFalse);
+    expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
+    expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
+    expect(find.text('선수 Google Drive 연결'), findsOneWidget);
+    expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
+    expect(find.text('민수 · player@example.com'), findsWidgets);
+    expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsNothing);
+  });
 
-      expect(backupService.signOutCalled, isFalse);
-      expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
-      expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
-      expect(find.text('선수 Google Drive 연결'), findsOneWidget);
-      expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
-      expect(find.text('민수 · player@example.com'), findsWidgets);
-      expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsNothing);
-    },
-  );
-
-  testWidgets('record mode shows saved record drive reconnect action', (
+  testWidgets('player mode shows saved player drive reconnect action', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -211,12 +200,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('저장된 기록 모드 Drive'), findsOneWidget);
-    expect(find.text('저장된 기록 Drive 연결'), findsOneWidget);
+    expect(find.text('저장된 선수 모드 Drive'), findsOneWidget);
+    expect(find.text('저장된 선수 Drive 연결'), findsOneWidget);
   });
 
   testWidgets(
-    'record mode hides saved record drive when current account matches it',
+    'player mode hides saved player drive when current account matches it',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();
       final localeService = LocaleService(optionRepository)..load();
@@ -252,8 +241,8 @@ void main() {
 
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('민수 · player@example.com'), findsWidgets);
-      expect(find.text('저장된 기록 모드 Drive'), findsNothing);
-      expect(find.text('저장된 기록 Drive 연결'), findsNothing);
+      expect(find.text('저장된 선수 모드 Drive'), findsNothing);
+      expect(find.text('저장된 선수 Drive 연결'), findsNothing);
     },
   );
 
@@ -306,17 +295,19 @@ void main() {
       expect(find.text('저장된 부모 Drive 연결'), findsOneWidget);
       expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(find.text('민수 · child@example.com'), findsOneWidget);
-      expect(find.text('최근 가족 공유 반영'), findsOneWidget);
-      expect(find.text('최근 가족 공유 새로고침'), findsOneWidget);
+      expect(find.text('최근 부모/선수 공유 반영'), findsOneWidget);
+      expect(find.text('최근 부모/선수 공유 새로고침'), findsOneWidget);
       expect(
-        find.text('아직 원격에 반영하지 못한 부모 모드 로컬 변경이 있어 자동 새로고침을 잠시 보류하고 있어요.'),
+        find.text(
+          '아직 원격에 반영하지 못한 부모 모드 로컬 변경이 있어 부모/선수 공유 자동 새로고침을 잠시 보류하고 있어요.',
+        ),
         findsOneWidget,
       );
     },
   );
 
   testWidgets(
-    'disabling parent mode stores parent mode drive separately before returning to record mode',
+    'disabling parent mode stores parent mode drive separately before returning to player mode',
     (WidgetTester tester) async {
       final optionRepository = _MemoryOptionRepository();
       await optionRepository.setValue(
@@ -368,55 +359,55 @@ void main() {
         backupService.getSavedParentDriveEmail(),
         'parent-mode@example.com',
       );
-      expect(find.text('저장된 기록 모드 Drive'), findsOneWidget);
-      expect(find.text('저장된 기록 Drive 연결'), findsOneWidget);
+      expect(find.text('저장된 선수 모드 Drive'), findsOneWidget);
+      expect(find.text('저장된 선수 Drive 연결'), findsOneWidget);
     },
   );
 
   testWidgets(
-      'settings reflects signed-in Drive account immediately after sign in', (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _MemoryOptionRepository();
-    final localeService = LocaleService(optionRepository)..load();
-    final settingsService = SettingsService(optionRepository)..load();
-    final backupService = _FakeDriveBackupService(
-      signedIn: false,
-      connectionInfo: null,
-      sharedChildDriveLabel: '',
-      sharedChildDriveEmail: '',
-      signInConnectionInfo: const DriveConnectionInfo(
-        email: 'player@example.com',
-        displayName: '민수',
-        subjectId: 'subject-2',
-      ),
-      throwIsSignedInAfterSignInOnce: true,
-      lastBackupAt: DateTime(2026, 3, 22, 10),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: SettingsScreen(
-          localeService: localeService,
-          settingsService: settingsService,
-          optionRepository: optionRepository,
-          driveBackupService: backupService,
+    'settings reflects signed-in Drive account immediately after sign in',
+    (WidgetTester tester) async {
+      final optionRepository = _MemoryOptionRepository();
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final backupService = _FakeDriveBackupService(
+        signedIn: false,
+        connectionInfo: null,
+        sharedChildDriveLabel: '',
+        sharedChildDriveEmail: '',
+        signInConnectionInfo: const DriveConnectionInfo(
+          email: 'player@example.com',
+          displayName: '민수',
+          subjectId: 'subject-2',
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+        throwIsSignedInAfterSignInOnce: true,
+        lastBackupAt: DateTime(2026, 3, 22, 10),
+      );
 
-    await tester.tap(find.text('Google로 로그인'));
-    await tester.pump();
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: SettingsScreen(
+            localeService: localeService,
+            settingsService: settingsService,
+            optionRepository: optionRepository,
+            driveBackupService: backupService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('로그아웃'), findsOneWidget);
-    expect(find.text('민수 · player@example.com'), findsWidgets);
-    expect(find.text('Google 로그인이 필요해요.'), findsNothing);
-  });
+      await tester.tap(find.text('Google로 로그인'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('로그아웃'), findsOneWidget);
+      expect(find.text('민수 · player@example.com'), findsWidgets);
+      expect(find.text('Google 로그인이 필요해요.'), findsNothing);
+    },
+  );
 
   testWidgets('settings reacts immediately to external Drive account changes', (
     WidgetTester tester,
@@ -464,10 +455,7 @@ void main() {
     expect(find.text('로그아웃'), findsOneWidget);
     expect(find.text('러너 · runner@example.com'), findsWidgets);
 
-    backupService.updateAccountState(
-      signedIn: false,
-      connectionInfo: null,
-    );
+    backupService.updateAccountState(signedIn: false, connectionInfo: null);
     backupService.emitDriveAccountStateChanged();
     await tester.pump();
     await tester.pumpAndSettle();
@@ -522,11 +510,13 @@ void main() {
 
       expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(
-          find.text(
-              '원격 선수 백업은 확인됐어요. 기록 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.'),
-          findsOneWidget);
-      expect(find.text('아직 선수 Drive 정보가 없어요. 기록 모드에서 먼저 한 번 백업해 주세요.'),
-          findsNothing);
+        find.text('원격 선수 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('아직 선수 Drive 정보가 없어요. 선수 모드에서 먼저 한 번 백업해 주세요.'),
+        findsNothing,
+      );
     },
   );
 }
@@ -572,24 +562,24 @@ class _FakeDriveBackupService extends BackupService {
     this.signInConnectionInfo,
     this.throwIsSignedInAfterSignInOnce = false,
     DateTime? lastBackupAt,
-  })  : _signedIn = signedIn,
-        signOutCalled = false,
-        refreshParentSharedDataIfNeededCalled = false,
-        throwNextIsSignedIn = false,
-        _connectionInfo = connectionInfo,
-        _sharedChildDriveLabel = sharedChildDriveLabel,
-        _sharedChildDriveEmail = sharedChildDriveEmail,
-        _savedRecordDriveLabel = savedRecordDriveLabel,
-        _savedRecordDriveEmail = savedRecordDriveEmail,
-        _savedParentDriveLabel = savedParentDriveLabel,
-        _savedParentDriveEmail = savedParentDriveEmail,
-        _lastFamilySyncPushAt = lastFamilySyncPushAt,
-        _lastFamilySyncPullAt = lastFamilySyncPullAt,
-        _localPreRestoreAt = localPreRestoreAt,
-        _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
-        _hasRemotePlayerBackup = hasRemotePlayerBackup,
-        _pendingParentSharedChanges = pendingParentSharedChanges,
-        super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
+  }) : _signedIn = signedIn,
+       signOutCalled = false,
+       refreshParentSharedDataIfNeededCalled = false,
+       throwNextIsSignedIn = false,
+       _connectionInfo = connectionInfo,
+       _sharedChildDriveLabel = sharedChildDriveLabel,
+       _sharedChildDriveEmail = sharedChildDriveEmail,
+       _savedRecordDriveLabel = savedRecordDriveLabel,
+       _savedRecordDriveEmail = savedRecordDriveEmail,
+       _savedParentDriveLabel = savedParentDriveLabel,
+       _savedParentDriveEmail = savedParentDriveEmail,
+       _lastFamilySyncPushAt = lastFamilySyncPushAt,
+       _lastFamilySyncPullAt = lastFamilySyncPullAt,
+       _localPreRestoreAt = localPreRestoreAt,
+       _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
+       _hasRemotePlayerBackup = hasRemotePlayerBackup,
+       _pendingParentSharedChanges = pendingParentSharedChanges,
+       super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
 
   bool get signedIn => _signedIn;
   DriveConnectionInfo? get connectionInfo => _connectionInfo;
@@ -631,8 +621,9 @@ class _FakeDriveBackupService extends BackupService {
       if (localEmail.isNotEmpty) {
         final suffix = ' · $localEmail';
         if (localLabel.endsWith(suffix)) {
-          displayName =
-              localLabel.substring(0, localLabel.length - suffix.length).trim();
+          displayName = localLabel
+              .substring(0, localLabel.length - suffix.length)
+              .trim();
         } else if (localLabel.toLowerCase() == localEmail.toLowerCase()) {
           displayName = '';
         }
@@ -675,6 +666,9 @@ class _FakeDriveBackupService extends BackupService {
 
   @override
   DateTime? getLastFamilySyncPull() => _lastFamilySyncPullAt;
+
+  @override
+  DateTime? getLastFamilyRefresh() => _lastFamilySyncPullAt;
 
   @override
   bool hasLocalPreRestoreBackup() => _localPreRestoreAt != null;
@@ -780,9 +774,7 @@ class _FakeDriveBackupService extends BackupService {
 class _FakeBackupRepository implements BackupRepository {
   final DateTime? lastBackupAt;
 
-  const _FakeBackupRepository({
-    this.lastBackupAt,
-  });
+  const _FakeBackupRepository({this.lastBackupAt});
 
   @override
   Future<void> autoBackupDaily() async {}

@@ -3214,11 +3214,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'As he closes the book, Taeo writes the first line of his next journal like this. To really watch the World Cup well is not to memorize only one final score, but to follow the whole long story from the first kick in 1930 to the next question waiting in 2026.';
 
   @override
-  String get familySharing => 'Family sharing';
+  String get familySharing => 'Parent/player sharing';
 
   @override
   String get familySharedBackupDescription =>
-      'Use one shared Drive backup without a server. Record mode manages core records directly, while parent mode only syncs the family layer.';
+      'Use one shared Drive backup without a server. Player mode manages core records directly, while parent mode syncs only the parent/player shared data.';
 
   @override
   String get familyBackupIncludesMedia =>
@@ -3226,14 +3226,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      'In parent mode, only feedback and reward names sync automatically. Keep player record backup and restore in record mode.';
+      'In parent mode, only feedback and reward names sync automatically. Back up and restore player records from player mode.';
 
   @override
   String get familyChildDriveConnectionTitle => 'Connect player Google Drive';
 
   @override
   String get familyChildDriveConnectionDescription =>
-      'In parent mode, connect the same Google Drive account the player uses so both roles can share one family backup file.';
+      'In parent mode, connect the same Google Drive account the player uses so both roles can share the same player backup file.';
 
   @override
   String get familyConnectChildDrive => 'Connect player Drive';
@@ -3252,7 +3252,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentModeDescription =>
-      'Turn this on for parent mode. Turn it off to return to record mode.';
+      'Turn this on for parent mode. Turn it off to return to player mode.';
 
   @override
   String get familyChildName => 'Player name';
@@ -3270,11 +3270,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyEditNames => 'Edit family names';
 
   @override
-  String get familyPolicyTitle => 'Shared backup policy';
+  String get familyPolicyTitle => 'Parent/player sharing policy';
 
   @override
   String get familyPolicyChildOwnsData =>
-      'Record mode backs up training, profile, diary, meals, and plans as the source of truth.';
+      'Player mode backs up training, profile, diary, meals, and plans as the source of truth.';
 
   @override
   String get familyPolicyParentWritesOnly =>
@@ -3285,7 +3285,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connect the parent device after at least one player backup already exists.';
 
   @override
-  String get familyRoleChildActivated => 'Record mode activated.';
+  String get familyRoleChildActivated => 'Player mode activated.';
 
   @override
   String get familyRoleParentActivated => 'Parent mode activated.';
@@ -3301,18 +3301,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'No Google Drive account is connected yet.';
 
   @override
-  String get driveSavedPlayerAccount => 'Saved record mode Drive';
+  String get driveSavedPlayerAccount => 'Saved player mode Drive';
 
   @override
-  String get driveReconnectSavedPlayer => 'Reconnect saved record Drive';
+  String get driveReconnectSavedPlayer => 'Reconnect saved player Drive';
 
   @override
   String get driveReconnectSavedPlayerHint =>
-      'After returning from parent mode, reconnect the saved record mode Drive account here.';
+      'After leaving parent mode, reconnect the saved player mode Drive account here.';
 
   @override
   String get driveReconnectSavedPlayerMismatch =>
-      'Please reconnect with the saved record mode Drive account.';
+      'Please reconnect with the saved player mode Drive account.';
 
   @override
   String get driveSavedParentAccount => 'Saved parent mode Drive';
@@ -3333,50 +3333,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get driveSharedChildAccountEmpty =>
-      'No player Drive account is known yet. Create at least one backup in record mode first.';
+      'No player Drive account is known yet. Create at least one backup in player mode first.';
 
   @override
   String get driveSharedChildAccountRemoteBackup =>
-      'A remote player backup was found. Connect the same Google Drive account used in record mode.';
+      'A remote player backup was found. Connect the same Google Drive account used in player mode.';
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same backup file.';
+      'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same player backup file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      'Parent mode should connect to the player\'s Google Drive account to sync safely into the same family backup.';
+      'Parent mode should connect to the player\'s Google Drive account to sync safely into the same player backup file.';
 
   @override
-  String get familySharedSyncTitle => 'Family sharing sync';
+  String get familySharedSyncTitle => 'Parent/player sharing sync';
 
   @override
   String get familySharedSyncDescription =>
-      'Feedback and reward names saved in parent mode are written automatically into the same family backup file.';
+      'Feedback and reward names saved in parent mode are written automatically into the same player backup file.';
 
   @override
-  String get familySharedLastSync => 'Last family sync';
+  String get familySharedLastSync => 'Last parent/player sync';
 
   @override
-  String get familySharedLastPush => 'Last family push';
+  String get familySharedLastPush => 'Last parent/player push';
 
   @override
-  String get familySharedLastRefresh => 'Last family refresh';
+  String get familySharedLastRefresh => 'Last parent/player refresh';
 
   @override
   String get familySharedAutoRefreshDescription =>
-      'When parent mode opens or the app resumes, the latest family sharing state is checked automatically. Auto refresh pauses when local parent-mode changes have not been pushed yet.';
+      'When parent mode opens or the app resumes, the latest parent/player sharing state is checked automatically. Auto refresh pauses when local parent-mode changes have not been pushed yet.';
 
   @override
   String get familySharedPendingLocalChanges =>
-      'Automatic refresh is paused because local parent-mode changes are still waiting to be pushed.';
+      'Automatic refresh is paused because local parent-mode changes are still waiting to be pushed to parent/player sharing.';
 
   @override
-  String get familySharedRestore => 'Restore family sharing';
+  String get familySharedRestore => 'Restore player records';
 
   @override
   String get familySharedRestoreConfirm =>
-      'Restore the latest player backup state from Google Drive? This replaces the player records and family sharing data shown on the current parent device.';
+      'Restore the latest player backup state from Google Drive? This replaces the player records and parent/player sharing data shown on the current parent device.';
 
   @override
   String get familySharedRestoreSuccess => 'Player backup restore completed.';
@@ -3386,11 +3386,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Player backup restore failed. Please try again.';
 
   @override
-  String get familySharedRestoreLocal => 'Undo family restore';
+  String get familySharedRestoreLocal => 'Restore previous player state';
 
   @override
   String get familySharedRestoreLocalConfirm =>
-      'Restore the safety copy saved right before the last restore? This replaces the player records and family sharing data shown on the current parent device.';
+      'Restore the safety copy saved right before the last restore? This replaces the player records and parent/player sharing data shown on the current parent device.';
 
   @override
   String get familySharedRestoreLocalSuccess => 'Previous state restored.';
@@ -3401,11 +3401,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentFamilyMismatch =>
-      'The connected Drive backup does not match this family data.';
+      'The connected Drive backup does not match this parent/player sharing data.';
 
   @override
   String get parentReadOnlyProfileDescription =>
-      'Parent mode keeps the profile read-only. Use family sharing for feedback and the level guide for reward naming.';
+      'Parent mode keeps the profile read-only. Use parent/player sharing for feedback and the level guide for reward naming.';
 
   @override
   String get parentReadOnlyEntryTitle =>
@@ -3413,23 +3413,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentReadOnlyEntryBody =>
-      'Core records like training, meals, and diary stay in record mode. Parent mode is limited to family sharing and reward naming.';
+      'Core records like training, meals, and diary stay in player mode. Parent mode is limited to parent/player sharing and reward naming.';
 
   @override
   String get parentReadOnlyMealLog =>
-      'Parent mode cannot edit meal logs. Update meals in record mode.';
+      'Parent mode cannot edit meal logs. Update meals in player mode.';
 
   @override
   String get parentReadOnlyQuiz =>
-      'Parent mode does not run the quiz. Quiz history and XP stay in record mode.';
+      'Parent mode does not run the quiz. Quiz history and XP stay in player mode.';
 
   @override
   String get parentReadOnlyDrawerMessage =>
-      'Parent mode keeps core records read-only. Use family sharing and reward naming instead.';
+      'Parent mode keeps core records read-only. Use parent/player sharing and reward naming instead.';
 
   @override
   String get parentReadOnlyCalendarBanner =>
-      'Parent mode keeps the calendar read-only. Update plans, matches, and meals in record mode.';
+      'Parent mode keeps the calendar read-only. Update plans, matches, and meals in player mode.';
 
   @override
   String get parentReadOnlyCalendarMessage =>
@@ -3449,18 +3449,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get levelGuideParentModeLabel => 'Parent mode';
 
   @override
-  String get levelGuideChildModeLabel => 'Record mode';
+  String get levelGuideChildModeLabel => 'Player mode';
 
   @override
   String get levelGuideParentModeDescription =>
-      'Parent mode can save reward names only. Reward claims stay in record mode.';
+      'Parent mode can save reward names only. Reward claims stay in player mode.';
 
   @override
   String get levelGuideChildModeDescription =>
-      'Record mode can claim rewards. Reward naming stays in parent mode.';
+      'Player mode can claim rewards. Reward naming stays in parent mode.';
 
   @override
-  String get levelGuideClaimChildOnly => 'Claim in record mode';
+  String get levelGuideClaimChildOnly => 'Claim in player mode';
 
   @override
   String get trainingSketchControlsPanel => 'Tools and selection';
