@@ -58,6 +58,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<Offset>? _activeRoutePoints;
   late final AnimationController _playController;
   List<_PlaybackTrack> _playbackTracks = const <_PlaybackTrack>[];
+  double _playbackMaxDistance = 0;
   _PathDrawMode _pathDrawMode = _PathDrawMode.player;
   String _lastSavedLayout = '';
   bool _shouldPromptInitialBoardName = false;
@@ -268,6 +269,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _activeRoutePoints = null;
     _routeReplaceMode = false;
     _playbackTracks = const <_PlaybackTrack>[];
+    _playbackMaxDistance = 0;
     _methodController.text = _currentPage.methodText;
     _lastSavedLayout = _serialize();
   }
@@ -1185,6 +1187,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _routeReplaceMode = false;
       _playbackTracks = const <_PlaybackTrack>[];
+      _playbackMaxDistance = 0;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1693,8 +1696,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return;
     }
     _stopRoutePlayback(restoreStart: false);
+    final maxDistance = _playbackTracksDistance(tracks);
     setState(() {
       _playbackTracks = tracks;
+      _playbackMaxDistance = maxDistance;
       for (final track in _playbackTracks) {
         final firstPoint = track.route.points.first;
         track.item.x = firstPoint.dx.clamp(0.03, 0.97);
@@ -1705,16 +1710,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _pathDrawMode = leadTrack.route.kind;
     });
     _playController.duration = Duration(
-      milliseconds: ((_playbackTracks.fold<double>(
-                        0,
-                        (currentMax, track) => math.max(
-                          currentMax,
-                          _pathDistance(track.route.points),
-                        ),
-                      ) *
-                      2400)
-                  .round())
-              .clamp(700, 3600) ~/
+      milliseconds: ((maxDistance * 2400).round()).clamp(700, 3600) ~/
           _playSpeed.clamp(0.75, 1.5),
     );
     _playController
@@ -1726,11 +1722,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _onPlayTick() {
     if (_playbackTracks.isEmpty) return;
     setState(() {
+      final traveledDistance = _playbackMaxDistance * _playController.value;
       for (final track in _playbackTracks) {
         if (track.route.points.length < 2) continue;
-        final position = _samplePathPoint(
+        final position = _samplePathPointAtDistance(
           track.route.points,
-          _playController.value,
+          traveledDistance,
         );
         track.item.x = position.dx.clamp(0.03, 0.97);
         track.item.y = position.dy.clamp(0.03, 0.97);
@@ -1749,6 +1746,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         track.item.y = track.startPosition.dy;
       }
       _playbackTracks = const <_PlaybackTrack>[];
+      _playbackMaxDistance = 0;
     });
     if (status == AnimationStatus.completed) {
       _playController.reset();
@@ -1766,6 +1764,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         }
       }
       _playbackTracks = const <_PlaybackTrack>[];
+      _playbackMaxDistance = 0;
     });
   }
 
@@ -1884,7 +1883,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _memoCommitted = true;
   }
 
-  Offset _samplePathPoint(List<Offset> points, double t) {
+  double _playbackTracksDistance(List<_PlaybackTrack> tracks) {
+    return tracks.fold<double>(
+      0,
+      (currentMax, track) =>
+          math.max(currentMax, _pathDistance(track.route.points)),
+    );
+  }
+
+  Offset _samplePathPointAtDistance(List<Offset> points, double distance) {
     if (points.isEmpty) return const Offset(0.5, 0.5);
     if (points.length == 1) return points.first;
     final lengths = <double>[];
@@ -1895,7 +1902,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       total += segment;
     }
     if (total <= 0.0001) return points.last;
-    final target = total * t.clamp(0.0, 1.0);
+    final target = distance.clamp(0.0, total);
     var walked = 0.0;
     for (var i = 0; i < lengths.length; i++) {
       final len = lengths[i];
@@ -2564,15 +2571,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         icon: Icons.horizontal_rule,
         onTap: () => _addItem(_BoardItemType.hurdle),
       ),
-      _toolButton(
-        label: l10n.trainingSketchPlayerButton,
-        icon: Icons.person,
-        onTap: () => _addItem(_BoardItemType.player),
+      _pairedToolButtons(
+        first: _toolButton(
+          label: l10n.trainingSketchPlayerButton,
+          icon: Icons.person,
+          onTap: () => _addItem(_BoardItemType.player),
+        ),
+        second: _routeModeButton(_PathDrawMode.player),
       ),
-      _toolButton(
-        label: l10n.trainingSketchBallButton,
-        icon: Icons.sports_soccer,
-        onTap: () => _addItem(_BoardItemType.ball),
+      _pairedToolButtons(
+        first: _toolButton(
+          label: l10n.trainingSketchBallButton,
+          icon: Icons.sports_soccer,
+          onTap: () => _addItem(_BoardItemType.ball),
+        ),
+        second: _routeModeButton(_PathDrawMode.ball),
       ),
       _toolButton(
         label: l10n.trainingSketchLadderButton,
@@ -2594,8 +2607,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           foregroundColor: _penMode ? const Color(0xFFFFEB3B) : null,
         ),
       ),
-      _routeModeButton(_PathDrawMode.player),
-      _routeModeButton(_PathDrawMode.ball),
       OutlinedButton.icon(
         onPressed: _currentPage.strokes.isEmpty
             ? null
@@ -2680,6 +2691,20 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       icon: Icon(icon),
       label: Text(label),
       style: _toolButtonStyle(),
+    );
+  }
+
+  Widget _pairedToolButtons({
+    required Widget first,
+    required Widget second,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        first,
+        const SizedBox(width: 8),
+        second,
+      ],
     );
   }
 

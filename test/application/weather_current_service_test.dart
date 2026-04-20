@@ -179,11 +179,14 @@ void main() {
     });
 
     test(
-      'parses hourly precipitation from Open-Meteo detailed forecast',
+      'parses hourly forecast points from Open-Meteo detailed forecast',
       () async {
         final client = MockClient((request) async {
           expect(request.url.host, 'api.open-meteo.com');
-          expect(request.url.queryParameters['hourly'], 'precipitation');
+          expect(
+            request.url.queryParameters['hourly'],
+            'temperature_2m,weather_code,precipitation,wind_speed_10m',
+          );
           return http.Response.bytes(
             utf8.encode(
               jsonEncode(<String, dynamic>{
@@ -201,8 +204,12 @@ void main() {
                     '2026-04-18T12:00',
                     '2026-04-18T15:00',
                     '2026-04-19T06:00',
+                    '2026-04-19T18:00',
                   ],
-                  'precipitation': <double>[0, 1.2, 2.4, 0.7],
+                  'temperature_2m': <double>[14.2, 17.4, 16.8, 13.1, 18.4],
+                  'weather_code': <int>[3, 61, 61, 1, 3],
+                  'precipitation': <double>[0, 1.2, 2.4, 0.7, 0],
+                  'wind_speed_10m': <double>[2.8, 3.4, 4.1, 2.2, 3.6],
                 },
                 'daily': <String, dynamic>{
                   'time': <String>['2026-04-18', '2026-04-19'],
@@ -232,6 +239,17 @@ void main() {
           snapshot.dailyForecasts.first.hourlyPrecipitations,
           hasLength(2),
         );
+        expect(
+          snapshot.dailyForecasts.first.morningForecast?.temperature,
+          14.2,
+        );
+        expect(snapshot.dailyForecasts.first.morningForecast?.weatherCode, 3);
+        expect(
+          snapshot.dailyForecasts.first.eveningForecast?.temperature,
+          16.8,
+        );
+        expect(snapshot.dailyForecasts[1].morningForecast?.temperature, 13.1);
+        expect(snapshot.dailyForecasts[1].eveningForecast?.temperature, 18.4);
         expect(
           snapshot.dailyForecasts.first.hourlyPrecipitations.first.time,
           DateTime(2026, 4, 18, 12),
@@ -701,9 +719,15 @@ void main() {
           3,
         );
         expect(snapshot.dailyForecasts.first.windSpeedMax, 5);
+        expect(snapshot.dailyForecasts.first.morningForecast?.temperature, 12);
+        expect(snapshot.dailyForecasts.first.morningForecast?.weatherCode, 0);
+        expect(snapshot.dailyForecasts.first.eveningForecast?.temperature, 20);
+        expect(snapshot.dailyForecasts.first.eveningForecast?.weatherCode, 61);
         expect(snapshot.dailyForecasts[1].weatherCode, 0);
         expect(snapshot.dailyForecasts[1].temperatureMax, 20);
         expect(snapshot.dailyForecasts[1].temperatureMin, 11);
+        expect(snapshot.dailyForecasts[1].morningForecast?.temperature, 13);
+        expect(snapshot.dailyForecasts[1].eveningForecast?.temperature, 19);
         expect(snapshot.dailyForecasts[2].date, DateTime(2026, 4, 20));
         expect(snapshot.dailyForecasts[2].temperatureMax, 22);
         expect(snapshot.dailyForecasts[2].weatherCode, 2);

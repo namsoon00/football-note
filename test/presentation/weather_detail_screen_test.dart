@@ -24,7 +24,7 @@ void main() {
           supportedLocales: [Locale('en'), Locale('ko', 'KR')],
           home: WeatherDetailScreen(
             initialLocation: '강남구 역삼1동',
-            initialSummary: '맑음 21.0°C',
+            initialSummary: '맑음 21°C',
             initialWeatherCode: 0,
           ),
         ),
@@ -34,7 +34,7 @@ void main() {
 
     expect(find.text('상세 날씨'), findsOneWidget);
     expect(find.text('강남구 역삼1동'), findsOneWidget);
-    expect(find.text('21.0°C'), findsOneWidget);
+    expect(find.text('21°C'), findsOneWidget);
     expect(find.text('맑음'), findsOneWidget);
     expect(find.text('어제 대비'), findsOneWidget);
     expect(find.text('대기질'), findsOneWidget);
@@ -62,7 +62,7 @@ void main() {
           supportedLocales: [Locale('en'), Locale('ko', 'KR')],
           home: WeatherDetailScreen(
             initialLocation: '강남구 역삼1동',
-            initialSummary: '비 12.0°C',
+            initialSummary: '비 12°C',
             initialWeatherCode: 61,
             initialAction: WeatherDetailInitialAction.outfitGuide,
           ),
@@ -96,7 +96,7 @@ void main() {
           supportedLocales: [Locale('en'), Locale('ko', 'KR')],
           home: WeatherDetailScreen(
             initialLocation: '강남구 역삼1동',
-            initialSummary: '맑음 6.0°C',
+            initialSummary: '맑음 6°C',
             initialWeatherCode: 0,
             initialAction: WeatherDetailInitialAction.outfitGuide,
           ),

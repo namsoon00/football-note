@@ -802,6 +802,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherWeeklyTitle => 'Weekly weather';
 
   @override
+  String get homeWeatherMorningLabel => 'Morning';
+
+  @override
+  String get homeWeatherEveningLabel => 'Evening';
+
+  @override
   String get homeWeatherCacheHint =>
       'Recently fetched weather is reused for 10 minutes.';
 
@@ -811,6 +817,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeWeatherTomorrowFallback =>
       'Tomorrow\'s forecast is not available yet.';
+
+  @override
+  String get homeWeatherTomorrowOutfitTitle => 'Tomorrow\'s outfit';
+
+  @override
+  String get homeWeatherTomorrowOutfitFallback =>
+      'Tomorrow\'s outfit guide is not ready yet.';
 
   @override
   String get homeWeatherTemperatureRange => 'High/Low';
