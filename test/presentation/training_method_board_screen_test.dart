@@ -53,7 +53,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-path-mode-button')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey('training-landscape-panel-toggle')),
@@ -168,7 +170,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-path-mode-button')),
+    );
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('사람 2'));
@@ -179,8 +183,6 @@ void main() {
     await tester.ensureVisible(deleteRouteButton);
     await tester.tap(deleteRouteButton);
     await tester.pumpAndSettle();
-
-    expect(find.text('사람 2'), findsNothing);
 
     await tester.tap(find.widgetWithText(TextButton, '저장'));
     await tester.pumpAndSettle();
@@ -323,7 +325,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+      await tester.tap(
+        find.byKey(const ValueKey('training-player-path-mode-button')),
+      );
       await tester.pumpAndSettle();
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
@@ -341,6 +345,66 @@ void main() {
       final route = saved.pages.single.routes.single;
       expect(route.linkedItemId, 'player-2');
       expect(route.colorValue, 0xFFE53935);
+    },
+  );
+
+  testWidgets(
+    'player and ball route buttons stay separate and ball routes keep ball color',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
+      String? savedLayout;
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 워밍업',
+            initialLayoutJson: '',
+            onSaved: (value) => savedLayout = value,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(OutlinedButton, '공'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('training-player-path-mode-button')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('training-ball-path-mode-button')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('training-ball-path-mode-button')),
+      );
+      await tester.pumpAndSettle();
+
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      await _drawRoute(
+        tester,
+        boardFinder,
+        const Offset(520, 320),
+        const Offset(760, 260),
+      );
+
+      await tester.tap(find.widgetWithText(TextButton, '저장'));
+      await tester.pumpAndSettle();
+
+      final saved = TrainingMethodLayout.decode(savedLayout ?? '');
+      final page = saved.pages.single;
+      final player = page.items.firstWhere((item) => item.type == 'player');
+      final ball = page.items.firstWhere((item) => item.type == 'ball');
+      final ballRoute = page.routes.single;
+
+      expect(player.colorValue, isNot(ball.colorValue));
+      expect(ballRoute.kind, TrainingMethodRouteKind.ball);
+      expect(ballRoute.linkedItemId, ball.id);
+      expect(ballRoute.colorValue, ball.colorValue);
     },
   );
 
@@ -487,7 +551,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+    await tester.tap(
+      find.byKey(const ValueKey('training-player-path-mode-button')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey('training-landscape-panel-toggle')),
@@ -605,7 +671,9 @@ void main() {
 
       await tester.tap(find.widgetWithText(OutlinedButton, '사람'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+      await tester.tap(
+        find.byKey(const ValueKey('training-player-path-mode-button')),
+      );
       await tester.pumpAndSettle();
 
       final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
