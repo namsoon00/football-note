@@ -6053,38 +6053,50 @@ abstract class AppLocalizations {
   /// No description provided for @trainingSketchSelectedPlayerRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to add another player route. The selected player will be linked to the new route.'**
+  /// **'Drag on the board to set the selected player\'s route. If one already exists, it will be replaced.'**
   String get trainingSketchSelectedPlayerRouteHint;
 
   /// No description provided for @trainingSketchSelectedBallRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to add another ball route. The selected ball will be linked to the new route.'**
+  /// **'Drag on the board to set the selected ball\'s route. If one already exists, it will be replaced.'**
   String get trainingSketchSelectedBallRouteHint;
 
   /// No description provided for @trainingSketchPlayerRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to add a player route. Select a player first if you want the route linked.'**
+  /// **'Drag on the board to assign an unused player route. Select a player first if you want to target a specific one.'**
   String get trainingSketchPlayerRouteHint;
 
   /// No description provided for @trainingSketchBallRouteHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag on the board to add a ball route. Select a ball first if you want the route linked.'**
+  /// **'Drag on the board to assign an unused ball route. Select a ball first if you want to target a specific one.'**
   String get trainingSketchBallRouteHint;
 
   /// No description provided for @trainingSketchLinkPlayerHint.
   ///
   /// In en, this message translates to:
-  /// **'Open Routes mode to link the next player route to this player.'**
+  /// **'In Routes mode, select this player and drag to assign or replace its route.'**
   String get trainingSketchLinkPlayerHint;
 
   /// No description provided for @trainingSketchLinkBallHint.
   ///
   /// In en, this message translates to:
-  /// **'Open Routes mode to link the next ball route to this ball.'**
+  /// **'In Routes mode, select this ball and drag to assign or replace its route.'**
   String get trainingSketchLinkBallHint;
+
+  /// No description provided for @trainingSketchPlayerRouteLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'All player routes are already assigned. Select a player to replace or redraw its route.'**
+  String get trainingSketchPlayerRouteLimitReached;
+
+  /// No description provided for @trainingSketchBallRouteLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'All ball routes are already assigned. Select a ball to replace or redraw its route.'**
+  String get trainingSketchBallRouteLimitReached;
 }
 
 class _AppLocalizationsDelegate

@@ -3386,24 +3386,33 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get trainingSketchSelectedPlayerRouteHint =>
-      '보드를 드래그하면 새 사람 이동선이 추가됩니다. 지금 선택한 사람과 연결해서 저장합니다.';
+      '보드를 드래그하면 선택한 사람의 이동선을 설정합니다. 이미 있으면 새 선으로 바뀝니다.';
 
   @override
   String get trainingSketchSelectedBallRouteHint =>
-      '보드를 드래그하면 새 공 이동선이 추가됩니다. 지금 선택한 공과 연결해서 저장합니다.';
+      '보드를 드래그하면 선택한 공의 이동선을 설정합니다. 이미 있으면 새 선으로 바뀝니다.';
 
   @override
   String get trainingSketchPlayerRouteHint =>
-      '보드를 드래그하면 새 사람 이동선이 추가됩니다. 특정 사람과 연결하려면 먼저 그 사람을 선택해 주세요.';
+      '보드를 드래그하면 비어 있는 사람 이동선을 설정합니다. 특정 사람을 고르려면 먼저 그 사람을 선택해 주세요.';
 
   @override
   String get trainingSketchBallRouteHint =>
-      '보드를 드래그하면 새 공 이동선이 추가됩니다. 특정 공과 연결하려면 먼저 공을 선택해 주세요.';
+      '보드를 드래그하면 비어 있는 공 이동선을 설정합니다. 특정 공을 고르려면 먼저 그 공을 선택해 주세요.';
 
   @override
   String get trainingSketchLinkPlayerHint =>
-      '이동선 모드에서 다음 사람 이동선을 이 사람과 연결할 수 있어요.';
+      '이동선 모드에서 이 사람을 선택한 뒤 드래그하면 이동선을 설정하거나 바꿀 수 있어요.';
 
   @override
-  String get trainingSketchLinkBallHint => '이동선 모드에서 다음 공 이동선을 이 공과 연결할 수 있어요.';
+  String get trainingSketchLinkBallHint =>
+      '이동선 모드에서 이 공을 선택한 뒤 드래그하면 이동선을 설정하거나 바꿀 수 있어요.';
+
+  @override
+  String get trainingSketchPlayerRouteLimitReached =>
+      '모든 사람 이동선이 이미 있어요. 사람을 선택해서 이동선을 바꾸거나 다시 그려 주세요.';
+
+  @override
+  String get trainingSketchBallRouteLimitReached =>
+      '모든 공 이동선이 이미 있어요. 공을 선택해서 이동선을 바꾸거나 다시 그려 주세요.';
 }

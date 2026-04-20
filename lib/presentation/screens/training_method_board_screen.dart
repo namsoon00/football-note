@@ -173,6 +173,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             .toList(growable: true),
       ),
     ];
+    _normalizeCurrentPageRoutes();
     _syncCurrentPageRouteColors();
     if (page == null) {
       _shouldPromptInitialBoardName = widget.boardTitle.trim().isEmpty;
@@ -262,6 +263,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             .toList(growable: true),
       ),
     ];
+    _normalizeCurrentPageRoutes();
     _syncCurrentPageRouteColors();
     _currentBoardId = board.id;
     _selectedItemId = null;
@@ -476,6 +478,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return _firstWhereOrNull(_currentPage.routes, (route) => route.id == id);
   }
 
+  int _routeableItemCount(_PathDrawMode kind) {
+    final expectedType = _boardItemTypeForRouteKind(kind);
+    return _currentPage.items.where((item) => item.type == expectedType).length;
+  }
+
   _BoardItem? _itemById(String id) {
     return _firstWhereOrNull(_currentPage.items, (item) => item.id == id);
   }
@@ -539,6 +546,89 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       excludedItemIds: excludedItemIds,
       allowExcludedFallback: allowExcludedFallback,
     );
+  }
+
+  Set<String> _linkedRouteItemIds(
+    _PathDrawMode kind, {
+    String? excludingRouteId,
+  }) {
+    return _currentPage.routes
+        .where(
+          (route) =>
+              route.kind == kind &&
+              route.id != excludingRouteId &&
+              route.linkedItemId != null,
+        )
+        .map((route) => route.linkedItemId!)
+        .toSet();
+  }
+
+  _BoardRoute? _routeForItem(
+    String itemId,
+    _PathDrawMode kind, {
+    String? excludingRouteId,
+  }) {
+    return _firstWhereOrNull(
+      _currentPage.routes,
+      (route) =>
+          route.kind == kind &&
+          route.id != excludingRouteId &&
+          route.linkedItemId == itemId,
+    );
+  }
+
+  _BoardRoute? _routeToUpdateForPath(_PathDrawMode kind) {
+    final selectedRoute = _selectedRoute;
+    if (_routeReplaceMode &&
+        selectedRoute != null &&
+        selectedRoute.kind == kind) {
+      return selectedRoute;
+    }
+    final selectedItem = _selectedItem;
+    if (selectedItem == null ||
+        selectedItem.type != _boardItemTypeForRouteKind(kind)) {
+      return null;
+    }
+    return _routeForItem(selectedItem.id, kind);
+  }
+
+  void _normalizeCurrentPageRoutes() {
+    final assignedItemIdsByKind = <_PathDrawMode, Set<String>>{
+      _PathDrawMode.player: <String>{},
+      _PathDrawMode.ball: <String>{},
+    };
+    final normalizedRoutes = <_BoardRoute>[];
+    for (final route in _currentPage.routes.reversed) {
+      final assignedItemIds = assignedItemIdsByKind[route.kind]!;
+      final linkedItem = _resolveRouteItem(
+        kind: route.kind,
+        points: route.points,
+        preferredItemId: route.linkedItemId,
+        excludedItemIds: assignedItemIds,
+      );
+      if (linkedItem == null) continue;
+      route.linkedItemId = linkedItem.id;
+      route.color = linkedItem.color;
+      assignedItemIds.add(linkedItem.id);
+      normalizedRoutes.add(route);
+    }
+    _currentPage.routes
+      ..clear()
+      ..addAll(normalizedRoutes.reversed);
+    final selectedRouteId = _selectedRouteId;
+    if (selectedRouteId != null &&
+        !_currentPage.routes.any((route) => route.id == selectedRouteId)) {
+      _selectedRouteId = null;
+    }
+  }
+
+  void _showRouteCapacitySnackBar(_PathDrawMode kind) {
+    final message = kind == _PathDrawMode.player
+        ? _l10n.trainingSketchPlayerRouteLimitReached
+        : _l10n.trainingSketchBallRouteLimitReached;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _syncCurrentPageRouteColors() {
@@ -783,6 +873,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<bool> _saveBoard(bool isKo, {bool showFeedback = true}) async {
+    if (mounted) {
+      setState(_normalizeCurrentPageRoutes);
+    } else {
+      _normalizeCurrentPageRoutes();
+    }
     final serialized = _serialize();
     PlayerLevelAward? boardAward;
     if (_isManagedMode) {
@@ -1058,6 +1153,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
     setState(() {
       _pages[0] = copiedPage;
+      _normalizeCurrentPageRoutes();
       _selectedItemId = null;
       _selectedRouteId = null;
       _penMode = false;
@@ -1369,31 +1465,41 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       });
       return;
     }
+    final replacementRoute = _routeToUpdateForPath(_pathDrawMode);
+    final selectedItem = _selectedItem;
+    final preferredItemId =
+        selectedItem?.type == _boardItemTypeForRouteKind(_pathDrawMode)
+        ? selectedItem?.id
+        : replacementRoute?.linkedItemId;
+    final resolvedLinkedItem = _resolveRouteItem(
+      kind: _pathDrawMode,
+      points: points,
+      preferredItemId: preferredItemId,
+      excludedItemIds: _linkedRouteItemIds(
+        _pathDrawMode,
+        excludingRouteId: replacementRoute?.id,
+      ),
+    );
+    if (resolvedLinkedItem == null) {
+      setState(() {
+        _activeRoutePoints = null;
+        _routeReplaceMode = false;
+      });
+      _showRouteCapacitySnackBar(_pathDrawMode);
+      return;
+    }
     setState(() {
-      final selectedRoute = _selectedRoute;
-      final preferredItemId =
-          _selectedItem?.type == _boardItemTypeForRouteKind(_pathDrawMode)
-          ? _selectedItem?.id
-          : (_routeReplaceMode ? selectedRoute?.linkedItemId : null);
-      final resolvedLinkedItem = _resolveRouteItem(
-        kind: _pathDrawMode,
-        points: points,
-        preferredItemId: preferredItemId,
-        allowExcludedFallback: true,
-      );
-      final nextLinkedItemId = resolvedLinkedItem?.id;
-      if (_routeReplaceMode &&
-          selectedRoute != null &&
-          selectedRoute.kind == _pathDrawMode) {
-        selectedRoute.points
+      final nextLinkedItemId = resolvedLinkedItem.id;
+      if (replacementRoute != null) {
+        replacementRoute.points
           ..clear()
           ..addAll(points);
-        selectedRoute.linkedItemId = nextLinkedItemId;
-        selectedRoute.color = _routeColorFor(
+        replacementRoute.linkedItemId = nextLinkedItemId;
+        replacementRoute.color = _routeColorFor(
           kind: _pathDrawMode,
           linkedItemId: nextLinkedItemId,
         );
-        _selectedRouteId = selectedRoute.id;
+        _selectedRouteId = replacementRoute.id;
       } else {
         final route = _BoardRoute(
           id: _nextBoardRouteId(),
@@ -1421,8 +1527,17 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       if (_pathMode) {
         _penMode = false;
         final selectedRoute = _selectedRoute;
+        final selectedItem = _selectedItem;
         if (selectedRoute != null) {
           _pathDrawMode = selectedRoute.kind;
+        } else if (selectedItem?.type == _BoardItemType.ball) {
+          _pathDrawMode = _PathDrawMode.ball;
+        } else if (selectedItem?.type == _BoardItemType.player) {
+          _pathDrawMode = _PathDrawMode.player;
+        }
+        if (selectedItem != null &&
+            selectedItem.type == _boardItemTypeForRouteKind(_pathDrawMode)) {
+          _selectedRouteId = _routeForItem(selectedItem.id, _pathDrawMode)?.id;
         }
       }
       _activeStroke = null;
@@ -1480,6 +1595,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   String _pathModeHint() {
+    final routeableCount = _routeableItemCount(_pathDrawMode);
+    if (routeableCount == 0) {
+      return _pathDrawMode == _PathDrawMode.player
+          ? _l10n.trainingSketchAddPlayerFirst
+          : _l10n.trainingSketchAddBallFirst;
+    }
     if (_routeReplaceMode) {
       return _l10n.trainingSketchRouteReplaceHint;
     }
@@ -1489,6 +1610,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return _pathDrawMode == _PathDrawMode.player
           ? _l10n.trainingSketchSelectedPlayerRouteHint
           : _l10n.trainingSketchSelectedBallRouteHint;
+    }
+    if (_routesForKind(_pathDrawMode).length >= routeableCount) {
+      return _pathDrawMode == _PathDrawMode.player
+          ? _l10n.trainingSketchPlayerRouteLimitReached
+          : _l10n.trainingSketchBallRouteLimitReached;
     }
     return _pathDrawMode == _PathDrawMode.player
         ? _l10n.trainingSketchPlayerRouteHint
@@ -1871,22 +1997,36 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final showPanel = _showLandscapeControls;
-                  final panelWidth = showPanel
-                      ? math.min(340.0, constraints.maxWidth * 0.36)
-                      : 0.0;
-                  return Row(
+                  final panelWidth = math.min(
+                    340.0,
+                    constraints.maxWidth * 0.34,
+                  );
+                  final memoWidth = math.min(320.0, constraints.maxWidth * 0.3);
+                  final memoHeight = math.min(
+                    220.0,
+                    constraints.maxHeight - 24,
+                  );
+                  return Stack(
                     children: [
-                      Expanded(child: _buildBoardCanvas()),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutCubic,
-                        width: panelWidth == 0 ? 0 : panelWidth + 8,
-                        padding: EdgeInsets.only(left: panelWidth == 0 ? 0 : 8),
-                        child: panelWidth == 0
-                            ? null
-                            : _buildLandscapeControlPanel(isKo),
-                      ),
+                      Positioned.fill(child: _buildBoardCanvas()),
+                      if (_showLandscapeMemo)
+                        Positioned(
+                          left: 12,
+                          top: 12,
+                          width: memoWidth,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxHeight: memoHeight),
+                            child: _buildLandscapeMemoPanel(isKo),
+                          ),
+                        ),
+                      if (_showLandscapeControls)
+                        Positioned(
+                          top: 12,
+                          right: 12,
+                          bottom: 12,
+                          width: panelWidth,
+                          child: _buildLandscapeControlPanel(isKo),
+                        ),
                     ],
                   );
                 },
@@ -1929,12 +2069,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           Expanded(child: _buildAppBarTitle(isKo)),
           IconButton(
             key: const ValueKey('training-landscape-memo-toggle'),
-            onPressed: () => setState(() {
-              _showLandscapeMemo = !_showLandscapeMemo;
-              if (_showLandscapeMemo) {
-                _showLandscapeControls = true;
-              }
-            }),
+            onPressed: () =>
+                setState(() => _showLandscapeMemo = !_showLandscapeMemo),
             icon: Icon(
               _showLandscapeMemo ? Icons.notes_rounded : Icons.notes_outlined,
             ),
@@ -1945,7 +2081,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               () => _showLandscapeControls = !_showLandscapeControls,
             ),
             icon: Icon(
-              _showLandscapeControls ? Icons.chevron_right : Icons.chevron_left,
+              _showLandscapeControls ? Icons.tune_rounded : Icons.tune_outlined,
             ),
           ),
           IconButton(
@@ -1996,10 +2132,39 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           _buildToolButtons(isKo),
           const SizedBox(height: 12),
           _buildSelectedTools(isKo),
-          if (_showLandscapeMemo) ...[
-            const SizedBox(height: 12),
-            _buildMethodTextInput(isKo, compact: true),
-          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLandscapeMemoPanel(bool isKo) {
+    return Container(
+      key: const ValueKey('training-landscape-memo-panel'),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.96),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A000000),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: () => setState(() => _showLandscapeMemo = false),
+              icon: const Icon(Icons.close),
+            ),
+          ),
+          _buildMethodTextInput(isKo, compact: true),
         ],
       ),
     );
@@ -2066,8 +2231,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   ),
                 ),
                 IgnorePointer(
-                  ignoring:
-                      _penMode || _pathMode || _playController.isAnimating,
+                  ignoring: _playController.isAnimating,
                   child: Stack(
                     children: [
                       for (final item in _currentPage.items)
@@ -2079,37 +2243,58 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                             onTap: () => setState(() {
                               _selectedItemId = item.id;
                               _routeReplaceMode = false;
-                            }),
-                            onLongPress: () => setState(() {
-                              _currentPage.items.removeWhere(
-                                (entry) => entry.id == item.id,
-                              );
-                              _currentPage.routes.removeWhere(
-                                (route) => route.linkedItemId == item.id,
-                              );
-                              if (_selectedItemId == item.id) {
-                                _selectedItemId = null;
-                              }
-                              if (_selectedRoute != null &&
-                                  !_currentPage.routes.any(
-                                    (route) => route.id == _selectedRoute!.id,
-                                  )) {
-                                _selectedRouteId = null;
+                              if (_pathMode &&
+                                  item.type ==
+                                      _boardItemTypeForRouteKind(
+                                        _pathDrawMode,
+                                      )) {
+                                _selectedRouteId = _routeForItem(
+                                  item.id,
+                                  _pathDrawMode,
+                                )?.id;
                               }
                             }),
-                            onPanUpdate: (details) {
-                              final dx = details.delta.dx / width;
-                              final dy = details.delta.dy / height;
-                              final nextX = (item.x + dx).clamp(0.03, 0.97);
-                              final nextY = (item.y + dy).clamp(0.03, 0.97);
-                              setState(() {
-                                _moveItemWithLinkedRoutes(
-                                  item,
-                                  nextX: nextX,
-                                  nextY: nextY,
-                                );
-                              });
-                            },
+                            onLongPress: _penMode || _pathMode
+                                ? null
+                                : () => setState(() {
+                                    _currentPage.items.removeWhere(
+                                      (entry) => entry.id == item.id,
+                                    );
+                                    _currentPage.routes.removeWhere(
+                                      (route) => route.linkedItemId == item.id,
+                                    );
+                                    if (_selectedItemId == item.id) {
+                                      _selectedItemId = null;
+                                    }
+                                    if (_selectedRoute != null &&
+                                        !_currentPage.routes.any(
+                                          (route) =>
+                                              route.id == _selectedRoute!.id,
+                                        )) {
+                                      _selectedRouteId = null;
+                                    }
+                                  }),
+                            onPanUpdate: _penMode || _pathMode
+                                ? null
+                                : (details) {
+                                    final dx = details.delta.dx / width;
+                                    final dy = details.delta.dy / height;
+                                    final nextX = (item.x + dx).clamp(
+                                      0.03,
+                                      0.97,
+                                    );
+                                    final nextY = (item.y + dy).clamp(
+                                      0.03,
+                                      0.97,
+                                    );
+                                    setState(() {
+                                      _moveItemWithLinkedRoutes(
+                                        item,
+                                        nextX: nextX,
+                                        nextY: nextY,
+                                      );
+                                    });
+                                  },
                             child: SizedBox(
                               width: 52,
                               height: 52,
@@ -2453,6 +2638,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     }
     if (_pathMode) {
       final routes = _routesForKind(_pathDrawMode);
+      final routeableCount = _routeableItemCount(_pathDrawMode);
       final hasSelectedCurrentRoute =
           selectedRoute != null && selectedRoute.kind == _pathDrawMode;
       return Container(
@@ -2480,10 +2666,22 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
               ],
               selected: {_pathDrawMode},
               onSelectionChanged: (selection) {
+                final nextMode = selection.first;
                 setState(() {
-                  _pathDrawMode = selection.first;
+                  _pathDrawMode = nextMode;
                   _activeRoutePoints = null;
                   _routeReplaceMode = false;
+                  final selectedItem = _selectedItem;
+                  if (selectedItem != null &&
+                      selectedItem.type ==
+                          _boardItemTypeForRouteKind(nextMode)) {
+                    _selectedRouteId = _routeForItem(
+                      selectedItem.id,
+                      nextMode,
+                    )?.id;
+                  } else if (_selectedRoute?.kind != nextMode) {
+                    _selectedRouteId = null;
+                  }
                 });
               },
               showSelectedIcon: false,
@@ -2496,6 +2694,11 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                   ? l10n.trainingSketchPlayerRoutesTitle
                   : l10n.trainingSketchBallRoutesTitle,
               style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${routes.length}/$routeableCount',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 6),
             if (routes.isEmpty)
