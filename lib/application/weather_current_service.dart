@@ -81,6 +81,8 @@ class WeatherDailyForecast {
     this.precipitationSum,
     this.windSpeedMax,
     this.uvIndexMax,
+    this.morningForecast,
+    this.eveningForecast,
     this.hourlyPrecipitations = const <WeatherHourlyPrecipitation>[],
   });
 
@@ -91,6 +93,8 @@ class WeatherDailyForecast {
   final double? precipitationSum;
   final double? windSpeedMax;
   final double? uvIndexMax;
+  final WeatherForecastMoment? morningForecast;
+  final WeatherForecastMoment? eveningForecast;
   final List<WeatherHourlyPrecipitation> hourlyPrecipitations;
 }
 
@@ -102,6 +106,28 @@ class WeatherHourlyPrecipitation {
 
   final DateTime time;
   final double precipitation;
+}
+
+class WeatherForecastMoment {
+  const WeatherForecastMoment({
+    required this.time,
+    this.temperature,
+    this.weatherCode,
+    this.precipitation,
+    this.windSpeed,
+  });
+
+  final DateTime time;
+  final double? temperature;
+  final int? weatherCode;
+  final double? precipitation;
+  final double? windSpeed;
+
+  bool get hasData =>
+      temperature != null ||
+      weatherCode != null ||
+      precipitation != null ||
+      windSpeed != null;
 }
 
 class WeatherCurrentService {
@@ -249,7 +275,12 @@ class WeatherCurrentService {
         'weather_code',
         'wind_speed_10m',
       ],
-      hourly: const <String>['precipitation'],
+      hourly: const <String>[
+        'temperature_2m',
+        'weather_code',
+        'precipitation',
+        'wind_speed_10m',
+      ],
       daily: const <String>[
         'weather_code',
         'uv_index_max',
@@ -276,29 +307,24 @@ class WeatherCurrentService {
     final current = decoded['current'];
     final hourly = decoded['hourly'];
     final daily = decoded['daily'];
-    final currentMap = current is Map<String, dynamic>
-        ? current
-        : const <String, dynamic>{};
-    final hourlyMap = hourly is Map<String, dynamic>
-        ? hourly
-        : const <String, dynamic>{};
-    final dailyMap = daily is Map<String, dynamic>
-        ? daily
-        : const <String, dynamic>{};
-    final hourlyPrecipitationsByDay = _buildOpenMeteoHourlyPrecipitationsByDay(
-      hourlyMap,
-    );
+    final currentMap =
+        current is Map<String, dynamic> ? current : const <String, dynamic>{};
+    final hourlyMap =
+        hourly is Map<String, dynamic> ? hourly : const <String, dynamic>{};
+    final dailyMap =
+        daily is Map<String, dynamic> ? daily : const <String, dynamic>{};
+    final hourlyForecastsByDay = _buildOpenMeteoHourlyForecastsByDay(hourlyMap);
     final forecasts = _buildOpenMeteoDailyForecasts(
       dailyMap,
-      hourlyPrecipitationsByDay: hourlyPrecipitationsByDay,
+      hourlyForecastsByDay: hourlyForecastsByDay,
     );
 
     return WeatherDetailsSnapshot(
       provider: WeatherDataProvider.openMeteo,
       temperature: (currentMap['temperature_2m'] as num?)?.toDouble(),
       weatherCode: (currentMap['weather_code'] as num?)?.toInt(),
-      apparentTemperature: (currentMap['apparent_temperature'] as num?)
-          ?.toDouble(),
+      apparentTemperature:
+          (currentMap['apparent_temperature'] as num?)?.toDouble(),
       humidity: (currentMap['relative_humidity_2m'] as num?)?.toDouble(),
       precipitation: (currentMap['precipitation'] as num?)?.toDouble(),
       windSpeed: (currentMap['wind_speed_10m'] as num?)?.toDouble(),
@@ -347,8 +373,7 @@ class WeatherCurrentService {
         ? const <String, String>{}
         : _nearestForecastValues(items: forecastItems, targetTime: _toKst(now));
 
-    final precipitationType =
-        _parseKmaInt(currentValues['PTY']) ??
+    final precipitationType = _parseKmaInt(currentValues['PTY']) ??
         _parseKmaInt(nearestForecastValues['PTY']);
     final sky = _parseKmaInt(nearestForecastValues['SKY']);
 
@@ -413,20 +438,15 @@ class WeatherCurrentService {
       return null;
     }
 
-    final temperature =
-        _parseKmaDouble(currentValues['T1H']) ??
+    final temperature = _parseKmaDouble(currentValues['T1H']) ??
         _parseKmaDouble(nearestForecastValues['TMP']);
-    final humidity =
-        _parseKmaDouble(currentValues['REH']) ??
+    final humidity = _parseKmaDouble(currentValues['REH']) ??
         _parseKmaDouble(nearestForecastValues['REH']);
-    final windSpeed =
-        _parseKmaDouble(currentValues['WSD']) ??
+    final windSpeed = _parseKmaDouble(currentValues['WSD']) ??
         _parseKmaDouble(nearestForecastValues['WSD']);
-    final precipitation =
-        _parseKmaPrecipitation(currentValues['RN1']) ??
+    final precipitation = _parseKmaPrecipitation(currentValues['RN1']) ??
         _parseKmaPrecipitation(nearestForecastValues['PCP']);
-    final precipitationType =
-        _parseKmaInt(currentValues['PTY']) ??
+    final precipitationType = _parseKmaInt(currentValues['PTY']) ??
         _parseKmaInt(nearestForecastValues['PTY']);
     final sky = _parseKmaInt(nearestForecastValues['SKY']);
     final shortRangeDailyForecasts = _buildKmaDailyForecasts(
@@ -466,12 +486,10 @@ class WeatherCurrentService {
       humidity: humidity,
       precipitation: precipitation,
       windSpeed: windSpeed,
-      temperatureMax: dailyForecasts.isEmpty
-          ? null
-          : dailyForecasts.first.temperatureMax,
-      temperatureMin: dailyForecasts.isEmpty
-          ? null
-          : dailyForecasts.first.temperatureMin,
+      temperatureMax:
+          dailyForecasts.isEmpty ? null : dailyForecasts.first.temperatureMax,
+      temperatureMin:
+          dailyForecasts.isEmpty ? null : dailyForecasts.first.temperatureMin,
       dailyForecasts: dailyForecasts,
     );
   }
@@ -944,6 +962,8 @@ class WeatherCurrentService {
           precipitationSum: forecast.precipitationSum,
           windSpeedMax: forecast.windSpeedMax,
           uvIndexMax: forecast.uvIndexMax,
+          morningForecast: forecast.morningForecast,
+          eveningForecast: forecast.eveningForecast,
           hourlyPrecipitations: forecast.hourlyPrecipitations,
         ),
       );
@@ -1048,8 +1068,7 @@ class WeatherCurrentService {
       dateTime.toUtc().add(const Duration(hours: 9));
 
   static _KmaBaseTime _formatKmaBaseTime(DateTime dateTime) {
-    final date =
-        _pad(dateTime.year, 4) +
+    final date = _pad(dateTime.year, 4) +
         _pad(dateTime.month, 2) +
         _pad(dateTime.day, 2);
     final time = _pad(dateTime.hour, 2) + _pad(dateTime.minute, 2);
@@ -1058,8 +1077,8 @@ class WeatherCurrentService {
 
   static List<WeatherDailyForecast> _buildOpenMeteoDailyForecasts(
     Map<String, dynamic> daily, {
-    Map<DateTime, List<WeatherHourlyPrecipitation>> hourlyPrecipitationsByDay =
-        const <DateTime, List<WeatherHourlyPrecipitation>>{},
+    Map<DateTime, List<WeatherForecastMoment>> hourlyForecastsByDay =
+        const <DateTime, List<WeatherForecastMoment>>{},
   }) {
     final times = daily['time'];
     final codes = daily['weather_code'];
@@ -1076,6 +1095,8 @@ class WeatherCurrentService {
       final date = rawDate == null ? null : DateTime.tryParse(rawDate);
       if (date == null) continue;
       final normalizedDate = DateTime(date.year, date.month, date.day);
+      final hourlyForecasts = hourlyForecastsByDay[normalizedDate] ??
+          const <WeatherForecastMoment>[];
       forecasts.add(
         WeatherDailyForecast(
           date: date,
@@ -1085,42 +1106,88 @@ class WeatherCurrentService {
           precipitationSum: _numberAt(codes: precipitationSums, index: index),
           windSpeedMax: _numberAt(codes: maxWinds, index: index),
           uvIndexMax: _numberAt(codes: uvIndexMax, index: index),
-          hourlyPrecipitations:
-              hourlyPrecipitationsByDay[normalizedDate] ??
-              const <WeatherHourlyPrecipitation>[],
+          morningForecast: _pickDailyForecastMoment(
+            hourlyForecasts,
+            targetHour: 8,
+          ),
+          eveningForecast: _pickDailyForecastMoment(
+            hourlyForecasts,
+            targetHour: 19,
+          ),
+          hourlyPrecipitations: _extractHourlyPrecipitations(hourlyForecasts),
         ),
       );
     }
     return forecasts;
   }
 
-  static Map<DateTime, List<WeatherHourlyPrecipitation>>
-  _buildOpenMeteoHourlyPrecipitationsByDay(Map<String, dynamic> hourly) {
+  static Map<DateTime, List<WeatherForecastMoment>>
+      _buildOpenMeteoHourlyForecastsByDay(Map<String, dynamic> hourly) {
     final times = hourly['time'];
+    final temperatures = hourly['temperature_2m'];
+    final weatherCodes = hourly['weather_code'];
     final precipitations = hourly['precipitation'];
+    final windSpeeds = hourly['wind_speed_10m'];
     if (times is! List) {
-      return const <DateTime, List<WeatherHourlyPrecipitation>>{};
+      return const <DateTime, List<WeatherForecastMoment>>{};
     }
 
-    final hourlyByDay = <DateTime, List<WeatherHourlyPrecipitation>>{};
+    final hourlyByDay = <DateTime, List<WeatherForecastMoment>>{};
     for (var index = 0; index < times.length; index++) {
       final rawTime = times[index]?.toString();
       final time = rawTime == null ? null : DateTime.tryParse(rawTime);
-      final precipitation = _numberAt(codes: precipitations, index: index);
-      if (time == null || precipitation == null || precipitation <= 0) {
+      if (time == null) {
         continue;
       }
+      final moment = WeatherForecastMoment(
+        time: time,
+        temperature: _numberAt(codes: temperatures, index: index),
+        weatherCode: _numberAt(codes: weatherCodes, index: index)?.toInt(),
+        precipitation: _numberAt(codes: precipitations, index: index),
+        windSpeed: _numberAt(codes: windSpeeds, index: index),
+      );
+      if (!moment.hasData) continue;
       final day = DateTime(time.year, time.month, time.day);
-      hourlyByDay
-          .putIfAbsent(day, () => <WeatherHourlyPrecipitation>[])
-          .add(
-            WeatherHourlyPrecipitation(
-              time: time,
-              precipitation: precipitation,
-            ),
-          );
+      hourlyByDay.putIfAbsent(day, () => <WeatherForecastMoment>[]).add(moment);
     }
     return hourlyByDay;
+  }
+
+  static WeatherForecastMoment? _pickDailyForecastMoment(
+    List<WeatherForecastMoment> forecasts, {
+    required int targetHour,
+  }) {
+    if (forecasts.isEmpty) return null;
+    WeatherForecastMoment? selected;
+    var bestDiffSeconds = 1 << 30;
+    for (final forecast in forecasts) {
+      final target = DateTime(
+        forecast.time.year,
+        forecast.time.month,
+        forecast.time.day,
+        targetHour,
+      );
+      final diffSeconds = forecast.time.difference(target).inSeconds.abs();
+      if (diffSeconds < bestDiffSeconds) {
+        bestDiffSeconds = diffSeconds;
+        selected = forecast;
+      }
+    }
+    return selected;
+  }
+
+  static List<WeatherHourlyPrecipitation> _extractHourlyPrecipitations(
+    List<WeatherForecastMoment> forecasts,
+  ) {
+    return forecasts
+        .where((forecast) => (forecast.precipitation ?? 0) > 0)
+        .map(
+          (forecast) => WeatherHourlyPrecipitation(
+            time: forecast.time,
+            precipitation: forecast.precipitation!,
+          ),
+        )
+        .toList(growable: false);
   }
 
   static Map<DateTime, Map<String, String>> _forecastValuesByTime(
@@ -1247,8 +1314,7 @@ class WeatherCurrentService {
     if (temperature == null || humidity == null || windSpeed == null) {
       return null;
     }
-    final vaporPressure =
-        (humidity / 100) *
+    final vaporPressure = (humidity / 100) *
         6.105 *
         math.exp((17.27 * temperature) / (237.7 + temperature));
     return temperature + (0.33 * vaporPressure) - (0.70 * windSpeed) - 4.0;
@@ -1337,8 +1403,7 @@ class WeatherCurrentService {
     const xo = 43.0;
     const yo = 136.0;
 
-    var sn =
-        math.tan(math.pi * 0.25 + slat2 * 0.5) /
+    var sn = math.tan(math.pi * 0.25 + slat2 * 0.5) /
         math.tan(math.pi * 0.25 + slat1 * 0.5);
     sn = math.log(math.cos(slat1) / math.cos(slat2)) / math.log(sn);
     var sf = math.tan(math.pi * 0.25 + slat1 * 0.5);
@@ -1396,9 +1461,8 @@ class _KmaForecastZone {
       regName: (item['regName'] ?? item['regname'] ?? '').toString().trim(),
       regSp: (item['regSp'] ?? item['regsp'] ?? '').toString().trim(),
       regUp: (item['regUp'] ?? item['regup'] ?? '').toString().trim(),
-      weeklyForecastOfficeId: (item['stnFw'] ?? item['stnfw'] ?? '')
-          .toString()
-          .trim(),
+      weeklyForecastOfficeId:
+          (item['stnFw'] ?? item['stnfw'] ?? '').toString().trim(),
       latitude: WeatherCurrentService._parseKmaDouble(item['lat']?.toString()),
       longitude: WeatherCurrentService._parseKmaDouble(item['lon']?.toString()),
     );
@@ -1445,6 +1509,7 @@ class _KmaDailyAccumulator {
   int? middayWeatherCode;
   int? worstWeatherCode;
   Duration? middayOffset;
+  final List<WeatherForecastMoment> hourlyForecasts = <WeatherForecastMoment>[];
   final List<WeatherHourlyPrecipitation> hourlyPrecipitations =
       <WeatherHourlyPrecipitation>[];
 
@@ -1508,6 +1573,16 @@ class _KmaDailyAccumulator {
       precipitationType: WeatherCurrentService._parseKmaInt(values['PTY']),
       sky: WeatherCurrentService._parseKmaInt(values['SKY']),
     );
+    final moment = WeatherForecastMoment(
+      time: forecastAt,
+      temperature: tmp,
+      weatherCode: weatherCode,
+      precipitation: precipitation,
+      windSpeed: windSpeed,
+    );
+    if (moment.hasData) {
+      hourlyForecasts.add(moment);
+    }
     _consumeWeatherCode(weatherCode, forecastAt);
   }
 
@@ -1546,6 +1621,14 @@ class _KmaDailyAccumulator {
       precipitationSum: hasPrecipitationValue ? precipitationSum : null,
       windSpeedMax: windSpeedMax,
       uvIndexMax: uvIndexMax,
+      morningForecast: WeatherCurrentService._pickDailyForecastMoment(
+        hourlyForecasts,
+        targetHour: 8,
+      ),
+      eveningForecast: WeatherCurrentService._pickDailyForecastMoment(
+        hourlyForecasts,
+        targetHour: 19,
+      ),
       hourlyPrecipitations: List<WeatherHourlyPrecipitation>.unmodifiable(
         hourlyPrecipitations,
       ),

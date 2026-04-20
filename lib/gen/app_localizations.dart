@@ -1598,6 +1598,18 @@ abstract class AppLocalizations {
   /// **'Weekly weather'**
   String get homeWeatherWeeklyTitle;
 
+  /// No description provided for @homeWeatherMorningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get homeWeatherMorningLabel;
+
+  /// No description provided for @homeWeatherEveningLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get homeWeatherEveningLabel;
+
   /// No description provided for @homeWeatherCacheHint.
   ///
   /// In en, this message translates to:
@@ -1615,6 +1627,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tomorrow\'s forecast is not available yet.'**
   String get homeWeatherTomorrowFallback;
+
+  /// No description provided for @homeWeatherTomorrowOutfitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s outfit'**
+  String get homeWeatherTomorrowOutfitTitle;
+
+  /// No description provided for @homeWeatherTomorrowOutfitFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow\'s outfit guide is not ready yet.'**
+  String get homeWeatherTomorrowOutfitFallback;
 
   /// No description provided for @homeWeatherTemperatureRange.
   ///

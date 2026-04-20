@@ -408,6 +408,41 @@ void main() {
     },
   );
 
+  testWidgets('route buttons stay beside player and ball buttons', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        const TrainingMethodBoardScreen(
+          boardTitle: '패스 워밍업',
+          initialLayoutJson: '',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final playerRect = tester.getRect(
+      find.widgetWithText(OutlinedButton, '사람'),
+    );
+    final playerRouteRect = tester.getRect(
+      find.byKey(const ValueKey('training-player-path-mode-button')),
+    );
+    final ballRect = tester.getRect(find.widgetWithText(OutlinedButton, '공'));
+    final ballRouteRect = tester.getRect(
+      find.byKey(const ValueKey('training-ball-path-mode-button')),
+    );
+
+    expect((playerRouteRect.top - playerRect.top).abs(), lessThan(2));
+    expect(playerRouteRect.left - playerRect.right, lessThan(20));
+    expect(playerRouteRect.left, greaterThan(playerRect.left));
+
+    expect((ballRouteRect.top - ballRect.top).abs(), lessThan(2));
+    expect(ballRouteRect.left - ballRect.right, lessThan(20));
+    expect(ballRouteRect.left, greaterThan(ballRect.left));
+  });
+
   testWidgets('landscape controls and memo stay beside the board', (
     WidgetTester tester,
   ) async {
@@ -733,6 +768,86 @@ void main() {
       expect((ballAfter - ballBefore).distance, greaterThan(1));
     },
   );
+
+  testWidgets('playback keeps player and ball movement speed consistent', (
+    WidgetTester tester,
+  ) async {
+    _setLandscapeSurface(tester);
+
+    final initialLayout = const TrainingMethodLayout(
+      pages: <TrainingMethodPage>[
+        TrainingMethodPage(
+          name: 'Board',
+          items: <TrainingMethodItem>[
+            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.18, y: 0.3),
+            TrainingMethodItem(
+              id: 'ball-1',
+              type: 'ball',
+              x: 0.18,
+              y: 0.62,
+              colorValue: 0xFFE53935,
+            ),
+          ],
+          routes: <TrainingMethodRoute>[
+            TrainingMethodRoute(
+              id: 'route-player-1',
+              kind: TrainingMethodRouteKind.player,
+              linkedItemId: 'player-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.18, y: 0.3),
+                TrainingMethodPoint(x: 0.38, y: 0.3),
+              ],
+            ),
+            TrainingMethodRoute(
+              id: 'route-ball-1',
+              kind: TrainingMethodRouteKind.ball,
+              linkedItemId: 'ball-1',
+              points: <TrainingMethodPoint>[
+                TrainingMethodPoint(x: 0.18, y: 0.62),
+                TrainingMethodPoint(x: 0.58, y: 0.62),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ).encode();
+
+    await tester.pumpWidget(
+      _buildApp(
+        TrainingMethodBoardScreen(
+          boardTitle: '패스 워밍업',
+          initialLayoutJson: initialLayout,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+    final playerFinder = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.person),
+    );
+    final ballFinder = find.descendant(
+      of: boardFinder,
+      matching: find.byIcon(Icons.sports_soccer),
+    );
+
+    final playerBefore = tester.getCenter(playerFinder);
+    final ballBefore = tester.getCenter(ballFinder);
+
+    await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final playerAfter = tester.getCenter(playerFinder);
+    final ballAfter = tester.getCenter(ballFinder);
+    final playerDelta = (playerAfter - playerBefore).distance;
+    final ballDelta = (ballAfter - ballBefore).distance;
+
+    expect(playerDelta, greaterThan(1));
+    expect(ballDelta, greaterThan(1));
+    expect((playerDelta - ballDelta).abs(), lessThan(10));
+  });
 }
 
 Widget _buildApp(Widget home) {

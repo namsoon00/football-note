@@ -790,6 +790,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherWeeklyTitle => '주간 날씨';
 
   @override
+  String get homeWeatherMorningLabel => '아침';
+
+  @override
+  String get homeWeatherEveningLabel => '저녁';
+
+  @override
   String get homeWeatherCacheHint => '최근 가져온 데이터를 10분 동안 다시 사용합니다.';
 
   @override
@@ -797,6 +803,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherTomorrowFallback => '내일 예보가 아직 없어요.';
+
+  @override
+  String get homeWeatherTomorrowOutfitTitle => '내일 추천 복장';
+
+  @override
+  String get homeWeatherTomorrowOutfitFallback => '내일 복장 추천을 준비 중이에요.';
 
   @override
   String get homeWeatherTemperatureRange => '최고/최저';
