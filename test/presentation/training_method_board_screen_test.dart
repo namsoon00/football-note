@@ -344,7 +344,7 @@ void main() {
     },
   );
 
-  testWidgets('landscape controls and memo open as separate layers', (
+  testWidgets('landscape controls and memo stay beside the board', (
     WidgetTester tester,
   ) async {
     _setLandscapeSurface(tester);
@@ -368,6 +368,13 @@ void main() {
       findsNothing,
     );
     expect(find.byType(TextField), findsNothing);
+    final boardRect = tester.getRect(
+      find.byKey(const ValueKey('training-board-canvas')),
+    );
+    final controlRect = tester.getRect(
+      find.byKey(const ValueKey('training-landscape-control-panel')),
+    );
+    expect(controlRect.left, greaterThan(boardRect.right));
 
     await tester.tap(
       find.byKey(const ValueKey('training-landscape-panel-toggle')),
@@ -394,6 +401,63 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(TextField), findsOneWidget);
+    final memoRect = tester.getRect(
+      find.byKey(const ValueKey('training-landscape-memo-panel')),
+    );
+    final boardRectWithMemo = tester.getRect(
+      find.byKey(const ValueKey('training-board-canvas')),
+    );
+    expect(memoRect.left, greaterThan(boardRectWithMemo.right));
+  });
+
+  testWidgets('portrait memo and inspector panels are foldable', (
+    WidgetTester tester,
+  ) async {
+    _setPortraitSurface(tester);
+
+    await tester.pumpWidget(
+      _buildApp(
+        const TrainingMethodBoardScreen(
+          boardTitle: '패스 워밍업',
+          initialLayoutJson: '',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-portrait-memo-panel')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('training-portrait-inspector-panel')),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('training-portrait-memo-toggle')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-portrait-memo-panel')),
+      findsOneWidget,
+    );
+    expect(find.byType(TextField), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('training-portrait-inspector-toggle')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('training-portrait-inspector-panel')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('training-portrait-tool-strip')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('player can be selected in routes mode to replace its route', (
@@ -424,6 +488,10 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('training-path-mode-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('training-landscape-panel-toggle')),
+    );
     await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
@@ -643,4 +711,11 @@ void _setLandscapeSurface(
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
   });
+}
+
+void _setPortraitSurface(
+  WidgetTester tester, {
+  Size size = const Size(430, 900),
+}) {
+  _setLandscapeSurface(tester, size: size);
 }

@@ -3450,6 +3450,81 @@ class AppLocalizationsEn extends AppLocalizations {
   String get levelGuideClaimChildOnly => 'Claim in record mode';
 
   @override
+  String get trainingSketchControlsPanel => 'Tools and selection';
+
+  @override
+  String get trainingSketchPlayTooltip => 'Play';
+
+  @override
+  String get trainingSketchPlaybackSpeedTooltip => 'Playback speed';
+
+  @override
+  String get trainingSketchAddSketchTooltip => 'Add sketch';
+
+  @override
+  String get trainingSketchCopySketchTooltip => 'Copy from another sketch';
+
+  @override
+  String get trainingSketchDeleteSketchTooltip => 'Delete sketch';
+
+  @override
+  String get trainingSketchImportSketchTooltip => 'Import previous sketch';
+
+  @override
+  String get trainingSketchRenameSketchTooltip => 'Rename sketch';
+
+  @override
+  String get trainingSketchMemoLabel => 'Training sketch note';
+
+  @override
+  String get trainingSketchMemoHint =>
+      'e.g. Two-touch dribble between cones then pass';
+
+  @override
+  String get trainingSketchVoiceInputTooltip => 'Voice input';
+
+  @override
+  String get trainingSketchConeButton => 'Cone';
+
+  @override
+  String get trainingSketchLowHurdleButton => 'Low hurdle';
+
+  @override
+  String get trainingSketchPlayerButton => 'Player';
+
+  @override
+  String get trainingSketchBallButton => 'Ball';
+
+  @override
+  String get trainingSketchLadderButton => 'Ladder';
+
+  @override
+  String get trainingSketchPenButton => 'Pen';
+
+  @override
+  String get trainingSketchClearInkButton => 'Clear ink';
+
+  @override
+  String get trainingSketchResetButton => 'Clear';
+
+  @override
+  String get trainingSketchPenModeHint =>
+      'Pen mode: drag on the board to draw.';
+
+  @override
+  String get trainingSketchPenColorLabel => 'Pen color';
+
+  @override
+  String get trainingSketchQuickStart =>
+      'Quick start: Add player/ball -> draw paths -> play (speed) -> save';
+
+  @override
+  String get trainingSketchSelectedItemTitle => 'Selected item';
+
+  @override
+  String get trainingSketchAssignColorLabel => 'Assign color';
+
+  @override
   String get trainingSketchDrawRouteFirst => 'Draw or select a route first.';
 
   @override

@@ -3342,6 +3342,79 @@ class AppLocalizationsKo extends AppLocalizations {
   String get levelGuideClaimChildOnly => '기록 모드에서 수령';
 
   @override
+  String get trainingSketchControlsPanel => '도구와 선택';
+
+  @override
+  String get trainingSketchPlayTooltip => '플레이';
+
+  @override
+  String get trainingSketchPlaybackSpeedTooltip => '재생 속도';
+
+  @override
+  String get trainingSketchAddSketchTooltip => '스케치 추가';
+
+  @override
+  String get trainingSketchCopySketchTooltip => '다른 스케치 복사 추가';
+
+  @override
+  String get trainingSketchDeleteSketchTooltip => '스케치 삭제';
+
+  @override
+  String get trainingSketchImportSketchTooltip => '이전 스케치 가져오기';
+
+  @override
+  String get trainingSketchRenameSketchTooltip => '스케치명 수정';
+
+  @override
+  String get trainingSketchMemoLabel => '훈련 스케치 메모';
+
+  @override
+  String get trainingSketchMemoHint => '예) 콘 사이 2터치 드리블 후 패스';
+
+  @override
+  String get trainingSketchVoiceInputTooltip => '음성 입력';
+
+  @override
+  String get trainingSketchConeButton => '콘';
+
+  @override
+  String get trainingSketchLowHurdleButton => '낮은 뜀틀';
+
+  @override
+  String get trainingSketchPlayerButton => '사람';
+
+  @override
+  String get trainingSketchBallButton => '공';
+
+  @override
+  String get trainingSketchLadderButton => '사다리';
+
+  @override
+  String get trainingSketchPenButton => '펜';
+
+  @override
+  String get trainingSketchClearInkButton => '펜 지우기';
+
+  @override
+  String get trainingSketchResetButton => '초기화';
+
+  @override
+  String get trainingSketchPenModeHint => '펜 모드: 보드 영역을 드래그해 그릴 수 있습니다.';
+
+  @override
+  String get trainingSketchPenColorLabel => '펜 색상';
+
+  @override
+  String get trainingSketchQuickStart =>
+      '빠른 시작: 사람/공 추가 -> 이동선 그리기 -> 플레이(속도 조절) -> 저장';
+
+  @override
+  String get trainingSketchSelectedItemTitle => '선택 요소';
+
+  @override
+  String get trainingSketchAssignColorLabel => '색상 지정';
+
+  @override
   String get trainingSketchDrawRouteFirst => '먼저 이동선을 그리거나 선택해 주세요.';
 
   @override
