@@ -5972,6 +5972,150 @@ abstract class AppLocalizations {
   /// **'Claim in record mode'**
   String get levelGuideClaimChildOnly;
 
+  /// No description provided for @trainingSketchControlsPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools and selection'**
+  String get trainingSketchControlsPanel;
+
+  /// No description provided for @trainingSketchPlayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get trainingSketchPlayTooltip;
+
+  /// No description provided for @trainingSketchPlaybackSpeedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback speed'**
+  String get trainingSketchPlaybackSpeedTooltip;
+
+  /// No description provided for @trainingSketchAddSketchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add sketch'**
+  String get trainingSketchAddSketchTooltip;
+
+  /// No description provided for @trainingSketchCopySketchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy from another sketch'**
+  String get trainingSketchCopySketchTooltip;
+
+  /// No description provided for @trainingSketchDeleteSketchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete sketch'**
+  String get trainingSketchDeleteSketchTooltip;
+
+  /// No description provided for @trainingSketchImportSketchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Import previous sketch'**
+  String get trainingSketchImportSketchTooltip;
+
+  /// No description provided for @trainingSketchRenameSketchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename sketch'**
+  String get trainingSketchRenameSketchTooltip;
+
+  /// No description provided for @trainingSketchMemoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Training sketch note'**
+  String get trainingSketchMemoLabel;
+
+  /// No description provided for @trainingSketchMemoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Two-touch dribble between cones then pass'**
+  String get trainingSketchMemoHint;
+
+  /// No description provided for @trainingSketchVoiceInputTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice input'**
+  String get trainingSketchVoiceInputTooltip;
+
+  /// No description provided for @trainingSketchConeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cone'**
+  String get trainingSketchConeButton;
+
+  /// No description provided for @trainingSketchLowHurdleButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Low hurdle'**
+  String get trainingSketchLowHurdleButton;
+
+  /// No description provided for @trainingSketchPlayerButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get trainingSketchPlayerButton;
+
+  /// No description provided for @trainingSketchBallButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball'**
+  String get trainingSketchBallButton;
+
+  /// No description provided for @trainingSketchLadderButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder'**
+  String get trainingSketchLadderButton;
+
+  /// No description provided for @trainingSketchPenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pen'**
+  String get trainingSketchPenButton;
+
+  /// No description provided for @trainingSketchClearInkButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear ink'**
+  String get trainingSketchClearInkButton;
+
+  /// No description provided for @trainingSketchResetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get trainingSketchResetButton;
+
+  /// No description provided for @trainingSketchPenModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pen mode: drag on the board to draw.'**
+  String get trainingSketchPenModeHint;
+
+  /// No description provided for @trainingSketchPenColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pen color'**
+  String get trainingSketchPenColorLabel;
+
+  /// No description provided for @trainingSketchQuickStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick start: Add player/ball -> draw paths -> play (speed) -> save'**
+  String get trainingSketchQuickStart;
+
+  /// No description provided for @trainingSketchSelectedItemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected item'**
+  String get trainingSketchSelectedItemTitle;
+
+  /// No description provided for @trainingSketchAssignColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign color'**
+  String get trainingSketchAssignColorLabel;
+
   /// No description provided for @trainingSketchDrawRouteFirst.
   ///
   /// In en, this message translates to:
