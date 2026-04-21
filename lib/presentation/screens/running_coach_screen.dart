@@ -5,6 +5,7 @@ import '../../application/running_coaching_service.dart';
 import '../../application/running_video_analysis_service.dart';
 import '../../domain/entities/running_video_analysis_result.dart';
 import '../../gen/app_localizations.dart';
+import 'running_coach_insight_copy.dart';
 import 'running_live_coach_guide_screen.dart';
 import 'running_live_coach_screen.dart';
 import 'sprint_live_coaching_screen.dart';
@@ -479,7 +480,7 @@ class _InsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
-    final copy = _InsightCopy.fromInsight(insight, l10n);
+    final copy = RunningCoachInsightCopy.fromInsight(insight, l10n);
     final badgeColor = switch (insight.status) {
       RunningCoachStatus.good => Colors.green.shade100,
       RunningCoachStatus.watch => Colors.orange.shade100,
@@ -554,158 +555,5 @@ class _InsightCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _InsightCopy {
-  final String title;
-  final String summary;
-  final String cue;
-  final String drill;
-  final String statusLabel;
-  final String value;
-
-  const _InsightCopy({
-    required this.title,
-    required this.summary,
-    required this.cue,
-    required this.drill,
-    required this.statusLabel,
-    required this.value,
-  });
-
-  factory _InsightCopy.fromInsight(
-    RunningCoachingInsight insight,
-    AppLocalizations l10n,
-  ) {
-    final statusLabel = switch (insight.status) {
-      RunningCoachStatus.good => l10n.runningCoachStatusGood,
-      RunningCoachStatus.watch => l10n.runningCoachStatusWatch,
-      RunningCoachStatus.needsWork => l10n.runningCoachStatusNeedsWork,
-    };
-    final value = switch (insight.metric) {
-      RunningCoachMetric.posture => l10n.runningCoachLeanValue(
-        insight.value.toStringAsFixed(1),
-      ),
-      RunningCoachMetric.bounce => l10n.runningCoachBounceValue(
-        insight.value.toStringAsFixed(1),
-      ),
-      RunningCoachMetric.footStrike => l10n.runningCoachFootStrikeValue(
-        insight.value.toStringAsFixed(2),
-      ),
-      RunningCoachMetric.kneeFlexion => l10n.runningCoachKneeValue(
-        insight.value.toStringAsFixed(0),
-      ),
-      RunningCoachMetric.armCarriage => l10n.runningCoachArmValue(
-        insight.value.toStringAsFixed(0),
-      ),
-    };
-
-    return switch (insight.finding) {
-      RunningCoachFinding.postureAligned => _InsightCopy(
-        title: l10n.runningCoachInsightPostureTitle,
-        summary: l10n.runningCoachPostureGoodSummary,
-        cue: l10n.runningCoachPostureGoodCue,
-        drill: l10n.runningCoachPostureGoodDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.postureTooUpright => _InsightCopy(
-        title: l10n.runningCoachInsightPostureTitle,
-        summary: l10n.runningCoachPostureUprightSummary,
-        cue: l10n.runningCoachPostureUprightCue,
-        drill: l10n.runningCoachPostureUprightDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.postureTooLean => _InsightCopy(
-        title: l10n.runningCoachInsightPostureTitle,
-        summary: l10n.runningCoachPostureLeanSummary,
-        cue: l10n.runningCoachPostureLeanCue,
-        drill: l10n.runningCoachPostureLeanDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.bounceEfficient => _InsightCopy(
-        title: l10n.runningCoachInsightBounceTitle,
-        summary: l10n.runningCoachBounceGoodSummary,
-        cue: l10n.runningCoachBounceGoodCue,
-        drill: l10n.runningCoachBounceGoodDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.bounceTooHigh => _InsightCopy(
-        title: l10n.runningCoachInsightBounceTitle,
-        summary: l10n.runningCoachBounceHighSummary,
-        cue: l10n.runningCoachBounceHighCue,
-        drill: l10n.runningCoachBounceHighDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.footStrikeUnderBody => _InsightCopy(
-        title: l10n.runningCoachInsightFootStrikeTitle,
-        summary: l10n.runningCoachFootStrikeGoodSummary,
-        cue: l10n.runningCoachFootStrikeGoodCue,
-        drill: l10n.runningCoachFootStrikeGoodDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.footStrikeOverstride => _InsightCopy(
-        title: l10n.runningCoachInsightFootStrikeTitle,
-        summary: l10n.runningCoachFootStrikeOverSummary,
-        cue: l10n.runningCoachFootStrikeOverCue,
-        drill: l10n.runningCoachFootStrikeOverDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.kneeFlexionLoaded => _InsightCopy(
-        title: l10n.runningCoachInsightKneeTitle,
-        summary: l10n.runningCoachKneeGoodSummary,
-        cue: l10n.runningCoachKneeGoodCue,
-        drill: l10n.runningCoachKneeGoodDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.kneeTooStraight => _InsightCopy(
-        title: l10n.runningCoachInsightKneeTitle,
-        summary: l10n.runningCoachKneeStraightSummary,
-        cue: l10n.runningCoachKneeStraightCue,
-        drill: l10n.runningCoachKneeStraightDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.kneeTooCollapsed => _InsightCopy(
-        title: l10n.runningCoachInsightKneeTitle,
-        summary: l10n.runningCoachKneeCollapseSummary,
-        cue: l10n.runningCoachKneeCollapseCue,
-        drill: l10n.runningCoachKneeCollapseDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.armCompact => _InsightCopy(
-        title: l10n.runningCoachInsightArmTitle,
-        summary: l10n.runningCoachArmGoodSummary,
-        cue: l10n.runningCoachArmGoodCue,
-        drill: l10n.runningCoachArmGoodDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.armTooOpen => _InsightCopy(
-        title: l10n.runningCoachInsightArmTitle,
-        summary: l10n.runningCoachArmOpenSummary,
-        cue: l10n.runningCoachArmOpenCue,
-        drill: l10n.runningCoachArmOpenDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-      RunningCoachFinding.armTooTight => _InsightCopy(
-        title: l10n.runningCoachInsightArmTitle,
-        summary: l10n.runningCoachArmTightSummary,
-        cue: l10n.runningCoachArmTightCue,
-        drill: l10n.runningCoachArmTightDrill,
-        statusLabel: statusLabel,
-        value: value,
-      ),
-    };
   }
 }

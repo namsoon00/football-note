@@ -1621,7 +1621,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '카메라를 켜 두면 화면부터 먼저 바로잡아 주고, 측면 자세가 안정되면 상체, 바운스, 발 착지, 무릎 굴곡, 팔 각도를 바로 코칭해 줘요.';
+      '카메라 화면을 전체로 넓혀 전신을 크게 보고, 아래 패널에서 점수 이유와 좋은 점, 보완할 점, 음성 코칭을 바로 확인해요. 측면 자세가 안정되면 상체, 바운스, 발 착지, 무릎 굴곡, 팔 각도를 실시간으로 코칭해 줘요.';
 
   @override
   String get runningCoachLiveAction => '실시간 코치 시작';
@@ -1636,11 +1636,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveGuideScreenTitle => '실시간 촬영 가이드';
 
   @override
-  String get runningCoachLiveGuideHeroTitle => '러너가 가운데, 점수는 옆으로';
+  String get runningCoachLiveGuideHeroTitle => '러너는 크게, 코칭 설명은 아래에서';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      '러너는 가운데 프레임 안에 두고, 앱의 점수와 코칭 정보는 좌우 가장자리로 빠지도록 설계했어요. 아래 기준으로 맞추면 인식이 더 안정돼요.';
+      '카메라 화면을 꽉 채운 상태에서 러너를 가운데 두면, 아래 패널에서 점수 이유와 좋은 점, 고칠 점, 음성 코칭을 바로 확인할 수 있어요. 아래 기준으로 맞추면 인식이 더 안정돼요.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '측면이 잘 보여야 해요';
@@ -1661,14 +1661,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      '점수와 메트릭은 화면 바깥쪽에 붙어 나와요. 러너는 가운데 가이드 프레임 안쪽에 두면 가려지지 않아요.';
+      '점수와 코칭 설명은 화면 아래 패널에 모여 나와요. 러너는 가운데 가이드 프레임 안쪽에 두면 전신이 더 크게 보이고 패널과 겹치지 않아요.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle => '카메라는 고정하고 몸 크기는 적당히';
 
   @override
   String get runningCoachLiveGuideTipCameraBody =>
-      '카메라는 흔들리지 않게 두고, 러너가 너무 작지 않게 전신 기준으로 세로 높이의 절반 이상 차지하도록 맞춰 주세요.';
+      '카메라는 흔들리지 않게 두고, 러너가 화면 높이의 절반 이상 차지하도록 맞춰 주세요. 화면을 꽉 채울수록 자세 선과 음성 코칭이 더 안정돼요.';
 
   @override
   String get runningCoachLivePreparingTitle => '카메라 준비 중';
