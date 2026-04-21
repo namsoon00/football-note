@@ -6,10 +6,7 @@ import 'package:http/http.dart' as http;
 import 'government_api_credentials.dart';
 import 'weather_location_service.dart';
 
-enum AirQualityScale {
-  usAqi,
-  khai,
-}
+enum AirQualityScale { usAqi, khai }
 
 class AirQualitySnapshot {
   const AirQualitySnapshot({
@@ -287,11 +284,9 @@ class KoreanAirQualityService {
       }
       final items = _parseAirKoreaItems(response.bodyBytes);
       if (items == null || items.isEmpty) continue;
-      for (final item in items) {
-        final snapshot = _snapshotFromMeasurementItem(item);
-        if (snapshot.hasData) {
-          return snapshot;
-        }
+      final selectedItem = _selectCurrentMeasurementItem(items);
+      if (selectedItem != null) {
+        return _snapshotFromMeasurementItem(selectedItem);
       }
     }
     return const AirQualitySnapshot();
@@ -315,9 +310,7 @@ class KoreanAirQualityService {
     );
     final response = await client.get(
       uri,
-      headers: <String, String>{
-        'Authorization': 'KakaoAK $kakaoRestApiKey',
-      },
+      headers: <String, String>{'Authorization': 'KakaoAK $kakaoRestApiKey'},
     );
     if (response.statusCode != 200) return null;
 
@@ -471,6 +464,8 @@ class KoreanAirQualityService {
     final keywords = _buildStationMatchKeywords(queries);
     Map<String, dynamic>? selected;
     var selectedScore = 0;
+    int? selectedFreshnessRank;
+    Duration? selectedFreshnessDiff;
 
     for (final item in items) {
       final snapshot = _snapshotFromMeasurementItem(item);
@@ -481,9 +476,23 @@ class KoreanAirQualityService {
         stationName: stationName,
         keywords: keywords,
       );
-      if (selected == null || score > selectedScore) {
+      final freshness = _measurementFreshness(item);
+      final freshnessRank = freshness?.rank;
+      final freshnessDiff = freshness?.diff;
+      final shouldReplace = selected == null ||
+          score > selectedScore ||
+          (score == selectedScore &&
+              _isMeasurementFreshnessBetter(
+                nextRank: freshnessRank,
+                nextDiff: freshnessDiff,
+                currentRank: selectedFreshnessRank,
+                currentDiff: selectedFreshnessDiff,
+              ));
+      if (shouldReplace) {
         selected = item;
         selectedScore = score;
+        selectedFreshnessRank = freshnessRank;
+        selectedFreshnessDiff = freshnessDiff;
       }
     }
 
@@ -509,13 +518,82 @@ class KoreanAirQualityService {
     return _dedupeStationNames(keywords);
   }
 
+  static Map<String, dynamic>? _selectCurrentMeasurementItem(
+    List<Map<String, dynamic>> items,
+  ) {
+    Map<String, dynamic>? selected;
+    int? selectedFreshnessRank;
+    Duration? selectedFreshnessDiff;
+
+    for (final item in items) {
+      final snapshot = _snapshotFromMeasurementItem(item);
+      if (!snapshot.hasData) continue;
+      final freshness = _measurementFreshness(item);
+      final freshnessRank = freshness?.rank;
+      final freshnessDiff = freshness?.diff;
+      if (selected == null ||
+          _isMeasurementFreshnessBetter(
+            nextRank: freshnessRank,
+            nextDiff: freshnessDiff,
+            currentRank: selectedFreshnessRank,
+            currentDiff: selectedFreshnessDiff,
+          )) {
+        selected = item;
+        selectedFreshnessRank = freshnessRank;
+        selectedFreshnessDiff = freshnessDiff;
+      }
+    }
+
+    return selected;
+  }
+
+  static _MeasurementFreshness? _measurementFreshness(
+    Map<String, dynamic> item,
+  ) {
+    final measuredAt = _parseMeasurementTime(item['dataTime']);
+    if (measuredAt == null) return null;
+    final now = DateTime.now().toUtc();
+    final diff = measuredAt.difference(now);
+    if (diff.inMicroseconds > 0) {
+      return _MeasurementFreshness(rank: 1, diff: diff);
+    }
+    return _MeasurementFreshness(rank: 0, diff: diff.abs());
+  }
+
+  static DateTime? _parseMeasurementTime(Object? value) {
+    final normalized = value?.toString().trim() ?? '';
+    if (normalized.isEmpty || normalized == '-') return null;
+    final isoBase = normalized.replaceFirst(' ', 'T');
+    final withOffset = switch (isoBase.length) {
+      16 => '$isoBase:00+09:00',
+      19 => '$isoBase+09:00',
+      _ => isoBase.contains(RegExp(r'(Z|[+-]\d{2}:\d{2})$'))
+          ? isoBase
+          : '$isoBase+09:00',
+    };
+    return DateTime.tryParse(withOffset)?.toUtc();
+  }
+
+  static bool _isMeasurementFreshnessBetter({
+    required int? nextRank,
+    required Duration? nextDiff,
+    required int? currentRank,
+    required Duration? currentDiff,
+  }) {
+    if (nextRank == null) return currentRank == null;
+    if (currentRank == null) return true;
+    if (nextRank != currentRank) {
+      return nextRank < currentRank;
+    }
+    if (nextDiff == null) return false;
+    if (currentDiff == null) return true;
+    return nextDiff < currentDiff;
+  }
+
   static String _compactStationKeyword(String raw) {
     var normalized = raw.trim();
     if (normalized.isEmpty) return '';
-    normalized = normalized.replaceAll(
-      RegExp(r'(특별자치시|특별자치도|특별시|광역시)$'),
-      '',
-    );
+    normalized = normalized.replaceAll(RegExp(r'(특별자치시|특별자치도|특별시|광역시)$'), '');
     normalized = normalized.replaceAll(
       RegExp(r'(자치시|자치도|시|도|군|구|읍|면|동|로|대로|가)$'),
       '',
@@ -565,19 +643,20 @@ class KoreanAirQualityService {
     required String service,
     required String message,
   }) {
-    developer.log(
-      message,
-      name: 'KoreanAirQualityService.$service',
-    );
+    developer.log(message, name: 'KoreanAirQualityService.$service');
   }
 }
 
 class _TmCoordinates {
-  const _TmCoordinates({
-    required this.x,
-    required this.y,
-  });
+  const _TmCoordinates({required this.x, required this.y});
 
   final String x;
   final String y;
+}
+
+class _MeasurementFreshness {
+  const _MeasurementFreshness({required this.rank, required this.diff});
+
+  final int rank;
+  final Duration diff;
 }
