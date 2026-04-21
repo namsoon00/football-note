@@ -1658,7 +1658,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Turn on the camera and the app will first correct framing, then coach posture, bounce, foot strike, knee bend, and arm carriage once the side view stabilizes.';
+      'Open the camera full screen so the whole body stays large, then check the score reasons, strengths, fixes, and voice coaching in the panel below. Once the side view stabilizes, the app coaches posture, bounce, foot strike, knee bend, and arm carriage in real time.';
 
   @override
   String get runningCoachLiveAction => 'Start live coach';
@@ -1674,11 +1674,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroTitle =>
-      'Keep the runner centered and the score out to the side';
+      'Keep the runner large and the coaching panel below';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'The runner should stay inside the center frame while the app keeps score and coaching badges on the edges. Use the setup below for steadier live tracking.';
+      'Keep the runner centered in the full camera view so the panel below can explain the score, show strengths, point out fixes, and play voice coaching. Use the setup below for steadier live tracking.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
@@ -1700,7 +1700,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      'Scores and metrics sit on the outer edges of the screen. Keep the runner inside the center guide so the body is not covered.';
+      'Scores and coaching explanations collect in the lower panel. Keep the runner inside the center guide so the full body stays large and clear above the panel.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle =>
@@ -1708,7 +1708,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipCameraBody =>
-      'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height.';
+      'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the pose line and voice coaching become.';
 
   @override
   String get runningCoachLivePreparingTitle => 'Preparing camera';

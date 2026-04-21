@@ -3101,7 +3101,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Turn on the camera and the app will first correct framing, then coach posture, bounce, foot strike, knee bend, and arm carriage once the side view stabilizes.'**
+  /// **'Open the camera full screen so the whole body stays large, then check the score reasons, strengths, fixes, and voice coaching in the panel below. Once the side view stabilizes, the app coaches posture, bounce, foot strike, knee bend, and arm carriage in real time.'**
   String get runningCoachLiveCardBody;
 
   /// No description provided for @runningCoachLiveAction.
@@ -3131,13 +3131,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Keep the runner centered and the score out to the side'**
+  /// **'Keep the runner large and the coaching panel below'**
   String get runningCoachLiveGuideHeroTitle;
 
   /// No description provided for @runningCoachLiveGuideHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'The runner should stay inside the center frame while the app keeps score and coaching badges on the edges. Use the setup below for steadier live tracking.'**
+  /// **'Keep the runner centered in the full camera view so the panel below can explain the score, show strengths, point out fixes, and play voice coaching. Use the setup below for steadier live tracking.'**
   String get runningCoachLiveGuideHeroBody;
 
   /// No description provided for @runningCoachLiveGuideTipSideTitle.
@@ -3173,7 +3173,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideTipHudBody.
   ///
   /// In en, this message translates to:
-  /// **'Scores and metrics sit on the outer edges of the screen. Keep the runner inside the center guide so the body is not covered.'**
+  /// **'Scores and coaching explanations collect in the lower panel. Keep the runner inside the center guide so the full body stays large and clear above the panel.'**
   String get runningCoachLiveGuideTipHudBody;
 
   /// No description provided for @runningCoachLiveGuideTipCameraTitle.
@@ -3185,7 +3185,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideTipCameraBody.
   ///
   /// In en, this message translates to:
-  /// **'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height.'**
+  /// **'Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the pose line and voice coaching become.'**
   String get runningCoachLiveGuideTipCameraBody;
 
   /// No description provided for @runningCoachLivePreparingTitle.
