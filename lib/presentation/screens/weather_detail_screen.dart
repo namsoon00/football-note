@@ -104,8 +104,8 @@ class WeatherDetailScreen extends StatefulWidget {
     final temperature = weatherSnapshot.temperature;
     final temperatureDeltaFromYesterday =
         temperature == null || yesterdayTemperature == null
-            ? null
-            : temperature - yesterdayTemperature;
+        ? null
+        : temperature - yesterdayTemperature;
     final summary = _buildWeatherSummaryStatic(
       temperature: temperature,
       weatherCode: weatherCode,
@@ -189,13 +189,13 @@ class WeatherDetailScreen extends StatefulWidget {
     final dateLabel = DateFormat('yyyy-MM-dd').format(yesterday);
     final uri =
         Uri.https('archive-api.open-meteo.com', '/v1/archive', <String, String>{
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'start_date': dateLabel,
-      'end_date': dateLabel,
-      'hourly': 'temperature_2m',
-      'timezone': 'auto',
-    });
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
+          'start_date': dateLabel,
+          'end_date': dateLabel,
+          'hourly': 'temperature_2m',
+          'timezone': 'auto',
+        });
     final response = await http.get(uri);
     if (response.statusCode != 200) return null;
 
@@ -217,9 +217,11 @@ class WeatherDetailScreen extends StatefulWidget {
     var bestIndex = -1;
     var bestDiffSeconds = 1 << 30;
 
-    for (var index = 0;
-        index < times.length && index < temperatures.length;
-        index++) {
+    for (
+      var index = 0;
+      index < times.length && index < temperatures.length;
+      index++
+    ) {
       final rawTime = times[index]?.toString();
       if (rawTime == null || rawTime.trim().isEmpty) continue;
       final parsedTime = DateTime.tryParse(rawTime);
@@ -265,11 +267,11 @@ class WeatherDetailScreen extends StatefulWidget {
 
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current': 'pm10,pm2_5,us_aqi',
-      'timezone': 'auto',
-    });
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
+          'current': 'pm10,pm2_5,us_aqi',
+          'timezone': 'auto',
+        });
     final airResponse = await http.get(airQualityUri);
     if (airResponse.statusCode != 200) {
       return const _ResolvedAirQualitySnapshot(
@@ -406,7 +408,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       _maybeHandleInitialAction();
       final shouldRequestPermission =
           widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
-              _summary.isEmpty;
+          _summary.isEmpty;
       unawaited(
         _loadWeather(
           requestPermission: shouldRequestPermission,
@@ -425,8 +427,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final pm25Level = _pm25Level(l10n, _pm25);
     final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
-    final tomorrowForecast =
-        _dailyForecasts.length > 1 ? _dailyForecasts[1] : null;
+    final tomorrowForecast = _dailyForecasts.length > 1
+        ? _dailyForecasts[1]
+        : null;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
       body: AppBackground(
@@ -443,9 +446,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 onRefresh: _loading
                     ? null
                     : () => _loadWeather(
-                          requestPermission: true,
-                          showFailureFeedback: true,
-                        ),
+                        requestPermission: true,
+                        showFailureFeedback: true,
+                        forceRefresh: true,
+                      ),
                 metrics: hasWeather
                     ? [
                         _CompactMetricData(
@@ -567,13 +571,15 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   Future<void> _loadWeather({
     required bool requestPermission,
     required bool showFailureFeedback,
+    bool forceRefresh = false,
   }) async {
     if (_loading || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final cachedDetails = _cachedDetails;
-    if (cachedDetails != null &&
+    if (!forceRefresh &&
+        cachedDetails != null &&
         cachedDetails.localeTag == localeTag &&
         DateTime.now().difference(cachedDetails.fetchedAt) < _cacheTtl) {
       setState(() {
@@ -667,24 +673,22 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) =>
-      WeatherLocationService.resolvePlaceName(
-        latitude: latitude,
-        longitude: longitude,
-        isKo: isKo,
-        koreaLabel: koreaLabel,
-      );
+  }) => WeatherLocationService.resolvePlaceName(
+    latitude: latitude,
+    longitude: longitude,
+    isKo: isKo,
+    koreaLabel: koreaLabel,
+  );
 
   Future<_WeatherDetailsSnapshot> _fetchWeatherSnapshot({
     required double latitude,
     required double longitude,
     required AppLocalizations l10n,
-  }) =>
-      WeatherDetailScreen._fetchWeatherSnapshotStatic(
-        latitude: latitude,
-        longitude: longitude,
-        l10n: l10n,
-      );
+  }) => WeatherDetailScreen._fetchWeatherSnapshotStatic(
+    latitude: latitude,
+    longitude: longitude,
+    l10n: l10n,
+  );
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;
@@ -755,12 +759,12 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   }
 
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
-        Localizations.localeOf(context).toLanguageTag(),
-      ).format(date);
+    Localizations.localeOf(context).toLanguageTag(),
+  ).format(date);
 
   String _formatForecastWeekday(DateTime date) => DateFormat.E(
-        Localizations.localeOf(context).toLanguageTag(),
-      ).format(date);
+    Localizations.localeOf(context).toLanguageTag(),
+  ).format(date);
 
   _AirLevelLabel _aqiLevel(
     AppLocalizations l10n,
@@ -1028,38 +1032,41 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   _DetailedOutfitGuide _buildDetailedOutfitGuide(
     bool isKo,
     AppLocalizations l10n,
-  ) =>
-      _buildOutfitGuide(
-        isKo: isKo,
-        l10n: l10n,
-        apparentTemperature: _currentOutfitTemperature,
-        precipitationMm: _todayPrecipitation,
-        windSpeed: _windSpeed ?? 0,
-        weatherCode: _weatherCode,
-        airLevel: _worstAirQualityLevel(),
-      );
+  ) => _buildOutfitGuide(
+    isKo: isKo,
+    l10n: l10n,
+    apparentTemperature: _currentOutfitTemperature,
+    precipitationMm: _todayPrecipitation,
+    windSpeed: _windSpeed ?? 0,
+    weatherCode: _weatherCode,
+    airLevel: _worstAirQualityLevel(),
+  );
 
   List<_OutfitMomentPreviewData> _buildForecastOutfitPreviews({
     required _DailyWeatherForecast forecast,
     required bool isKo,
     required AppLocalizations l10n,
   }) {
-    final slots = <({
-      String label,
-      _ForecastMomentPreview? preview,
-      double? fallbackTemperature,
-    })>[
-      (
-        label: l10n.homeWeatherMorningLabel,
-        preview: forecast.morningForecast,
-        fallbackTemperature: forecast.temperatureMin,
-      ),
-      (
-        label: l10n.homeWeatherEveningLabel,
-        preview: forecast.eveningForecast,
-        fallbackTemperature: forecast.temperatureMin ?? forecast.temperatureMax,
-      ),
-    ];
+    final slots =
+        <
+          ({
+            String label,
+            _ForecastMomentPreview? preview,
+            double? fallbackTemperature,
+          })
+        >[
+          (
+            label: l10n.homeWeatherMorningLabel,
+            preview: forecast.morningForecast,
+            fallbackTemperature: forecast.temperatureMin,
+          ),
+          (
+            label: l10n.homeWeatherEveningLabel,
+            preview: forecast.eveningForecast,
+            fallbackTemperature:
+                forecast.temperatureMin ?? forecast.temperatureMax,
+          ),
+        ];
     return slots
         .map((slot) {
           final preview = slot.preview;
@@ -1108,7 +1115,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         weatherCode != null && <int>{95, 96, 99}.contains(weatherCode);
     final hasPrecipitation = (precipitationMm ?? 0) >= 1;
     final hasHeavyPrecipitation = (precipitationMm ?? 0) >= 8;
-    final isRainy = weatherCode != null &&
+    final isRainy =
+        weatherCode != null &&
             <int>{
               51,
               53,
@@ -1128,7 +1136,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               99,
             }.contains(weatherCode) ||
         hasPrecipitation;
-    final isSnowy = weatherCode != null &&
+    final isSnowy =
+        weatherCode != null &&
         <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
     final isWindy = windSpeed >= 20;
     final isVeryWindy = windSpeed >= 28;
@@ -1143,13 +1152,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         icon: apparentTemperature != null && apparentTemperature >= 24
             ? Icons.wb_sunny_outlined
             : apparentTemperature != null && apparentTemperature <= 8
-                ? Icons.ac_unit_rounded
-                : Icons.tune_rounded,
+            ? Icons.ac_unit_rounded
+            : Icons.tune_rounded,
         text: apparentTemperature != null && apparentTemperature >= 24
             ? l10n.homeWeatherOutfitBaseHot
             : apparentTemperature != null && apparentTemperature <= 8
-                ? l10n.homeWeatherOutfitBaseCold
-                : l10n.homeWeatherOutfitBaseMild,
+            ? l10n.homeWeatherOutfitBaseCold
+            : l10n.homeWeatherOutfitBaseMild,
       ),
     ];
 
@@ -1159,8 +1168,9 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '기본 반바지' : 'Standard shorts';
       accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
     } else if (apparentTemperature >= 30) {
-      layers =
-          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
+      layers = isKo
+          ? '민소매/반팔 + 쿨 이너'
+          : 'Sleeveless/short-sleeve + cooling base';
       outer = isKo ? '아우터 없음' : 'No outerwear';
       bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
       accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
@@ -1181,18 +1191,21 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
       accessories = isKo ? '얇은 장갑, 넥워머' : 'Light gloves, neck warmer';
     } else if (apparentTemperature >= 2) {
-      layers =
-          isKo ? '기모 이너 + 긴팔 + 미들레이어' : 'Thermal base + long-sleeve + midlayer';
+      layers = isKo
+          ? '기모 이너 + 긴팔 + 미들레이어'
+          : 'Thermal base + long-sleeve + midlayer';
       outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
-      accessories =
-          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
+      accessories = isKo
+          ? '방한 장갑, 넥워머, 귀마개'
+          : 'Winter gloves, neck warmer, ear cover';
     } else {
       layers = isKo ? '발열 이너 + 두꺼운 미들레이어' : 'Heat base layer + thick midlayer';
       outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
       bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
-      accessories =
-          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
+      accessories = isKo
+          ? '방한 장갑, 넥워머, 비니'
+          : 'Insulated gloves, neck warmer, beanie';
       notes.add(
         isKo
             ? '실내 워밍업 후 짧은 세트로 진행'
@@ -1217,8 +1230,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       outer = isStormy || hasHeavyPrecipitation || isVeryWindy
           ? (isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket')
           : (isKo
-              ? '생활방수 자켓 + 얇은 미들레이어'
-              : 'Water-resistant jacket + light midlayer');
+                ? '생활방수 자켓 + 얇은 미들레이어'
+                : 'Water-resistant jacket + light midlayer');
       accessories = isKo
           ? '$accessories, 방수 양말 또는 여벌 양말'
           : '$accessories, waterproof or spare socks';
@@ -1271,8 +1284,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       callouts: callouts.skip(1).toList(growable: false),
       caution: notes.isEmpty
           ? (isKo
-              ? '현재 조건에서 일반 강도 훈련 가능'
-              : 'Normal intensity is fine in current conditions')
+                ? '현재 조건에서 일반 강도 훈련 가능'
+                : 'Normal intensity is fine in current conditions')
           : notes.join(isKo ? ' · ' : ' · '),
     );
   }
@@ -1420,11 +1433,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
             subtitle: _location.isEmpty
                 ? (isKo
-                    ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                    : 'Best focus for the current weather.')
+                      ? '지금 날씨에서 효율적인 훈련 방향입니다.'
+                      : 'Best focus for the current weather.')
                 : (isKo
-                    ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                    : 'Tailored to $_location weather.'),
+                      ? '$_location 날씨에 맞춘 훈련 방향입니다.'
+                      : 'Tailored to $_location weather.'),
             focusLabel: isKo ? '오늘 집중' : 'Focus',
             cautionLabel: isKo ? '운영 팁' : 'Execution tip',
             recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
@@ -1791,7 +1804,8 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                       children: [
                         for (var index = 0; index < metrics.length; index++)
                           SizedBox(
-                            width: metrics.length.isOdd &&
+                            width:
+                                metrics.length.isOdd &&
                                     index == metrics.length - 1
                                 ? constraints.maxWidth
                                 : halfWidth,
