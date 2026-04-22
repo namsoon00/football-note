@@ -133,10 +133,6 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
   }
 
   Future<void> _editBoard(TrainingBoard board) async {
-    if (_isParentMode) {
-      _showParentReadOnlyMessage();
-      return;
-    }
     await Navigator.of(context).push<void>(
       AppPageRoute(
         builder: (_) => TrainingMethodBoardScreen(
@@ -151,6 +147,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
               board.copyWith(title: resolvedTitle, layoutJson: savedLayout),
             );
           },
+          readOnly: _isParentMode,
         ),
       ),
     );
@@ -947,8 +944,6 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                           ),
                                         );
                                       }
-                                    : isParentMode
-                                    ? null
                                     : () {
                                         unawaited(
                                           widget.optionRepository.setValue(
@@ -960,9 +955,7 @@ class _TrainingBoardListScreenState extends State<TrainingBoardListScreen> {
                                       },
                                 onLongPress: isParentMode
                                     ? null
-                                    : () {
-                                        unawaited(_editBoard(board));
-                                      },
+                                    : () => unawaited(_editBoard(board)),
                               );
                             },
                           ),

@@ -427,14 +427,12 @@ class _LogsScreenState extends State<LogsScreen> {
           ),
         ),
       ),
-      floatingActionButton: _isParentMode
-          ? null
-          : FloatingActionButton.extended(
-              heroTag: 'logs_fab',
-              onPressed: widget.onCreate,
-              icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context)!.addEntry),
-            ),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'logs_fab',
+        onPressed: widget.onCreate,
+        icon: const Icon(Icons.add),
+        label: Text(AppLocalizations.of(context)!.addEntry),
+      ),
     );
   }
 

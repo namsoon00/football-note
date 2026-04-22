@@ -734,11 +734,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           dayMealEntry: dayMealEntry,
                           isReadOnly: isParentMode,
                           onEditEntry: (entry) {
-                            if (isParentMode) {
-                              _showParentReadOnlyMessage();
-                              return;
-                            }
                             if (entry.isMatch) {
+                              if (isParentMode) {
+                                _showParentReadOnlyMessage();
+                                return;
+                              }
                               unawaited(
                                 _openMatchSheet(
                                   day: entry.date,
@@ -923,10 +923,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _openMealLog({required DateTime day, MealEntry? entry}) async {
-    if (_isParentMode) {
-      _showParentReadOnlyMessage();
-      return;
-    }
     if (!mounted) return;
     final existingEntry = entry ?? widget.mealLogService.entryForDay(day);
     await Navigator.of(context).push(
@@ -2902,7 +2898,7 @@ class _DayTimeline extends StatelessWidget {
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: isReadOnly
-                    ? _EntryTile(entry: entry)
+                    ? _EntryTile(entry: entry, onTap: () => onEditEntry(entry))
                     : Dismissible(
                         key: ValueKey(
                           'match-entry-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
@@ -2982,7 +2978,10 @@ class _DayTimeline extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             isReadOnly
-                ? _MealEntryTile(entry: dayMealEntry!)
+                ? _MealEntryTile(
+                    entry: dayMealEntry!,
+                    onTap: () => onEditMealEntry(dayMealEntry!),
+                  )
                 : Dismissible(
                     key: ValueKey(
                       'meal-entry-${dayMealEntry!.date.millisecondsSinceEpoch}',

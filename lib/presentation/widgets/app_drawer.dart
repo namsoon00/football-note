@@ -102,10 +102,6 @@ class AppDrawer extends StatelessWidget {
                   icon: Icons.note_add_outlined,
                   label: l10n.addEntry,
                   onTap: () {
-                    if (isParentMode) {
-                      _showParentReadOnlyMessage(context);
-                      return;
-                    }
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -155,10 +151,6 @@ class AppDrawer extends StatelessWidget {
                   icon: Icons.developer_board_outlined,
                   label: l10n.drawerAddTrainingSketch,
                   onTap: () {
-                    if (isParentMode) {
-                      _showParentReadOnlyMessage(context);
-                      return;
-                    }
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -166,6 +158,7 @@ class AppDrawer extends StatelessWidget {
                           boardTitle: '',
                           initialLayoutJson: '',
                           optionRepository: optionRepository,
+                          readOnly: isParentMode,
                         ),
                       ),
                     );
@@ -294,9 +287,9 @@ class AppDrawer extends StatelessWidget {
 
   void _showParentReadOnlyMessage(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.parentReadOnlyDrawerMessage)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.parentReadOnlyDrawerMessage)));
   }
 }
 

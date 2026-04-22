@@ -120,7 +120,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('부모 모드'), findsOneWidget);
+    expect(find.text('공유 역할 모드'), findsOneWidget);
     expect(find.text('선물 받기'), findsNothing);
     expect(find.text('입력').first, findsOneWidget);
     expect(find.text('선수 모드에서 수령'), findsOneWidget);

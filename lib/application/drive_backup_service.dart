@@ -216,7 +216,7 @@ class DriveBackupService implements BackupRepository {
 
   @override
   Future<void> autoBackupDaily() async {
-    if (_familyService.loadState().currentRole == FamilyRole.parent) {
+    if (_familyService.loadState().isSupportMode) {
       return;
     }
     if (!isAutoDailyEnabled()) {
@@ -495,7 +495,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<void> rememberCurrentRoleDriveConnection() async {
     final role = _familyService.loadState().currentRole;
-    if (role == FamilyRole.parent) {
+    if (FamilyAccessService.isSupportRole(role)) {
       await rememberParentDriveConnection();
       return;
     }
@@ -521,7 +521,7 @@ class DriveBackupService implements BackupRepository {
   }
 
   Future<void> markParentSharedDataDirty() async {
-    if (_familyService.loadState().currentRole != FamilyRole.parent) {
+    if (!_familyService.loadState().isSupportMode) {
       return;
     }
     await _setParentSharedDataDirty(true);
@@ -550,7 +550,7 @@ class DriveBackupService implements BackupRepository {
 
   Future<bool> refreshParentSharedDataIfNeeded() async {
     final state = _familyService.loadState();
-    if (state.currentRole != FamilyRole.parent) {
+    if (!state.isSupportMode) {
       return false;
     }
     try {
@@ -995,8 +995,7 @@ class DriveBackupService implements BackupRepository {
     final folderId = await _findOrCreateFolder(driveApi);
     final existing = await _findBackupFile(driveApi, folderId);
     final familyState = _familyService.loadState();
-    final remote =
-        existing != null && familyState.currentRole == FamilyRole.parent
+    final remote = existing != null && familyState.isSupportMode
         ? await _downloadBackupMap(driveApi, existing.id!)
         : null;
     _validateParentRemoteBinding(remote);
@@ -1045,7 +1044,7 @@ class DriveBackupService implements BackupRepository {
       throw StateError('No backup file found.');
     }
     await _restoreBackupFileWithApi(driveApi, file);
-    if (_familyService.loadState().currentRole == FamilyRole.parent) {
+    if (_familyService.loadState().isSupportMode) {
       await _recordFamilySyncPull(
         DateTime.now(),
         remoteModifiedAt: file.modifiedTime ?? DateTime.now(),
@@ -1411,7 +1410,7 @@ class DriveBackupService implements BackupRepository {
 
   void _validateParentRemoteBinding(Map<String, dynamic>? remote) {
     final state = _familyService.loadState();
-    if (state.currentRole != FamilyRole.parent || remote == null) {
+    if (!state.isSupportMode || remote == null) {
       return;
     }
     final localFamilyId = state.familyId.trim();
@@ -1440,7 +1439,7 @@ class DriveBackupService implements BackupRepository {
     final state = _familyService.loadState();
     final localFamilyId = state.familyId.trim();
     final remoteFamilyId = _extractFamilyId(remote);
-    if (state.currentRole == FamilyRole.parent &&
+    if (state.isSupportMode &&
         localFamilyId.isNotEmpty &&
         remoteFamilyId.isNotEmpty &&
         localFamilyId != remoteFamilyId) {
@@ -1491,7 +1490,7 @@ class DriveBackupService implements BackupRepository {
     required DateTime syncedAt,
   }) async {
     await _familyService.recordSharedBackupSync(role: role, syncedAt: syncedAt);
-    if (role == FamilyRole.parent) {
+    if (FamilyAccessService.isSupportRole(role)) {
       await _recordFamilySyncPush(syncedAt);
       await _setParentSharedDataDirty(false);
       return;
@@ -1500,7 +1499,7 @@ class DriveBackupService implements BackupRepository {
   }
 
   bool _shouldRefreshParentSharedData({required DateTime? remoteModifiedAt}) {
-    if (_familyService.loadState().currentRole != FamilyRole.parent) {
+    if (!_familyService.loadState().isSupportMode) {
       return false;
     }
     if (hasPendingParentSharedChanges()) {
@@ -1588,7 +1587,7 @@ class DriveBackupService implements BackupRepository {
     }
     final data = jsonDecode(raw) as Map<String, dynamic>;
     await _restoreFromMap(data);
-    if (_familyService.loadState().currentRole == FamilyRole.parent) {
+    if (_familyService.loadState().isSupportMode) {
       await _setParentSharedDataDirty(true);
     }
   }
@@ -1787,14 +1786,14 @@ class DriveBackupService implements BackupRepository {
     required FamilyRole currentRole,
     required Map<String, dynamic>? remote,
   }) {
-    if (currentRole == FamilyRole.parent) {
+    if (FamilyAccessService.isSupportRole(currentRole)) {
       _validateParentRemoteBinding(remote);
     }
     final local = _buildBackup(
       updatedByRole: currentRole,
       familyLayerOnly: false,
     );
-    if (currentRole != FamilyRole.parent) {
+    if (!FamilyAccessService.isSupportRole(currentRole)) {
       return local;
     }
     if (remote == null) {
@@ -1836,7 +1835,7 @@ class DriveBackupService implements BackupRepository {
       ),
       _familyMetadataKey: FamilyAccessService.backupMetadataFromState(
         familyState,
-        updatedByRole: FamilyRole.parent,
+        updatedByRole: familyState.currentRole,
         familyLayerOnly: true,
       ),
     };

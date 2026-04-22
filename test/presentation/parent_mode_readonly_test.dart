@@ -63,7 +63,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('부모 모드에서는 식사 기록을 수정할 수 없어요. 식사 입력은 선수 모드에서 진행해 주세요.'),
+      find.text('공유 역할에서는 식사 기록을 수정할 수 없어요. 식사 입력은 선수 모드에서 진행해 주세요.'),
       findsOneWidget,
     );
 
@@ -132,7 +132,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('부모 모드 읽기 전용'), findsOneWidget);
+    expect(find.text('공유 역할 읽기 전용'), findsOneWidget);
     expect(find.text('퍼스트 터치가 안정적이었다.'), findsOneWidget);
     expect(find.text('압박 회피가 늦었다.'), findsOneWidget);
     expect(find.text('턴 동작을 더 빠르게 가져간다.'), findsOneWidget);
