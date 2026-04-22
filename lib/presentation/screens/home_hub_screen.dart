@@ -1815,10 +1815,7 @@ class _TrainingStreakSpotlightCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 9,
-                  vertical: 7,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(14),
@@ -1900,9 +1897,17 @@ class _RecentTrainingMarkerChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    var weekdayLabel = DateFormat.E(
+      Localizations.localeOf(context).toString(),
+    ).format(marker.day);
+    if (isKo && weekdayLabel.endsWith('요일')) {
+      weekdayLabel = weekdayLabel.replaceAll('요일', '');
+    }
     return Container(
-      width: 20,
-      height: 20,
+      constraints: BoxConstraints(minWidth: isKo ? 28 : 38),
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         color: marker.recorded
             ? Colors.white.withValues(alpha: 0.34)
@@ -1914,12 +1919,18 @@ class _RecentTrainingMarkerChip extends StatelessWidget {
               : Colors.white.withValues(alpha: 0.16),
         ),
       ),
-      child: Icon(
-        marker.recorded
-            ? Icons.check_rounded
-            : Icons.radio_button_unchecked_rounded,
-        size: marker.recorded ? 14 : 12,
-        color: foreground,
+      child: Center(
+        child: Text(
+          weekdayLabel,
+          key: ValueKey('streak-weekday-${marker.day.weekday}'),
+          maxLines: 1,
+          overflow: TextOverflow.fade,
+          softWrap: false,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: foreground,
+                fontWeight: marker.recorded ? FontWeight.w900 : FontWeight.w700,
+              ),
+        ),
       ),
     );
   }

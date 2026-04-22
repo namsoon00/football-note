@@ -3245,7 +3245,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      'In parent mode, only feedback and reward names sync automatically. Back up and restore player records from player mode.';
+      'In parent mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.';
 
   @override
   String get familyChildDriveConnectionTitle => 'Connect player Google Drive';
@@ -3297,7 +3297,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyPolicyParentWritesOnly =>
-      'Parent mode can save feedback and level reward names only.';
+      'Parent mode can save training feedback and level reward names only.';
 
   @override
   String get familyPolicyParentSeedRequired =>
@@ -3360,18 +3360,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyParentUsesChildDriveHint =>
-      'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same player backup file.';
+      'In parent mode, sign in with the player\'s Google Drive account to sync training feedback and reward names into the same player backup file.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      'Parent mode should connect to the player\'s Google Drive account to sync safely into the same player backup file.';
+      'Parent mode should connect to the player\'s Google Drive account to sync training feedback and reward names safely into the same player backup file.';
 
   @override
   String get familySharedSyncTitle => 'Parent/player sharing sync';
 
   @override
   String get familySharedSyncDescription =>
-      'Feedback and reward names saved in parent mode are written automatically into the same player backup file.';
+      'Training feedback and reward names saved in parent mode are written automatically into the same player backup file.';
 
   @override
   String get familySharedLastSync => 'Last parent/player sync';
@@ -3424,7 +3424,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentReadOnlyProfileDescription =>
-      'Parent mode keeps the profile read-only. Use parent/player sharing for feedback and the level guide for reward naming.';
+      'Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.';
 
   @override
   String get parentReadOnlyEntryTitle =>
@@ -3432,7 +3432,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentReadOnlyEntryBody =>
-      'Core records like training, meals, and diary stay in player mode. Parent mode is limited to parent/player sharing and reward naming.';
+      'Core records like training, meals, and diary stay in player mode. Parent mode leaves the original record untouched and stores only parent feedback and reward naming separately.';
+
+  @override
+  String get parentReadOnlyLogsBanner =>
+      'Parent mode does not delete training logs. Open a record to leave parent feedback instead.';
+
+  @override
+  String get parentReadOnlyLogsMessage =>
+      'Parent mode cannot delete training logs.';
 
   @override
   String get parentReadOnlyMealLog =>
@@ -3465,6 +3473,46 @@ class AppLocalizationsEn extends AppLocalizations {
       'Parent mode cannot edit training sketches.';
 
   @override
+  String get parentFeedbackSectionTitle => 'Parent feedback';
+
+  @override
+  String get parentFeedbackHelper =>
+      'Keep the original training record untouched and store only the parent\'s feedback for this session separately.';
+
+  @override
+  String get parentFeedbackReadOnlyHint =>
+      'Feedback the parent left on this training log.';
+
+  @override
+  String get parentFeedbackInputLabel => 'Parent feedback';
+
+  @override
+  String get parentFeedbackInputHint =>
+      'Write what the parent wants to praise or what to watch next time.';
+
+  @override
+  String get parentFeedbackSave => 'Save feedback';
+
+  @override
+  String get parentFeedbackClear => 'Clear';
+
+  @override
+  String get parentFeedbackSaved => 'Parent feedback saved.';
+
+  @override
+  String get parentFeedbackCleared => 'Parent feedback cleared.';
+
+  @override
+  String get parentFeedbackEmpty => 'There is no parent feedback yet.';
+
+  @override
+  String get parentSharedSyncDone => 'Synced to the player\'s Drive too.';
+
+  @override
+  String get parentSharedSyncPending =>
+      'It will sync into the same player backup file after Drive is connected.';
+
+  @override
   String get levelGuideParentModeLabel => 'Parent mode';
 
   @override
@@ -3472,7 +3520,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get levelGuideParentModeDescription =>
-      'Parent mode can save reward names only. Reward claims stay in player mode.';
+      'Parent mode can save reward names only, and saved reward names also sync into the shared player Drive backup. Reward claims stay in player mode.';
 
   @override
   String get levelGuideChildModeDescription =>
@@ -3480,6 +3528,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get levelGuideClaimChildOnly => 'Claim in player mode';
+
+  @override
+  String get levelGuideRewardFallbackName => 'Reward';
+
+  @override
+  String levelGuideRewardClaimed(Object rewardName) {
+    return 'Claimed $rewardName.';
+  }
+
+  @override
+  String get levelGuideRewardSaved => 'Reward saved.';
+
+  @override
+  String get levelGuideRewardCleared => 'Reward cleared.';
 
   @override
   String get trainingSketchControlsPanel => 'Tools and selection';

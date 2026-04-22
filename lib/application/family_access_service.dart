@@ -58,6 +58,8 @@ class FamilyAccessService {
   static const String familyIdKey = 'family_shared_id_v1';
   static const String childNameKey = 'family_child_name_v1';
   static const String parentNameKey = 'family_parent_name_v1';
+  static const String parentTrainingFeedbackKey =
+      'family_parent_training_feedback_v1';
   static const String messagesKey = 'family_messages_v1';
   static const String lastSharedSyncAtKey = 'family_shared_sync_at_v1';
   static const String lastSharedSyncRoleKey = 'family_shared_sync_role_v1';
@@ -67,6 +69,7 @@ class FamilyAccessService {
     familyIdKey,
     childNameKey,
     parentNameKey,
+    parentTrainingFeedbackKey,
     lastSharedSyncAtKey,
     lastSharedSyncRoleKey,
     PlayerLevelService.customRewardNamesKey,
@@ -83,7 +86,8 @@ class FamilyAccessService {
   FamilyAccessService(this._options);
 
   FamilyAccessState loadState() {
-    final childName = _options.getValue<String>(childNameKey)?.trim() ??
+    final childName =
+        _options.getValue<String>(childNameKey)?.trim() ??
         _options.getValue<String>('profile_name')?.trim() ??
         '';
     final parentName = _options.getValue<String>(parentNameKey)?.trim() ?? '';
@@ -136,12 +140,14 @@ class FamilyAccessService {
   String displayNameForRole(FamilyRole role, {FamilyAccessState? state}) {
     final resolvedState = state ?? loadState();
     return switch (role) {
-      FamilyRole.child => resolvedState.childName.trim().isEmpty
-          ? 'Player'
-          : resolvedState.childName.trim(),
-      FamilyRole.parent => resolvedState.parentName.trim().isEmpty
-          ? 'Parent'
-          : resolvedState.parentName.trim(),
+      FamilyRole.child =>
+        resolvedState.childName.trim().isEmpty
+            ? 'Player'
+            : resolvedState.childName.trim(),
+      FamilyRole.parent =>
+        resolvedState.parentName.trim().isEmpty
+            ? 'Parent'
+            : resolvedState.parentName.trim(),
     };
   }
 

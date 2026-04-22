@@ -5621,7 +5621,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentAutoSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, only feedback and reward names sync automatically. Back up and restore player records from player mode.'**
+  /// **'In parent mode, only training feedback and reward names sync automatically. Back up and restore player records from player mode.'**
   String get familyParentAutoSyncDescription;
 
   /// No description provided for @familyChildDriveConnectionTitle.
@@ -5717,7 +5717,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyPolicyParentWritesOnly.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode can save feedback and level reward names only.'**
+  /// **'Parent mode can save training feedback and level reward names only.'**
   String get familyPolicyParentWritesOnly;
 
   /// No description provided for @familyPolicyParentSeedRequired.
@@ -5825,13 +5825,13 @@ abstract class AppLocalizations {
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
-  /// **'In parent mode, sign in with the player\'s Google Drive account to sync feedback and reward names into the same player backup file.'**
+  /// **'In parent mode, sign in with the player\'s Google Drive account to sync training feedback and reward names into the same player backup file.'**
   String get familyParentUsesChildDriveHint;
 
   /// No description provided for @familyParentUsesChildDriveWarning.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode should connect to the player\'s Google Drive account to sync safely into the same player backup file.'**
+  /// **'Parent mode should connect to the player\'s Google Drive account to sync training feedback and reward names safely into the same player backup file.'**
   String get familyParentUsesChildDriveWarning;
 
   /// No description provided for @familySharedSyncTitle.
@@ -5843,7 +5843,7 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Feedback and reward names saved in parent mode are written automatically into the same player backup file.'**
+  /// **'Training feedback and reward names saved in parent mode are written automatically into the same player backup file.'**
   String get familySharedSyncDescription;
 
   /// No description provided for @familySharedLastSync.
@@ -5933,7 +5933,7 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyProfileDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode keeps the profile read-only. Use parent/player sharing for feedback and the level guide for reward naming.'**
+  /// **'Parent mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.'**
   String get parentReadOnlyProfileDescription;
 
   /// No description provided for @parentReadOnlyEntryTitle.
@@ -5945,8 +5945,20 @@ abstract class AppLocalizations {
   /// No description provided for @parentReadOnlyEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Core records like training, meals, and diary stay in player mode. Parent mode is limited to parent/player sharing and reward naming.'**
+  /// **'Core records like training, meals, and diary stay in player mode. Parent mode leaves the original record untouched and stores only parent feedback and reward naming separately.'**
   String get parentReadOnlyEntryBody;
+
+  /// No description provided for @parentReadOnlyLogsBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode does not delete training logs. Open a record to leave parent feedback instead.'**
+  String get parentReadOnlyLogsBanner;
+
+  /// No description provided for @parentReadOnlyLogsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent mode cannot delete training logs.'**
+  String get parentReadOnlyLogsMessage;
 
   /// No description provided for @parentReadOnlyMealLog.
   ///
@@ -5996,6 +6008,78 @@ abstract class AppLocalizations {
   /// **'Parent mode cannot edit training sketches.'**
   String get parentReadOnlySketchMessage;
 
+  /// No description provided for @parentFeedbackSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent feedback'**
+  String get parentFeedbackSectionTitle;
+
+  /// No description provided for @parentFeedbackHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the original training record untouched and store only the parent\'s feedback for this session separately.'**
+  String get parentFeedbackHelper;
+
+  /// No description provided for @parentFeedbackReadOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback the parent left on this training log.'**
+  String get parentFeedbackReadOnlyHint;
+
+  /// No description provided for @parentFeedbackInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent feedback'**
+  String get parentFeedbackInputLabel;
+
+  /// No description provided for @parentFeedbackInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write what the parent wants to praise or what to watch next time.'**
+  String get parentFeedbackInputHint;
+
+  /// No description provided for @parentFeedbackSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save feedback'**
+  String get parentFeedbackSave;
+
+  /// No description provided for @parentFeedbackClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get parentFeedbackClear;
+
+  /// No description provided for @parentFeedbackSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent feedback saved.'**
+  String get parentFeedbackSaved;
+
+  /// No description provided for @parentFeedbackCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent feedback cleared.'**
+  String get parentFeedbackCleared;
+
+  /// No description provided for @parentFeedbackEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no parent feedback yet.'**
+  String get parentFeedbackEmpty;
+
+  /// No description provided for @parentSharedSyncDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced to the player\'s Drive too.'**
+  String get parentSharedSyncDone;
+
+  /// No description provided for @parentSharedSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'It will sync into the same player backup file after Drive is connected.'**
+  String get parentSharedSyncPending;
+
   /// No description provided for @levelGuideParentModeLabel.
   ///
   /// In en, this message translates to:
@@ -6011,7 +6095,7 @@ abstract class AppLocalizations {
   /// No description provided for @levelGuideParentModeDescription.
   ///
   /// In en, this message translates to:
-  /// **'Parent mode can save reward names only. Reward claims stay in player mode.'**
+  /// **'Parent mode can save reward names only, and saved reward names also sync into the shared player Drive backup. Reward claims stay in player mode.'**
   String get levelGuideParentModeDescription;
 
   /// No description provided for @levelGuideChildModeDescription.
@@ -6025,6 +6109,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Claim in player mode'**
   String get levelGuideClaimChildOnly;
+
+  /// No description provided for @levelGuideRewardFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward'**
+  String get levelGuideRewardFallbackName;
+
+  /// No description provided for @levelGuideRewardClaimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Claimed {rewardName}.'**
+  String levelGuideRewardClaimed(Object rewardName);
+
+  /// No description provided for @levelGuideRewardSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward saved.'**
+  String get levelGuideRewardSaved;
+
+  /// No description provided for @levelGuideRewardCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward cleared.'**
+  String get levelGuideRewardCleared;
 
   /// No description provided for @trainingSketchControlsPanel.
   ///

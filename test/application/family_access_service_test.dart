@@ -28,32 +28,41 @@ void main() {
     expect(state.parentName, 'Dad');
   });
 
-  test('shared backup keys exclude local role and include reward names', () {
-    expect(
-      FamilyAccessService.isLocalOnlyOptionKey(
-        FamilyAccessService.currentRoleLocalKey,
-      ),
-      isTrue,
-    );
-    expect(
-      FamilyAccessService.isSharedBackupOptionKey(
-        FamilyAccessService.currentRoleLocalKey,
-      ),
-      isFalse,
-    );
-    expect(
-      FamilyAccessService.isSharedBackupOptionKey(
-        'player_custom_reward_names_v1',
-      ),
-      isTrue,
-    );
-    expect(
-      FamilyAccessService.isSharedBackupOptionKey(
-        FamilyAccessService.messagesKey,
-      ),
-      isFalse,
-    );
-  });
+  test(
+    'shared backup keys exclude local role and include reward names and parent feedback',
+    () {
+      expect(
+        FamilyAccessService.isLocalOnlyOptionKey(
+          FamilyAccessService.currentRoleLocalKey,
+        ),
+        isTrue,
+      );
+      expect(
+        FamilyAccessService.isSharedBackupOptionKey(
+          FamilyAccessService.currentRoleLocalKey,
+        ),
+        isFalse,
+      );
+      expect(
+        FamilyAccessService.isSharedBackupOptionKey(
+          'player_custom_reward_names_v1',
+        ),
+        isTrue,
+      );
+      expect(
+        FamilyAccessService.isSharedBackupOptionKey(
+          FamilyAccessService.parentTrainingFeedbackKey,
+        ),
+        isTrue,
+      );
+      expect(
+        FamilyAccessService.isSharedBackupOptionKey(
+          FamilyAccessService.messagesKey,
+        ),
+        isFalse,
+      );
+    },
+  );
 }
 
 class _MemoryOptionRepository implements OptionRepository {

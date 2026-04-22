@@ -186,21 +186,78 @@ void main() {
   });
 
   testWidgets(
-      'parent mode can view existing entry without save or delete actions', (
+    'parent mode can view existing entry without save or delete actions',
+    (WidgetTester tester) async {
+      final original = TrainingEntry(
+        date: DateTime(2026, 3, 15, 18),
+        createdAt: DateTime(2026, 3, 15, 18),
+        durationMinutes: 70,
+        intensity: 4,
+        type: '드리블',
+        mood: 4,
+        injury: false,
+        notes: '기존 메모',
+        goodPoints: '퍼스트 터치가 안정적이었다.',
+        improvements: '압박 회피가 늦었다.',
+        nextGoal: '턴 동작을 더 빠르게 가져간다.',
+        location: '학교 운동장',
+        program: '볼터치',
+      );
+      await trainingService.add(original);
+      final storedEntry = (await trainingService.allEntries()).single;
+      await optionRepository.setValue(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.parent.name,
+      );
+
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: EntryFormScreen(
+              trainingService: trainingService,
+              optionRepository: optionRepository,
+              localeService: localeService,
+              settingsService: settingsService,
+              entry: storedEntry,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('부모 모드 읽기 전용'), findsOneWidget);
+      expect(find.text('퍼스트 터치가 안정적이었다.'), findsOneWidget);
+      expect(find.text('압박 회피가 늦었다.'), findsOneWidget);
+      expect(find.text('턴 동작을 더 빠르게 가져간다.'), findsOneWidget);
+      expect(find.widgetWithText(TextButton, '저장'), findsNothing);
+      expect(find.widgetWithText(TextButton, '기록 삭제'), findsNothing);
+    },
+  );
+
+  testWidgets('parent feedback saves separately and is visible in child mode', (
     WidgetTester tester,
   ) async {
     final original = TrainingEntry(
-      date: DateTime(2026, 3, 15, 18),
-      createdAt: DateTime(2026, 3, 15, 18),
+      date: DateTime(2026, 4, 22, 18),
+      createdAt: DateTime(2026, 4, 22, 18),
       durationMinutes: 70,
       intensity: 4,
       type: '드리블',
       mood: 4,
       injury: false,
       notes: '기존 메모',
-      goodPoints: '퍼스트 터치가 안정적이었다.',
+      goodPoints: '터치가 안정적이었다.',
       improvements: '압박 회피가 늦었다.',
-      nextGoal: '턴 동작을 더 빠르게 가져간다.',
+      nextGoal: '고개를 더 들고 시작한다.',
       location: '학교 운동장',
       program: '볼터치',
     );
@@ -235,11 +292,54 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('부모 모드 읽기 전용'), findsOneWidget);
-    expect(find.text('퍼스트 터치가 안정적이었다.'), findsOneWidget);
-    expect(find.text('압박 회피가 늦었다.'), findsOneWidget);
-    expect(find.text('턴 동작을 더 빠르게 가져간다.'), findsOneWidget);
-    expect(find.widgetWithText(TextButton, '저장'), findsNothing);
-    expect(find.widgetWithText(TextButton, '기록 삭제'), findsNothing);
+    final feedbackField = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.decoration?.labelText == '부모 피드백 입력',
+    );
+    expect(feedbackField, findsOneWidget);
+
+    await tester.enterText(feedbackField, '턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, '피드백 저장'));
+    await tester.pumpAndSettle();
+
+    final raw = optionBox.get(FamilyAccessService.parentTrainingFeedbackKey);
+    expect(raw, isA<Map>());
+    expect(
+      ((raw as Map).values.single as Map)['message'],
+      '턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.',
+    );
+
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.child.name,
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: EntryFormScreen(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            localeService: localeService,
+            settingsService: settingsService,
+            entry: storedEntry,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('부모 피드백'), findsOneWidget);
+    expect(find.text('턴 타이밍이 좋아졌고 시야가 더 넓어졌어요.'), findsOneWidget);
   });
 }

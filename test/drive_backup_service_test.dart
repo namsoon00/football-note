@@ -210,6 +210,12 @@ void main() {
       await optionBox.put('player_custom_reward_names_v1', <String, String>{
         '2': 'Local ball',
       });
+      await optionBox.put(
+        FamilyAccessService.parentTrainingFeedbackKey,
+        <String, dynamic>{
+          'training_1': <String, dynamic>{'message': 'Local parent feedback'},
+        },
+      );
       await optionBox.put('profile_name', 'Local player profile');
       await optionBox.put(
         DriveBackupService.connectedDriveEmailLocalKey,
@@ -286,6 +292,11 @@ void main() {
           'player_custom_reward_names_v1': <String, String>{
             '4': 'Remote boots',
           },
+          FamilyAccessService.parentTrainingFeedbackKey: <String, dynamic>{
+            'training_1713427800000000': <String, dynamic>{
+              'message': 'Remote parent feedback',
+            },
+          },
         },
         'optionRecords': <Map<String, dynamic>>[
           <String, dynamic>{
@@ -311,6 +322,14 @@ void main() {
           <String, dynamic>{
             'key': 'player_custom_reward_names_v1',
             'value': <String, String>{'4': 'Remote boots'},
+          },
+          <String, dynamic>{
+            'key': FamilyAccessService.parentTrainingFeedbackKey,
+            'value': <String, dynamic>{
+              'training_1713427800000000': <String, dynamic>{
+                'message': 'Remote parent feedback',
+              },
+            },
           },
           <String, dynamic>{
             'key': 'profile_name',
@@ -341,6 +360,12 @@ void main() {
           '2',
         ),
         isFalse,
+      );
+      expect(
+        ((optionBox.get(FamilyAccessService.parentTrainingFeedbackKey)
+                as Map)['training_1713427800000000']
+            as Map)['message'],
+        'Remote parent feedback',
       );
       expect(
         optionBox.get(DriveBackupService.sharedChildDriveEmailKey),
@@ -538,6 +563,14 @@ void main() {
       await optionBox.put('player_custom_reward_names_v1', <String, String>{
         '3': 'New boots',
       });
+      await optionBox.put(
+        FamilyAccessService.parentTrainingFeedbackKey,
+        <String, dynamic>{
+          'training_1713427800000000': <String, dynamic>{
+            'message': 'Check the first touch after scanning.',
+          },
+        },
+      );
       await optionBox.put('profile_name', 'Parent local stale value');
       await optionBox.put(
         DriveBackupService.connectedDriveEmailLocalKey,
@@ -590,6 +623,11 @@ void main() {
           FamilyAccessService.familyIdKey: 'family-1',
           DriveBackupService.sharedChildDriveEmailKey: 'child@example.com',
           'player_custom_reward_names_v1': <String, String>{'2': 'Ball'},
+          FamilyAccessService.parentTrainingFeedbackKey: <String, dynamic>{
+            'training_1713000000000000': <String, dynamic>{
+              'message': 'Existing remote feedback',
+            },
+          },
         },
         'optionRecords': <Map<String, dynamic>>[
           <String, dynamic>{
@@ -607,6 +645,14 @@ void main() {
           <String, dynamic>{
             'key': 'player_custom_reward_names_v1',
             'value': <String, String>{'2': 'Ball'},
+          },
+          <String, dynamic>{
+            'key': FamilyAccessService.parentTrainingFeedbackKey,
+            'value': <String, dynamic>{
+              'training_1713000000000000': <String, dynamic>{
+                'message': 'Existing remote feedback',
+              },
+            },
           },
         ],
         'family': const <String, dynamic>{
@@ -633,6 +679,12 @@ void main() {
       expect(
         (mergedOptions['player_custom_reward_names_v1'] as Map)['3'],
         'New boots',
+      );
+      expect(
+        ((mergedOptions[FamilyAccessService.parentTrainingFeedbackKey]
+                as Map)['training_1713427800000000']
+            as Map)['message'],
+        'Check the first touch after scanning.',
       );
       expect(family['updatedByRole'], 'parent');
       expect(family['familyLayerOnly'], isTrue);
