@@ -658,19 +658,19 @@
   "runningCoachTipSideView": "Record from the side while the runner moves across the frame.",
   "runningCoachTipSteadyCamera": "Use a steady camera and capture 5-15 seconds of relaxed sprint or running form.",
   "runningCoachLiveCardTitle": "Live coach",
-  "runningCoachLiveCardBody": "Open the camera full screen so the whole body stays large, then check the score reasons, strengths, fixes, and voice coaching in the panel below. Once the side view stabilizes, the app coaches posture, bounce, foot strike, knee bend, and arm carriage in real time.",
+  "runningCoachLiveCardBody": "Use the full camera view so the runner stays large, and only show the framing guide when the body drifts out of position. The lower panel now surfaces the overall score, metric scores, strengths, top fixes, and voice coaching right away.",
   "runningCoachLiveAction": "Start live coach",
   "runningCoachLiveGuideAction": "Shooting guide",
   "runningCoachLiveScreenTitle": "Live running coach",
   "runningCoachLiveGuideScreenTitle": "Live shooting guide",
-  "runningCoachLiveGuideHeroTitle": "Keep the runner large and the coaching panel below",
-  "runningCoachLiveGuideHeroBody": "Keep the runner centered in the full camera view so the panel below can explain the score, show strengths, point out fixes, and play voice coaching. Use the setup below for steadier live tracking.",
+  "runningCoachLiveGuideHeroTitle": "Keep the runner large and show the guide only when needed",
+  "runningCoachLiveGuideHeroBody": "Once the runner is framed cleanly, the camera stays full screen. The guide returns only when the full body is clipped or drifts off center. Use the setup below to keep the score and coaching notes stable.",
   "runningCoachLiveGuideTipSideTitle": "Show a side view",
   "runningCoachLiveGuideTipSideBody": "The runner should move across the frame from the side, not straight toward the camera or on a heavy diagonal.",
   "runningCoachLiveGuideTipBodyTitle": "Keep the full body in frame",
   "runningCoachLiveGuideTipBodyBody": "The head, elbows, hips, and ankles all need to stay visible so the pose line and score can stay stable.",
-  "runningCoachLiveGuideTipHudTitle": "Leave space around the runner",
-  "runningCoachLiveGuideTipHudBody": "Scores and coaching explanations collect in the lower panel. Keep the runner inside the center guide so the full body stays large and clear above the panel.",
+  "runningCoachLiveGuideTipHudTitle": "The guide shows only when needed",
+  "runningCoachLiveGuideTipHudBody": "Once the runner is tracked well, the guide box disappears and the full camera view stays visible. If the full body gets clipped or drifts away from center, the framing guide appears again so you can correct it quickly.",
   "runningCoachLiveGuideTipCameraTitle": "Keep the camera fixed and the body large enough",
   "runningCoachLiveGuideTipCameraBody": "Hold the camera steady and frame the runner so the full body fills at least about half of the screen height. The fuller the frame, the steadier the pose line and voice coaching become.",
   "runningCoachLivePreparingTitle": "Preparing camera",
@@ -932,6 +932,25 @@
   "runningCoachDurationLabel": "Clip",
   "runningCoachFramesAnalyzedLabel": "Frames",
   "runningCoachCoverageLabel": "Coverage",
+  "runningCoachMetricScoresTitle": "Metric scores",
+  "runningCoachFocusTitle": "Focus first",
+  "runningCoachMaintainTitle": "Keep these",
+  "runningCoachMetricScore": "Score {score}",
+  "@runningCoachMetricScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachPriorityLabel": "Priority {priority}",
+  "@runningCoachPriorityLabel": {
+    "placeholders": {
+      "priority": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachMetricValueLabel": "Measured value",
   "runningCoachStatusGood": "Good",
   "runningCoachStatusWatch": "Watch",

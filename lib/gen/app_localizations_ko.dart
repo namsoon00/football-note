@@ -1621,7 +1621,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '카메라 화면을 전체로 넓혀 전신을 크게 보고, 아래 패널에서 점수 이유와 좋은 점, 보완할 점, 음성 코칭을 바로 확인해요. 측면 자세가 안정되면 상체, 바운스, 발 착지, 무릎 굴곡, 팔 각도를 실시간으로 코칭해 줘요.';
+      '카메라 전체 화면으로 러너 전신을 크게 보고, 프레이밍이 흐트러질 때만 가이드가 잠깐 나타나도록 했어요. 아래 패널에서는 전체 점수와 지표별 점수, 좋은 점, 우선 보완할 점, 음성 코칭을 바로 확인할 수 있어요.';
 
   @override
   String get runningCoachLiveAction => '실시간 코치 시작';
@@ -1636,11 +1636,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveGuideScreenTitle => '실시간 촬영 가이드';
 
   @override
-  String get runningCoachLiveGuideHeroTitle => '러너는 크게, 코칭 설명은 아래에서';
+  String get runningCoachLiveGuideHeroTitle => '러너는 크게, 가이드는 필요할 때만';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      '카메라 화면을 꽉 채운 상태에서 러너를 가운데 두면, 아래 패널에서 점수 이유와 좋은 점, 고칠 점, 음성 코칭을 바로 확인할 수 있어요. 아래 기준으로 맞추면 인식이 더 안정돼요.';
+      '러너가 화면에 안정적으로 잡히면 카메라를 그대로 전체 화면으로 쓰고, 전신이 잘리거나 위치가 흐트러질 때만 가이드가 다시 나타나요. 아래 기준을 맞추면 점수와 코칭 설명이 더 안정돼요.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '측면이 잘 보여야 해요';
@@ -1657,11 +1657,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '머리, 팔꿈치, 엉덩이, 발목이 모두 프레임 안에 남아야 자세 선과 점수가 안정적으로 나와요.';
 
   @override
-  String get runningCoachLiveGuideTipHudTitle => '러너 주변에 여백을 남겨 주세요';
+  String get runningCoachLiveGuideTipHudTitle => '가이드는 필요할 때만 보여요';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      '점수와 코칭 설명은 화면 아래 패널에 모여 나와요. 러너는 가운데 가이드 프레임 안쪽에 두면 전신이 더 크게 보이고 패널과 겹치지 않아요.';
+      '러너가 잘 잡히면 네모 가이드는 사라지고 카메라 전체 화면을 그대로 써요. 전신이 잘리거나 중앙에서 벗어나면 프레이밍 가이드가 다시 나타나서 바로 위치를 맞출 수 있어요.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle => '카메라는 고정하고 몸 크기는 적당히';
@@ -2030,6 +2030,25 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachCoverageLabel => '추적 비율';
+
+  @override
+  String get runningCoachMetricScoresTitle => '지표별 점수';
+
+  @override
+  String get runningCoachFocusTitle => '지금 가장 먼저 볼 포인트';
+
+  @override
+  String get runningCoachMaintainTitle => '유지할 포인트';
+
+  @override
+  String runningCoachMetricScore(int score) {
+    return '점수 $score';
+  }
+
+  @override
+  String runningCoachPriorityLabel(int priority) {
+    return '우선 $priority';
+  }
 
   @override
   String get runningCoachMetricValueLabel => '측정값';

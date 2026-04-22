@@ -189,8 +189,12 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (final insight in _coachingReport!.insights) ...[
-              _InsightCard(insight: insight),
+            for (final insight in _coachingReport!.rankedInsights) ...[
+              _InsightCard(
+                insight: insight,
+                priority:
+                    _coachingReport!.focusPriorityByMetric[insight.metric],
+              ),
               const SizedBox(height: 12),
             ],
           ],
@@ -390,6 +394,9 @@ class _ResultsSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final score = report.overallScore;
+    final prioritizedInsights = report.rankedInsights;
+    final focusPriorities = report.focusPriorityByMetric;
+    final focusInsights = report.focusInsights;
     final headline = score >= 85
         ? l10n.runningCoachOverallHeadlineStrong
         : score >= 70
@@ -427,6 +434,40 @@ class _ResultsSummaryCard extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.runningCoachMetricScoresTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
+            for (
+              var index = 0;
+              index < prioritizedInsights.length;
+              index += 1
+            ) ...[
+              _MetricScoreRow(
+                insight: prioritizedInsights[index],
+                priority: focusPriorities[prioritizedInsights[index].metric],
+              ),
+              if (index != prioritizedInsights.length - 1)
+                const SizedBox(height: 10),
+            ],
+            if (focusInsights.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              Text(
+                l10n.runningCoachFocusTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 10),
+              for (var index = 0; index < focusInsights.length; index += 1) ...[
+                _FocusSummaryTile(
+                  insight: focusInsights[index],
+                  priority: focusPriorities[focusInsights[index].metric]!,
+                ),
+                if (index != focusInsights.length - 1)
+                  const SizedBox(height: 8),
+              ],
+            ],
           ],
         ),
       ),
@@ -473,8 +514,9 @@ class _StatChip extends StatelessWidget {
 
 class _InsightCard extends StatelessWidget {
   final RunningCoachingInsight insight;
+  final int? priority;
 
-  const _InsightCard({required this.insight});
+  const _InsightCard({required this.insight, this.priority});
 
   @override
   Widget build(BuildContext context) {
@@ -498,14 +540,14 @@ class _InsightCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Text(copy.title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Text(
-                    copy.title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
+                if (priority != null) _PriorityBadge(priority: priority!),
+                _ScoreBadge(score: insight.score),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: badgeColor,
@@ -552,6 +594,189 @@ class _InsightCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(copy.drill, style: Theme.of(context).textTheme.bodySmall),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricScoreRow extends StatelessWidget {
+  final RunningCoachingInsight insight;
+  final int? priority;
+
+  const _MetricScoreRow({required this.insight, this.priority});
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = RunningCoachInsightCopy.fromInsight(
+      insight,
+      AppLocalizations.of(context)!,
+    );
+    final accent = switch (insight.status) {
+      RunningCoachStatus.good => Colors.green.shade700,
+      RunningCoachStatus.watch => Colors.orange.shade700,
+      RunningCoachStatus.needsWork => Colors.red.shade700,
+    };
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  copy.title,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                copy.value,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: insight.score / 100,
+                    minHeight: 8,
+                    color: accent,
+                    backgroundColor: accent.withAlpha(30),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _ScoreBadge(score: insight.score),
+            ],
+          ),
+          if (priority != null) ...[
+            const SizedBox(height: 8),
+            _PriorityBadge(priority: priority!),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _FocusSummaryTile extends StatelessWidget {
+  final RunningCoachingInsight insight;
+  final int priority;
+
+  const _FocusSummaryTile({required this.insight, required this.priority});
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = RunningCoachInsightCopy.fromInsight(
+      insight,
+      AppLocalizations.of(context)!,
+    );
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: scheme.secondaryContainer.withAlpha(140),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _PriorityBadge(priority: priority),
+              _ScoreBadge(score: insight.score),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            copy.title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(copy.summary, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 8),
+          Text(
+            copy.cue,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PriorityBadge extends StatelessWidget {
+  final int priority;
+
+  const _PriorityBadge({required this.priority});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          l10n.runningCoachPriorityLabel(priority),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: scheme.onPrimaryContainer,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreBadge extends StatelessWidget {
+  final int score;
+
+  const _ScoreBadge({required this.score});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          l10n.runningCoachMetricScore(score),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
     );

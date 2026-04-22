@@ -658,19 +658,19 @@
   "runningCoachTipSideView": "러너가 화면을 가로지르도록 측면에서 촬영해 주세요.",
   "runningCoachTipSteadyCamera": "카메라는 흔들리지 않게 두고 5~15초 정도의 짧은 달리기 장면을 사용해 주세요.",
   "runningCoachLiveCardTitle": "실시간 코치",
-  "runningCoachLiveCardBody": "카메라 화면을 전체로 넓혀 전신을 크게 보고, 아래 패널에서 점수 이유와 좋은 점, 보완할 점, 음성 코칭을 바로 확인해요. 측면 자세가 안정되면 상체, 바운스, 발 착지, 무릎 굴곡, 팔 각도를 실시간으로 코칭해 줘요.",
+  "runningCoachLiveCardBody": "카메라 전체 화면으로 러너 전신을 크게 보고, 프레이밍이 흐트러질 때만 가이드가 잠깐 나타나도록 했어요. 아래 패널에서는 전체 점수와 지표별 점수, 좋은 점, 우선 보완할 점, 음성 코칭을 바로 확인할 수 있어요.",
   "runningCoachLiveAction": "실시간 코치 시작",
   "runningCoachLiveGuideAction": "촬영 가이드",
   "runningCoachLiveScreenTitle": "실시간 달리기 코치",
   "runningCoachLiveGuideScreenTitle": "실시간 촬영 가이드",
-  "runningCoachLiveGuideHeroTitle": "러너는 크게, 코칭 설명은 아래에서",
-  "runningCoachLiveGuideHeroBody": "카메라 화면을 꽉 채운 상태에서 러너를 가운데 두면, 아래 패널에서 점수 이유와 좋은 점, 고칠 점, 음성 코칭을 바로 확인할 수 있어요. 아래 기준으로 맞추면 인식이 더 안정돼요.",
+  "runningCoachLiveGuideHeroTitle": "러너는 크게, 가이드는 필요할 때만",
+  "runningCoachLiveGuideHeroBody": "러너가 화면에 안정적으로 잡히면 카메라를 그대로 전체 화면으로 쓰고, 전신이 잘리거나 위치가 흐트러질 때만 가이드가 다시 나타나요. 아래 기준을 맞추면 점수와 코칭 설명이 더 안정돼요.",
   "runningCoachLiveGuideTipSideTitle": "측면이 잘 보여야 해요",
   "runningCoachLiveGuideTipSideBody": "러너가 정면이나 사선보다 측면으로 보이게 서서 화면을 가로지르도록 달려 주세요.",
   "runningCoachLiveGuideTipBodyTitle": "머리부터 발끝까지 넣어 주세요",
   "runningCoachLiveGuideTipBodyBody": "머리, 팔꿈치, 엉덩이, 발목이 모두 프레임 안에 남아야 자세 선과 점수가 안정적으로 나와요.",
-  "runningCoachLiveGuideTipHudTitle": "러너 주변에 여백을 남겨 주세요",
-  "runningCoachLiveGuideTipHudBody": "점수와 코칭 설명은 화면 아래 패널에 모여 나와요. 러너는 가운데 가이드 프레임 안쪽에 두면 전신이 더 크게 보이고 패널과 겹치지 않아요.",
+  "runningCoachLiveGuideTipHudTitle": "가이드는 필요할 때만 보여요",
+  "runningCoachLiveGuideTipHudBody": "러너가 잘 잡히면 네모 가이드는 사라지고 카메라 전체 화면을 그대로 써요. 전신이 잘리거나 중앙에서 벗어나면 프레이밍 가이드가 다시 나타나서 바로 위치를 맞출 수 있어요.",
   "runningCoachLiveGuideTipCameraTitle": "카메라는 고정하고 몸 크기는 적당히",
   "runningCoachLiveGuideTipCameraBody": "카메라는 흔들리지 않게 두고, 러너가 화면 높이의 절반 이상 차지하도록 맞춰 주세요. 화면을 꽉 채울수록 자세 선과 음성 코칭이 더 안정돼요.",
   "runningCoachLivePreparingTitle": "카메라 준비 중",
@@ -932,6 +932,25 @@
   "runningCoachDurationLabel": "영상 길이",
   "runningCoachFramesAnalyzedLabel": "분석 프레임",
   "runningCoachCoverageLabel": "추적 비율",
+  "runningCoachMetricScoresTitle": "지표별 점수",
+  "runningCoachFocusTitle": "지금 가장 먼저 볼 포인트",
+  "runningCoachMaintainTitle": "유지할 포인트",
+  "runningCoachMetricScore": "점수 {score}",
+  "@runningCoachMetricScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "runningCoachPriorityLabel": "우선 {priority}",
+  "@runningCoachPriorityLabel": {
+    "placeholders": {
+      "priority": {
+        "type": "int"
+      }
+    }
+  },
   "runningCoachMetricValueLabel": "측정값",
   "runningCoachStatusGood": "좋음",
   "runningCoachStatusWatch": "주의",

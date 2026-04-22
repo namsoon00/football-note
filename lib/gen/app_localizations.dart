@@ -3101,7 +3101,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Open the camera full screen so the whole body stays large, then check the score reasons, strengths, fixes, and voice coaching in the panel below. Once the side view stabilizes, the app coaches posture, bounce, foot strike, knee bend, and arm carriage in real time.'**
+  /// **'Use the full camera view so the runner stays large, and only show the framing guide when the body drifts out of position. The lower panel now surfaces the overall score, metric scores, strengths, top fixes, and voice coaching right away.'**
   String get runningCoachLiveCardBody;
 
   /// No description provided for @runningCoachLiveAction.
@@ -3131,13 +3131,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Keep the runner large and the coaching panel below'**
+  /// **'Keep the runner large and show the guide only when needed'**
   String get runningCoachLiveGuideHeroTitle;
 
   /// No description provided for @runningCoachLiveGuideHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Keep the runner centered in the full camera view so the panel below can explain the score, show strengths, point out fixes, and play voice coaching. Use the setup below for steadier live tracking.'**
+  /// **'Once the runner is framed cleanly, the camera stays full screen. The guide returns only when the full body is clipped or drifts off center. Use the setup below to keep the score and coaching notes stable.'**
   String get runningCoachLiveGuideHeroBody;
 
   /// No description provided for @runningCoachLiveGuideTipSideTitle.
@@ -3167,13 +3167,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideTipHudTitle.
   ///
   /// In en, this message translates to:
-  /// **'Leave space around the runner'**
+  /// **'The guide shows only when needed'**
   String get runningCoachLiveGuideTipHudTitle;
 
   /// No description provided for @runningCoachLiveGuideTipHudBody.
   ///
   /// In en, this message translates to:
-  /// **'Scores and coaching explanations collect in the lower panel. Keep the runner inside the center guide so the full body stays large and clear above the panel.'**
+  /// **'Once the runner is tracked well, the guide box disappears and the full camera view stays visible. If the full body gets clipped or drifts away from center, the framing guide appears again so you can correct it quickly.'**
   String get runningCoachLiveGuideTipHudBody;
 
   /// No description provided for @runningCoachLiveGuideTipCameraTitle.
@@ -3786,6 +3786,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Coverage'**
   String get runningCoachCoverageLabel;
+
+  /// No description provided for @runningCoachMetricScoresTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric scores'**
+  String get runningCoachMetricScoresTitle;
+
+  /// No description provided for @runningCoachFocusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus first'**
+  String get runningCoachFocusTitle;
+
+  /// No description provided for @runningCoachMaintainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep these'**
+  String get runningCoachMaintainTitle;
+
+  /// No description provided for @runningCoachMetricScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {score}'**
+  String runningCoachMetricScore(int score);
+
+  /// No description provided for @runningCoachPriorityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority {priority}'**
+  String runningCoachPriorityLabel(int priority);
 
   /// No description provided for @runningCoachMetricValueLabel.
   ///

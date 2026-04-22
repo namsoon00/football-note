@@ -1658,7 +1658,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Open the camera full screen so the whole body stays large, then check the score reasons, strengths, fixes, and voice coaching in the panel below. Once the side view stabilizes, the app coaches posture, bounce, foot strike, knee bend, and arm carriage in real time.';
+      'Use the full camera view so the runner stays large, and only show the framing guide when the body drifts out of position. The lower panel now surfaces the overall score, metric scores, strengths, top fixes, and voice coaching right away.';
 
   @override
   String get runningCoachLiveAction => 'Start live coach';
@@ -1674,11 +1674,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroTitle =>
-      'Keep the runner large and the coaching panel below';
+      'Keep the runner large and show the guide only when needed';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'Keep the runner centered in the full camera view so the panel below can explain the score, show strengths, point out fixes, and play voice coaching. Use the setup below for steadier live tracking.';
+      'Once the runner is framed cleanly, the camera stays full screen. The guide returns only when the full body is clipped or drifts off center. Use the setup below to keep the score and coaching notes stable.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
@@ -1696,11 +1696,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipHudTitle =>
-      'Leave space around the runner';
+      'The guide shows only when needed';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      'Scores and coaching explanations collect in the lower panel. Keep the runner inside the center guide so the full body stays large and clear above the panel.';
+      'Once the runner is tracked well, the guide box disappears and the full camera view stays visible. If the full body gets clipped or drifts away from center, the framing guide appears again so you can correct it quickly.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle =>
@@ -2084,6 +2084,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachCoverageLabel => 'Coverage';
+
+  @override
+  String get runningCoachMetricScoresTitle => 'Metric scores';
+
+  @override
+  String get runningCoachFocusTitle => 'Focus first';
+
+  @override
+  String get runningCoachMaintainTitle => 'Keep these';
+
+  @override
+  String runningCoachMetricScore(int score) {
+    return 'Score $score';
+  }
+
+  @override
+  String runningCoachPriorityLabel(int priority) {
+    return 'Priority $priority';
+  }
 
   @override
   String get runningCoachMetricValueLabel => 'Measured value';

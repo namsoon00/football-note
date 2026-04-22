@@ -103,3 +103,60 @@ class RunningCoachingReport {
     required this.insights,
   });
 }
+
+extension RunningCoachingReportInsights on RunningCoachingReport {
+  List<RunningCoachingInsight> get rankedInsights {
+    final ranked = [...insights]..sort(_compareRunningInsights);
+    return List<RunningCoachingInsight>.unmodifiable(ranked);
+  }
+
+  List<RunningCoachingInsight> get focusInsights {
+    final rankedFocus = rankedInsights
+        .where((insight) => insight.status != RunningCoachStatus.good)
+        .toList(growable: false);
+    return List<RunningCoachingInsight>.unmodifiable(rankedFocus);
+  }
+
+  List<RunningCoachingInsight> get strengthInsights {
+    final strengths = rankedInsights
+        .where((insight) => insight.status == RunningCoachStatus.good)
+        .toList(growable: false);
+    return List<RunningCoachingInsight>.unmodifiable(strengths);
+  }
+
+  Map<RunningCoachMetric, int> get focusPriorityByMetric {
+    final priorities = <RunningCoachMetric, int>{};
+    final focus = focusInsights;
+    for (var index = 0; index < focus.length; index += 1) {
+      priorities[focus[index].metric] = index + 1;
+    }
+    return Map<RunningCoachMetric, int>.unmodifiable(priorities);
+  }
+}
+
+int _compareRunningInsights(
+  RunningCoachingInsight first,
+  RunningCoachingInsight second,
+) {
+  final severityCompare = _runningStatusSortOrder(
+    first.status,
+  ).compareTo(_runningStatusSortOrder(second.status));
+  if (severityCompare != 0) {
+    return severityCompare;
+  }
+
+  final scoreCompare = first.score.compareTo(second.score);
+  if (scoreCompare != 0) {
+    return scoreCompare;
+  }
+
+  return first.metric.index.compareTo(second.metric.index);
+}
+
+int _runningStatusSortOrder(RunningCoachStatus status) {
+  return switch (status) {
+    RunningCoachStatus.needsWork => 0,
+    RunningCoachStatus.watch => 1,
+    RunningCoachStatus.good => 2,
+  };
+}

@@ -184,6 +184,9 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final diagnosis = _diagnosisText(l10n, _coachingState);
     final actionTip = _actionTipText(l10n, _coachingState);
     final insightDetails = _buildInsightDetails(l10n);
+    final focusPriorities =
+        _coachingState.coachingReport?.focusPriorityByMetric ??
+        const <RunningCoachMetric, int>{};
     final strengths = [
       for (final detail in insightDetails)
         if (detail.insight.status == RunningCoachStatus.good) detail,
@@ -193,6 +196,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
         if (detail.insight.status != RunningCoachStatus.good) detail,
     ];
     final panelTitle = _panelTitle(l10n);
+    final showGuideOverlay = _coachingState.framingIssue != null;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -204,13 +208,14 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
             ),
           ),
         ),
-        Positioned.fill(
-          child: IgnorePointer(
-            child: CustomPaint(
-              painter: _GuideFramePainter(color: statusTheme.color),
+        if (showGuideOverlay)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _GuideFramePainter(color: statusTheme.color),
+              ),
             ),
           ),
-        ),
         Positioned.fill(
           child: SafeArea(
             child: Padding(
@@ -273,6 +278,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                             speechLabel: speechLabel,
                             diagnosis: diagnosis,
                             actionTip: actionTip,
+                            metricScores: insightDetails,
+                            focusPriorities: focusPriorities,
                             strengths: strengths,
                             needsWork: needsWork,
                           ),
@@ -699,7 +706,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
       return const [];
     }
     return [
-      for (final insight in report.insights)
+      for (final insight in report.rankedInsights)
         _LiveInsightData(
           insight: insight,
           copy: RunningCoachInsightCopy.fromInsight(insight, l10n),
@@ -1063,6 +1070,8 @@ class _ScoreExplanationPanel extends StatelessWidget {
   final String speechLabel;
   final String diagnosis;
   final String actionTip;
+  final List<_LiveInsightData> metricScores;
+  final Map<RunningCoachMetric, int> focusPriorities;
   final List<_LiveInsightData> strengths;
   final List<_LiveInsightData> needsWork;
 
@@ -1073,6 +1082,8 @@ class _ScoreExplanationPanel extends StatelessWidget {
     required this.speechLabel,
     required this.diagnosis,
     required this.actionTip,
+    required this.metricScores,
+    required this.focusPriorities,
     required this.strengths,
     required this.needsWork,
   });
@@ -1124,6 +1135,22 @@ class _ScoreExplanationPanel extends StatelessWidget {
                   _InfoChip(text: speechLabel),
                 ],
               ),
+              if (metricScores.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _PanelSectionTitle(text: l10n.runningCoachMetricScoresTitle),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final metricScore in metricScores)
+                      _CompactMetricScoreCard(
+                        data: metricScore,
+                        priority: focusPriorities[metricScore.insight.metric],
+                      ),
+                  ],
+                ),
+              ],
               if (diagnosis.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 _CueDetailLine(
@@ -1142,16 +1169,19 @@ class _ScoreExplanationPanel extends StatelessWidget {
               ],
               if (needsWork.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _PanelSectionTitle(text: l10n.runningCoachStatusNeedsWork),
+                _PanelSectionTitle(text: l10n.runningCoachFocusTitle),
                 const SizedBox(height: 8),
                 for (var index = 0; index < needsWork.length; index += 1) ...[
-                  _LiveInsightCard(data: needsWork[index]),
+                  _LiveInsightCard(
+                    data: needsWork[index],
+                    priority: focusPriorities[needsWork[index].insight.metric],
+                  ),
                   if (index != needsWork.length - 1) const SizedBox(height: 10),
                 ],
               ],
               if (strengths.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _PanelSectionTitle(text: l10n.runningCoachStatusGood),
+                _PanelSectionTitle(text: l10n.runningCoachMaintainTitle),
                 const SizedBox(height: 8),
                 for (var index = 0; index < strengths.length; index += 1) ...[
                   _LiveInsightCard(data: strengths[index]),
@@ -1185,8 +1215,9 @@ class _PanelSectionTitle extends StatelessWidget {
 
 class _LiveInsightCard extends StatelessWidget {
   final _LiveInsightData data;
+  final int? priority;
 
-  const _LiveInsightCard({required this.data});
+  const _LiveInsightCard({required this.data, this.priority});
 
   @override
   Widget build(BuildContext context) {
@@ -1206,19 +1237,21 @@ class _LiveInsightCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Text(
+              data.copy.title,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                Expanded(
-                  child: Text(
-                    data.copy.title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
+                if (priority != null)
+                  _PriorityBadge(priority: priority!, accent: accent),
+                _ScoreBadge(score: data.insight.score, accent: accent),
                 _StatusBadge(text: data.copy.statusLabel, accent: accent),
               ],
             ),
@@ -1254,6 +1287,78 @@ class _LiveInsightCard extends StatelessWidget {
   }
 }
 
+class _CompactMetricScoreCard extends StatelessWidget {
+  final _LiveInsightData data;
+  final int? priority;
+
+  const _CompactMetricScoreCard({required this.data, this.priority});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = switch (data.insight.status) {
+      RunningCoachStatus.good => const Color(0xFF8BC34A),
+      RunningCoachStatus.watch => const Color(0xFFFFB74D),
+      RunningCoachStatus.needsWork => const Color(0xFFFF8A65),
+    };
+
+    return SizedBox(
+      width: 148,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(8),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: accent.withAlpha(110)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                data.copy.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (priority != null)
+                    _PriorityBadge(priority: priority!, accent: accent),
+                  _ScoreBadge(score: data.insight.score, accent: accent),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: data.insight.score / 100,
+                  minHeight: 6,
+                  color: accent,
+                  backgroundColor: Colors.white12,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                data.copy.value,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StatusBadge extends StatelessWidget {
   final String text;
   final Color accent;
@@ -1273,6 +1378,63 @@ class _StatusBadge extends StatelessWidget {
           text,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: accent,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PriorityBadge extends StatelessWidget {
+  final int priority;
+  final Color accent;
+
+  const _PriorityBadge({required this.priority, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: accent.withAlpha(24),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: accent.withAlpha(80)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          l10n.runningCoachPriorityLabel(priority),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: accent,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreBadge extends StatelessWidget {
+  final int score;
+  final Color accent;
+
+  const _ScoreBadge({required this.score, required this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Text(
+          l10n.runningCoachMetricScore(score),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: Colors.white,
             fontWeight: FontWeight.w800,
           ),
         ),
