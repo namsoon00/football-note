@@ -3142,7 +3142,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyParentAutoSyncDescription =>
-      '부모 모드에서는 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
+      '부모 모드에서는 훈련 피드백과 레벨 선물 이름만 자동 동기화합니다. 선수 기록 백업과 복원은 선수 모드에서 진행해 주세요.';
 
   @override
   String get familyChildDriveConnectionTitle => '선수 Google Drive 연결';
@@ -3193,7 +3193,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyPolicyParentWritesOnly =>
-      '부모 모드는 피드백과 레벨 선물 이름만 저장할 수 있습니다.';
+      '부모 모드는 훈련 피드백과 레벨 선물 이름만 저장할 수 있습니다.';
 
   @override
   String get familyPolicyParentSeedRequired =>
@@ -3255,18 +3255,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyParentUsesChildDriveHint =>
-      '부모 모드에서는 선수 Google Drive 계정으로 로그인하면 같은 선수 백업 파일에 피드백과 선물 이름을 동기화할 수 있어요.';
+      '부모 모드에서는 선수 Google Drive 계정으로 로그인하면 같은 선수 백업 파일에 훈련 피드백과 선물 이름을 동기화할 수 있어요.';
 
   @override
   String get familyParentUsesChildDriveWarning =>
-      '부모 모드에서는 선수 Google Drive 계정으로 연결해야 같은 선수 백업 파일에 안전하게 동기화할 수 있어요.';
+      '부모 모드에서는 선수 Google Drive 계정으로 연결해야 같은 선수 백업 파일에 훈련 피드백과 선물 이름을 안전하게 동기화할 수 있어요.';
 
   @override
   String get familySharedSyncTitle => '부모/선수 공유 동기화';
 
   @override
   String get familySharedSyncDescription =>
-      '부모 모드에서 저장하는 피드백과 선물 이름은 자동으로 같은 선수 백업 파일에 반영됩니다.';
+      '부모 모드에서 저장하는 훈련 피드백과 선물 이름은 자동으로 같은 선수 백업 파일에 반영됩니다.';
 
   @override
   String get familySharedLastSync => '최근 부모/선수 공유 동기화';
@@ -3318,14 +3318,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get parentReadOnlyProfileDescription =>
-      '부모 모드에서는 프로필이 읽기 전용입니다. 피드백은 부모/선수 공유에서, 레벨 선물 입력은 레벨 가이드에서 진행해 주세요.';
+      '부모 모드에서는 프로필이 읽기 전용입니다. 훈련 피드백은 훈련기록에서, 레벨 선물 입력은 레벨 가이드에서 진행해 주세요.';
 
   @override
   String get parentReadOnlyEntryTitle => '부모 모드에서는 훈련 노트를 수정할 수 없어요.';
 
   @override
   String get parentReadOnlyEntryBody =>
-      '훈련, 식사, 다이어리 같은 핵심 기록은 선수 모드에서 작성해 주세요. 부모 모드는 부모/선수 공유와 선물 입력만 저장합니다.';
+      '훈련, 식사, 다이어리 같은 핵심 기록은 선수 모드에서 작성해 주세요. 부모 모드에서는 기록 원본은 건드리지 않고 부모 피드백과 선물 입력만 따로 저장합니다.';
+
+  @override
+  String get parentReadOnlyLogsBanner =>
+      '부모 모드에서는 훈련기록을 삭제하지 않아요. 기록을 열어 부모 피드백을 남겨보세요.';
+
+  @override
+  String get parentReadOnlyLogsMessage => '부모 모드에서는 훈련기록을 삭제할 수 없어요.';
 
   @override
   String get parentReadOnlyMealLog =>
@@ -3356,6 +3363,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String get parentReadOnlySketchMessage => '부모 모드에서는 훈련 스케치를 수정할 수 없어요.';
 
   @override
+  String get parentFeedbackSectionTitle => '부모 피드백';
+
+  @override
+  String get parentFeedbackHelper =>
+      '훈련 기록 원본은 수정하지 않고, 이 훈련에 대한 부모 피드백만 따로 저장합니다.';
+
+  @override
+  String get parentFeedbackReadOnlyHint => '부모가 이 훈련기록에 남긴 피드백입니다.';
+
+  @override
+  String get parentFeedbackInputLabel => '부모 피드백 입력';
+
+  @override
+  String get parentFeedbackInputHint => '오늘 훈련에서 칭찬하고 싶은 점이나 다음에 챙길 점을 남겨보세요.';
+
+  @override
+  String get parentFeedbackSave => '피드백 저장';
+
+  @override
+  String get parentFeedbackClear => '지우기';
+
+  @override
+  String get parentFeedbackSaved => '부모 피드백을 저장했어요.';
+
+  @override
+  String get parentFeedbackCleared => '부모 피드백을 지웠어요.';
+
+  @override
+  String get parentFeedbackEmpty => '아직 부모 피드백이 없어요.';
+
+  @override
+  String get parentSharedSyncDone => '선수 Drive에도 동기화했어요.';
+
+  @override
+  String get parentSharedSyncPending => 'Drive 연결 후 같은 선수 백업 파일로 자동 동기화됩니다.';
+
+  @override
   String get levelGuideParentModeLabel => '부모 모드';
 
   @override
@@ -3363,7 +3407,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get levelGuideParentModeDescription =>
-      '부모 모드에서는 레벨 선물 이름만 저장할 수 있고, 선물 수령은 선수 모드에서 진행합니다.';
+      '부모 모드에서는 레벨 선물 이름만 저장할 수 있고, 저장한 선물 이름은 선수 Drive 공유에도 반영됩니다. 선물 수령은 선수 모드에서 진행합니다.';
 
   @override
   String get levelGuideChildModeDescription =>
@@ -3371,6 +3415,20 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get levelGuideClaimChildOnly => '선수 모드에서 수령';
+
+  @override
+  String get levelGuideRewardFallbackName => '선물';
+
+  @override
+  String levelGuideRewardClaimed(Object rewardName) {
+    return '$rewardName 선물을 받았어요.';
+  }
+
+  @override
+  String get levelGuideRewardSaved => '레벨 선물을 저장했어요.';
+
+  @override
+  String get levelGuideRewardCleared => '레벨 선물을 지웠어요.';
 
   @override
   String get trainingSketchControlsPanel => '도구와 선택';

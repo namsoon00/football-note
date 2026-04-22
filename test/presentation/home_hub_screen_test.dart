@@ -90,6 +90,85 @@ void main() {
     expect(find.byType(TrainingMethodBoardScreen), findsOneWidget);
     expect(find.text('오늘 스케치'), findsWidgets);
   });
+
+  testWidgets('training streak flow shows short weekday labels', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {},
+          onEditTrainingBoard: (_) {},
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await trainingService.add(
+      TrainingEntry(
+        date: today,
+        createdAt: today.add(const Duration(hours: 7)),
+        durationMinutes: 60,
+        intensity: 4,
+        type: '패스',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '메인 구장',
+      ),
+    );
+    await trainingService.add(
+      TrainingEntry(
+        date: today.subtract(const Duration(days: 1)),
+        createdAt: today
+            .subtract(const Duration(days: 1))
+            .add(const Duration(hours: 7)),
+        durationMinutes: 55,
+        intensity: 3,
+        type: '드리블',
+        mood: 4,
+        injury: false,
+        notes: '',
+        location: '보조 구장',
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    for (var i = 0; i < 5; i++) {
+      final day = today.subtract(Duration(days: 4 - i));
+      final labelFinder = find.byKey(ValueKey('streak-weekday-${day.weekday}'));
+      expect(labelFinder, findsOneWidget);
+      final widget = tester.widget<Text>(labelFinder);
+      expect(widget.data, isNotEmpty);
+      expect(widget.data!.length, lessThanOrEqualTo(3));
+    }
+  });
 }
 
 Widget _buildApp(Widget home) {

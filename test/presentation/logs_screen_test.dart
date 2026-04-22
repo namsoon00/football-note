@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
@@ -239,5 +240,60 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('빠른 시작 가이드'), findsNothing);
+  });
+
+  testWidgets('parent mode logs screen hides delete affordances and add FAB', (
+    WidgetTester tester,
+  ) async {
+    await box.clear();
+    await optionBox.clear();
+    await optionBox.put(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 4),
+        durationMinutes: 55,
+        intensity: 3,
+        type: '패스',
+        mood: 4,
+        injury: false,
+        notes: '부모 모드 확인',
+        location: '학교 운동장',
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: LogsScreen(
+            trainingService: service,
+            localeService: localeService,
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+            onEdit: (_) {},
+            onCreate: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('부모 모드에서는 훈련기록을 삭제하지 않아요. 기록을 열어 부모 피드백을 남겨보세요.'),
+      findsOneWidget,
+    );
+    expect(find.byType(Dismissible), findsNothing);
+    expect(find.byType(FloatingActionButton), findsNothing);
   });
 }
