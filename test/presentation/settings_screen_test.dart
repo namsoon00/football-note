@@ -95,7 +95,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('부모 모드 활성화'), findsOneWidget);
+      expect(find.text('역할 선택'), findsOneWidget);
       expect(find.text('선수 Google Drive 연결'), findsOneWidget);
       expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
@@ -103,8 +103,8 @@ void main() {
       expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
       expect(find.text('선수 기록 복원'), findsOneWidget);
       expect(find.text('이전 선수 기록으로 되돌리기'), findsNothing);
-      expect(find.text('최근 부모/선수 공유 반영'), findsOneWidget);
-      expect(find.text('최근 부모/선수 공유 새로고침'), findsOneWidget);
+      expect(find.text('최근 공유 역할/선수 공유 반영'), findsOneWidget);
+      expect(find.text('최근 공유 역할/선수 공유 새로고침'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
       expect(find.text('Google Drive 백업'), findsNothing);
       expect(find.text('로그아웃'), findsNothing);
@@ -145,13 +145,13 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('부모 모드 활성화'),
+      find.text('역할 선택'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('부모 모드 활성화'));
+    await tester.tap(find.text('부모'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('선수 Google Drive 연결'),
@@ -290,17 +290,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('저장된 부모 모드 Drive'), findsOneWidget);
+      expect(find.text('저장된 공유 역할 Drive'), findsOneWidget);
       expect(find.text('아빠 · parent@example.com'), findsOneWidget);
-      expect(find.text('저장된 부모 Drive 연결'), findsOneWidget);
+      expect(find.text('저장된 공유 역할 Drive 연결'), findsOneWidget);
       expect(find.text('공유 대상 선수 Drive'), findsOneWidget);
       expect(find.text('민수 · child@example.com'), findsOneWidget);
-      expect(find.text('최근 부모/선수 공유 반영'), findsOneWidget);
-      expect(find.text('최근 부모/선수 공유 새로고침'), findsOneWidget);
+      expect(find.text('최근 공유 역할/선수 공유 반영'), findsOneWidget);
+      expect(find.text('최근 공유 역할/선수 공유 새로고침'), findsOneWidget);
       expect(
-        find.text(
-          '아직 원격에 반영하지 못한 부모 모드 로컬 변경이 있어 부모/선수 공유 자동 새로고침을 잠시 보류하고 있어요.',
-        ),
+        find.text('아직 원격에 반영하지 못한 공유 역할 로컬 변경이 있어 공유 자동 새로고침을 잠시 보류하고 있어요.'),
         findsOneWidget,
       );
     },
@@ -345,13 +343,13 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('부모 모드 활성화'),
+        find.text('역할 선택'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('부모 모드 활성화'));
+      await tester.tap(find.text('선수'));
       await tester.pumpAndSettle();
 
       expect(backupService.signOutCalled, isTrue);

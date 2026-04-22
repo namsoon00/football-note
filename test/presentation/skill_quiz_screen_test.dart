@@ -514,7 +514,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('부모 모드에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 선수 모드에서만 쌓입니다.'),
+      find.text('공유 역할에서는 퀴즈를 진행하지 않아요. 퀴즈 기록과 경험치는 선수 모드에서만 쌓입니다.'),
       findsOneWidget,
     );
     expect(find.text('오늘의 문제'), findsOneWidget);

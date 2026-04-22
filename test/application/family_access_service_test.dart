@@ -45,6 +45,12 @@ void main() {
       );
       expect(
         FamilyAccessService.isSharedBackupOptionKey(
+          FamilyAccessService.linkedRoleKey,
+        ),
+        isTrue,
+      );
+      expect(
+        FamilyAccessService.isSharedBackupOptionKey(
           'player_custom_reward_names_v1',
         ),
         isTrue,
@@ -61,6 +67,22 @@ void main() {
         ),
         isFalse,
       );
+    },
+  );
+
+  test(
+    'coach role is loaded as support role and becomes linked role',
+    () async {
+      final repository = _MemoryOptionRepository();
+      final service = FamilyAccessService(repository);
+
+      await service.setCurrentRole(FamilyRole.coach);
+
+      final state = service.loadState();
+      expect(state.currentRole, FamilyRole.coach);
+      expect(state.linkedRole, FamilyRole.coach);
+      expect(state.isSupportMode, isTrue);
+      expect(service.canEditRewardNames(FamilyRole.coach), isTrue);
     },
   );
 }

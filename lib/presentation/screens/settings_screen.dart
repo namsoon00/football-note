@@ -556,16 +556,47 @@ class _SettingsScreenState extends State<SettingsScreen>
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.familyParentModeEnabled),
-                subtitle: Text(l10n.familyParentModeDescription),
-                value: familyState.isParentMode,
-                onChanged: (enabled) {
-                  _updateFamilyRole(
-                    enabled ? FamilyRole.parent : FamilyRole.child,
-                  );
-                },
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.familyRoleSelectionTitle,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.familyRoleSelectionDescription,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: FamilyRole.values
+                          .map((role) {
+                            final selected = familyState.currentRole == role;
+                            return ChoiceChip(
+                              label: Text(_familyRoleLabel(l10n, role)),
+                              selected: selected,
+                              onSelected: (_) {
+                                if (selected) return;
+                                unawaited(_updateFamilyRole(role));
+                              },
+                            );
+                          })
+                          .toList(growable: false),
+                    ),
+                  ],
+                ),
               ),
               if (widget.driveBackupService != null &&
                   familyState.isParentMode) ...[
@@ -1519,17 +1550,16 @@ class _SettingsScreenState extends State<SettingsScreen>
     final familyService = FamilyAccessService(widget.optionRepository);
     final currentState = familyService.loadState();
     if (widget.driveBackupService != null && _signedIn) {
-      if (currentState.currentRole == FamilyRole.child &&
-          role == FamilyRole.parent) {
+      if (currentState.isChildMode && FamilyAccessService.isSupportRole(role)) {
         await widget.driveBackupService!.rememberRecordDriveConnection();
-      } else if (currentState.currentRole == FamilyRole.parent &&
-          role == FamilyRole.child) {
+      } else if (currentState.isSupportMode && role == FamilyRole.child) {
         await widget.driveBackupService!.rememberParentDriveConnection();
         await widget.driveBackupService!.signOut();
       }
     }
     await familyService.setCurrentRole(role);
-    if (widget.driveBackupService != null && role == FamilyRole.parent) {
+    if (widget.driveBackupService != null &&
+        FamilyAccessService.isSupportRole(role)) {
       await _refreshParentSharedDataIfNeeded();
     }
     await _refreshSignInState();
@@ -1539,13 +1569,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          role == FamilyRole.parent
-              ? l10n.familyRoleParentActivated
-              : l10n.familyRoleChildActivated,
-        ),
+        content: Text(l10n.familyRoleActivated(_familyRoleLabel(l10n, role))),
       ),
     );
+  }
+
+  String _familyRoleLabel(AppLocalizations l10n, FamilyRole role) {
+    return switch (role) {
+      FamilyRole.child => l10n.familyRolePlayer,
+      FamilyRole.parent => l10n.familyRoleParent,
+      FamilyRole.coach => l10n.familyRoleCoach,
+    };
   }
 
   String _normalizeDomain(String input) {

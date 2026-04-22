@@ -508,6 +508,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     return _formSnapshot() != _initialSnapshot || _hasUnsavedParentFeedback;
   }
 
+  bool get _isReadOnlyMode {
+    return FamilyAccessService(
+      widget.optionRepository,
+    ).loadState().isParentMode;
+  }
+
   bool get _hasUnsavedParentFeedback {
     return _canEditParentFeedback &&
         _parentFeedbackController.text.trim() != _savedParentFeedback.trim();
@@ -1291,34 +1297,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final isParentMode = FamilyAccessService(
       widget.optionRepository,
     ).loadState().isParentMode;
-    final isReadOnly = isParentMode && isEdit;
-    if (isParentMode && !isEdit) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(title: Text(isEdit ? l10n.editEntry : l10n.addEntry)),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: WatchCartCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    l10n.parentReadOnlyEntryTitle,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(l10n.parentReadOnlyEntryBody),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
+    final isReadOnly = isParentMode;
     final weatherStatusText = _weatherLoading
         ? (isKo ? '날씨 불러오는 중...' : 'Loading weather...')
         : _weatherSummary.trim().isNotEmpty
@@ -1461,54 +1440,52 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                           _savedParentFeedback.trim().isNotEmpty)
                         const SizedBox(height: 12),
                     ],
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
+                            textAlign: TextAlign.left,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                            softWrap: true,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _buildFeatureActionButton(
+                              icon: _fortuneEnabled
+                                  ? Icons.auto_awesome
+                                  : Icons.auto_awesome_outlined,
+                              label: isKo ? '오늘의 운세' : 'Today fortune',
+                              active: _fortuneEnabled,
+                              onPressed: () =>
+                                  unawaited(_handleFortuneButtonPressed()),
+                            ),
+                            _buildFeatureActionButton(
+                              icon: _linkedBoardIds.isNotEmpty
+                                  ? Icons.developer_board
+                                  : Icons.developer_board_outlined,
+                              label: isKo ? '훈련 스케치' : 'Training sketch',
+                              active: _linkedBoardIds.isNotEmpty,
+                              onPressed: _openTrainingBoardEditor,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     AbsorbPointer(
                       absorbing: isReadOnly,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${l10n.entryHeadline1} ${l10n.entryHeadline2}',
-                                  textAlign: TextAlign.left,
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                  softWrap: true,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [
-                                  _buildFeatureActionButton(
-                                    icon: _fortuneEnabled
-                                        ? Icons.auto_awesome
-                                        : Icons.auto_awesome_outlined,
-                                    label: isKo ? '오늘의 운세' : 'Today fortune',
-                                    active: _fortuneEnabled,
-                                    onPressed: () => unawaited(
-                                      _handleFortuneButtonPressed(),
-                                    ),
-                                  ),
-                                  _buildFeatureActionButton(
-                                    icon: _linkedBoardIds.isNotEmpty
-                                        ? Icons.developer_board
-                                        : Icons.developer_board_outlined,
-                                    label: isKo ? '훈련 스케치' : 'Training sketch',
-                                    active: _linkedBoardIds.isNotEmpty,
-                                    onPressed: _openTrainingBoardEditor,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
                           const SizedBox(height: 4),
                           WatchCartCard(
                             child: Column(
@@ -2732,7 +2709,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   Future<void> _handleFortuneButtonPressed() async {
     if (!mounted || _disposing) return;
     FocusScope.of(context).unfocus();
-    if (!_fortuneEnabled) {
+    if (!_fortuneEnabled && !_isReadOnlyMode) {
       setState(() => _fortuneEnabled = true);
       _scheduleAutoSave();
     }
@@ -2748,10 +2725,16 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
   }
 
   Future<void> _showTodayFortuneInNote({bool forceShow = false}) async {
-    if (!_fortuneEnabled && !forceShow) return;
+    if (!_fortuneEnabled && !forceShow && !_isReadOnlyMode) return;
     if (!mounted || _disposing) return;
     if (_cachedFortuneComment.trim().isNotEmpty) {
       await _showFortuneRevealDialog(_cachedFortuneComment);
+      return;
+    }
+    if (_isReadOnlyMode && widget.entry != null) {
+      _showWeatherSnack(
+        AppLocalizations.of(context)!.parentReadOnlyFortuneEmpty,
+      );
       return;
     }
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
@@ -2824,6 +2807,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
     final recentBoardId =
         widget.optionRepository.getValue<String>(_recentBoardIdKey) ?? '';
     final hasRecentBoard = allBoards.any((board) => board.id == recentBoardId);
+    final isReadOnly = _isReadOnlyMode;
     final selectedIds = await Navigator.of(context).push<List<String>>(
       AppPageRoute(
         builder: (_) => TrainingMethodBoardScreen(
@@ -2836,10 +2820,11 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
               : (hasRecentBoard
                     ? recentBoardId
                     : (allBoards.isNotEmpty ? allBoards.first.id : null)),
+          readOnly: isReadOnly,
         ),
       ),
     );
-    if (!mounted || selectedIds == null) return;
+    if (!mounted || selectedIds == null || isReadOnly) return;
     if (!mounted) return;
     setState(() {
       _linkedBoardIds
@@ -2858,6 +2843,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   void _scheduleAutoSave() {
     if (widget.entry == null) return;
+    if (_isReadOnlyMode) return;
     if (_saveInProgress) return;
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer(const Duration(milliseconds: 700), () {
@@ -2868,6 +2854,7 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
 
   Future<void> _save({bool popAfterSave = true, bool silent = false}) async {
     if (!mounted || _disposing) return;
+    if (_isReadOnlyMode) return;
     if (_saveInProgress) return;
     if (_autoSaving) return;
     if (!(_formKey.currentState?.validate() ?? false)) {

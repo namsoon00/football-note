@@ -22,6 +22,7 @@ class TrainingMethodBoardScreen extends StatefulWidget {
   final OptionRepository? optionRepository;
   final List<String> initialSelectedBoardIds;
   final String? initialBoardId;
+  final bool readOnly;
 
   const TrainingMethodBoardScreen({
     super.key,
@@ -32,6 +33,7 @@ class TrainingMethodBoardScreen extends StatefulWidget {
     this.optionRepository,
     this.initialSelectedBoardIds = const <String>[],
     this.initialBoardId,
+    this.readOnly = false,
   });
 
   @override
@@ -104,13 +106,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _methodController.text = _currentPage.methodText;
     _lastSavedLayout = _serialize();
     _syncCurrentPageRouteColors();
-    if (_shouldPromptInitialBoardName) {
+    if (_shouldPromptInitialBoardName && !widget.readOnly) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _promptForInitialBoardName();
       });
     }
-    if (_isManagedMode && _currentBoardId == null) {
+    if (_isManagedMode && _currentBoardId == null && !widget.readOnly) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         _promptForManagedBoardCreation(isInitialFlow: true);
@@ -121,8 +123,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   void _restoreStandaloneBoard() {
     final layout = TrainingMethodLayout.decode(widget.initialLayoutJson);
     final page = layout.pages.isEmpty ? null : layout.pages.first;
-    final defaultBoardName =
-        widget.boardTitle.trim().isEmpty ? 'Board 1' : widget.boardTitle.trim();
+    final defaultBoardName = widget.boardTitle.trim().isEmpty
+        ? 'Board 1'
+        : widget.boardTitle.trim();
     _pages = <_BoardPageState>[
       _BoardPageState(
         name: page == null
@@ -193,13 +196,14 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final requestedId = widget.initialBoardId?.trim();
     final initialBoard =
         _firstWhereOrNull(linkedBoards, (board) => board.id == requestedId) ??
-            linkedBoards.first;
+        linkedBoards.first;
     _loadBoard(initialBoard);
   }
 
   _BoardPageState _emptyBoardPage(String fallbackTitle) {
-    final title =
-        fallbackTitle.trim().isEmpty ? 'Board 1' : fallbackTitle.trim();
+    final title = fallbackTitle.trim().isEmpty
+        ? 'Board 1'
+        : fallbackTitle.trim();
     return _BoardPageState(
       name: title,
       methodText: '',
@@ -374,13 +378,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedBoardIds.add(created.id);
       _loadBoard(created);
     });
-    final award =
-        await PlayerLevelService(widget.optionRepository!).awardForBoardSaved(
-      boardId: created.id,
-      boardTitle: created.title,
-      savedAt: created.updatedAt,
-      created: true,
-    );
+    final award = await PlayerLevelService(widget.optionRepository!)
+        .awardForBoardSaved(
+          boardId: created.id,
+          boardTitle: created.title,
+          savedAt: created.updatedAt,
+          created: true,
+        );
     await TrainingPlanReminderService(
       widget.optionRepository!,
       SettingsService(widget.optionRepository!)..load(),
@@ -564,8 +568,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     Set<String> excludedItemIds = const <String>{},
     bool allowExcludedFallback = false,
   }) {
-    final preferred =
-        preferredItemId == null ? null : _itemById(preferredItemId);
+    final preferred = preferredItemId == null
+        ? null
+        : _itemById(preferredItemId);
     if (preferred != null &&
         preferred.type == _boardItemTypeForRouteKind(kind)) {
       return preferred;
@@ -696,8 +701,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final sameTypeItems = _currentPage.items
         .where((item) => item.type == type)
         .toList(growable: false);
-    final usedColors =
-        sameTypeItems.map((item) => item.color.toARGB32()).toSet();
+    final usedColors = sameTypeItems
+        .map((item) => item.color.toARGB32())
+        .toSet();
     for (var i = 0; i < palette.length; i++) {
       final color = palette[(sameTypeItems.length + i) % palette.length];
       if (!usedColors.contains(color.toARGB32())) {
@@ -900,6 +906,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<bool> _saveBoard(bool isKo, {bool showFeedback = true}) async {
+    if (widget.readOnly) return false;
     if (mounted) {
       setState(_normalizeCurrentPageRoutes);
     } else {
@@ -974,19 +981,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          children: linkedBoards.map((board) {
-            final isCurrent = board.id == _currentBoardId;
-            return ListTile(
-              leading: Icon(
-                isCurrent
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_off_outlined,
-              ),
-              title: Text(board.title),
-              trailing: isCurrent ? const Icon(Icons.check) : null,
-              onTap: () => Navigator.of(context).pop(board),
-            );
-          }).toList(growable: false),
+          children: linkedBoards
+              .map((board) {
+                final isCurrent = board.id == _currentBoardId;
+                return ListTile(
+                  leading: Icon(
+                    isCurrent
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off_outlined,
+                  ),
+                  title: Text(board.title),
+                  trailing: isCurrent ? const Icon(Icons.check) : null,
+                  onTap: () => Navigator.of(context).pop(board),
+                );
+              })
+              .toList(growable: false),
         ),
       ),
     );
@@ -1231,35 +1240,39 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                      children: layout.pages.asMap().entries.map((entry) {
-                        final pageIndex = entry.key;
-                        final page = entry.value;
-                        final boardName = page.name.trim().isEmpty
-                            ? 'Board ${pageIndex + 1}'
-                            : page.name.trim();
-                        final memo = page.methodText.trim();
-                        return ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.content_paste_outlined),
-                          title: Text(boardName),
-                          subtitle: memo.isEmpty
-                              ? null
-                              : Text(
-                                  memo,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.of(context).pop(
-                              _PresetBoardSelection(
-                                preset: preset,
-                                page: page,
-                              ),
+                      children: layout.pages
+                          .asMap()
+                          .entries
+                          .map((entry) {
+                            final pageIndex = entry.key;
+                            final page = entry.value;
+                            final boardName = page.name.trim().isEmpty
+                                ? 'Board ${pageIndex + 1}'
+                                : page.name.trim();
+                            final memo = page.methodText.trim();
+                            return ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.content_paste_outlined),
+                              title: Text(boardName),
+                              subtitle: memo.isEmpty
+                                  ? null
+                                  : Text(
+                                      memo,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                Navigator.of(context).pop(
+                                  _PresetBoardSelection(
+                                    preset: preset,
+                                    page: page,
+                                  ),
+                                );
+                              },
                             );
-                          },
-                        );
-                      }).toList(growable: false),
+                          })
+                          .toList(growable: false),
                     );
                   },
                 ),
@@ -1306,18 +1319,20 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          children: copyCandidates.map((board) {
-            return ListTile(
-              leading: const Icon(Icons.copy_all_outlined),
-              title: Text(board.title),
-              subtitle: Text(
-                isKo
-                    ? '업데이트 ${board.updatedAt.month}.${board.updatedAt.day}'
-                    : 'Updated ${board.updatedAt.month}/${board.updatedAt.day}',
-              ),
-              onTap: () => Navigator.of(context).pop(board),
-            );
-          }).toList(growable: false),
+          children: copyCandidates
+              .map((board) {
+                return ListTile(
+                  leading: const Icon(Icons.copy_all_outlined),
+                  title: Text(board.title),
+                  subtitle: Text(
+                    isKo
+                        ? '업데이트 ${board.updatedAt.month}.${board.updatedAt.day}'
+                        : 'Updated ${board.updatedAt.month}/${board.updatedAt.day}',
+                  ),
+                  onTap: () => Navigator.of(context).pop(board),
+                );
+              })
+              .toList(growable: false),
         ),
       ),
     );
@@ -1341,13 +1356,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedBoardIds.add(created.id);
       _loadBoard(created);
     });
-    final award =
-        await PlayerLevelService(widget.optionRepository!).awardForBoardSaved(
-      boardId: created.id,
-      boardTitle: created.title,
-      savedAt: created.updatedAt,
-      created: true,
-    );
+    final award = await PlayerLevelService(widget.optionRepository!)
+        .awardForBoardSaved(
+          boardId: created.id,
+          boardTitle: created.title,
+          savedAt: created.updatedAt,
+          created: true,
+        );
     await TrainingPlanReminderService(
       widget.optionRepository!,
       SettingsService(widget.optionRepository!)..load(),
@@ -1378,6 +1393,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<bool> _shouldPopOnSystemBack(bool isKo) async {
+    if (widget.readOnly) {
+      return true;
+    }
     if (!_hasUnsavedChanges) {
       return true;
     }
@@ -1475,8 +1493,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     final selectedItem = _selectedItem;
     final preferredItemId =
         selectedItem?.type == _boardItemTypeForRouteKind(_pathDrawMode)
-            ? selectedItem?.id
-            : replacementRoute?.linkedItemId;
+        ? selectedItem?.id
+        : replacementRoute?.linkedItemId;
     final resolvedLinkedItem = _resolveRouteItem(
       kind: _pathDrawMode,
       points: points,
@@ -1710,7 +1728,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _pathDrawMode = leadTrack.route.kind;
     });
     _playController.duration = Duration(
-      milliseconds: ((maxDistance * 2400).round()).clamp(700, 3600) ~/
+      milliseconds:
+          ((maxDistance * 2400).round()).clamp(700, 3600) ~/
           _playSpeed.clamp(0.75, 1.5),
     );
     _playController
@@ -1769,8 +1788,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Future<void> _toggleMemoListening(bool isKo) async {
-    final localeId =
-        Localizations.localeOf(context).languageCode == 'ko' ? 'ko_KR' : null;
+    final localeId = Localizations.localeOf(context).languageCode == 'ko'
+        ? 'ko_KR'
+        : null;
     if (_isListeningMemo) {
       _memoSession++;
       final recognized = _memoRecognizedWords;
@@ -1869,7 +1889,8 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _memoCommitted = true;
       return;
     }
-    final needsSpacing = !isKoreanLocale &&
+    final needsSpacing =
+        !isKoreanLocale &&
         currentText.isNotEmpty &&
         !RegExp(r'\s$').hasMatch(currentText);
     final separator = needsSpacing ? ' ' : '';
@@ -1962,11 +1983,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                         context,
                       ).backButtonTooltip,
                     ),
-                    TextButton.icon(
-                      onPressed: () => _saveBoard(isKo),
-                      icon: const Icon(Icons.save_outlined),
-                      label: Text(_l10n.save),
-                    ),
+                    if (!widget.readOnly)
+                      TextButton.icon(
+                        onPressed: () => _saveBoard(isKo),
+                        icon: const Icon(Icons.save_outlined),
+                        label: Text(_l10n.save),
+                      ),
                   ],
                 ),
                 actions: [
@@ -2057,18 +2079,23 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           ),
           const SizedBox(height: 8),
           Expanded(child: _buildBoardCanvas()),
-          const SizedBox(height: 8),
-          _buildPortraitToolStrip(isKo),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: !_showPortraitInspector
-                ? const SizedBox.shrink()
-                : Padding(
-                    key: const ValueKey('training-portrait-inspector-panel'),
-                    padding: const EdgeInsets.only(top: 8),
-                    child: _buildPortraitInspectorPanel(isKo),
-                  ),
-          ),
+          if (!widget.readOnly) ...[
+            const SizedBox(height: 8),
+            _buildPortraitToolStrip(isKo),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: !_showPortraitInspector
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      key: const ValueKey('training-portrait-inspector-panel'),
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _buildPortraitInspectorPanel(isKo),
+                    ),
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            _buildReadOnlyInfoPanel(),
+          ],
         ],
       ),
     );
@@ -2135,11 +2162,12 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: const Icon(Icons.arrow_back),
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           ),
-          TextButton.icon(
-            onPressed: () => _saveBoard(isKo),
-            icon: const Icon(Icons.save_outlined),
-            label: Text(_l10n.save),
-          ),
+          if (!widget.readOnly)
+            TextButton.icon(
+              onPressed: () => _saveBoard(isKo),
+              icon: const Icon(Icons.save_outlined),
+              label: Text(_l10n.save),
+            ),
           const SizedBox(width: 4),
           Expanded(child: _buildAppBarTitle(isKo)),
           IconButton(
@@ -2211,6 +2239,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Widget _buildLandscapeControlPanel(bool isKo) {
+    if (widget.readOnly) {
+      return _buildReadOnlyInfoPanel();
+    }
     return Container(
       key: const ValueKey('training-landscape-control-panel'),
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -2322,25 +2353,31 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           child: GestureDetector(
             key: const ValueKey('training-board-canvas'),
             behavior: HitTestBehavior.opaque,
-            onPanStart: _penMode
+            onPanStart: widget.readOnly
+                ? null
+                : _penMode
                 ? (details) =>
-                    _startStroke(details.localPosition, width, height)
+                      _startStroke(details.localPosition, width, height)
                 : _pathMode
-                    ? (details) =>
-                        _startPlayerPath(details.localPosition, width, height)
-                    : null,
-            onPanUpdate: _penMode
                 ? (details) =>
-                    _appendStrokePoint(details.localPosition, width, height)
+                      _startPlayerPath(details.localPosition, width, height)
+                : null,
+            onPanUpdate: widget.readOnly
+                ? null
+                : _penMode
+                ? (details) =>
+                      _appendStrokePoint(details.localPosition, width, height)
                 : _pathMode
-                    ? (details) =>
-                        _appendPlayerPath(details.localPosition, width, height)
-                    : null,
-            onPanEnd: _penMode
+                ? (details) =>
+                      _appendPlayerPath(details.localPosition, width, height)
+                : null,
+            onPanEnd: widget.readOnly
+                ? null
+                : _penMode
                 ? (_) => _endStroke()
                 : _pathMode
-                    ? (_) => _endPlayerPath()
-                    : null,
+                ? (_) => _endPlayerPath()
+                : null,
             child: Stack(
               children: [
                 CustomPaint(
@@ -2388,28 +2425,29 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                                 )?.id;
                               }
                             }),
-                            onLongPress: _penMode || _pathMode
+                            onLongPress:
+                                widget.readOnly || _penMode || _pathMode
                                 ? null
                                 : () => setState(() {
-                                      _currentPage.items.removeWhere(
-                                        (entry) => entry.id == item.id,
-                                      );
-                                      _currentPage.routes.removeWhere(
-                                        (route) =>
-                                            route.linkedItemId == item.id,
-                                      );
-                                      if (_selectedItemId == item.id) {
-                                        _selectedItemId = null;
-                                      }
-                                      if (_selectedRoute != null &&
-                                          !_currentPage.routes.any(
-                                            (route) =>
-                                                route.id == _selectedRoute!.id,
-                                          )) {
-                                        _selectedRouteId = null;
-                                      }
-                                    }),
-                            onPanUpdate: _penMode || _pathMode
+                                    _currentPage.items.removeWhere(
+                                      (entry) => entry.id == item.id,
+                                    );
+                                    _currentPage.routes.removeWhere(
+                                      (route) => route.linkedItemId == item.id,
+                                    );
+                                    if (_selectedItemId == item.id) {
+                                      _selectedItemId = null;
+                                    }
+                                    if (_selectedRoute != null &&
+                                        !_currentPage.routes.any(
+                                          (route) =>
+                                              route.id == _selectedRoute!.id,
+                                        )) {
+                                      _selectedRouteId = null;
+                                    }
+                                  }),
+                            onPanUpdate:
+                                widget.readOnly || _penMode || _pathMode
                                 ? null
                                 : (details) {
                                     final dx = details.delta.dx / width;
@@ -2454,6 +2492,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   }
 
   Widget _buildPageHeader(bool isKo) {
+    if (widget.readOnly) {
+      return const SizedBox.shrink();
+    }
     final l10n = _l10n;
     return Wrap(
       spacing: 2,
@@ -2532,21 +2573,26 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       controller: _methodController,
       minLines: compact ? 1 : 2,
       maxLines: compact ? 5 : 3,
+      readOnly: widget.readOnly,
       textInputAction: TextInputAction.done,
       decoration: InputDecoration(
         labelText: l10n.trainingSketchMemoLabel,
         hintText: l10n.trainingSketchMemoHint,
         border: const OutlineInputBorder(),
-        suffixIcon: IconButton(
-          onPressed: () => _toggleMemoListening(isKo),
-          icon: Icon(_isListeningMemo ? Icons.mic : Icons.mic_none),
-          tooltip: l10n.trainingSketchVoiceInputTooltip,
-        ),
+        suffixIcon: widget.readOnly
+            ? null
+            : IconButton(
+                onPressed: () => _toggleMemoListening(isKo),
+                icon: Icon(_isListeningMemo ? Icons.mic : Icons.mic_none),
+                tooltip: l10n.trainingSketchVoiceInputTooltip,
+              ),
       ),
       onSubmitted: (_) => _dismissKeyboard(),
-      onChanged: (value) {
-        _currentPage.methodText = value;
-      },
+      onChanged: widget.readOnly
+          ? null
+          : (value) {
+              _currentPage.methodText = value;
+            },
     );
   }
 
@@ -2611,9 +2657,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         onPressed: _currentPage.strokes.isEmpty
             ? null
             : () => setState(() {
-                  _currentPage.strokes.clear();
-                  _activeStroke = null;
-                }),
+                _currentPage.strokes.clear();
+                _activeStroke = null;
+              }),
         icon: const Icon(Icons.layers_clear_outlined),
         label: Text(l10n.trainingSketchClearInkButton),
         style: _toolButtonStyle(),
@@ -2694,17 +2740,10 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  Widget _pairedToolButtons({
-    required Widget first,
-    required Widget second,
-  }) {
+  Widget _pairedToolButtons({required Widget first, required Widget second}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        first,
-        const SizedBox(width: 8),
-        second,
-      ],
+      children: [first, const SizedBox(width: 8), second],
     );
   }
 
@@ -2716,7 +2755,27 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         borderRadius: BorderRadius.circular(12),
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
-      child: _buildSelectedToolsContent(isKo),
+      child: widget.readOnly
+          ? Text(
+              _l10n.parentReadOnlySketchMessage,
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+          : _buildSelectedToolsContent(isKo),
+    );
+  }
+
+  Widget _buildReadOnlyInfoPanel() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      child: Text(
+        _l10n.parentReadOnlySketchMessage,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
     );
   }
 
@@ -2742,34 +2801,36 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _penColors.map((c) {
-              final selectedColor = c.toARGB32() == _penColor.toARGB32();
-              return InkWell(
-                onTap: () => setState(() => _penColor = c),
-                borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: c,
-                    border: Border.all(
-                      color: selectedColor ? Colors.white : Colors.black26,
-                      width: selectedColor ? 2.4 : 1.0,
+            children: _penColors
+                .map((c) {
+                  final selectedColor = c.toARGB32() == _penColor.toARGB32();
+                  return InkWell(
+                    onTap: () => setState(() => _penColor = c),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: c,
+                        border: Border.all(
+                          color: selectedColor ? Colors.white : Colors.black26,
+                          width: selectedColor ? 2.4 : 1.0,
+                        ),
+                      ),
+                      child: selectedColor
+                          ? Icon(
+                              Icons.check,
+                              size: 14,
+                              color: c.computeLuminance() < 0.45
+                                  ? Colors.white
+                                  : Colors.black87,
+                            )
+                          : null,
                     ),
-                  ),
-                  child: selectedColor
-                      ? Icon(
-                          Icons.check,
-                          size: 14,
-                          color: c.computeLuminance() < 0.45
-                              ? Colors.white
-                              : Colors.black87,
-                        )
-                      : null,
-                ),
-              );
-            }).toList(growable: false),
+                  );
+                })
+                .toList(growable: false),
           ),
         ],
       );
@@ -2817,9 +2878,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 Text(
                   '${routes.length}/$routeableCount',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: accentColor,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: accentColor,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -2831,52 +2892,54 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: routeableItems.map((item) {
-                final route = _routeForItem(item.id, _pathDrawMode);
-                final isSelected = selected?.id == item.id;
-                final textColor = item.color.computeLuminance() < 0.45
-                    ? Colors.white
-                    : Colors.black87;
-                return ChoiceChip(
-                  key: ValueKey(
-                    'training-route-target-${_pathDrawMode.name}-${item.id}',
-                  ),
-                  selected: isSelected,
-                  showCheckmark: false,
-                  avatar: Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: item.color,
-                    ),
-                    child: Icon(
-                      _routeGroupIcon(_pathDrawMode),
-                      size: 14,
-                      color: textColor,
-                    ),
-                  ),
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_routeableItemLabel(item)),
-                      const SizedBox(width: 4),
-                      Icon(
-                        route == null ? Icons.route_outlined : Icons.route,
-                        size: 14,
-                        color: route?.color ?? accentColor,
+              children: routeableItems
+                  .map((item) {
+                    final route = _routeForItem(item.id, _pathDrawMode);
+                    final isSelected = selected?.id == item.id;
+                    final textColor = item.color.computeLuminance() < 0.45
+                        ? Colors.white
+                        : Colors.black87;
+                    return ChoiceChip(
+                      key: ValueKey(
+                        'training-route-target-${_pathDrawMode.name}-${item.id}',
                       ),
-                    ],
-                  ),
-                  selectedColor: accentColor.withValues(alpha: 0.18),
-                  side: BorderSide(
-                    color: (route?.color ?? accentColor).withValues(
-                      alpha: isSelected ? 0.82 : 0.34,
-                    ),
-                  ),
-                  onSelected: (_) => _selectRouteableItem(item),
-                );
-              }).toList(growable: false),
+                      selected: isSelected,
+                      showCheckmark: false,
+                      avatar: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: item.color,
+                        ),
+                        child: Icon(
+                          _routeGroupIcon(_pathDrawMode),
+                          size: 14,
+                          color: textColor,
+                        ),
+                      ),
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_routeableItemLabel(item)),
+                          const SizedBox(width: 4),
+                          Icon(
+                            route == null ? Icons.route_outlined : Icons.route,
+                            size: 14,
+                            color: route?.color ?? accentColor,
+                          ),
+                        ],
+                      ),
+                      selectedColor: accentColor.withValues(alpha: 0.18),
+                      side: BorderSide(
+                        color: (route?.color ?? accentColor).withValues(
+                          alpha: isSelected ? 0.82 : 0.34,
+                        ),
+                      ),
+                      onSelected: (_) => _selectRouteableItem(item),
+                    );
+                  })
+                  .toList(growable: false),
             ),
           ],
           const SizedBox(height: 6),
@@ -2898,8 +2961,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
                 label: Text(l10n.trainingSketchRedrawRouteButton),
               ),
               OutlinedButton.icon(
-                onPressed:
-                    hasSelectedCurrentRoute ? _deleteSelectedRoute : null,
+                onPressed: hasSelectedCurrentRoute
+                    ? _deleteSelectedRoute
+                    : null,
                 icon: const Icon(Icons.delete_outline),
                 label: Text(l10n.trainingSketchDeleteRouteButton),
               ),
@@ -2940,28 +3004,30 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: colorChoices.map((c) {
-            final selectedColor = c.toARGB32() == selected.color.toARGB32();
-            return InkWell(
-              onTap: () => setState(() {
-                selected.color = c;
-                _syncLinkedRouteColors(selected.id);
-              }),
-              borderRadius: BorderRadius.circular(999),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: c,
-                  border: Border.all(
-                    color: selectedColor ? Colors.white : Colors.black26,
-                    width: selectedColor ? 2.4 : 1.0,
+          children: colorChoices
+              .map((c) {
+                final selectedColor = c.toARGB32() == selected.color.toARGB32();
+                return InkWell(
+                  onTap: () => setState(() {
+                    selected.color = c;
+                    _syncLinkedRouteColors(selected.id);
+                  }),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: c,
+                      border: Border.all(
+                        color: selectedColor ? Colors.white : Colors.black26,
+                        width: selectedColor ? 2.4 : 1.0,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-          }).toList(growable: false),
+                );
+              })
+              .toList(growable: false),
         ),
         if (selected.type == _BoardItemType.player ||
             selected.type == _BoardItemType.ball) ...[
@@ -3174,8 +3240,9 @@ class _BoardToken extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.18),
           shape: BoxShape.circle,
           border: Border.all(
-            color:
-                selected ? Colors.white : Colors.white.withValues(alpha: 0.55),
+            color: selected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.55),
             width: selected ? 2.2 : 1.2,
           ),
           boxShadow: selected

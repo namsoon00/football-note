@@ -290,10 +290,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('부모 모드에서는 훈련기록을 삭제하지 않아요. 기록을 열어 부모 피드백을 남겨보세요.'),
+      find.text('공유 역할에서는 훈련기록을 삭제하지 않아요. 기록을 열어 피드백을 남겨보세요.'),
       findsOneWidget,
     );
     expect(find.byType(Dismissible), findsNothing);
-    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
   });
 }
