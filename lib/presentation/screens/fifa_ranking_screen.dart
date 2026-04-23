@@ -295,6 +295,8 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
                     icon: const Icon(Icons.open_in_new, size: 18),
                     label: Text(l10n.newsOpenOfficialSource),
                     style: FilledButton.styleFrom(
+                      minimumSize: const Size(1, 46),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
