@@ -3335,6 +3335,36 @@ class AppLocalizationsKo extends AppLocalizations {
       '선수와 공유 역할 중 현재 기기 역할을 선택하세요. 공유 역할은 읽기 전용으로 기록을 열람하고 피드백/선물 이름만 관리합니다.';
 
   @override
+  String get settingsRoleAccountTitle => '역할과 계정';
+
+  @override
+  String get settingsRoleAccountDescription =>
+      '먼저 이 기기의 사용 역할을 선택하세요. 아래 계정 연결은 선택한 역할에 맞게 바뀝니다.';
+
+  @override
+  String get settingsRoleAccountUnavailable =>
+      '이 빌드에서는 Google Drive 계정 연결을 사용할 수 없어요.';
+
+  @override
+  String get settingsRolePlayerDescription =>
+      '선수로 훈련, 식사, 스케치, 경험치, 백업을 직접 기록합니다.';
+
+  @override
+  String get settingsRoleParentDescription =>
+      '핵심 기록은 읽기 중심으로 보고, 피드백과 선물 이름만 관리합니다.';
+
+  @override
+  String get settingsRoleCoachDescription =>
+      '코치로 선수 기록과 스케치를 확인하고 훈련 피드백을 남깁니다.';
+
+  @override
+  String get settingsPlayerAccountTitle => '선수 Google Drive 계정';
+
+  @override
+  String get settingsPlayerAccountDescription =>
+      '이 기기에서 선수 훈련 기록을 백업하고 복원할 Google Drive를 연결합니다.';
+
+  @override
   String familyRoleActivated(Object role) {
     return '$role 모드로 전환했어요.';
   }

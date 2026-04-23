@@ -3446,6 +3446,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose whether this device is in player mode or a support role. Support roles can review records read-only and manage feedback and reward names.';
 
   @override
+  String get settingsRoleAccountTitle => 'Role and account';
+
+  @override
+  String get settingsRoleAccountDescription =>
+      'Choose how this device will be used first. The account connection below changes to match that role.';
+
+  @override
+  String get settingsRoleAccountUnavailable =>
+      'Google Drive account connection is unavailable in this build.';
+
+  @override
+  String get settingsRolePlayerDescription =>
+      'Record training, meals, sketches, XP, and backups as the player.';
+
+  @override
+  String get settingsRoleParentDescription =>
+      'Read player records and manage feedback or reward names without editing core records.';
+
+  @override
+  String get settingsRoleCoachDescription =>
+      'Review player records and sketches as a coach, with shared feedback focused on training.';
+
+  @override
+  String get settingsPlayerAccountTitle => 'Player Google Drive account';
+
+  @override
+  String get settingsPlayerAccountDescription =>
+      'Connect the player\'s Google Drive to back up and restore training records from this device.';
+
+  @override
   String familyRoleActivated(Object role) {
     return '$role mode activated.';
   }

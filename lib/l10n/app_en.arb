@@ -1484,6 +1484,14 @@
   "familyRoleCoach": "Coach",
   "familyRoleSelectionTitle": "Role selection",
   "familyRoleSelectionDescription": "Choose whether this device is in player mode or a support role. Support roles can review records read-only and manage feedback and reward names.",
+  "settingsRoleAccountTitle": "Role and account",
+  "settingsRoleAccountDescription": "Choose how this device will be used first. The account connection below changes to match that role.",
+  "settingsRoleAccountUnavailable": "Google Drive account connection is unavailable in this build.",
+  "settingsRolePlayerDescription": "Record training, meals, sketches, XP, and backups as the player.",
+  "settingsRoleParentDescription": "Read player records and manage feedback or reward names without editing core records.",
+  "settingsRoleCoachDescription": "Review player records and sketches as a coach, with shared feedback focused on training.",
+  "settingsPlayerAccountTitle": "Player Google Drive account",
+  "settingsPlayerAccountDescription": "Connect the player's Google Drive to back up and restore training records from this device.",
   "familyRoleActivated": "{role} mode activated.",
   "@familyRoleActivated": {
     "placeholders": {

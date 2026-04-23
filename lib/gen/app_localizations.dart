@@ -5978,6 +5978,54 @@ abstract class AppLocalizations {
   /// **'Choose whether this device is in player mode or a support role. Support roles can review records read-only and manage feedback and reward names.'**
   String get familyRoleSelectionDescription;
 
+  /// No description provided for @settingsRoleAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Role and account'**
+  String get settingsRoleAccountTitle;
+
+  /// No description provided for @settingsRoleAccountDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how this device will be used first. The account connection below changes to match that role.'**
+  String get settingsRoleAccountDescription;
+
+  /// No description provided for @settingsRoleAccountUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive account connection is unavailable in this build.'**
+  String get settingsRoleAccountUnavailable;
+
+  /// No description provided for @settingsRolePlayerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Record training, meals, sketches, XP, and backups as the player.'**
+  String get settingsRolePlayerDescription;
+
+  /// No description provided for @settingsRoleParentDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Read player records and manage feedback or reward names without editing core records.'**
+  String get settingsRoleParentDescription;
+
+  /// No description provided for @settingsRoleCoachDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Review player records and sketches as a coach, with shared feedback focused on training.'**
+  String get settingsRoleCoachDescription;
+
+  /// No description provided for @settingsPlayerAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Player Google Drive account'**
+  String get settingsPlayerAccountTitle;
+
+  /// No description provided for @settingsPlayerAccountDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the player\'s Google Drive to back up and restore training records from this device.'**
+  String get settingsPlayerAccountDescription;
+
   /// No description provided for @familyRoleActivated.
   ///
   /// In en, this message translates to:
