@@ -404,6 +404,42 @@ abstract class AppLocalizations {
   /// **'No upcoming worldwide A-match fixtures found.'**
   String get fifaHubUpcomingFixturesEmpty;
 
+  /// No description provided for @fifaHubKfaUpcomingFixturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'KFA Korea match schedule'**
+  String get fifaHubKfaUpcomingFixturesTitle;
+
+  /// No description provided for @fifaHubKfaUpcomingFixturesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From the Korea Football Association official Next Match feed.'**
+  String get fifaHubKfaUpcomingFixturesSubtitle;
+
+  /// No description provided for @fifaHubKfaUpcomingFixturesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No KFA Korea match schedule found.'**
+  String get fifaHubKfaUpcomingFixturesEmpty;
+
+  /// No description provided for @fifaHubKfaRecentResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'KFA Korea match results'**
+  String get fifaHubKfaRecentResultsTitle;
+
+  /// No description provided for @fifaHubKfaRecentResultsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From the Korea Football Association official Match Results feed.'**
+  String get fifaHubKfaRecentResultsSubtitle;
+
+  /// No description provided for @fifaHubKfaRecentResultsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No KFA Korea match results found.'**
+  String get fifaHubKfaRecentResultsEmpty;
+
   /// No description provided for @fifaHubMatchStatusResult.
   ///
   /// In en, this message translates to:
@@ -4873,12 +4909,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'not enough stable step events'**
   String get runningCoachSprintFeatureUnavailableStepEvents;
-
-  /// No description provided for @headerEducationTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'World Cup history book'**
-  String get headerEducationTooltip;
 
   /// No description provided for @homeWeatherNeedsLocationTitle.
   ///
