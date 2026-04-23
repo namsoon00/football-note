@@ -218,6 +218,83 @@ class AppLocalizationsEn extends AppLocalizations {
       'No FIFA ranking or A-match data is available right now.';
 
   @override
+  String get fifaMatchDetailTitle => 'Match detail';
+
+  @override
+  String get fifaMatchDetailResultSummaryTitle => 'Result summary';
+
+  @override
+  String get fifaMatchDetailFixtureSummaryTitle => 'Fixture summary';
+
+  @override
+  String get fifaMatchDetailCompetitionLabel => 'Competition';
+
+  @override
+  String get fifaMatchDetailKickoffLabel => 'Kickoff';
+
+  @override
+  String get fifaMatchDetailDateLabel => 'Date';
+
+  @override
+  String get fifaMatchDetailStageLabel => 'Stage';
+
+  @override
+  String get fifaMatchDetailVenueLabel => 'Venue';
+
+  @override
+  String get fifaMatchDetailCityLabel => 'City';
+
+  @override
+  String get fifaMatchDetailMatchIdLabel => 'Match ID';
+
+  @override
+  String get fifaMatchDetailScoreUnavailable => 'Score not confirmed';
+
+  @override
+  String get fifaMatchDetailVersusLabel => 'vs';
+
+  @override
+  String get fifaMatchDetailHomeTeamLabel => 'Home';
+
+  @override
+  String get fifaMatchDetailAwayTeamLabel => 'Away';
+
+  @override
+  String get fifaMatchDetailScorersTitle => 'Scorers';
+
+  @override
+  String get fifaMatchDetailPossessionTitle => 'Ball possession';
+
+  @override
+  String get fifaMatchDetailAdvancedLoading => 'Checking detailed records...';
+
+  @override
+  String get fifaMatchDetailAdvancedUnavailable =>
+      'Scorers and ball possession were not found in the source data.';
+
+  @override
+  String get fifaMatchDetailScorersUnavailable =>
+      'No scorer information found.';
+
+  @override
+  String get fifaMatchDetailPossessionUnavailable =>
+      'No ball possession information found.';
+
+  @override
+  String get fifaMatchDetailUnknownScorer => 'Player not provided';
+
+  @override
+  String get fifaMatchDetailFifaSourceNote =>
+      'Based on the FIFA official match API.';
+
+  @override
+  String get fifaMatchDetailKfaSourceNote =>
+      'Based on the KFA home feed. Scorers and ball possession may not be provided by the source.';
+
+  @override
+  String get fifaMatchDetailOpenSource => 'Open source';
+
+  @override
   String get fifaCountryDetailRankingSummaryTitle => 'Ranking summary';
 
   @override

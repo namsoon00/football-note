@@ -173,6 +173,33 @@ class FifaAMatchEntry {
   bool get hasScore => homeScore != null && awayScore != null;
 }
 
+class FifaAMatchDetail {
+  final FifaAMatchEntry match;
+  final List<FifaMatchScorer> homeScorers;
+  final List<FifaMatchScorer> awayScorers;
+  final double? homePossession;
+  final double? awayPossession;
+
+  const FifaAMatchDetail({
+    required this.match,
+    required this.homeScorers,
+    required this.awayScorers,
+    required this.homePossession,
+    required this.awayPossession,
+  });
+
+  bool get hasScorers => homeScorers.isNotEmpty || awayScorers.isNotEmpty;
+
+  bool get hasPossession => homePossession != null && awayPossession != null;
+}
+
+class FifaMatchScorer {
+  final String playerName;
+  final String minute;
+
+  const FifaMatchScorer({required this.playerName, required this.minute});
+}
+
 class KfaMatchOverview {
   final List<KfaMatchEntry> recentResults;
   final List<KfaMatchEntry> upcomingFixtures;
