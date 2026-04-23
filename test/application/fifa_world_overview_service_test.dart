@@ -328,7 +328,84 @@ void main() {
     expect(overview.upcomingFixtures, isEmpty);
     expect(liveFeedRequested, isFalse);
   });
+
+  test('parseKfaMatchOverview keeps senior men Korea matches only', () {
+    final overview = FifaWorldOverviewService.parseKfaMatchOverview(
+      _kfaMatchHtml,
+    );
+
+    expect(overview.upcomingFixtures, hasLength(1));
+    expect(
+      overview.upcomingFixtures.single.competition,
+      '2026 FIFA 북중미 월드컵 조별리그 1차전',
+    );
+    expect(overview.upcomingFixtures.single.homeTeamName, '대한민국');
+    expect(overview.upcomingFixtures.single.awayTeamName, '체코');
+    expect(overview.upcomingFixtures.single.dateLabel, '06-12 금요일');
+    expect(overview.upcomingFixtures.single.timeLabel, 'AM 11 : 00');
+    expect(
+      overview.upcomingFixtures.single.status,
+      KfaMatchStatus.scheduled,
+    );
+
+    expect(overview.recentResults, hasLength(1));
+    expect(overview.recentResults.single.competition, '2026 축구 국가대표팀 친선경기');
+    expect(overview.recentResults.single.homeTeamName, '대한민국');
+    expect(overview.recentResults.single.awayTeamName, '오스트리아');
+    expect(overview.recentResults.single.homeScore, 0);
+    expect(overview.recentResults.single.awayScore, 1);
+    expect(overview.recentResults.single.status, KfaMatchStatus.finished);
+  });
 }
+
+const String _kfaMatchHtml = '''
+<div class="next_match">
+  <div class="list">
+    <ul class="next_schedule">
+      <li onclick="location.href='/live/live.php?act=match_schedule&date_div=next&now_date=2026-05';" style="cursor:pointer;">
+        <p class="title">2026 FIFA 북중미 월드컵 조별리그 1차전</p>
+        <span class="stadium">멕시코, 과달라하라</span>
+        <p class="date"><b>06-12&nbsp;금요일</b><br>AM&nbsp;11&nbsp;:&nbsp;00<br><span></span></p>
+        <ul class="country">
+          <li><img alt="대한민국" />대한민국</li>
+          <li><img alt="체코" />체코</li>
+        </ul>
+      </li>
+      <li onclick="location.href='/live/live.php?act=match_schedule';" style="cursor:pointer;">
+        <p class="title">2026 FIFA U-17 월드컵 조별리그 1차전</p>
+        <span class="stadium">카타르, 도하</span>
+        <p class="date"><b>11-04&nbsp;화요일</b><br>PM&nbsp;10&nbsp;:&nbsp;00</p>
+        <ul class="country">
+          <li><img alt="대한민국" />대한민국</li>
+          <li><img alt="멕시코" />멕시코</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+<!-- match result -->
+<div class="match_result" id="main_match_result_view">
+  <div class="result_info">
+    <p class="result_title">2026 축구 국가대표팀 친선경기</p>
+    <span class="stadium_en">오스트리아&nbsp;&nbsp;에른스트 하펠 경기장</span>
+    <ul onclick="main_match_result('10483');" style="cursor:pointer;">
+      <li><img alt="남자 국가대표팀" />남자 국가대표팀<span>0</span></li>
+      <li class="result_win"><img alt="오스트리아" />오스트리아<span class="score_win">1</span></li>
+    </ul>
+    <em>04-01 수요일</em>
+  </div>
+  <div class="result_info">
+    <p class="result_title">2026 AFC 여자 아시안컵</p>
+    <span class="stadium_en">오스트레일리아&nbsp;&nbsp;스타디움 오스트레일리아</span>
+    <ul onclick="main_match_result('10443');" style="cursor:pointer;">
+      <li><img alt="여자 국가대표팀" />여자 국가대표팀<span>1</span></li>
+      <li class="result_win"><img alt="일본" />일본<span class="score_win">4</span></li>
+    </ul>
+    <em>03-18 수요일</em>
+  </div>
+  <!-- //반복 -->
+</div>
+''';
 
 Map<String, dynamic> _match({
   required String matchId,

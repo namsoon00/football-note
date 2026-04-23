@@ -22,9 +22,17 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
 
   late final FifaWorldOverviewService _service;
   late final ScrollController _rankingScrollController;
+  late final ScrollController _recentMatchScrollController;
+  late final ScrollController _upcomingMatchScrollController;
+  late final ScrollController _kfaRecentMatchScrollController;
+  late final ScrollController _kfaUpcomingMatchScrollController;
+  Locale? _lastLocale;
   FifaWorldOverview? _overview;
+  List<KfaMatchEntry> _kfaRecentResults = const <KfaMatchEntry>[];
+  List<KfaMatchEntry> _kfaUpcomingFixtures = const <KfaMatchEntry>[];
   bool _isRankingLoading = true;
   bool _isMatchLoading = false;
+  bool _isKfaLoading = false;
   bool _hadError = false;
   int _loadToken = 0;
 
@@ -33,12 +41,35 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
     super.initState();
     _service = FifaWorldOverviewService();
     _rankingScrollController = ScrollController();
-    _loadOverview();
+    _recentMatchScrollController = ScrollController();
+    _upcomingMatchScrollController = ScrollController();
+    _kfaRecentMatchScrollController = ScrollController();
+    _kfaUpcomingMatchScrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadOverview();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context);
+    final previousLocale = _lastLocale;
+    _lastLocale = locale;
+    if (previousLocale != null &&
+        previousLocale.languageCode != locale.languageCode) {
+      _loadOverview(force: true);
+    }
   }
 
   @override
   void dispose() {
     _rankingScrollController.dispose();
+    _recentMatchScrollController.dispose();
+    _upcomingMatchScrollController.dispose();
+    _kfaRecentMatchScrollController.dispose();
+    _kfaUpcomingMatchScrollController.dispose();
     _service.dispose();
     super.dispose();
   }
@@ -62,6 +93,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
   Widget _buildBody(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final overview = _overview;
+    final showKfaMatches = _isKoreanLocale;
     if (_isRankingLoading && overview == null) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -82,6 +114,25 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
         if (overview.biggestClimber != null || overview.biggestFaller != null)
           _buildHighlightsCard(context, overview),
         _buildRankingCard(context, overview),
+        if (showKfaMatches &&
+            (!_isKfaLoading || _kfaUpcomingFixtures.isNotEmpty))
+          _buildKfaMatchSection(
+            context,
+            title: l10n.fifaHubKfaUpcomingFixturesTitle,
+            subtitle: l10n.fifaHubKfaUpcomingFixturesSubtitle,
+            emptyMessage: l10n.fifaHubKfaUpcomingFixturesEmpty,
+            matches: _kfaUpcomingFixtures,
+            scrollController: _kfaUpcomingMatchScrollController,
+          ),
+        if (showKfaMatches && (!_isKfaLoading || _kfaRecentResults.isNotEmpty))
+          _buildKfaMatchSection(
+            context,
+            title: l10n.fifaHubKfaRecentResultsTitle,
+            subtitle: l10n.fifaHubKfaRecentResultsSubtitle,
+            emptyMessage: l10n.fifaHubKfaRecentResultsEmpty,
+            matches: _kfaRecentResults,
+            scrollController: _kfaRecentMatchScrollController,
+          ),
         if (!_isMatchLoading || overview.recentResults.isNotEmpty)
           _buildMatchSection(
             context,
@@ -89,6 +140,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
             subtitle: l10n.fifaHubRecentResultsSubtitle,
             emptyMessage: l10n.fifaHubRecentResultsEmpty,
             matches: overview.recentResults,
+            scrollController: _recentMatchScrollController,
           ),
         if (!_isMatchLoading || overview.upcomingFixtures.isNotEmpty)
           _buildMatchSection(
@@ -97,6 +149,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
             subtitle: l10n.fifaHubUpcomingFixturesSubtitle,
             emptyMessage: l10n.fifaHubUpcomingFixturesEmpty,
             matches: overview.upcomingFixtures,
+            scrollController: _upcomingMatchScrollController,
           ),
       ],
       const SizedBox(height: 12),
@@ -111,7 +164,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) => items[index],
         ),
-        if (_isRankingLoading || _isMatchLoading)
+        if (_isRankingLoading || _isMatchLoading || _isKfaLoading)
           const Align(
             alignment: Alignment.topCenter,
             child: LinearProgressIndicator(minHeight: 2),
@@ -365,7 +418,9 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
     required String subtitle,
     required String emptyMessage,
     required List<FifaAMatchEntry> matches,
+    required ScrollController scrollController,
   }) {
+    final matchHeight = _matchListHeight(context);
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,20 +437,77 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
           if (matches.isEmpty)
             Text(emptyMessage, style: Theme.of(context).textTheme.bodyMedium)
           else
-            ...matches.asMap().entries.map((entry) {
-              final index = entry.key;
-              final match = entry.value;
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: index == matches.length - 1 ? 0 : 10,
+            SizedBox(
+              height: matchHeight,
+              child: Scrollbar(
+                controller: scrollController,
+                thumbVisibility: true,
+                child: ListView.separated(
+                  controller: scrollController,
+                  primary: false,
+                  padding: EdgeInsets.zero,
+                  itemCount: matches.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    return _MatchRow(match: matches[index]);
+                  },
                 ),
-                child: _MatchRow(match: match),
-              );
-            }),
+              ),
+            ),
         ],
       ),
     );
   }
+
+  Widget _buildKfaMatchSection(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String emptyMessage,
+    required List<KfaMatchEntry> matches,
+    required ScrollController scrollController,
+  }) {
+    final matchHeight = _matchListHeight(context);
+    return WatchCartCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 4),
+          Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+          if (matches.isEmpty)
+            Text(emptyMessage, style: Theme.of(context).textTheme.bodyMedium)
+          else
+            SizedBox(
+              height: matchHeight,
+              child: Scrollbar(
+                controller: scrollController,
+                thumbVisibility: true,
+                child: ListView.separated(
+                  controller: scrollController,
+                  primary: false,
+                  padding: EdgeInsets.zero,
+                  itemCount: matches.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    return _KfaMatchRow(match: matches[index]);
+                  },
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  double _matchListHeight(BuildContext context) =>
+      (MediaQuery.sizeOf(context).height * 0.32).clamp(220.0, 340.0).toDouble();
 
   Widget _buildMessageCard(String message) {
     return Padding(
@@ -406,10 +518,16 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
 
   Future<void> _loadOverview({bool force = false}) async {
     final token = ++_loadToken;
+    final shouldLoadKfa = _isKoreanLocale;
     if (mounted) {
       setState(() {
         _isRankingLoading = true;
         _isMatchLoading = false;
+        _isKfaLoading = false;
+        if (!shouldLoadKfa) {
+          _kfaRecentResults = const <KfaMatchEntry>[];
+          _kfaUpcomingFixtures = const <KfaMatchEntry>[];
+        }
         if (force) {
           _hadError = false;
         }
@@ -424,14 +542,19 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
         _overview = overview;
         _isRankingLoading = false;
         _isMatchLoading = true;
+        _isKfaLoading = shouldLoadKfa;
         _hadError = false;
       });
       unawaited(_loadMatchOverview(token));
+      if (shouldLoadKfa) {
+        unawaited(_loadKfaMatchOverview(token));
+      }
     } catch (_) {
       if (!mounted || token != _loadToken) return;
       setState(() {
         _isRankingLoading = false;
         _isMatchLoading = false;
+        _isKfaLoading = false;
         _hadError = true;
       });
     }
@@ -464,6 +587,19 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
       });
     }
   }
+
+  Future<void> _loadKfaMatchOverview(int token) async {
+    final overview = await _service.fetchKfaMatchOverview();
+    if (!mounted || token != _loadToken) return;
+    setState(() {
+      _kfaRecentResults = overview.recentResults;
+      _kfaUpcomingFixtures = overview.upcomingFixtures;
+      _isKfaLoading = false;
+    });
+  }
+
+  bool get _isKoreanLocale =>
+      Localizations.localeOf(context).languageCode == 'ko';
 
   Future<void> _openOfficialRankingPage() async {
     final uri = Uri.parse(_rankingGender.officialRankingUrl);
@@ -808,6 +944,123 @@ class _MatchRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _KfaMatchRow extends StatelessWidget {
+  final KfaMatchEntry match;
+
+  const _KfaMatchRow({required this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final metaParts = <String>[
+      [match.dateLabel, match.timeLabel].where((part) => part.isNotEmpty).join(
+            ' ',
+          ),
+      if (match.venue.trim().isNotEmpty) match.venue.trim(),
+    ].where((part) => part.trim().isNotEmpty).toList(growable: false);
+    final isResult = match.status == KfaMatchStatus.finished;
+    final statusLabel = isResult
+        ? l10n.fifaHubMatchStatusResult
+        : l10n.fifaHubMatchStatusFixture;
+    final statusColor =
+        isResult ? const Color(0xFF1B5E20) : const Color(0xFF355C7D);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: statusColor.withAlpha(18),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  match.competition,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+          if (metaParts.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              metaParts.join(' · '),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _KfaTeamLine(name: match.homeTeamName, alignEnd: false),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 54,
+                child: Center(
+                  child: match.hasScore
+                      ? Text(
+                          '${match.homeScore}-${match.awayScore}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        )
+                      : const Icon(Icons.schedule_outlined, size: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _KfaTeamLine(name: match.awayTeamName, alignEnd: true),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KfaTeamLine extends StatelessWidget {
+  final String name;
+  final bool alignEnd;
+
+  const _KfaTeamLine({required this.name, required this.alignEnd});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      name,
+      textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: Theme.of(
+        context,
+      ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 }

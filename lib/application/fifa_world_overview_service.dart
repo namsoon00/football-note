@@ -6,6 +6,7 @@ import '../domain/entities/fifa_world_overview.dart';
 
 class FifaWorldOverviewService {
   static final Uri _baseApiUri = Uri.parse('https://api.fifa.com/api/v3');
+  static final Uri _kfaHomeUri = Uri.parse('https://www.kfa.or.kr/');
   static const int _rankingPageSize = 250;
   static const int _matchPageSize = 100;
   static const int _matchPageLimit = 8;
@@ -51,6 +52,25 @@ class FifaWorldOverviewService {
       recentResults: matches.recentResults,
       upcomingFixtures: matches.upcomingFixtures,
     );
+  }
+
+  Future<KfaMatchOverview> fetchKfaMatchOverview({int limit = 8}) async {
+    try {
+      final response =
+          await _client.get(_kfaHomeUri).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) {
+        return const KfaMatchOverview(
+          recentResults: <KfaMatchEntry>[],
+          upcomingFixtures: <KfaMatchEntry>[],
+        );
+      }
+      return parseKfaMatchOverview(response.body, limit: limit);
+    } catch (_) {
+      return const KfaMatchOverview(
+        recentResults: <KfaMatchEntry>[],
+        upcomingFixtures: <KfaMatchEntry>[],
+      );
+    }
   }
 
   Future<FifaWorldOverview> fetchRankingOverview({
@@ -429,6 +449,213 @@ class FifaWorldOverviewService {
     return items;
   }
 
+  static KfaMatchOverview parseKfaMatchOverview(
+    String html, {
+    int limit = 8,
+  }) {
+    final upcoming = <KfaMatchEntry>[];
+    final upcomingSection = _between(
+      html,
+      '<div class="next_match">',
+      '<!-- match result -->',
+    );
+    final upcomingPattern = RegExp(
+      r'''<li\s+onclick="location\.href='([^']*)';"[^>]*>(.*?</ul>\s*</li>)''',
+      dotAll: true,
+    );
+    for (final match in upcomingPattern.allMatches(upcomingSection)) {
+      final block = match.group(2) ?? '';
+      final entry = _parseKfaUpcomingMatch(
+        block: block,
+        sourcePath: match.group(1) ?? '',
+        index: upcoming.length,
+      );
+      if (entry == null) continue;
+      upcoming.add(entry);
+      if (upcoming.length >= limit) break;
+    }
+
+    final recent = <KfaMatchEntry>[];
+    final resultSection = _between(
+      html,
+      '<div class="match_result"',
+      '<!-- //반복 -->',
+    );
+    final resultPattern = RegExp(
+      r'''<div class="result_info">\s*(.*?)\s*</div>''',
+      dotAll: true,
+    );
+    for (final match in resultPattern.allMatches(resultSection)) {
+      final entry = _parseKfaResultMatch(
+        block: match.group(1) ?? '',
+        index: recent.length,
+      );
+      if (entry == null) continue;
+      recent.add(entry);
+      if (recent.length >= limit) break;
+    }
+
+    return KfaMatchOverview(
+      recentResults: recent,
+      upcomingFixtures: upcoming,
+    );
+  }
+
+  static KfaMatchEntry? _parseKfaUpcomingMatch({
+    required String block,
+    required String sourcePath,
+    required int index,
+  }) {
+    if (!_isSeniorMenKfaMatch(block)) return null;
+    final competition = _htmlText(
+      _firstGroup(
+          block, RegExp(r'<p class="title">\s*(.*?)\s*</p>', dotAll: true)),
+    );
+    final venue = _htmlText(
+      _firstGroup(
+        block,
+        RegExp(r'<span class="stadium">\s*(.*?)\s*</span>', dotAll: true),
+      ),
+    );
+    final dateBlock = _firstGroup(
+      block,
+      RegExp(r'<p class="date">\s*(.*?)\s*</p>', dotAll: true),
+    );
+    final dateLabel = _htmlText(
+      _firstGroup(dateBlock, RegExp(r'<b>\s*(.*?)\s*</b>', dotAll: true)),
+    );
+    final timeLabel = _htmlText(
+      dateBlock
+          .replaceAll(RegExp(r'<b>.*?</b>', dotAll: true), ' ')
+          .replaceAll(RegExp(r'<span>.*?</span>', dotAll: true), ' '),
+    );
+    final teams = _parseKfaTeams(block);
+    if (competition.isEmpty ||
+        dateLabel.isEmpty ||
+        teams.length < 2 ||
+        !_hasKoreaTeam(teams)) {
+      return null;
+    }
+    return KfaMatchEntry(
+      matchId: 'kfa-upcoming-$index-$dateLabel-${teams.join('-')}',
+      competition: competition,
+      venue: venue,
+      dateLabel: dateLabel,
+      timeLabel: timeLabel,
+      homeTeamName: _normalizeKfaTeamName(teams[0].name),
+      awayTeamName: _normalizeKfaTeamName(teams[1].name),
+      homeScore: null,
+      awayScore: null,
+      status: KfaMatchStatus.scheduled,
+      sourceUrl: _resolveKfaSource(sourcePath),
+    );
+  }
+
+  static KfaMatchEntry? _parseKfaResultMatch({
+    required String block,
+    required int index,
+  }) {
+    if (!_isSeniorMenKfaMatch(block)) return null;
+    final competition = _htmlText(
+      _firstGroup(
+        block,
+        RegExp(r'<p class="result_title">\s*(.*?)\s*</p>', dotAll: true),
+      ),
+    );
+    final venue = _htmlText(
+      _firstGroup(
+        block,
+        RegExp(r'<span class="stadium_en">\s*(.*?)\s*</span>', dotAll: true),
+      ),
+    );
+    final dateLabel = _htmlText(
+      _firstGroup(block, RegExp(r'<em>\s*(.*?)\s*</em>', dotAll: true)),
+    );
+    final teams = _parseKfaTeams(block);
+    if (competition.isEmpty ||
+        dateLabel.isEmpty ||
+        teams.length < 2 ||
+        !_hasKoreaTeam(teams)) {
+      return null;
+    }
+    return KfaMatchEntry(
+      matchId: 'kfa-result-$index-$dateLabel-${teams.join('-')}',
+      competition: competition,
+      venue: venue,
+      dateLabel: dateLabel,
+      timeLabel: '',
+      homeTeamName: _normalizeKfaTeamName(teams[0].name),
+      awayTeamName: _normalizeKfaTeamName(teams[1].name),
+      homeScore: teams[0].score,
+      awayScore: teams[1].score,
+      status: KfaMatchStatus.finished,
+      sourceUrl: _kfaHomeUri,
+    );
+  }
+
+  static List<_KfaTeamToken> _parseKfaTeams(String block) {
+    final countryBlock = _firstGroup(
+      block,
+      RegExp(r'<ul[^>]*>\s*(.*?)\s*</ul>', dotAll: true),
+    );
+    if (countryBlock.isEmpty) return const <_KfaTeamToken>[];
+    final teams = <_KfaTeamToken>[];
+    final teamPattern = RegExp(r'<li[^>]*>\s*(.*?)\s*</li>', dotAll: true);
+    for (final match in teamPattern.allMatches(countryBlock)) {
+      final teamBlock = match.group(1) ?? '';
+      final scoreText = _htmlText(
+        _firstGroup(
+          teamBlock,
+          RegExp(r'<span[^>]*>\s*([^<]*)\s*</span>', dotAll: true),
+        ),
+      );
+      final labelBlock = teamBlock.replaceAll(
+        RegExp(r'<span[^>]*>.*?</span>', dotAll: true),
+        ' ',
+      );
+      final name = _htmlText(labelBlock);
+      if (name.isEmpty) continue;
+      teams.add(_KfaTeamToken(name: name, score: int.tryParse(scoreText)));
+    }
+    return teams;
+  }
+
+  static bool _isSeniorMenKfaMatch(String block) {
+    final text = _htmlText(block).replaceAll(RegExp(r'\s+'), '');
+    if (text.isEmpty || !_hasKoreaText(text)) return false;
+    return !RegExp(r'여자|U-?\d|유니버시아드|풋살').hasMatch(text);
+  }
+
+  static bool _hasKoreaTeam(List<_KfaTeamToken> teams) =>
+      teams.any((team) => _hasKoreaText(team.name));
+
+  static bool _hasKoreaText(String value) {
+    final normalized = value.replaceAll(RegExp(r'\s+'), '');
+    return normalized.contains('대한민국') || normalized.contains('남자국가대표팀');
+  }
+
+  static String _normalizeKfaTeamName(String value) {
+    final name = value.trim();
+    if (name.contains('남자 국가대표팀') || name.contains('남자국가대표팀')) {
+      return '대한민국';
+    }
+    return name;
+  }
+
+  static Uri _resolveKfaSource(String sourcePath) {
+    if (sourcePath.trim().isEmpty) return _kfaHomeUri;
+    return _kfaHomeUri.resolve(sourcePath.trim());
+  }
+
+  static String _between(String input, String start, String end) {
+    final startIndex = input.indexOf(start);
+    if (startIndex < 0) return '';
+    final contentStart = startIndex + start.length;
+    final endIndex = input.indexOf(end, contentStart);
+    if (endIndex < 0) return input.substring(contentStart);
+    return input.substring(contentStart, endIndex);
+  }
+
   static List<_FifaRankingSchedule> _parseRankingSchedules(dynamic decoded) {
     if (decoded is! Map || decoded['Results'] is! List) {
       return const <_FifaRankingSchedule>[];
@@ -591,6 +818,25 @@ class FifaWorldOverviewService {
     return match.group(1) ?? '';
   }
 
+  static String _htmlText(String html) {
+    final withBreaks =
+        html.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ');
+    final withoutTags = withBreaks.replaceAll(RegExp(r'<[^>]+>'), ' ');
+    return _decodeHtmlEntities(
+      withoutTags,
+    ).replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  static String _decodeHtmlEntities(String value) {
+    return value
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+  }
+
   static String _localizedDescription(dynamic raw) {
     if (raw is List) {
       for (final item in raw) {
@@ -674,6 +920,16 @@ class _FifaMatchSnapshot {
     required this.recentResults,
     required this.upcomingFixtures,
   });
+}
+
+class _KfaTeamToken {
+  final String name;
+  final int? score;
+
+  const _KfaTeamToken({required this.name, required this.score});
+
+  @override
+  String toString() => name;
 }
 
 class _FifaRankingPageMetadata {

@@ -179,6 +179,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'No upcoming worldwide A-match fixtures found.';
 
   @override
+  String get fifaHubKfaUpcomingFixturesTitle => 'KFA Korea match schedule';
+
+  @override
+  String get fifaHubKfaUpcomingFixturesSubtitle =>
+      'From the Korea Football Association official Next Match feed.';
+
+  @override
+  String get fifaHubKfaUpcomingFixturesEmpty =>
+      'No KFA Korea match schedule found.';
+
+  @override
+  String get fifaHubKfaRecentResultsTitle => 'KFA Korea match results';
+
+  @override
+  String get fifaHubKfaRecentResultsSubtitle =>
+      'From the Korea Football Association official Match Results feed.';
+
+  @override
+  String get fifaHubKfaRecentResultsEmpty =>
+      'No KFA Korea match results found.';
+
+  @override
   String get fifaHubMatchStatusResult => 'Result';
 
   @override

@@ -11,6 +11,8 @@ extension FifaRankingGenderX on FifaRankingGender {
 
 enum FifaAMatchStatus { scheduled, live, finished }
 
+enum KfaMatchStatus { scheduled, finished }
+
 class FifaWorldOverview {
   final FifaRankingGender gender;
   final List<FifaRankingEntry> rankings;
@@ -131,6 +133,48 @@ class FifaAMatchEntry {
     required this.homeScore,
     required this.awayScore,
     required this.status,
+  });
+
+  bool get hasScore => homeScore != null && awayScore != null;
+}
+
+class KfaMatchOverview {
+  final List<KfaMatchEntry> recentResults;
+  final List<KfaMatchEntry> upcomingFixtures;
+
+  const KfaMatchOverview({
+    required this.recentResults,
+    required this.upcomingFixtures,
+  });
+
+  bool get isEmpty => recentResults.isEmpty && upcomingFixtures.isEmpty;
+}
+
+class KfaMatchEntry {
+  final String matchId;
+  final String competition;
+  final String venue;
+  final String dateLabel;
+  final String timeLabel;
+  final String homeTeamName;
+  final String awayTeamName;
+  final int? homeScore;
+  final int? awayScore;
+  final KfaMatchStatus status;
+  final Uri sourceUrl;
+
+  const KfaMatchEntry({
+    required this.matchId,
+    required this.competition,
+    required this.venue,
+    required this.dateLabel,
+    required this.timeLabel,
+    required this.homeTeamName,
+    required this.awayTeamName,
+    required this.homeScore,
+    required this.awayScore,
+    required this.status,
+    required this.sourceUrl,
   });
 
   bool get hasScore => homeScore != null && awayScore != null;

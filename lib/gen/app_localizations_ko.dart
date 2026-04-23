@@ -173,6 +173,26 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fifaHubUpcomingFixturesEmpty => '예정된 전 세계 A매치 일정을 찾지 못했어요.';
 
   @override
+  String get fifaHubKfaUpcomingFixturesTitle => 'KFA 대한민국 경기 일정';
+
+  @override
+  String get fifaHubKfaUpcomingFixturesSubtitle =>
+      '대한축구협회 공식 Next Match 기준입니다.';
+
+  @override
+  String get fifaHubKfaUpcomingFixturesEmpty => 'KFA 공식 경기 일정을 찾지 못했어요.';
+
+  @override
+  String get fifaHubKfaRecentResultsTitle => 'KFA 대한민국 경기 결과';
+
+  @override
+  String get fifaHubKfaRecentResultsSubtitle =>
+      '대한축구협회 공식 Match Results 기준입니다.';
+
+  @override
+  String get fifaHubKfaRecentResultsEmpty => 'KFA 공식 경기 결과를 찾지 못했어요.';
+
+  @override
   String get fifaHubMatchStatusResult => '결과';
 
   @override
