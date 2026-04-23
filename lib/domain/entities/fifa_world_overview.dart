@@ -28,6 +28,24 @@ class FifaWorldOverview {
     required this.upcomingFixtures,
   });
 
+  FifaWorldOverview copyWith({
+    FifaRankingGender? gender,
+    List<FifaRankingEntry>? rankings,
+    DateTime? lastUpdatedAt,
+    DateTime? nextUpdatedAt,
+    List<FifaAMatchEntry>? recentResults,
+    List<FifaAMatchEntry>? upcomingFixtures,
+  }) {
+    return FifaWorldOverview(
+      gender: gender ?? this.gender,
+      rankings: rankings ?? this.rankings,
+      lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+      nextUpdatedAt: nextUpdatedAt ?? this.nextUpdatedAt,
+      recentResults: recentResults ?? this.recentResults,
+      upcomingFixtures: upcomingFixtures ?? this.upcomingFixtures,
+    );
+  }
+
   bool get isEmpty =>
       rankings.isEmpty && recentResults.isEmpty && upcomingFixtures.isEmpty;
 

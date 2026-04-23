@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,38 +11,34 @@ import '../widgets/app_background.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 
 class FifaRankingScreen extends StatefulWidget {
-  final FifaRankingGender initialGender;
-
-  const FifaRankingScreen({
-    super.key,
-    this.initialGender = FifaRankingGender.men,
-  });
+  const FifaRankingScreen({super.key});
 
   @override
   State<FifaRankingScreen> createState() => _FifaRankingScreenState();
 }
 
 class _FifaRankingScreenState extends State<FifaRankingScreen> {
-  static const int _collapsedRankingCount = 20;
+  static const FifaRankingGender _rankingGender = FifaRankingGender.men;
 
   late final FifaWorldOverviewService _service;
-  late FifaRankingGender _selectedGender;
+  late final ScrollController _rankingScrollController;
   FifaWorldOverview? _overview;
-  bool _isLoading = true;
+  bool _isRankingLoading = true;
+  bool _isMatchLoading = false;
   bool _hadError = false;
-  bool _showAllRankings = false;
   int _loadToken = 0;
 
   @override
   void initState() {
     super.initState();
     _service = FifaWorldOverviewService();
-    _selectedGender = widget.initialGender;
+    _rankingScrollController = ScrollController();
     _loadOverview();
   }
 
   @override
   void dispose() {
+    _rankingScrollController.dispose();
     _service.dispose();
     super.dispose();
   }
@@ -64,7 +62,7 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
   Widget _buildBody(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final overview = _overview;
-    if (_isLoading && overview == null) {
+    if (_isRankingLoading && overview == null) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: const [
@@ -75,7 +73,6 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
     }
 
     final items = <Widget>[
-      _buildGenderBar(context),
       if (_hadError && (overview == null || overview.isEmpty))
         _buildMessageCard(l10n.fifaHubLoadError)
       else if (overview == null || overview.isEmpty)
@@ -85,20 +82,22 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
         if (overview.biggestClimber != null || overview.biggestFaller != null)
           _buildHighlightsCard(context, overview),
         _buildRankingCard(context, overview),
-        _buildMatchSection(
-          context,
-          title: l10n.fifaHubRecentResultsTitle,
-          subtitle: l10n.fifaHubRecentResultsSubtitle,
-          emptyMessage: l10n.fifaHubRecentResultsEmpty,
-          matches: overview.recentResults,
-        ),
-        _buildMatchSection(
-          context,
-          title: l10n.fifaHubUpcomingFixturesTitle,
-          subtitle: l10n.fifaHubUpcomingFixturesSubtitle,
-          emptyMessage: l10n.fifaHubUpcomingFixturesEmpty,
-          matches: overview.upcomingFixtures,
-        ),
+        if (!_isMatchLoading || overview.recentResults.isNotEmpty)
+          _buildMatchSection(
+            context,
+            title: l10n.fifaHubRecentResultsTitle,
+            subtitle: l10n.fifaHubRecentResultsSubtitle,
+            emptyMessage: l10n.fifaHubRecentResultsEmpty,
+            matches: overview.recentResults,
+          ),
+        if (!_isMatchLoading || overview.upcomingFixtures.isNotEmpty)
+          _buildMatchSection(
+            context,
+            title: l10n.fifaHubUpcomingFixturesTitle,
+            subtitle: l10n.fifaHubUpcomingFixturesSubtitle,
+            emptyMessage: l10n.fifaHubUpcomingFixturesEmpty,
+            matches: overview.upcomingFixtures,
+          ),
       ],
       const SizedBox(height: 12),
     ];
@@ -112,41 +111,12 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) => items[index],
         ),
-        if (_isLoading)
+        if (_isRankingLoading || _isMatchLoading)
           const Align(
             alignment: Alignment.topCenter,
             child: LinearProgressIndicator(minHeight: 2),
           ),
       ],
-    );
-  }
-
-  Widget _buildGenderBar(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return SegmentedButton<FifaRankingGender>(
-      segments: [
-        ButtonSegment<FifaRankingGender>(
-          value: FifaRankingGender.men,
-          icon: const Icon(Icons.sports_soccer_outlined),
-          label: Text(l10n.fifaHubMenLabel),
-        ),
-        ButtonSegment<FifaRankingGender>(
-          value: FifaRankingGender.women,
-          icon: const Icon(Icons.shield_outlined),
-          label: Text(l10n.fifaHubWomenLabel),
-        ),
-      ],
-      selected: {_selectedGender},
-      onSelectionChanged: (selection) {
-        final nextGender = selection.first;
-        if (nextGender == _selectedGender) return;
-        setState(() {
-          _selectedGender = nextGender;
-          _showAllRankings = false;
-        });
-        _loadOverview();
-      },
-      showSelectedIcon: false,
     );
   }
 
@@ -174,25 +144,67 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.fifaHubHeroTitle,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.fifaHubHeroTitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        if (leader != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.fifaHubLeaderLabel,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: Colors.white.withAlpha(230),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            leader.teamName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            '#${leader.rank} · ${leader.points.toStringAsFixed(2)}',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: Colors.white.withAlpha(230),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (leader != null) ...[
+                    const SizedBox(width: 12),
+                    _CountryFlag(
+                      countryCode: leader.countryCode,
+                      size: 46,
+                      radius: 14,
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                l10n.fifaHubHeroSubtitle,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withAlpha(220),
-                ),
-              ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -209,68 +221,6 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
                       overview.confederationCount,
                     ),
                   ),
-                  _HeroChip(
-                    icon: Icons.history_outlined,
-                    label: l10n.fifaHubRecentResultsCount(
-                      overview.recentResults.length,
-                    ),
-                  ),
-                  _HeroChip(
-                    icon: Icons.schedule_outlined,
-                    label: l10n.fifaHubUpcomingFixturesCount(
-                      overview.upcomingFixtures.length,
-                    ),
-                  ),
-                ],
-              ),
-              if (leader != null) ...[
-                const SizedBox(height: 18),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.fifaHubLeaderLabel,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: Colors.white.withAlpha(230),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            leader.teamName,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '#${leader.rank} · ${leader.points.toStringAsFixed(2)}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: Colors.white.withAlpha(230),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _CountryFlag(
-                      countryCode: leader.countryCode,
-                      size: 54,
-                      radius: 16,
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 18),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
                   if (updateLabel.isNotEmpty)
                     _SoftInfoChip(
                       label: '${l10n.newsRankingUpdatedLabel} · $updateLabel',
@@ -282,18 +232,27 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   FilledButton.tonalIcon(
                     onPressed: _openOfficialRankingPage,
                     icon: const Icon(Icons.open_in_new, size: 18),
                     label: Text(l10n.newsOpenOfficialSource),
+                    style: FilledButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       l10n.fifaHubDataSourceLabel,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF0F2946),
                         fontWeight: FontWeight.w600,
@@ -358,61 +317,43 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
 
   Widget _buildRankingCard(BuildContext context, FifaWorldOverview overview) {
     final l10n = AppLocalizations.of(context)!;
-    final visibleEntries = _showAllRankings
-        ? overview.rankings
-        : overview.rankings
-              .take(_collapsedRankingCount)
-              .toList(growable: false);
+    final rankingHeight = (MediaQuery.sizeOf(context).height * 0.42)
+        .clamp(300.0, 430.0)
+        .toDouble();
+
     return WatchCartCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.fifaHubGlobalRankingTitle,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.fifaHubGlobalRankingSubtitle,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              if (overview.rankings.length > _collapsedRankingCount)
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _showAllRankings = !_showAllRankings;
-                    });
-                  },
-                  child: Text(
-                    _showAllRankings
-                        ? l10n.fifaHubShowLess
-                        : l10n.fifaHubShowAll,
-                  ),
-                ),
-            ],
+          Text(
+            l10n.fifaHubGlobalRankingTitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.fifaHubGlobalRankingSubtitle,
+            style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 12),
-          ...visibleEntries.asMap().entries.map((entry) {
-            final index = entry.key;
-            final rankingEntry = entry.value;
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index == visibleEntries.length - 1 ? 0 : 10,
+          SizedBox(
+            height: rankingHeight,
+            child: Scrollbar(
+              controller: _rankingScrollController,
+              thumbVisibility: true,
+              child: ListView.separated(
+                controller: _rankingScrollController,
+                primary: false,
+                itemCount: overview.rankings.length,
+                padding: EdgeInsets.zero,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  return _RankingRow(entry: overview.rankings[index]);
+                },
               ),
-              child: _RankingRow(entry: rankingEntry),
-            );
-          }),
+            ),
+          ),
         ],
       ),
     );
@@ -467,31 +408,65 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
     final token = ++_loadToken;
     if (mounted) {
       setState(() {
-        _isLoading = true;
+        _isRankingLoading = true;
+        _isMatchLoading = false;
         if (force) {
           _hadError = false;
         }
       });
     }
     try {
-      final overview = await _service.fetchOverview(gender: _selectedGender);
+      final overview = await _service.fetchRankingOverview(
+        gender: _rankingGender,
+      );
       if (!mounted || token != _loadToken) return;
       setState(() {
         _overview = overview;
-        _isLoading = false;
+        _isRankingLoading = false;
+        _isMatchLoading = true;
         _hadError = false;
       });
+      unawaited(_loadMatchOverview(token));
     } catch (_) {
       if (!mounted || token != _loadToken) return;
       setState(() {
-        _isLoading = false;
+        _isRankingLoading = false;
+        _isMatchLoading = false;
         _hadError = true;
       });
     }
   }
 
+  Future<void> _loadMatchOverview(int token) async {
+    try {
+      final matchOverview = await _service.fetchMatchOverview(
+        gender: _rankingGender,
+      );
+      if (!mounted || token != _loadToken) return;
+      setState(() {
+        final current = _overview;
+        _overview = current == null
+            ? matchOverview
+            : current.copyWith(
+                lastUpdatedAt:
+                    current.lastUpdatedAt ?? matchOverview.lastUpdatedAt,
+                nextUpdatedAt:
+                    current.nextUpdatedAt ?? matchOverview.nextUpdatedAt,
+                recentResults: matchOverview.recentResults,
+                upcomingFixtures: matchOverview.upcomingFixtures,
+              );
+        _isMatchLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || token != _loadToken) return;
+      setState(() {
+        _isMatchLoading = false;
+      });
+    }
+  }
+
   Future<void> _openOfficialRankingPage() async {
-    final uri = Uri.parse(_selectedGender.officialRankingUrl);
+    final uri = Uri.parse(_rankingGender.officialRankingUrl);
     await launchUrl(
       uri,
       mode: LaunchMode.inAppBrowserView,
@@ -522,9 +497,9 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),
@@ -548,9 +523,9 @@ class _SoftInfoChip extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: const Color(0xFF123B6E),
-          fontWeight: FontWeight.w700,
-        ),
+              color: const Color(0xFF123B6E),
+              fontWeight: FontWeight.w700,
+            ),
       ),
     );
   }
@@ -588,9 +563,9 @@ class _HighlightTile extends StatelessWidget {
                 child: Text(
                   title,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
             ],
@@ -700,9 +675,9 @@ class _RankingRow extends StatelessWidget {
                 Text(
                   '${entry.rankMovement.abs()}',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: movementColor,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: movementColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ],
             ),
@@ -770,9 +745,9 @@ class _MatchRow extends StatelessWidget {
                 child: Text(
                   statusLabel,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.w800,
-                  ),
+                        color: statusColor,
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -808,7 +783,9 @@ class _MatchRow extends StatelessWidget {
                   child: match.hasScore
                       ? Text(
                           '${match.homeScore}-${match.awayScore}',
-                          style: Theme.of(context).textTheme.titleMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
                               ?.copyWith(fontWeight: FontWeight.w900),
                         )
                       : Icon(
@@ -859,9 +836,8 @@ class _TeamLine extends StatelessWidget {
       ),
     );
     return Row(
-      mainAxisAlignment: alignEnd
-          ? MainAxisAlignment.end
-          : MainAxisAlignment.start,
+      mainAxisAlignment:
+          alignEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: alignEnd
           ? [nameText, const SizedBox(width: 8), flag]
           : [flag, const SizedBox(width: 8), nameText],

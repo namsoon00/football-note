@@ -33,6 +33,75 @@ class FifaWorldOverviewService {
     int upcomingFixtureLimit = _defaultUpcomingFixtureLimit,
   }) async {
     final referenceNow = (now ?? DateTime.now()).toUtc();
+    final snapshot = await _fetchRankingSnapshot(gender);
+    final matches = await _fetchMatchSnapshot(
+      gender: gender,
+      referenceNow: referenceNow,
+      recentWindowEnd: snapshot.recentWindowEnd,
+      nextUpdatedAt: snapshot.nextUpdatedAt,
+      recentResultLimit: recentResultLimit,
+      upcomingFixtureLimit: upcomingFixtureLimit,
+    );
+
+    return FifaWorldOverview(
+      gender: gender,
+      rankings: snapshot.rankings,
+      lastUpdatedAt: snapshot.lastUpdatedAt,
+      nextUpdatedAt: snapshot.nextUpdatedAt,
+      recentResults: matches.recentResults,
+      upcomingFixtures: matches.upcomingFixtures,
+    );
+  }
+
+  Future<FifaWorldOverview> fetchRankingOverview({
+    required FifaRankingGender gender,
+  }) async {
+    final snapshot = await _fetchRankingSnapshot(gender);
+    return FifaWorldOverview(
+      gender: gender,
+      rankings: snapshot.rankings,
+      lastUpdatedAt: snapshot.lastUpdatedAt,
+      nextUpdatedAt: snapshot.nextUpdatedAt,
+      recentResults: const <FifaAMatchEntry>[],
+      upcomingFixtures: const <FifaAMatchEntry>[],
+    );
+  }
+
+  Future<FifaWorldOverview> fetchMatchOverview({
+    required FifaRankingGender gender,
+    DateTime? now,
+    int recentResultLimit = _defaultRecentResultLimit,
+    int upcomingFixtureLimit = _defaultUpcomingFixtureLimit,
+  }) async {
+    final referenceNow = (now ?? DateTime.now()).toUtc();
+    final scheduleFuture = _fetchRankingSchedules(gender);
+    final metadataFuture = _fetchRankingPageMetadata(gender);
+
+    final schedules = await scheduleFuture;
+    final metadata = await metadataFuture;
+    final matches = await _fetchMatchSnapshot(
+      gender: gender,
+      referenceNow: referenceNow,
+      recentWindowEnd: schedules.firstOrNull?.matchWindowEndDate,
+      nextUpdatedAt: metadata.nextUpdatedAt,
+      recentResultLimit: recentResultLimit,
+      upcomingFixtureLimit: upcomingFixtureLimit,
+    );
+
+    return FifaWorldOverview(
+      gender: gender,
+      rankings: const <FifaRankingEntry>[],
+      lastUpdatedAt:
+          metadata.lastUpdatedAt ?? schedules.firstOrNull?.officialDate,
+      nextUpdatedAt: metadata.nextUpdatedAt,
+      recentResults: matches.recentResults,
+      upcomingFixtures: matches.upcomingFixtures,
+    );
+  }
+
+  Future<_FifaRankingSnapshot> _fetchRankingSnapshot(
+    FifaRankingGender gender,
+  ) async {
     final rankingFuture = _fetchRankings(gender);
     final scheduleFuture = _fetchRankingSchedules(gender);
     final metadataFuture = _fetchRankingPageMetadata(gender);
@@ -46,38 +115,49 @@ class FifaWorldOverviewService {
         schedules.firstOrNull?.officialDate;
     final nextUpdatedAt = metadata.nextUpdatedAt;
 
-    final recentWindowEnd = schedules.firstOrNull?.matchWindowEndDate;
-    final recentResults = recentWindowEnd == null
-        ? await _scanRecentResults(
+    return _FifaRankingSnapshot(
+      rankings: rankings,
+      lastUpdatedAt: lastUpdatedAt,
+      nextUpdatedAt: nextUpdatedAt,
+      recentWindowEnd: schedules.firstOrNull?.matchWindowEndDate,
+    );
+  }
+
+  Future<_FifaMatchSnapshot> _fetchMatchSnapshot({
+    required FifaRankingGender gender,
+    required DateTime referenceNow,
+    required DateTime? recentWindowEnd,
+    required DateTime? nextUpdatedAt,
+    required int recentResultLimit,
+    required int upcomingFixtureLimit,
+  }) async {
+    final recentResultsFuture = recentWindowEnd == null
+        ? _scanRecentResults(
             gender: gender,
             anchor: referenceNow,
             limit: recentResultLimit,
           )
-        : await _fetchRecentResultsForWindow(
+        : _fetchRecentResultsForWindow(
             gender: gender,
             windowEnd: recentWindowEnd,
             limit: recentResultLimit,
           );
 
-    final upcomingFixtures = nextUpdatedAt == null
-        ? await _scanUpcomingFixtures(
+    final upcomingFixturesFuture = nextUpdatedAt == null
+        ? _scanUpcomingFixtures(
             gender: gender,
             anchor: referenceNow,
             limit: upcomingFixtureLimit,
           )
-        : await _fetchUpcomingFixturesForWindow(
+        : _fetchUpcomingFixturesForWindow(
             gender: gender,
             windowEnd: nextUpdatedAt,
             limit: upcomingFixtureLimit,
           );
 
-    return FifaWorldOverview(
-      gender: gender,
-      rankings: rankings,
-      lastUpdatedAt: lastUpdatedAt,
-      nextUpdatedAt: nextUpdatedAt,
-      recentResults: recentResults,
-      upcomingFixtures: upcomingFixtures,
+    return _FifaMatchSnapshot(
+      recentResults: await recentResultsFuture,
+      upcomingFixtures: await upcomingFixturesFuture,
     );
   }
 
@@ -569,6 +649,30 @@ class _FifaRankingSchedule {
   const _FifaRankingSchedule({
     required this.officialDate,
     required this.matchWindowEndDate,
+  });
+}
+
+class _FifaRankingSnapshot {
+  final List<FifaRankingEntry> rankings;
+  final DateTime? lastUpdatedAt;
+  final DateTime? nextUpdatedAt;
+  final DateTime? recentWindowEnd;
+
+  const _FifaRankingSnapshot({
+    required this.rankings,
+    required this.lastUpdatedAt,
+    required this.nextUpdatedAt,
+    required this.recentWindowEnd,
+  });
+}
+
+class _FifaMatchSnapshot {
+  final List<FifaAMatchEntry> recentResults;
+  final List<FifaAMatchEntry> upcomingFixtures;
+
+  const _FifaMatchSnapshot({
+    required this.recentResults,
+    required this.upcomingFixtures,
   });
 }
 
