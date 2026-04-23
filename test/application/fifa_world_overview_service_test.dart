@@ -329,6 +329,37 @@ void main() {
     expect(liveFeedRequested, isFalse);
   });
 
+  test('parseTeamDetail reads FIFA official team profile', () {
+    final detail = FifaWorldOverviewService.parseTeamDetail({
+      'IdTeam': '43922',
+      'IdConfederation': 'CONMEBOL',
+      'Name': [
+        {'Locale': 'en-GB', 'Description': 'Argentina'},
+      ],
+      'IdCountry': 'ARG',
+      'ShortClubName': 'Argentina',
+      'Abbreviation': 'ARG',
+      'City': 'BUENOS AIRES',
+      'Street': 'Asociacion del Futbol Argentino',
+      'FoundationYear': 1893,
+      'OfficialSite': 'https://www.afa.com.ar',
+      'Stadium': {
+        'Name': [
+          {'Locale': 'en', 'Description': 'Monumental'},
+        ],
+      },
+    });
+
+    expect(detail, isNotNull);
+    expect(detail!.teamId, '43922');
+    expect(detail.teamName, 'Argentina');
+    expect(detail.countryCode, 'ARG');
+    expect(detail.confederationCode, 'CONMEBOL');
+    expect(detail.foundationYear, 1893);
+    expect(detail.stadiumName, 'Monumental');
+    expect(detail.hasTeamProfile, isTrue);
+  });
+
   test('parseKfaMatchOverview keeps senior men Korea matches only', () {
     final overview = FifaWorldOverviewService.parseKfaMatchOverview(
       _kfaMatchHtml,

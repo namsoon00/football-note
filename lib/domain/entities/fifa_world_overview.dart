@@ -102,6 +102,41 @@ class FifaRankingEntry {
   double get pointsMovement => points - previousPoints;
 }
 
+class FifaTeamDetail {
+  final String teamId;
+  final String teamName;
+  final String countryCode;
+  final String abbreviation;
+  final String confederationCode;
+  final String city;
+  final String street;
+  final String officialSite;
+  final String stadiumName;
+  final int? foundationYear;
+
+  const FifaTeamDetail({
+    required this.teamId,
+    required this.teamName,
+    required this.countryCode,
+    required this.abbreviation,
+    required this.confederationCode,
+    required this.city,
+    required this.street,
+    required this.officialSite,
+    required this.stadiumName,
+    required this.foundationYear,
+  });
+
+  bool get hasTeamProfile =>
+      abbreviation.isNotEmpty ||
+      confederationCode.isNotEmpty ||
+      city.isNotEmpty ||
+      street.isNotEmpty ||
+      officialSite.isNotEmpty ||
+      stadiumName.isNotEmpty ||
+      foundationYear != null;
+}
+
 class FifaAMatchEntry {
   final String matchId;
   final FifaRankingGender gender;

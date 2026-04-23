@@ -208,6 +208,65 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fifaHubNoData => '현재 표시할 FIFA 랭킹 또는 A매치 데이터가 없어요.';
 
   @override
+  String get fifaCountryDetailRankingSummaryTitle => '랭킹 요약';
+
+  @override
+  String get fifaCountryDetailTeamProfileTitle => '팀 프로필';
+
+  @override
+  String get fifaCountryDetailCurrentRankLabel => '현재 순위';
+
+  @override
+  String get fifaCountryDetailPreviousRankLabel => '이전 순위';
+
+  @override
+  String get fifaCountryDetailPointsLabel => '포인트';
+
+  @override
+  String get fifaCountryDetailPointChangeLabel => '포인트 변동';
+
+  @override
+  String get fifaCountryDetailConfederationLabel => '대륙 연맹';
+
+  @override
+  String get fifaCountryDetailCountryCodeLabel => '국가 코드';
+
+  @override
+  String get fifaCountryDetailTeamIdLabel => 'FIFA 팀 ID';
+
+  @override
+  String get fifaCountryDetailAbbreviationLabel => '약어';
+
+  @override
+  String get fifaCountryDetailFoundationYearLabel => '창립연도';
+
+  @override
+  String get fifaCountryDetailCityLabel => '도시';
+
+  @override
+  String get fifaCountryDetailStadiumLabel => '경기장';
+
+  @override
+  String get fifaCountryDetailAddressLabel => '주소';
+
+  @override
+  String get fifaCountryDetailProfileUnavailable =>
+      '현재 추가 FIFA 팀 프로필을 찾지 못했어요.';
+
+  @override
+  String get fifaCountryDetailProfileSource => 'FIFA 공식 팀 API 기준 프로필입니다.';
+
+  @override
+  String get fifaCountryDetailRecentMatchesTitle => '이 팀의 최근 A매치';
+
+  @override
+  String get fifaCountryDetailUpcomingMatchesTitle => '이 팀의 예정 A매치';
+
+  @override
+  String get fifaCountryDetailMatchesUnavailable =>
+      '불러온 FIFA 피드에서 이 팀의 경기를 찾지 못했어요.';
+
+  @override
   String get tabGame => '미니게임';
 
   @override

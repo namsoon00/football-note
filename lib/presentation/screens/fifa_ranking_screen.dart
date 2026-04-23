@@ -8,7 +8,9 @@ import '../../application/fifa_world_overview_service.dart';
 import '../../domain/entities/fifa_world_overview.dart';
 import '../../gen/app_localizations.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_page_route.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
+import 'fifa_country_detail_screen.dart';
 
 class FifaRankingScreen extends StatefulWidget {
   const FifaRankingScreen({super.key});
@@ -402,7 +404,11 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
                 padding: EdgeInsets.zero,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  return _RankingRow(entry: overview.rankings[index]);
+                  final entry = overview.rankings[index];
+                  return _RankingRow(
+                    entry: entry,
+                    onTap: () => _openCountryDetail(entry),
+                  );
                 },
               ),
             ),
@@ -601,6 +607,38 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
   bool get _isKoreanLocale =>
       Localizations.localeOf(context).languageCode == 'ko';
 
+  Future<void> _openCountryDetail(FifaRankingEntry entry) async {
+    final overview = _overview;
+    final recentMatches = overview == null
+        ? const <FifaAMatchEntry>[]
+        : _matchesForCountry(overview.recentResults, entry.countryCode);
+    final upcomingMatches = overview == null
+        ? const <FifaAMatchEntry>[]
+        : _matchesForCountry(overview.upcomingFixtures, entry.countryCode);
+    await Navigator.of(context).push(
+      AppPageRoute(
+        builder: (_) => FifaCountryDetailScreen(
+          rankingEntry: entry,
+          recentMatches: recentMatches,
+          upcomingMatches: upcomingMatches,
+        ),
+      ),
+    );
+  }
+
+  List<FifaAMatchEntry> _matchesForCountry(
+    List<FifaAMatchEntry> matches,
+    String countryCode,
+  ) {
+    return matches
+        .where(
+          (match) =>
+              match.homeCountryCode == countryCode ||
+              match.awayCountryCode == countryCode,
+        )
+        .toList(growable: false);
+  }
+
   Future<void> _openOfficialRankingPage() async {
     final uri = Uri.parse(_rankingGender.officialRankingUrl);
     await launchUrl(
@@ -740,8 +778,9 @@ class _HighlightTile extends StatelessWidget {
 
 class _RankingRow extends StatelessWidget {
   final FifaRankingEntry entry;
+  final VoidCallback? onTap;
 
-  const _RankingRow({required this.entry});
+  const _RankingRow({required this.entry, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -759,77 +798,91 @@ class _RankingRow extends StatelessWidget {
       movementIcon = Icons.remove_rounded;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 34,
-            child: Text(
-              '${entry.rank}',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
-            ),
-          ),
-          const SizedBox(width: 8),
-          _CountryFlag(countryCode: entry.countryCode, size: 28, radius: 10),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.teamName,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 34,
+                child: Text(
+                  '${entry.rank}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  entry.confederation,
-                  style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(width: 8),
+              _CountryFlag(
+                countryCode: entry.countryCode,
+                size: 28,
+                radius: 10,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.teamName,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      entry.confederation,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-            decoration: BoxDecoration(
-              color: movementColor.withAlpha(18),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(movementIcon, size: 15, color: movementColor),
-                const SizedBox(width: 4),
-                Text(
-                  '${entry.rankMovement.abs()}',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: movementColor,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: movementColor.withAlpha(18),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(movementIcon, size: 15, color: movementColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${entry.rankMovement.abs()}',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: movementColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 74,
+                child: Text(
+                  entry.points.toStringAsFixed(2),
+                  textAlign: TextAlign.right,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: scheme.outline,
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 74,
-            child: Text(
-              entry.points.toStringAsFixed(2),
-              textAlign: TextAlign.right,
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

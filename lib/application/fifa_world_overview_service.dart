@@ -119,6 +119,25 @@ class FifaWorldOverviewService {
     );
   }
 
+  Future<FifaTeamDetail?> fetchTeamDetail({
+    required String teamId,
+  }) async {
+    final uri = _baseApiUri.replace(
+      path: '${_baseApiUri.path}/teams/$teamId',
+      queryParameters: {'language': 'en'},
+    );
+    try {
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) {
+        return null;
+      }
+      return parseTeamDetail(jsonDecode(response.body));
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<_FifaRankingSnapshot> _fetchRankingSnapshot(
     FifaRankingGender gender,
   ) async {
@@ -447,6 +466,32 @@ class FifaWorldOverviewService {
     }
     items.sort((a, b) => a.rank.compareTo(b.rank));
     return items;
+  }
+
+  static FifaTeamDetail? parseTeamDetail(dynamic decoded) {
+    if (decoded is! Map) return null;
+    final item = decoded.cast<String, dynamic>();
+    final teamId = _asString(item['IdTeam']);
+    final teamName = _localizedDescription(item['Name']).isNotEmpty
+        ? _localizedDescription(item['Name'])
+        : _asString(item['ShortClubName']);
+    final countryCode = _asString(item['IdCountry']);
+    if (teamId.isEmpty || teamName.isEmpty || countryCode.isEmpty) {
+      return null;
+    }
+    final stadium = _asMap(item['Stadium']);
+    return FifaTeamDetail(
+      teamId: teamId,
+      teamName: teamName,
+      countryCode: countryCode,
+      abbreviation: _asString(item['Abbreviation']),
+      confederationCode: _asString(item['IdConfederation']),
+      city: _asString(item['City']),
+      street: _asString(item['Street']),
+      officialSite: _asString(item['OfficialSite']),
+      stadiumName: _localizedDescription(stadium['Name']),
+      foundationYear: _asInt(item['FoundationYear']),
+    );
   }
 
   static KfaMatchOverview parseKfaMatchOverview(
