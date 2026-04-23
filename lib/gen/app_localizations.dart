@@ -470,6 +470,120 @@ abstract class AppLocalizations {
   /// **'No FIFA ranking or A-match data is available right now.'**
   String get fifaHubNoData;
 
+  /// No description provided for @fifaCountryDetailRankingSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ranking summary'**
+  String get fifaCountryDetailRankingSummaryTitle;
+
+  /// No description provided for @fifaCountryDetailTeamProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Team profile'**
+  String get fifaCountryDetailTeamProfileTitle;
+
+  /// No description provided for @fifaCountryDetailCurrentRankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current rank'**
+  String get fifaCountryDetailCurrentRankLabel;
+
+  /// No description provided for @fifaCountryDetailPreviousRankLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous rank'**
+  String get fifaCountryDetailPreviousRankLabel;
+
+  /// No description provided for @fifaCountryDetailPointsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get fifaCountryDetailPointsLabel;
+
+  /// No description provided for @fifaCountryDetailPointChangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Point change'**
+  String get fifaCountryDetailPointChangeLabel;
+
+  /// No description provided for @fifaCountryDetailConfederationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confederation'**
+  String get fifaCountryDetailConfederationLabel;
+
+  /// No description provided for @fifaCountryDetailCountryCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code'**
+  String get fifaCountryDetailCountryCodeLabel;
+
+  /// No description provided for @fifaCountryDetailTeamIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA team ID'**
+  String get fifaCountryDetailTeamIdLabel;
+
+  /// No description provided for @fifaCountryDetailAbbreviationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Abbreviation'**
+  String get fifaCountryDetailAbbreviationLabel;
+
+  /// No description provided for @fifaCountryDetailFoundationYearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Founded'**
+  String get fifaCountryDetailFoundationYearLabel;
+
+  /// No description provided for @fifaCountryDetailCityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get fifaCountryDetailCityLabel;
+
+  /// No description provided for @fifaCountryDetailStadiumLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stadium'**
+  String get fifaCountryDetailStadiumLabel;
+
+  /// No description provided for @fifaCountryDetailAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get fifaCountryDetailAddressLabel;
+
+  /// No description provided for @fifaCountryDetailProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No additional FIFA team profile is available right now.'**
+  String get fifaCountryDetailProfileUnavailable;
+
+  /// No description provided for @fifaCountryDetailProfileSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile data from FIFA official team API.'**
+  String get fifaCountryDetailProfileSource;
+
+  /// No description provided for @fifaCountryDetailRecentMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This team\'s recent A-matches'**
+  String get fifaCountryDetailRecentMatchesTitle;
+
+  /// No description provided for @fifaCountryDetailUpcomingMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This team\'s upcoming A-matches'**
+  String get fifaCountryDetailUpcomingMatchesTitle;
+
+  /// No description provided for @fifaCountryDetailMatchesUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches for this team were found in the loaded FIFA feed.'**
+  String get fifaCountryDetailMatchesUnavailable;
+
   /// No description provided for @tabGame.
   ///
   /// In en, this message translates to:

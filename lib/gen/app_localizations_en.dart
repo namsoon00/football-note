@@ -218,6 +218,68 @@ class AppLocalizationsEn extends AppLocalizations {
       'No FIFA ranking or A-match data is available right now.';
 
   @override
+  String get fifaCountryDetailRankingSummaryTitle => 'Ranking summary';
+
+  @override
+  String get fifaCountryDetailTeamProfileTitle => 'Team profile';
+
+  @override
+  String get fifaCountryDetailCurrentRankLabel => 'Current rank';
+
+  @override
+  String get fifaCountryDetailPreviousRankLabel => 'Previous rank';
+
+  @override
+  String get fifaCountryDetailPointsLabel => 'Points';
+
+  @override
+  String get fifaCountryDetailPointChangeLabel => 'Point change';
+
+  @override
+  String get fifaCountryDetailConfederationLabel => 'Confederation';
+
+  @override
+  String get fifaCountryDetailCountryCodeLabel => 'Country code';
+
+  @override
+  String get fifaCountryDetailTeamIdLabel => 'FIFA team ID';
+
+  @override
+  String get fifaCountryDetailAbbreviationLabel => 'Abbreviation';
+
+  @override
+  String get fifaCountryDetailFoundationYearLabel => 'Founded';
+
+  @override
+  String get fifaCountryDetailCityLabel => 'City';
+
+  @override
+  String get fifaCountryDetailStadiumLabel => 'Stadium';
+
+  @override
+  String get fifaCountryDetailAddressLabel => 'Address';
+
+  @override
+  String get fifaCountryDetailProfileUnavailable =>
+      'No additional FIFA team profile is available right now.';
+
+  @override
+  String get fifaCountryDetailProfileSource =>
+      'Profile data from FIFA official team API.';
+
+  @override
+  String get fifaCountryDetailRecentMatchesTitle =>
+      'This team\'s recent A-matches';
+
+  @override
+  String get fifaCountryDetailUpcomingMatchesTitle =>
+      'This team\'s upcoming A-matches';
+
+  @override
+  String get fifaCountryDetailMatchesUnavailable =>
+      'No matches for this team were found in the loaded FIFA feed.';
+
+  @override
   String get tabGame => 'Mini Game';
 
   @override
