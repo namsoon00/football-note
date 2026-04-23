@@ -6,6 +6,12 @@
   "tabStats": "통계",
   "tabDiary": "다이어리",
   "tabNews": "오늘의 소식",
+  "newsFifaHubButton": "피파 랭킹",
+  "newsSearchAction": "기사 검색",
+  "newsChannelsAction": "채널 선택",
+  "newsSelectChannelsTitle": "뉴스 채널 선택",
+  "newsSelectAll": "전체 선택",
+  "newsClearAll": "전체 해제",
   "newsNationalSnapshotTitle": "국가대표 스냅샷",
   "newsNationalSnapshotSubtitle": "공식 페이지 기준 대한민국 남자 대표팀 요약",
   "newsFifaRankingTitle": "FIFA 랭킹",
@@ -19,6 +25,64 @@
   "newsMatchResultWin": "승",
   "newsMatchResultDraw": "무",
   "newsMatchResultLoss": "패",
+  "fifaHubAppBarTitle": "피파 랭킹",
+  "fifaHubHeroTitle": "전 세계 FIFA 랭킹과 A매치 허브",
+  "fifaHubHeroSubtitle": "FIFA 공식 데이터를 바탕으로 전체 랭킹과 최근 결과, 예정 경기를 한 번에 확인하세요.",
+  "fifaHubMenLabel": "남자",
+  "fifaHubWomenLabel": "여자",
+  "fifaHubLeaderLabel": "현재 1위",
+  "fifaHubRankedTeamsCount": "랭킹 {count}개 팀",
+  "@fifaHubRankedTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubConfederationCount": "{count}개 대륙 연맹",
+  "@fifaHubConfederationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubRecentResultsCount": "최근 결과 {count}경기",
+  "@fifaHubRecentResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubUpcomingFixturesCount": "예정 경기 {count}경기",
+  "@fifaHubUpcomingFixturesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubNextUpdateLabel": "다음 업데이트",
+  "fifaHubDataSourceLabel": "데이터 출처: FIFA 공식 랭킹 및 실시간 경기 피드",
+  "fifaHubHighlightsTitle": "순위 변동 하이라이트",
+  "fifaHubBiggestClimber": "최대 상승",
+  "fifaHubBiggestFaller": "최대 하락",
+  "fifaHubGlobalRankingTitle": "전체 랭킹",
+  "fifaHubGlobalRankingSubtitle": "더보기를 눌러 전체 국가대표 랭킹을 펼쳐 보세요.",
+  "fifaHubShowAll": "전체 보기",
+  "fifaHubShowLess": "접기",
+  "fifaHubRecentResultsTitle": "전 세계 A매치 최근 결과",
+  "fifaHubRecentResultsSubtitle": "FIFA 경기 피드에서 시니어 국가대표 경기만 골라 보여줍니다.",
+  "fifaHubRecentResultsEmpty": "최근 전 세계 A매치 결과를 찾지 못했어요.",
+  "fifaHubUpcomingFixturesTitle": "전 세계 A매치 예정 경기",
+  "fifaHubUpcomingFixturesSubtitle": "최신 FIFA 일정 구간 기준의 시니어 국가대표 예정 경기입니다.",
+  "fifaHubUpcomingFixturesEmpty": "예정된 전 세계 A매치 일정을 찾지 못했어요.",
+  "fifaHubMatchStatusResult": "결과",
+  "fifaHubMatchStatusLive": "진행 중",
+  "fifaHubMatchStatusFixture": "예정",
+  "fifaHubLoadError": "FIFA 데이터를 불러오지 못했어요. 아래로 당겨 새로고침해 주세요.",
+  "fifaHubNoData": "현재 표시할 FIFA 랭킹 또는 A매치 데이터가 없어요.",
   "tabGame": "미니게임",
   "drawerMainScreens": "주요 화면",
   "drawerQuickAdd": "빠른 추가",
