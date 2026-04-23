@@ -30,6 +30,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabNews => 'Today News';
 
   @override
+  String get newsFifaHubButton => 'FIFA Ranking';
+
+  @override
+  String get newsSearchAction => 'Search news';
+
+  @override
+  String get newsChannelsAction => 'Channels';
+
+  @override
+  String get newsSelectChannelsTitle => 'Select news channels';
+
+  @override
+  String get newsSelectAll => 'Select all';
+
+  @override
+  String get newsClearAll => 'Clear all';
+
+  @override
   String get newsNationalSnapshotTitle => 'National Team Snapshot';
 
   @override
@@ -68,6 +86,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newsMatchResultLoss => 'Loss';
+
+  @override
+  String get fifaHubAppBarTitle => 'FIFA Ranking Hub';
+
+  @override
+  String get fifaHubHeroTitle => 'Worldwide FIFA ranking and A-match tracker';
+
+  @override
+  String get fifaHubHeroSubtitle =>
+      'Check the full rankings, recent results, and upcoming fixtures from FIFA official data.';
+
+  @override
+  String get fifaHubMenLabel => 'Men';
+
+  @override
+  String get fifaHubWomenLabel => 'Women';
+
+  @override
+  String get fifaHubLeaderLabel => 'Current No. 1';
+
+  @override
+  String fifaHubRankedTeamsCount(int count) {
+    return '$count ranked teams';
+  }
+
+  @override
+  String fifaHubConfederationCount(int count) {
+    return '$count confederations';
+  }
+
+  @override
+  String fifaHubRecentResultsCount(int count) {
+    return '$count recent results';
+  }
+
+  @override
+  String fifaHubUpcomingFixturesCount(int count) {
+    return '$count upcoming fixtures';
+  }
+
+  @override
+  String get fifaHubNextUpdateLabel => 'Next update';
+
+  @override
+  String get fifaHubDataSourceLabel =>
+      'Source: FIFA official ranking and live match feeds';
+
+  @override
+  String get fifaHubHighlightsTitle => 'Movement highlights';
+
+  @override
+  String get fifaHubBiggestClimber => 'Biggest climber';
+
+  @override
+  String get fifaHubBiggestFaller => 'Biggest faller';
+
+  @override
+  String get fifaHubGlobalRankingTitle => 'Global ranking';
+
+  @override
+  String get fifaHubGlobalRankingSubtitle =>
+      'Tap show all to expand the full list of national teams.';
+
+  @override
+  String get fifaHubShowAll => 'Show all';
+
+  @override
+  String get fifaHubShowLess => 'Show less';
+
+  @override
+  String get fifaHubRecentResultsTitle => 'Recent worldwide A-match results';
+
+  @override
+  String get fifaHubRecentResultsSubtitle =>
+      'Senior national-team matches filtered from FIFA match feeds.';
+
+  @override
+  String get fifaHubRecentResultsEmpty =>
+      'No recent worldwide A-match results found.';
+
+  @override
+  String get fifaHubUpcomingFixturesTitle =>
+      'Upcoming worldwide A-match fixtures';
+
+  @override
+  String get fifaHubUpcomingFixturesSubtitle =>
+      'Upcoming senior national-team fixtures from the latest FIFA schedule window.';
+
+  @override
+  String get fifaHubUpcomingFixturesEmpty =>
+      'No upcoming worldwide A-match fixtures found.';
+
+  @override
+  String get fifaHubMatchStatusResult => 'Result';
+
+  @override
+  String get fifaHubMatchStatusLive => 'Live';
+
+  @override
+  String get fifaHubMatchStatusFixture => 'Fixture';
+
+  @override
+  String get fifaHubLoadError =>
+      'Failed to load FIFA data. Pull down to refresh.';
+
+  @override
+  String get fifaHubNoData =>
+      'No FIFA ranking or A-match data is available right now.';
 
   @override
   String get tabGame => 'Mini Game';

@@ -6,6 +6,12 @@
   "tabStats": "Stats",
   "tabDiary": "Diary",
   "tabNews": "Today News",
+  "newsFifaHubButton": "FIFA Ranking",
+  "newsSearchAction": "Search news",
+  "newsChannelsAction": "Channels",
+  "newsSelectChannelsTitle": "Select news channels",
+  "newsSelectAll": "Select all",
+  "newsClearAll": "Clear all",
   "newsNationalSnapshotTitle": "National Team Snapshot",
   "newsNationalSnapshotSubtitle": "Korea Republic men's team summary from official pages",
   "newsFifaRankingTitle": "FIFA Ranking",
@@ -19,6 +25,64 @@
   "newsMatchResultWin": "Win",
   "newsMatchResultDraw": "Draw",
   "newsMatchResultLoss": "Loss",
+  "fifaHubAppBarTitle": "FIFA Ranking Hub",
+  "fifaHubHeroTitle": "Worldwide FIFA ranking and A-match tracker",
+  "fifaHubHeroSubtitle": "Check the full rankings, recent results, and upcoming fixtures from FIFA official data.",
+  "fifaHubMenLabel": "Men",
+  "fifaHubWomenLabel": "Women",
+  "fifaHubLeaderLabel": "Current No. 1",
+  "fifaHubRankedTeamsCount": "{count} ranked teams",
+  "@fifaHubRankedTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubConfederationCount": "{count} confederations",
+  "@fifaHubConfederationCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubRecentResultsCount": "{count} recent results",
+  "@fifaHubRecentResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubUpcomingFixturesCount": "{count} upcoming fixtures",
+  "@fifaHubUpcomingFixturesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fifaHubNextUpdateLabel": "Next update",
+  "fifaHubDataSourceLabel": "Source: FIFA official ranking and live match feeds",
+  "fifaHubHighlightsTitle": "Movement highlights",
+  "fifaHubBiggestClimber": "Biggest climber",
+  "fifaHubBiggestFaller": "Biggest faller",
+  "fifaHubGlobalRankingTitle": "Global ranking",
+  "fifaHubGlobalRankingSubtitle": "Tap show all to expand the full list of national teams.",
+  "fifaHubShowAll": "Show all",
+  "fifaHubShowLess": "Show less",
+  "fifaHubRecentResultsTitle": "Recent worldwide A-match results",
+  "fifaHubRecentResultsSubtitle": "Senior national-team matches filtered from FIFA match feeds.",
+  "fifaHubRecentResultsEmpty": "No recent worldwide A-match results found.",
+  "fifaHubUpcomingFixturesTitle": "Upcoming worldwide A-match fixtures",
+  "fifaHubUpcomingFixturesSubtitle": "Upcoming senior national-team fixtures from the latest FIFA schedule window.",
+  "fifaHubUpcomingFixturesEmpty": "No upcoming worldwide A-match fixtures found.",
+  "fifaHubMatchStatusResult": "Result",
+  "fifaHubMatchStatusLive": "Live",
+  "fifaHubMatchStatusFixture": "Fixture",
+  "fifaHubLoadError": "Failed to load FIFA data. Pull down to refresh.",
+  "fifaHubNoData": "No FIFA ranking or A-match data is available right now.",
   "tabGame": "Mini Game",
   "drawerMainScreens": "Main screens",
   "drawerQuickAdd": "Quick add",

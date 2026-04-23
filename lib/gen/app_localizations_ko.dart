@@ -30,6 +30,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabNews => '오늘의 소식';
 
   @override
+  String get newsFifaHubButton => '피파 랭킹';
+
+  @override
+  String get newsSearchAction => '기사 검색';
+
+  @override
+  String get newsChannelsAction => '채널 선택';
+
+  @override
+  String get newsSelectChannelsTitle => '뉴스 채널 선택';
+
+  @override
+  String get newsSelectAll => '전체 선택';
+
+  @override
+  String get newsClearAll => '전체 해제';
+
+  @override
   String get newsNationalSnapshotTitle => '국가대표 스냅샷';
 
   @override
@@ -67,6 +85,107 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get newsMatchResultLoss => '패';
+
+  @override
+  String get fifaHubAppBarTitle => '피파 랭킹';
+
+  @override
+  String get fifaHubHeroTitle => '전 세계 FIFA 랭킹과 A매치 허브';
+
+  @override
+  String get fifaHubHeroSubtitle =>
+      'FIFA 공식 데이터를 바탕으로 전체 랭킹과 최근 결과, 예정 경기를 한 번에 확인하세요.';
+
+  @override
+  String get fifaHubMenLabel => '남자';
+
+  @override
+  String get fifaHubWomenLabel => '여자';
+
+  @override
+  String get fifaHubLeaderLabel => '현재 1위';
+
+  @override
+  String fifaHubRankedTeamsCount(int count) {
+    return '랭킹 $count개 팀';
+  }
+
+  @override
+  String fifaHubConfederationCount(int count) {
+    return '$count개 대륙 연맹';
+  }
+
+  @override
+  String fifaHubRecentResultsCount(int count) {
+    return '최근 결과 $count경기';
+  }
+
+  @override
+  String fifaHubUpcomingFixturesCount(int count) {
+    return '예정 경기 $count경기';
+  }
+
+  @override
+  String get fifaHubNextUpdateLabel => '다음 업데이트';
+
+  @override
+  String get fifaHubDataSourceLabel => '데이터 출처: FIFA 공식 랭킹 및 실시간 경기 피드';
+
+  @override
+  String get fifaHubHighlightsTitle => '순위 변동 하이라이트';
+
+  @override
+  String get fifaHubBiggestClimber => '최대 상승';
+
+  @override
+  String get fifaHubBiggestFaller => '최대 하락';
+
+  @override
+  String get fifaHubGlobalRankingTitle => '전체 랭킹';
+
+  @override
+  String get fifaHubGlobalRankingSubtitle => '더보기를 눌러 전체 국가대표 랭킹을 펼쳐 보세요.';
+
+  @override
+  String get fifaHubShowAll => '전체 보기';
+
+  @override
+  String get fifaHubShowLess => '접기';
+
+  @override
+  String get fifaHubRecentResultsTitle => '전 세계 A매치 최근 결과';
+
+  @override
+  String get fifaHubRecentResultsSubtitle =>
+      'FIFA 경기 피드에서 시니어 국가대표 경기만 골라 보여줍니다.';
+
+  @override
+  String get fifaHubRecentResultsEmpty => '최근 전 세계 A매치 결과를 찾지 못했어요.';
+
+  @override
+  String get fifaHubUpcomingFixturesTitle => '전 세계 A매치 예정 경기';
+
+  @override
+  String get fifaHubUpcomingFixturesSubtitle =>
+      '최신 FIFA 일정 구간 기준의 시니어 국가대표 예정 경기입니다.';
+
+  @override
+  String get fifaHubUpcomingFixturesEmpty => '예정된 전 세계 A매치 일정을 찾지 못했어요.';
+
+  @override
+  String get fifaHubMatchStatusResult => '결과';
+
+  @override
+  String get fifaHubMatchStatusLive => '진행 중';
+
+  @override
+  String get fifaHubMatchStatusFixture => '예정';
+
+  @override
+  String get fifaHubLoadError => 'FIFA 데이터를 불러오지 못했어요. 아래로 당겨 새로고침해 주세요.';
+
+  @override
+  String get fifaHubNoData => '현재 표시할 FIFA 랭킹 또는 A매치 데이터가 없어요.';
 
   @override
   String get tabGame => '미니게임';

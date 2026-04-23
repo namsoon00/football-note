@@ -140,6 +140,42 @@ abstract class AppLocalizations {
   /// **'Today News'**
   String get tabNews;
 
+  /// No description provided for @newsFifaHubButton.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA Ranking'**
+  String get newsFifaHubButton;
+
+  /// No description provided for @newsSearchAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Search news'**
+  String get newsSearchAction;
+
+  /// No description provided for @newsChannelsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get newsChannelsAction;
+
+  /// No description provided for @newsSelectChannelsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select news channels'**
+  String get newsSelectChannelsTitle;
+
+  /// No description provided for @newsSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get newsSelectAll;
+
+  /// No description provided for @newsClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get newsClearAll;
+
   /// No description provided for @newsNationalSnapshotTitle.
   ///
   /// In en, this message translates to:
@@ -217,6 +253,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loss'**
   String get newsMatchResultLoss;
+
+  /// No description provided for @fifaHubAppBarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FIFA Ranking Hub'**
+  String get fifaHubAppBarTitle;
+
+  /// No description provided for @fifaHubHeroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Worldwide FIFA ranking and A-match tracker'**
+  String get fifaHubHeroTitle;
+
+  /// No description provided for @fifaHubHeroSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the full rankings, recent results, and upcoming fixtures from FIFA official data.'**
+  String get fifaHubHeroSubtitle;
+
+  /// No description provided for @fifaHubMenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Men'**
+  String get fifaHubMenLabel;
+
+  /// No description provided for @fifaHubWomenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Women'**
+  String get fifaHubWomenLabel;
+
+  /// No description provided for @fifaHubLeaderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current No. 1'**
+  String get fifaHubLeaderLabel;
+
+  /// No description provided for @fifaHubRankedTeamsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} ranked teams'**
+  String fifaHubRankedTeamsCount(int count);
+
+  /// No description provided for @fifaHubConfederationCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} confederations'**
+  String fifaHubConfederationCount(int count);
+
+  /// No description provided for @fifaHubRecentResultsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} recent results'**
+  String fifaHubRecentResultsCount(int count);
+
+  /// No description provided for @fifaHubUpcomingFixturesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} upcoming fixtures'**
+  String fifaHubUpcomingFixturesCount(int count);
+
+  /// No description provided for @fifaHubNextUpdateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Next update'**
+  String get fifaHubNextUpdateLabel;
+
+  /// No description provided for @fifaHubDataSourceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: FIFA official ranking and live match feeds'**
+  String get fifaHubDataSourceLabel;
+
+  /// No description provided for @fifaHubHighlightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement highlights'**
+  String get fifaHubHighlightsTitle;
+
+  /// No description provided for @fifaHubBiggestClimber.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest climber'**
+  String get fifaHubBiggestClimber;
+
+  /// No description provided for @fifaHubBiggestFaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest faller'**
+  String get fifaHubBiggestFaller;
+
+  /// No description provided for @fifaHubGlobalRankingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Global ranking'**
+  String get fifaHubGlobalRankingTitle;
+
+  /// No description provided for @fifaHubGlobalRankingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap show all to expand the full list of national teams.'**
+  String get fifaHubGlobalRankingSubtitle;
+
+  /// No description provided for @fifaHubShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get fifaHubShowAll;
+
+  /// No description provided for @fifaHubShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get fifaHubShowLess;
+
+  /// No description provided for @fifaHubRecentResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent worldwide A-match results'**
+  String get fifaHubRecentResultsTitle;
+
+  /// No description provided for @fifaHubRecentResultsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Senior national-team matches filtered from FIFA match feeds.'**
+  String get fifaHubRecentResultsSubtitle;
+
+  /// No description provided for @fifaHubRecentResultsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent worldwide A-match results found.'**
+  String get fifaHubRecentResultsEmpty;
+
+  /// No description provided for @fifaHubUpcomingFixturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming worldwide A-match fixtures'**
+  String get fifaHubUpcomingFixturesTitle;
+
+  /// No description provided for @fifaHubUpcomingFixturesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming senior national-team fixtures from the latest FIFA schedule window.'**
+  String get fifaHubUpcomingFixturesSubtitle;
+
+  /// No description provided for @fifaHubUpcomingFixturesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming worldwide A-match fixtures found.'**
+  String get fifaHubUpcomingFixturesEmpty;
+
+  /// No description provided for @fifaHubMatchStatusResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get fifaHubMatchStatusResult;
+
+  /// No description provided for @fifaHubMatchStatusLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get fifaHubMatchStatusLive;
+
+  /// No description provided for @fifaHubMatchStatusFixture.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture'**
+  String get fifaHubMatchStatusFixture;
+
+  /// No description provided for @fifaHubLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load FIFA data. Pull down to refresh.'**
+  String get fifaHubLoadError;
+
+  /// No description provided for @fifaHubNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No FIFA ranking or A-match data is available right now.'**
+  String get fifaHubNoData;
 
   /// No description provided for @tabGame.
   ///
