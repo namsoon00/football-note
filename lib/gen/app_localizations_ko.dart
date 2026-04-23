@@ -2693,9 +2693,6 @@ class AppLocalizationsKo extends AppLocalizations {
       '안정적인 스텝 이벤트가 부족함';
 
   @override
-  String get headerEducationTooltip => '월드컵 역사책';
-
-  @override
   String get homeWeatherNeedsLocationTitle => '위치 연결 필요';
 
   @override

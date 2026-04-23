@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:football_note/gen/app_localizations.dart';
 
 class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onLeadingTap;
@@ -13,7 +12,6 @@ class WatchCartAppBar extends StatelessWidget {
   final VoidCallback? onNewsTap;
   final int newsBadgeCount;
   final VoidCallback? onQuizTap;
-  final VoidCallback? onCoachTap;
   final VoidCallback onProfileTap;
   final VoidCallback? onNotificationTap;
   final int notificationBadgeCount;
@@ -28,7 +26,6 @@ class WatchCartAppBar extends StatelessWidget {
     this.onNewsTap,
     this.newsBadgeCount = 0,
     this.onQuizTap,
-    this.onCoachTap,
     required this.onProfileTap,
     this.onNotificationTap,
     this.notificationBadgeCount = 0,
@@ -130,15 +127,6 @@ class WatchCartAppBar extends StatelessWidget {
                 padding: actionPadding,
                 constraints: actionConstraints,
                 onPressed: onQuizTap,
-              ),
-            if (onCoachTap != null)
-              IconButton(
-                icon: const Icon(Icons.school_outlined),
-                tooltip: AppLocalizations.of(context)!.headerEducationTooltip,
-                iconSize: 28,
-                padding: actionPadding,
-                constraints: actionConstraints,
-                onPressed: onCoachTap,
               ),
             IconButton(
               icon: _ProfileAppBarAvatar(photoSource: profilePhotoSource),

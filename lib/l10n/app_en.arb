@@ -1250,7 +1250,6 @@
   },
   "runningCoachSprintFeatureUnavailableJointWindow": "not enough stable joint frames",
   "runningCoachSprintFeatureUnavailableStepEvents": "not enough stable step events",
-  "headerEducationTooltip": "World Cup history book",
   "homeWeatherNeedsLocationTitle": "Need location",
   "homeWeatherNeedsLocationSubtitle": "Turn location on",
   "homeStreakBadgeActive": "Momentum",

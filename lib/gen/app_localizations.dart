@@ -4874,12 +4874,6 @@ abstract class AppLocalizations {
   /// **'not enough stable step events'**
   String get runningCoachSprintFeatureUnavailableStepEvents;
 
-  /// No description provided for @headerEducationTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'World Cup history book'**
-  String get headerEducationTooltip;
-
   /// No description provided for @homeWeatherNeedsLocationTitle.
   ///
   /// In en, this message translates to:

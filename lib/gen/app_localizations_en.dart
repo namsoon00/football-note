@@ -2767,9 +2767,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'not enough stable step events';
 
   @override
-  String get headerEducationTooltip => 'World Cup history book';
-
-  @override
   String get homeWeatherNeedsLocationTitle => 'Need location';
 
   @override

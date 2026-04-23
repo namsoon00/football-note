@@ -35,7 +35,6 @@ import 'news_screen.dart';
 import 'notification_center_screen.dart';
 import 'coach_lesson_screen.dart';
 import 'entry_form_screen.dart';
-import 'football_education_screen.dart';
 import 'player_level_guide_screen.dart';
 import 'training_method_board_screen.dart';
 import 'weather_detail_screen.dart';
@@ -193,10 +192,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                                 onNewsTap: _openNews,
                                 newsBadgeCount: newsCount,
                                 onQuizTap: _openQuizShortcut,
-                                onCoachTap: _trackedAction(
-                                  'header_education',
-                                  _openEducation,
-                                ),
                                 onProfileTap: () => _openProfile(context),
                                 onNotificationTap: _openNotifications,
                                 notificationBadgeCount: reminderUnreadCount,
@@ -584,12 +579,6 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
     );
-  }
-
-  Future<void> _openEducation() async {
-    await Navigator.of(
-      context,
-    ).push(AppPageRoute(builder: (_) => const FootballEducationScreen()));
   }
 
   Future<void> _openNotifications() async {
