@@ -128,6 +128,69 @@ void main() {
     expect(womenMatches.single.status, FifaAMatchStatus.scheduled);
   });
 
+  test('parseFifaMatchDetail extracts scorers and possession', () {
+    final raw = _match(
+      matchId: 'detail-match',
+      gender: 1,
+      period: 10,
+      competition: 'International Friendly',
+      stage: 'Final',
+      homeName: 'Korea Republic',
+      homeCode: 'KOR',
+      awayName: 'Japan',
+      awayCode: 'JPN',
+      date: '2026-04-01T11:00:00Z',
+      homeScore: 2,
+      awayScore: 1,
+    );
+    final homeTeam = raw['HomeTeam'] as Map<String, dynamic>;
+    final awayTeam = raw['AwayTeam'] as Map<String, dynamic>;
+    homeTeam['Players'] = [
+      {
+        'IdPlayer': 'home-9',
+        'ShortName': [
+          {'Locale': 'en-gb', 'Description': 'S. Son'},
+        ],
+        'PlayerName': [
+          {'Locale': 'en-gb', 'Description': 'Son Heungmin'},
+        ],
+      },
+    ];
+    homeTeam['Goals'] = [
+      {'IdPlayer': 'home-9', 'Minute': "21'"},
+      {'IdPlayer': 'home-9', 'Minute': "64'"},
+    ];
+    awayTeam['Players'] = [
+      {
+        'IdPlayer': 'away-10',
+        'ShortName': [
+          {'Locale': 'en-gb', 'Description': 'T. Kubo'},
+        ],
+      },
+    ];
+    awayTeam['Goals'] = [
+      {'IdPlayer': 'away-10', 'Minute': "77'"},
+    ];
+    raw['BallPossession'] = {'OverallHome': 58.2, 'OverallAway': 41.8};
+
+    final fallback = FifaWorldOverviewService.parseNationalMatches(
+      [raw],
+      gender: FifaRankingGender.men,
+    ).single;
+    final detail = FifaWorldOverviewService.parseFifaMatchDetail(
+      raw,
+      fallback: fallback,
+    );
+
+    expect(detail, isNotNull);
+    expect(detail!.homeScorers, hasLength(2));
+    expect(detail.homeScorers.first.playerName, 'S. Son');
+    expect(detail.homeScorers.first.minute, "21'");
+    expect(detail.awayScorers.single.playerName, 'T. Kubo');
+    expect(detail.homePossession, 58.2);
+    expect(detail.awayPossession, 41.8);
+  });
+
   test(
     'fetchOverview combines ranking page, schedules, and worldwide A-matches',
     () async {

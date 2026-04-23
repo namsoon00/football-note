@@ -457,7 +457,11 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
                   itemCount: matches.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    return _MatchRow(match: matches[index]);
+                    final match = matches[index];
+                    return _MatchRow(
+                      match: match,
+                      onTap: () => _openFifaMatchDetail(match),
+                    );
                   },
                 ),
               ),
@@ -504,7 +508,11 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
                   itemCount: matches.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    return _KfaMatchRow(match: matches[index]);
+                    final match = matches[index];
+                    return _KfaMatchRow(
+                      match: match,
+                      onTap: () => _openKfaMatchDetail(match),
+                    );
                   },
                 ),
               ),
@@ -639,6 +647,30 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
               match.awayCountryCode == countryCode,
         )
         .toList(growable: false);
+  }
+
+  Future<void> _openFifaMatchDetail(FifaAMatchEntry match) async {
+    final detailFuture = _service.fetchMatchDetail(match: match);
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (_) => _FifaMatchDetailSheet(
+        match: match,
+        detailFuture: detailFuture,
+      ),
+    );
+  }
+
+  Future<void> _openKfaMatchDetail(KfaMatchEntry match) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (_) => _KfaMatchDetailSheet(match: match),
+    );
   }
 
   Future<void> _openOfficialRankingPage() async {
@@ -892,8 +924,9 @@ class _RankingRow extends StatelessWidget {
 
 class _MatchRow extends StatelessWidget {
   final FifaAMatchEntry match;
+  final VoidCallback onTap;
 
-  const _MatchRow({required this.match});
+  const _MatchRow({required this.match, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -916,88 +949,99 @@ class _MatchRow extends StatelessWidget {
       FifaAMatchStatus.scheduled => const Color(0xFF355C7D),
     };
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: statusColor.withAlpha(18),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  statusLabel,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: statusColor.withAlpha(18),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: statusColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      match.competition,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  match.competition,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                ),
+              const SizedBox(height: 10),
+              Text(
+                metaParts.join(' · '),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _TeamLine(
+                      countryCode: match.homeCountryCode,
+                      name: match.homeTeamName,
+                      alignEnd: false,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 54,
+                    child: Center(
+                      child: match.hasScore
+                          ? Text(
+                              '${match.homeScore}-${match.awayScore}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w900),
+                            )
+                          : Icon(
+                              match.status == FifaAMatchStatus.live
+                                  ? Icons.bolt_rounded
+                                  : Icons.schedule_outlined,
+                              size: 20,
+                            ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _TeamLine(
+                      countryCode: match.awayCountryCode,
+                      name: match.awayTeamName,
+                      alignEnd: true,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            metaParts.join(' · '),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _TeamLine(
-                  countryCode: match.homeCountryCode,
-                  name: match.homeTeamName,
-                  alignEnd: false,
-                ),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 54,
-                child: Center(
-                  child: match.hasScore
-                      ? Text(
-                          '${match.homeScore}-${match.awayScore}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        )
-                      : Icon(
-                          match.status == FifaAMatchStatus.live
-                              ? Icons.bolt_rounded
-                              : Icons.schedule_outlined,
-                          size: 20,
-                        ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _TeamLine(
-                  countryCode: match.awayCountryCode,
-                  name: match.awayTeamName,
-                  alignEnd: true,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1005,8 +1049,9 @@ class _MatchRow extends StatelessWidget {
 
 class _KfaMatchRow extends StatelessWidget {
   final KfaMatchEntry match;
+  final VoidCallback onTap;
 
-  const _KfaMatchRow({required this.match});
+  const _KfaMatchRow({required this.match, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1024,19 +1069,420 @@ class _KfaMatchRow extends StatelessWidget {
     final statusColor =
         isResult ? const Color(0xFF1B5E20) : const Color(0xFF355C7D);
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: statusColor.withAlpha(18),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: statusColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      match.competition,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ],
+              ),
+              if (metaParts.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  metaParts.join(' · '),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child:
+                        _KfaTeamLine(name: match.homeTeamName, alignEnd: false),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 54,
+                    child: Center(
+                      child: match.hasScore
+                          ? Text(
+                              '${match.homeScore}-${match.awayScore}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w900),
+                            )
+                          : const Icon(Icons.schedule_outlined, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child:
+                        _KfaTeamLine(name: match.awayTeamName, alignEnd: true),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class _FifaMatchDetailSheet extends StatelessWidget {
+  final FifaAMatchEntry match;
+  final Future<FifaAMatchDetail?> detailFuture;
+
+  const _FifaMatchDetailSheet({
+    required this.match,
+    required this.detailFuture,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    return FutureBuilder<FifaAMatchDetail?>(
+      future: detailFuture,
+      builder: (context, snapshot) {
+        final detail = snapshot.data;
+        final effectiveMatch = detail?.match ?? match;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final kickoffLabel = DateFormat(
+          'yyyy.MM.dd (EEE) HH:mm',
+          locale,
+        ).format(effectiveMatch.kickoffAt.toLocal());
+        final summaryTitle = effectiveMatch.status == FifaAMatchStatus.scheduled
+            ? l10n.fifaMatchDetailFixtureSummaryTitle
+            : l10n.fifaMatchDetailResultSummaryTitle;
+
+        return _MatchDetailShell(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _MatchDetailTitle(
+                title: l10n.fifaMatchDetailTitle,
+                sourceNote: l10n.fifaMatchDetailFifaSourceNote,
+              ),
+              const SizedBox(height: 16),
+              _FifaMatchScoreboard(match: effectiveMatch),
+              const SizedBox(height: 14),
+              _MatchDetailSection(
+                title: summaryTitle,
+                child: _MatchDetailInfoRows(
+                  items: [
+                    _MatchDetailInfoItem(
+                      label: l10n.fifaMatchDetailCompetitionLabel,
+                      value: effectiveMatch.competition,
+                    ),
+                    _MatchDetailInfoItem(
+                      label: l10n.fifaMatchDetailKickoffLabel,
+                      value: kickoffLabel,
+                    ),
+                    _MatchDetailInfoItem(
+                      label: l10n.fifaMatchDetailStageLabel,
+                      value: effectiveMatch.stage,
+                    ),
+                    _MatchDetailInfoItem(
+                      label: l10n.fifaMatchDetailVenueLabel,
+                      value: effectiveMatch.venue,
+                    ),
+                    _MatchDetailInfoItem(
+                      label: l10n.fifaMatchDetailCityLabel,
+                      value: effectiveMatch.city,
+                    ),
+                    _MatchDetailInfoItem(
+                      label: l10n.fifaMatchDetailMatchIdLabel,
+                      value: effectiveMatch.matchId,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _FifaAdvancedMatchDetail(
+                match: effectiveMatch,
+                detail: detail,
+                isLoading: isLoading,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _KfaMatchDetailSheet extends StatelessWidget {
+  final KfaMatchEntry match;
+
+  const _KfaMatchDetailSheet({required this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final dateLabel = [
+      match.dateLabel,
+      match.timeLabel,
+    ].where((part) => part.trim().isNotEmpty).join(' ');
+    final summaryTitle = match.status == KfaMatchStatus.scheduled
+        ? l10n.fifaMatchDetailFixtureSummaryTitle
+        : l10n.fifaMatchDetailResultSummaryTitle;
+
+    return _MatchDetailShell(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          _MatchDetailTitle(
+            title: l10n.fifaMatchDetailTitle,
+            sourceNote: l10n.newsOfficialSourceKfa,
+          ),
+          const SizedBox(height: 16),
+          _KfaMatchScoreboard(match: match),
+          const SizedBox(height: 14),
+          _MatchDetailSection(
+            title: summaryTitle,
+            child: _MatchDetailInfoRows(
+              items: [
+                _MatchDetailInfoItem(
+                  label: l10n.fifaMatchDetailCompetitionLabel,
+                  value: match.competition,
+                ),
+                _MatchDetailInfoItem(
+                  label: l10n.fifaMatchDetailDateLabel,
+                  value: dateLabel,
+                ),
+                _MatchDetailInfoItem(
+                  label: l10n.fifaMatchDetailVenueLabel,
+                  value: match.venue,
+                ),
+                _MatchDetailInfoItem(
+                  label: l10n.fifaMatchDetailMatchIdLabel,
+                  value: match.matchId,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _UnavailableNotice(message: l10n.fifaMatchDetailKfaSourceNote),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                unawaited(
+                  launchUrl(
+                    match.sourceUrl,
+                    mode: LaunchMode.inAppBrowserView,
+                    browserConfiguration: const BrowserConfiguration(
+                      showTitle: true,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.open_in_new_rounded, size: 18),
+              label: Text(l10n.fifaMatchDetailOpenSource),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(1, 40),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MatchDetailShell extends StatelessWidget {
+  final Widget child;
+
+  const _MatchDetailShell({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.86;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 14),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MatchDetailTitle extends StatelessWidget {
+  final String title;
+  final String sourceNote;
+
+  const _MatchDetailTitle({required this.title, required this.sourceNote});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 4),
+        Text(sourceNote, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    );
+  }
+}
+
+class _FifaMatchScoreboard extends StatelessWidget {
+  final FifaAMatchEntry match;
+
+  const _FifaMatchScoreboard({required this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return _ScoreboardFrame(
+      statusLabel: _fifaStatusLabel(l10n, match.status),
+      statusColor: _fifaStatusColor(match.status),
+      home: _ScoreTeam(
+        label: l10n.fifaMatchDetailHomeTeamLabel,
+        name: match.homeTeamName,
+        countryCode: match.homeCountryCode,
+        alignEnd: false,
+      ),
+      away: _ScoreTeam(
+        label: l10n.fifaMatchDetailAwayTeamLabel,
+        name: match.awayTeamName,
+        countryCode: match.awayCountryCode,
+        alignEnd: true,
+      ),
+      scoreText: match.hasScore
+          ? '${match.homeScore}-${match.awayScore}'
+          : l10n.fifaMatchDetailVersusLabel,
+    );
+  }
+}
+
+class _KfaMatchScoreboard extends StatelessWidget {
+  final KfaMatchEntry match;
+
+  const _KfaMatchScoreboard({required this.match});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isResult = match.status == KfaMatchStatus.finished;
+    return _ScoreboardFrame(
+      statusLabel: isResult
+          ? l10n.fifaHubMatchStatusResult
+          : l10n.fifaHubMatchStatusFixture,
+      statusColor: isResult ? const Color(0xFF1B5E20) : const Color(0xFF355C7D),
+      home: _ScoreTeam(
+        label: l10n.fifaMatchDetailHomeTeamLabel,
+        name: match.homeTeamName,
+        alignEnd: false,
+      ),
+      away: _ScoreTeam(
+        label: l10n.fifaMatchDetailAwayTeamLabel,
+        name: match.awayTeamName,
+        alignEnd: true,
+      ),
+      scoreText: match.hasScore
+          ? '${match.homeScore}-${match.awayScore}'
+          : l10n.fifaMatchDetailVersusLabel,
+    );
+  }
+}
+
+class _ScoreboardFrame extends StatelessWidget {
+  final String statusLabel;
+  final Color statusColor;
+  final _ScoreTeam home;
+  final _ScoreTeam away;
+  final String scoreText;
+
+  const _ScoreboardFrame({
+    required this.statusLabel,
+    required this.statusColor,
+    required this.home,
+    required this.away,
+    required this.scoreText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: home),
+          const SizedBox(width: 10),
+          Column(
             children: [
+              Text(
+                scoreText,
+                style: Theme.of(
+                  context,
+                )
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
                   color: statusColor.withAlpha(18),
                   borderRadius: BorderRadius.circular(999),
@@ -1049,55 +1495,413 @@ class _KfaMatchRow extends StatelessWidget {
                       ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  match.competition,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                ),
-              ),
             ],
           ),
-          if (metaParts.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              metaParts.join(' · '),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _KfaTeamLine(name: match.homeTeamName, alignEnd: false),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 54,
-                child: Center(
-                  child: match.hasScore
-                      ? Text(
-                          '${match.homeScore}-${match.awayScore}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        )
-                      : const Icon(Icons.schedule_outlined, size: 20),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _KfaTeamLine(name: match.awayTeamName, alignEnd: true),
-              ),
-            ],
-          ),
+          const SizedBox(width: 10),
+          Expanded(child: away),
         ],
       ),
     );
   }
+}
+
+class _ScoreTeam extends StatelessWidget {
+  final String label;
+  final String name;
+  final String countryCode;
+  final bool alignEnd;
+
+  const _ScoreTeam({
+    required this.label,
+    required this.name,
+    this.countryCode = '',
+    required this.alignEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final flag = countryCode.trim().isEmpty
+        ? null
+        : _CountryFlag(countryCode: countryCode, size: 32, radius: 10);
+    return Column(
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+                fontWeight: FontWeight.w800,
+              ),
+        ),
+        if (flag != null) ...[
+          const SizedBox(height: 8),
+          flag,
+        ],
+        const SizedBox(height: 8),
+        Text(
+          name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: alignEnd ? TextAlign.right : TextAlign.left,
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+        ),
+      ],
+    );
+  }
+}
+
+class _FifaAdvancedMatchDetail extends StatelessWidget {
+  final FifaAMatchEntry match;
+  final FifaAMatchDetail? detail;
+  final bool isLoading;
+
+  const _FifaAdvancedMatchDetail({
+    required this.match,
+    required this.detail,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (isLoading) {
+      return _LoadingNotice(message: l10n.fifaMatchDetailAdvancedLoading);
+    }
+    final loaded = detail;
+    if (loaded == null || (!loaded.hasScorers && !loaded.hasPossession)) {
+      return _UnavailableNotice(
+        message: l10n.fifaMatchDetailAdvancedUnavailable,
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _MatchDetailSection(
+          title: l10n.fifaMatchDetailScorersTitle,
+          child: loaded.hasScorers
+              ? _ScorersSummary(
+                  homeTeamName: match.homeTeamName,
+                  awayTeamName: match.awayTeamName,
+                  homeScorers: loaded.homeScorers,
+                  awayScorers: loaded.awayScorers,
+                )
+              : _UnavailableNotice(
+                  message: l10n.fifaMatchDetailScorersUnavailable,
+                ),
+        ),
+        const SizedBox(height: 12),
+        _MatchDetailSection(
+          title: l10n.fifaMatchDetailPossessionTitle,
+          child: loaded.hasPossession
+              ? _PossessionSummary(
+                  homeTeamName: match.homeTeamName,
+                  awayTeamName: match.awayTeamName,
+                  homePossession: loaded.homePossession!,
+                  awayPossession: loaded.awayPossession!,
+                )
+              : _UnavailableNotice(
+                  message: l10n.fifaMatchDetailPossessionUnavailable,
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MatchDetailSection extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const _MatchDetailSection({required this.title, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _MatchDetailInfoRows extends StatelessWidget {
+  final List<_MatchDetailInfoItem> items;
+
+  const _MatchDetailInfoRows({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleItems = items
+        .where((item) => item.value.trim().isNotEmpty)
+        .toList(growable: false);
+    return Column(
+      children: [
+        for (final entry in visibleItems.asMap().entries) ...[
+          if (entry.key > 0) const Divider(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 88,
+                child: Text(
+                  entry.value.label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  entry.value.value,
+                  textAlign: TextAlign.right,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _MatchDetailInfoItem {
+  final String label;
+  final String value;
+
+  const _MatchDetailInfoItem({required this.label, required this.value});
+}
+
+class _ScorersSummary extends StatelessWidget {
+  final String homeTeamName;
+  final String awayTeamName;
+  final List<FifaMatchScorer> homeScorers;
+  final List<FifaMatchScorer> awayScorers;
+
+  const _ScorersSummary({
+    required this.homeTeamName,
+    required this.awayTeamName,
+    required this.homeScorers,
+    required this.awayScorers,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _ScorerLine(teamName: homeTeamName, scorers: homeScorers),
+        const Divider(height: 16),
+        _ScorerLine(teamName: awayTeamName, scorers: awayScorers),
+      ],
+    );
+  }
+}
+
+class _ScorerLine extends StatelessWidget {
+  final String teamName;
+  final List<FifaMatchScorer> scorers;
+
+  const _ScorerLine({required this.teamName, required this.scorers});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final text = scorers.isEmpty
+        ? '-'
+        : scorers.map((scorer) {
+            final name = scorer.playerName.trim().isEmpty
+                ? l10n.fifaMatchDetailUnknownScorer
+                : scorer.playerName.trim();
+            final minute = scorer.minute.trim();
+            return minute.isEmpty ? name : '$minute $name';
+          }).join(', ');
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 4,
+          child: Text(
+            teamName,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 5,
+          child: Text(
+            text,
+            textAlign: TextAlign.right,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PossessionSummary extends StatelessWidget {
+  final String homeTeamName;
+  final String awayTeamName;
+  final double homePossession;
+  final double awayPossession;
+
+  const _PossessionSummary({
+    required this.homeTeamName,
+    required this.awayTeamName,
+    required this.homePossession,
+    required this.awayPossession,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final homeFlex = homePossession.round().clamp(1, 99).toInt();
+    final awayFlex = awayPossession.round().clamp(1, 99).toInt();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: SizedBox(
+            height: 12,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: homeFlex,
+                  child: Container(color: const Color(0xFF1B5E20)),
+                ),
+                Expanded(
+                  flex: awayFlex,
+                  child: Container(color: const Color(0xFF355C7D)),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                '$homeTeamName ${_formatPercent(homePossession)}',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                '${_formatPercent(awayPossession)} $awayTeamName',
+                textAlign: TextAlign.right,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _LoadingNotice extends StatelessWidget {
+  final String message;
+
+  const _LoadingNotice({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Text(message)),
+        ],
+      ),
+    );
+  }
+}
+
+class _UnavailableNotice extends StatelessWidget {
+  final String message;
+
+  const _UnavailableNotice({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withAlpha(120),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(message, style: Theme.of(context).textTheme.bodySmall),
+    );
+  }
+}
+
+String _fifaStatusLabel(AppLocalizations l10n, FifaAMatchStatus status) {
+  return switch (status) {
+    FifaAMatchStatus.finished => l10n.fifaHubMatchStatusResult,
+    FifaAMatchStatus.live => l10n.fifaHubMatchStatusLive,
+    FifaAMatchStatus.scheduled => l10n.fifaHubMatchStatusFixture,
+  };
+}
+
+Color _fifaStatusColor(FifaAMatchStatus status) {
+  return switch (status) {
+    FifaAMatchStatus.finished => const Color(0xFF1B5E20),
+    FifaAMatchStatus.live => const Color(0xFFC62828),
+    FifaAMatchStatus.scheduled => const Color(0xFF355C7D),
+  };
+}
+
+String _formatPercent(double value) {
+  final rounded = value.roundToDouble();
+  if ((value - rounded).abs() < 0.05) {
+    return '${rounded.toInt()}%';
+  }
+  return '${value.toStringAsFixed(1)}%';
 }
 
 class _KfaTeamLine extends StatelessWidget {

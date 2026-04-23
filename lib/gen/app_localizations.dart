@@ -470,6 +470,150 @@ abstract class AppLocalizations {
   /// **'No FIFA ranking or A-match data is available right now.'**
   String get fifaHubNoData;
 
+  /// No description provided for @fifaMatchDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match detail'**
+  String get fifaMatchDetailTitle;
+
+  /// No description provided for @fifaMatchDetailResultSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result summary'**
+  String get fifaMatchDetailResultSummaryTitle;
+
+  /// No description provided for @fifaMatchDetailFixtureSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixture summary'**
+  String get fifaMatchDetailFixtureSummaryTitle;
+
+  /// No description provided for @fifaMatchDetailCompetitionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Competition'**
+  String get fifaMatchDetailCompetitionLabel;
+
+  /// No description provided for @fifaMatchDetailKickoffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kickoff'**
+  String get fifaMatchDetailKickoffLabel;
+
+  /// No description provided for @fifaMatchDetailDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get fifaMatchDetailDateLabel;
+
+  /// No description provided for @fifaMatchDetailStageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage'**
+  String get fifaMatchDetailStageLabel;
+
+  /// No description provided for @fifaMatchDetailVenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Venue'**
+  String get fifaMatchDetailVenueLabel;
+
+  /// No description provided for @fifaMatchDetailCityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get fifaMatchDetailCityLabel;
+
+  /// No description provided for @fifaMatchDetailMatchIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Match ID'**
+  String get fifaMatchDetailMatchIdLabel;
+
+  /// No description provided for @fifaMatchDetailScoreUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Score not confirmed'**
+  String get fifaMatchDetailScoreUnavailable;
+
+  /// No description provided for @fifaMatchDetailVersusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'vs'**
+  String get fifaMatchDetailVersusLabel;
+
+  /// No description provided for @fifaMatchDetailHomeTeamLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get fifaMatchDetailHomeTeamLabel;
+
+  /// No description provided for @fifaMatchDetailAwayTeamLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Away'**
+  String get fifaMatchDetailAwayTeamLabel;
+
+  /// No description provided for @fifaMatchDetailScorersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scorers'**
+  String get fifaMatchDetailScorersTitle;
+
+  /// No description provided for @fifaMatchDetailPossessionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ball possession'**
+  String get fifaMatchDetailPossessionTitle;
+
+  /// No description provided for @fifaMatchDetailAdvancedLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking detailed records...'**
+  String get fifaMatchDetailAdvancedLoading;
+
+  /// No description provided for @fifaMatchDetailAdvancedUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Scorers and ball possession were not found in the source data.'**
+  String get fifaMatchDetailAdvancedUnavailable;
+
+  /// No description provided for @fifaMatchDetailScorersUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No scorer information found.'**
+  String get fifaMatchDetailScorersUnavailable;
+
+  /// No description provided for @fifaMatchDetailPossessionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No ball possession information found.'**
+  String get fifaMatchDetailPossessionUnavailable;
+
+  /// No description provided for @fifaMatchDetailUnknownScorer.
+  ///
+  /// In en, this message translates to:
+  /// **'Player not provided'**
+  String get fifaMatchDetailUnknownScorer;
+
+  /// No description provided for @fifaMatchDetailFifaSourceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on the FIFA official match API.'**
+  String get fifaMatchDetailFifaSourceNote;
+
+  /// No description provided for @fifaMatchDetailKfaSourceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on the KFA home feed. Scorers and ball possession may not be provided by the source.'**
+  String get fifaMatchDetailKfaSourceNote;
+
+  /// No description provided for @fifaMatchDetailOpenSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source'**
+  String get fifaMatchDetailOpenSource;
+
   /// No description provided for @fifaCountryDetailRankingSummaryTitle.
   ///
   /// In en, this message translates to:

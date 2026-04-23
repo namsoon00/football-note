@@ -30,7 +30,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get tabNews => '오늘의 소식';
 
   @override
-  String get newsFifaHubButton => '피파 랭킹';
+  String get newsFifaHubButton => 'FIFA 랭킹';
 
   @override
   String get newsSearchAction => '기사 검색';
@@ -87,7 +87,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsMatchResultLoss => '패';
 
   @override
-  String get fifaHubAppBarTitle => '피파 랭킹';
+  String get fifaHubAppBarTitle => 'FIFA 랭킹';
 
   @override
   String get fifaHubHeroTitle => '전 세계 FIFA 랭킹과 A매치 허브';
@@ -206,6 +206,80 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fifaHubNoData => '현재 표시할 FIFA 랭킹 또는 A매치 데이터가 없어요.';
+
+  @override
+  String get fifaMatchDetailTitle => '경기 상세';
+
+  @override
+  String get fifaMatchDetailResultSummaryTitle => '결과 요약';
+
+  @override
+  String get fifaMatchDetailFixtureSummaryTitle => '일정 요약';
+
+  @override
+  String get fifaMatchDetailCompetitionLabel => '대회';
+
+  @override
+  String get fifaMatchDetailKickoffLabel => '킥오프';
+
+  @override
+  String get fifaMatchDetailDateLabel => '일시';
+
+  @override
+  String get fifaMatchDetailStageLabel => '라운드';
+
+  @override
+  String get fifaMatchDetailVenueLabel => '경기장';
+
+  @override
+  String get fifaMatchDetailCityLabel => '도시';
+
+  @override
+  String get fifaMatchDetailMatchIdLabel => '경기 ID';
+
+  @override
+  String get fifaMatchDetailScoreUnavailable => '스코어 미확정';
+
+  @override
+  String get fifaMatchDetailVersusLabel => 'vs';
+
+  @override
+  String get fifaMatchDetailHomeTeamLabel => '홈';
+
+  @override
+  String get fifaMatchDetailAwayTeamLabel => '원정';
+
+  @override
+  String get fifaMatchDetailScorersTitle => '득점자';
+
+  @override
+  String get fifaMatchDetailPossessionTitle => '볼 점유율';
+
+  @override
+  String get fifaMatchDetailAdvancedLoading => '세부 기록 확인 중...';
+
+  @override
+  String get fifaMatchDetailAdvancedUnavailable =>
+      '득점자와 볼 점유율 세부 기록을 원본에서 찾지 못했어요.';
+
+  @override
+  String get fifaMatchDetailScorersUnavailable => '득점자 정보를 찾지 못했어요.';
+
+  @override
+  String get fifaMatchDetailPossessionUnavailable => '볼 점유율 정보를 찾지 못했어요.';
+
+  @override
+  String get fifaMatchDetailUnknownScorer => '선수 정보 미제공';
+
+  @override
+  String get fifaMatchDetailFifaSourceNote => 'FIFA 공식 경기 API 기준입니다.';
+
+  @override
+  String get fifaMatchDetailKfaSourceNote =>
+      'KFA 홈 피드 기준입니다. 득점자와 볼 점유율은 원본에서 제공되지 않을 수 있어요.';
+
+  @override
+  String get fifaMatchDetailOpenSource => '원본 열기';
 
   @override
   String get fifaCountryDetailRankingSummaryTitle => '랭킹 요약';

@@ -138,6 +138,25 @@ class FifaWorldOverviewService {
     }
   }
 
+  Future<FifaAMatchDetail?> fetchMatchDetail({
+    required FifaAMatchEntry match,
+  }) async {
+    final uri = _baseApiUri.replace(
+      path: '${_baseApiUri.path}/live/football/${match.matchId}',
+      queryParameters: {'language': 'en'},
+    );
+    try {
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) {
+        return null;
+      }
+      return parseFifaMatchDetail(jsonDecode(response.body), fallback: match);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<_FifaRankingSnapshot> _fetchRankingSnapshot(
     FifaRankingGender gender,
   ) async {
@@ -494,6 +513,24 @@ class FifaWorldOverviewService {
     );
   }
 
+  static FifaAMatchDetail? parseFifaMatchDetail(
+    dynamic decoded, {
+    required FifaAMatchEntry fallback,
+  }) {
+    if (decoded is! Map) return null;
+    final item = decoded.cast<String, dynamic>();
+    final home = _asMap(item['HomeTeam']);
+    final away = _asMap(item['AwayTeam']);
+    final possession = _parsePossession(item['BallPossession']);
+    return FifaAMatchDetail(
+      match: _parseNationalMatch(item) ?? fallback,
+      homeScorers: _parseGoalScorers(home),
+      awayScorers: _parseGoalScorers(away),
+      homePossession: possession[0],
+      awayPossession: possession[1],
+    );
+  }
+
   static KfaMatchOverview parseKfaMatchOverview(
     String html, {
     int limit = 8,
@@ -833,6 +870,74 @@ class FifaWorldOverviewService {
       return FifaAMatchStatus.finished;
     }
     return FifaAMatchStatus.scheduled;
+  }
+
+  static List<FifaMatchScorer> _parseGoalScorers(Map<String, dynamic> team) {
+    final rawGoals = team['Goals'];
+    if (rawGoals is! List) return const <FifaMatchScorer>[];
+    final playerNames = _playerNamesById(team);
+    final scorers = <FifaMatchScorer>[];
+    for (final raw in rawGoals) {
+      if (raw is! Map) continue;
+      final goal = raw.cast<String, dynamic>();
+      final playerId = _asString(goal['IdPlayer']);
+      final playerName = playerNames[playerId] ??
+          _firstNonEmpty([
+            _localizedDescription(goal['PlayerName']),
+            _localizedDescription(goal['ScorerName']),
+          ]);
+      scorers.add(
+        FifaMatchScorer(
+          playerName: playerName,
+          minute: _asString(goal['Minute']),
+        ),
+      );
+    }
+    return scorers;
+  }
+
+  static Map<String, String> _playerNamesById(Map<String, dynamic> team) {
+    final rawPlayers = team['Players'];
+    if (rawPlayers is! List) return const <String, String>{};
+    final names = <String, String>{};
+    for (final raw in rawPlayers) {
+      if (raw is! Map) continue;
+      final player = raw.cast<String, dynamic>();
+      final playerId = _asString(player['IdPlayer']);
+      if (playerId.isEmpty) continue;
+      final shortName = _localizedDescription(player['ShortName']);
+      final fullName = _localizedDescription(player['PlayerName']);
+      final name = shortName.isNotEmpty ? shortName : fullName;
+      if (name.isNotEmpty) {
+        names[playerId] = name;
+      }
+    }
+    return names;
+  }
+
+  static List<double?> _parsePossession(dynamic raw) {
+    final possession = _asMap(raw);
+    var home = _asDouble(possession['OverallHome']);
+    var away = _asDouble(possession['OverallAway']);
+    if (home == null && away != null) {
+      home = 100 - away;
+    } else if (away == null && home != null) {
+      away = 100 - home;
+    }
+    if (home == null || away == null || home < 0 || away < 0) {
+      return const <double?>[null, null];
+    }
+    return <double?>[
+      home.clamp(0, 100).toDouble(),
+      away.clamp(0, 100).toDouble(),
+    ];
+  }
+
+  static String _firstNonEmpty(Iterable<String> values) {
+    for (final value in values) {
+      if (value.trim().isNotEmpty) return value.trim();
+    }
+    return '';
   }
 
   static bool _isSeniorNationalTeam(Map<String, dynamic> team) {
