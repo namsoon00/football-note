@@ -163,25 +163,57 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _openFifaRankingHub,
-                        icon: const Icon(Icons.leaderboard_outlined, size: 18),
-                        label: Text(l10n.newsFifaHubButton),
-                      ),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          icon: const Icon(Icons.arrow_back),
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).backButtonTooltip,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            l10n.tabNews,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      tooltip: l10n.newsSearchAction,
-                      onPressed: _toggleSearch,
-                      icon: Icon(_showSearch ? Icons.close : Icons.search),
-                    ),
-                    TextButton.icon(
-                      onPressed: _openChannelPicker,
-                      icon: const Icon(Icons.rss_feed, size: 18),
-                      label: Text(l10n.newsChannelsAction),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: _openFifaRankingHub,
+                            icon: const Icon(
+                              Icons.leaderboard_outlined,
+                              size: 18,
+                            ),
+                            label: Text(l10n.newsFifaHubButton),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          tooltip: l10n.newsSearchAction,
+                          onPressed: _toggleSearch,
+                          icon: Icon(_showSearch ? Icons.close : Icons.search),
+                        ),
+                        TextButton.icon(
+                          onPressed: _openChannelPicker,
+                          icon: const Icon(Icons.rss_feed, size: 18),
+                          label: Text(l10n.newsChannelsAction),
+                        ),
+                      ],
                     ),
                   ],
                 ),
