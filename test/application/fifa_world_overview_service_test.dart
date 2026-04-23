@@ -259,6 +259,75 @@ void main() {
       expect(overview.upcomingFixtures.single.matchId, 'upcoming-fixture');
     },
   );
+
+  test('fetchRankingOverview does not wait for live match feeds', () async {
+    var liveFeedRequested = false;
+    final client = MockClient((request) async {
+      if (request.url.host == 'api.fifa.com' &&
+          request.url.path.endsWith('/rankings/')) {
+        return http.Response(
+          jsonEncode({
+            'Results': [
+              {
+                'IdTeam': '741',
+                'IdCountry': 'ARG',
+                'ConfederationName': 'CONMEBOL',
+                'Rank': 1,
+                'PrevRank': 1,
+                'DecimalTotalPoints': 2040.71,
+                'DecimalPrevPoints': 2040.71,
+                'PubDate': '2026-04-03T00:00:00Z',
+                'TeamName': [
+                  {'Locale': 'en', 'Description': 'Argentina'},
+                ],
+              },
+            ],
+          }),
+          200,
+        );
+      }
+
+      if (request.url.host == 'api.fifa.com' &&
+          request.url.path.endsWith('/rankingschedules/all')) {
+        return http.Response(
+          jsonEncode({
+            'Results': [
+              {
+                'OfficialDate': '2026-04-03T00:00:00Z',
+                'MatchWindowEndDate': '2026-04-01',
+              },
+            ],
+          }),
+          200,
+        );
+      }
+
+      if (request.url.host == 'inside.fifa.com') {
+        return http.Response(
+          '"lastUpdateDate":"2026-04-03T00:00:00Z"',
+          200,
+        );
+      }
+
+      if (request.url.host == 'api.fifa.com' &&
+          request.url.path.endsWith('/live/football/range')) {
+        liveFeedRequested = true;
+      }
+
+      return http.Response('Not found', 404);
+    });
+
+    final service = FifaWorldOverviewService(client: client);
+    final overview = await service.fetchRankingOverview(
+      gender: FifaRankingGender.men,
+    );
+
+    expect(overview.rankings, hasLength(1));
+    expect(overview.leader?.teamName, 'Argentina');
+    expect(overview.recentResults, isEmpty);
+    expect(overview.upcomingFixtures, isEmpty);
+    expect(liveFeedRequested, isFalse);
+  });
 }
 
 Map<String, dynamic> _match({

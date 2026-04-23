@@ -144,7 +144,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fifaHubGlobalRankingTitle => '전체 랭킹';
 
   @override
-  String get fifaHubGlobalRankingSubtitle => '더보기를 눌러 전체 국가대표 랭킹을 펼쳐 보세요.';
+  String get fifaHubGlobalRankingSubtitle => '랭킹 영역을 스크롤해서 전체 국가대표 순위를 확인하세요.';
 
   @override
   String get fifaHubShowAll => '전체 보기';

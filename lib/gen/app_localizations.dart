@@ -353,7 +353,7 @@ abstract class AppLocalizations {
   /// No description provided for @fifaHubGlobalRankingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tap show all to expand the full list of national teams.'**
+  /// **'Scroll the ranking area to browse all national teams.'**
   String get fifaHubGlobalRankingSubtitle;
 
   /// No description provided for @fifaHubShowAll.

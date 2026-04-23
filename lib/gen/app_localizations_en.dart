@@ -147,7 +147,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fifaHubGlobalRankingSubtitle =>
-      'Tap show all to expand the full list of national teams.';
+      'Scroll the ranking area to browse all national teams.';
 
   @override
   String get fifaHubShowAll => 'Show all';
