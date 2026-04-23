@@ -110,8 +110,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       widget.optionRepository,
     ).loadState();
     if (!familyState.isParentMode) return;
-    final refreshed = await widget.driveBackupService!
-        .refreshParentSharedDataIfNeeded();
+    final refreshed =
+        await widget.driveBackupService!.refreshParentSharedDataIfNeeded();
     if (refreshed) {
       widget.localeService.load();
       widget.settingsService.load();
@@ -158,14 +158,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     DriveConnectionInfo? sharedChildConnection;
     var hasRemotePlayerBackup = false;
     try {
-      sharedChildConnection = await widget.driveBackupService!
-          .getSharedChildDriveConnectionInfo(
-            allowRemoteLookup: familyState.isParentMode,
-          );
+      sharedChildConnection =
+          await widget.driveBackupService!.getSharedChildDriveConnectionInfo(
+        allowRemoteLookup: familyState.isParentMode,
+      );
       if (familyState.isParentMode &&
           (sharedChildConnection == null || sharedChildConnection.isEmpty)) {
-        hasRemotePlayerBackup = await widget.driveBackupService!
-            .hasRemotePlayerBackup();
+        hasRemotePlayerBackup =
+            await widget.driveBackupService!.hasRemotePlayerBackup();
       }
     } catch (e, st) {
       debugPrint('Shared child Drive lookup failed: $e');
@@ -185,21 +185,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     final cachedConnectedDriveLabel = _cachedConnectedDriveLabel();
     if (!mounted) return;
     setState(() {
-      _signedIn =
-          signedIn ||
+      _signedIn = signedIn ||
           (connection != null && !connection.isEmpty) ||
           (allowCachedConnection && cachedConnectedDriveLabel.isNotEmpty);
       _connectedDriveLabel = connection?.label.trim().isNotEmpty == true
           ? connection!.label.trim()
           : cachedConnectedDriveLabel;
-      _savedRecordDriveLabel = widget.driveBackupService!
-          .getSavedRecordDriveLabel();
-      _savedRecordDriveEmail = widget.driveBackupService!
-          .getSavedRecordDriveEmail();
-      _savedParentDriveLabel = widget.driveBackupService!
-          .getSavedParentDriveLabel();
-      _savedParentDriveEmail = widget.driveBackupService!
-          .getSavedParentDriveEmail();
+      _savedRecordDriveLabel =
+          widget.driveBackupService!.getSavedRecordDriveLabel();
+      _savedRecordDriveEmail =
+          widget.driveBackupService!.getSavedRecordDriveEmail();
+      _savedParentDriveLabel =
+          widget.driveBackupService!.getSavedParentDriveLabel();
+      _savedParentDriveEmail =
+          widget.driveBackupService!.getSavedParentDriveEmail();
       _sharedChildDriveLabel = sharedChildConnection?.label.trim() ?? '';
       _sharedChildDriveEmail = sharedChildConnection?.email.trim() ?? '';
       _hasRemotePlayerBackup = hasRemotePlayerBackup;
@@ -207,13 +206,11 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   String _cachedConnectedDriveLabel() {
-    final cachedLabel =
-        widget.optionRepository
+    final cachedLabel = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveLabelLocalKey)
             ?.trim() ??
         '';
-    final cachedEmail =
-        widget.optionRepository
+    final cachedEmail = widget.optionRepository
             .getValue<String>(DriveBackupService.connectedDriveEmailLocalKey)
             ?.trim() ??
         '';
@@ -243,8 +240,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     final familyState = FamilyAccessService(
       widget.optionRepository,
     ).loadState();
-    final showPlayerBackupSection =
-        widget.driveBackupService != null && !familyState.isParentMode;
     final savedRecordDriveLabel = _savedRecordDriveLabel.trim().isNotEmpty
         ? _savedRecordDriveLabel.trim()
         : _savedRecordDriveEmail.trim();
@@ -257,16 +252,15 @@ class _SettingsScreenState extends State<SettingsScreen>
     final sharedChildDriveSubtitle = expectedChildDriveLabel.isNotEmpty
         ? expectedChildDriveLabel
         : (_hasRemotePlayerBackup
-              ? l10n.driveSharedChildAccountRemoteBackup
-              : l10n.driveSharedChildAccountEmpty);
+            ? l10n.driveSharedChildAccountRemoteBackup
+            : l10n.driveSharedChildAccountEmpty);
     final savedRecordMatchesCurrentDrive = _driveLabelMatchesEmail(
       _connectedDriveLabel,
       _savedRecordDriveEmail,
     );
     final showSavedRecordDrive =
         savedRecordDriveLabel.isNotEmpty && !savedRecordMatchesCurrentDrive;
-    final recordDriveMatchesSaved =
-        savedRecordDriveLabel.isEmpty ||
+    final recordDriveMatchesSaved = savedRecordDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _savedRecordDriveEmail);
     final savedParentMatchesCurrentDrive = _driveLabelMatchesEmail(
@@ -274,8 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       _savedParentDriveEmail,
     );
     final showSavedParentDrive = savedParentDriveLabel.isNotEmpty;
-    final driveMatchesExpected =
-        expectedChildDriveLabel.isEmpty ||
+    final driveMatchesExpected = expectedChildDriveLabel.isEmpty ||
         _connectedDriveLabel.trim().isEmpty ||
         _driveLabelMatchesEmail(_connectedDriveLabel, _sharedChildDriveEmail);
 
@@ -352,7 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     }
     _defaultDuration =
         widget.optionRepository.getValue<int>('default_duration') ??
-        _durationOptions.first;
+            _durationOptions.first;
     _defaultIntensity =
         widget.optionRepository.getValue<int>('default_intensity') ?? 3;
     _defaultCondition =
@@ -402,325 +395,20 @@ class _SettingsScreenState extends State<SettingsScreen>
         controller: _scrollController,
         padding: const EdgeInsets.all(16),
         children: [
-          if (showPlayerBackupSection) ...[
-            _buildSectionCard(
-              title: l10n.account,
-              icon: Icons.manage_accounts_outlined,
-              initiallyExpanded: true,
-              children: [
-                _BackupHealthCard(
-                  isKo: isKo,
-                  signedIn: _signedIn,
-                  autoDaily: _autoDaily,
-                  autoOnSave: _autoOnSave,
-                  lastBackupAt: widget.driveBackupService!.getLastBackup(),
-                  localRestoreAt: widget.driveBackupService!
-                      .getLocalPreRestoreTime(),
-                  formatBackupTime: _formatBackupTime,
-                ),
-                const SizedBox(height: 8),
-                _buildDriveAuthButton(
-                  l10n: l10n,
-                  label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
-                ),
-                const SizedBox(height: 8),
-                _buildDriveAccountTile(
-                  icon: Icons.cloud_done_outlined,
-                  title: l10n.driveConnectedAccount,
-                  subtitle: _connectedDriveLabel.trim().isEmpty
-                      ? l10n.driveConnectedAccountEmpty
-                      : _connectedDriveLabel.trim(),
-                ),
-                if (showSavedRecordDrive) ...[
-                  const SizedBox(height: 8),
-                  _buildDriveAccountTile(
-                    icon: Icons.sports_soccer_outlined,
-                    title: l10n.driveSavedPlayerAccount,
-                    subtitle: savedRecordDriveLabel,
-                  ),
-                  if (!_signedIn || !recordDriveMatchesSaved) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.driveReconnectSavedPlayerHint,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton.icon(
-                      onPressed: _signInBusy
-                          ? null
-                          : () => _connectSavedRecordDrive(l10n),
-                      icon: const Icon(Icons.link_outlined),
-                      label: Text(l10n.driveReconnectSavedPlayer),
-                      style: _outlinedActionStyle(),
-                    ),
-                  ],
-                ],
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
-                  icon: const Icon(Icons.cloud_upload_outlined),
-                  label: Text(
-                    _backupBusy ? l10n.backupInProgress : l10n.backupToDrive,
-                  ),
-                  style: _elevatedActionStyle(),
-                ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.backupDailyEnabled),
-                  subtitle: Text(l10n.backupDailyDesc),
-                  value: _autoDaily,
-                  onChanged: (value) async {
-                    setState(() => _autoDaily = value);
-                    await widget.driveBackupService!.setAutoDailyEnabled(value);
-                  },
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.backupAutoOnSave),
-                  subtitle: Text(l10n.backupAutoOnSaveDesc),
-                  value: _autoOnSave,
-                  onChanged: (value) async {
-                    setState(() => _autoOnSave = value);
-                    await widget.driveBackupService!.setAutoOnSaveEnabled(
-                      value,
-                    );
-                  },
-                ),
-                if (widget.driveBackupService!.getLastBackup() != null) ...[
-                  const Divider(height: 12),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.history, size: 20),
-                    title: Text(l10n.lastBackup),
-                    subtitle: Text(
-                      _formatBackupTime(
-                        widget.driveBackupService!.getLastBackup()!,
-                      ),
-                    ),
-                  ),
-                ],
-                if (widget.driveBackupService!.getLocalPreRestoreTime() != null)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.restore, size: 20),
-                    title: Text(l10n.localBackup),
-                    subtitle: Text(
-                      _formatBackupTime(
-                        widget.driveBackupService!.getLocalPreRestoreTime()!,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: _restoreBusy
-                      ? null
-                      : () => _restoreFromDrive(l10n),
-                  icon: const Icon(Icons.cloud_download_outlined),
-                  label: Text(
-                    _restoreBusy
-                        ? l10n.restoreInProgress
-                        : l10n.restoreFromDrive,
-                  ),
-                  style: _outlinedActionStyle(),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed:
-                      _restoreBusy ||
-                          !widget.driveBackupService!.hasLocalPreRestoreBackup()
-                      ? null
-                      : () => _restoreLocalBackup(l10n),
-                  icon: const Icon(Icons.undo),
-                  label: Text(l10n.restoreLocalBackup),
-                  style: _outlinedActionStyle(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-          ],
-          _buildSectionCard(
-            title: l10n.familySharing,
-            icon: Icons.family_restroom_outlined,
-            initiallyExpanded: true,
-            children: [
-              Text(
-                l10n.familySharedBackupDescription,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                familyState.isParentMode
-                    ? l10n.familyParentAutoSyncDescription
-                    : l10n.familyBackupIncludesMedia,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.familyRoleSelectionTitle,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.familyRoleSelectionDescription,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: FamilyRole.values
-                          .map((role) {
-                            final selected = familyState.currentRole == role;
-                            return ChoiceChip(
-                              label: Text(_familyRoleLabel(l10n, role)),
-                              selected: selected,
-                              onSelected: (_) {
-                                if (selected) return;
-                                unawaited(_updateFamilyRole(role));
-                              },
-                            );
-                          })
-                          .toList(growable: false),
-                    ),
-                  ],
-                ),
-              ),
-              if (widget.driveBackupService != null &&
-                  familyState.isParentMode) ...[
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.familyChildDriveConnectionTitle,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        l10n.familyChildDriveConnectionDescription,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildDriveAuthButton(
-                        l10n: l10n,
-                        label: _signedIn
-                            ? l10n.familyDisconnectChildDrive
-                            : l10n.familyConnectChildDrive,
-                      ),
-                      if (showSavedParentDrive) ...[
-                        const SizedBox(height: 8),
-                        _buildDriveAccountTile(
-                          icon: Icons.manage_accounts_outlined,
-                          title: l10n.driveSavedParentAccount,
-                          subtitle: savedParentDriveLabel,
-                        ),
-                        if (!_signedIn || !savedParentMatchesCurrentDrive) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.driveReconnectSavedParentHint,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            onPressed: _signInBusy
-                                ? null
-                                : () => _connectSavedParentDrive(l10n),
-                            icon: const Icon(Icons.link_outlined),
-                            label: Text(l10n.driveReconnectSavedParent),
-                            style: _outlinedActionStyle(),
-                          ),
-                        ],
-                      ],
-                      const SizedBox(height: 8),
-                      _buildDriveAccountTile(
-                        icon: Icons.child_care_outlined,
-                        title: l10n.driveSharedChildAccount,
-                        subtitle: sharedChildDriveSubtitle,
-                      ),
-                      _buildDriveAccountTile(
-                        icon: Icons.cloud_done_outlined,
-                        title: l10n.driveConnectedAccount,
-                        subtitle: _connectedDriveLabel.trim().isEmpty
-                            ? l10n.driveConnectedAccountEmpty
-                            : _connectedDriveLabel.trim(),
-                      ),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: driveMatchesExpected
-                              ? Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHigh
-                              : Theme.of(context).colorScheme.errorContainer
-                                    .withValues(alpha: 0.45),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text(
-                          driveMatchesExpected
-                              ? l10n.familyParentUsesChildDriveHint
-                              : l10n.familyParentUsesChildDriveWarning,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _buildParentFamilySyncCard(l10n),
-              ],
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.familyPolicyTitle,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(l10n.familyPolicyChildOwnsData),
-                    const SizedBox(height: 4),
-                    Text(l10n.familyPolicyParentWritesOnly),
-                    const SizedBox(height: 4),
-                    Text(l10n.familyPolicyParentSeedRequired),
-                  ],
-                ),
-              ),
-            ],
+          _buildRoleAndAccountSection(
+            l10n: l10n,
+            familyState: familyState,
+            savedRecordDriveLabel: savedRecordDriveLabel,
+            showSavedRecordDrive: showSavedRecordDrive,
+            recordDriveMatchesSaved: recordDriveMatchesSaved,
+            savedParentDriveLabel: savedParentDriveLabel,
+            showSavedParentDrive: showSavedParentDrive,
+            savedParentMatchesCurrentDrive: savedParentMatchesCurrentDrive,
+            sharedChildDriveSubtitle: sharedChildDriveSubtitle,
+            driveMatchesExpected: driveMatchesExpected,
           ),
+          const SizedBox(height: 12),
+          _buildFamilyPolicySection(l10n, familyState),
           const SizedBox(height: 12),
           _buildSectionCard(
             title: isKo ? '일반 설정' : 'General',
@@ -889,6 +577,386 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
+  Widget _buildRoleAndAccountSection({
+    required AppLocalizations l10n,
+    required FamilyAccessState familyState,
+    required String savedRecordDriveLabel,
+    required bool showSavedRecordDrive,
+    required bool recordDriveMatchesSaved,
+    required String savedParentDriveLabel,
+    required bool showSavedParentDrive,
+    required bool savedParentMatchesCurrentDrive,
+    required String sharedChildDriveSubtitle,
+    required bool driveMatchesExpected,
+  }) {
+    return _buildSectionCard(
+      title: l10n.settingsRoleAccountTitle,
+      icon: Icons.manage_accounts_outlined,
+      initiallyExpanded: true,
+      children: [
+        Text(
+          l10n.settingsRoleAccountDescription,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          l10n.familyRoleSelectionTitle,
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: FamilyRole.values.map((role) {
+            final selected = familyState.currentRole == role;
+            return ChoiceChip(
+              avatar: Icon(_familyRoleIcon(role), size: 18),
+              label: Text(_familyRoleLabel(l10n, role)),
+              selected: selected,
+              onSelected: (_) {
+                if (selected) return;
+                unawaited(_updateFamilyRole(role));
+              },
+            );
+          }).toList(growable: false),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              Icon(_familyRoleIcon(familyState.currentRole), size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _familyRoleDescription(l10n, familyState.currentRole),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 24),
+        if (widget.driveBackupService == null)
+          Text(
+            l10n.settingsRoleAccountUnavailable,
+            style: Theme.of(context).textTheme.bodySmall,
+          )
+        else if (familyState.isChildMode)
+          _buildPlayerAccountPanel(
+            l10n: l10n,
+            savedRecordDriveLabel: savedRecordDriveLabel,
+            showSavedRecordDrive: showSavedRecordDrive,
+            recordDriveMatchesSaved: recordDriveMatchesSaved,
+          )
+        else
+          _buildSupportAccountPanel(
+            l10n: l10n,
+            savedParentDriveLabel: savedParentDriveLabel,
+            showSavedParentDrive: showSavedParentDrive,
+            savedParentMatchesCurrentDrive: savedParentMatchesCurrentDrive,
+            sharedChildDriveSubtitle: sharedChildDriveSubtitle,
+            driveMatchesExpected: driveMatchesExpected,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildPlayerAccountPanel({
+    required AppLocalizations l10n,
+    required String savedRecordDriveLabel,
+    required bool showSavedRecordDrive,
+    required bool recordDriveMatchesSaved,
+  }) {
+    final driveBackupService = widget.driveBackupService!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildAccountPanelHeader(
+          title: l10n.settingsPlayerAccountTitle,
+          body: l10n.settingsPlayerAccountDescription,
+        ),
+        const SizedBox(height: 10),
+        _BackupHealthCard(
+          isKo: Localizations.localeOf(context).languageCode == 'ko',
+          signedIn: _signedIn,
+          autoDaily: _autoDaily,
+          autoOnSave: _autoOnSave,
+          lastBackupAt: driveBackupService.getLastBackup(),
+          localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
+          formatBackupTime: _formatBackupTime,
+        ),
+        const SizedBox(height: 8),
+        _buildDriveAuthButton(
+          l10n: l10n,
+          label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
+        ),
+        const SizedBox(height: 8),
+        _buildDriveAccountTile(
+          icon: Icons.cloud_done_outlined,
+          title: l10n.driveConnectedAccount,
+          subtitle: _connectedDriveLabel.trim().isEmpty
+              ? l10n.driveConnectedAccountEmpty
+              : _connectedDriveLabel.trim(),
+        ),
+        if (showSavedRecordDrive) ...[
+          const SizedBox(height: 8),
+          _buildDriveAccountTile(
+            icon: Icons.sports_soccer_outlined,
+            title: l10n.driveSavedPlayerAccount,
+            subtitle: savedRecordDriveLabel,
+          ),
+          if (!_signedIn || !recordDriveMatchesSaved) ...[
+            const SizedBox(height: 4),
+            Text(
+              l10n.driveReconnectSavedPlayerHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed:
+                  _signInBusy ? null : () => _connectSavedRecordDrive(l10n),
+              icon: const Icon(Icons.link_outlined),
+              label: Text(l10n.driveReconnectSavedPlayer),
+              style: _outlinedActionStyle(),
+            ),
+          ],
+        ],
+        const SizedBox(height: 8),
+        ElevatedButton.icon(
+          onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
+          icon: const Icon(Icons.cloud_upload_outlined),
+          label: Text(_backupBusy ? l10n.backupInProgress : l10n.backupToDrive),
+          style: _elevatedActionStyle(),
+        ),
+        const SizedBox(height: 8),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.backupDailyEnabled),
+          subtitle: Text(l10n.backupDailyDesc),
+          value: _autoDaily,
+          onChanged: (value) async {
+            setState(() => _autoDaily = value);
+            await driveBackupService.setAutoDailyEnabled(value);
+          },
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.backupAutoOnSave),
+          subtitle: Text(l10n.backupAutoOnSaveDesc),
+          value: _autoOnSave,
+          onChanged: (value) async {
+            setState(() => _autoOnSave = value);
+            await driveBackupService.setAutoOnSaveEnabled(value);
+          },
+        ),
+        if (driveBackupService.getLastBackup() != null) ...[
+          const Divider(height: 12),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.history, size: 20),
+            title: Text(l10n.lastBackup),
+            subtitle:
+                Text(_formatBackupTime(driveBackupService.getLastBackup()!)),
+          ),
+        ],
+        if (driveBackupService.getLocalPreRestoreTime() != null)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.restore, size: 20),
+            title: Text(l10n.localBackup),
+            subtitle: Text(
+              _formatBackupTime(driveBackupService.getLocalPreRestoreTime()!),
+            ),
+          ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: _restoreBusy ? null : () => _restoreFromDrive(l10n),
+          icon: const Icon(Icons.cloud_download_outlined),
+          label: Text(
+            _restoreBusy ? l10n.restoreInProgress : l10n.restoreFromDrive,
+          ),
+          style: _outlinedActionStyle(),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed:
+              _restoreBusy || !driveBackupService.hasLocalPreRestoreBackup()
+                  ? null
+                  : () => _restoreLocalBackup(l10n),
+          icon: const Icon(Icons.undo),
+          label: Text(l10n.restoreLocalBackup),
+          style: _outlinedActionStyle(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSupportAccountPanel({
+    required AppLocalizations l10n,
+    required String savedParentDriveLabel,
+    required bool showSavedParentDrive,
+    required bool savedParentMatchesCurrentDrive,
+    required String sharedChildDriveSubtitle,
+    required bool driveMatchesExpected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildAccountPanelHeader(
+          title: l10n.familyChildDriveConnectionTitle,
+          body: l10n.familyChildDriveConnectionDescription,
+        ),
+        const SizedBox(height: 12),
+        _buildDriveAuthButton(
+          l10n: l10n,
+          label: _signedIn
+              ? l10n.familyDisconnectChildDrive
+              : l10n.familyConnectChildDrive,
+        ),
+        if (showSavedParentDrive) ...[
+          const SizedBox(height: 8),
+          _buildDriveAccountTile(
+            icon: Icons.manage_accounts_outlined,
+            title: l10n.driveSavedParentAccount,
+            subtitle: savedParentDriveLabel,
+          ),
+          if (!_signedIn || !savedParentMatchesCurrentDrive) ...[
+            const SizedBox(height: 4),
+            Text(
+              l10n.driveReconnectSavedParentHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed:
+                  _signInBusy ? null : () => _connectSavedParentDrive(l10n),
+              icon: const Icon(Icons.link_outlined),
+              label: Text(l10n.driveReconnectSavedParent),
+              style: _outlinedActionStyle(),
+            ),
+          ],
+        ],
+        const SizedBox(height: 8),
+        _buildDriveAccountTile(
+          icon: Icons.child_care_outlined,
+          title: l10n.driveSharedChildAccount,
+          subtitle: sharedChildDriveSubtitle,
+        ),
+        _buildDriveAccountTile(
+          icon: Icons.cloud_done_outlined,
+          title: l10n.driveConnectedAccount,
+          subtitle: _connectedDriveLabel.trim().isEmpty
+              ? l10n.driveConnectedAccountEmpty
+              : _connectedDriveLabel.trim(),
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: driveMatchesExpected
+                ? Theme.of(context).colorScheme.surfaceContainerHigh
+                : Theme.of(context).colorScheme.errorContainer.withValues(
+                      alpha: 0.45,
+                    ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            driveMatchesExpected
+                ? l10n.familyParentUsesChildDriveHint
+                : l10n.familyParentUsesChildDriveWarning,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildParentFamilySyncCard(l10n),
+      ],
+    );
+  }
+
+  Widget _buildAccountPanelHeader({
+    required String title,
+    required String body,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(body, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFamilyPolicySection(
+    AppLocalizations l10n,
+    FamilyAccessState familyState,
+  ) {
+    return _buildSectionCard(
+      title: l10n.familySharing,
+      icon: Icons.family_restroom_outlined,
+      children: [
+        Text(
+          l10n.familySharedBackupDescription,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          familyState.isParentMode
+              ? l10n.familyParentAutoSyncDescription
+              : l10n.familyBackupIncludesMedia,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.familyPolicyTitle,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              Text(l10n.familyPolicyChildOwnsData),
+              const SizedBox(height: 4),
+              Text(l10n.familyPolicyParentWritesOnly),
+              const SizedBox(height: 4),
+              Text(l10n.familyPolicyParentSeedRequired),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   bool _sameStringList(List<String> a, List<String> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
@@ -909,9 +977,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final onSurface = Theme.of(context).colorScheme.onSurface;
-    final fillColor = isDark
-        ? const Color(0xFF242D3D)
-        : const Color(0xFFF7F8FC);
+    final fillColor =
+        isDark ? const Color(0xFF242D3D) : const Color(0xFFF7F8FC);
     final borderColor = isDark
         ? const Color(0xFF4A556D)
         : const Color.fromRGBO(210, 220, 245, 1);
@@ -972,9 +1039,8 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildDefaultsAndOptionManager(AppLocalizations l10n, bool isKo) {
-    final defaultDurationText = _defaultDuration <= 0
-        ? l10n.notSet
-        : l10n.minutes(_defaultDuration);
+    final defaultDurationText =
+        _defaultDuration <= 0 ? l10n.notSet : l10n.minutes(_defaultDuration);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1379,9 +1445,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                           title: isKo ? '새 항목 추가' : 'Add option',
                         );
                         if (added == null || added.isEmpty) return;
-                        final normalized = sanitize == null
-                            ? added
-                            : sanitize(added);
+                        final normalized =
+                            sanitize == null ? added : sanitize(added);
                         if (normalized.isEmpty ||
                             working.contains(normalized)) {
                           return;
@@ -1582,6 +1647,22 @@ class _SettingsScreenState extends State<SettingsScreen>
     };
   }
 
+  IconData _familyRoleIcon(FamilyRole role) {
+    return switch (role) {
+      FamilyRole.child => Icons.sports_soccer_outlined,
+      FamilyRole.parent => Icons.family_restroom_outlined,
+      FamilyRole.coach => Icons.co_present_outlined,
+    };
+  }
+
+  String _familyRoleDescription(AppLocalizations l10n, FamilyRole role) {
+    return switch (role) {
+      FamilyRole.child => l10n.settingsRolePlayerDescription,
+      FamilyRole.parent => l10n.settingsRoleParentDescription,
+      FamilyRole.coach => l10n.settingsRoleCoachDescription,
+    };
+  }
+
   String _normalizeDomain(String input) {
     final raw = input.trim().toLowerCase();
     if (raw.isEmpty) return '';
@@ -1726,12 +1807,12 @@ class _SettingsScreenState extends State<SettingsScreen>
             onPressed: _restoreBusy
                 ? null
                 : () => _restoreFromDrive(
-                    l10n,
-                    title: l10n.familySharedRestore,
-                    message: l10n.familySharedRestoreConfirm,
-                    successMessage: l10n.familySharedRestoreSuccess,
-                    failedMessage: l10n.familySharedRestoreFailed,
-                  ),
+                      l10n,
+                      title: l10n.familySharedRestore,
+                      message: l10n.familySharedRestoreConfirm,
+                      successMessage: l10n.familySharedRestoreSuccess,
+                      failedMessage: l10n.familySharedRestoreFailed,
+                    ),
             icon: const Icon(Icons.cloud_download_outlined),
             label: Text(
               _restoreBusy ? l10n.restoreInProgress : l10n.familySharedRestore,
@@ -1812,8 +1893,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive backup failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -1892,8 +1972,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (!mounted) return;
       final message =
           e.toString().contains(DriveBackupService.recordDriveMismatchErrorCode)
-          ? l10n.driveReconnectSavedPlayerMismatch
-          : l10n.loginRequired;
+              ? l10n.driveReconnectSavedPlayerMismatch
+              : l10n.loginRequired;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -1919,10 +1999,9 @@ class _SettingsScreenState extends State<SettingsScreen>
       ).showSnackBar(SnackBar(content: Text(l10n.driveReconnectSavedParent)));
     } catch (e) {
       if (!mounted) return;
-      final message =
-          e.toString().contains(
-            DriveBackupService.parentModeDriveMismatchErrorCode,
-          )
+      final message = e.toString().contains(
+                DriveBackupService.parentModeDriveMismatchErrorCode,
+              )
           ? l10n.driveReconnectSavedParentMismatch
           : l10n.loginRequired;
       ScaffoldMessenger.of(
@@ -1964,8 +2043,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       debugPrint('Drive restore failed: $e');
       debugPrintStack(stackTrace: st);
       if (!mounted) return;
-      final message =
-          e.toString().contains('sign-in') ||
+      final message = e.toString().contains('sign-in') ||
               e.toString().contains('Sign in') ||
               e.toString().contains('cancelled')
           ? l10n.loginRequired
@@ -2251,22 +2329,22 @@ class _BackupHealthCardState extends State<_BackupHealthCard> {
                   label: widget.isKo
                       ? (widget.signedIn ? '구글 연결됨' : '구글 미연결')
                       : (widget.signedIn
-                            ? 'Google connected'
-                            : 'Google disconnected'),
+                          ? 'Google connected'
+                          : 'Google disconnected'),
                 ),
                 _InfoPill(
                   label: widget.isKo
                       ? (widget.autoDaily ? '일일 자동 백업 켜짐' : '일일 자동 백업 꺼짐')
                       : (widget.autoDaily
-                            ? 'Daily auto-backup on'
-                            : 'Daily auto-backup off'),
+                          ? 'Daily auto-backup on'
+                          : 'Daily auto-backup off'),
                 ),
                 _InfoPill(
                   label: widget.isKo
                       ? (widget.autoOnSave ? '저장 시 자동 백업 켜짐' : '저장 시 자동 백업 꺼짐')
                       : (widget.autoOnSave
-                            ? 'Auto-backup on save on'
-                            : 'Auto-backup on save off'),
+                          ? 'Auto-backup on save on'
+                          : 'Auto-backup on save off'),
                 ),
               ],
             ),
