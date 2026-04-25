@@ -729,14 +729,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupToDrive => 'Backup to Google Drive';
 
   @override
-  String get restoreFromDrive => 'Restore from Google Drive';
+  String get restoreFromDrive => 'Import data from Google Drive';
 
   @override
   String get backupConfirm => 'Create a new backup on Google Drive?';
 
   @override
   String get restoreConfirm =>
-      'Restore the latest backup from Google Drive? This will replace current data.';
+      'Import the latest data from Google Drive? This will replace current data.';
 
   @override
   String get backupSuccess => 'Backup completed.';
@@ -745,16 +745,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupFailed => 'Backup failed. Please try again.';
 
   @override
-  String get restoreSuccess => 'Restore completed.';
+  String get restoreSuccess => 'Data imported.';
 
   @override
-  String get restoreFailed => 'Restore failed. Please try again.';
+  String get restoreFailed => 'Failed to import data. Please try again.';
 
   @override
   String get backupInProgress => 'Backing up...';
 
   @override
-  String get restoreInProgress => 'Restoring...';
+  String get restoreInProgress => 'Importing data...';
 
   @override
   String get backupDailyEnabled => 'Daily backup enabled';
@@ -789,17 +789,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeYesterday => 'Yesterday';
 
   @override
-  String get restoreLocalBackup => 'Restore local backup';
+  String get restoreLocalBackup => 'Import previous data';
 
   @override
   String get restoreLocalConfirm =>
-      'Restore the backup saved before the last restore? This will replace current data.';
+      'Import the safety backup saved before the last data import? This will replace current data.';
 
   @override
-  String get restoreLocalSuccess => 'Local restore completed.';
+  String get restoreLocalSuccess => 'Previous data imported.';
 
   @override
-  String get restoreLocalFailed => 'Local restore failed. Please try again.';
+  String get restoreLocalFailed =>
+      'Failed to import previous data. Please try again.';
 
   @override
   String get localBackup => 'Local safety backup';
@@ -3720,7 +3721,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please reconnect with the saved support-role Drive account.';
 
   @override
-  String get driveSharedChildAccount => 'Shared player Drive';
+  String get driveSharedChildAccount => 'Player backup Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
@@ -3739,56 +3740,57 @@ class AppLocalizationsEn extends AppLocalizations {
       'Support role mode should connect to the player\'s Google Drive account to sync training feedback and reward names safely into the same player backup file.';
 
   @override
-  String get familySharedSyncTitle => 'Support role/player sync';
+  String get familySharedSyncTitle => 'Player data sync';
 
   @override
   String get familySharedSyncDescription =>
-      'Training feedback and reward names saved in support role mode are written automatically into the same player backup file.';
+      'Parent feedback and level reward names are written automatically into the same player backup file.';
 
   @override
   String get familySharedLastSync => 'Last support role/player sync';
 
   @override
-  String get familySharedLastPush => 'Last support role/player push';
+  String get familySharedLastPush => 'Last push';
 
   @override
-  String get familySharedLastRefresh => 'Last support role/player refresh';
+  String get familySharedLastRefresh => 'Last import check';
 
   @override
   String get familySharedAutoRefreshDescription =>
-      'When support role mode opens or the app resumes, the latest shared state is checked automatically. Auto refresh pauses when local changes have not been pushed yet.';
+      'When support role mode opens or the app resumes, the latest state is checked automatically. Auto checks pause when local changes are still waiting to be pushed to Drive.';
 
   @override
   String get familySharedPendingLocalChanges =>
-      'Automatic refresh is paused because local support-role changes are still waiting to be pushed.';
+      'Automatic import is paused because local changes still need to be pushed to Drive.';
 
   @override
-  String get familySharedRestore => 'Restore player records';
+  String get familySharedRestore => 'Import player data';
 
   @override
   String get familySharedRestoreConfirm =>
-      'Restore the latest player backup state from Google Drive? This replaces the player records and shared data shown on the current support-role device.';
+      'Import the latest player data from Google Drive? This replaces the player records and shared data shown on this device.';
 
   @override
-  String get familySharedRestoreSuccess => 'Player backup restore completed.';
+  String get familySharedRestoreSuccess => 'Player data imported.';
 
   @override
   String get familySharedRestoreFailed =>
-      'Player backup restore failed. Please try again.';
+      'Failed to import player data. Please try again.';
 
   @override
-  String get familySharedRestoreLocal => 'Restore previous player state';
+  String get familySharedRestoreLocal => 'Import previous player data';
 
   @override
   String get familySharedRestoreLocalConfirm =>
-      'Restore the safety copy saved right before the last restore? This replaces the player records and shared data shown on the current support-role device.';
+      'Import the previous player data saved before the last data import? This replaces the player records and shared data shown on this device.';
 
   @override
-  String get familySharedRestoreLocalSuccess => 'Previous state restored.';
+  String get familySharedRestoreLocalSuccess =>
+      'Previous player data imported.';
 
   @override
   String get familySharedRestoreLocalFailed =>
-      'Previous state restore failed. Please try again.';
+      'Failed to import previous player data. Please try again.';
 
   @override
   String get familyParentFamilyMismatch =>
@@ -3882,6 +3884,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parentFeedbackEmpty => 'There is no feedback yet.';
 
   @override
+  String get parentSharedSyncInProgress => 'Syncing to the player\'s Drive...';
+
+  @override
   String get parentSharedSyncDone => 'Synced to the player\'s Drive too.';
 
   @override
@@ -3903,6 +3908,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Player mode can claim rewards. Reward naming stays in support role mode.';
 
   @override
+  String get levelGuideModeInfoTooltip => 'Show mode description';
+
+  @override
   String get levelGuideClaimChildOnly => 'Claim in player mode';
 
   @override
@@ -3918,6 +3926,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get levelGuideRewardCleared => 'Reward cleared.';
+
+  @override
+  String get trainingPlanAddTitle => 'Add Training Plan';
+
+  @override
+  String get trainingPlanEditTitle => 'Edit Training Plan';
+
+  @override
+  String get trainingPlanViewTitle => 'View Training Plan';
+
+  @override
+  String get matchAddTitle => 'Add Match';
+
+  @override
+  String get matchEditTitle => 'Edit Match';
+
+  @override
+  String get matchViewTitle => 'View Match';
+
+  @override
+  String get matchOpponentTeamLabel => 'Opponent team';
+
+  @override
+  String get matchOpponentTeamHint => 'e.g. Suwon U15';
+
+  @override
+  String get matchOurScoreLabel => 'Our score';
+
+  @override
+  String get matchOpponentScoreLabel => 'Opponent score';
+
+  @override
+  String get matchGoalsLabel => 'Goals';
+
+  @override
+  String get matchAssistsLabel => 'Assists';
+
+  @override
+  String get matchMinutesPlayedLabel => 'Minutes played';
+
+  @override
+  String get matchMinutesPlayedHint => 'e.g. 70';
+
+  @override
+  String get matchNoteOptionalLabel => 'Note (optional)';
+
+  @override
+  String get matchShotsOnTargetLabel => 'Shots on target';
+
+  @override
+  String get matchBallsWonLabel => 'Balls won';
 
   @override
   String get trainingSketchControlsPanel => 'Tools and selection';

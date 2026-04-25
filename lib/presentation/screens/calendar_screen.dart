@@ -735,10 +735,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           isReadOnly: isParentMode,
                           onEditEntry: (entry) {
                             if (entry.isMatch) {
-                              if (isParentMode) {
-                                _showParentReadOnlyMessage();
-                                return;
-                              }
                               unawaited(
                                 _openMatchSheet(
                                   day: entry.date,
@@ -751,24 +747,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             widget.onEdit(entry);
                           },
                           onEditPlan: (plan) {
-                            if (isParentMode) {
-                              _showParentReadOnlyMessage();
-                              return;
-                            }
                             _openPlanSheet(
                               day: plan.scheduledAt,
                               editingPlan: plan,
                             );
                           },
-                          onEditMealEntry: (entry) {
-                            if (isParentMode) {
-                              _showParentReadOnlyMessage();
-                              return;
-                            }
-                            unawaited(
-                              _openMealLog(day: entry.date, entry: entry),
-                            );
-                          },
+                          onEditMealEntry: (entry) => unawaited(
+                            _openMealLog(day: entry.date, entry: entry),
+                          ),
                           onMovePlan: _movePlanSchedule,
                           onDeleteEntry: _confirmDeleteEntry,
                           onDeleteMealEntry: _confirmDeleteMealEntry,
@@ -1077,11 +1063,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     required DateTime day,
     _TrainingPlan? editingPlan,
   }) async {
-    if (_isParentMode) {
+    final readOnly = _isParentMode && editingPlan != null;
+    if (_isParentMode && !readOnly) {
       _showParentReadOnlyMessage();
       return;
     }
-    await _showReminderPermissionNoticeIfNeeded();
+    if (!readOnly) {
+      await _showReminderPermissionNoticeIfNeeded();
+    }
     if (!mounted) return;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final l10n = AppLocalizations.of(context)!;
@@ -1175,104 +1164,153 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        editingPlan == null
-                            ? (isKo ? '훈련 계획 추가' : 'Add Training Plan')
-                            : (isKo ? '훈련 계획 수정' : 'Edit Training Plan'),
+                        readOnly
+                            ? l10n.trainingPlanViewTitle
+                            : editingPlan == null
+                            ? l10n.trainingPlanAddTitle
+                            : l10n.trainingPlanEditTitle,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        initialValue: category,
-                        decoration: InputDecoration(
-                          labelText: isKo ? '훈련 항목' : 'Category',
-                        ),
-                        items: categoryItems
-                            .map(
-                              (item) => DropdownMenuItem<String>(
-                                value: item,
-                                child: Text(item),
+                      IgnorePointer(
+                        ignoring: readOnly,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            DropdownButtonFormField<String>(
+                              initialValue: category,
+                              decoration: InputDecoration(
+                                labelText: isKo ? '훈련 항목' : 'Category',
                               ),
-                            )
-                            .toList(growable: false),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setSheetState(() => category = value);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: planDay,
-                                  firstDate: DateTime(2022),
-                                  lastDate: DateTime(2032),
-                                );
-                                if (picked == null || !context.mounted) return;
-                                setSheetState(() {
-                                  planDay = DateTime(
-                                    picked.year,
-                                    picked.month,
-                                    picked.day,
-                                  );
-                                  if (planEndDay.isBefore(planDay)) {
-                                    planEndDay = planDay;
-                                  }
-                                  if (editingPlan == null) {
-                                    repeatWeekdays = <int>{planDay.weekday};
-                                  }
-                                });
+                              items: categoryItems
+                                  .map(
+                                    (item) => DropdownMenuItem<String>(
+                                      value: item,
+                                      child: Text(item),
+                                    ),
+                                  )
+                                  .toList(growable: false),
+                              onChanged: (value) {
+                                if (value == null) return;
+                                setSheetState(() => category = value);
                               },
-                              icon: const Icon(Icons.calendar_today_outlined),
-                              label: Text(
-                                editingPlan == null
-                                    ? (isKo
-                                          ? '날짜 ${DateFormat('yyyy-MM-dd').format(planDay)}'
-                                          : 'Date ${DateFormat('yyyy-MM-dd').format(planDay)}')
-                                    : DateFormat('yyyy-MM-dd').format(planDay),
-                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () async {
-                                final picked = await showTimePicker(
-                                  context: context,
-                                  initialTime: time,
-                                );
-                                if (picked == null || !context.mounted) return;
-                                setSheetState(() => time = picked);
-                              },
-                              icon: const Icon(Icons.access_time),
-                              label: Text(
-                                isKo
-                                    ? '시간 ${time.format(context)}'
-                                    : 'Time ${time.format(context)}',
-                              ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: planDay,
+                                        firstDate: DateTime(2022),
+                                        lastDate: DateTime(2032),
+                                      );
+                                      if (picked == null || !context.mounted) {
+                                        return;
+                                      }
+                                      setSheetState(() {
+                                        planDay = DateTime(
+                                          picked.year,
+                                          picked.month,
+                                          picked.day,
+                                        );
+                                        if (planEndDay.isBefore(planDay)) {
+                                          planEndDay = planDay;
+                                        }
+                                        if (editingPlan == null) {
+                                          repeatWeekdays = <int>{
+                                            planDay.weekday,
+                                          };
+                                        }
+                                      });
+                                    },
+                                    icon: const Icon(
+                                      Icons.calendar_today_outlined,
+                                    ),
+                                    label: Text(
+                                      editingPlan == null
+                                          ? (isKo
+                                                ? '날짜 ${DateFormat('yyyy-MM-dd').format(planDay)}'
+                                                : 'Date ${DateFormat('yyyy-MM-dd').format(planDay)}')
+                                          : DateFormat(
+                                              'yyyy-MM-dd',
+                                            ).format(planDay),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: DropdownButtonFormField<int>(
-                              initialValue: duration,
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final picked = await showTimePicker(
+                                        context: context,
+                                        initialTime: time,
+                                      );
+                                      if (picked == null || !context.mounted) {
+                                        return;
+                                      }
+                                      setSheetState(() => time = picked);
+                                    },
+                                    icon: const Icon(Icons.access_time),
+                                    label: Text(
+                                      isKo
+                                          ? '시간 ${time.format(context)}'
+                                          : 'Time ${time.format(context)}',
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: DropdownButtonFormField<int>(
+                                    initialValue: duration,
+                                    isExpanded: true,
+                                    decoration: InputDecoration(
+                                      labelText: isKo ? '훈련 시간' : 'Duration',
+                                    ),
+                                    items: const [30, 45, 60, 90, 120]
+                                        .map(
+                                          (value) => DropdownMenuItem<int>(
+                                            value: value,
+                                            child: Text(
+                                              _formatDurationText(
+                                                value,
+                                                isKo: isKo,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(growable: false),
+                                    onChanged: (value) {
+                                      if (value == null) return;
+                                      setSheetState(() => duration = value);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            DropdownButtonFormField<int>(
+                              initialValue: reminderBefore,
                               isExpanded: true,
                               decoration: InputDecoration(
-                                labelText: isKo ? '훈련 시간' : 'Duration',
+                                labelText: isKo ? '사전 알림' : 'Reminder',
                               ),
-                              items: const [30, 45, 60, 90, 120]
+                              items: const [10, 20, 30, 60]
                                   .map(
                                     (value) => DropdownMenuItem<int>(
                                       value: value,
                                       child: Text(
-                                        _formatDurationText(value, isKo: isKo),
+                                        isKo
+                                            ? '$value분 전'
+                                            : '$value min before',
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
                                       ),
@@ -1281,360 +1319,358 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   .toList(growable: false),
                               onChanged: (value) {
                                 if (value == null) return;
-                                setSheetState(() => duration = value);
+                                setSheetState(() => reminderBefore = value);
                               },
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<int>(
-                        initialValue: reminderBefore,
-                        isExpanded: true,
-                        decoration: InputDecoration(
-                          labelText: isKo ? '사전 알림' : 'Reminder',
-                        ),
-                        items: const [10, 20, 30, 60]
-                            .map(
-                              (value) => DropdownMenuItem<int>(
-                                value: value,
-                                child: Text(
-                                  isKo ? '$value분 전' : '$value min before',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
+                            const SizedBox(height: 8),
+                            SwitchListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                isKo
+                                    ? '훈련 시작 시각에도 노티 한 번 더 보내기'
+                                    : 'Send one more notification at start time',
                               ),
-                            )
-                            .toList(growable: false),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setSheetState(() => reminderBefore = value);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          isKo
-                              ? '훈련 시작 시각에도 노티 한 번 더 보내기'
-                              : 'Send one more notification at start time',
-                        ),
-                        value: alarmLoopEnabled,
-                        onChanged: (value) {
-                          setSheetState(() => alarmLoopEnabled = value);
-                        },
-                      ),
-                      Text(
-                        editingPlan == null
-                            ? (isKo
-                                  ? '기간과 요일을 고르면 실제 계획이 날짜별로 생성돼요.'
-                                  : 'Pick a range and weekdays to create real plans on each matching date.')
-                            : hasSeries
-                            ? (isKo
-                                  ? '반복 기간을 켜면 요일과 기간을 함께 바꾸고, 저장할 때 적용 범위를 고릅니다.'
-                                  : 'Turn on the repeat range to edit weekdays and date span, then choose the save scope.')
-                            : (isKo
-                                  ? '이번 계획만 따로 수정해요.'
-                                  : 'Edit only this occurrence.'),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 6),
-                      if (!showRepeatRangePicker)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () {
-                              setSheetState(() {
-                                showRepeatRangePicker = true;
-                                if (_isSameDay(planDay, planEndDay)) {
-                                  planEndDay = planDay.add(
-                                    const Duration(days: 7),
-                                  );
-                                }
-                              });
-                            },
-                            icon: const Icon(Icons.event_repeat_outlined),
-                            label: Text(isKo ? '반복 기간 설정' : 'Set repeat range'),
-                          ),
-                        ),
-                      if (showRepeatRangePicker) ...[
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: planDay,
-                                    firstDate: DateTime(2022),
-                                    lastDate: DateTime(2032),
-                                  );
-                                  if (picked == null || !context.mounted) {
-                                    return;
-                                  }
-                                  setSheetState(() {
-                                    planDay = DateTime(
-                                      picked.year,
-                                      picked.month,
-                                      picked.day,
-                                    );
-                                    if (planEndDay.isBefore(planDay)) {
-                                      planEndDay = planDay;
-                                    }
-                                    if (repeatWeekdays.isEmpty) {
-                                      repeatWeekdays = <int>{planDay.weekday};
-                                    }
-                                  });
-                                },
-                                icon: const Icon(Icons.calendar_today_outlined),
-                                label: Text(
-                                  isKo
-                                      ? '시작 ${DateFormat('yyyy-MM-dd').format(planDay)}'
-                                      : 'From ${DateFormat('yyyy-MM-dd').format(planDay)}',
-                                ),
-                              ),
+                              value: alarmLoopEnabled,
+                              onChanged: (value) {
+                                setSheetState(() => alarmLoopEnabled = value);
+                              },
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: planEndDay.isBefore(planDay)
-                                        ? planDay
-                                        : planEndDay,
-                                    firstDate: DateTime(
-                                      planDay.year,
-                                      planDay.month,
-                                      planDay.day,
-                                    ),
-                                    lastDate: DateTime(2032),
-                                  );
-                                  if (picked == null || !context.mounted) {
-                                    return;
-                                  }
-                                  setSheetState(() {
-                                    planEndDay = DateTime(
-                                      picked.year,
-                                      picked.month,
-                                      picked.day,
-                                    );
-                                  });
-                                },
-                                icon: const Icon(Icons.event_repeat_outlined),
-                                label: Text(
-                                  isKo
-                                      ? '종료 ${DateFormat('yyyy-MM-dd').format(planEndDay)}'
-                                      : 'Until ${DateFormat('yyyy-MM-dd').format(planEndDay)}',
+                            Text(
+                              editingPlan == null
+                                  ? (isKo
+                                        ? '기간과 요일을 고르면 실제 계획이 날짜별로 생성돼요.'
+                                        : 'Pick a range and weekdays to create real plans on each matching date.')
+                                  : hasSeries
+                                  ? (isKo
+                                        ? '반복 기간을 켜면 요일과 기간을 함께 바꾸고, 저장할 때 적용 범위를 고릅니다.'
+                                        : 'Turn on the repeat range to edit weekdays and date span, then choose the save scope.')
+                                  : (isKo
+                                        ? '이번 계획만 따로 수정해요.'
+                                        : 'Edit only this occurrence.'),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 6),
+                            if (!showRepeatRangePicker)
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: TextButton.icon(
+                                  onPressed: () {
+                                    setSheetState(() {
+                                      showRepeatRangePicker = true;
+                                      if (_isSameDay(planDay, planEndDay)) {
+                                        planEndDay = planDay.add(
+                                          const Duration(days: 7),
+                                        );
+                                      }
+                                    });
+                                  },
+                                  icon: const Icon(Icons.event_repeat_outlined),
+                                  label: Text(
+                                    isKo ? '반복 기간 설정' : 'Set repeat range',
+                                  ),
                                 ),
+                              ),
+                            if (showRepeatRangePicker) ...[
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: planDay,
+                                          firstDate: DateTime(2022),
+                                          lastDate: DateTime(2032),
+                                        );
+                                        if (picked == null ||
+                                            !context.mounted) {
+                                          return;
+                                        }
+                                        setSheetState(() {
+                                          planDay = DateTime(
+                                            picked.year,
+                                            picked.month,
+                                            picked.day,
+                                          );
+                                          if (planEndDay.isBefore(planDay)) {
+                                            planEndDay = planDay;
+                                          }
+                                          if (repeatWeekdays.isEmpty) {
+                                            repeatWeekdays = <int>{
+                                              planDay.weekday,
+                                            };
+                                          }
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.calendar_today_outlined,
+                                      ),
+                                      label: Text(
+                                        isKo
+                                            ? '시작 ${DateFormat('yyyy-MM-dd').format(planDay)}'
+                                            : 'From ${DateFormat('yyyy-MM-dd').format(planDay)}',
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate:
+                                              planEndDay.isBefore(planDay)
+                                              ? planDay
+                                              : planEndDay,
+                                          firstDate: DateTime(
+                                            planDay.year,
+                                            planDay.month,
+                                            planDay.day,
+                                          ),
+                                          lastDate: DateTime(2032),
+                                        );
+                                        if (picked == null ||
+                                            !context.mounted) {
+                                          return;
+                                        }
+                                        setSheetState(() {
+                                          planEndDay = DateTime(
+                                            picked.year,
+                                            picked.month,
+                                            picked.day,
+                                          );
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.event_repeat_outlined,
+                                      ),
+                                      label: Text(
+                                        isKo
+                                            ? '종료 ${DateFormat('yyyy-MM-dd').format(planEndDay)}'
+                                            : 'Until ${DateFormat('yyyy-MM-dd').format(planEndDay)}',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  isKo ? '반복 요일' : 'Repeat weekdays',
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: List<Widget>.generate(7, (index) {
+                                  final weekday = index + 1;
+                                  final selected = repeatWeekdays.contains(
+                                    weekday,
+                                  );
+                                  const koLabels = [
+                                    '월',
+                                    '화',
+                                    '수',
+                                    '목',
+                                    '금',
+                                    '토',
+                                    '일',
+                                  ];
+                                  const enLabels = [
+                                    'Mon',
+                                    'Tue',
+                                    'Wed',
+                                    'Thu',
+                                    'Fri',
+                                    'Sat',
+                                    'Sun',
+                                  ];
+                                  return ChoiceChip(
+                                    label: Text(
+                                      isKo ? koLabels[index] : enLabels[index],
+                                    ),
+                                    selected: selected,
+                                    onSelected: (value) {
+                                      setSheetState(() {
+                                        if (value) {
+                                          repeatWeekdays.add(weekday);
+                                        } else if (repeatWeekdays.length > 1) {
+                                          repeatWeekdays.remove(weekday);
+                                        }
+                                      });
+                                    },
+                                  );
+                                }),
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              initialValue: noteText,
+                              onChanged: (value) => noteText = value,
+                              maxLength: 60,
+                              decoration: InputDecoration(
+                                labelText: isKo ? '메모(선택)' : 'Note (optional)',
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            isKo ? '반복 요일' : 'Repeat weekdays',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: List<Widget>.generate(7, (index) {
-                            final weekday = index + 1;
-                            final selected = repeatWeekdays.contains(weekday);
-                            const koLabels = [
-                              '월',
-                              '화',
-                              '수',
-                              '목',
-                              '금',
-                              '토',
-                              '일',
-                            ];
-                            const enLabels = [
-                              'Mon',
-                              'Tue',
-                              'Wed',
-                              'Thu',
-                              'Fri',
-                              'Sat',
-                              'Sun',
-                            ];
-                            return ChoiceChip(
-                              label: Text(
-                                isKo ? koLabels[index] : enLabels[index],
-                              ),
-                              selected: selected,
-                              onSelected: (value) {
-                                setSheetState(() {
-                                  if (value) {
-                                    repeatWeekdays.add(weekday);
-                                  } else if (repeatWeekdays.length > 1) {
-                                    repeatWeekdays.remove(weekday);
-                                  }
-                                });
-                              },
-                            );
-                          }),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        initialValue: noteText,
-                        onChanged: (value) => noteText = value,
-                        maxLength: 60,
-                        decoration: InputDecoration(
-                          labelText: isKo ? '메모(선택)' : 'Note (optional)',
-                        ),
                       ),
                       const SizedBox(height: 6),
-                      FilledButton.icon(
-                        onPressed: () async {
-                          final editScope = editingPlan == null || !hasSeries
-                              ? _PlanEditScope.single
-                              : await _pickPlanEditScope(editingPlan);
-                          if (editScope == null || !context.mounted) return;
-                          final editingSeries =
-                              editScope == _PlanEditScope.series;
-                          final editingAfterThis =
-                              editScope == _PlanEditScope.afterThis;
-                          final scheduledAt = DateTime(
-                            planDay.year,
-                            planDay.month,
-                            planDay.day,
-                            time.hour,
-                            time.minute,
-                          );
-                          final occurrenceDates =
-                              editScope == _PlanEditScope.single
-                              ? <DateTime>[scheduledAt]
-                              : TrainingPlanSeriesBuilder.buildOccurrenceDates(
+                      if (readOnly)
+                        OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
+                          label: Text(
+                            MaterialLocalizations.of(context).closeButtonLabel,
+                          ),
+                        )
+                      else
+                        FilledButton.icon(
+                          onPressed: () async {
+                            final editScope = editingPlan == null || !hasSeries
+                                ? _PlanEditScope.single
+                                : await _pickPlanEditScope(editingPlan);
+                            if (editScope == null || !context.mounted) return;
+                            final editingSeries =
+                                editScope == _PlanEditScope.series;
+                            final editingAfterThis =
+                                editScope == _PlanEditScope.afterThis;
+                            final scheduledAt = DateTime(
+                              planDay.year,
+                              planDay.month,
+                              planDay.day,
+                              time.hour,
+                              time.minute,
+                            );
+                            final occurrenceDates =
+                                editScope == _PlanEditScope.single
+                                ? <DateTime>[scheduledAt]
+                                : TrainingPlanSeriesBuilder.buildOccurrenceDates(
+                                    startDate: planDay,
+                                    endDate: planEndDay,
+                                    weekdays: repeatWeekdays.toList(),
+                                    hour: time.hour,
+                                    minute: time.minute,
+                                  );
+                            if (occurrenceDates.isEmpty) {
+                              AppFeedback.showMessage(
+                                context,
+                                text: isKo
+                                    ? '선택한 기간 안에 맞는 요일이 없어요.'
+                                    : 'No matching weekdays exist in that date range.',
+                              );
+                              return;
+                            }
+                            final isRecurring =
+                                editScope != _PlanEditScope.single &&
+                                TrainingPlanSeriesBuilder.isRecurringSelection(
                                   startDate: planDay,
                                   endDate: planEndDay,
                                   weekdays: repeatWeekdays.toList(),
-                                  hour: time.hour,
-                                  minute: time.minute,
                                 );
-                          if (occurrenceDates.isEmpty) {
-                            AppFeedback.showMessage(
-                              context,
-                              text: isKo
-                                  ? '선택한 기간 안에 맞는 요일이 없어요.'
-                                  : 'No matching weekdays exist in that date range.',
-                            );
-                            return;
-                          }
-                          final isRecurring =
-                              editScope != _PlanEditScope.single &&
-                              TrainingPlanSeriesBuilder.isRecurringSelection(
-                                startDate: planDay,
-                                endDate: planEndDay,
-                                weekdays: repeatWeekdays.toList(),
+                            final hasTimeConflict = occurrenceDates.any((date) {
+                              final onSameDay = _plans
+                                  .where((plan) {
+                                    if (_normalizeDay(plan.scheduledAt) !=
+                                        _normalizeDay(date)) {
+                                      return false;
+                                    }
+                                    if (editingPlan == null) return true;
+                                    if (editingSeries &&
+                                        editingPlan.seriesId != null &&
+                                        plan.seriesId == editingPlan.seriesId) {
+                                      return false;
+                                    }
+                                    if (editingAfterThis &&
+                                        editingPlan.seriesId != null &&
+                                        plan.seriesId == editingPlan.seriesId &&
+                                        !plan.scheduledAt.isBefore(
+                                          editingPlan.scheduledAt,
+                                        )) {
+                                      return false;
+                                    }
+                                    if (!editingSeries &&
+                                        !editingAfterThis &&
+                                        plan.id == editingPlan.id) {
+                                      return false;
+                                    }
+                                    return true;
+                                  })
+                                  .toList(growable: false);
+                              return onSameDay.any(
+                                (plan) =>
+                                    plan.scheduledAt.hour == date.hour &&
+                                    plan.scheduledAt.minute == date.minute,
                               );
-                          final hasTimeConflict = occurrenceDates.any((date) {
-                            final onSameDay = _plans
-                                .where((plan) {
-                                  if (_normalizeDay(plan.scheduledAt) !=
-                                      _normalizeDay(date)) {
-                                    return false;
-                                  }
-                                  if (editingPlan == null) return true;
-                                  if (editingSeries &&
-                                      editingPlan.seriesId != null &&
-                                      plan.seriesId == editingPlan.seriesId) {
-                                    return false;
-                                  }
-                                  if (editingAfterThis &&
-                                      editingPlan.seriesId != null &&
-                                      plan.seriesId == editingPlan.seriesId &&
-                                      !plan.scheduledAt.isBefore(
-                                        editingPlan.scheduledAt,
-                                      )) {
-                                    return false;
-                                  }
-                                  if (!editingSeries &&
-                                      !editingAfterThis &&
-                                      plan.id == editingPlan.id) {
-                                    return false;
-                                  }
-                                  return true;
-                                })
-                                .toList(growable: false);
-                            return onSameDay.any(
-                              (plan) =>
-                                  plan.scheduledAt.hour == date.hour &&
-                                  plan.scheduledAt.minute == date.minute,
-                            );
-                          });
-                          if (hasTimeConflict) {
-                            AppFeedback.showMessage(
-                              context,
-                              text: isKo
-                                  ? '같은 시간에 이미 등록된 계획이 있어요.'
-                                  : 'Another plan already exists at that time.',
-                            );
-                            return;
-                          }
-                          Navigator.of(context).pop(
-                            _PlanSheetResult(
-                              plans: editingPlan == null
-                                  ? _buildPlanDrafts(
-                                      occurrenceDates: occurrenceDates,
-                                      category: category,
-                                      durationMinutes: duration,
-                                      reminderMinutesBefore: reminderBefore,
-                                      repeatWeekdays: repeatWeekdays.toList(),
-                                      alarmLoopEnabled: alarmLoopEnabled,
-                                      note: noteText.trim(),
-                                      isRecurring: isRecurring,
-                                      seriesStartDate: planDay,
-                                      seriesEndDate: planEndDay,
-                                    )
-                                  : editScope == _PlanEditScope.single
-                                  ? <_TrainingPlan>[
-                                      _TrainingPlan(
-                                        id: editingPlan.id,
-                                        scheduledAt: scheduledAt,
+                            });
+                            if (hasTimeConflict) {
+                              AppFeedback.showMessage(
+                                context,
+                                text: isKo
+                                    ? '같은 시간에 이미 등록된 계획이 있어요.'
+                                    : 'Another plan already exists at that time.',
+                              );
+                              return;
+                            }
+                            Navigator.of(context).pop(
+                              _PlanSheetResult(
+                                plans: editingPlan == null
+                                    ? _buildPlanDrafts(
+                                        occurrenceDates: occurrenceDates,
                                         category: category,
                                         durationMinutes: duration,
                                         reminderMinutesBefore: reminderBefore,
-                                        repeatWeekdays:
-                                            editingPlan.repeatWeekdays,
+                                        repeatWeekdays: repeatWeekdays.toList(),
                                         alarmLoopEnabled: alarmLoopEnabled,
                                         note: noteText.trim(),
-                                        seriesId: editingPlan.seriesId,
-                                        seriesStartDate:
-                                            editingPlan.seriesStartDate,
-                                        seriesEndDate:
-                                            editingPlan.seriesEndDate,
+                                        isRecurring: isRecurring,
+                                        seriesStartDate: planDay,
+                                        seriesEndDate: planEndDay,
+                                      )
+                                    : editScope == _PlanEditScope.single
+                                    ? <_TrainingPlan>[
+                                        _TrainingPlan(
+                                          id: editingPlan.id,
+                                          scheduledAt: scheduledAt,
+                                          category: category,
+                                          durationMinutes: duration,
+                                          reminderMinutesBefore: reminderBefore,
+                                          repeatWeekdays:
+                                              editingPlan.repeatWeekdays,
+                                          alarmLoopEnabled: alarmLoopEnabled,
+                                          note: noteText.trim(),
+                                          seriesId: editingPlan.seriesId,
+                                          seriesStartDate:
+                                              editingPlan.seriesStartDate,
+                                          seriesEndDate:
+                                              editingPlan.seriesEndDate,
+                                        ),
+                                      ]
+                                    : _buildPlanDrafts(
+                                        occurrenceDates: occurrenceDates,
+                                        category: category,
+                                        durationMinutes: duration,
+                                        reminderMinutesBefore: reminderBefore,
+                                        repeatWeekdays: repeatWeekdays.toList(),
+                                        alarmLoopEnabled: alarmLoopEnabled,
+                                        note: noteText.trim(),
+                                        isRecurring: isRecurring,
+                                        seriesStartDate: planDay,
+                                        seriesEndDate: planEndDay,
+                                        existingSeriesId: isRecurring
+                                            ? editingPlan.seriesId
+                                            : null,
                                       ),
-                                    ]
-                                  : _buildPlanDrafts(
-                                      occurrenceDates: occurrenceDates,
-                                      category: category,
-                                      durationMinutes: duration,
-                                      reminderMinutesBefore: reminderBefore,
-                                      repeatWeekdays: repeatWeekdays.toList(),
-                                      alarmLoopEnabled: alarmLoopEnabled,
-                                      note: noteText.trim(),
-                                      isRecurring: isRecurring,
-                                      seriesStartDate: planDay,
-                                      seriesEndDate: planEndDay,
-                                      existingSeriesId: isRecurring
-                                          ? editingPlan.seriesId
-                                          : null,
-                                    ),
-                              scope: editScope,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.check),
-                        label: Text(isKo ? '저장' : 'Save'),
-                      ),
+                                scope: editScope,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.check),
+                          label: Text(isKo ? '저장' : 'Save'),
+                        ),
                     ],
                   ),
                 ),
@@ -1724,7 +1760,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     TrainingEntry? editingEntry,
     required List<TrainingEntry> entries,
   }) async {
-    if (_isParentMode) {
+    final readOnly = _isParentMode && editingEntry != null;
+    if (_isParentMode && !readOnly) {
       _showParentReadOnlyMessage();
       return;
     }
@@ -1740,6 +1777,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     var opponentScoreText = editingEntry?.concededGoals?.toString() ?? '';
     var playerGoalsText = editingEntry?.playerGoals?.toString() ?? '';
     var playerAssistsText = editingEntry?.playerAssists?.toString() ?? '';
+    var shotsOnTargetText = editingEntry?.shotsOnTarget?.toString() ?? '';
+    var ballsWonText = editingEntry?.ballsWon?.toString() ?? '';
     var minutesPlayedText = editingEntry?.minutesPlayed?.toString() ?? '';
     var memoText = editingEntry?.notes ?? '';
     final saved = await showModalBottomSheet<TrainingEntry>(
@@ -1763,174 +1802,255 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        editingEntry == null
-                            ? (isKo ? '시합 등록' : 'Add Match')
-                            : (isKo ? '시합 수정' : 'Edit Match'),
+                        readOnly
+                            ? l10n.matchViewTitle
+                            : editingEntry == null
+                            ? l10n.matchAddTitle
+                            : l10n.matchEditTitle,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: matchDay,
-                            firstDate: DateTime(2022),
-                            lastDate: DateTime(2032),
-                          );
-                          if (picked == null || !context.mounted) return;
-                          setSheetState(() {
-                            matchDay = DateTime(
-                              picked.year,
-                              picked.month,
-                              picked.day,
+                      IgnorePointer(
+                        ignoring: readOnly,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: readOnly
+                                  ? null
+                                  : () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: matchDay,
+                                        firstDate: DateTime(2022),
+                                        lastDate: DateTime(2032),
+                                      );
+                                      if (picked == null || !context.mounted) {
+                                        return;
+                                      }
+                                      setSheetState(() {
+                                        matchDay = DateTime(
+                                          picked.year,
+                                          picked.month,
+                                          picked.day,
+                                        );
+                                      });
+                                    },
+                              icon: const Icon(Icons.calendar_today_outlined),
+                              label: Text(
+                                DateFormat('yyyy-MM-dd').format(matchDay),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _MatchAutocompleteField(
+                              initialValue: opponent,
+                              options: opponentOptions,
+                              onChanged: (value) => opponent = value,
+                              textInputAction: TextInputAction.next,
+                              labelText: l10n.matchOpponentTeamLabel,
+                              hintText: l10n.matchOpponentTeamHint,
+                              enabled: !readOnly,
+                            ),
+                            const SizedBox(height: 8),
+                            _MatchAutocompleteField(
+                              initialValue: location,
+                              options: locationOptions,
+                              onChanged: (value) => location = value,
+                              textInputAction: TextInputAction.next,
+                              labelText: l10n.location,
+                              hintText: isKo ? '예) 메인 구장' : 'e.g. Main stadium',
+                              enabled: !readOnly,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: ourScoreText,
+                                    readOnly: readOnly,
+                                    onChanged: (value) => ourScoreText = value,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText: l10n.matchOurScoreLabel,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: opponentScoreText,
+                                    readOnly: readOnly,
+                                    onChanged: (value) =>
+                                        opponentScoreText = value,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText: l10n.matchOpponentScoreLabel,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: playerGoalsText,
+                                    readOnly: readOnly,
+                                    onChanged: (value) =>
+                                        playerGoalsText = value,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText: l10n.matchGoalsLabel,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: playerAssistsText,
+                                    readOnly: readOnly,
+                                    onChanged: (value) =>
+                                        playerAssistsText = value,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText: l10n.matchAssistsLabel,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: shotsOnTargetText,
+                                    readOnly: readOnly,
+                                    onChanged: (value) =>
+                                        shotsOnTargetText = value,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText: l10n.matchShotsOnTargetLabel,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextFormField(
+                                    initialValue: ballsWonText,
+                                    readOnly: readOnly,
+                                    onChanged: (value) => ballsWonText = value,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    decoration: InputDecoration(
+                                      labelText: l10n.matchBallsWonLabel,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              initialValue: minutesPlayedText,
+                              readOnly: readOnly,
+                              onChanged: (value) => minutesPlayedText = value,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              decoration: InputDecoration(
+                                labelText: l10n.matchMinutesPlayedLabel,
+                                hintText: l10n.matchMinutesPlayedHint,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              initialValue: memoText,
+                              readOnly: readOnly,
+                              onChanged: (value) => memoText = value,
+                              maxLength: 60,
+                              decoration: InputDecoration(
+                                labelText: l10n.matchNoteOptionalLabel,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (readOnly)
+                        OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
+                          label: Text(
+                            MaterialLocalizations.of(context).closeButtonLabel,
+                          ),
+                        )
+                      else
+                        FilledButton.icon(
+                          onPressed: () {
+                            final trimmedOpponent = opponent.trim();
+                            if (trimmedOpponent.isEmpty) return;
+                            Navigator.of(context).pop(
+                              TrainingEntry(
+                                date: matchDay,
+                                durationMinutes:
+                                    editingEntry?.durationMinutes ?? 90,
+                                intensity: editingEntry?.intensity ?? 3,
+                                type: l10n.typeMatch,
+                                mood: editingEntry?.mood ?? 3,
+                                injury: editingEntry?.injury ?? false,
+                                notes: memoText.trim(),
+                                location: location.trim(),
+                                program: l10n.typeMatch,
+                                club: trimmedOpponent,
+                                opponentTeam: trimmedOpponent,
+                                status: editingEntry?.status ?? 'normal',
+                                goodPoints: editingEntry?.goodPoints ?? '',
+                                improvements: editingEntry?.improvements ?? '',
+                                nextGoal: editingEntry?.nextGoal ?? '',
+                                goalFocuses:
+                                    editingEntry?.goalFocuses ?? const [],
+                                createdAt: editingEntry?.createdAt,
+                                scoredGoals: _parseSheetInt(ourScoreText),
+                                concededGoals: _parseSheetInt(
+                                  opponentScoreText,
+                                ),
+                                playerGoals: _parseSheetInt(playerGoalsText),
+                                playerAssists: _parseSheetInt(
+                                  playerAssistsText,
+                                ),
+                                shotsOnTarget: _parseSheetInt(
+                                  shotsOnTargetText,
+                                ),
+                                ballsWon: _parseSheetInt(ballsWonText),
+                                minutesPlayed: _parseSheetInt(
+                                  minutesPlayedText,
+                                ),
+                                matchLocation: location.trim(),
+                              ),
                             );
-                          });
-                        },
-                        icon: const Icon(Icons.calendar_today_outlined),
-                        label: Text(DateFormat('yyyy-MM-dd').format(matchDay)),
-                      ),
-                      const SizedBox(height: 8),
-                      _MatchAutocompleteField(
-                        initialValue: opponent,
-                        options: opponentOptions,
-                        onChanged: (value) => opponent = value,
-                        textInputAction: TextInputAction.next,
-                        labelText: isKo ? '상대 팀' : 'Opponent team',
-                        hintText: isKo ? '예) 수원 U15' : 'e.g. Suwon U15',
-                      ),
-                      const SizedBox(height: 8),
-                      _MatchAutocompleteField(
-                        initialValue: location,
-                        options: locationOptions,
-                        onChanged: (value) => location = value,
-                        textInputAction: TextInputAction.next,
-                        labelText: l10n.location,
-                        hintText: isKo ? '예) 메인 구장' : 'e.g. Main stadium',
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: ourScoreText,
-                              onChanged: (value) => ourScoreText = value,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: InputDecoration(
-                                labelText: isKo ? '우리 점수' : 'Our score',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: opponentScoreText,
-                              onChanged: (value) => opponentScoreText = value,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: InputDecoration(
-                                labelText: isKo ? '상대 점수' : 'Opponent score',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: playerGoalsText,
-                              onChanged: (value) => playerGoalsText = value,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: InputDecoration(
-                                labelText: isKo ? '골' : 'Goals',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextFormField(
-                              initialValue: playerAssistsText,
-                              onChanged: (value) => playerAssistsText = value,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: InputDecoration(
-                                labelText: isKo ? '어시스트' : 'Assists',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        initialValue: minutesPlayedText,
-                        onChanged: (value) => minutesPlayedText = value,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        decoration: InputDecoration(
-                          labelText: isKo ? '출전 시간(분)' : 'Minutes played',
-                          hintText: isKo ? '예) 70' : 'e.g. 70',
+                          },
+                          icon: const Icon(Icons.check),
+                          label: Text(isKo ? '저장' : 'Save'),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        initialValue: memoText,
-                        onChanged: (value) => memoText = value,
-                        maxLength: 60,
-                        decoration: InputDecoration(
-                          labelText: isKo ? '메모(선택)' : 'Note (optional)',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton.icon(
-                        onPressed: () {
-                          final trimmedOpponent = opponent.trim();
-                          if (trimmedOpponent.isEmpty) return;
-                          Navigator.of(context).pop(
-                            TrainingEntry(
-                              date: matchDay,
-                              durationMinutes:
-                                  editingEntry?.durationMinutes ?? 90,
-                              intensity: editingEntry?.intensity ?? 3,
-                              type: l10n.typeMatch,
-                              mood: editingEntry?.mood ?? 3,
-                              injury: editingEntry?.injury ?? false,
-                              notes: memoText.trim(),
-                              location: location.trim(),
-                              program: l10n.typeMatch,
-                              club: trimmedOpponent,
-                              opponentTeam: trimmedOpponent,
-                              status: editingEntry?.status ?? 'normal',
-                              goodPoints: editingEntry?.goodPoints ?? '',
-                              improvements: editingEntry?.improvements ?? '',
-                              nextGoal: editingEntry?.nextGoal ?? '',
-                              goalFocuses:
-                                  editingEntry?.goalFocuses ?? const [],
-                              createdAt: editingEntry?.createdAt,
-                              scoredGoals: _parseSheetInt(ourScoreText),
-                              concededGoals: _parseSheetInt(opponentScoreText),
-                              playerGoals: _parseSheetInt(playerGoalsText),
-                              playerAssists: _parseSheetInt(playerAssistsText),
-                              minutesPlayed: _parseSheetInt(minutesPlayedText),
-                              matchLocation: location.trim(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.check),
-                        label: Text(isKo ? '저장' : 'Save'),
-                      ),
                     ],
                   ),
                 ),
@@ -2880,7 +3000,7 @@ class _DayTimeline extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _PlanTile(
                   plan: plan,
-                  onTap: isReadOnly ? null : () => onEditPlan(plan),
+                  onTap: () => onEditPlan(plan),
                   onMove: isReadOnly ? null : () => onMovePlan(plan),
                   onDelete: isReadOnly ? null : () => onDeletePlan(plan),
                 ),
@@ -2938,7 +3058,7 @@ class _DayTimeline extends StatelessWidget {
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: isReadOnly
-                    ? _EntryTile(entry: entry)
+                    ? _EntryTile(entry: entry, onTap: () => onEditEntry(entry))
                     : Dismissible(
                         key: ValueKey(
                           'entry-${entry.key ?? '${entry.date.millisecondsSinceEpoch}-${entry.type}-${entry.notes.hashCode}'}',
@@ -3137,9 +3257,13 @@ class _EntryTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (entry.isMatch) ...[
-              if (_matchPersonalRecord(entry, isKo: isKo).isNotEmpty)
+              if (_matchPersonalRecord(
+                entry,
+                l10n: l10n,
+                isKo: isKo,
+              ).isNotEmpty)
                 Text(
-                  _matchPersonalRecord(entry, isKo: isKo),
+                  _matchPersonalRecord(entry, l10n: l10n, isKo: isKo),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: _calendarTimelineSubtitleStyle(context),
@@ -3228,15 +3352,23 @@ class _EntryTile extends StatelessWidget {
     return isKo ? '무' : 'Draw';
   }
 
-  String _matchPersonalRecord(TrainingEntry entry, {required bool isKo}) {
+  String _matchPersonalRecord(
+    TrainingEntry entry, {
+    required AppLocalizations l10n,
+    required bool isKo,
+  }) {
     final parts = <String>[];
     if (entry.playerGoals != null) {
-      parts.add(isKo ? '골 ${entry.playerGoals}' : 'Goals ${entry.playerGoals}');
+      parts.add('${l10n.matchGoalsLabel} ${entry.playerGoals}');
     }
     if (entry.playerAssists != null) {
-      parts.add(
-        isKo ? '어시스트 ${entry.playerAssists}' : 'Assists ${entry.playerAssists}',
-      );
+      parts.add('${l10n.matchAssistsLabel} ${entry.playerAssists}');
+    }
+    if (entry.shotsOnTarget != null) {
+      parts.add('${l10n.matchShotsOnTargetLabel} ${entry.shotsOnTarget}');
+    }
+    if (entry.ballsWon != null) {
+      parts.add('${l10n.matchBallsWonLabel} ${entry.ballsWon}');
     }
     if (entry.minutesPlayed != null) {
       parts.add(
@@ -3412,6 +3544,7 @@ class _MatchAutocompleteField extends StatelessWidget {
   final String labelText;
   final String hintText;
   final TextInputAction textInputAction;
+  final bool enabled;
 
   const _MatchAutocompleteField({
     required this.initialValue,
@@ -3420,6 +3553,7 @@ class _MatchAutocompleteField extends StatelessWidget {
     required this.labelText,
     required this.hintText,
     required this.textInputAction,
+    this.enabled = true,
   });
 
   @override
@@ -3449,6 +3583,7 @@ class _MatchAutocompleteField extends StatelessWidget {
             return TextField(
               controller: textEditingController,
               focusNode: focusNode,
+              enabled: enabled,
               textInputAction: textInputAction,
               onChanged: onChanged,
               onSubmitted: (_) => onFieldSubmitted(),

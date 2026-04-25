@@ -1373,6 +1373,8 @@ class DriveBackupService implements BackupRepository {
       lunchRiceBowls: entry.lunchRiceBowls,
       dinnerDone: entry.dinnerDone,
       dinnerRiceBowls: entry.dinnerRiceBowls,
+      shotsOnTarget: entry.shotsOnTarget,
+      ballsWon: entry.ballsWon,
     );
   }
 
@@ -1961,6 +1963,8 @@ class DriveBackupService implements BackupRepository {
       'lunchRiceBowls': entry.lunchRiceBowls,
       'dinnerDone': entry.dinnerDone,
       'dinnerRiceBowls': entry.dinnerRiceBowls,
+      'shotsOnTarget': entry.shotsOnTarget,
+      'ballsWon': entry.ballsWon,
     };
   }
 
@@ -2044,6 +2048,8 @@ class DriveBackupService implements BackupRepository {
       lunchRiceBowls: (map['lunchRiceBowls'] as num?)?.toInt() ?? 0,
       dinnerDone: map['dinnerDone'] as bool? ?? false,
       dinnerRiceBowls: (map['dinnerRiceBowls'] as num?)?.toInt() ?? 0,
+      shotsOnTarget: (map['shotsOnTarget'] as num?)?.toInt(),
+      ballsWon: (map['ballsWon'] as num?)?.toInt(),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
@@ -31,7 +32,10 @@ void main() {
   late LocaleService localeService;
   late SettingsService settingsService;
 
-  Future<void> pumpCalendar(WidgetTester tester) async {
+  Future<void> pumpCalendar(
+    WidgetTester tester, {
+    void Function(TrainingEntry entry)? onEdit,
+  }) async {
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: TestAssetBundle(),
@@ -50,7 +54,7 @@ void main() {
             localeService: localeService,
             optionRepository: optionRepository,
             settingsService: settingsService,
-            onEdit: (_) {},
+            onEdit: onEdit ?? (_) {},
             onCreate: () {},
           ),
         ),
@@ -149,6 +153,8 @@ void main() {
         concededGoals: 2,
         playerGoals: 1,
         playerAssists: 2,
+        shotsOnTarget: 4,
+        ballsWon: 7,
         minutesPlayed: 70,
         matchLocation: '메인 구장',
       ),
@@ -162,8 +168,82 @@ void main() {
     expect(find.textContaining('결과 3:2'), findsOneWidget);
     expect(find.textContaining('골 1'), findsOneWidget);
     expect(find.textContaining('어시스트 2'), findsOneWidget);
+    expect(find.textContaining('유효 슈팅 4'), findsOneWidget);
+    expect(find.textContaining('공을 뺏은 횟수 7'), findsOneWidget);
     expect(find.textContaining('출전 70분'), findsOneWidget);
     expect(find.byIcon(Icons.emoji_events), findsOneWidget);
+  });
+
+  testWidgets('부모 모드에서도 캘린더 훈련 리스트 탭이 기록 화면으로 이어진다', (tester) async {
+    final today = DateTime.now();
+    TrainingEntry? editedEntry;
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    await trainingService.add(
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 7),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '드리블',
+        mood: 3,
+        injury: false,
+        notes: '퍼스트 터치',
+        location: '학교 운동장',
+      ),
+    );
+
+    await pumpCalendar(tester, onEdit: (entry) => editedEntry = entry);
+
+    await tester.tap(find.text('드리블 · 45분 · 학교 운동장'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(editedEntry, isNotNull);
+    expect(editedEntry!.type, '드리블');
+  });
+
+  testWidgets('부모 모드에서도 캘린더 시합 리스트 탭이 읽기 전용 화면을 연다', (tester) async {
+    final today = DateTime.now();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    await trainingService.add(
+      TrainingEntry(
+        date: DateTime(today.year, today.month, today.day, 9),
+        durationMinutes: 90,
+        intensity: 4,
+        type: '경기',
+        mood: 4,
+        injury: false,
+        notes: '시합 메모',
+        location: '메인 구장',
+        program: '경기',
+        club: '라이벌 FC',
+        opponentTeam: '라이벌 FC',
+        scoredGoals: 3,
+        concededGoals: 2,
+        playerGoals: 1,
+        playerAssists: 2,
+        shotsOnTarget: 4,
+        ballsWon: 7,
+        minutesPlayed: 70,
+        matchLocation: '메인 구장',
+      ),
+    );
+
+    await pumpCalendar(tester);
+
+    await tester.tap(find.textContaining('vs 라이벌 FC').first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('시합 보기'), findsOneWidget);
+    expect(find.text('유효 슈팅'), findsWidgets);
+    expect(find.text('공을 뺏은 횟수'), findsWidgets);
+    expect(find.widgetWithText(FilledButton, '저장'), findsNothing);
   });
 
   testWidgets('캘린더 기록 추가 버튼은 아이콘만 표시하고 훈련 노트 메뉴를 연다', (tester) async {

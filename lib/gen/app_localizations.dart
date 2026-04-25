@@ -1457,7 +1457,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreFromDrive.
   ///
   /// In en, this message translates to:
-  /// **'Restore from Google Drive'**
+  /// **'Import data from Google Drive'**
   String get restoreFromDrive;
 
   /// No description provided for @backupConfirm.
@@ -1469,7 +1469,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the latest backup from Google Drive? This will replace current data.'**
+  /// **'Import the latest data from Google Drive? This will replace current data.'**
   String get restoreConfirm;
 
   /// No description provided for @backupSuccess.
@@ -1487,13 +1487,13 @@ abstract class AppLocalizations {
   /// No description provided for @restoreSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Restore completed.'**
+  /// **'Data imported.'**
   String get restoreSuccess;
 
   /// No description provided for @restoreFailed.
   ///
   /// In en, this message translates to:
-  /// **'Restore failed. Please try again.'**
+  /// **'Failed to import data. Please try again.'**
   String get restoreFailed;
 
   /// No description provided for @backupInProgress.
@@ -1505,7 +1505,7 @@ abstract class AppLocalizations {
   /// No description provided for @restoreInProgress.
   ///
   /// In en, this message translates to:
-  /// **'Restoring...'**
+  /// **'Importing data...'**
   String get restoreInProgress;
 
   /// No description provided for @backupDailyEnabled.
@@ -1565,25 +1565,25 @@ abstract class AppLocalizations {
   /// No description provided for @restoreLocalBackup.
   ///
   /// In en, this message translates to:
-  /// **'Restore local backup'**
+  /// **'Import previous data'**
   String get restoreLocalBackup;
 
   /// No description provided for @restoreLocalConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the backup saved before the last restore? This will replace current data.'**
+  /// **'Import the safety backup saved before the last data import? This will replace current data.'**
   String get restoreLocalConfirm;
 
   /// No description provided for @restoreLocalSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Local restore completed.'**
+  /// **'Previous data imported.'**
   String get restoreLocalSuccess;
 
   /// No description provided for @restoreLocalFailed.
   ///
   /// In en, this message translates to:
-  /// **'Local restore failed. Please try again.'**
+  /// **'Failed to import previous data. Please try again.'**
   String get restoreLocalFailed;
 
   /// No description provided for @localBackup.
@@ -6467,7 +6467,7 @@ abstract class AppLocalizations {
   /// No description provided for @driveSharedChildAccount.
   ///
   /// In en, this message translates to:
-  /// **'Shared player Drive'**
+  /// **'Player backup Drive'**
   String get driveSharedChildAccount;
 
   /// No description provided for @driveSharedChildAccountEmpty.
@@ -6497,13 +6497,13 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedSyncTitle.
   ///
   /// In en, this message translates to:
-  /// **'Support role/player sync'**
+  /// **'Player data sync'**
   String get familySharedSyncTitle;
 
   /// No description provided for @familySharedSyncDescription.
   ///
   /// In en, this message translates to:
-  /// **'Training feedback and reward names saved in support role mode are written automatically into the same player backup file.'**
+  /// **'Parent feedback and level reward names are written automatically into the same player backup file.'**
   String get familySharedSyncDescription;
 
   /// No description provided for @familySharedLastSync.
@@ -6515,73 +6515,73 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedLastPush.
   ///
   /// In en, this message translates to:
-  /// **'Last support role/player push'**
+  /// **'Last push'**
   String get familySharedLastPush;
 
   /// No description provided for @familySharedLastRefresh.
   ///
   /// In en, this message translates to:
-  /// **'Last support role/player refresh'**
+  /// **'Last import check'**
   String get familySharedLastRefresh;
 
   /// No description provided for @familySharedAutoRefreshDescription.
   ///
   /// In en, this message translates to:
-  /// **'When support role mode opens or the app resumes, the latest shared state is checked automatically. Auto refresh pauses when local changes have not been pushed yet.'**
+  /// **'When support role mode opens or the app resumes, the latest state is checked automatically. Auto checks pause when local changes are still waiting to be pushed to Drive.'**
   String get familySharedAutoRefreshDescription;
 
   /// No description provided for @familySharedPendingLocalChanges.
   ///
   /// In en, this message translates to:
-  /// **'Automatic refresh is paused because local support-role changes are still waiting to be pushed.'**
+  /// **'Automatic import is paused because local changes still need to be pushed to Drive.'**
   String get familySharedPendingLocalChanges;
 
   /// No description provided for @familySharedRestore.
   ///
   /// In en, this message translates to:
-  /// **'Restore player records'**
+  /// **'Import player data'**
   String get familySharedRestore;
 
   /// No description provided for @familySharedRestoreConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the latest player backup state from Google Drive? This replaces the player records and shared data shown on the current support-role device.'**
+  /// **'Import the latest player data from Google Drive? This replaces the player records and shared data shown on this device.'**
   String get familySharedRestoreConfirm;
 
   /// No description provided for @familySharedRestoreSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Player backup restore completed.'**
+  /// **'Player data imported.'**
   String get familySharedRestoreSuccess;
 
   /// No description provided for @familySharedRestoreFailed.
   ///
   /// In en, this message translates to:
-  /// **'Player backup restore failed. Please try again.'**
+  /// **'Failed to import player data. Please try again.'**
   String get familySharedRestoreFailed;
 
   /// No description provided for @familySharedRestoreLocal.
   ///
   /// In en, this message translates to:
-  /// **'Restore previous player state'**
+  /// **'Import previous player data'**
   String get familySharedRestoreLocal;
 
   /// No description provided for @familySharedRestoreLocalConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Restore the safety copy saved right before the last restore? This replaces the player records and shared data shown on the current support-role device.'**
+  /// **'Import the previous player data saved before the last data import? This replaces the player records and shared data shown on this device.'**
   String get familySharedRestoreLocalConfirm;
 
   /// No description provided for @familySharedRestoreLocalSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Previous state restored.'**
+  /// **'Previous player data imported.'**
   String get familySharedRestoreLocalSuccess;
 
   /// No description provided for @familySharedRestoreLocalFailed.
   ///
   /// In en, this message translates to:
-  /// **'Previous state restore failed. Please try again.'**
+  /// **'Failed to import previous player data. Please try again.'**
   String get familySharedRestoreLocalFailed;
 
   /// No description provided for @familyParentFamilyMismatch.
@@ -6734,6 +6734,12 @@ abstract class AppLocalizations {
   /// **'There is no feedback yet.'**
   String get parentFeedbackEmpty;
 
+  /// No description provided for @parentSharedSyncInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing to the player\'s Drive...'**
+  String get parentSharedSyncInProgress;
+
   /// No description provided for @parentSharedSyncDone.
   ///
   /// In en, this message translates to:
@@ -6770,6 +6776,12 @@ abstract class AppLocalizations {
   /// **'Player mode can claim rewards. Reward naming stays in support role mode.'**
   String get levelGuideChildModeDescription;
 
+  /// No description provided for @levelGuideModeInfoTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show mode description'**
+  String get levelGuideModeInfoTooltip;
+
   /// No description provided for @levelGuideClaimChildOnly.
   ///
   /// In en, this message translates to:
@@ -6799,6 +6811,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reward cleared.'**
   String get levelGuideRewardCleared;
+
+  /// No description provided for @trainingPlanAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Training Plan'**
+  String get trainingPlanAddTitle;
+
+  /// No description provided for @trainingPlanEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Training Plan'**
+  String get trainingPlanEditTitle;
+
+  /// No description provided for @trainingPlanViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View Training Plan'**
+  String get trainingPlanViewTitle;
+
+  /// No description provided for @matchAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Match'**
+  String get matchAddTitle;
+
+  /// No description provided for @matchEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Match'**
+  String get matchEditTitle;
+
+  /// No description provided for @matchViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View Match'**
+  String get matchViewTitle;
+
+  /// No description provided for @matchOpponentTeamLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent team'**
+  String get matchOpponentTeamLabel;
+
+  /// No description provided for @matchOpponentTeamHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Suwon U15'**
+  String get matchOpponentTeamHint;
+
+  /// No description provided for @matchOurScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Our score'**
+  String get matchOurScoreLabel;
+
+  /// No description provided for @matchOpponentScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent score'**
+  String get matchOpponentScoreLabel;
+
+  /// No description provided for @matchGoalsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get matchGoalsLabel;
+
+  /// No description provided for @matchAssistsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Assists'**
+  String get matchAssistsLabel;
+
+  /// No description provided for @matchMinutesPlayedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes played'**
+  String get matchMinutesPlayedLabel;
+
+  /// No description provided for @matchMinutesPlayedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 70'**
+  String get matchMinutesPlayedHint;
+
+  /// No description provided for @matchNoteOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get matchNoteOptionalLabel;
+
+  /// No description provided for @matchShotsOnTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shots on target'**
+  String get matchShotsOnTargetLabel;
+
+  /// No description provided for @matchBallsWonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Balls won'**
+  String get matchBallsWonLabel;
 
   /// No description provided for @trainingSketchControlsPanel.
   ///
