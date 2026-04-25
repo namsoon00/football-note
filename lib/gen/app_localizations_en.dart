@@ -3884,6 +3884,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parentFeedbackEmpty => 'There is no feedback yet.';
 
   @override
+  String get parentFeedbackOpenExistingEntryTitle =>
+      'Open an existing training log to leave feedback.';
+
+  @override
+  String get parentFeedbackOpenExistingEntryBody =>
+      'Support role mode does not create new training logs. Parent or coach feedback can only be saved on an existing training log after the player records it first.';
+
+  @override
   String get parentSharedSyncInProgress => 'Syncing to the player\'s Drive...';
 
   @override

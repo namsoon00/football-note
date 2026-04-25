@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/backup_service.dart';
+import '../../application/family_access_service.dart';
 import '../../application/locale_service.dart';
 import '../../application/meal_coaching_service.dart';
 import '../../application/meal_log_service.dart';
@@ -22,6 +23,7 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_page_route.dart';
 import '../widgets/player_level_visuals.dart';
@@ -96,6 +98,9 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   String _weatherLocation = '';
   String _weatherSummary = '';
   int? _weatherCode;
+
+  bool get _isParentMode =>
+      FamilyAccessService(widget.optionRepository).loadState().isParentMode;
 
   @override
   void initState() {
@@ -357,9 +362,8 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
                           data: data,
                           isKo: isKo,
                           onContinueQuiz: widget.onQuickQuiz,
-                          onContinueTraining: data.latestTrainingEntry == null
-                              ? widget.onCreate
-                              : () => widget.onEdit(data.latestTrainingEntry!),
+                          onContinueTraining: () =>
+                              _openTodayEntryOrCreate(data),
                           onContinueMatch: widget.onQuickMatch,
                           onContinuePlan: widget.onOpenPlans,
                           onContinueBoard: data.latestBoard == null
@@ -706,6 +710,21 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     EntryFormInitialFocusTarget? initialFocusTarget,
   }) {
     final entry = data.latestTrainingEntry;
+    if (_isParentMode) {
+      if (entry == null) {
+        _showParentFeedbackEntryGuide();
+        widget.onOpenLogs();
+        return;
+      }
+      if (initialFocusTarget == null) {
+        widget.onEdit(entry);
+        return;
+      }
+      unawaited(
+        _openEntryForm(entry: entry, initialFocusTarget: initialFocusTarget),
+      );
+      return;
+    }
     if (entry == null) {
       if (initialFocusTarget == null) {
         widget.onCreate();
@@ -744,6 +763,15 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
         initialDate: today,
         initialFocusTarget: initialFocusTarget,
       ),
+    );
+  }
+
+  void _showParentFeedbackEntryGuide() {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    AppFeedback.showMessage(
+      context,
+      text: l10n.parentFeedbackOpenExistingEntryBody,
     );
   }
 
