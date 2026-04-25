@@ -146,6 +146,12 @@ class TrainingEntry extends HiveObject {
   @HiveField(53)
   final int dinnerRiceBowls;
 
+  @HiveField(54)
+  final int? shotsOnTarget;
+
+  @HiveField(55)
+  final int? ballsWon;
+
   TrainingEntry({
     required this.date,
     required this.durationMinutes,
@@ -195,6 +201,8 @@ class TrainingEntry extends HiveObject {
     this.lunchRiceBowls = 0,
     this.dinnerDone = false,
     this.dinnerRiceBowls = 0,
+    this.shotsOnTarget,
+    this.ballsWon,
   }) : createdAt = createdAt ?? DateTime.now();
 
   String get effectiveMatchLocation =>
@@ -207,7 +215,9 @@ class TrainingEntry extends HiveObject {
       concededGoals != null ||
       playerGoals != null ||
       playerAssists != null ||
-      minutesPlayed != null;
+      minutesPlayed != null ||
+      shotsOnTarget != null ||
+      ballsWon != null;
 
   static int compareByRecentCreated(TrainingEntry a, TrainingEntry b) {
     final createdCompare = b.createdAt.compareTo(a.createdAt);
@@ -254,12 +264,14 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       heightCm: fields[22] as double?,
       weightKg: fields[23] as double?,
       imagePath: (fields[24] as String?) ?? '',
-      imagePaths: (fields[25] as List?)?.cast<String>() ??
+      imagePaths:
+          (fields[25] as List?)?.cast<String>() ??
           ((fields[24] as String?)?.isNotEmpty ?? false
               ? [fields[24] as String]
               : []),
       status: (fields[26] as String?) ?? 'normal',
-      liftingByPart: (fields[27] as Map?)?.map(
+      liftingByPart:
+          (fields[27] as Map?)?.map(
             (key, value) =>
                 MapEntry(key.toString(), (value is num) ? value.toInt() : 0),
           ) ??
@@ -268,7 +280,8 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       fortuneComment: (fields[29] as String?) ?? '',
       fortuneRecommendation: (fields[30] as String?) ?? '',
       fortuneRecommendedProgram: (fields[31] as String?) ?? '',
-      goalFocuses: (fields[32] as List?)?.map((e) => e.toString()).toList() ??
+      goalFocuses:
+          (fields[32] as List?)?.map((e) => e.toString()).toList() ??
           const <String>[],
       goodPoints: goodPoints,
       improvements: improvements,
@@ -276,7 +289,8 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       createdAt: (fields[36] as DateTime?) ?? (fields[0] as DateTime),
       jumpRopeCount: (fields[37] as num?)?.toInt() ?? 0,
       jumpRopeMinutes: (fields[38] as num?)?.toInt() ?? 0,
-      jumpRopeEnabled: (fields[39] as bool?) ??
+      jumpRopeEnabled:
+          (fields[39] as bool?) ??
           (((fields[37] as num?)?.toInt() ?? 0) > 0 ||
               ((fields[38] as num?)?.toInt() ?? 0) > 0 ||
               ((fields[40] as String?) ?? '').trim().isNotEmpty),
@@ -294,13 +308,15 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       lunchRiceBowls: (fields[51] as num?)?.toInt() ?? 0,
       dinnerDone: (fields[52] as bool?) ?? false,
       dinnerRiceBowls: (fields[53] as num?)?.toInt() ?? 0,
+      shotsOnTarget: (fields[54] as num?)?.toInt(),
+      ballsWon: (fields[55] as num?)?.toInt(),
     );
   }
 
   @override
   void write(BinaryWriter writer, TrainingEntry obj) {
     writer
-      ..writeByte(48)
+      ..writeByte(50)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -396,6 +412,10 @@ class TrainingEntryAdapter extends TypeAdapter<TrainingEntry> {
       ..writeByte(52)
       ..write(obj.dinnerDone)
       ..writeByte(53)
-      ..write(obj.dinnerRiceBowls);
+      ..write(obj.dinnerRiceBowls)
+      ..writeByte(54)
+      ..write(obj.shotsOnTarget)
+      ..writeByte(55)
+      ..write(obj.ballsWon);
   }
 }

@@ -712,13 +712,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backupToDrive => 'Google Drive 백업';
 
   @override
-  String get restoreFromDrive => 'Google Drive 복원';
+  String get restoreFromDrive => 'Google Drive 데이터 가져오기';
 
   @override
   String get backupConfirm => 'Google Drive에 새 백업을 만들까요?';
 
   @override
-  String get restoreConfirm => 'Google Drive의 최신 백업으로 복원할까요? 현재 데이터가 교체됩니다.';
+  String get restoreConfirm => 'Google Drive의 최신 데이터를 가져올까요? 현재 데이터가 교체됩니다.';
 
   @override
   String get backupSuccess => '백업이 완료되었습니다.';
@@ -727,16 +727,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backupFailed => '백업에 실패했어요. 다시 시도해 주세요.';
 
   @override
-  String get restoreSuccess => '복원이 완료되었습니다.';
+  String get restoreSuccess => '데이터를 가져왔어요.';
 
   @override
-  String get restoreFailed => '복원에 실패했어요. 다시 시도해 주세요.';
+  String get restoreFailed => '데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get backupInProgress => '백업 중...';
 
   @override
-  String get restoreInProgress => '복원 중...';
+  String get restoreInProgress => '데이터 가져오는 중...';
 
   @override
   String get backupDailyEnabled => '매일 자동 백업';
@@ -770,16 +770,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get timeYesterday => '어제';
 
   @override
-  String get restoreLocalBackup => '로컬 안전 백업 복원';
+  String get restoreLocalBackup => '이전 데이터 가져오기';
 
   @override
-  String get restoreLocalConfirm => '복원 직전에 저장된 안전 백업으로 되돌릴까요? 현재 데이터가 교체됩니다.';
+  String get restoreLocalConfirm =>
+      '마지막으로 데이터를 가져오기 전에 저장한 안전 백업을 다시 가져올까요? 현재 데이터가 교체됩니다.';
 
   @override
-  String get restoreLocalSuccess => '로컬 복원이 완료되었습니다.';
+  String get restoreLocalSuccess => '이전 데이터를 가져왔어요.';
 
   @override
-  String get restoreLocalFailed => '로컬 복원에 실패했어요. 다시 시도해 주세요.';
+  String get restoreLocalFailed => '이전 데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get localBackup => '로컬 안전 백업';
@@ -3600,7 +3601,7 @@ class AppLocalizationsKo extends AppLocalizations {
       '저장된 공유 역할 Drive 계정으로 다시 연결해 주세요.';
 
   @override
-  String get driveSharedChildAccount => '공유 대상 선수 Drive';
+  String get driveSharedChildAccount => '선수 백업 Drive';
 
   @override
   String get driveSharedChildAccountEmpty =>
@@ -3619,55 +3620,55 @@ class AppLocalizationsKo extends AppLocalizations {
       '공유 역할에서는 선수 Google Drive 계정으로 연결해야 같은 선수 백업 파일에 훈련 피드백과 선물 이름을 안전하게 동기화할 수 있어요.';
 
   @override
-  String get familySharedSyncTitle => '공유 역할/선수 공유 동기화';
+  String get familySharedSyncTitle => '선수 데이터 동기화';
 
   @override
   String get familySharedSyncDescription =>
-      '공유 역할에서 저장하는 훈련 피드백과 선물 이름은 자동으로 같은 선수 백업 파일에 반영됩니다.';
+      '보호자 피드백과 레벨 선물 이름은 같은 선수 백업 파일로 자동 반영됩니다.';
 
   @override
   String get familySharedLastSync => '최근 공유 역할/선수 공유 동기화';
 
   @override
-  String get familySharedLastPush => '최근 공유 역할/선수 공유 반영';
+  String get familySharedLastPush => '최근 반영';
 
   @override
-  String get familySharedLastRefresh => '최근 공유 역할/선수 공유 새로고침';
+  String get familySharedLastRefresh => '최근 가져오기 확인';
 
   @override
   String get familySharedAutoRefreshDescription =>
-      '공유 역할 모드로 들어오거나 앱으로 돌아오면 최신 공유 상태를 자동으로 확인합니다. 아직 원격에 반영하지 못한 로컬 변경이 있으면 자동 새로고침은 건너뜁니다.';
+      '공유 역할 모드로 들어오거나 앱으로 돌아오면 최신 상태를 자동으로 확인합니다. 아직 Drive에 반영하지 못한 로컬 변경이 있으면 자동 확인은 건너뜁니다.';
 
   @override
   String get familySharedPendingLocalChanges =>
-      '아직 원격에 반영하지 못한 공유 역할 로컬 변경이 있어 공유 자동 새로고침을 잠시 보류하고 있어요.';
+      '아직 Drive에 반영하지 못한 로컬 변경이 있어 자동 가져오기를 잠시 보류하고 있어요.';
 
   @override
-  String get familySharedRestore => '선수 기록 복원';
+  String get familySharedRestore => '선수 데이터 가져오기';
 
   @override
   String get familySharedRestoreConfirm =>
-      'Google Drive의 최신 선수 백업 상태로 복원할까요? 현재 공유 역할 기기에서 보이는 선수 기록과 공유 데이터가 교체됩니다.';
+      'Google Drive의 최신 선수 데이터를 가져올까요? 현재 기기에서 보이는 선수 기록과 공유 데이터가 교체됩니다.';
 
   @override
-  String get familySharedRestoreSuccess => '선수 백업 복원이 완료되었습니다.';
+  String get familySharedRestoreSuccess => '선수 데이터를 가져왔어요.';
 
   @override
-  String get familySharedRestoreFailed => '선수 백업 복원에 실패했어요. 다시 시도해 주세요.';
+  String get familySharedRestoreFailed => '선수 데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
 
   @override
-  String get familySharedRestoreLocal => '이전 선수 기록으로 되돌리기';
+  String get familySharedRestoreLocal => '이전 선수 데이터 가져오기';
 
   @override
   String get familySharedRestoreLocalConfirm =>
-      '복원 직전에 저장된 이전 상태로 되돌릴까요? 현재 공유 역할 기기에서 보이는 선수 기록과 공유 데이터가 교체됩니다.';
+      '마지막으로 데이터를 가져오기 전에 저장한 이전 선수 데이터를 다시 가져올까요? 현재 기기에서 보이는 선수 기록과 공유 데이터가 교체됩니다.';
 
   @override
-  String get familySharedRestoreLocalSuccess => '이전 상태로 되돌리기가 완료되었습니다.';
+  String get familySharedRestoreLocalSuccess => '이전 선수 데이터를 가져왔어요.';
 
   @override
   String get familySharedRestoreLocalFailed =>
-      '이전 상태로 되돌리기에 실패했어요. 다시 시도해 주세요.';
+      '이전 선수 데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get familyParentFamilyMismatch =>
@@ -3754,6 +3755,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get parentFeedbackEmpty => '아직 피드백이 없어요.';
 
   @override
+  String get parentSharedSyncInProgress => '선수 Drive로 동기화 중이에요...';
+
+  @override
   String get parentSharedSyncDone => '선수 Drive에도 동기화했어요.';
 
   @override
@@ -3774,6 +3778,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '선수 모드에서는 레벨 선물을 수령할 수 있고, 선물 이름 입력은 공유 역할에서 관리합니다.';
 
   @override
+  String get levelGuideModeInfoTooltip => '모드 설명 보기';
+
+  @override
   String get levelGuideClaimChildOnly => '선수 모드에서 수령';
 
   @override
@@ -3789,6 +3796,57 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get levelGuideRewardCleared => '레벨 선물을 지웠어요.';
+
+  @override
+  String get trainingPlanAddTitle => '훈련 계획 추가';
+
+  @override
+  String get trainingPlanEditTitle => '훈련 계획 수정';
+
+  @override
+  String get trainingPlanViewTitle => '훈련 계획 보기';
+
+  @override
+  String get matchAddTitle => '시합 등록';
+
+  @override
+  String get matchEditTitle => '시합 수정';
+
+  @override
+  String get matchViewTitle => '시합 보기';
+
+  @override
+  String get matchOpponentTeamLabel => '상대 팀';
+
+  @override
+  String get matchOpponentTeamHint => '예) 수원 U15';
+
+  @override
+  String get matchOurScoreLabel => '우리 점수';
+
+  @override
+  String get matchOpponentScoreLabel => '상대 점수';
+
+  @override
+  String get matchGoalsLabel => '골';
+
+  @override
+  String get matchAssistsLabel => '어시스트';
+
+  @override
+  String get matchMinutesPlayedLabel => '출전 시간(분)';
+
+  @override
+  String get matchMinutesPlayedHint => '예) 70';
+
+  @override
+  String get matchNoteOptionalLabel => '메모(선택)';
+
+  @override
+  String get matchShotsOnTargetLabel => '유효 슈팅';
+
+  @override
+  String get matchBallsWonLabel => '공을 뺏은 횟수';
 
   @override
   String get trainingSketchControlsPanel => '도구와 선택';

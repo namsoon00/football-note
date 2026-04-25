@@ -29,6 +29,7 @@ class PlayerLevelGuideScreen extends StatefulWidget {
 
 class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
   late final PlayerLevelService _levelService;
+  int? _syncingRewardLevel;
 
   @override
   void initState() {
@@ -79,15 +80,24 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                 roleLabel: familyState.isParentMode
                     ? l10n.levelGuideParentModeLabel
                     : l10n.levelGuideChildModeLabel,
-                roleMessage: familyState.isParentMode
-                    ? l10n.levelGuideParentModeDescription
-                    : l10n.levelGuideChildModeDescription,
+                syncStatusLabel:
+                    familyState.isParentMode && _syncingRewardLevel != null
+                        ? l10n.parentSharedSyncInProgress
+                        : null,
+                modeInfoTooltip: l10n.levelGuideModeInfoTooltip,
+                onModeInfoPressed: () => _showModeInfoDialog(
+                  context,
+                  roleLabel: familyState.isParentMode
+                      ? l10n.levelGuideParentModeLabel
+                      : l10n.levelGuideChildModeLabel,
+                  roleMessage: familyState.isParentMode
+                      ? l10n.levelGuideParentModeDescription
+                      : l10n.levelGuideChildModeDescription,
+                ),
               ),
-              for (
-                var levelIndex = 0;
-                levelIndex < thresholds.length;
-                levelIndex++
-              ) ...[
+              for (var levelIndex = 0;
+                  levelIndex < thresholds.length;
+                  levelIndex++) ...[
                 const SizedBox(height: 12),
                 _LevelGuideCard(
                   level: levelIndex + 1,
@@ -99,22 +109,44 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
                   rewardStatus: rewardByLevel[levelIndex + 1],
                   isKo: isKo,
                   spec: PlayerLevelVisualSpec.fromLevel(levelIndex + 1),
+                  isSyncing: _syncingRewardLevel == levelIndex + 1,
                   canClaimReward: familyState.isChildMode,
                   claimDisabledLabel: l10n.levelGuideClaimChildOnly,
                   onClaimReward: () => _claimReward(levelIndex + 1),
-                  onEditRewardName:
-                      rewardByLevel[levelIndex + 1] == null ||
-                          !familyState.isParentMode
+                  onEditRewardName: rewardByLevel[levelIndex + 1] == null ||
+                          !familyState.isParentMode ||
+                          _syncingRewardLevel == levelIndex + 1
                       ? null
                       : () => _editRewardName(
-                          context,
-                          rewardByLevel[levelIndex + 1]!,
-                        ),
+                            context,
+                            rewardByLevel[levelIndex + 1]!,
+                          ),
                 ),
               ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showModeInfoDialog(
+    BuildContext context, {
+    required String roleLabel,
+    required String roleMessage,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(roleLabel),
+        content: Text(roleMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.confirm),
+          ),
+        ],
       ),
     );
   }
@@ -148,15 +180,32 @@ class _PlayerLevelGuideScreenState extends State<PlayerLevelGuideScreen> {
     );
     if (saved == null) return;
     await _levelService.setCustomRewardName(status.reward.level, saved);
+    if (!mounted || !context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final familyState = FamilyAccessService(
+      widget.optionRepository,
+    ).loadState();
+    if (familyState.isParentMode && mounted) {
+      setState(() => _syncingRewardLevel = status.reward.level);
+      AppFeedback.showMessage(
+        context,
+        text: l10n.parentSharedSyncInProgress,
+      );
+    }
     final didSync = await _syncSharedBackupIfPossible();
+    if (mounted && _syncingRewardLevel == status.reward.level) {
+      setState(() => _syncingRewardLevel = null);
+    } else if (!mounted) {
+      _syncingRewardLevel = null;
+    }
     if (!context.mounted) return;
     setState(() {});
-    final l10n = AppLocalizations.of(context)!;
     final baseMessage = saved.trim().isEmpty
         ? l10n.levelGuideRewardCleared
         : l10n.levelGuideRewardSaved;
-    final syncMessage =
-        FamilyAccessService(widget.optionRepository).loadState().isParentMode
+    final syncMessage = FamilyAccessService(widget.optionRepository)
+            .loadState()
+            .isParentMode
         ? (didSync ? l10n.parentSharedSyncDone : l10n.parentSharedSyncPending)
         : '';
     AppFeedback.showSuccess(
@@ -207,7 +256,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
   final int totalXp;
   final int xpToNextLevel;
   final String roleLabel;
-  final String roleMessage;
+  final String? syncStatusLabel;
+  final String modeInfoTooltip;
+  final VoidCallback onModeInfoPressed;
 
   const _LevelGuideSummaryCard({
     required this.isKo,
@@ -215,7 +266,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
     required this.totalXp,
     required this.xpToNextLevel,
     required this.roleLabel,
-    required this.roleMessage,
+    required this.syncStatusLabel,
+    required this.modeInfoTooltip,
+    required this.onModeInfoPressed,
   });
 
   @override
@@ -233,9 +286,9 @@ class _LevelGuideSummaryCard extends StatelessWidget {
           Text(
             isKo ? '현재 진행 상태' : 'Current progress',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-            ),
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -263,15 +316,47 @@ class _LevelGuideSummaryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  roleLabel,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        roleLabel,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onModeInfoPressed,
+                      icon: const Icon(Icons.info_outline, size: 18),
+                      tooltip: modeInfoTooltip,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(roleMessage, style: Theme.of(context).textTheme.bodySmall),
+                if (syncStatusLabel != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: scheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          syncStatusLabel!,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -369,6 +454,7 @@ class _LevelGuideCard extends StatelessWidget {
   final PlayerLevelRewardStatus? rewardStatus;
   final bool isKo;
   final PlayerLevelVisualSpec spec;
+  final bool isSyncing;
   final bool canClaimReward;
   final String claimDisabledLabel;
   final VoidCallback onClaimReward;
@@ -382,6 +468,7 @@ class _LevelGuideCard extends StatelessWidget {
     required this.rewardStatus,
     required this.isKo,
     required this.spec,
+    required this.isSyncing,
     required this.canClaimReward,
     required this.claimDisabledLabel,
     required this.onClaimReward,
@@ -458,8 +545,8 @@ class _LevelGuideCard extends StatelessWidget {
                   maxXp == null
                       ? (isKo ? '$minXp XP 이상' : '$minXp XP+')
                       : (isKo
-                            ? '$minXp XP ~ $maxXp XP'
-                            : '$minXp XP to $maxXp XP'),
+                          ? '$minXp XP ~ $maxXp XP'
+                          : '$minXp XP to $maxXp XP'),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.88),
                     fontWeight: FontWeight.w600,
@@ -501,11 +588,11 @@ class _LevelGuideCard extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       isKo ? '레벨 선물' : 'Level reward',
-                                      style: theme.textTheme.labelLarge
-                                          ?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w900,
-                                          ),
+                                      style:
+                                          theme.textTheme.labelLarge?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                     ),
                                   ),
                                   if (onEditRewardName != null)
@@ -541,6 +628,29 @@ class _LevelGuideCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
+                  if (isSyncing) ...[
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isKo ? '동기화 중...' : 'Syncing...',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   if (customRewardName.isEmpty)
                     _WhitePill(
                       label: isKo ? '선물 입력 후 수령 가능' : 'Add reward to claim',
@@ -560,9 +670,8 @@ class _LevelGuideCard extends StatelessWidget {
                     _WhitePill(label: claimDisabledLabel)
                   else
                     _WhitePill(
-                      label: isKo
-                          ? 'Lv.$level 달성 시 수령 가능'
-                          : 'Claim at Lv.$level',
+                      label:
+                          isKo ? 'Lv.$level 달성 시 수령 가능' : 'Claim at Lv.$level',
                     ),
                 ],
               ],
@@ -596,9 +705,9 @@ class _WhitePill extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
       ),
     );
   }
