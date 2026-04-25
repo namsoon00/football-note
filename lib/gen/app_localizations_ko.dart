@@ -3755,6 +3755,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get parentFeedbackEmpty => '아직 피드백이 없어요.';
 
   @override
+  String get parentFeedbackOpenExistingEntryTitle => '기존 훈련기록을 열어 피드백을 남겨주세요.';
+
+  @override
+  String get parentFeedbackOpenExistingEntryBody =>
+      '공유 역할에서는 새 훈련기록을 만들지 않고, 이미 저장된 훈련기록에만 보호자/코치 피드백을 저장할 수 있어요. 선수 모드에서 먼저 기록을 남긴 뒤 해당 기록을 열어 주세요.';
+
+  @override
   String get parentSharedSyncInProgress => '선수 Drive로 동기화 중이에요...';
 
   @override

@@ -139,6 +139,49 @@ void main() {
     expect(find.widgetWithText(TextButton, '저장'), findsNothing);
     expect(find.widgetWithText(TextButton, '기록 삭제'), findsNothing);
   });
+
+  testWidgets('parent mode new entry shows feedback guidance instead of form', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: EntryFormScreen(
+            trainingService: trainingService,
+            optionRepository: optionRepository,
+            localeService: localeService,
+            settingsService: settingsService,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('기존 훈련기록을 열어 피드백을 남겨주세요.'), findsOneWidget);
+    expect(
+      find.textContaining('이미 저장된 훈련기록에만 보호자/코치 피드백을 저장할 수 있어요.'),
+      findsOneWidget,
+    );
+    expect(find.byType(TextField), findsNothing);
+  });
 }
 
 class _MemoryOptionRepository implements OptionRepository {

@@ -6734,6 +6734,18 @@ abstract class AppLocalizations {
   /// **'There is no feedback yet.'**
   String get parentFeedbackEmpty;
 
+  /// No description provided for @parentFeedbackOpenExistingEntryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open an existing training log to leave feedback.'**
+  String get parentFeedbackOpenExistingEntryTitle;
+
+  /// No description provided for @parentFeedbackOpenExistingEntryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Support role mode does not create new training logs. Parent or coach feedback can only be saved on an existing training log after the player records it first.'**
+  String get parentFeedbackOpenExistingEntryBody;
+
   /// No description provided for @parentSharedSyncInProgress.
   ///
   /// In en, this message translates to:

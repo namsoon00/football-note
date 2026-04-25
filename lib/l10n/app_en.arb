@@ -1615,6 +1615,8 @@
   "parentFeedbackSaved": "Feedback saved.",
   "parentFeedbackCleared": "Feedback cleared.",
   "parentFeedbackEmpty": "There is no feedback yet.",
+  "parentFeedbackOpenExistingEntryTitle": "Open an existing training log to leave feedback.",
+  "parentFeedbackOpenExistingEntryBody": "Support role mode does not create new training logs. Parent or coach feedback can only be saved on an existing training log after the player records it first.",
   "parentSharedSyncInProgress": "Syncing to the player's Drive...",
   "parentSharedSyncDone": "Synced to the player's Drive too.",
   "parentSharedSyncPending": "It will sync into the same player backup file after Drive is connected.",
