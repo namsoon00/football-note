@@ -548,6 +548,22 @@
   "quizWrongAnswerRevealed": "정답 보기",
   "quizWrongAnswerSkipped": "답을 고르지 않음",
   "quizWrongAnswerEmpty": "입력 없음",
+  "quizShortAnswerHintAction": "힌트 보기",
+  "quizShortAnswerHintUnavailable": "아직 준비된 힌트가 없어요.",
+  "quizShortAnswerHintStartsWith": "첫 글자는 \"{first}\"이고 총 {length}글자예요.",
+  "@quizShortAnswerHintStartsWith": {
+    "placeholders": {
+      "first": {},
+      "length": {}
+    }
+  },
+  "quizShortAnswerHintNumber": "숫자 정답이며 첫 숫자는 {first}, 총 {length}자리예요.",
+  "@quizShortAnswerHintNumber": {
+    "placeholders": {
+      "first": {},
+      "length": {}
+    }
+  },
   "diaryTrainingSelectedGoalsLabel": "선택한 목표",
   "diaryTrainingStrongPointLabel": "잘한 점",
   "diaryTrainingNeedsWorkLabel": "아쉬운 점",

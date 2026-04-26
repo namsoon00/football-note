@@ -548,6 +548,22 @@
   "quizWrongAnswerRevealed": "Revealed the answer",
   "quizWrongAnswerSkipped": "No answer selected",
   "quizWrongAnswerEmpty": "No input",
+  "quizShortAnswerHintAction": "Show hint",
+  "quizShortAnswerHintUnavailable": "No hint is available yet.",
+  "quizShortAnswerHintStartsWith": "It starts with \"{first}\" and has {length} letters.",
+  "@quizShortAnswerHintStartsWith": {
+    "placeholders": {
+      "first": {},
+      "length": {}
+    }
+  },
+  "quizShortAnswerHintNumber": "It is a {length}-digit answer starting with {first}.",
+  "@quizShortAnswerHintNumber": {
+    "placeholders": {
+      "first": {},
+      "length": {}
+    }
+  },
   "diaryTrainingSelectedGoalsLabel": "Selected goals",
   "diaryTrainingStrongPointLabel": "What went well",
   "diaryTrainingNeedsWorkLabel": "Needs work",
