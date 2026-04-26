@@ -3879,7 +3879,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get parentFeedbackClear => '지우기';
 
   @override
+  String get parentFeedbackWriteAction => '피드백 입력';
+
+  @override
+  String get parentFeedbackEditAction => '피드백 수정';
+
+  @override
+  String get parentFeedbackViewAction => '피드백 보기';
+
+  @override
+  String get parentFeedbackDiscardTitle => '저장하지 않은 피드백';
+
+  @override
+  String get parentFeedbackDiscardBody => '저장하지 않은 피드백이 있어요. 정말 나가시겠어요?';
+
+  @override
+  String get parentFeedbackDiscardAction => '나가기';
+
+  @override
   String get parentFeedbackSaved => '피드백을 저장했어요.';
+
+  @override
+  String get parentFeedbackSaveFailed => '피드백 저장에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get parentFeedbackCleared => '피드백을 지웠어요.';
