@@ -133,6 +133,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   bool _answered = false;
   bool _retryUsed = false;
   String? _retryFeedback;
+  bool _shortAnswerHintShown = false;
   bool _answerRevealed = false;
   bool _finished = false;
   final Set<String> _wrongIds = <String>{};
@@ -232,6 +233,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _answered = snapshot.answered;
       _retryUsed = snapshot.retryUsed;
       _retryFeedback = snapshot.retryFeedback;
+      _shortAnswerHintShown = false;
       _answerRevealed = snapshot.answerRevealed;
       _finished = snapshot.finished || _index >= questions.length;
       _wrongIds
@@ -380,6 +382,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _answered = false;
       _retryUsed = false;
       _retryFeedback = null;
+      _shortAnswerHintShown = false;
       _answerRevealed = false;
       _finished = false;
       _wrongIds.clear();
@@ -509,6 +512,18 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     _onAnswerResolved(choice: 0, correct: false, wrongQuestionId: question.id);
   }
 
+  void _showShortAnswerHint() {
+    if (_finished || _answered || _questions.isEmpty || _shortAnswerHintShown) {
+      return;
+    }
+    final question = _questions[_index];
+    if (question.style != _QuestionStyle.shortAnswer) return;
+    setState(() {
+      _shortAnswerHintShown = true;
+    });
+    unawaited(_trackMetric('football_short_answer_hint_shown'));
+  }
+
   void _revealShortAnswer() {
     if (_finished || _answered || _questions.isEmpty) return;
     final question = _questions[_index];
@@ -545,9 +560,10 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
   }
 
   String _primaryAnswerLabel(_FootballQuizQuestion question) {
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     if (question.style == _QuestionStyle.shortAnswer &&
         question.acceptedAnswers.isNotEmpty) {
-      return question.acceptedAnswers.first;
+      return _preferredShortAnswerAnswer(question, isKo: isKo);
     }
     if (question.options.isNotEmpty &&
         question.correctIndex >= 0 &&
@@ -557,6 +573,51 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       );
     }
     return '';
+  }
+
+  String _preferredShortAnswerAnswer(
+    _FootballQuizQuestion question, {
+    required bool isKo,
+  }) {
+    if (question.acceptedAnswers.isEmpty) return '';
+    final hangulPattern = RegExp(r'[가-힣]');
+    final latinPattern = RegExp(r'[A-Za-z]');
+    final numericPattern = RegExp(r'^[0-9]+$');
+    if (isKo) {
+      return question.acceptedAnswers.firstWhere(
+        (answer) => hangulPattern.hasMatch(answer),
+        orElse: () => question.acceptedAnswers.firstWhere(
+          (answer) => numericPattern.hasMatch(answer.trim()),
+          orElse: () => question.acceptedAnswers.first,
+        ),
+      );
+    }
+    return question.acceptedAnswers.firstWhere(
+      (answer) => latinPattern.hasMatch(answer),
+      orElse: () => question.acceptedAnswers.firstWhere(
+        (answer) => numericPattern.hasMatch(answer.trim()),
+        orElse: () => question.acceptedAnswers.first,
+      ),
+    );
+  }
+
+  String _shortAnswerHintText(
+    _FootballQuizQuestion question,
+    AppLocalizations l10n,
+    bool isKo,
+  ) {
+    final answer = _preferredShortAnswerAnswer(question, isKo: isKo).trim();
+    final normalized = answer.replaceAll(RegExp(r'[^A-Za-z0-9가-힣]'), '');
+    if (normalized.isEmpty) {
+      return l10n.quizShortAnswerHintUnavailable;
+    }
+    final first = String.fromCharCode(normalized.runes.first);
+    final length = normalized.runes.length;
+    final numericPattern = RegExp(r'^[0-9]+$');
+    if (numericPattern.hasMatch(normalized)) {
+      return l10n.quizShortAnswerHintNumber(first, length);
+    }
+    return l10n.quizShortAnswerHintStartsWith(first, length);
   }
 
   void _recordWrongQuestionResponse(
@@ -651,6 +712,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       setState(() {
         _answered = true;
         _retryFeedback = null;
+        _shortAnswerHintShown = false;
         _answerRevealed = false;
         _streak = 0;
         _combo = 0;
@@ -681,6 +743,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _answered = false;
       _retryUsed = false;
       _retryFeedback = null;
+      _shortAnswerHintShown = false;
       _answerRevealed = false;
       _answerFx = _AnswerFx.none;
     });
@@ -779,6 +842,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
     }
 
     final question = _questions[_index];
+    final l10n = AppLocalizations.of(context)!;
     final progressText = '${_index + 1}/${_questions.length}';
     final missionTarget = _mode == _QuizMode.review ? 4 : 6;
     final canGoNext = _answered || _retryUsed;
@@ -857,6 +921,55 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
                             isDense: true,
                           ),
                         ),
+                        if (!_answered && !_isParentMode) ...[
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            onPressed: _shortAnswerHintShown
+                                ? null
+                                : _showShortAnswerHint,
+                            icon: const Icon(Icons.lightbulb_outline),
+                            label: Text(l10n.quizShortAnswerHintAction),
+                          ),
+                        ],
+                        if (_shortAnswerHintShown) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.tips_and_updates_outlined,
+                                  size: 18,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _shortAnswerHintText(
+                                      question,
+                                      l10n,
+                                      isKo,
+                                    ),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 10),
                         FilledButton(
                           onPressed: (_answered || _isParentMode)
@@ -1576,6 +1689,7 @@ class _SkillQuizScreenState extends State<SkillQuizScreen> {
       _answered = false;
       _retryUsed = false;
       _retryFeedback = null;
+      _shortAnswerHintShown = false;
       _answerRevealed = false;
       _answerFx = _AnswerFx.none;
       _index = 0;

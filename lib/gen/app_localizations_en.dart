@@ -1534,6 +1534,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizWrongAnswerEmpty => 'No input';
 
   @override
+  String get quizShortAnswerHintAction => 'Show hint';
+
+  @override
+  String get quizShortAnswerHintUnavailable => 'No hint is available yet.';
+
+  @override
+  String quizShortAnswerHintStartsWith(Object first, Object length) {
+    return 'It starts with \"$first\" and has $length letters.';
+  }
+
+  @override
+  String quizShortAnswerHintNumber(Object first, Object length) {
+    return 'It is a $length-digit answer starting with $first.';
+  }
+
+  @override
   String get diaryTrainingSelectedGoalsLabel => 'Selected goals';
 
   @override

@@ -2918,6 +2918,30 @@ abstract class AppLocalizations {
   /// **'No input'**
   String get quizWrongAnswerEmpty;
 
+  /// No description provided for @quizShortAnswerHintAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Show hint'**
+  String get quizShortAnswerHintAction;
+
+  /// No description provided for @quizShortAnswerHintUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No hint is available yet.'**
+  String get quizShortAnswerHintUnavailable;
+
+  /// No description provided for @quizShortAnswerHintStartsWith.
+  ///
+  /// In en, this message translates to:
+  /// **'It starts with \"{first}\" and has {length} letters.'**
+  String quizShortAnswerHintStartsWith(Object first, Object length);
+
+  /// No description provided for @quizShortAnswerHintNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'It is a {length}-digit answer starting with {first}.'**
+  String quizShortAnswerHintNumber(Object first, Object length);
+
   /// No description provided for @diaryTrainingSelectedGoalsLabel.
   ///
   /// In en, this message translates to:

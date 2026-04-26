@@ -1490,6 +1490,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get quizWrongAnswerEmpty => '입력 없음';
 
   @override
+  String get quizShortAnswerHintAction => '힌트 보기';
+
+  @override
+  String get quizShortAnswerHintUnavailable => '아직 준비된 힌트가 없어요.';
+
+  @override
+  String quizShortAnswerHintStartsWith(Object first, Object length) {
+    return '첫 글자는 \"$first\"이고 총 $length글자예요.';
+  }
+
+  @override
+  String quizShortAnswerHintNumber(Object first, Object length) {
+    return '숫자 정답이며 첫 숫자는 $first, 총 $length자리예요.';
+  }
+
+  @override
   String get diaryTrainingSelectedGoalsLabel => '선택한 목표';
 
   @override
