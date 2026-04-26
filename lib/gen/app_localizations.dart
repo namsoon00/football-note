@@ -6287,8 +6287,62 @@ abstract class AppLocalizations {
   /// No description provided for @familyRoleSelectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'Choose whether this device is in player mode or a support role. Support roles can review records read-only and manage feedback and reward names.'**
+  /// **'Choose whether this device is used by the player directly or by a parent/coach for review first.'**
   String get familyRoleSelectionDescription;
+
+  /// No description provided for @settingsUsageModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage mode'**
+  String get settingsUsageModeTitle;
+
+  /// No description provided for @settingsSupportModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent / coach'**
+  String get settingsSupportModeLabel;
+
+  /// No description provided for @settingsSupportRoleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support role'**
+  String get settingsSupportRoleTitle;
+
+  /// No description provided for @settingsDriveConnectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive connection'**
+  String get settingsDriveConnectionTitle;
+
+  /// No description provided for @settingsDriveConnectionPlayerSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Check which Google Drive account stores and restores the player\'s records.'**
+  String get settingsDriveConnectionPlayerSummary;
+
+  /// No description provided for @settingsDriveConnectionSupportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Check which Google Drive account should connect to the player\'s backup.'**
+  String get settingsDriveConnectionSupportSummary;
+
+  /// No description provided for @settingsDataSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data sync'**
+  String get settingsDataSyncTitle;
+
+  /// No description provided for @settingsDataSyncPlayerSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage backup, auto-backup, and restore in one place.'**
+  String get settingsDataSyncPlayerSummary;
+
+  /// No description provided for @settingsDataSyncSupportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Check player imports and shared feedback sync status here.'**
+  String get settingsDataSyncSupportSummary;
 
   /// No description provided for @settingsRoleAccountSummary.
   ///
