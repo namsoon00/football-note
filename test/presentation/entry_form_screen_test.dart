@@ -295,6 +295,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.widgetWithText(FilledButton, '피드백 입력'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, '피드백 입력'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('보호자/코치 피드백'), findsWidgets);
+
     final feedbackField = find.byWidgetPredicate(
       (widget) =>
           widget is TextField &&

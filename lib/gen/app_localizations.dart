@@ -6950,11 +6950,53 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get parentFeedbackClear;
 
+  /// No description provided for @parentFeedbackWriteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Write feedback'**
+  String get parentFeedbackWriteAction;
+
+  /// No description provided for @parentFeedbackEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit feedback'**
+  String get parentFeedbackEditAction;
+
+  /// No description provided for @parentFeedbackViewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View feedback'**
+  String get parentFeedbackViewAction;
+
+  /// No description provided for @parentFeedbackDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved feedback'**
+  String get parentFeedbackDiscardTitle;
+
+  /// No description provided for @parentFeedbackDiscardBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved feedback. Leave without saving?'**
+  String get parentFeedbackDiscardBody;
+
+  /// No description provided for @parentFeedbackDiscardAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get parentFeedbackDiscardAction;
+
   /// No description provided for @parentFeedbackSaved.
   ///
   /// In en, this message translates to:
   /// **'Feedback saved.'**
   String get parentFeedbackSaved;
+
+  /// No description provided for @parentFeedbackSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save feedback. Try again.'**
+  String get parentFeedbackSaveFailed;
 
   /// No description provided for @parentFeedbackCleared.
   ///

@@ -4015,7 +4015,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parentFeedbackClear => 'Clear';
 
   @override
+  String get parentFeedbackWriteAction => 'Write feedback';
+
+  @override
+  String get parentFeedbackEditAction => 'Edit feedback';
+
+  @override
+  String get parentFeedbackViewAction => 'View feedback';
+
+  @override
+  String get parentFeedbackDiscardTitle => 'Unsaved feedback';
+
+  @override
+  String get parentFeedbackDiscardBody =>
+      'You have unsaved feedback. Leave without saving?';
+
+  @override
+  String get parentFeedbackDiscardAction => 'Leave';
+
+  @override
   String get parentFeedbackSaved => 'Feedback saved.';
+
+  @override
+  String get parentFeedbackSaveFailed => 'Could not save feedback. Try again.';
 
   @override
   String get parentFeedbackCleared => 'Feedback cleared.';
