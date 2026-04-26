@@ -13,6 +13,7 @@ import '../../application/locale_service.dart';
 import '../../application/localized_option_defaults.dart';
 import '../../application/settings_service.dart';
 import '../../domain/repositories/option_repository.dart';
+import '../widgets/info_banner.dart';
 import '../widgets/watch_cart/constants.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
 import 'visual_language_preview_screen.dart';
@@ -577,9 +578,10 @@ class _SettingsScreenState extends State<SettingsScreen>
       icon: Icons.manage_accounts_outlined,
       initiallyExpanded: true,
       children: [
-        Text(
-          l10n.settingsRoleAccountDescription,
-          style: Theme.of(context).textTheme.bodyMedium,
+        InfoBanner(
+          summary: l10n.settingsRoleAccountSummary,
+          detailsTitle: l10n.familyRoleSelectionTitle,
+          detailsMessage: l10n.familyRoleSelectionDescription,
         ),
         const SizedBox(height: 12),
         Text(
@@ -793,7 +795,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       children: [
         _buildAccountPanelHeader(
           title: l10n.familyChildDriveConnectionTitle,
-          body: l10n.familyChildDriveConnectionDescription,
+          body: l10n.familyChildDriveConnectionSummary,
+          detailsMessage: l10n.familyChildDriveConnectionDescription,
         ),
         const SizedBox(height: 12),
         _buildDriveAuthButton(
@@ -815,23 +818,17 @@ class _SettingsScreenState extends State<SettingsScreen>
               ? l10n.driveConnectedAccountEmpty
               : _connectedDriveLabel.trim(),
         ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: driveMatchesExpected
-                ? Theme.of(context).colorScheme.surfaceContainerHigh
-                : Theme.of(
-                    context,
-                  ).colorScheme.errorContainer.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Text(
-            driveMatchesExpected
-                ? l10n.familyParentUsesChildDriveHint
-                : l10n.familyParentUsesChildDriveWarning,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+        InfoBanner(
+          summary: l10n.familyParentUsesChildDriveSummary,
+          detailsTitle: l10n.familyChildDriveConnectionTitle,
+          detailsMessage: driveMatchesExpected
+              ? l10n.familyParentUsesChildDriveHint
+              : l10n.familyParentUsesChildDriveWarning,
+          backgroundColor: driveMatchesExpected
+              ? Theme.of(context).colorScheme.surfaceContainerHigh
+              : Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.45),
         ),
         const SizedBox(height: 8),
         _buildParentFamilySyncCard(l10n),
@@ -842,6 +839,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildAccountPanelHeader({
     required String title,
     required String body,
+    String? detailsMessage,
   }) {
     return Container(
       width: double.infinity,
@@ -853,11 +851,30 @@ class _SettingsScreenState extends State<SettingsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+              if (detailsMessage?.trim().isNotEmpty == true)
+                IconButton(
+                  constraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 40,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: AppLocalizations.of(context)!.moreInfoAction,
+                  onPressed: () =>
+                      _showInfoDialog(title: title, message: detailsMessage!),
+                  icon: const Icon(Icons.info_outline_rounded, size: 18),
+                ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(body, style: Theme.of(context).textTheme.bodySmall),
@@ -1667,20 +1684,32 @@ class _SettingsScreenState extends State<SettingsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.familySharedSyncTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.familySharedSyncTitle,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+              IconButton(
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                visualDensity: VisualDensity.compact,
+                tooltip: l10n.moreInfoAction,
+                onPressed: () => _showInfoDialog(
+                  title: l10n.familySharedSyncTitle,
+                  message: l10n.familySharedAutoRefreshDescription,
+                ),
+                icon: const Icon(Icons.info_outline_rounded, size: 18),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
             l10n.familySharedSyncDescription,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.familySharedAutoRefreshDescription,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (hasPendingChanges) ...[
@@ -1770,6 +1799,26 @@ class _SettingsScreenState extends State<SettingsScreen>
         WatchCartConstants.primaryColor.withAlpha(30),
       ),
       splashFactory: InkRipple.splashFactory,
+    );
+  }
+
+  Future<void> _showInfoDialog({
+    required String title,
+    required String message,
+  }) async {
+    if (message.trim().isEmpty) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(AppLocalizations.of(context)!.confirm),
+          ),
+        ],
+      ),
     );
   }
 

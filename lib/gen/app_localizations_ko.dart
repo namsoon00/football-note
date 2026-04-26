@@ -3486,6 +3486,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '선수와 공유 역할 중 현재 기기 역할을 선택하세요. 공유 역할은 읽기 전용으로 기록을 열람하고 피드백/선물 이름만 관리합니다.';
 
   @override
+  String get settingsRoleAccountSummary => '먼저 이 기기 역할을 고르세요.';
+
+  @override
   String get settingsRoleAccountTitle => '역할과 계정';
 
   @override
@@ -3612,6 +3615,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '원격 선수 백업은 확인됐어요. 선수 모드에서 사용한 같은 Google Drive 계정으로 연결해 주세요.';
 
   @override
+  String get familyChildDriveConnectionSummary =>
+      '선수와 같은 Google Drive 계정으로 연결해요.';
+
+  @override
+  String get familyParentUsesChildDriveSummary => '여기서는 선수 Drive 계정을 사용해요.';
+
+  @override
   String get familyParentUsesChildDriveHint =>
       '공유 역할에서는 선수 Google Drive 계정으로 로그인하면 같은 선수 백업 파일에 훈련 피드백과 선물 이름을 동기화할 수 있어요.';
 
@@ -3675,6 +3685,12 @@ class AppLocalizationsKo extends AppLocalizations {
       '현재 연결한 Drive 백업이 이 공유 역할/선수 공유 데이터와 일치하지 않아요.';
 
   @override
+  String get moreInfoAction => '자세히 보기';
+
+  @override
+  String get parentReadOnlyProfileSummary => '프로필은 읽기 전용이에요.';
+
+  @override
   String get parentReadOnlyProfileDescription =>
       '공유 역할에서는 프로필이 읽기 전용입니다. 훈련 피드백은 훈련기록에서, 레벨 선물 입력은 레벨 가이드에서 진행해 주세요.';
 
@@ -3686,11 +3702,17 @@ class AppLocalizationsKo extends AppLocalizations {
       '훈련, 식사, 다이어리 같은 핵심 기록은 선수 모드에서 작성해 주세요. 공유 역할에서는 기록 원본은 건드리지 않고 피드백과 선물 입력만 따로 저장합니다.';
 
   @override
+  String get parentReadOnlyLogsSummary => '훈련기록은 열람하고 피드백만 남겨요.';
+
+  @override
   String get parentReadOnlyLogsBanner =>
       '공유 역할에서는 훈련기록을 삭제하지 않아요. 기록을 열어 피드백을 남겨보세요.';
 
   @override
   String get parentReadOnlyLogsMessage => '공유 역할에서는 훈련기록을 삭제할 수 없어요.';
+
+  @override
+  String get parentReadOnlyMealLogSummary => '식사 기록은 읽기 전용이에요.';
 
   @override
   String get parentReadOnlyMealLog =>
@@ -3703,6 +3725,9 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get parentReadOnlyDrawerMessage =>
       '공유 역할에서는 핵심 기록을 수정할 수 없어요. 공유 데이터와 선물 입력을 이용해 주세요.';
+
+  @override
+  String get parentReadOnlyCalendarSummary => '캘린더는 읽기 전용이에요.';
 
   @override
   String get parentReadOnlyCalendarBanner =>

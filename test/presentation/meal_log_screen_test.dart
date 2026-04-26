@@ -117,10 +117,7 @@ void main() {
 
     await pumpMealLogScreen(tester, initialDate: day);
 
-    expect(
-      find.text('공유 역할에서는 식사 기록을 수정할 수 없어요. 식사 입력은 선수 모드에서 진행해 주세요.'),
-      findsOneWidget,
-    );
+    expect(find.text('식사 기록은 읽기 전용이에요.'), findsOneWidget);
 
     await tester.tap(
       find.byKey(const ValueKey('meal-breakfast-increment')),
