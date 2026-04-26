@@ -33,6 +33,9 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final insightSections = _coachingReport == null
+        ? const <_InsightRegionSection>[]
+        : _buildInsightSections(l10n, _coachingReport!);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.runningCoachScreenTitle)),
       body: ListView(
@@ -189,13 +192,18 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            for (final insight in _coachingReport!.rankedInsights) ...[
-              _InsightCard(
-                insight: insight,
-                priority:
-                    _coachingReport!.focusPriorityByMetric[insight.metric],
+            for (
+              var sectionIndex = 0;
+              sectionIndex < insightSections.length;
+              sectionIndex += 1
+            ) ...[
+              _InsightRegionSectionCard(
+                title: insightSections[sectionIndex].title,
+                insights: insightSections[sectionIndex].insights,
+                priorities: _coachingReport!.focusPriorityByMetric,
               ),
-              const SizedBox(height: 12),
+              if (sectionIndex != insightSections.length - 1)
+                const SizedBox(height: 12),
             ],
           ],
         ],
@@ -294,6 +302,47 @@ class _RunningCoachScreenState extends State<RunningCoachScreen> {
       _ => l10n.runningCoachAnalysisFailedGeneric,
     };
   }
+
+  List<_InsightRegionSection> _buildInsightSections(
+    AppLocalizations l10n,
+    RunningCoachingReport report,
+  ) {
+    const order = [
+      RunningCoachBodyRegion.upperBody,
+      RunningCoachBodyRegion.lowerBody,
+      RunningCoachBodyRegion.wholeBody,
+    ];
+    final rankedInsights = report.rankedInsights;
+    return [
+      for (final region in order)
+        if (rankedInsights
+                .where((insight) => insight.metric.bodyRegion == region)
+                .toList(growable: false)
+            case final insights when insights.isNotEmpty)
+          _InsightRegionSection(
+            title: _bodyRegionTitle(l10n, region),
+            insights: insights,
+          ),
+    ];
+  }
+
+  String _bodyRegionTitle(
+    AppLocalizations l10n,
+    RunningCoachBodyRegion region,
+  ) {
+    return switch (region) {
+      RunningCoachBodyRegion.upperBody => l10n.runningCoachBodyRegionUpper,
+      RunningCoachBodyRegion.lowerBody => l10n.runningCoachBodyRegionLower,
+      RunningCoachBodyRegion.wholeBody => l10n.runningCoachBodyRegionWhole,
+    };
+  }
+}
+
+class _InsightRegionSection {
+  final String title;
+  final List<RunningCoachingInsight> insights;
+
+  const _InsightRegionSection({required this.title, required this.insights});
 }
 
 class _HeroCard extends StatelessWidget {
@@ -505,6 +554,46 @@ class _StatChip extends StatelessWidget {
             Text(label, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 4),
             Text(value, style: Theme.of(context).textTheme.titleMedium),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InsightRegionSectionCard extends StatelessWidget {
+  final String title;
+  final List<RunningCoachingInsight> insights;
+  final Map<RunningCoachMetric, int> priorities;
+
+  const _InsightRegionSectionCard({
+    required this.title,
+    required this.insights,
+    required this.priorities,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 12),
+            for (var index = 0; index < insights.length; index += 1) ...[
+              _InsightCard(
+                insight: insights[index],
+                priority: priorities[insights[index].metric],
+              ),
+              if (index != insights.length - 1) const SizedBox(height: 12),
+            ],
           ],
         ),
       ),

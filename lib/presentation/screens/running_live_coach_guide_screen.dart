@@ -5,19 +5,14 @@ import '../../gen/app_localizations.dart';
 class RunningLiveCoachGuideScreen extends StatelessWidget {
   final VoidCallback? onStart;
 
-  const RunningLiveCoachGuideScreen({
-    super.key,
-    this.onStart,
-  });
+  const RunningLiveCoachGuideScreen({super.key, this.onStart});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.runningCoachLiveGuideScreenTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.runningCoachLiveGuideScreenTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -41,16 +36,16 @@ class RunningLiveCoachGuideScreen extends StatelessWidget {
                   Text(
                     l10n.runningCoachLiveGuideHeroTitle,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: scheme.onPrimary,
-                          fontWeight: FontWeight.w800,
-                        ),
+                      color: scheme.onPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     l10n.runningCoachLiveGuideHeroBody,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: scheme.onPrimary,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: scheme.onPrimary),
                   ),
                   const SizedBox(height: 18),
                   const _GuidePreviewIllustration(),
@@ -135,8 +130,8 @@ class _GuideTipCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(body),
@@ -163,10 +158,7 @@ class _GuidePreviewIllustration extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
         ),
         child: const CustomPaint(
-          painter: _GuidePreviewPainter(
-            frameColor: Color(0xFF8BC34A),
-            accentColor: Color(0xFF73F3B4),
-          ),
+          painter: _GuidePreviewPainter(accentColor: Color(0xFF73F3B4)),
         ),
       ),
     );
@@ -174,30 +166,12 @@ class _GuidePreviewIllustration extends StatelessWidget {
 }
 
 class _GuidePreviewPainter extends CustomPainter {
-  final Color frameColor;
   final Color accentColor;
 
-  const _GuidePreviewPainter({
-    required this.frameColor,
-    required this.accentColor,
-  });
+  const _GuidePreviewPainter({required this.accentColor});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final frameRect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height / 2),
-      width: size.width * 0.56,
-      height: size.height * 0.78,
-    );
-    final framePaint = Paint()
-      ..color = frameColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(frameRect, const Radius.circular(28)),
-      framePaint,
-    );
-
     final labelPaint = Paint()
       ..color = Colors.white.withAlpha(38)
       ..style = PaintingStyle.fill;
@@ -225,6 +199,37 @@ class _GuidePreviewPainter extends CustomPainter {
     final frontFoot = Offset(size.width * 0.62, size.height * 0.82);
     final rearFoot = Offset(size.width * 0.44, size.height * 0.84);
     final head = Offset(size.width / 2, size.height * 0.19);
+    final bodyOutline = Path()
+      ..moveTo(size.width * 0.47, size.height * 0.12)
+      ..quadraticBezierTo(
+        size.width * 0.62,
+        size.height * 0.18,
+        size.width * 0.62,
+        size.height * 0.44,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.66,
+        size.height * 0.68,
+        size.width * 0.62,
+        size.height * 0.86,
+      )
+      ..lineTo(size.width * 0.42, size.height * 0.88)
+      ..quadraticBezierTo(
+        size.width * 0.36,
+        size.height * 0.62,
+        size.width * 0.38,
+        size.height * 0.28,
+      )
+      ..close();
+    final outlineFillPaint = Paint()
+      ..color = accentColor.withAlpha(20)
+      ..style = PaintingStyle.fill;
+    final outlineStrokePaint = Paint()
+      ..color = accentColor.withAlpha(170)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+    canvas.drawPath(bodyOutline, outlineFillPaint);
+    canvas.drawPath(bodyOutline, outlineStrokePaint);
 
     canvas.drawCircle(head, 14, bodyPaint);
     canvas.drawLine(
@@ -251,7 +256,6 @@ class _GuidePreviewPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GuidePreviewPainter oldDelegate) {
-    return oldDelegate.frameColor != frameColor ||
-        oldDelegate.accentColor != accentColor;
+    return oldDelegate.accentColor != accentColor;
   }
 }

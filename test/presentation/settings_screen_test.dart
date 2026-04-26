@@ -41,6 +41,13 @@ void main() {
     expect(find.text('백업 상태'), findsOneWidget);
     expect(find.textContaining('마지막 클라우드 백업:'), findsNothing);
 
+    await tester.scrollUntilVisible(
+      find.text('자세한 상태 보기'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('자세한 상태 보기'));
     await tester.pumpAndSettle();
 
@@ -101,8 +108,14 @@ void main() {
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
       expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
-      expect(find.text('선수 데이터 가져오기'), findsOneWidget);
-      expect(find.text('이전 선수 기록으로 되돌리기'), findsNothing);
+      expect(
+        find.widgetWithText(ElevatedButton, '선수 최신 데이터 가져오기'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, '이전 선수 데이터로 되돌리기'),
+        findsOneWidget,
+      );
       expect(find.text('최근 반영'), findsOneWidget);
       expect(find.text('최근 가져오기 확인'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
@@ -202,6 +215,63 @@ void main() {
 
     expect(find.text('저장된 선수 모드 Drive'), findsOneWidget);
     expect(find.text('저장된 선수 Drive 연결'), findsOneWidget);
+  });
+
+  testWidgets('player mode shows backup and both restore actions together', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = _FakeDriveBackupService(
+      signedIn: true,
+      connectionInfo: const DriveConnectionInfo(
+        email: 'player@example.com',
+        displayName: '민수',
+        subjectId: 'subject-player',
+      ),
+      sharedChildDriveLabel: '',
+      sharedChildDriveEmail: '',
+      localPreRestoreAt: DateTime(2026, 3, 22, 7),
+      lastBackupAt: DateTime(2026, 3, 22, 10),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final backupButton = find.widgetWithText(ElevatedButton, 'Google Drive 백업');
+    final remoteRestoreButton = find.widgetWithText(
+      OutlinedButton,
+      'Google Drive 최신 데이터 가져오기',
+    );
+    final localRestoreButton = find.widgetWithText(
+      OutlinedButton,
+      '마지막 가져오기 전 데이터로 되돌리기',
+    );
+
+    expect(backupButton, findsOneWidget);
+    expect(remoteRestoreButton, findsOneWidget);
+    expect(localRestoreButton, findsOneWidget);
+    expect(
+      tester.getTopLeft(backupButton).dy,
+      lessThan(tester.getTopLeft(remoteRestoreButton).dy),
+    );
+    expect(
+      tester.getTopLeft(remoteRestoreButton).dy,
+      lessThan(tester.getTopLeft(localRestoreButton).dy),
+    );
   });
 
   testWidgets(

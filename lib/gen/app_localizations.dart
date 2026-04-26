@@ -3689,7 +3689,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Use the full camera view so the runner stays large, and only show the framing guide when the body drifts out of position. The lower panel now surfaces the overall score, metric scores, strengths, top fixes, and voice coaching right away.'**
+  /// **'Instead of a yellow framing box, the live coach marks the runner outline and pose line directly, while the lower panel shows guidance and body-part results together.'**
   String get runningCoachLiveCardBody;
 
   /// No description provided for @runningCoachLiveAction.
@@ -3719,13 +3719,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideHeroTitle.
   ///
   /// In en, this message translates to:
-  /// **'Keep the runner large and show the guide only when needed'**
+  /// **'Track the runner outline and read the lower coaching panel together'**
   String get runningCoachLiveGuideHeroTitle;
 
   /// No description provided for @runningCoachLiveGuideHeroBody.
   ///
   /// In en, this message translates to:
-  /// **'Once the runner is framed cleanly, the camera stays full screen. The guide returns only when the full body is clipped or drifts off center. Use the setup below to keep the score and coaching notes stable.'**
+  /// **'The live coach now marks the runner outline and pose line directly on screen, while the lower panel keeps the explanation and results together. Use the setup below to keep tracking and feedback stable.'**
   String get runningCoachLiveGuideHeroBody;
 
   /// No description provided for @runningCoachLiveGuideTipSideTitle.
@@ -3755,13 +3755,13 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachLiveGuideTipHudTitle.
   ///
   /// In en, this message translates to:
-  /// **'The guide shows only when needed'**
+  /// **'Read the top cue and lower results together'**
   String get runningCoachLiveGuideTipHudTitle;
 
   /// No description provided for @runningCoachLiveGuideTipHudBody.
   ///
   /// In en, this message translates to:
-  /// **'Once the runner is tracked well, the guide box disappears and the full camera view stays visible. If the full body gets clipped or drifts away from center, the framing guide appears again so you can correct it quickly.'**
+  /// **'Instead of a yellow box, the screen leads with the top status cue and runner outline marking, while the lower panel keeps the why, the fix, and the body-part results together.'**
   String get runningCoachLiveGuideTipHudBody;
 
   /// No description provided for @runningCoachLiveGuideTipCameraTitle.
@@ -3907,6 +3907,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Live score {score}/100'**
   String runningCoachLiveOverallScore(int score);
+
+  /// No description provided for @runningCoachLiveGuidanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current guidance'**
+  String get runningCoachLiveGuidanceTitle;
 
   /// No description provided for @runningCoachSprintLiveCardTitle.
   ///
@@ -4410,6 +4416,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Measured value'**
   String get runningCoachMetricValueLabel;
+
+  /// No description provided for @runningCoachBodyRegionUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper body'**
+  String get runningCoachBodyRegionUpper;
+
+  /// No description provided for @runningCoachBodyRegionLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower body'**
+  String get runningCoachBodyRegionLower;
+
+  /// No description provided for @runningCoachBodyRegionWhole.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole-body rhythm'**
+  String get runningCoachBodyRegionWhole;
 
   /// No description provided for @runningCoachStatusGood.
   ///
@@ -6308,6 +6332,24 @@ abstract class AppLocalizations {
   /// **'Review player records and sketches as a coach, with shared feedback focused on training.'**
   String get settingsRoleCoachDescription;
 
+  /// No description provided for @settingsRoleActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Role-based actions'**
+  String get settingsRoleActionTitle;
+
+  /// No description provided for @settingsPlayerActionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'In player mode, use backup first to protect new records, and use the import actions below only when you need to restore older data.'**
+  String get settingsPlayerActionSummary;
+
+  /// No description provided for @settingsSupportActionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Support roles do not create new player backups here. Instead, they import player data or roll back to the state saved before the last import.'**
+  String get settingsSupportActionSummary;
+
   /// No description provided for @settingsPlayerAccountTitle.
   ///
   /// In en, this message translates to:
@@ -6319,6 +6361,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect the player\'s Google Drive to back up and restore training records from this device.'**
   String get settingsPlayerAccountDescription;
+
+  /// No description provided for @settingsPlayerBackupActionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the current device records as the latest Google Drive backup. Use this first when protecting new entries.'**
+  String get settingsPlayerBackupActionBody;
+
+  /// No description provided for @settingsPlayerRestoreDriveActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import latest data from Google Drive'**
+  String get settingsPlayerRestoreDriveActionTitle;
+
+  /// No description provided for @settingsPlayerRestoreDriveActionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace the current device data with the latest backup stored on Google Drive.'**
+  String get settingsPlayerRestoreDriveActionBody;
+
+  /// No description provided for @settingsPlayerRestoreLocalActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll back to pre-import data'**
+  String get settingsPlayerRestoreLocalActionTitle;
+
+  /// No description provided for @settingsPlayerRestoreLocalActionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the local safety snapshot that was saved automatically before the last import.'**
+  String get settingsPlayerRestoreLocalActionBody;
+
+  /// No description provided for @settingsSupportRestoreDriveActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import latest player data'**
+  String get settingsSupportRestoreDriveActionTitle;
+
+  /// No description provided for @settingsSupportRestoreDriveActionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull the latest Google Drive backup that was saved in player mode onto this device.'**
+  String get settingsSupportRestoreDriveActionBody;
+
+  /// No description provided for @settingsSupportRestoreLocalActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll back to previous player data'**
+  String get settingsSupportRestoreLocalActionTitle;
+
+  /// No description provided for @settingsSupportRestoreLocalActionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore the player-data safety snapshot that was saved before the last import on this device.'**
+  String get settingsSupportRestoreLocalActionBody;
 
   /// No description provided for @familyRoleActivated.
   ///
@@ -6601,6 +6697,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to import previous player data. Please try again.'**
   String get familySharedRestoreLocalFailed;
+
+  /// No description provided for @restoreReconfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore confirmation'**
+  String get restoreReconfirmTitle;
+
+  /// No description provided for @restoreReconfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to restore? Current data will be replaced.'**
+  String get restoreReconfirmBody;
 
   /// No description provided for @familyParentFamilyMismatch.
   ///

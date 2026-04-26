@@ -8,6 +8,8 @@ enum RunningCoachMetric {
   armCarriage,
 }
 
+enum RunningCoachBodyRegion { upperBody, lowerBody, wholeBody }
+
 enum RunningCoachStatus { good, watch, needsWork }
 
 enum RunningCoachFinding {
@@ -102,6 +104,18 @@ class RunningCoachingReport {
     required this.overallScore,
     required this.insights,
   });
+}
+
+extension RunningCoachMetricBodyRegion on RunningCoachMetric {
+  RunningCoachBodyRegion get bodyRegion {
+    return switch (this) {
+      RunningCoachMetric.posture ||
+      RunningCoachMetric.armCarriage => RunningCoachBodyRegion.upperBody,
+      RunningCoachMetric.footStrike ||
+      RunningCoachMetric.kneeFlexion => RunningCoachBodyRegion.lowerBody,
+      RunningCoachMetric.bounce => RunningCoachBodyRegion.wholeBody,
+    };
+  }
 }
 
 extension RunningCoachingReportInsights on RunningCoachingReport {

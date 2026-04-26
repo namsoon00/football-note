@@ -1933,7 +1933,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      '카메라 전체 화면으로 러너 전신을 크게 보고, 프레이밍이 흐트러질 때만 가이드가 잠깐 나타나도록 했어요. 아래 패널에서는 전체 점수와 지표별 점수, 좋은 점, 우선 보완할 점, 음성 코칭을 바로 확인할 수 있어요.';
+      '노란 네모 대신 러너 윤곽과 자세 선을 바로 마킹하고, 하단 패널에서 현재 설명과 부위별 결과를 함께 확인할 수 있어요.';
 
   @override
   String get runningCoachLiveAction => '실시간 코치 시작';
@@ -1948,11 +1948,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveGuideScreenTitle => '실시간 촬영 가이드';
 
   @override
-  String get runningCoachLiveGuideHeroTitle => '러너는 크게, 가이드는 필요할 때만';
+  String get runningCoachLiveGuideHeroTitle => '러너 윤곽을 잡고 하단 코칭을 같이 봐요';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      '러너가 화면에 안정적으로 잡히면 카메라를 그대로 전체 화면으로 쓰고, 전신이 잘리거나 위치가 흐트러질 때만 가이드가 다시 나타나요. 아래 기준을 맞추면 점수와 코칭 설명이 더 안정돼요.';
+      '실시간 코치는 러너 윤곽과 자세 선을 화면에 바로 마킹하고, 하단 패널에서 설명과 결과를 함께 보여줘요. 아래 기준을 맞추면 추적과 코칭이 더 안정돼요.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => '측면이 잘 보여야 해요';
@@ -1969,11 +1969,11 @@ class AppLocalizationsKo extends AppLocalizations {
       '머리, 팔꿈치, 엉덩이, 발목이 모두 프레임 안에 남아야 자세 선과 점수가 안정적으로 나와요.';
 
   @override
-  String get runningCoachLiveGuideTipHudTitle => '가이드는 필요할 때만 보여요';
+  String get runningCoachLiveGuideTipHudTitle => '상단 안내와 하단 결과를 같이 보세요';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      '러너가 잘 잡히면 네모 가이드는 사라지고 카메라 전체 화면을 그대로 써요. 전신이 잘리거나 중앙에서 벗어나면 프레이밍 가이드가 다시 나타나서 바로 위치를 맞출 수 있어요.';
+      '노란 네모 대신 상단 상태 문구와 러너 윤곽 마킹이 먼저 보이고, 하단 패널에서는 이유와 수정 포인트, 부위별 결과를 같이 확인할 수 있어요.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle => '카메라는 고정하고 몸 크기는 적당히';
@@ -2055,6 +2055,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String runningCoachLiveOverallScore(int score) {
     return '실시간 점수 $score/100';
   }
+
+  @override
+  String get runningCoachLiveGuidanceTitle => '현재 안내';
 
   @override
   String get runningCoachSprintLiveCardTitle => '스프린트 실시간 MVP';
@@ -2364,6 +2367,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachMetricValueLabel => '측정값';
+
+  @override
+  String get runningCoachBodyRegionUpper => '상체';
+
+  @override
+  String get runningCoachBodyRegionLower => '하체';
+
+  @override
+  String get runningCoachBodyRegionWhole => '전신 리듬';
 
   @override
   String get runningCoachStatusGood => '좋음';
@@ -3512,11 +3524,55 @@ class AppLocalizationsKo extends AppLocalizations {
       '코치로 선수 기록과 스케치를 확인하고 훈련 피드백을 남깁니다.';
 
   @override
+  String get settingsRoleActionTitle => '역할에 맞는 작업';
+
+  @override
+  String get settingsPlayerActionSummary =>
+      '선수 모드에서는 새 기록을 지킬 때 백업을 먼저 쓰고, 기존 기록을 되돌릴 때는 아래 가져오기 작업을 사용하세요.';
+
+  @override
+  String get settingsSupportActionSummary =>
+      '공유 역할에서는 새 백업을 만들지 않고, 선수 모드에서 만든 데이터를 가져오거나 이전 가져오기 전 상태로 되돌립니다.';
+
+  @override
   String get settingsPlayerAccountTitle => '선수 Google Drive 계정';
 
   @override
   String get settingsPlayerAccountDescription =>
       '이 기기에서 선수 훈련 기록을 백업하고 복원할 Google Drive를 연결합니다.';
+
+  @override
+  String get settingsPlayerBackupActionBody =>
+      '현재 기기 기록을 Google Drive 최신본으로 저장합니다. 새 기록을 보호할 때 먼저 사용하세요.';
+
+  @override
+  String get settingsPlayerRestoreDriveActionTitle =>
+      'Google Drive 최신 데이터 가져오기';
+
+  @override
+  String get settingsPlayerRestoreDriveActionBody =>
+      'Google Drive에 있는 최신 백업을 가져와 현재 기기 데이터를 교체합니다.';
+
+  @override
+  String get settingsPlayerRestoreLocalActionTitle => '마지막 가져오기 전 데이터로 되돌리기';
+
+  @override
+  String get settingsPlayerRestoreLocalActionBody =>
+      '직전 가져오기 전에 자동 저장한 로컬 안전본으로 되돌립니다.';
+
+  @override
+  String get settingsSupportRestoreDriveActionTitle => '선수 최신 데이터 가져오기';
+
+  @override
+  String get settingsSupportRestoreDriveActionBody =>
+      '선수 모드에서 저장한 최신 Google Drive 백업을 현재 기기로 가져옵니다.';
+
+  @override
+  String get settingsSupportRestoreLocalActionTitle => '이전 선수 데이터로 되돌리기';
+
+  @override
+  String get settingsSupportRestoreLocalActionBody =>
+      '마지막 가져오기 전에 저장한 선수 데이터 안전본으로 현재 기기를 되돌립니다.';
 
   @override
   String familyRoleActivated(Object role) {
@@ -3679,6 +3735,12 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get familySharedRestoreLocalFailed =>
       '이전 선수 데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
+
+  @override
+  String get restoreReconfirmTitle => '복원 재확인';
+
+  @override
+  String get restoreReconfirmBody => '정말 복원할까요? 현재 데이터는 백업 데이터로 교체됩니다.';
 
   @override
   String get familyParentFamilyMismatch =>
