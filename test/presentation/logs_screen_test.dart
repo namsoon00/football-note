@@ -289,56 +289,50 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('공유 역할에서는 훈련기록을 삭제하지 않아요. 기록을 열어 피드백을 남겨보세요.'),
-      findsOneWidget,
-    );
+    expect(find.text('훈련기록은 열람하고 피드백만 남겨요.'), findsOneWidget);
     expect(find.byType(Dismissible), findsNothing);
     expect(find.byType(FloatingActionButton), findsNothing);
   });
 
-  testWidgets('parent mode empty logs screen shows guidance instead of create',
-      (
-    WidgetTester tester,
-  ) async {
-    await box.clear();
-    await optionBox.clear();
-    await optionBox.put(
-      FamilyAccessService.currentRoleLocalKey,
-      FamilyRole.parent.name,
-    );
+  testWidgets(
+    'parent mode empty logs screen shows guidance instead of create',
+    (WidgetTester tester) async {
+      await box.clear();
+      await optionBox.clear();
+      await optionBox.put(
+        FamilyAccessService.currentRoleLocalKey,
+        FamilyRole.parent.name,
+      );
 
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: TestAssetBundle(),
-        child: MaterialApp(
-          locale: const Locale('ko', 'KR'),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
-          home: LogsScreen(
-            trainingService: service,
-            localeService: localeService,
-            optionRepository: HiveOptionRepository(optionBox),
-            settingsService: settingsService,
-            onEdit: (_) {},
-            onCreate: () {},
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: LogsScreen(
+              trainingService: service,
+              localeService: localeService,
+              optionRepository: HiveOptionRepository(optionBox),
+              settingsService: settingsService,
+              onEdit: (_) {},
+              onCreate: () {},
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('빠른 시작 가이드'), findsNothing);
-    expect(find.byType(FloatingActionButton), findsNothing);
-    expect(
-      find.textContaining('공유 역할에서는 새 훈련기록을 만들지 않고'),
-      findsOneWidget,
-    );
-  });
+      expect(find.text('빠른 시작 가이드'), findsNothing);
+      expect(find.byType(FloatingActionButton), findsNothing);
+      expect(find.textContaining('공유 역할에서는 새 훈련기록을 만들지 않고'), findsOneWidget);
+    },
+  );
 }

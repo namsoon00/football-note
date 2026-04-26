@@ -19,6 +19,18 @@ class WeatherHomeWarmupResult {
   const WeatherHomeWarmupResult({required this.summary, this.weatherCode});
 }
 
+class WeatherHomeCachedSnapshot {
+  final String location;
+  final String summary;
+  final int? weatherCode;
+
+  const WeatherHomeCachedSnapshot({
+    required this.location,
+    required this.summary,
+    this.weatherCode,
+  });
+}
+
 enum WeatherDetailInitialAction { none, outfitGuide }
 
 class WeatherDetailScreen extends StatefulWidget {
@@ -51,6 +63,25 @@ class WeatherDetailScreen extends StatefulWidget {
     return WeatherHomeWarmupResult(
       summary: snapshot.summary,
       weatherCode: snapshot.weatherCode,
+    );
+  }
+
+  static WeatherHomeCachedSnapshot? cachedHomeSnapshot({
+    required Locale locale,
+  }) {
+    final cachedDetails = _WeatherDetailScreenState._cachedDetails;
+    if (cachedDetails == null) return null;
+    if (cachedDetails.localeTag != locale.toLanguageTag()) {
+      return null;
+    }
+    if (DateTime.now().difference(cachedDetails.fetchedAt) >=
+        _WeatherDetailScreenState._cacheTtl) {
+      return null;
+    }
+    return WeatherHomeCachedSnapshot(
+      location: cachedDetails.location,
+      summary: cachedDetails.snapshot.summary,
+      weatherCode: cachedDetails.snapshot.weatherCode,
     );
   }
 

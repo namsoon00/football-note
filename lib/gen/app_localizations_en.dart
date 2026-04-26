@@ -3605,6 +3605,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose whether this device is in player mode or a support role. Support roles can review records read-only and manage feedback and reward names.';
 
   @override
+  String get settingsRoleAccountSummary => 'Choose this device role first.';
+
+  @override
   String get settingsRoleAccountTitle => 'Role and account';
 
   @override
@@ -3732,6 +3735,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'A remote player backup was found. Connect the same Google Drive account used in player mode.';
 
   @override
+  String get familyChildDriveConnectionSummary =>
+      'Use the same Google Drive account as the player.';
+
+  @override
+  String get familyParentUsesChildDriveSummary =>
+      'Use the player\'s Drive account here.';
+
+  @override
   String get familyParentUsesChildDriveHint =>
       'In support role mode, sign in with the player\'s Google Drive account to sync training feedback and reward names into the same player backup file.';
 
@@ -3797,6 +3808,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'The connected Drive backup does not match this support role/player sharing data.';
 
   @override
+  String get moreInfoAction => 'More info';
+
+  @override
+  String get parentReadOnlyProfileSummary => 'Profile is view only here.';
+
+  @override
   String get parentReadOnlyProfileDescription =>
       'Support role mode keeps the profile read-only. Leave training feedback from the training log and set reward names from the level guide.';
 
@@ -3809,12 +3826,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Core records like training, meals, and diary stay in player mode. Support role mode leaves the original record untouched and stores only feedback and reward naming separately.';
 
   @override
+  String get parentReadOnlyLogsSummary =>
+      'View training logs and leave feedback only.';
+
+  @override
   String get parentReadOnlyLogsBanner =>
       'Support role mode does not delete training logs. Open a record to leave feedback instead.';
 
   @override
   String get parentReadOnlyLogsMessage =>
       'Support role mode cannot delete training logs.';
+
+  @override
+  String get parentReadOnlyMealLogSummary => 'Meal log is view only here.';
 
   @override
   String get parentReadOnlyMealLog =>
@@ -3827,6 +3851,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get parentReadOnlyDrawerMessage =>
       'Support role mode keeps core records read-only. Use shared data and reward naming instead.';
+
+  @override
+  String get parentReadOnlyCalendarSummary => 'Calendar is view only here.';
 
   @override
   String get parentReadOnlyCalendarBanner =>

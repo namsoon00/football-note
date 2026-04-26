@@ -561,7 +561,8 @@ void main() {
       await optionBox.put(FamilyAccessService.parentNameKey, 'Dad');
       await optionBox.put(FamilyAccessService.childNameKey, 'Minjun');
       await optionBox.put('player_custom_reward_names_v1', <String, String>{
-        '3': 'New boots',
+        '2': 'New boots',
+        '3': 'Recovery socks',
       });
       await optionBox.put(
         FamilyAccessService.parentTrainingFeedbackKey,
@@ -678,6 +679,10 @@ void main() {
       );
       expect(
         (mergedOptions['player_custom_reward_names_v1'] as Map)['3'],
+        'Recovery socks',
+      );
+      expect(
+        (mergedOptions['player_custom_reward_names_v1'] as Map)['2'],
         'New boots',
       );
       expect(

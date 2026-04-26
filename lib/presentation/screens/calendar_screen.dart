@@ -26,6 +26,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/info_banner.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -303,8 +304,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       if (isParentMode)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                          child: WatchCartCard(
-                            child: Text(l10n.parentReadOnlyCalendarBanner),
+                          child: InfoBanner(
+                            summary: l10n.parentReadOnlyCalendarSummary,
+                            detailsTitle: l10n.parentReadOnlyDiaryBadge,
+                            detailsMessage: l10n.parentReadOnlyCalendarBanner,
                           ),
                         ),
                       ValueListenableBuilder<int>(

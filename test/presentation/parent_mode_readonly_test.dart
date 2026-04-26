@@ -62,10 +62,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('공유 역할에서는 식사 기록을 수정할 수 없어요. 식사 입력은 선수 모드에서 진행해 주세요.'),
-      findsOneWidget,
-    );
+    expect(find.text('식사 기록은 읽기 전용이에요.'), findsOneWidget);
 
     await tester.tap(
       find.byKey(const ValueKey('meal-breakfast-increment')),
@@ -176,6 +173,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('기존 훈련기록을 열어 피드백을 남겨주세요.'), findsOneWidget);
+    expect(
+      find.textContaining('이미 저장된 훈련기록에만 보호자/코치 피드백을 저장할 수 있어요.'),
+      findsNothing,
+    );
+    await tester.tap(find.byTooltip('자세히 보기'));
+    await tester.pumpAndSettle();
     expect(
       find.textContaining('이미 저장된 훈련기록에만 보호자/코치 피드백을 저장할 수 있어요.'),
       findsOneWidget,

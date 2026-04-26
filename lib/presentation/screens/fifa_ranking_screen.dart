@@ -1257,7 +1257,12 @@ class _MatchDetailTitle extends StatelessWidget {
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 4),
-        Text(sourceNote, style: Theme.of(context).textTheme.bodySmall),
+        Text(
+          sourceNote,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }
@@ -1411,7 +1416,7 @@ class _ScoreTeam extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -1543,7 +1548,7 @@ class _MatchDetailInfoRows extends StatelessWidget {
                 child: Text(
                   entry.value.label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

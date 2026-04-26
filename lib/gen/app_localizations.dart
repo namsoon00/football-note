@@ -6266,6 +6266,12 @@ abstract class AppLocalizations {
   /// **'Choose whether this device is in player mode or a support role. Support roles can review records read-only and manage feedback and reward names.'**
   String get familyRoleSelectionDescription;
 
+  /// No description provided for @settingsRoleAccountSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this device role first.'**
+  String get settingsRoleAccountSummary;
+
   /// No description provided for @settingsRoleAccountTitle.
   ///
   /// In en, this message translates to:
@@ -6482,6 +6488,18 @@ abstract class AppLocalizations {
   /// **'A remote player backup was found. Connect the same Google Drive account used in player mode.'**
   String get driveSharedChildAccountRemoteBackup;
 
+  /// No description provided for @familyChildDriveConnectionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the same Google Drive account as the player.'**
+  String get familyChildDriveConnectionSummary;
+
+  /// No description provided for @familyParentUsesChildDriveSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the player\'s Drive account here.'**
+  String get familyParentUsesChildDriveSummary;
+
   /// No description provided for @familyParentUsesChildDriveHint.
   ///
   /// In en, this message translates to:
@@ -6590,6 +6608,18 @@ abstract class AppLocalizations {
   /// **'The connected Drive backup does not match this support role/player sharing data.'**
   String get familyParentFamilyMismatch;
 
+  /// No description provided for @moreInfoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'More info'**
+  String get moreInfoAction;
+
+  /// No description provided for @parentReadOnlyProfileSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile is view only here.'**
+  String get parentReadOnlyProfileSummary;
+
   /// No description provided for @parentReadOnlyProfileDescription.
   ///
   /// In en, this message translates to:
@@ -6608,6 +6638,12 @@ abstract class AppLocalizations {
   /// **'Core records like training, meals, and diary stay in player mode. Support role mode leaves the original record untouched and stores only feedback and reward naming separately.'**
   String get parentReadOnlyEntryBody;
 
+  /// No description provided for @parentReadOnlyLogsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'View training logs and leave feedback only.'**
+  String get parentReadOnlyLogsSummary;
+
   /// No description provided for @parentReadOnlyLogsBanner.
   ///
   /// In en, this message translates to:
@@ -6619,6 +6655,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Support role mode cannot delete training logs.'**
   String get parentReadOnlyLogsMessage;
+
+  /// No description provided for @parentReadOnlyMealLogSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal log is view only here.'**
+  String get parentReadOnlyMealLogSummary;
 
   /// No description provided for @parentReadOnlyMealLog.
   ///
@@ -6637,6 +6679,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Support role mode keeps core records read-only. Use shared data and reward naming instead.'**
   String get parentReadOnlyDrawerMessage;
+
+  /// No description provided for @parentReadOnlyCalendarSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar is view only here.'**
+  String get parentReadOnlyCalendarSummary;
 
   /// No description provided for @parentReadOnlyCalendarBanner.
   ///
