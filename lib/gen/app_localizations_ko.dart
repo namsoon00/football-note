@@ -3495,7 +3495,37 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familyRoleSelectionDescription =>
-      '선수와 공유 역할 중 현재 기기 역할을 선택하세요. 공유 역할은 읽기 전용으로 기록을 열람하고 피드백/선물 이름만 관리합니다.';
+      '이 기기가 직접 기록하는 선수용인지, 보호자/코치가 확인하는 기기인지 먼저 고르세요.';
+
+  @override
+  String get settingsUsageModeTitle => '사용 방식';
+
+  @override
+  String get settingsSupportModeLabel => '보호자/코치';
+
+  @override
+  String get settingsSupportRoleTitle => '세부 역할';
+
+  @override
+  String get settingsDriveConnectionTitle => 'Google Drive 연결';
+
+  @override
+  String get settingsDriveConnectionPlayerSummary =>
+      '선수 기록을 저장하거나 복원할 Google Drive 계정을 확인하세요.';
+
+  @override
+  String get settingsDriveConnectionSupportSummary =>
+      '선수 백업과 연결할 Google Drive 계정을 확인하세요.';
+
+  @override
+  String get settingsDataSyncTitle => '데이터 동기화';
+
+  @override
+  String get settingsDataSyncPlayerSummary => '백업, 자동 백업, 복원을 한 곳에서 관리합니다.';
+
+  @override
+  String get settingsDataSyncSupportSummary =>
+      '선수 데이터 가져오기와 공유 피드백 반영 상태를 확인합니다.';
 
   @override
   String get settingsRoleAccountSummary => '먼저 이 기기 역할을 고르세요.';

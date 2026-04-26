@@ -3614,7 +3614,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyRoleSelectionDescription =>
-      'Choose whether this device is in player mode or a support role. Support roles can review records read-only and manage feedback and reward names.';
+      'Choose whether this device is used by the player directly or by a parent/coach for review first.';
+
+  @override
+  String get settingsUsageModeTitle => 'Usage mode';
+
+  @override
+  String get settingsSupportModeLabel => 'Parent / coach';
+
+  @override
+  String get settingsSupportRoleTitle => 'Support role';
+
+  @override
+  String get settingsDriveConnectionTitle => 'Google Drive connection';
+
+  @override
+  String get settingsDriveConnectionPlayerSummary =>
+      'Check which Google Drive account stores and restores the player\'s records.';
+
+  @override
+  String get settingsDriveConnectionSupportSummary =>
+      'Check which Google Drive account should connect to the player\'s backup.';
+
+  @override
+  String get settingsDataSyncTitle => 'Data sync';
+
+  @override
+  String get settingsDataSyncPlayerSummary =>
+      'Manage backup, auto-backup, and restore in one place.';
+
+  @override
+  String get settingsDataSyncSupportSummary =>
+      'Check player imports and shared feedback sync status here.';
 
   @override
   String get settingsRoleAccountSummary => 'Choose this device role first.';

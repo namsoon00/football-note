@@ -38,6 +38,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(
+      find.text('백업 상태'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
     expect(find.text('백업 상태'), findsOneWidget);
     expect(find.textContaining('마지막 클라우드 백업:'), findsNothing);
 
@@ -96,14 +103,13 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('선수 Google Drive 연결'),
+        find.text('Google Drive 연결'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('역할 선택'), findsOneWidget);
-      expect(find.text('선수 Google Drive 연결'), findsOneWidget);
+      expect(find.text('Google Drive 연결'), findsOneWidget);
       expect(find.text('선수 백업 Drive'), findsOneWidget);
       expect(find.text('현재 연결된 Drive 계정'), findsOneWidget);
       expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
@@ -158,16 +164,16 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('역할 선택'),
+      find.text('사용 방식'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ChoiceChip, '부모'));
+    await tester.tap(find.widgetWithText(ChoiceChip, '보호자/코치'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('선수 Google Drive 연결'),
+      find.text('Google Drive 연결'),
       300,
       scrollable: find.byType(Scrollable).first,
     );
@@ -176,7 +182,7 @@ void main() {
     expect(backupService.signOutCalled, isFalse);
     expect(backupService.refreshParentSharedDataIfNeededCalled, isTrue);
     expect(backupService.getSavedRecordDriveEmail(), 'player@example.com');
-    expect(find.text('선수 Google Drive 연결'), findsOneWidget);
+    expect(find.text('Google Drive 연결'), findsOneWidget);
     expect(find.text('선수 Drive 연결 해제'), findsOneWidget);
     expect(find.text('민수 · player@example.com'), findsWidgets);
     expect(find.text('아직 Google Drive 계정이 연결되지 않았어요.'), findsNothing);
@@ -248,6 +254,13 @@ void main() {
           driveBackupService: backupService,
         ),
       ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.widgetWithText(ElevatedButton, 'Google Drive 백업'),
+      300,
+      scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
 
@@ -354,7 +367,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('선수 Google Drive 연결'),
+        find.text('Google Drive 연결'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
@@ -413,7 +426,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('역할 선택'),
+        find.text('사용 방식'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
@@ -576,7 +589,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('선수 Google Drive 연결'),
+        find.text('Google Drive 연결'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
