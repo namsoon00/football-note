@@ -621,8 +621,8 @@ void main() {
               200,
             );
           }
-          if (request.url.path.endsWith('/getMidFcst')) {
-            expect(request.url.queryParameters['stnId'], '109');
+          if (request.url.path.endsWith('/getMidLandFcst')) {
+            expect(request.url.queryParameters['regId'], '11B00000');
             return http.Response.bytes(
               utf8.encode(
                 jsonEncode(<String, dynamic>{
@@ -648,6 +648,30 @@ void main() {
                             'wf8': '맑음',
                             'wf9': '구름많음',
                             'wf10': '비',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                }),
+              ),
+              200,
+            );
+          }
+          if (request.url.path.endsWith('/getMidTa')) {
+            expect(request.url.queryParameters['regId'], '11B00000');
+            return http.Response.bytes(
+              utf8.encode(
+                jsonEncode(<String, dynamic>{
+                  'response': <String, dynamic>{
+                    'header': <String, dynamic>{
+                      'resultCode': '00',
+                      'resultMsg': 'NORMAL_SERVICE',
+                    },
+                    'body': <String, dynamic>{
+                      'items': <String, dynamic>{
+                        'item': <Map<String, dynamic>>[
+                          <String, dynamic>{
                             'taMin4': '10',
                             'taMax4': '19',
                             'taMin5': '11',

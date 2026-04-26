@@ -642,11 +642,11 @@ class WeatherCurrentService {
       for (final forecastZone in forecastZones)
         forecastZone.regId: forecastZone,
     };
-    final stationIds = _midForecastStationIdCandidates(
+    final regionIds = _midForecastRegionIdCandidates(
       zone: zone,
       zonesById: zoneById,
     );
-    if (stationIds.isEmpty) {
+    if (regionIds.isEmpty) {
       return const <WeatherDailyForecast>[];
     }
 
@@ -655,7 +655,7 @@ class WeatherCurrentService {
         client: client,
         apiKey: apiKey,
         tmFc: tmFc,
-        stationIds: stationIds,
+        regionIds: regionIds,
       );
       if (midForecastResponse == null) {
         continue;
@@ -719,41 +719,85 @@ class WeatherCurrentService {
     required http.Client client,
     required String apiKey,
     required String tmFc,
-    required List<String> stationIds,
+    required List<String> regionIds,
   }) async {
-    for (final serviceKeyName in const <String>['ServiceKey', 'serviceKey']) {
-      for (final stationId in stationIds) {
-        final uri = Uri.https(
-          'apis.data.go.kr',
-          '/1360000/MidFcstInfoService/getMidFcst',
-          <String, String>{
-            serviceKeyName: apiKey,
-            'pageNo': '1',
-            'numOfRows': '10',
-            'dataType': 'JSON',
-            'stnId': stationId,
-            'tmFc': tmFc,
-          },
-        );
-        final response = await client.get(uri);
-        if (response.statusCode != 200) {
-          _logKmaFailure(
-            service: 'getMidFcst',
-            message:
-                'tmFc=$tmFc stnId=$stationId status=${response.statusCode} body=${_truncateBody(response.body)}',
-          );
-          continue;
-        }
-        final items = _parseKmaItems(response.bodyBytes);
-        if (items == null || items.isEmpty) continue;
+    for (final regionId in regionIds) {
+      final landItem = await _requestKmaMidForecastItem(
+        client: client,
+        apiKey: apiKey,
+        endpoint: 'getMidLandFcst',
+        regId: regionId,
+        tmFc: tmFc,
+      );
+      final temperatureItem = await _requestKmaMidForecastItem(
+        client: client,
+        apiKey: apiKey,
+        endpoint: 'getMidTa',
+        regId: regionId,
+        tmFc: tmFc,
+      );
+      final mergedItem = _mergeKmaMidForecastItems(
+        landItem: landItem,
+        temperatureItem: temperatureItem,
+      );
+      if (mergedItem != null) {
         return _KmaMidForecastResponse(
           tmFc: tmFc,
-          stationId: stationId,
-          item: items.first,
+          regionId: regionId,
+          item: mergedItem,
         );
       }
     }
     return null;
+  }
+
+  static Future<Map<String, dynamic>?> _requestKmaMidForecastItem({
+    required http.Client client,
+    required String apiKey,
+    required String endpoint,
+    required String regId,
+    required String tmFc,
+  }) async {
+    for (final serviceKeyName in const <String>['ServiceKey', 'serviceKey']) {
+      final uri = Uri.https(
+        'apis.data.go.kr',
+        '/1360000/MidFcstInfoService/$endpoint',
+        <String, String>{
+          serviceKeyName: apiKey,
+          'pageNo': '1',
+          'numOfRows': '10',
+          'dataType': 'JSON',
+          'regId': regId,
+          'tmFc': tmFc,
+        },
+      );
+      final response = await client.get(uri);
+      if (response.statusCode != 200) {
+        _logKmaFailure(
+          service: endpoint,
+          message:
+              'tmFc=$tmFc regId=$regId status=${response.statusCode} body=${_truncateBody(response.body)}',
+        );
+        continue;
+      }
+      final items = _parseKmaItems(response.bodyBytes);
+      if (items == null || items.isEmpty) continue;
+      return items.first;
+    }
+    return null;
+  }
+
+  static Map<String, dynamic>? _mergeKmaMidForecastItems({
+    required Map<String, dynamic>? landItem,
+    required Map<String, dynamic>? temperatureItem,
+  }) {
+    if (landItem == null && temperatureItem == null) {
+      return null;
+    }
+    return <String, dynamic>{
+      if (landItem != null) ...landItem,
+      if (temperatureItem != null) ...temperatureItem,
+    };
   }
 
   static Future<List<_KmaForecastZone>> _fetchKmaForecastZones({
@@ -900,19 +944,17 @@ class WeatherCurrentService {
     return (latDelta * latDelta) + (lonDelta * lonDelta);
   }
 
-  static List<String> _midForecastStationIdCandidates({
+  static List<String> _midForecastRegionIdCandidates({
     required _KmaForecastZone zone,
     required Map<String, _KmaForecastZone> zonesById,
   }) {
     final lineage = _zoneLineage(zone: zone, zonesById: zonesById);
     return _dedupeStrings(<String>[
       for (final candidate in lineage)
-        if (candidate.weeklyForecastOfficeId.isNotEmpty)
-          candidate.weeklyForecastOfficeId,
+        if (candidate.regSp.startsWith('A') || candidate.regSp.startsWith('B'))
+          candidate.regId,
       for (final candidate in lineage)
-        if (candidate.regSp.startsWith('A') &&
-            candidate.weeklyForecastOfficeId.isNotEmpty)
-          candidate.weeklyForecastOfficeId,
+        if (_isLandForecastZone(candidate.regSp)) candidate.regId,
     ]);
   }
 
@@ -1596,12 +1638,12 @@ class _KmaForecastZone {
 class _KmaMidForecastResponse {
   const _KmaMidForecastResponse({
     required this.tmFc,
-    required this.stationId,
+    required this.regionId,
     required this.item,
   });
 
   final String tmFc;
-  final String stationId;
+  final String regionId;
   final Map<String, dynamic> item;
 }
 
