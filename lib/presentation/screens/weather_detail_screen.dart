@@ -1,35 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../../application/korean_air_quality_service.dart';
-import '../../application/weather_current_service.dart';
 import '../../application/weather_location_service.dart';
+import '../../application/weather_shared_resource.dart';
 import '../widgets/app_background.dart';
-
-class WeatherHomeWarmupResult {
-  final String summary;
-  final int? weatherCode;
-
-  const WeatherHomeWarmupResult({required this.summary, this.weatherCode});
-}
-
-class WeatherHomeCachedSnapshot {
-  final String location;
-  final String summary;
-  final int? weatherCode;
-
-  const WeatherHomeCachedSnapshot({
-    required this.location,
-    required this.summary,
-    this.weatherCode,
-  });
-}
 
 enum WeatherDetailInitialAction { none, outfitGuide }
 
@@ -47,360 +26,11 @@ class WeatherDetailScreen extends StatefulWidget {
     this.initialAction = WeatherDetailInitialAction.none,
   });
 
-  static Future<WeatherHomeWarmupResult> fetchForHome({
-    required double latitude,
-    required double longitude,
-    required String location,
-    required AppLocalizations l10n,
-    required Locale locale,
-  }) async {
-    final snapshot = await _fetchWeatherSnapshotStatic(
-      latitude: latitude,
-      longitude: longitude,
-      l10n: l10n,
-    );
-    _cacheHomeSnapshot(location: location, snapshot: snapshot, locale: locale);
-    return WeatherHomeWarmupResult(
-      summary: snapshot.summary,
-      weatherCode: snapshot.weatherCode,
-    );
-  }
-
-  static WeatherHomeCachedSnapshot? cachedHomeSnapshot({
-    required Locale locale,
-  }) {
-    final cachedDetails = _WeatherDetailScreenState._cachedDetails;
-    if (cachedDetails == null) return null;
-    if (cachedDetails.localeTag != locale.toLanguageTag()) {
-      return null;
-    }
-    if (DateTime.now().difference(cachedDetails.fetchedAt) >=
-        _WeatherDetailScreenState._cacheTtl) {
-      return null;
-    }
-    return WeatherHomeCachedSnapshot(
-      location: cachedDetails.location,
-      summary: cachedDetails.snapshot.summary,
-      weatherCode: cachedDetails.snapshot.weatherCode,
-    );
-  }
-
-  static void _cacheHomeSnapshot({
-    required String location,
-    required _WeatherDetailsSnapshot snapshot,
-    required Locale locale,
-  }) {
-    _WeatherDetailScreenState._cachedDetails = _CachedWeatherDetails(
-      location: location.trim(),
-      snapshot: snapshot,
-      localeTag: locale.toLanguageTag(),
-      fetchedAt: DateTime.now(),
-    );
-  }
-
-  static Future<_WeatherDetailsSnapshot> _fetchWeatherSnapshotStatic({
-    required double latitude,
-    required double longitude,
-    required AppLocalizations l10n,
-  }) async {
-    final referenceTime = DateTime.now();
-    final weatherDetailsFuture = WeatherCurrentService.fetchDetailedWeather(
-      latitude: latitude,
-      longitude: longitude,
-    );
-    final airQualityFuture = _fetchAirQualitySnapshot(
-      latitude: latitude,
-      longitude: longitude,
-    );
-    final yesterdayTemperatureFuture = _fetchYesterdayTemperatureAtSameHour(
-      latitude: latitude,
-      longitude: longitude,
-      now: referenceTime,
-    );
-    final responses = await Future.wait<Object?>([
-      weatherDetailsFuture,
-      airQualityFuture,
-      yesterdayTemperatureFuture,
-    ]);
-    final weatherSnapshot = responses[0] as WeatherDetailsSnapshot;
-    final airSnapshot = responses[1] as _ResolvedAirQualitySnapshot;
-    final yesterdayTemperature = responses[2] as double?;
-
-    if (!airSnapshot.snapshot.hasData && !weatherSnapshot.hasData) {
-      return const _WeatherDetailsSnapshot(summary: '');
-    }
-
-    final localizer = _WeatherLocalizer(l10n: l10n);
-    final weatherCode = weatherSnapshot.weatherCode;
-    final temperature = weatherSnapshot.temperature;
-    final temperatureDeltaFromYesterday =
-        temperature == null || yesterdayTemperature == null
-        ? null
-        : temperature - yesterdayTemperature;
-    final summary = _buildWeatherSummaryStatic(
-      temperature: temperature,
-      weatherCode: weatherCode,
-      localizer: localizer,
-    );
-    final forecasts = weatherSnapshot.dailyForecasts
-        .map(
-          (forecast) => _DailyWeatherForecast(
-            date: forecast.date,
-            label: '',
-            weekdayLabel: '',
-            weatherCode: forecast.weatherCode,
-            summary: _weatherLabelFromCodeStatic(
-              forecast.weatherCode,
-              localizer: localizer,
-            ),
-            temperatureMax: forecast.temperatureMax,
-            temperatureMin: forecast.temperatureMin,
-            precipitationSum: forecast.precipitationSum,
-            windSpeedMax: forecast.windSpeedMax,
-            uvIndexMax: forecast.uvIndexMax,
-            morningForecast: forecast.morningForecast == null
-                ? null
-                : _ForecastMomentPreview(
-                    time: forecast.morningForecast!.time,
-                    temperature: forecast.morningForecast!.temperature,
-                    weatherCode: forecast.morningForecast!.weatherCode,
-                    precipitation: forecast.morningForecast!.precipitation,
-                    windSpeed: forecast.morningForecast!.windSpeed,
-                  ),
-            eveningForecast: forecast.eveningForecast == null
-                ? null
-                : _ForecastMomentPreview(
-                    time: forecast.eveningForecast!.time,
-                    temperature: forecast.eveningForecast!.temperature,
-                    weatherCode: forecast.eveningForecast!.weatherCode,
-                    precipitation: forecast.eveningForecast!.precipitation,
-                    windSpeed: forecast.eveningForecast!.windSpeed,
-                  ),
-            hourlyPrecipitations: forecast.hourlyPrecipitations
-                .map(
-                  (entry) => _HourlyPrecipitationEntry(
-                    time: entry.time,
-                    precipitation: entry.precipitation,
-                  ),
-                )
-                .toList(growable: false),
-          ),
-        )
-        .toList(growable: false);
-
-    return _WeatherDetailsSnapshot(
-      summary: summary,
-      weatherCode: weatherCode,
-      temperature: temperature,
-      apparentTemperature: weatherSnapshot.apparentTemperature,
-      humidity: weatherSnapshot.humidity,
-      precipitation: weatherSnapshot.precipitation,
-      windSpeed: weatherSnapshot.windSpeed,
-      temperatureMax: weatherSnapshot.temperatureMax,
-      temperatureMin: weatherSnapshot.temperatureMin,
-      temperatureDeltaFromYesterday: temperatureDeltaFromYesterday,
-      pm10: airSnapshot.snapshot.pm10,
-      pm25: airSnapshot.snapshot.pm25,
-      aqi: airSnapshot.snapshot.aqi,
-      airQualityScale: airSnapshot.scale,
-      dailyForecasts: forecasts,
-    );
-  }
-
-  static Future<double?> _fetchYesterdayTemperatureAtSameHour({
-    required double latitude,
-    required double longitude,
-    required DateTime now,
-  }) async {
-    final yesterday = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).subtract(const Duration(days: 1));
-    final dateLabel = DateFormat('yyyy-MM-dd').format(yesterday);
-    final uri =
-        Uri.https('archive-api.open-meteo.com', '/v1/archive', <String, String>{
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'start_date': dateLabel,
-          'end_date': dateLabel,
-          'hourly': 'temperature_2m',
-          'timezone': 'auto',
-        });
-    final response = await http.get(uri);
-    if (response.statusCode != 200) return null;
-
-    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-    if (decoded is! Map<String, dynamic>) return null;
-    final hourly = decoded['hourly'];
-    if (hourly is! Map<String, dynamic>) return null;
-
-    final times = hourly['time'];
-    final temperatures = hourly['temperature_2m'];
-    if (times is! List || temperatures is! List || times.isEmpty) return null;
-
-    final targetTime = DateTime(
-      yesterday.year,
-      yesterday.month,
-      yesterday.day,
-      now.hour,
-    );
-    var bestIndex = -1;
-    var bestDiffSeconds = 1 << 30;
-
-    for (
-      var index = 0;
-      index < times.length && index < temperatures.length;
-      index++
-    ) {
-      final rawTime = times[index]?.toString();
-      if (rawTime == null || rawTime.trim().isEmpty) continue;
-      final parsedTime = DateTime.tryParse(rawTime);
-      if (parsedTime == null) continue;
-      final diffSeconds = parsedTime.difference(targetTime).inSeconds.abs();
-      if (diffSeconds < bestDiffSeconds) {
-        bestDiffSeconds = diffSeconds;
-        bestIndex = index;
-      }
-    }
-
-    if (bestIndex < 0 || bestDiffSeconds > const Duration(hours: 3).inSeconds) {
-      return null;
-    }
-    final value = temperatures[bestIndex];
-    if (value is num) return value.toDouble();
-    return double.tryParse(value?.toString() ?? '');
-  }
-
-  static Future<_ResolvedAirQualitySnapshot> _fetchAirQualitySnapshot({
-    required double latitude,
-    required double longitude,
-  }) async {
-    if (WeatherLocationService.isLikelyInKorea(latitude, longitude)) {
-      try {
-        final koreanAir = await KoreanAirQualityService.fetchCurrentAirQuality(
-          latitude: latitude,
-          longitude: longitude,
-        );
-        return _ResolvedAirQualitySnapshot(
-          snapshot: koreanAir,
-          scale: koreanAir.scale == AirQualityScale.khai
-              ? _AirQualityScale.khai
-              : _AirQualityScale.usAqi,
-        );
-      } catch (_) {
-        return const _ResolvedAirQualitySnapshot(
-          snapshot: AirQualitySnapshot(),
-          scale: _AirQualityScale.usAqi,
-        );
-      }
-    }
-
-    final airQualityUri =
-        Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'current': 'pm10,pm2_5,us_aqi',
-          'timezone': 'auto',
-        });
-    final airResponse = await http.get(airQualityUri);
-    if (airResponse.statusCode != 200) {
-      return const _ResolvedAirQualitySnapshot(
-        snapshot: AirQualitySnapshot(),
-        scale: _AirQualityScale.usAqi,
-      );
-    }
-
-    final decoded = jsonDecode(airResponse.body);
-    if (decoded is! Map<String, dynamic>) {
-      return const _ResolvedAirQualitySnapshot(
-        snapshot: AirQualitySnapshot(),
-        scale: _AirQualityScale.usAqi,
-      );
-    }
-    final airCurrent = decoded['current'];
-    final openMeteoAir = airCurrent is Map<String, dynamic>
-        ? airCurrent
-        : const <String, dynamic>{};
-
-    return _ResolvedAirQualitySnapshot(
-      snapshot: AirQualitySnapshot(
-        pm10: (openMeteoAir['pm10'] as num?)?.toDouble(),
-        pm25: (openMeteoAir['pm2_5'] as num?)?.toDouble(),
-        aqi: (openMeteoAir['us_aqi'] as num?)?.toInt(),
-        scale: AirQualityScale.usAqi,
-      ),
-      scale: _AirQualityScale.usAqi,
-    );
-  }
-
-  static String _buildWeatherSummaryStatic({
-    required double? temperature,
-    required int? weatherCode,
-    required _WeatherLabelLocalizer localizer,
-  }) {
-    final weatherText = weatherCode == null
-        ? ''
-        : _weatherLabelFromCodeStatic(weatherCode, localizer: localizer);
-    final tempText = temperature == null ? '' : '${temperature.round()}°C';
-    if (weatherText.isEmpty) return tempText;
-    if (tempText.isEmpty) return weatherText;
-    return '$weatherText $tempText';
-  }
-
-  static String _weatherLabelFromCodeStatic(
-    int? code, {
-    required _WeatherLabelLocalizer localizer,
-  }) {
-    switch (code) {
-      case 0:
-        return localizer.clear;
-      case 1:
-      case 2:
-      case 3:
-        return localizer.cloudy;
-      case 45:
-      case 48:
-        return localizer.fog;
-      case 51:
-      case 53:
-      case 55:
-      case 56:
-      case 57:
-        return localizer.drizzle;
-      case 61:
-      case 63:
-      case 65:
-      case 66:
-      case 67:
-      case 80:
-      case 81:
-      case 82:
-        return localizer.rain;
-      case 71:
-      case 73:
-      case 75:
-      case 77:
-      case 85:
-      case 86:
-        return localizer.snow;
-      case 95:
-      case 96:
-      case 99:
-        return localizer.thunderstorm;
-      default:
-        return localizer.defaultValue;
-    }
-  }
-
   @override
   State<WeatherDetailScreen> createState() => _WeatherDetailScreenState();
 }
 
 class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
-  static const Duration _cacheTtl = Duration(minutes: 10);
-  static _CachedWeatherDetails? _cachedDetails;
-
   bool _loading = false;
   bool _handledInitialAction = false;
   String _location = '';
@@ -417,7 +47,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   double? _pm10;
   double? _pm25;
   int? _aqi;
-  _AirQualityScale _airQualityScale = _AirQualityScale.usAqi;
+  AirQualityScale _airQualityScale = AirQualityScale.usAqi;
   List<_DailyWeatherForecast> _dailyForecasts = const <_DailyWeatherForecast>[];
 
   @override
@@ -427,19 +57,18 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _summary = widget.initialSummary.trim();
     _weatherCode = widget.initialWeatherCode;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final localeTag = Localizations.localeOf(context).toLanguageTag();
-      final cachedDetails = _cachedDetails;
-      if (cachedDetails != null &&
-          cachedDetails.localeTag == localeTag &&
-          DateTime.now().difference(cachedDetails.fetchedAt) < _cacheTtl) {
+      final cachedSnapshot = WeatherSharedResource.cachedSnapshot(
+        locale: Localizations.localeOf(context),
+      );
+      if (cachedSnapshot != null) {
         setState(() {
-          _applySnapshot(cachedDetails.location, cachedDetails.snapshot);
+          _applySnapshot(cachedSnapshot);
         });
       }
       _maybeHandleInitialAction();
       final shouldRequestPermission =
           widget.initialAction == WeatherDetailInitialAction.outfitGuide &&
-          _summary.isEmpty;
+              _summary.isEmpty;
       unawaited(
         _loadWeather(
           requestPermission: shouldRequestPermission,
@@ -458,9 +87,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     final pm25Level = _pm25Level(l10n, _pm25);
     final detailedOutfitGuide = _buildDetailedOutfitGuide(isKo, l10n);
     final trainingGuide = _buildTrainingGuide(isKo, l10n);
-    final tomorrowForecast = _dailyForecasts.length > 1
-        ? _dailyForecasts[1]
-        : null;
+    final tomorrowForecast =
+        _dailyForecasts.length > 1 ? _dailyForecasts[1] : null;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.homeWeatherDetailsTitle)),
       body: AppBackground(
@@ -477,10 +105,10 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
                 onRefresh: _loading
                     ? null
                     : () => _loadWeather(
-                        requestPermission: true,
-                        showFailureFeedback: true,
-                        forceRefresh: true,
-                      ),
+                          requestPermission: true,
+                          showFailureFeedback: true,
+                          forceRefresh: true,
+                        ),
                 metrics: hasWeather
                     ? [
                         _CompactMetricData(
@@ -607,14 +235,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     if (_loading || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final localeTag = Localizations.localeOf(context).toLanguageTag();
-    final cachedDetails = _cachedDetails;
-    if (!forceRefresh &&
-        cachedDetails != null &&
-        cachedDetails.localeTag == localeTag &&
-        DateTime.now().difference(cachedDetails.fetchedAt) < _cacheTtl) {
+    final locale = Localizations.localeOf(context);
+    final cachedSnapshot = forceRefresh
+        ? null
+        : WeatherSharedResource.cachedSnapshot(locale: locale);
+    if (cachedSnapshot != null) {
       setState(() {
-        _applySnapshot(cachedDetails.location, cachedDetails.snapshot);
+        _applySnapshot(cachedSnapshot);
       });
       _maybeHandleInitialAction();
       return;
@@ -661,29 +288,25 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         _location = place;
       });
 
-      _WeatherDetailsSnapshot? snapshot;
+      WeatherSharedSnapshot? snapshot;
       try {
         snapshot = await _fetchWeatherSnapshot(
           latitude: position.latitude,
           longitude: position.longitude,
+          location: place,
           l10n: l10n,
+          locale: locale,
         );
       } catch (_) {
         snapshot = null;
       }
 
       if (!mounted) return;
-      if (snapshot != null && _hasSnapshotData(snapshot)) {
+      if (snapshot != null && snapshot.hasData) {
         setState(() {
-          _applySnapshot(place, snapshot!);
+          _applySnapshot(snapshot!);
         });
         _maybeHandleInitialAction();
-        _cachedDetails = _CachedWeatherDetails(
-          location: place,
-          snapshot: snapshot,
-          localeTag: localeTag,
-          fetchedAt: DateTime.now(),
-        );
       }
     } catch (_) {
       if (showFailureFeedback && mounted) {
@@ -704,22 +327,28 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required double longitude,
     required bool isKo,
     required String koreaLabel,
-  }) => WeatherLocationService.resolvePlaceName(
-    latitude: latitude,
-    longitude: longitude,
-    isKo: isKo,
-    koreaLabel: koreaLabel,
-  );
+  }) =>
+      WeatherLocationService.resolvePlaceName(
+        latitude: latitude,
+        longitude: longitude,
+        isKo: isKo,
+        koreaLabel: koreaLabel,
+      );
 
-  Future<_WeatherDetailsSnapshot> _fetchWeatherSnapshot({
+  Future<WeatherSharedSnapshot> _fetchWeatherSnapshot({
     required double latitude,
     required double longitude,
+    required String location,
     required AppLocalizations l10n,
-  }) => WeatherDetailScreen._fetchWeatherSnapshotStatic(
-    latitude: latitude,
-    longitude: longitude,
-    l10n: l10n,
-  );
+    required Locale locale,
+  }) =>
+      WeatherSharedResource.fetchForLocation(
+        latitude: latitude,
+        longitude: longitude,
+        location: location,
+        l10n: l10n,
+        locale: locale,
+      );
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;
@@ -747,8 +376,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     });
   }
 
-  void _applySnapshot(String location, _WeatherDetailsSnapshot snapshot) {
-    _location = location;
+  void _applySnapshot(WeatherSharedSnapshot snapshot) {
+    _location = snapshot.location;
     _summary = snapshot.summary;
     _weatherCode = snapshot.weatherCode;
     _temperature = snapshot.temperature;
@@ -765,47 +394,65 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     _airQualityScale = snapshot.airQualityScale;
     _dailyForecasts = snapshot.dailyForecasts
         .map(
-          (forecast) => forecast.copyWith(
+          (forecast) => _DailyWeatherForecast(
+            date: forecast.date,
             label: _formatForecastDate(forecast.date),
             weekdayLabel: _formatForecastWeekday(forecast.date),
+            weatherCode: forecast.weatherCode,
+            summary: forecast.summary,
+            temperatureMax: forecast.temperatureMax,
+            temperatureMin: forecast.temperatureMin,
+            precipitationSum: forecast.precipitationSum,
+            windSpeedMax: forecast.windSpeedMax,
+            uvIndexMax: forecast.uvIndexMax,
+            morningForecast: forecast.morningForecast == null
+                ? null
+                : _ForecastMomentPreview(
+                    time: forecast.morningForecast!.time,
+                    temperature: forecast.morningForecast!.temperature,
+                    weatherCode: forecast.morningForecast!.weatherCode,
+                    precipitation: forecast.morningForecast!.precipitation,
+                    windSpeed: forecast.morningForecast!.windSpeed,
+                  ),
+            eveningForecast: forecast.eveningForecast == null
+                ? null
+                : _ForecastMomentPreview(
+                    time: forecast.eveningForecast!.time,
+                    temperature: forecast.eveningForecast!.temperature,
+                    weatherCode: forecast.eveningForecast!.weatherCode,
+                    precipitation: forecast.eveningForecast!.precipitation,
+                    windSpeed: forecast.eveningForecast!.windSpeed,
+                  ),
+            hourlyPrecipitations: forecast.hourlyPrecipitations
+                .map(
+                  (entry) => _HourlyPrecipitationEntry(
+                    time: entry.time,
+                    precipitation: entry.precipitation,
+                  ),
+                )
+                .toList(growable: false),
           ),
         )
         .toList(growable: false);
   }
 
-  bool _hasSnapshotData(_WeatherDetailsSnapshot snapshot) {
-    return snapshot.summary.trim().isNotEmpty ||
-        snapshot.weatherCode != null ||
-        snapshot.apparentTemperature != null ||
-        snapshot.humidity != null ||
-        snapshot.precipitation != null ||
-        snapshot.windSpeed != null ||
-        snapshot.temperatureMax != null ||
-        snapshot.temperatureMin != null ||
-        snapshot.temperatureDeltaFromYesterday != null ||
-        snapshot.pm10 != null ||
-        snapshot.pm25 != null ||
-        snapshot.aqi != null ||
-        snapshot.dailyForecasts.isNotEmpty;
-  }
-
   String _formatForecastDate(DateTime date) => DateFormat.MMMd(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   String _formatForecastWeekday(DateTime date) => DateFormat.E(
-    Localizations.localeOf(context).toLanguageTag(),
-  ).format(date);
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(date);
 
   _AirLevelLabel _aqiLevel(
     AppLocalizations l10n,
     int? value,
-    _AirQualityScale scale,
+    AirQualityScale scale,
   ) {
     if (value == null) {
       return const _AirLevelLabel('--', _AirQualityLevel.unknown);
     }
-    if (scale == _AirQualityScale.khai) {
+    if (scale == AirQualityScale.khai) {
       if (value <= 50) {
         return _AirLevelLabel(
           l10n.homeWeatherStatusGood,
@@ -1063,41 +710,38 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
   _DetailedOutfitGuide _buildDetailedOutfitGuide(
     bool isKo,
     AppLocalizations l10n,
-  ) => _buildOutfitGuide(
-    isKo: isKo,
-    l10n: l10n,
-    apparentTemperature: _currentOutfitTemperature,
-    precipitationMm: _todayPrecipitation,
-    windSpeed: _windSpeed ?? 0,
-    weatherCode: _weatherCode,
-    airLevel: _worstAirQualityLevel(),
-  );
+  ) =>
+      _buildOutfitGuide(
+        isKo: isKo,
+        l10n: l10n,
+        apparentTemperature: _currentOutfitTemperature,
+        precipitationMm: _todayPrecipitation,
+        windSpeed: _windSpeed ?? 0,
+        weatherCode: _weatherCode,
+        airLevel: _worstAirQualityLevel(),
+      );
 
   List<_OutfitMomentPreviewData> _buildForecastOutfitPreviews({
     required _DailyWeatherForecast forecast,
     required bool isKo,
     required AppLocalizations l10n,
   }) {
-    final slots =
-        <
-          ({
-            String label,
-            _ForecastMomentPreview? preview,
-            double? fallbackTemperature,
-          })
-        >[
-          (
-            label: l10n.homeWeatherMorningLabel,
-            preview: forecast.morningForecast,
-            fallbackTemperature: forecast.temperatureMin,
-          ),
-          (
-            label: l10n.homeWeatherEveningLabel,
-            preview: forecast.eveningForecast,
-            fallbackTemperature:
-                forecast.temperatureMin ?? forecast.temperatureMax,
-          ),
-        ];
+    final slots = <({
+      String label,
+      _ForecastMomentPreview? preview,
+      double? fallbackTemperature,
+    })>[
+      (
+        label: l10n.homeWeatherMorningLabel,
+        preview: forecast.morningForecast,
+        fallbackTemperature: forecast.temperatureMin,
+      ),
+      (
+        label: l10n.homeWeatherEveningLabel,
+        preview: forecast.eveningForecast,
+        fallbackTemperature: forecast.temperatureMin ?? forecast.temperatureMax,
+      ),
+    ];
     return slots
         .map((slot) {
           final preview = slot.preview;
@@ -1146,8 +790,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         weatherCode != null && <int>{95, 96, 99}.contains(weatherCode);
     final hasPrecipitation = (precipitationMm ?? 0) >= 1;
     final hasHeavyPrecipitation = (precipitationMm ?? 0) >= 8;
-    final isRainy =
-        weatherCode != null &&
+    final isRainy = weatherCode != null &&
             <int>{
               51,
               53,
@@ -1167,8 +810,7 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
               99,
             }.contains(weatherCode) ||
         hasPrecipitation;
-    final isSnowy =
-        weatherCode != null &&
+    final isSnowy = weatherCode != null &&
         <int>{71, 73, 75, 77, 85, 86}.contains(weatherCode);
     final isWindy = windSpeed >= 20;
     final isVeryWindy = windSpeed >= 28;
@@ -1183,13 +825,13 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
         icon: apparentTemperature != null && apparentTemperature >= 24
             ? Icons.wb_sunny_outlined
             : apparentTemperature != null && apparentTemperature <= 8
-            ? Icons.ac_unit_rounded
-            : Icons.tune_rounded,
+                ? Icons.ac_unit_rounded
+                : Icons.tune_rounded,
         text: apparentTemperature != null && apparentTemperature >= 24
             ? l10n.homeWeatherOutfitBaseHot
             : apparentTemperature != null && apparentTemperature <= 8
-            ? l10n.homeWeatherOutfitBaseCold
-            : l10n.homeWeatherOutfitBaseMild,
+                ? l10n.homeWeatherOutfitBaseCold
+                : l10n.homeWeatherOutfitBaseMild,
       ),
     ];
 
@@ -1199,9 +841,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '기본 반바지' : 'Standard shorts';
       accessories = isKo ? '여벌 양말, 물통' : 'Spare socks and water bottle';
     } else if (apparentTemperature >= 30) {
-      layers = isKo
-          ? '민소매/반팔 + 쿨 이너'
-          : 'Sleeveless/short-sleeve + cooling base';
+      layers =
+          isKo ? '민소매/반팔 + 쿨 이너' : 'Sleeveless/short-sleeve + cooling base';
       outer = isKo ? '아우터 없음' : 'No outerwear';
       bottom = isKo ? '통풍 반바지' : 'Breathable shorts';
       accessories = isKo ? '쿨타월, 얼음물, 챙 모자' : 'Cool towel, iced water, cap';
@@ -1222,21 +863,18 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
       accessories = isKo ? '얇은 장갑, 넥워머' : 'Light gloves, neck warmer';
     } else if (apparentTemperature >= 2) {
-      layers = isKo
-          ? '기모 이너 + 긴팔 + 미들레이어'
-          : 'Thermal base + long-sleeve + midlayer';
+      layers =
+          isKo ? '기모 이너 + 긴팔 + 미들레이어' : 'Thermal base + long-sleeve + midlayer';
       outer = isKo ? '방풍 자켓 또는 경량 패딩 조끼' : 'Windproof jacket or padded vest';
       bottom = isKo ? '긴 트레이닝 팬츠' : 'Long training pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 귀마개'
-          : 'Winter gloves, neck warmer, ear cover';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 귀마개' : 'Winter gloves, neck warmer, ear cover';
     } else {
       layers = isKo ? '발열 이너 + 두꺼운 미들레이어' : 'Heat base layer + thick midlayer';
       outer = isKo ? '경량 패딩/훈련용 패딩' : 'Light puffer/training padded jacket';
       bottom = isKo ? '방한 팬츠' : 'Thermal training pants';
-      accessories = isKo
-          ? '방한 장갑, 넥워머, 비니'
-          : 'Insulated gloves, neck warmer, beanie';
+      accessories =
+          isKo ? '방한 장갑, 넥워머, 비니' : 'Insulated gloves, neck warmer, beanie';
       notes.add(
         isKo
             ? '실내 워밍업 후 짧은 세트로 진행'
@@ -1261,8 +899,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       outer = isStormy || hasHeavyPrecipitation || isVeryWindy
           ? (isKo ? '방수 방풍 자켓' : 'Waterproof windproof jacket')
           : (isKo
-                ? '생활방수 자켓 + 얇은 미들레이어'
-                : 'Water-resistant jacket + light midlayer');
+              ? '생활방수 자켓 + 얇은 미들레이어'
+              : 'Water-resistant jacket + light midlayer');
       accessories = isKo
           ? '$accessories, 방수 양말 또는 여벌 양말'
           : '$accessories, waterproof or spare socks';
@@ -1315,8 +953,8 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
       callouts: callouts.skip(1).toList(growable: false),
       caution: notes.isEmpty
           ? (isKo
-                ? '현재 조건에서 일반 강도 훈련 가능'
-                : 'Normal intensity is fine in current conditions')
+              ? '현재 조건에서 일반 강도 훈련 가능'
+              : 'Normal intensity is fine in current conditions')
           : notes.join(isKo ? ' · ' : ' · '),
     );
   }
@@ -1464,11 +1102,11 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
             title: isKo ? '추천 훈련 포인트' : 'Recommended Drill Point',
             subtitle: _location.isEmpty
                 ? (isKo
-                      ? '지금 날씨에서 효율적인 훈련 방향입니다.'
-                      : 'Best focus for the current weather.')
+                    ? '지금 날씨에서 효율적인 훈련 방향입니다.'
+                    : 'Best focus for the current weather.')
                 : (isKo
-                      ? '$_location 날씨에 맞춘 훈련 방향입니다.'
-                      : 'Tailored to $_location weather.'),
+                    ? '$_location 날씨에 맞춘 훈련 방향입니다.'
+                    : 'Tailored to $_location weather.'),
             focusLabel: isKo ? '오늘 집중' : 'Focus',
             cautionLabel: isKo ? '운영 팁' : 'Execution tip',
             recoveryLabel: isKo ? '회복 체크' : 'Recovery check',
@@ -1835,8 +1473,7 @@ class _CompactWeatherHeaderCard extends StatelessWidget {
                       children: [
                         for (var index = 0; index < metrics.length; index++)
                           SizedBox(
-                            width:
-                                metrics.length.isOdd &&
+                            width: metrics.length.isOdd &&
                                     index == metrics.length - 1
                                 ? constraints.maxWidth
                                 : halfWidth,
@@ -3815,47 +3452,6 @@ class _NeutralInfoChip extends StatelessWidget {
   }
 }
 
-abstract interface class _WeatherLabelLocalizer {
-  String get clear;
-  String get cloudy;
-  String get fog;
-  String get drizzle;
-  String get rain;
-  String get snow;
-  String get thunderstorm;
-  String get defaultValue;
-}
-
-class _WeatherLocalizer implements _WeatherLabelLocalizer {
-  final AppLocalizations l10n;
-
-  const _WeatherLocalizer({required this.l10n});
-
-  @override
-  String get clear => l10n.weatherLabelClear;
-
-  @override
-  String get cloudy => l10n.weatherLabelCloudy;
-
-  @override
-  String get fog => l10n.weatherLabelFog;
-
-  @override
-  String get drizzle => l10n.weatherLabelDrizzle;
-
-  @override
-  String get rain => l10n.weatherLabelRain;
-
-  @override
-  String get snow => l10n.weatherLabelSnow;
-
-  @override
-  String get thunderstorm => l10n.weatherLabelThunderstorm;
-
-  @override
-  String get defaultValue => l10n.weatherLabelDefault;
-}
-
 enum _AirQualityLevel {
   unknown,
   good,
@@ -3979,54 +3575,6 @@ _AirQualityPalette _airQualityPalette(ThemeData theme, _AirQualityLevel level) {
   }
 }
 
-class _WeatherDetailsSnapshot {
-  final String summary;
-  final int? weatherCode;
-  final double? temperature;
-  final double? apparentTemperature;
-  final double? humidity;
-  final double? precipitation;
-  final double? windSpeed;
-  final double? temperatureMax;
-  final double? temperatureMin;
-  final double? temperatureDeltaFromYesterday;
-  final double? pm10;
-  final double? pm25;
-  final int? aqi;
-  final _AirQualityScale airQualityScale;
-  final List<_DailyWeatherForecast> dailyForecasts;
-
-  const _WeatherDetailsSnapshot({
-    required this.summary,
-    this.weatherCode,
-    this.temperature,
-    this.apparentTemperature,
-    this.humidity,
-    this.precipitation,
-    this.windSpeed,
-    this.temperatureMax,
-    this.temperatureMin,
-    this.temperatureDeltaFromYesterday,
-    this.pm10,
-    this.pm25,
-    this.aqi,
-    this.airQualityScale = _AirQualityScale.usAqi,
-    this.dailyForecasts = const <_DailyWeatherForecast>[],
-  });
-}
-
-class _ResolvedAirQualitySnapshot {
-  final AirQualitySnapshot snapshot;
-  final _AirQualityScale scale;
-
-  const _ResolvedAirQualitySnapshot({
-    required this.snapshot,
-    required this.scale,
-  });
-}
-
-enum _AirQualityScale { usAqi, khai }
-
 class _DailyWeatherForecast {
   final DateTime date;
   final String label;
@@ -4057,24 +3605,6 @@ class _DailyWeatherForecast {
     this.eveningForecast,
     this.hourlyPrecipitations = const <_HourlyPrecipitationEntry>[],
   });
-
-  _DailyWeatherForecast copyWith({String? label, String? weekdayLabel}) {
-    return _DailyWeatherForecast(
-      date: date,
-      label: label ?? this.label,
-      weekdayLabel: weekdayLabel ?? this.weekdayLabel,
-      weatherCode: weatherCode,
-      summary: summary,
-      temperatureMax: temperatureMax,
-      temperatureMin: temperatureMin,
-      precipitationSum: precipitationSum,
-      windSpeedMax: windSpeedMax,
-      uvIndexMax: uvIndexMax,
-      morningForecast: morningForecast,
-      eveningForecast: eveningForecast,
-      hourlyPrecipitations: hourlyPrecipitations,
-    );
-  }
 }
 
 class _ForecastMomentPreview {
@@ -4143,19 +3673,5 @@ class _OutfitCase {
     required this.range,
     required this.summary,
     required this.guide,
-  });
-}
-
-class _CachedWeatherDetails {
-  final String location;
-  final _WeatherDetailsSnapshot snapshot;
-  final String localeTag;
-  final DateTime fetchedAt;
-
-  const _CachedWeatherDetails({
-    required this.location,
-    required this.snapshot,
-    required this.localeTag,
-    required this.fetchedAt,
   });
 }
