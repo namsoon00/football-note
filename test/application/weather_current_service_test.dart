@@ -256,11 +256,7 @@ void main() {
         );
         expect(
           snapshot
-              .dailyForecasts
-              .first
-              .hourlyPrecipitations
-              .first
-              .precipitation,
+              .dailyForecasts.first.hourlyPrecipitations.first.precipitation,
           1.2,
         );
         expect(snapshot.dailyForecasts[1].hourlyPrecipitations, hasLength(1));
@@ -711,11 +707,7 @@ void main() {
         );
         expect(
           snapshot
-              .dailyForecasts
-              .first
-              .hourlyPrecipitations
-              .single
-              .precipitation,
+              .dailyForecasts.first.hourlyPrecipitations.single.precipitation,
           3,
         );
         expect(snapshot.dailyForecasts.first.windSpeedMax, 5);
@@ -740,6 +732,269 @@ void main() {
         expect(snapshot.dailyForecasts[5].temperatureMin, 11);
         expect(snapshot.dailyForecasts[6].date, DateTime(2026, 4, 24));
         expect(snapshot.dailyForecasts[6].weatherCode, 61);
+      },
+    );
+
+    test(
+      'supplements partial KMA weekly forecast with Open-Meteo when mid-range data is unavailable',
+      () async {
+        final client = MockClient((request) async {
+          if (request.url.host == 'apis.data.go.kr') {
+            if (request.url.path.endsWith('/getUltraSrtNcst')) {
+              return http.Response.bytes(
+                utf8.encode(
+                  jsonEncode(<String, dynamic>{
+                    'response': <String, dynamic>{
+                      'header': <String, dynamic>{
+                        'resultCode': '00',
+                        'resultMsg': 'NORMAL_SERVICE',
+                      },
+                      'body': <String, dynamic>{
+                        'items': <String, dynamic>{
+                          'item': <Map<String, dynamic>>[
+                            <String, dynamic>{
+                              'category': 'T1H',
+                              'obsrValue': '18.2',
+                            },
+                            <String, dynamic>{
+                              'category': 'REH',
+                              'obsrValue': '51',
+                            },
+                            <String, dynamic>{
+                              'category': 'RN1',
+                              'obsrValue': '강수없음',
+                            },
+                            <String, dynamic>{
+                              'category': 'PTY',
+                              'obsrValue': '0',
+                            },
+                            <String, dynamic>{
+                              'category': 'WSD',
+                              'obsrValue': '2.3',
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  }),
+                ),
+                200,
+              );
+            }
+            if (request.url.path.endsWith('/getVilageFcst')) {
+              return http.Response.bytes(
+                utf8.encode(
+                  jsonEncode(<String, dynamic>{
+                    'response': <String, dynamic>{
+                      'header': <String, dynamic>{
+                        'resultCode': '00',
+                        'resultMsg': 'NORMAL_SERVICE',
+                      },
+                      'body': <String, dynamic>{
+                        'items': <String, dynamic>{
+                          'item': <Map<String, dynamic>>[
+                            <String, dynamic>{
+                              'category': 'TMP',
+                              'fcstDate': '20260418',
+                              'fcstTime': '1200',
+                              'fcstValue': '18',
+                            },
+                            <String, dynamic>{
+                              'category': 'TMX',
+                              'fcstDate': '20260418',
+                              'fcstTime': '1200',
+                              'fcstValue': '24',
+                            },
+                            <String, dynamic>{
+                              'category': 'SKY',
+                              'fcstDate': '20260418',
+                              'fcstTime': '1200',
+                              'fcstValue': '1',
+                            },
+                            <String, dynamic>{
+                              'category': 'PTY',
+                              'fcstDate': '20260418',
+                              'fcstTime': '1200',
+                              'fcstValue': '0',
+                            },
+                            <String, dynamic>{
+                              'category': 'WSD',
+                              'fcstDate': '20260418',
+                              'fcstTime': '1200',
+                              'fcstValue': '3',
+                            },
+                            <String, dynamic>{
+                              'category': 'PCP',
+                              'fcstDate': '20260418',
+                              'fcstTime': '1200',
+                              'fcstValue': '강수없음',
+                            },
+                            <String, dynamic>{
+                              'category': 'TMP',
+                              'fcstDate': '20260419',
+                              'fcstTime': '0600',
+                              'fcstValue': '12',
+                            },
+                            <String, dynamic>{
+                              'category': 'TMN',
+                              'fcstDate': '20260419',
+                              'fcstTime': '0600',
+                              'fcstValue': '11',
+                            },
+                            <String, dynamic>{
+                              'category': 'SKY',
+                              'fcstDate': '20260419',
+                              'fcstTime': '0600',
+                              'fcstValue': '3',
+                            },
+                            <String, dynamic>{
+                              'category': 'PTY',
+                              'fcstDate': '20260419',
+                              'fcstTime': '0600',
+                              'fcstValue': '0',
+                            },
+                            <String, dynamic>{
+                              'category': 'TMP',
+                              'fcstDate': '20260419',
+                              'fcstTime': '1500',
+                              'fcstValue': '20',
+                            },
+                            <String, dynamic>{
+                              'category': 'TMX',
+                              'fcstDate': '20260419',
+                              'fcstTime': '1500',
+                              'fcstValue': '21',
+                            },
+                            <String, dynamic>{
+                              'category': 'SKY',
+                              'fcstDate': '20260419',
+                              'fcstTime': '1500',
+                              'fcstValue': '4',
+                            },
+                            <String, dynamic>{
+                              'category': 'PTY',
+                              'fcstDate': '20260419',
+                              'fcstTime': '1500',
+                              'fcstValue': '1',
+                            },
+                            <String, dynamic>{
+                              'category': 'PCP',
+                              'fcstDate': '20260419',
+                              'fcstTime': '1500',
+                              'fcstValue': '3',
+                            },
+                            <String, dynamic>{
+                              'category': 'TMP',
+                              'fcstDate': '20260420',
+                              'fcstTime': '1200',
+                              'fcstValue': '19',
+                            },
+                            <String, dynamic>{
+                              'category': 'TMX',
+                              'fcstDate': '20260420',
+                              'fcstTime': '1200',
+                              'fcstValue': '22',
+                            },
+                            <String, dynamic>{
+                              'category': 'SKY',
+                              'fcstDate': '20260420',
+                              'fcstTime': '1200',
+                              'fcstValue': '3',
+                            },
+                            <String, dynamic>{
+                              'category': 'PTY',
+                              'fcstDate': '20260420',
+                              'fcstTime': '1200',
+                              'fcstValue': '0',
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  }),
+                ),
+                200,
+              );
+            }
+            if (request.url.path.endsWith('/getFcstZoneCd')) {
+              return http.Response.bytes(
+                utf8.encode(
+                  jsonEncode(<String, dynamic>{
+                    'response': <String, dynamic>{
+                      'header': <String, dynamic>{
+                        'resultCode': '30',
+                        'resultMsg': 'NO_DATA',
+                      },
+                    },
+                  }),
+                ),
+                200,
+              );
+            }
+          }
+
+          if (request.url.host == 'api.open-meteo.com') {
+            return http.Response.bytes(
+              utf8.encode(
+                jsonEncode(<String, dynamic>{
+                  'current': <String, dynamic>{
+                    'temperature_2m': 16.9,
+                    'weather_code': 3,
+                    'apparent_temperature': 15.4,
+                    'relative_humidity_2m': 57,
+                    'precipitation': 0.0,
+                    'wind_speed_10m': 4.1,
+                  },
+                  'daily': <String, dynamic>{
+                    'time': <String>[
+                      '2026-04-18',
+                      '2026-04-19',
+                      '2026-04-20',
+                      '2026-04-21',
+                      '2026-04-22',
+                      '2026-04-23',
+                      '2026-04-24',
+                    ],
+                    'weather_code': <int>[3, 2, 1, 61, 3, 0, 2],
+                    'temperature_2m_max': <double>[30, 29, 28, 18, 17, 19, 21],
+                    'temperature_2m_min': <double>[20, 19, 18, 9, 8, 10, 11],
+                    'precipitation_sum': <double>[0, 1.2, 0, 4.5, 0.2, 0, 0],
+                    'wind_speed_10m_max': <double>[6, 5, 4, 7, 4, 3, 5],
+                    'uv_index_max': <double>[5, 6, 6, 4, 5, 6, 6],
+                  },
+                }),
+              ),
+              200,
+            );
+          }
+
+          fail('Unexpected request: ${request.url}');
+        });
+
+        final snapshot = await WeatherCurrentService.fetchDetailedWeather(
+          latitude: 37.5665,
+          longitude: 126.9780,
+          client: client,
+          kmaApiKey: 'test-key',
+          now: DateTime.utc(2026, 4, 18, 3, 20),
+        );
+
+        expect(
+          snapshot.provider,
+          WeatherDataProvider.koreaMeteorologicalAdministration,
+        );
+        expect(snapshot.temperature, 18.2);
+        expect(snapshot.dailyForecasts, hasLength(7));
+        expect(snapshot.dailyForecasts[0].date, DateTime(2026, 4, 18));
+        expect(snapshot.dailyForecasts[0].temperatureMax, 24);
+        expect(snapshot.dailyForecasts[1].weatherCode, 61);
+        expect(snapshot.dailyForecasts[1].temperatureMax, 21);
+        expect(snapshot.dailyForecasts[2].date, DateTime(2026, 4, 20));
+        expect(snapshot.dailyForecasts[2].temperatureMax, 22);
+        expect(snapshot.dailyForecasts[3].date, DateTime(2026, 4, 21));
+        expect(snapshot.dailyForecasts[3].temperatureMax, 18);
+        expect(snapshot.dailyForecasts[6].date, DateTime(2026, 4, 24));
+        expect(snapshot.dailyForecasts[6].temperatureMin, 11);
       },
     );
 

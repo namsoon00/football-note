@@ -195,10 +195,30 @@ class WeatherCurrentService {
           apiKey: normalizedKey,
           now: now ?? DateTime.now(),
         );
-        return koreanSnapshot ??
-            const WeatherDetailsSnapshot(
-              provider: WeatherDataProvider.koreaMeteorologicalAdministration,
+        if (koreanSnapshot == null) {
+          return const WeatherDetailsSnapshot(
+            provider: WeatherDataProvider.koreaMeteorologicalAdministration,
+          );
+        }
+
+        if (koreanSnapshot.hasData &&
+            koreanSnapshot.dailyForecasts.length < 7) {
+          try {
+            final openMeteoSnapshot = await _fetchOpenMeteoDetailedWeather(
+              latitude: latitude,
+              longitude: longitude,
+              client: localClient,
             );
+            return _supplementDetailedForecasts(
+              primary: koreanSnapshot,
+              supplement: openMeteoSnapshot,
+            );
+          } catch (_) {
+            return koreanSnapshot;
+          }
+        }
+
+        return koreanSnapshot;
       }
 
       return _fetchOpenMeteoDetailedWeather(
@@ -332,6 +352,110 @@ class WeatherCurrentService {
       temperatureMin: forecasts.isEmpty ? null : forecasts.first.temperatureMin,
       dailyForecasts: forecasts,
     );
+  }
+
+  static WeatherDetailsSnapshot _supplementDetailedForecasts({
+    required WeatherDetailsSnapshot primary,
+    required WeatherDetailsSnapshot supplement,
+  }) {
+    if (primary.dailyForecasts.length >= 7 || !supplement.hasData) {
+      return primary;
+    }
+
+    final mergedForecasts = _mergeDetailedForecastLists(
+      primary: primary.dailyForecasts,
+      supplement: supplement.dailyForecasts,
+    );
+    final firstForecast =
+        mergedForecasts.isEmpty ? null : mergedForecasts.first;
+
+    return WeatherDetailsSnapshot(
+      provider: primary.provider,
+      temperature: primary.temperature ?? supplement.temperature,
+      weatherCode: primary.weatherCode ?? supplement.weatherCode,
+      apparentTemperature:
+          primary.apparentTemperature ?? supplement.apparentTemperature,
+      humidity: primary.humidity ?? supplement.humidity,
+      windSpeed: primary.windSpeed ?? supplement.windSpeed,
+      precipitation: primary.precipitation ?? supplement.precipitation,
+      temperatureMax: primary.temperatureMax ??
+          supplement.temperatureMax ??
+          firstForecast?.temperatureMax,
+      temperatureMin: primary.temperatureMin ??
+          supplement.temperatureMin ??
+          firstForecast?.temperatureMin,
+      dailyForecasts: mergedForecasts,
+    );
+  }
+
+  static List<WeatherDailyForecast> _mergeDetailedForecastLists({
+    required List<WeatherDailyForecast> primary,
+    required List<WeatherDailyForecast> supplement,
+  }) {
+    final mergedByDate = <DateTime, WeatherDailyForecast>{};
+
+    for (final forecast in primary) {
+      final date = _normalizeForecastDate(forecast.date);
+      mergedByDate[date] = _normalizedDailyForecast(forecast);
+    }
+
+    for (final forecast in supplement) {
+      final date = _normalizeForecastDate(forecast.date);
+      final existing = mergedByDate[date];
+      final normalizedForecast = _normalizedDailyForecast(forecast);
+      mergedByDate[date] = existing == null
+          ? normalizedForecast
+          : _mergeDailyForecast(
+              primary: existing,
+              supplement: normalizedForecast,
+            );
+    }
+
+    final dates = mergedByDate.keys.toList()..sort();
+    return dates
+        .take(7)
+        .map((date) => mergedByDate[date]!)
+        .toList(growable: false);
+  }
+
+  static WeatherDailyForecast _normalizedDailyForecast(
+      WeatherDailyForecast forecast) {
+    return WeatherDailyForecast(
+      date: _normalizeForecastDate(forecast.date),
+      weatherCode: forecast.weatherCode,
+      temperatureMax: forecast.temperatureMax,
+      temperatureMin: forecast.temperatureMin,
+      precipitationSum: forecast.precipitationSum,
+      windSpeedMax: forecast.windSpeedMax,
+      uvIndexMax: forecast.uvIndexMax,
+      morningForecast: forecast.morningForecast,
+      eveningForecast: forecast.eveningForecast,
+      hourlyPrecipitations: forecast.hourlyPrecipitations,
+    );
+  }
+
+  static WeatherDailyForecast _mergeDailyForecast({
+    required WeatherDailyForecast primary,
+    required WeatherDailyForecast supplement,
+  }) {
+    return WeatherDailyForecast(
+      date: _normalizeForecastDate(primary.date),
+      weatherCode: primary.weatherCode ?? supplement.weatherCode,
+      temperatureMax: primary.temperatureMax ?? supplement.temperatureMax,
+      temperatureMin: primary.temperatureMin ?? supplement.temperatureMin,
+      precipitationSum: primary.precipitationSum ?? supplement.precipitationSum,
+      windSpeedMax: primary.windSpeedMax ?? supplement.windSpeedMax,
+      uvIndexMax: primary.uvIndexMax ?? supplement.uvIndexMax,
+      morningForecast: primary.morningForecast ?? supplement.morningForecast,
+      eveningForecast: primary.eveningForecast ?? supplement.eveningForecast,
+      hourlyPrecipitations: primary.hourlyPrecipitations.isNotEmpty
+          ? primary.hourlyPrecipitations
+          : supplement.hourlyPrecipitations,
+    );
+  }
+
+  static DateTime _normalizeForecastDate(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
   }
 
   static Future<WeatherCurrentSnapshot?> _fetchKoreanCurrentWeather({
