@@ -610,25 +610,10 @@ class _SettingsScreenState extends State<SettingsScreen>
               .toList(growable: false),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            children: [
-              Icon(_familyRoleIcon(familyState.currentRole), size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _familyRoleDescription(l10n, familyState.currentRole),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          ),
+        _buildInfoPanel(
+          title: _familyRoleLabel(l10n, familyState.currentRole),
+          body: _familyRoleDescription(l10n, familyState.currentRole),
+          icon: _familyRoleIcon(familyState.currentRole),
         ),
         const Divider(height: 24),
         if (widget.driveBackupService == null)
@@ -660,12 +645,59 @@ class _SettingsScreenState extends State<SettingsScreen>
     required bool recordDriveMatchesSaved,
   }) {
     final driveBackupService = widget.driveBackupService!;
+    final localRestoreAvailable = driveBackupService.hasLocalPreRestoreBackup();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildAccountPanelHeader(
+        _buildInfoPanel(
           title: l10n.settingsPlayerAccountTitle,
           body: l10n.settingsPlayerAccountDescription,
+          icon: Icons.sports_soccer_outlined,
+        ),
+        const SizedBox(height: 10),
+        _buildInfoPanel(
+          title: l10n.settingsRoleActionTitle,
+          body: l10n.settingsPlayerActionSummary,
+          icon: Icons.swap_horiz_rounded,
+        ),
+        const SizedBox(height: 10),
+        _buildActionCard(
+          title: l10n.backupToDrive,
+          description: l10n.settingsPlayerBackupActionBody,
+          icon: Icons.cloud_upload_outlined,
+          primary: true,
+          onPressed: (_backupBusy || _restoreBusy)
+              ? null
+              : () => _backupToDrive(l10n),
+        ),
+        const SizedBox(height: 8),
+        _buildActionCard(
+          title: l10n.settingsPlayerRestoreDriveActionTitle,
+          description: l10n.settingsPlayerRestoreDriveActionBody,
+          icon: Icons.cloud_download_outlined,
+          onPressed: _restoreBusy
+              ? null
+              : () => _restoreFromDrive(
+                  l10n,
+                  title: l10n.settingsPlayerRestoreDriveActionTitle,
+                ),
+        ),
+        const SizedBox(height: 8),
+        _buildActionCard(
+          title: l10n.settingsPlayerRestoreLocalActionTitle,
+          description: l10n.settingsPlayerRestoreLocalActionBody,
+          icon: Icons.undo_rounded,
+          onPressed: _restoreBusy || !localRestoreAvailable
+              ? null
+              : () => _restoreLocalBackup(
+                  l10n,
+                  title: l10n.settingsPlayerRestoreLocalActionTitle,
+                ),
+        ),
+        const SizedBox(height: 10),
+        _buildDriveAuthButton(
+          l10n: l10n,
+          label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
         ),
         const SizedBox(height: 10),
         _BackupHealthCard(
@@ -676,11 +708,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           lastBackupAt: driveBackupService.getLastBackup(),
           localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
           formatBackupTime: _formatBackupTime,
-        ),
-        const SizedBox(height: 8),
-        _buildDriveAuthButton(
-          l10n: l10n,
-          label: _signedIn ? l10n.signOut : l10n.signInWithGoogle,
         ),
         const SizedBox(height: 8),
         _buildDriveAccountTile(
@@ -714,14 +741,6 @@ class _SettingsScreenState extends State<SettingsScreen>
             ),
           ],
         ],
-        const SizedBox(height: 8),
-        ElevatedButton.icon(
-          onPressed: _backupBusy ? null : () => _backupToDrive(l10n),
-          icon: const Icon(Icons.cloud_upload_outlined),
-          label: Text(_backupBusy ? l10n.backupInProgress : l10n.backupToDrive),
-          style: _elevatedActionStyle(),
-        ),
-        const SizedBox(height: 8),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.backupDailyEnabled),
@@ -762,25 +781,6 @@ class _SettingsScreenState extends State<SettingsScreen>
               _formatBackupTime(driveBackupService.getLocalPreRestoreTime()!),
             ),
           ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: _restoreBusy ? null : () => _restoreFromDrive(l10n),
-          icon: const Icon(Icons.cloud_download_outlined),
-          label: Text(
-            _restoreBusy ? l10n.restoreInProgress : l10n.restoreFromDrive,
-          ),
-          style: _outlinedActionStyle(),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed:
-              _restoreBusy || !driveBackupService.hasLocalPreRestoreBackup()
-              ? null
-              : () => _restoreLocalBackup(l10n),
-          icon: const Icon(Icons.undo),
-          label: Text(l10n.restoreLocalBackup),
-          style: _outlinedActionStyle(),
-        ),
       ],
     );
   }
@@ -790,13 +790,53 @@ class _SettingsScreenState extends State<SettingsScreen>
     required String sharedChildDriveSubtitle,
     required bool driveMatchesExpected,
   }) {
+    final driveBackupService = widget.driveBackupService!;
+    final localRestoreAvailable = driveBackupService.hasLocalPreRestoreBackup();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildAccountPanelHeader(
+        _buildInfoPanel(
           title: l10n.familyChildDriveConnectionTitle,
           body: l10n.familyChildDriveConnectionSummary,
+          icon: Icons.family_restroom_outlined,
           detailsMessage: l10n.familyChildDriveConnectionDescription,
+        ),
+        const SizedBox(height: 10),
+        _buildInfoPanel(
+          title: l10n.settingsRoleActionTitle,
+          body: l10n.settingsSupportActionSummary,
+          icon: Icons.import_export_rounded,
+        ),
+        const SizedBox(height: 10),
+        _buildActionCard(
+          title: l10n.settingsSupportRestoreDriveActionTitle,
+          description: l10n.settingsSupportRestoreDriveActionBody,
+          icon: Icons.cloud_download_outlined,
+          primary: true,
+          onPressed: _restoreBusy
+              ? null
+              : () => _restoreFromDrive(
+                  l10n,
+                  title: l10n.settingsSupportRestoreDriveActionTitle,
+                  message: l10n.familySharedRestoreConfirm,
+                  successMessage: l10n.familySharedRestoreSuccess,
+                  failedMessage: l10n.familySharedRestoreFailed,
+                ),
+        ),
+        const SizedBox(height: 8),
+        _buildActionCard(
+          title: l10n.settingsSupportRestoreLocalActionTitle,
+          description: l10n.settingsSupportRestoreLocalActionBody,
+          icon: Icons.history_toggle_off_rounded,
+          onPressed: _restoreBusy || !localRestoreAvailable
+              ? null
+              : () => _restoreLocalBackup(
+                  l10n,
+                  title: l10n.settingsSupportRestoreLocalActionTitle,
+                  message: l10n.familySharedRestoreLocalConfirm,
+                  successMessage: l10n.familySharedRestoreLocalSuccess,
+                  failedMessage: l10n.familySharedRestoreLocalFailed,
+                ),
         ),
         const SizedBox(height: 12),
         _buildDriveAuthButton(
@@ -836,17 +876,20 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Widget _buildAccountPanelHeader({
+  Widget _buildInfoPanel({
     required String title,
     required String body,
+    required IconData icon,
     String? detailsMessage,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outline.withValues(alpha: 0.10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -854,6 +897,17 @@ class _SettingsScreenState extends State<SettingsScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, size: 18, color: scheme.primary),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
@@ -878,6 +932,82 @@ class _SettingsScreenState extends State<SettingsScreen>
           ),
           const SizedBox(height: 6),
           Text(body, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool primary = false,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final accentColor = primary ? scheme.primary : scheme.secondary;
+    final borderColor = primary
+        ? scheme.primary.withValues(alpha: 0.26)
+        : scheme.outline.withValues(alpha: 0.14);
+    final backgroundColor = primary
+        ? scheme.primaryContainer.withValues(alpha: 0.30)
+        : scheme.surfaceContainerHigh;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, size: 18, color: accentColor),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(description, style: theme.textTheme.bodySmall),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: primary
+                ? ElevatedButton.icon(
+                    onPressed: onPressed,
+                    icon: Icon(icon),
+                    label: Text(title),
+                    style: _elevatedActionStyle(),
+                  )
+                : OutlinedButton.icon(
+                    onPressed: onPressed,
+                    icon: Icon(icon),
+                    label: Text(title),
+                    style: _outlinedActionStyle(),
+                  ),
+          ),
         ],
       ),
     );
@@ -1743,23 +1873,6 @@ class _SettingsScreenState extends State<SettingsScreen>
               subtitle: _formatBackupTime(lastPullAt),
             ),
           ],
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _restoreBusy
-                ? null
-                : () => _restoreFromDrive(
-                    l10n,
-                    title: l10n.familySharedRestore,
-                    message: l10n.familySharedRestoreConfirm,
-                    successMessage: l10n.familySharedRestoreSuccess,
-                    failedMessage: l10n.familySharedRestoreFailed,
-                  ),
-            icon: const Icon(Icons.cloud_download_outlined),
-            label: Text(
-              _restoreBusy ? l10n.restoreInProgress : l10n.familySharedRestore,
-            ),
-            style: _outlinedActionStyle(),
-          ),
         ],
       ),
     );
@@ -2108,16 +2221,11 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
     if (firstConfirm != true) return false;
     if (!mounted) return false;
-    final isKo = Localizations.localeOf(context).languageCode == 'ko';
     final secondConfirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isKo ? '복원 재확인' : 'Restore confirmation'),
-        content: Text(
-          isKo
-              ? '정말 복원할까요? 현재 데이터는 백업 데이터로 교체됩니다.'
-              : 'Do you really want to restore? Current data will be replaced.',
-        ),
+        title: Text(l10n.restoreReconfirmTitle),
+        content: Text(l10n.restoreReconfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

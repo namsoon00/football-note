@@ -1986,7 +1986,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveCardBody =>
-      'Use the full camera view so the runner stays large, and only show the framing guide when the body drifts out of position. The lower panel now surfaces the overall score, metric scores, strengths, top fixes, and voice coaching right away.';
+      'Instead of a yellow framing box, the live coach marks the runner outline and pose line directly, while the lower panel shows guidance and body-part results together.';
 
   @override
   String get runningCoachLiveAction => 'Start live coach';
@@ -2002,11 +2002,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideHeroTitle =>
-      'Keep the runner large and show the guide only when needed';
+      'Track the runner outline and read the lower coaching panel together';
 
   @override
   String get runningCoachLiveGuideHeroBody =>
-      'Once the runner is framed cleanly, the camera stays full screen. The guide returns only when the full body is clipped or drifts off center. Use the setup below to keep the score and coaching notes stable.';
+      'The live coach now marks the runner outline and pose line directly on screen, while the lower panel keeps the explanation and results together. Use the setup below to keep tracking and feedback stable.';
 
   @override
   String get runningCoachLiveGuideTipSideTitle => 'Show a side view';
@@ -2024,11 +2024,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachLiveGuideTipHudTitle =>
-      'The guide shows only when needed';
+      'Read the top cue and lower results together';
 
   @override
   String get runningCoachLiveGuideTipHudBody =>
-      'Once the runner is tracked well, the guide box disappears and the full camera view stays visible. If the full body gets clipped or drifts away from center, the framing guide appears again so you can correct it quickly.';
+      'Instead of a yellow box, the screen leads with the top status cue and runner outline marking, while the lower panel keeps the why, the fix, and the body-part results together.';
 
   @override
   String get runningCoachLiveGuideTipCameraTitle =>
@@ -2117,6 +2117,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String runningCoachLiveOverallScore(int score) {
     return 'Live score $score/100';
   }
+
+  @override
+  String get runningCoachLiveGuidanceTitle => 'Current guidance';
 
   @override
   String get runningCoachSprintLiveCardTitle => 'Sprint live MVP';
@@ -2434,6 +2437,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachMetricValueLabel => 'Measured value';
+
+  @override
+  String get runningCoachBodyRegionUpper => 'Upper body';
+
+  @override
+  String get runningCoachBodyRegionLower => 'Lower body';
+
+  @override
+  String get runningCoachBodyRegionWhole => 'Whole-body rhythm';
 
   @override
   String get runningCoachStatusGood => 'Good';
@@ -3631,11 +3643,58 @@ class AppLocalizationsEn extends AppLocalizations {
       'Review player records and sketches as a coach, with shared feedback focused on training.';
 
   @override
+  String get settingsRoleActionTitle => 'Role-based actions';
+
+  @override
+  String get settingsPlayerActionSummary =>
+      'In player mode, use backup first to protect new records, and use the import actions below only when you need to restore older data.';
+
+  @override
+  String get settingsSupportActionSummary =>
+      'Support roles do not create new player backups here. Instead, they import player data or roll back to the state saved before the last import.';
+
+  @override
   String get settingsPlayerAccountTitle => 'Player Google Drive account';
 
   @override
   String get settingsPlayerAccountDescription =>
       'Connect the player\'s Google Drive to back up and restore training records from this device.';
+
+  @override
+  String get settingsPlayerBackupActionBody =>
+      'Save the current device records as the latest Google Drive backup. Use this first when protecting new entries.';
+
+  @override
+  String get settingsPlayerRestoreDriveActionTitle =>
+      'Import latest data from Google Drive';
+
+  @override
+  String get settingsPlayerRestoreDriveActionBody =>
+      'Replace the current device data with the latest backup stored on Google Drive.';
+
+  @override
+  String get settingsPlayerRestoreLocalActionTitle =>
+      'Roll back to pre-import data';
+
+  @override
+  String get settingsPlayerRestoreLocalActionBody =>
+      'Restore the local safety snapshot that was saved automatically before the last import.';
+
+  @override
+  String get settingsSupportRestoreDriveActionTitle =>
+      'Import latest player data';
+
+  @override
+  String get settingsSupportRestoreDriveActionBody =>
+      'Pull the latest Google Drive backup that was saved in player mode onto this device.';
+
+  @override
+  String get settingsSupportRestoreLocalActionTitle =>
+      'Roll back to previous player data';
+
+  @override
+  String get settingsSupportRestoreLocalActionBody =>
+      'Restore the player-data safety snapshot that was saved before the last import on this device.';
 
   @override
   String familyRoleActivated(Object role) {
@@ -3802,6 +3861,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get familySharedRestoreLocalFailed =>
       'Failed to import previous player data. Please try again.';
+
+  @override
+  String get restoreReconfirmTitle => 'Restore confirmation';
+
+  @override
+  String get restoreReconfirmBody =>
+      'Do you really want to restore? Current data will be replaced.';
 
   @override
   String get familyParentFamilyMismatch =>

@@ -181,22 +181,15 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     final speechLabel = _isSpeechEnabled
         ? l10n.runningCoachLiveVoiceOn
         : l10n.runningCoachLiveVoiceOff;
+    final cueText = _cueText(l10n, _coachingState.primaryCue);
     final diagnosis = _diagnosisText(l10n, _coachingState);
     final actionTip = _actionTipText(l10n, _coachingState);
     final insightDetails = _buildInsightDetails(l10n);
     final focusPriorities =
         _coachingState.coachingReport?.focusPriorityByMetric ??
         const <RunningCoachMetric, int>{};
-    final strengths = [
-      for (final detail in insightDetails)
-        if (detail.insight.status == RunningCoachStatus.good) detail,
-    ];
-    final needsWork = [
-      for (final detail in insightDetails)
-        if (detail.insight.status != RunningCoachStatus.good) detail,
-    ];
+    final insightSections = _buildInsightSections(l10n, insightDetails);
     final panelTitle = _panelTitle(l10n);
-    final showGuideOverlay = _coachingState.framingIssue != null;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -208,14 +201,6 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
             ),
           ),
         ),
-        if (showGuideOverlay)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: CustomPaint(
-                painter: _GuideFramePainter(color: statusTheme.color),
-              ),
-            ),
-          ),
         Positioned.fill(
           child: SafeArea(
             child: Padding(
@@ -224,8 +209,8 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                 builder: (context, constraints) {
                   final overlayWidth = math.min(560.0, constraints.maxWidth);
                   final panelHeight = math.min(
-                    360.0,
-                    constraints.maxHeight * 0.48,
+                    440.0,
+                    constraints.maxHeight * 0.58,
                   );
                   return Stack(
                     children: [
@@ -256,9 +241,7 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                               _CueBanner(
                                 theme: statusTheme,
                                 title: statusTheme.title,
-                                body: _cueText(l10n, _coachingState.primaryCue),
-                                diagnosis: diagnosis,
-                                actionTip: actionTip,
+                                body: cueText,
                               ),
                             ],
                           ),
@@ -276,12 +259,12 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
                             scoreLabel: scoreLabel,
                             trackedFramesLabel: trackedFramesLabel,
                             speechLabel: speechLabel,
+                            cueText: cueText,
                             diagnosis: diagnosis,
                             actionTip: actionTip,
                             metricScores: insightDetails,
                             focusPriorities: focusPriorities,
-                            strengths: strengths,
-                            needsWork: needsWork,
+                            metricSections: insightSections,
                           ),
                         ),
                       ),
@@ -714,6 +697,39 @@ class _RunningLiveCoachScreenState extends State<RunningLiveCoachScreen>
     ];
   }
 
+  List<_LiveInsightSection> _buildInsightSections(
+    AppLocalizations l10n,
+    List<_LiveInsightData> insightDetails,
+  ) {
+    const order = [
+      RunningCoachBodyRegion.upperBody,
+      RunningCoachBodyRegion.lowerBody,
+      RunningCoachBodyRegion.wholeBody,
+    ];
+    return [
+      for (final region in order)
+        if (insightDetails
+                .where((detail) => detail.insight.metric.bodyRegion == region)
+                .toList(growable: false)
+            case final items when items.isNotEmpty)
+          _LiveInsightSection(
+            title: _bodyRegionTitle(l10n, region),
+            items: items,
+          ),
+    ];
+  }
+
+  String _bodyRegionTitle(
+    AppLocalizations l10n,
+    RunningCoachBodyRegion region,
+  ) {
+    return switch (region) {
+      RunningCoachBodyRegion.upperBody => l10n.runningCoachBodyRegionUpper,
+      RunningCoachBodyRegion.lowerBody => l10n.runningCoachBodyRegionLower,
+      RunningCoachBodyRegion.wholeBody => l10n.runningCoachBodyRegionWhole,
+    };
+  }
+
   String _voiceText(AppLocalizations l10n, RunningLivePrimaryCue cue) {
     return switch (cue) {
       RunningLivePrimaryCue.noRunnerDetected =>
@@ -811,15 +827,11 @@ class _CueBanner extends StatelessWidget {
   final _LiveStatusTheme theme;
   final String title;
   final String body;
-  final String diagnosis;
-  final String actionTip;
 
   const _CueBanner({
     required this.theme,
     required this.title,
     required this.body,
-    required this.diagnosis,
-    required this.actionTip,
   });
 
   @override
@@ -859,33 +871,13 @@ class _CueBanner extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     body,
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white70,
                       height: 1.25,
                     ),
                   ),
-                  if (diagnosis.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    _CueDetailLine(
-                      label: AppLocalizations.of(
-                        context,
-                      )!.runningCoachSprintCueWhyLabel,
-                      text: diagnosis,
-                      color: Colors.white70,
-                    ),
-                  ],
-                  if (actionTip.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    _CueDetailLine(
-                      label: AppLocalizations.of(
-                        context,
-                      )!.runningCoachSprintCueTryLabel,
-                      text: actionTip,
-                      color: theme.color.withAlpha(220),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -1063,29 +1055,36 @@ class _LiveInsightData {
   const _LiveInsightData({required this.insight, required this.copy});
 }
 
+class _LiveInsightSection {
+  final String title;
+  final List<_LiveInsightData> items;
+
+  const _LiveInsightSection({required this.title, required this.items});
+}
+
 class _ScoreExplanationPanel extends StatelessWidget {
   final String title;
   final String scoreLabel;
   final String trackedFramesLabel;
   final String speechLabel;
+  final String cueText;
   final String diagnosis;
   final String actionTip;
   final List<_LiveInsightData> metricScores;
   final Map<RunningCoachMetric, int> focusPriorities;
-  final List<_LiveInsightData> strengths;
-  final List<_LiveInsightData> needsWork;
+  final List<_LiveInsightSection> metricSections;
 
   const _ScoreExplanationPanel({
     required this.title,
     required this.scoreLabel,
     required this.trackedFramesLabel,
     required this.speechLabel,
+    required this.cueText,
     required this.diagnosis,
     required this.actionTip,
     required this.metricScores,
     required this.focusPriorities,
-    required this.strengths,
-    required this.needsWork,
+    required this.metricSections,
   });
 
   @override
@@ -1135,6 +1134,18 @@ class _ScoreExplanationPanel extends StatelessWidget {
                   _InfoChip(text: speechLabel),
                 ],
               ),
+              if (cueText.isNotEmpty ||
+                  diagnosis.isNotEmpty ||
+                  actionTip.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _PanelSectionTitle(text: l10n.runningCoachLiveGuidanceTitle),
+                const SizedBox(height: 8),
+                _LiveGuidanceCard(
+                  cueText: cueText,
+                  diagnosis: diagnosis,
+                  actionTip: actionTip,
+                ),
+              ],
               if (metricScores.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 _PanelSectionTitle(text: l10n.runningCoachMetricScoresTitle),
@@ -1151,41 +1162,33 @@ class _ScoreExplanationPanel extends StatelessWidget {
                   ],
                 ),
               ],
-              if (diagnosis.isNotEmpty) ...[
-                const SizedBox(height: 14),
-                _CueDetailLine(
-                  label: l10n.runningCoachSprintCueWhyLabel,
-                  text: diagnosis,
-                  color: Colors.white70,
-                ),
-              ],
-              if (actionTip.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                _CueDetailLine(
-                  label: l10n.runningCoachSprintCueTryLabel,
-                  text: actionTip,
-                  color: Colors.white,
-                ),
-              ],
-              if (needsWork.isNotEmpty) ...[
+              if (metricSections.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _PanelSectionTitle(text: l10n.runningCoachFocusTitle),
-                const SizedBox(height: 8),
-                for (var index = 0; index < needsWork.length; index += 1) ...[
-                  _LiveInsightCard(
-                    data: needsWork[index],
-                    priority: focusPriorities[needsWork[index].insight.metric],
-                  ),
-                  if (index != needsWork.length - 1) const SizedBox(height: 10),
-                ],
-              ],
-              if (strengths.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _PanelSectionTitle(text: l10n.runningCoachMaintainTitle),
-                const SizedBox(height: 8),
-                for (var index = 0; index < strengths.length; index += 1) ...[
-                  _LiveInsightCard(data: strengths[index]),
-                  if (index != strengths.length - 1) const SizedBox(height: 10),
+                for (
+                  var index = 0;
+                  index < metricSections.length;
+                  index += 1
+                ) ...[
+                  _PanelSectionTitle(text: metricSections[index].title),
+                  const SizedBox(height: 8),
+                  for (
+                    var itemIndex = 0;
+                    itemIndex < metricSections[index].items.length;
+                    itemIndex += 1
+                  ) ...[
+                    _LiveInsightCard(
+                      data: metricSections[index].items[itemIndex],
+                      priority:
+                          focusPriorities[metricSections[index]
+                              .items[itemIndex]
+                              .insight
+                              .metric],
+                    ),
+                    if (itemIndex != metricSections[index].items.length - 1)
+                      const SizedBox(height: 10),
+                  ],
+                  if (index != metricSections.length - 1)
+                    const SizedBox(height: 16),
                 ],
               ],
             ],
@@ -1208,6 +1211,64 @@ class _PanelSectionTitle extends StatelessWidget {
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
         color: Colors.white,
         fontWeight: FontWeight.w800,
+      ),
+    );
+  }
+}
+
+class _LiveGuidanceCard extends StatelessWidget {
+  final String cueText;
+  final String diagnosis;
+  final String actionTip;
+
+  const _LiveGuidanceCard({
+    required this.cueText,
+    required this.diagnosis,
+    required this.actionTip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(8),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (cueText.isNotEmpty) ...[
+              Text(
+                cueText,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  height: 1.3,
+                ),
+              ),
+            ],
+            if (diagnosis.isNotEmpty) ...[
+              if (cueText.isNotEmpty) const SizedBox(height: 10),
+              _CueDetailLine(
+                label: l10n.runningCoachSprintCueWhyLabel,
+                text: diagnosis,
+                color: Colors.white70,
+              ),
+            ],
+            if (actionTip.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _CueDetailLine(
+                label: l10n.runningCoachSprintCueTryLabel,
+                text: actionTip,
+                color: Colors.white,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -1544,64 +1605,6 @@ class _LiveStatusTheme {
   });
 }
 
-class _GuideFramePainter extends CustomPainter {
-  final Color color;
-
-  const _GuideFramePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final overlayPaint = Paint()..color = Colors.black.withAlpha(70);
-    canvas.drawRect(Offset.zero & size, overlayPaint);
-
-    final guideRect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height / 2),
-      width: size.width * 0.56,
-      height: size.height * 0.78,
-    );
-
-    final clearPaint = Paint()..blendMode = BlendMode.clear;
-    canvas.saveLayer(Offset.zero & size, Paint());
-    canvas.drawRect(Offset.zero & size, overlayPaint);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(guideRect, const Radius.circular(28)),
-      clearPaint,
-    );
-    canvas.restore();
-
-    final borderPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(guideRect, const Radius.circular(28)),
-      borderPaint,
-    );
-
-    final accentPaint = Paint()
-      ..color = color.withAlpha(180)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-    const corner = 28.0;
-    final corners = [
-      (guideRect.left, guideRect.top, 1, 1),
-      (guideRect.right, guideRect.top, -1, 1),
-      (guideRect.left, guideRect.bottom, 1, -1),
-      (guideRect.right, guideRect.bottom, -1, -1),
-    ];
-    for (final (x, y, dx, dy) in corners) {
-      canvas.drawLine(Offset(x, y), Offset(x + (corner * dx), y), accentPaint);
-      canvas.drawLine(Offset(x, y), Offset(x, y + (corner * dy)), accentPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _GuideFramePainter oldDelegate) {
-    return oldDelegate.color != color;
-  }
-}
-
 class _CameraFrameInput {
   final InputImage inputImage;
   final InputImageRotation rotation;
@@ -1655,11 +1658,19 @@ class _RunningPosePainter extends CustomPainter {
       return;
     }
 
+    final outlinePoints = <Offset>[];
     final linePaint = Paint()
       ..color = const Color(0xFF73F3B4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
+    final outlinePaint = Paint()
+      ..color = const Color(0xFF73F3B4).withAlpha(180)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2;
+    final outlineFillPaint = Paint()
+      ..color = const Color(0xFF73F3B4).withAlpha(24)
+      ..style = PaintingStyle.fill;
     final jointPaint = Paint()
       ..color = const Color(0xFFE8FFF4)
       ..style = PaintingStyle.fill;
@@ -1701,8 +1712,63 @@ class _RunningPosePainter extends CustomPainter {
         rotation: overlay.rotation,
         lensDirection: overlay.lensDirection,
       );
+      outlinePoints.add(offset);
       canvas.drawCircle(offset, 3.4, jointPaint);
     }
+
+    if (outlinePoints.length >= 5) {
+      final hull = _convexHull(outlinePoints);
+      if (hull.length >= 3) {
+        final path = Path()..moveTo(hull.first.dx, hull.first.dy);
+        for (final point in hull.skip(1)) {
+          path.lineTo(point.dx, point.dy);
+        }
+        path.close();
+        canvas.drawPath(path, outlineFillPaint);
+        canvas.drawPath(path, outlinePaint);
+      }
+    }
+  }
+
+  List<Offset> _convexHull(List<Offset> points) {
+    final sorted = [...points]
+      ..sort((a, b) {
+        final dxCompare = a.dx.compareTo(b.dx);
+        if (dxCompare != 0) {
+          return dxCompare;
+        }
+        return a.dy.compareTo(b.dy);
+      });
+    if (sorted.length <= 3) {
+      return sorted;
+    }
+
+    final lower = <Offset>[];
+    for (final point in sorted) {
+      while (lower.length >= 2 &&
+          _cross(lower[lower.length - 2], lower.last, point) <= 0) {
+        lower.removeLast();
+      }
+      lower.add(point);
+    }
+
+    final upper = <Offset>[];
+    for (final point in sorted.reversed) {
+      while (upper.length >= 2 &&
+          _cross(upper[upper.length - 2], upper.last, point) <= 0) {
+        upper.removeLast();
+      }
+      upper.add(point);
+    }
+
+    lower.removeLast();
+    upper.removeLast();
+    return [...lower, ...upper];
+  }
+
+  double _cross(Offset origin, Offset a, Offset b) {
+    return (a.dx - origin.dx) * (b.dy - origin.dy) -
+        (a.dy - origin.dy) * (b.dx - origin.dx);
   }
 
   Offset _translatePoint({
