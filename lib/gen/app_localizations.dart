@@ -1082,6 +1082,12 @@ abstract class AppLocalizations {
   /// **'Injury only'**
   String get filterInjuryOnly;
 
+  /// No description provided for @filterJumpRopeOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope days only'**
+  String get filterJumpRopeOnly;
+
   /// No description provided for @filterReset.
   ///
   /// In en, this message translates to:
@@ -1565,25 +1571,25 @@ abstract class AppLocalizations {
   /// No description provided for @restoreLocalBackup.
   ///
   /// In en, this message translates to:
-  /// **'Import previous data'**
+  /// **'Undo latest import'**
   String get restoreLocalBackup;
 
   /// No description provided for @restoreLocalConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Import the safety backup saved before the last data import? This will replace current data.'**
+  /// **'Undo the changes made by the latest import on this device? This will replace current data.'**
   String get restoreLocalConfirm;
 
   /// No description provided for @restoreLocalSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Previous data imported.'**
+  /// **'The latest import was undone.'**
   String get restoreLocalSuccess;
 
   /// No description provided for @restoreLocalFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to import previous data. Please try again.'**
+  /// **'Failed to undo the latest import. Please try again.'**
   String get restoreLocalFailed;
 
   /// No description provided for @localBackup.
@@ -1591,6 +1597,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local safety backup'**
   String get localBackup;
+
+  /// No description provided for @backupVersionUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup was created by a newer app version and cannot be imported here yet. Update the app and try again.'**
+  String get backupVersionUnsupported;
+
+  /// No description provided for @backupPayloadInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup data format could not be verified, so the import was stopped. Try a different backup.'**
+  String get backupPayloadInvalid;
 
   /// No description provided for @loginRequired.
   ///
@@ -6461,13 +6479,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPlayerRestoreLocalActionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Roll back to pre-import data'**
+  /// **'Undo latest import'**
   String get settingsPlayerRestoreLocalActionTitle;
 
   /// No description provided for @settingsPlayerRestoreLocalActionBody.
   ///
   /// In en, this message translates to:
-  /// **'Restore the local safety snapshot that was saved automatically before the last import.'**
+  /// **'Revert this device to the state it had before the latest import changed it.'**
   String get settingsPlayerRestoreLocalActionBody;
 
   /// No description provided for @settingsSupportRestoreDriveActionTitle.
@@ -6485,14 +6503,26 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSupportRestoreLocalActionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Roll back to previous player data'**
+  /// **'Undo latest import'**
   String get settingsSupportRestoreLocalActionTitle;
 
   /// No description provided for @settingsSupportRestoreLocalActionBody.
   ///
   /// In en, this message translates to:
-  /// **'Restore the player-data safety snapshot that was saved before the last import on this device.'**
+  /// **'Revert the latest imported player-data changes on this device to the previous state.'**
   String get settingsSupportRestoreLocalActionBody;
+
+  /// No description provided for @settingsRestoreRollbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import rollback'**
+  String get settingsRestoreRollbackTitle;
+
+  /// No description provided for @settingsRestoreRollbackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is advanced recovery for undoing the last import on this device, not a regular backup action.'**
+  String get settingsRestoreRollbackBody;
 
   /// No description provided for @familyRoleActivated.
   ///
@@ -6761,19 +6791,19 @@ abstract class AppLocalizations {
   /// No description provided for @familySharedRestoreLocalConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Import the previous player data saved before the last data import? This replaces the player records and shared data shown on this device.'**
+  /// **'Undo the latest imported player-data changes on this device? This replaces the player records and shared data shown on this device.'**
   String get familySharedRestoreLocalConfirm;
 
   /// No description provided for @familySharedRestoreLocalSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Previous player data imported.'**
+  /// **'The latest import was undone.'**
   String get familySharedRestoreLocalSuccess;
 
   /// No description provided for @familySharedRestoreLocalFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to import previous player data. Please try again.'**
+  /// **'Failed to undo the latest import. Please try again.'**
   String get familySharedRestoreLocalFailed;
 
   /// No description provided for @restoreReconfirmTitle.

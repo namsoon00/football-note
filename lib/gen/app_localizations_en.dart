@@ -538,6 +538,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterInjuryOnly => 'Injury only';
 
   @override
+  String get filterJumpRopeOnly => 'Jump rope days only';
+
+  @override
   String get filterReset => 'Reset';
 
   @override
@@ -789,21 +792,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timeYesterday => 'Yesterday';
 
   @override
-  String get restoreLocalBackup => 'Import previous data';
+  String get restoreLocalBackup => 'Undo latest import';
 
   @override
   String get restoreLocalConfirm =>
-      'Import the safety backup saved before the last data import? This will replace current data.';
+      'Undo the changes made by the latest import on this device? This will replace current data.';
 
   @override
-  String get restoreLocalSuccess => 'Previous data imported.';
+  String get restoreLocalSuccess => 'The latest import was undone.';
 
   @override
   String get restoreLocalFailed =>
-      'Failed to import previous data. Please try again.';
+      'Failed to undo the latest import. Please try again.';
 
   @override
   String get localBackup => 'Local safety backup';
+
+  @override
+  String get backupVersionUnsupported =>
+      'This backup was created by a newer app version and cannot be imported here yet. Update the app and try again.';
+
+  @override
+  String get backupPayloadInvalid =>
+      'The backup data format could not be verified, so the import was stopped. Try a different backup.';
 
   @override
   String get loginRequired => 'Please sign in to Google to use Drive backup.';
@@ -3720,12 +3731,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Replace the current device data with the latest backup stored on Google Drive.';
 
   @override
-  String get settingsPlayerRestoreLocalActionTitle =>
-      'Roll back to pre-import data';
+  String get settingsPlayerRestoreLocalActionTitle => 'Undo latest import';
 
   @override
   String get settingsPlayerRestoreLocalActionBody =>
-      'Restore the local safety snapshot that was saved automatically before the last import.';
+      'Revert this device to the state it had before the latest import changed it.';
 
   @override
   String get settingsSupportRestoreDriveActionTitle =>
@@ -3736,12 +3746,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Pull the latest Google Drive backup that was saved in player mode onto this device.';
 
   @override
-  String get settingsSupportRestoreLocalActionTitle =>
-      'Roll back to previous player data';
+  String get settingsSupportRestoreLocalActionTitle => 'Undo latest import';
 
   @override
   String get settingsSupportRestoreLocalActionBody =>
-      'Restore the player-data safety snapshot that was saved before the last import on this device.';
+      'Revert the latest imported player-data changes on this device to the previous state.';
+
+  @override
+  String get settingsRestoreRollbackTitle => 'Import rollback';
+
+  @override
+  String get settingsRestoreRollbackBody =>
+      'This is advanced recovery for undoing the last import on this device, not a regular backup action.';
 
   @override
   String familyRoleActivated(Object role) {
@@ -3899,15 +3915,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familySharedRestoreLocalConfirm =>
-      'Import the previous player data saved before the last data import? This replaces the player records and shared data shown on this device.';
+      'Undo the latest imported player-data changes on this device? This replaces the player records and shared data shown on this device.';
 
   @override
-  String get familySharedRestoreLocalSuccess =>
-      'Previous player data imported.';
+  String get familySharedRestoreLocalSuccess => 'The latest import was undone.';
 
   @override
   String get familySharedRestoreLocalFailed =>
-      'Failed to import previous player data. Please try again.';
+      'Failed to undo the latest import. Please try again.';
 
   @override
   String get restoreReconfirmTitle => 'Restore confirmation';

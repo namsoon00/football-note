@@ -1417,24 +1417,12 @@ class _EntryFormScreenState extends State<EntryFormScreen> {
                                     style: const TextStyle(color: Colors.red),
                                   ),
                                 ),
-                              if (isReadOnly)
-                                Chip(
-                                  label: Text(l10n.parentReadOnlyDiaryBadge),
-                                ),
                             ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    if (isReadOnly) ...[
-                      InfoBanner(
-                        summary: l10n.parentReadOnlyEntryTitle,
-                        detailsTitle: l10n.parentReadOnlyDiaryBadge,
-                        detailsMessage: l10n.parentReadOnlyEntryBody,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
                     if (widget.entry != null) ...[
                       _buildParentFeedbackCard(l10n: l10n),
                       if (_canEditParentFeedback ||

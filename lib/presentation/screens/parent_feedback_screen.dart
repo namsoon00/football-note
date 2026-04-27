@@ -189,7 +189,16 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
         navigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(l10n.parentFeedbackSectionTitle)),
+        appBar: AppBar(
+          title: Text(l10n.parentFeedbackSectionTitle),
+          actions: [
+            if (_canEdit)
+              TextButton(
+                onPressed: (_isSaving || !_hasChanges) ? null : _saveFeedback,
+                child: Text(l10n.parentFeedbackSave),
+              ),
+          ],
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

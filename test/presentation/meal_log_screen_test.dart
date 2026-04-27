@@ -117,7 +117,7 @@ void main() {
 
     await pumpMealLogScreen(tester, initialDate: day);
 
-    expect(find.text('식사 기록은 읽기 전용이에요.'), findsOneWidget);
+    expect(find.text('식사 기록은 읽기 전용이에요.'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey('meal-breakfast-increment')),

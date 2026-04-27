@@ -522,6 +522,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterInjuryOnly => '부상 기록만';
 
   @override
+  String get filterJumpRopeOnly => '줄넘기 한 날만';
+
+  @override
   String get filterReset => '초기화';
 
   @override
@@ -770,20 +773,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get timeYesterday => '어제';
 
   @override
-  String get restoreLocalBackup => '이전 데이터 가져오기';
+  String get restoreLocalBackup => '최근 가져오기 취소';
 
   @override
   String get restoreLocalConfirm =>
-      '마지막으로 데이터를 가져오기 전에 저장한 안전 백업을 다시 가져올까요? 현재 데이터가 교체됩니다.';
+      '이 기기에서 마지막 가져오기로 바뀐 내용을 직전 상태로 되돌릴까요? 현재 데이터가 교체됩니다.';
 
   @override
-  String get restoreLocalSuccess => '이전 데이터를 가져왔어요.';
+  String get restoreLocalSuccess => '최근 가져오기를 취소했어요.';
 
   @override
-  String get restoreLocalFailed => '이전 데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
+  String get restoreLocalFailed => '최근 가져오기 취소에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get localBackup => '로컬 안전 백업';
+
+  @override
+  String get backupVersionUnsupported =>
+      '이 백업은 더 새로운 앱에서 만들어져 현재 버전으로는 가져올 수 없어요. 앱을 업데이트한 뒤 다시 시도해 주세요.';
+
+  @override
+  String get backupPayloadInvalid =>
+      '백업 데이터 형식을 확인할 수 없어 가져오기를 중단했어요. 다른 백업으로 다시 시도해 주세요.';
 
   @override
   String get loginRequired => 'Google 로그인이 필요해요.';
@@ -3600,11 +3611,11 @@ class AppLocalizationsKo extends AppLocalizations {
       'Google Drive에 있는 최신 백업을 가져와 현재 기기 데이터를 교체합니다.';
 
   @override
-  String get settingsPlayerRestoreLocalActionTitle => '마지막 가져오기 전 데이터로 되돌리기';
+  String get settingsPlayerRestoreLocalActionTitle => '최근 가져오기 취소';
 
   @override
   String get settingsPlayerRestoreLocalActionBody =>
-      '직전 가져오기 전에 자동 저장한 로컬 안전본으로 되돌립니다.';
+      '이 기기에서 마지막 가져오기로 바뀐 내용을 직전 상태로 되돌립니다.';
 
   @override
   String get settingsSupportRestoreDriveActionTitle => '선수 최신 데이터 가져오기';
@@ -3614,11 +3625,18 @@ class AppLocalizationsKo extends AppLocalizations {
       '선수 모드에서 저장한 최신 Google Drive 백업을 현재 기기로 가져옵니다.';
 
   @override
-  String get settingsSupportRestoreLocalActionTitle => '이전 선수 데이터로 되돌리기';
+  String get settingsSupportRestoreLocalActionTitle => '최근 가져오기 취소';
 
   @override
   String get settingsSupportRestoreLocalActionBody =>
-      '마지막 가져오기 전에 저장한 선수 데이터 안전본으로 현재 기기를 되돌립니다.';
+      '이 기기에서 마지막으로 가져온 선수 데이터 변경을 직전 상태로 되돌립니다.';
+
+  @override
+  String get settingsRestoreRollbackTitle => '가져오기 되돌리기';
+
+  @override
+  String get settingsRestoreRollbackBody =>
+      '평소 백업 대신 쓰는 기능이 아니라, 마지막 가져오기로 바뀐 내용을 취소할 때만 사용하는 고급 복구입니다.';
 
   @override
   String familyRoleActivated(Object role) {
@@ -3773,14 +3791,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get familySharedRestoreLocalConfirm =>
-      '마지막으로 데이터를 가져오기 전에 저장한 이전 선수 데이터를 다시 가져올까요? 현재 기기에서 보이는 선수 기록과 공유 데이터가 교체됩니다.';
+      '이 기기에서 마지막으로 가져온 선수 데이터 변경을 직전 상태로 되돌릴까요? 현재 기기에서 보이는 선수 기록과 공유 데이터가 교체됩니다.';
 
   @override
-  String get familySharedRestoreLocalSuccess => '이전 선수 데이터를 가져왔어요.';
+  String get familySharedRestoreLocalSuccess => '최근 가져오기를 취소했어요.';
 
   @override
-  String get familySharedRestoreLocalFailed =>
-      '이전 선수 데이터 가져오기에 실패했어요. 다시 시도해 주세요.';
+  String get familySharedRestoreLocalFailed => '최근 가져오기 취소에 실패했어요. 다시 시도해 주세요.';
 
   @override
   String get restoreReconfirmTitle => '복원 재확인';

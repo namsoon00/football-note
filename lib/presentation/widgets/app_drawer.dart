@@ -231,28 +231,23 @@ class AppDrawer extends StatelessWidget {
                 ),
               ],
             ),
-            _DrawerSection(
-              title: l10n.settings,
-              icon: Icons.settings_outlined,
-              children: [
-                _DrawerActionTile(
-                  icon: Icons.settings,
-                  label: l10n.settings,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => SettingsScreen(
-                          localeService: localeService,
-                          settingsService: settingsService,
-                          optionRepository: optionRepository,
-                          driveBackupService: driveBackupService,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+            const SizedBox(height: 4),
+            _DrawerActionTile(
+              icon: Icons.settings,
+              label: l10n.settings,
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => SettingsScreen(
+                      localeService: localeService,
+                      settingsService: settingsService,
+                      optionRepository: optionRepository,
+                      driveBackupService: driveBackupService,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
