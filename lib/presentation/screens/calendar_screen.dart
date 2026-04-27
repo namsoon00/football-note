@@ -26,7 +26,6 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
-import '../widgets/info_banner.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -251,7 +250,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final isParentMode = FamilyAccessService(
       widget.optionRepository,
     ).loadState().isParentMode;
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       drawer: AppDrawer(
         trainingService: widget.trainingService,
@@ -301,15 +299,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                   return Column(
                     children: [
-                      if (isParentMode)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                          child: InfoBanner(
-                            summary: l10n.parentReadOnlyCalendarSummary,
-                            detailsTitle: l10n.parentReadOnlyDiaryBadge,
-                            detailsMessage: l10n.parentReadOnlyCalendarBanner,
-                          ),
-                        ),
                       ValueListenableBuilder<int>(
                         valueListenable: NewsBadgeService.listenable(
                           widget.optionRepository,

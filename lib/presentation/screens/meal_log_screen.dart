@@ -13,7 +13,6 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
-import '../widgets/info_banner.dart';
 import '../widgets/rice_bowl_summary.dart';
 import 'package:football_note/gen/app_localizations.dart';
 
@@ -91,17 +90,6 @@ class _MealLogScreenState extends State<MealLogScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             children: [
-              if (_isParentMode) ...[
-                InfoBanner(
-                  summary: l10n.parentReadOnlyMealLogSummary,
-                  detailsTitle: l10n.parentReadOnlyDiaryBadge,
-                  detailsMessage: l10n.parentReadOnlyMealLog,
-                  textStyle: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.calendar_today_outlined),

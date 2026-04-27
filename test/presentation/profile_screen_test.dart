@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/profile_screen.dart';
@@ -148,6 +149,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('레벨 가이드'), findsOneWidget);
+  });
+
+  testWidgets('parent mode can open profile tests in read-only mode', (
+    WidgetTester tester,
+  ) async {
+    final repository = _MemoryOptionRepository()
+      ..seed(FamilyAccessService.currentRoleLocalKey, FamilyRole.parent.name)
+      ..seed('profile_mbti_result', 'ENTJ');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ProfileScreen(optionRepository: repository),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.psychology_alt_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('테스트 결과와 응답'), findsOneWidget);
+    expect(find.text('ENTJ · 전술 지휘형'), findsOneWidget);
+    expect(
+      tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, '두 테스트 이어서 하기'),
+      ).onPressed,
+      isNull,
+    );
   });
 }
 

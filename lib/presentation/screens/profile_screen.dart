@@ -6,7 +6,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:football_note/gen/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,7 +15,6 @@ import '../../application/player_level_service.dart';
 import '../../application/player_profile_service.dart';
 import '../../domain/entities/player_profile.dart';
 import '../../domain/repositories/option_repository.dart';
-import '../widgets/info_banner.dart';
 import '../widgets/player_level_visuals.dart';
 import 'player_level_guide_screen.dart';
 
@@ -86,7 +84,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
-    final l10n = AppLocalizations.of(context)!;
     final familyState = FamilyAccessService(
       widget.optionRepository,
     ).loadState();
@@ -102,13 +99,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _resultChip(
           label:
               '${isKo ? 'MBTI' : 'MBTI'} ${mbtiSummary.title.split('·').first.trim()}',
-          onTap: isReadOnly ? null : () => _openProfileTestsScreen(context),
+          onTap: () => _openProfileTestsScreen(context),
         ),
       if (positionSummary.title.trim().isNotEmpty)
         _resultChip(
           label:
               '${isKo ? '포지션' : 'Position'} ${positionSummary.title.split('·').first.trim()}',
-          onTap: isReadOnly ? null : () => _openProfileTestsScreen(context),
+          onTap: () => _openProfileTestsScreen(context),
         ),
     ];
     // ignore: deprecated_member_use
@@ -123,9 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             IconButton(
               tooltip: isKo ? '성향 테스트' : 'Profile tests',
-              onPressed: isReadOnly
-                  ? null
-                  : () => _openProfileTestsScreen(context),
+              onPressed: () => _openProfileTestsScreen(context),
               iconSize: 28,
               constraints: const BoxConstraints(minWidth: 52, minHeight: 52),
               icon: const Icon(Icons.psychology_alt_outlined),
@@ -141,14 +136,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               isKo: isKo,
               onTap: _openLevelGuide,
             ),
-            if (isReadOnly) ...[
-              const SizedBox(height: 12),
-              InfoBanner(
-                summary: l10n.parentReadOnlyProfileSummary,
-                detailsTitle: l10n.parentReadOnlyDiaryBadge,
-                detailsMessage: l10n.parentReadOnlyProfileDescription,
-              ),
-            ],
             const SizedBox(height: 12),
             Row(
               children: [
@@ -391,11 +378,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _openProfileTestsScreen(BuildContext context) async {
-    if (_isParentReadOnlyMode) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            ProfileTestsScreen(optionRepository: widget.optionRepository),
+        builder: (_) => ProfileTestsScreen(
+          optionRepository: widget.optionRepository,
+          readOnly: _isParentReadOnlyMode,
+        ),
       ),
     );
     if (!mounted) return;
@@ -1317,8 +1305,13 @@ class _ProfileLevelIllustration extends StatelessWidget {
 
 class ProfileTestsScreen extends StatefulWidget {
   final OptionRepository optionRepository;
+  final bool readOnly;
 
-  const ProfileTestsScreen({super.key, required this.optionRepository});
+  const ProfileTestsScreen({
+    super.key,
+    required this.optionRepository,
+    this.readOnly = false,
+  });
 
   @override
   State<ProfileTestsScreen> createState() => _ProfileTestsScreenState();
@@ -1346,16 +1339,17 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
   @override
   Widget build(BuildContext context) {
     final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    final canEdit = !widget.readOnly;
     return Scaffold(
       appBar: AppBar(title: Text(isKo ? '성향 테스트' : 'Profile tests')),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: [_buildProfileTestSection(isKo)],
+        children: [_buildProfileTestSection(isKo, canEdit: canEdit)],
       ),
     );
   }
 
-  Widget _buildProfileTestSection(bool isKo) {
+  Widget _buildProfileTestSection(bool isKo, {required bool canEdit}) {
     final mbtiSummary = _mbtiResultSummary(_mbtiResult, isKo);
     final positionSummary = _positionResultSummary(_positionTestResult, isKo);
     final mbtiSavedAnswers = _savedMbtiAnswerEntries(isKo);
@@ -1373,7 +1367,7 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: () => _startTestsInOrder(isKo),
+            onPressed: canEdit ? () => _startTestsInOrder(isKo) : null,
             icon: const Icon(Icons.play_arrow_rounded),
             label: Text(isKo ? '두 테스트 이어서 하기' : 'Run both tests'),
           ),
@@ -1394,7 +1388,7 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
             isKo: isKo,
             entries: mbtiSavedAnswers,
           ),
-          onPressed: () => _openMbtiTestScreen(isKo),
+          onPressed: canEdit ? () => _openMbtiTestScreen(isKo) : null,
         ),
         const SizedBox(height: 10),
         _buildTestCard(
@@ -1412,7 +1406,7 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
             isKo: isKo,
             entries: positionSavedAnswers,
           ),
-          onPressed: () => _openPositionTestScreen(isKo),
+          onPressed: canEdit ? () => _openPositionTestScreen(isKo) : null,
         ),
       ],
     );
@@ -1426,7 +1420,7 @@ class _ProfileTestsScreenState extends State<ProfileTestsScreen> {
     required String emptyLabel,
     required String buttonLabel,
     required Widget? savedAnswers,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
   }) {
     return Card(
       margin: EdgeInsets.zero,

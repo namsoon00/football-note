@@ -887,17 +887,18 @@ class _SettingsScreenState extends State<SettingsScreen>
                   title: l10n.settingsPlayerRestoreDriveActionTitle,
                 ),
       ),
-      _buildActionCard(
-        title: l10n.settingsPlayerRestoreLocalActionTitle,
-        description: l10n.settingsPlayerRestoreLocalActionBody,
-        icon: Icons.undo_rounded,
-        onPressed: _restoreBusy || !localRestoreAvailable
-            ? null
-            : () => _restoreLocalBackup(
-                  l10n,
-                  title: l10n.settingsPlayerRestoreLocalActionTitle,
-                ),
-      ),
+      if (localRestoreAvailable)
+        _buildSubtleLocalRestoreCard(
+          l10n: l10n,
+          title: l10n.settingsPlayerRestoreLocalActionTitle,
+          description: l10n.settingsPlayerRestoreLocalActionBody,
+          onPressed: _restoreBusy
+              ? null
+              : () => _restoreLocalBackup(
+                    l10n,
+                    title: l10n.settingsPlayerRestoreLocalActionTitle,
+                  ),
+        ),
     ];
   }
 
@@ -920,22 +921,82 @@ class _SettingsScreenState extends State<SettingsScreen>
                   failedMessage: l10n.familySharedRestoreFailed,
                 ),
       ),
-      _buildActionCard(
-        title: l10n.settingsSupportRestoreLocalActionTitle,
-        description: l10n.settingsSupportRestoreLocalActionBody,
-        icon: Icons.history_toggle_off_rounded,
-        onPressed: _restoreBusy || !localRestoreAvailable
-            ? null
-            : () => _restoreLocalBackup(
-                  l10n,
-                  title: l10n.settingsSupportRestoreLocalActionTitle,
-                  message: l10n.familySharedRestoreLocalConfirm,
-                  successMessage: l10n.familySharedRestoreLocalSuccess,
-                  failedMessage: l10n.familySharedRestoreLocalFailed,
-                ),
-      ),
+      if (localRestoreAvailable)
+        _buildSubtleLocalRestoreCard(
+          l10n: l10n,
+          title: l10n.settingsSupportRestoreLocalActionTitle,
+          description: l10n.settingsSupportRestoreLocalActionBody,
+          onPressed: _restoreBusy
+              ? null
+              : () => _restoreLocalBackup(
+                    l10n,
+                    title: l10n.settingsSupportRestoreLocalActionTitle,
+                    message: l10n.familySharedRestoreLocalConfirm,
+                    successMessage: l10n.familySharedRestoreLocalSuccess,
+                    failedMessage: l10n.familySharedRestoreLocalFailed,
+                  ),
+        ),
       _buildParentFamilySyncCard(l10n),
     ];
+  }
+
+  Widget _buildSubtleLocalRestoreCard({
+    required AppLocalizations l10n,
+    required String title,
+    required String description,
+    required VoidCallback? onPressed,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outline.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.history_toggle_off_rounded,
+                size: 18,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.settingsRestoreRollbackTitle,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.settingsRestoreRollbackBody,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 10),
+          Text(description, style: theme.textTheme.bodySmall),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: onPressed,
+              icon: const Icon(Icons.undo_rounded),
+              label: Text(title),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildInfoPanel({
@@ -2228,6 +2289,12 @@ class _SettingsScreenState extends State<SettingsScreen>
     required String fallback,
   }) {
     final raw = error.toString();
+    if (raw.contains(DriveBackupService.unsupportedBackupVersionErrorCode)) {
+      return l10n.backupVersionUnsupported;
+    }
+    if (raw.contains(DriveBackupService.invalidBackupPayloadErrorCode)) {
+      return l10n.backupPayloadInvalid;
+    }
     if (raw.contains('parent_drive_mismatch')) {
       return l10n.familyParentUsesChildDriveWarning;
     }

@@ -119,7 +119,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.widgetWithText(OutlinedButton, '이전 선수 데이터로 되돌리기'),
+        find.widgetWithText(TextButton, '최근 가져오기 취소'),
         findsOneWidget,
       );
       expect(find.text('최근 반영'), findsOneWidget);
@@ -223,7 +223,7 @@ void main() {
     expect(find.text('저장된 선수 Drive 연결'), findsOneWidget);
   });
 
-  testWidgets('player mode shows backup and both restore actions together', (
+  testWidgets('player mode keeps rollback action subtler than drive actions', (
     WidgetTester tester,
   ) async {
     final optionRepository = _MemoryOptionRepository();
@@ -269,10 +269,7 @@ void main() {
       OutlinedButton,
       'Google Drive 최신 데이터 가져오기',
     );
-    final localRestoreButton = find.widgetWithText(
-      OutlinedButton,
-      '마지막 가져오기 전 데이터로 되돌리기',
-    );
+    final localRestoreButton = find.widgetWithText(TextButton, '최근 가져오기 취소');
 
     expect(backupButton, findsOneWidget);
     expect(remoteRestoreButton, findsOneWidget);

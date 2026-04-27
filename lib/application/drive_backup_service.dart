@@ -109,6 +109,9 @@ class DriveBackupService implements BackupRepository {
   static const recordDriveMismatchErrorCode = 'record_drive_mismatch';
   static const playerDriveMismatchErrorCode = recordDriveMismatchErrorCode;
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
+  static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
+  static const unsupportedBackupVersionErrorCode =
+      'unsupported_backup_version';
   static const _recentDriveConnectionTtl = Duration(seconds: 10);
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
@@ -139,6 +142,8 @@ class DriveBackupService implements BackupRepository {
   static const _assetRecordsKey = 'assetRecords';
   static const _assetRefPrefix = 'backup_asset://';
   static const _profilePhotoOptionKey = 'profile_photo_url';
+  static const _backupFormatKey = 'format';
+  static const _backupFormatValue = 'football_note_backup';
 
   Stream<void> driveAccountStateChanges() =>
       _driveAccountStateController.stream;
@@ -1064,7 +1069,7 @@ class DriveBackupService implements BackupRepository {
             )
             as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
-    final data = jsonDecode(content) as Map<String, dynamic>;
+    final data = _decodeBackupPayload(content);
     _validateRestoreBinding(data);
     await _restoreFromMap(data);
   }
@@ -1113,6 +1118,7 @@ class DriveBackupService implements BackupRepository {
     }
     final familyState = _familyService.loadState();
     return {
+      _backupFormatKey: _backupFormatValue,
       'version': _backupVersion,
       'createdAt': DateTime.now().toIso8601String(),
       'entries': entries,
@@ -1138,7 +1144,7 @@ class DriveBackupService implements BackupRepository {
 
   @visibleForTesting
   Future<void> restoreFromMapForTesting(Map<String, dynamic> data) =>
-      _restoreFromMap(data);
+      _restoreFromMap(_validatedBackupData(data));
 
   @visibleForTesting
   Map<String, dynamic> mergeParentBackupForTesting({
@@ -1587,7 +1593,7 @@ class DriveBackupService implements BackupRepository {
     if (raw is! String) {
       throw StateError('No local backup available.');
     }
-    final data = jsonDecode(raw) as Map<String, dynamic>;
+    final data = _decodeBackupPayload(raw);
     await _restoreFromMap(data);
     if (_familyService.loadState().isSupportMode) {
       await _setParentSharedDataDirty(true);
@@ -1774,14 +1780,60 @@ class DriveBackupService implements BackupRepository {
             )
             as drive.Media;
     final content = await utf8.decoder.bind(media.stream).join();
-    final data = jsonDecode(content);
+    return _decodeBackupPayload(content);
+  }
+
+  Map<String, dynamic> _decodeBackupPayload(String content) {
+    final dynamic data;
+    try {
+      data = jsonDecode(content);
+    } on FormatException {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
     if (data is Map<String, dynamic>) {
-      return data;
+      return _validatedBackupData(data);
     }
     if (data is Map) {
-      return data.cast<String, dynamic>();
+      return _validatedBackupData(
+        data.map((key, value) => MapEntry(key.toString(), value)),
+      );
     }
-    throw StateError('Invalid backup payload.');
+    throw StateError(invalidBackupPayloadErrorCode);
+  }
+
+  Map<String, dynamic> _validatedBackupData(Map<String, dynamic> data) {
+    final rawFormat = data[_backupFormatKey];
+    if (rawFormat != null && rawFormat != _backupFormatValue) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+    final rawVersion = data['version'];
+    final version = switch (rawVersion) {
+      null => 1,
+      num value => value.toInt(),
+      _ => -1,
+    };
+    if (version < 1) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+    if (version > _backupVersion) {
+      throw StateError(unsupportedBackupVersionErrorCode);
+    }
+    if (data['entries'] case final entries? when entries is! List) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+    if (data['options'] case final options? when options is! Map) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+    if (data[_optionRecordsKey] case final records? when records is! List) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+    if (data[_assetRecordsKey] case final assets? when assets is! Map) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+    if (data[_familyMetadataKey] case final family? when family is! Map) {
+      throw StateError(invalidBackupPayloadErrorCode);
+    }
+    return data;
   }
 
   Map<String, dynamic> _buildUploadPayload({

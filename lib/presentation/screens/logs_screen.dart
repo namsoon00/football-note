@@ -28,7 +28,6 @@ import '../models/training_board_link_codec.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_feedback.dart';
 import '../widgets/app_drawer.dart';
-import '../widgets/info_banner.dart';
 import '../widgets/app_page_route.dart';
 import '../theme/app_motion.dart';
 import 'settings_screen.dart';
@@ -75,6 +74,7 @@ class _LogsScreenState extends State<LogsScreen> {
   static const String _locationFilterKey = 'logs_filter_location';
   static const String _programFilterKey = 'logs_filter_program';
   static const String _injuryOnlyFilterKey = 'logs_filter_injury_only';
+  static const String _jumpRopeOnlyFilterKey = 'logs_filter_jump_rope_only';
   static const String _quickGuideSeenKey = 'logs_quick_guide_seen_v1';
   final TextEditingController _searchController = TextEditingController();
   bool _showSearch = false;
@@ -83,6 +83,7 @@ class _LogsScreenState extends State<LogsScreen> {
   String _locationFilter = _allFilterValue;
   String _programFilter = _allFilterValue;
   bool _injuryOnly = false;
+  bool _jumpRopeOnly = false;
   _LogsLayout _layout = _LogsLayout.card;
   bool _optionsLoaded = false;
   bool _quickGuideOpened = false;
@@ -162,6 +163,9 @@ class _LogsScreenState extends State<LogsScreen> {
         _allFilterValue;
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
+    _jumpRopeOnly =
+        widget.optionRepository.getValue<bool>(_jumpRopeOnlyFilterKey) ??
+        false;
   }
 
   @override
@@ -265,14 +269,6 @@ class _LogsScreenState extends State<LogsScreen> {
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
                       ),
-                      if (isParentMode) ...[
-                        const SizedBox(height: 12),
-                        InfoBanner(
-                          summary: l10n.parentReadOnlyLogsSummary,
-                          detailsTitle: l10n.parentReadOnlyDiaryBadge,
-                          detailsMessage: l10n.parentReadOnlyLogsBanner,
-                        ),
-                      ],
                       if (_showSearch) ...[
                         const SizedBox(height: 10),
                         _buildSearchBar(l10n),
@@ -333,12 +329,14 @@ class _LogsScreenState extends State<LogsScreen> {
                                       location: _allFilterValue,
                                       program: _allFilterValue,
                                       injuryOnly: false,
+                                      jumpRopeOnly: false,
                                     );
                                     setState(() {
                                       _statusFilter = reset.status;
                                       _locationFilter = reset.location;
                                       _programFilter = reset.program;
                                       _injuryOnly = reset.injuryOnly;
+                                      _jumpRopeOnly = reset.jumpRopeOnly;
                                       _resetPagination();
                                     });
                                     await _persistFilters(reset);
@@ -582,6 +580,9 @@ class _LogsScreenState extends State<LogsScreen> {
       if (_injuryOnly && !entry.injury) {
         return false;
       }
+      if (_jumpRopeOnly && !_hasJumpRopeRecord(entry)) {
+        return false;
+      }
       if (query.isEmpty) return true;
       final haystack = [
         entry.program,
@@ -619,6 +620,7 @@ class _LogsScreenState extends State<LogsScreen> {
     final locationValue = _locationFilter;
     final programValue = _programFilter;
     final injuryOnlyValue = _injuryOnly;
+    final jumpRopeOnlyValue = _jumpRopeOnly;
 
     final result = await showModalBottomSheet<_LogFilters>(
       context: context,
@@ -632,6 +634,7 @@ class _LogsScreenState extends State<LogsScreen> {
         var localLocation = locationValue;
         var localProgram = programValue;
         var localInjuryOnly = injuryOnlyValue;
+        var localJumpRopeOnly = jumpRopeOnlyValue;
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Padding(
@@ -680,6 +683,12 @@ class _LogsScreenState extends State<LogsScreen> {
                         setModalState(() => localInjuryOnly = value),
                     title: Text(l10n.filterInjuryOnly),
                   ),
+                  SwitchListTile(
+                    value: localJumpRopeOnly,
+                    onChanged: (value) =>
+                        setModalState(() => localJumpRopeOnly = value),
+                    title: Text(l10n.filterJumpRopeOnly),
+                  ),
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -692,6 +701,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                 location: _allFilterValue,
                                 program: _allFilterValue,
                                 injuryOnly: false,
+                                jumpRopeOnly: false,
                               ),
                             );
                           },
@@ -708,6 +718,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                 location: localLocation,
                                 program: localProgram,
                                 injuryOnly: localInjuryOnly,
+                                jumpRopeOnly: localJumpRopeOnly,
                               ),
                             );
                           },
@@ -730,6 +741,7 @@ class _LogsScreenState extends State<LogsScreen> {
       _locationFilter = result.location;
       _programFilter = result.program;
       _injuryOnly = result.injuryOnly;
+      _jumpRopeOnly = result.jumpRopeOnly;
       _resetPagination();
     });
     await _persistFilters(result);
@@ -874,7 +886,18 @@ class _LogsScreenState extends State<LogsScreen> {
         _injuryOnlyFilterKey,
         filters.injuryOnly,
       ),
+      widget.optionRepository.setValue(
+        _jumpRopeOnlyFilterKey,
+        filters.jumpRopeOnly,
+      ),
     ]);
+  }
+
+  bool _hasJumpRopeRecord(TrainingEntry entry) {
+    return entry.jumpRopeEnabled ||
+        entry.jumpRopeCount > 0 ||
+        entry.jumpRopeMinutes > 0 ||
+        entry.jumpRopeNote.trim().isNotEmpty;
   }
 
   Widget _buildEntryRow({
@@ -1098,12 +1121,14 @@ class _LogFilters {
   final String location;
   final String program;
   final bool injuryOnly;
+  final bool jumpRopeOnly;
 
   const _LogFilters({
     required this.status,
     required this.location,
     required this.program,
     required this.injuryOnly,
+    required this.jumpRopeOnly,
   });
 }
 

@@ -89,6 +89,7 @@ void main() {
     final backupOptions = backup['options'] as Map<String, dynamic>;
     final family = backup['family'] as Map<String, dynamic>;
 
+    expect(backup['format'], 'football_note_backup');
     expect(backup['version'], 5);
     expect(backupOptions['profile_name'], 'Lee');
     expect(backupOptions['theme_mode'], 'dark');
@@ -190,6 +191,44 @@ void main() {
 
     expect(optionBox.get('theme_mode'), 'dark');
     expect(optionBox.get('type_options'), ['technique', 'tactics']);
+  });
+
+  test('rejects backups created by a newer schema version', () async {
+    expect(
+      () => service.restoreFromMapForTesting(<String, dynamic>{
+        'format': 'football_note_backup',
+        'version': 999,
+        'createdAt': '2026-01-01T00:00:00.000',
+        'entries': const <dynamic>[],
+        'options': const <String, dynamic>{},
+      }),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.unsupportedBackupVersionErrorCode,
+        ),
+      ),
+    );
+  });
+
+  test('rejects malformed backup payload maps', () async {
+    expect(
+      () => service.restoreFromMapForTesting(<String, dynamic>{
+        'format': 'football_note_backup',
+        'version': 5,
+        'createdAt': '2026-01-01T00:00:00.000',
+        'entries': const <String, dynamic>{'unexpected': true},
+        'options': const <String, dynamic>{},
+      }),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          DriveBackupService.invalidBackupPayloadErrorCode,
+        ),
+      ),
+    );
   });
 
   test(

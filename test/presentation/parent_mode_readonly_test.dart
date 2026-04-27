@@ -62,7 +62,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('식사 기록은 읽기 전용이에요.'), findsOneWidget);
+    expect(find.text('식사 기록은 읽기 전용이에요.'), findsNothing);
 
     await tester.tap(
       find.byKey(const ValueKey('meal-breakfast-increment')),
@@ -129,7 +129,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('공유 역할 읽기 전용'), findsOneWidget);
+    expect(find.text('공유 역할 읽기 전용'), findsNothing);
     expect(find.text('퍼스트 터치가 안정적이었다.'), findsOneWidget);
     expect(find.text('압박 회피가 늦었다.'), findsOneWidget);
     expect(find.text('턴 동작을 더 빠르게 가져간다.'), findsOneWidget);
