@@ -11,6 +11,7 @@ class WatchCartHomeOptions extends StatelessWidget {
   final int? boardBadgeCount;
   final int? badgeCount;
   final IconData? boardListIcon;
+  final bool filterActive;
 
   const WatchCartHomeOptions({
     super.key,
@@ -23,6 +24,7 @@ class WatchCartHomeOptions extends StatelessWidget {
     this.boardListIcon,
     this.onFilter,
     this.onSearch,
+    this.filterActive = false,
   });
 
   @override
@@ -34,7 +36,11 @@ class WatchCartHomeOptions extends StatelessWidget {
       children: [
         _OptionButton(icon: Icons.search, onTap: onSearch),
         const SizedBox(width: 12),
-        _OptionButton(icon: Icons.tune, onTap: onFilter),
+        _OptionButton(
+          icon: Icons.tune,
+          onTap: onFilter,
+          isActive: filterActive,
+        ),
         if (hasSummaryButton) ...[
           const SizedBox(width: 12),
           Expanded(
@@ -66,11 +72,19 @@ class WatchCartHomeOptions extends StatelessWidget {
 class _OptionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
+  final bool isActive;
 
-  const _OptionButton({required this.icon, this.onTap});
+  const _OptionButton({required this.icon, this.onTap, this.isActive = false});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final borderColor = isActive
+        ? theme.colorScheme.primary
+        : const Color.fromRGBO(230, 230, 230, 1);
+    final backgroundColor = isActive
+        ? theme.colorScheme.primary.withValues(alpha: 0.08)
+        : Colors.transparent;
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(8.0),
@@ -83,10 +97,37 @@ class _OptionButton extends StatelessWidget {
           width: 60.0,
           height: 60.0,
           decoration: BoxDecoration(
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: const Color.fromRGBO(230, 230, 230, 1)),
+            border: Border.all(color: borderColor),
           ),
-          child: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Center(
+                child: Icon(
+                  icon,
+                  color: isActive
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface,
+                ),
+              ),
+              if (isActive)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    key: ValueKey('home-option-active-${icon.codePoint}'),
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -112,13 +153,15 @@ class _LabeledCountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final emphasize = icon != null && onTap != null;
-    final highlightColor =
-        emphasize ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
+    final highlightColor = emphasize
+        ? theme.colorScheme.onPrimary
+        : theme.colorScheme.onSurface;
     final borderColor = emphasize
         ? theme.colorScheme.primary
         : const Color.fromRGBO(230, 230, 230, 1);
-    final backgroundColor =
-        emphasize ? theme.colorScheme.primary : Colors.transparent;
+    final backgroundColor = emphasize
+        ? theme.colorScheme.primary
+        : Colors.transparent;
     return Semantics(
       label: semanticLabel,
       button: onTap != null,

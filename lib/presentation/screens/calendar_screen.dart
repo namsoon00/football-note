@@ -26,6 +26,7 @@ import '../../domain/repositories/option_repository.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_page_route.dart';
 import '../widgets/shared_tab_header.dart';
 import '../widgets/status_style.dart';
 import '../widgets/watch_cart/watch_cart_card.dart';
@@ -2563,7 +2564,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _openSettings(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => SettingsScreen(
           localeService: widget.localeService,
           settingsService: widget.settingsService,
@@ -2576,7 +2577,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _openProfile(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
       ),
@@ -2586,7 +2587,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _openNews(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NewsScreen(
           trainingService: widget.trainingService,
           localeService: widget.localeService,
@@ -2604,7 +2605,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _openQuiz(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
@@ -2614,7 +2615,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _openNotifications(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NotificationCenterScreen(
           optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,

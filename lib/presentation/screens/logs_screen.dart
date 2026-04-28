@@ -164,8 +164,7 @@ class _LogsScreenState extends State<LogsScreen> {
     _injuryOnly =
         widget.optionRepository.getValue<bool>(_injuryOnlyFilterKey) ?? false;
     _jumpRopeOnly =
-        widget.optionRepository.getValue<bool>(_jumpRopeOnlyFilterKey) ??
-        false;
+        widget.optionRepository.getValue<bool>(_jumpRopeOnlyFilterKey) ?? false;
   }
 
   @override
@@ -268,6 +267,7 @@ class _LogsScreenState extends State<LogsScreen> {
                         boardBadgeCount: boardsById.length,
                         onSearch: _toggleSearch,
                         onFilter: () => _openFilterSheet(context),
+                        filterActive: _hasActiveFilters,
                       ),
                       if (_showSearch) ...[
                         const SizedBox(height: 10),
@@ -560,6 +560,14 @@ class _LogsScreenState extends State<LogsScreen> {
       }
       _resetPagination();
     });
+  }
+
+  bool get _hasActiveFilters {
+    return _statusFilter != _allFilterValue ||
+        _locationFilter != _allFilterValue ||
+        _programFilter != _allFilterValue ||
+        _injuryOnly ||
+        _jumpRopeOnly;
   }
 
   List<TrainingEntry> _applyFilters(List<TrainingEntry> entries) {
@@ -991,7 +999,7 @@ class _LogsScreenState extends State<LogsScreen> {
 
   Future<void> _openNotifications(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NotificationCenterScreen(
           optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,

@@ -16,6 +16,7 @@ import '../screens/notification_center_screen.dart';
 import '../screens/skill_quiz_screen.dart';
 import '../screens/running_coach_screen.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'app_page_route.dart';
 
 class AppDrawer extends StatelessWidget {
   final TrainingService trainingService;
@@ -92,6 +93,24 @@ class AppDrawer extends StatelessWidget {
               selected: currentIndex == 4,
               onTap: () => _navigateTo(context, 4),
             ),
+            _NavTile(
+              icon: Icons.settings,
+              label: l10n.settings,
+              selected: false,
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  AppPageRoute(
+                    builder: (_) => SettingsScreen(
+                      localeService: localeService,
+                      settingsService: settingsService,
+                      optionRepository: optionRepository,
+                      driveBackupService: driveBackupService,
+                    ),
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 4),
             _DrawerSection(
               title: l10n.drawerQuickAdd,
@@ -104,7 +123,7 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) => EntryFormScreen(
                           trainingService: trainingService,
                           optionRepository: optionRepository,
@@ -153,7 +172,7 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) => TrainingMethodBoardScreen(
                           boardTitle: '',
                           initialLayoutJson: '',
@@ -176,7 +195,7 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) => NewsScreen(
                           trainingService: trainingService,
                           localeService: localeService,
@@ -195,7 +214,7 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) => NotificationCenterScreen(
                           optionRepository: optionRepository,
                           settingsService: settingsService,
@@ -210,7 +229,7 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      AppPageRoute(
                         builder: (_) =>
                             SkillQuizScreen(optionRepository: optionRepository),
                       ),
@@ -223,31 +242,11 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const RunningCoachScreen(),
-                      ),
+                      AppPageRoute(builder: (_) => const RunningCoachScreen()),
                     );
                   },
                 ),
               ],
-            ),
-            const SizedBox(height: 4),
-            _DrawerActionTile(
-              icon: Icons.settings,
-              label: l10n.settings,
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => SettingsScreen(
-                      localeService: localeService,
-                      settingsService: settingsService,
-                      optionRepository: optionRepository,
-                      driveBackupService: driveBackupService,
-                    ),
-                  ),
-                );
-              },
             ),
           ],
         ),
@@ -265,7 +264,7 @@ class AppDrawer extends StatelessWidget {
       return;
     }
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => HomeScreen(
           trainingService: trainingService,
           mealLogService: MealLogService(optionRepository),

@@ -108,11 +108,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onTap: () => _openProfileTestsScreen(context),
         ),
     ];
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: () async {
-        await _saveLatestNow();
-        return true;
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) return;
+        unawaited(_saveLatestNow());
       },
       child: Scaffold(
         appBar: AppBar(

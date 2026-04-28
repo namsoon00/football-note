@@ -175,8 +175,7 @@ void main() {
     expect(find.textContaining('패스 감각 정리.'), findsOneWidget);
   });
 
-  testWidgets(
-      'coach lesson screen quiz sticker hides wrong answers and expands', (
+  testWidgets('coach lesson screen quiz sticker hides wrong answers and expands', (
     WidgetTester tester,
   ) async {
     final optionRepository = _FakeOptionRepository()
@@ -282,6 +281,63 @@ void main() {
       expect(find.text('리프팅 · 인사이드'), findsOneWidget);
     },
   );
+
+  testWidgets('coach lesson screen splits jump rope and lifting stickers', (
+    WidgetTester tester,
+  ) async {
+    final createdAt = DateTime(2026, 3, 15, 18, 0);
+    final optionRepository = _FakeOptionRepository()
+      ..setRawValue(
+        'custom_diary_entries_v3',
+        '{"2026-03-15":{"title":"컨디셔닝 분리","story":"정리","sections":[],"moodId":"calm","recordStickers":[{"kind":"jumpRope","refId":"2026-03-15"},{"kind":"lifting","refId":"2026-03-15"}],"stickers":[],"updatedAt":"2026-03-15T21:00:00.000"}}',
+      );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: CoachLessonScreen(
+            optionRepository: optionRepository,
+            trainingService: TrainingService(
+              _FakeTrainingRepository(<TrainingEntry>[
+                TrainingEntry(
+                  date: createdAt,
+                  createdAt: createdAt,
+                  durationMinutes: 40,
+                  intensity: 3,
+                  type: '기초',
+                  mood: 3,
+                  injury: false,
+                  notes: '',
+                  location: '운동장',
+                  liftingByPart: const {'inside': 50, 'outside': 60},
+                  jumpRopeCount: 200,
+                  jumpRopeMinutes: 8,
+                  jumpRopeEnabled: true,
+                ),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('줄넘기'), findsOneWidget);
+    expect(find.textContaining('줄넘기 200회/8분'), findsOneWidget);
+    expect(find.text('리프팅'), findsOneWidget);
+    expect(find.textContaining('리프팅 110회'), findsOneWidget);
+    expect(find.text('리프팅 · 인사이드'), findsOneWidget);
+    expect(find.text('리프팅 · 아웃사이드'), findsOneWidget);
+  });
 
   testWidgets('coach lesson screen shows empty guidance without records', (
     WidgetTester tester,
@@ -672,43 +728,43 @@ void main() {
     },
   );
 
-  testWidgets('coach lesson screen opens diary composer without layout errors',
-      (
-    WidgetTester tester,
-  ) async {
-    final optionRepository = _FakeOptionRepository();
+  testWidgets(
+    'coach lesson screen opens diary composer without layout errors',
+    (WidgetTester tester) async {
+      final optionRepository = _FakeOptionRepository();
 
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: TestAssetBundle(),
-        child: MaterialApp(
-          locale: const Locale('ko', 'KR'),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
-          home: CoachLessonScreen(
-            optionRepository: optionRepository,
-            trainingService: TrainingService(
-              _FakeTrainingRepository(const <TrainingEntry>[]),
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: CoachLessonScreen(
+              optionRepository: optionRepository,
+              trainingService: TrainingService(
+                _FakeTrainingRepository(const <TrainingEntry>[]),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('diary-create-first-button')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('${DateTime.now().day}').first);
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('diary-create-first-button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('${DateTime.now().day}').first);
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('diary-save-button')), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.byKey(const ValueKey('diary-save-button')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('coach lesson screen can create diary without training records', (
     WidgetTester tester,
@@ -1065,8 +1121,7 @@ void main() {
     expect(raw, contains('자동 저장된 본문'));
   });
 
-  testWidgets(
-      'coach lesson screen keeps news sticker reorder in rendered order', (
+  testWidgets('coach lesson screen keeps news sticker reorder in rendered order', (
     WidgetTester tester,
   ) async {
     final day = DateTime(2026, 3, 15);

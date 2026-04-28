@@ -502,21 +502,43 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
       });
     }
     try {
-      final overview = await _service.fetchRankingOverview(
-        gender: _rankingGender,
-      );
+      final results = await Future.wait<Object?>([
+        _captureLoad(_service.fetchRankingOverview(gender: _rankingGender)),
+        _captureLoad(_service.fetchMatchOverview(gender: _rankingGender)),
+        if (shouldLoadKfa) _captureLoad(_service.fetchKfaMatchOverview()),
+      ]);
       if (!mounted || token != _loadToken) return;
+      final rankingResult = results[0] as _LoadResult<FifaWorldOverview>;
+      final matchResult = results[1] as _LoadResult<FifaWorldOverview>;
+      final kfaResult = shouldLoadKfa
+          ? results[2] as _LoadResult<KfaMatchOverview>
+          : null;
+      final rankingOverview = rankingResult.value;
+      final matchOverview = matchResult.value;
+      final mergedOverview = switch ((rankingOverview, matchOverview)) {
+        (final ranking?, final match?) => ranking.copyWith(
+          lastUpdatedAt: ranking.lastUpdatedAt ?? match.lastUpdatedAt,
+          nextUpdatedAt: ranking.nextUpdatedAt ?? match.nextUpdatedAt,
+          recentResults: match.recentResults,
+          upcomingFixtures: match.upcomingFixtures,
+        ),
+        (final ranking?, null) => ranking,
+        (null, final match?) => match,
+        (null, null) => null,
+      };
       setState(() {
-        _overview = overview;
         _isRankingLoading = false;
-        _isMatchLoading = true;
-        _isKfaLoading = shouldLoadKfa;
-        _hadError = false;
+        _isMatchLoading = false;
+        _isKfaLoading = false;
+        _overview = mergedOverview;
+        _kfaRecentResults = kfaResult?.value?.recentResults ?? const [];
+        _kfaUpcomingFixtures = kfaResult?.value?.upcomingFixtures ?? const [];
+        _hadError =
+            mergedOverview == null ||
+            !rankingResult.succeeded ||
+            !matchResult.succeeded ||
+            (shouldLoadKfa && !(kfaResult?.succeeded ?? false));
       });
-      unawaited(_loadMatchOverview(token));
-      if (shouldLoadKfa) {
-        unawaited(_loadKfaMatchOverview(token));
-      }
     } catch (_) {
       if (!mounted || token != _loadToken) return;
       setState(() {
@@ -528,42 +550,12 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
     }
   }
 
-  Future<void> _loadMatchOverview(int token) async {
+  Future<_LoadResult<T>> _captureLoad<T>(Future<T> future) async {
     try {
-      final matchOverview = await _service.fetchMatchOverview(
-        gender: _rankingGender,
-      );
-      if (!mounted || token != _loadToken) return;
-      setState(() {
-        final current = _overview;
-        _overview = current == null
-            ? matchOverview
-            : current.copyWith(
-                lastUpdatedAt:
-                    current.lastUpdatedAt ?? matchOverview.lastUpdatedAt,
-                nextUpdatedAt:
-                    current.nextUpdatedAt ?? matchOverview.nextUpdatedAt,
-                recentResults: matchOverview.recentResults,
-                upcomingFixtures: matchOverview.upcomingFixtures,
-              );
-        _isMatchLoading = false;
-      });
+      return _LoadResult(value: await future, succeeded: true);
     } catch (_) {
-      if (!mounted || token != _loadToken) return;
-      setState(() {
-        _isMatchLoading = false;
-      });
+      return const _LoadResult(succeeded: false);
     }
-  }
-
-  Future<void> _loadKfaMatchOverview(int token) async {
-    final overview = await _service.fetchKfaMatchOverview();
-    if (!mounted || token != _loadToken) return;
-    setState(() {
-      _kfaRecentResults = overview.recentResults;
-      _kfaUpcomingFixtures = overview.upcomingFixtures;
-      _isKfaLoading = false;
-    });
   }
 
   bool get _isKoreanLocale =>
@@ -631,6 +623,13 @@ class _FifaRankingScreenState extends State<FifaRankingScreen> {
       browserConfiguration: const BrowserConfiguration(showTitle: true),
     );
   }
+}
+
+class _LoadResult<T> {
+  const _LoadResult({this.value, required this.succeeded});
+
+  final T? value;
+  final bool succeeded;
 }
 
 class _HeroChip extends StatelessWidget {

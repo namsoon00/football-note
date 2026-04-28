@@ -429,33 +429,35 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
           accuracy: LocationAccuracy.high,
         ),
       );
-      final place = await _resolvePlaceName(
+      final placeFuture = _resolvePlaceName(
         latitude: position.latitude,
         longitude: position.longitude,
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
       );
+      final weatherFuture = WeatherSharedResource.fetchForCoordinates(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        l10n: l10n,
+        locale: locale,
+      )
+          .then<WeatherSharedSnapshot?>((snapshot) => snapshot)
+          .catchError((_) => null);
+      final results = await Future.wait<Object?>([placeFuture, weatherFuture]);
+      final place = results[0] as String;
       if (!mounted) return;
       setState(() {
         _weatherNeedsLocation = place.trim().isEmpty;
         _weatherLocation = place;
       });
 
-      WeatherSharedSnapshot? weather;
-      try {
-        weather = await WeatherSharedResource.fetchForLocation(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          location: place,
-          l10n: l10n,
-          locale: locale,
-        );
-      } catch (_) {
-        weather = null;
-      }
-
       if (!mounted) return;
-      final resolvedWeather = weather;
+      final resolvedWeather = (results[1] as WeatherSharedSnapshot?)?.copyWith(
+        location: place,
+      );
+      if (resolvedWeather != null && resolvedWeather.hasData) {
+        WeatherSharedResource.primeSnapshot(resolvedWeather);
+      }
       if (resolvedWeather != null &&
           (resolvedWeather.summary.trim().isNotEmpty ||
               resolvedWeather.weatherCode != null)) {
@@ -503,7 +505,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
     WeatherDetailInitialAction initialAction = WeatherDetailInitialAction.none,
   }) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => WeatherDetailScreen(
           initialLocation: _weatherLocation,
           initialSummary: _weatherSummary,
@@ -541,7 +543,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   Future<void> _openSettings(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => SettingsScreen(
           localeService: widget.localeService,
           settingsService: widget.settingsService,
@@ -554,7 +556,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   Future<void> _openProfile(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
       ),
@@ -563,7 +565,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   Future<void> _openNews() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NewsScreen(
           trainingService: widget.trainingService,
           localeService: widget.localeService,
@@ -580,7 +582,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   Future<void> _openQuizShortcut() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
@@ -589,7 +591,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
 
   Future<void> _openNotifications() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NotificationCenterScreen(
           optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,
@@ -835,7 +837,7 @@ class _HomeHubScreenState extends State<HomeHubScreen> {
   Future<void> _openLevelGuide() async {
     final levelState = PlayerLevelService(widget.optionRepository).loadState();
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => PlayerLevelGuideScreen(
           currentLevel: levelState.level,
           optionRepository: widget.optionRepository,

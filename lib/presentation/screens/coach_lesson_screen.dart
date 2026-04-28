@@ -30,6 +30,7 @@ import '../models/training_method_layout.dart';
 import '../widgets/app_background.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_feedback.dart';
+import '../widgets/app_page_route.dart';
 import '../widgets/rice_bowl_summary.dart';
 import '../widgets/fortune_card.dart';
 import '../widgets/shared_tab_header.dart';
@@ -461,7 +462,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Future<void> _openProfile() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
       ),
@@ -475,7 +476,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return _openProfile();
     }
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => SettingsScreen(
           localeService: localeService,
           settingsService: settingsService,
@@ -496,7 +497,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       return;
     }
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NewsScreen(
           trainingService: trainingService,
           localeService: localeService,
@@ -514,7 +515,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
 
   Future<void> _openQuiz() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
@@ -525,7 +526,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final settingsService = widget.settingsService;
     if (settingsService == null) return;
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NotificationCenterScreen(
           optionRepository: widget.optionRepository,
           settingsService: settingsService,
@@ -2063,7 +2064,33 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           id: sticker.storageId,
           kind: _DiaryRecordStickerKind.conditioning,
           title: _l10n.diaryStickerConditioning,
-          summary: _conditioningJumpRopeSummary(day),
+          summary: _conditioningSummary(day),
+          metaLabels: [
+            if (_totalLiftingCount(day) > 0)
+              _isKo
+                  ? '리프팅 ${_totalLiftingCount(day)}회'
+                  : 'Lifting ${_totalLiftingCount(day)} reps',
+            if (_totalJumpRopeMinutes(day) > 0)
+              _isKo
+                  ? '${_totalJumpRopeMinutes(day)}분'
+                  : '${_totalJumpRopeMinutes(day)} min',
+            if (_totalJumpRopeCount(day) > 0)
+              _isKo
+                  ? '${_totalJumpRopeCount(day)}회'
+                  : '${_totalJumpRopeCount(day)} reps',
+          ],
+          icon: Icons.sports_gymnastics_outlined,
+          tint: const Color(0xFF2F8F6A),
+          focusItems: _liftingFocusItems(day),
+        );
+      case _DiaryRecordStickerKind.jumpRope:
+        final dayToken = _dayStorageToken(day.date);
+        if (sticker.refId != dayToken || !_hasJumpRopeRecord(day)) return null;
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.jumpRope,
+          title: _l10n.diaryConditioningJumpRopeLabel,
+          summary: _jumpRopeSummary(day),
           metaLabels: [
             if (_totalJumpRopeMinutes(day) > 0)
               _isKo
@@ -2076,7 +2103,23 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
           icon: Icons.sports_gymnastics_outlined,
           tint: const Color(0xFF2F8F6A),
-          focusItems: _conditioningFocusItems(day),
+        );
+      case _DiaryRecordStickerKind.lifting:
+        final dayToken = _dayStorageToken(day.date);
+        if (sticker.refId != dayToken || !_hasLiftingRecord(day)) return null;
+        return _DiaryRecordStickerViewData(
+          id: sticker.storageId,
+          kind: _DiaryRecordStickerKind.lifting,
+          title: _l10n.diaryConditioningLiftingLabel,
+          summary: _liftingSummary(day),
+          metaLabels: [
+            _isKo
+                ? '총 ${_totalLiftingCount(day)}회'
+                : '${_totalLiftingCount(day)} reps',
+          ],
+          icon: Icons.sports_soccer_outlined,
+          tint: const Color(0xFF1D6FA3),
+          focusItems: _liftingFocusItems(day),
         );
       case _DiaryRecordStickerKind.injury:
         final dayToken = _dayStorageToken(day.date);
@@ -2148,10 +2191,15 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return day.entries.any((entry) => entry.injury);
   }
 
-  bool _hasConditioningRecord(_DiaryDayData day) {
+  bool _hasLiftingRecord(_DiaryDayData day) {
+    return day.entries.any(
+      (entry) => entry.liftingByPart.values.any((count) => count > 0),
+    );
+  }
+
+  bool _hasJumpRopeRecord(_DiaryDayData day) {
     return day.entries.any(
       (entry) =>
-          entry.liftingByPart.values.any((count) => count > 0) ||
           entry.jumpRopeCount > 0 ||
           entry.jumpRopeMinutes > 0 ||
           entry.jumpRopeNote.trim().isNotEmpty,
@@ -2356,9 +2404,8 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       if (_weatherTodoSeed(day) case final weatherSeed?) weatherSeed,
       if (_quizHistoryForDay(day.date) case final quiz?) _quizTodoSeed(quiz),
     ];
-    if (_hasConditioningRecord(day)) {
-      seeds.add(_conditioningTodoSeed(day));
-    }
+    if (_hasLiftingRecord(day)) seeds.add(_liftingTodoSeed(day));
+    if (_hasJumpRopeRecord(day)) seeds.add(_jumpRopeTodoSeed(day));
     if (_hasRecoveryRecord(day)) {
       seeds.add(_injuryTodoSeed(day));
     }
@@ -2505,21 +2552,40 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     );
   }
 
-  _DiaryTodoSeed _conditioningTodoSeed(_DiaryDayData day) {
+  _DiaryTodoSeed _liftingTodoSeed(_DiaryDayData day) {
     final dayToken = _dayStorageToken(day.date);
     return _DiaryTodoSeed(
-      id: 'conditioning-$dayToken',
-      title: _isKo ? '줄넘기와 리프팅' : 'Jump rope and lifting',
-      summary: _conditioningSummary(day),
+      id: 'lifting-$dayToken',
+      title: _l10n.diaryConditioningLiftingLabel,
+      summary: _liftingSummary(day),
       storySentence: _isKo
-          ? '줄넘기와 리프팅을 하면서 몸이 어떻게 풀렸는지부터 적어 본다.'
-          : 'Start with how the body opened up during jump rope and lifting.',
-      sectionTitle: _isKo ? '몸 풀린 순간' : 'Body wake-up',
+          ? '리프팅 반복이 오늘 감각을 어떻게 붙잡아 줬는지 적어 본다.'
+          : 'Write how the lifting rhythm held today’s ball feel in place.',
+      sectionTitle: _isKo ? '리프팅 메모' : 'Lifting note',
       sectionBody: _isKo
-          ? '반복 수와 함께 몸이 가벼워진 순간을 남긴다.'
-          : 'Keep the moment the body felt lighter together with the counts.',
+          ? '반복 수와 함께 발 감각이 안정된 순간을 남긴다.'
+          : 'Keep the moment the touch settled together with the counts.',
+      icon: Icons.sports_soccer_outlined,
+      recordKind: _DiaryRecordStickerKind.lifting,
+      recordRefId: dayToken,
+    );
+  }
+
+  _DiaryTodoSeed _jumpRopeTodoSeed(_DiaryDayData day) {
+    final dayToken = _dayStorageToken(day.date);
+    return _DiaryTodoSeed(
+      id: 'jump-rope-$dayToken',
+      title: _l10n.diaryConditioningJumpRopeLabel,
+      summary: _jumpRopeSummary(day),
+      storySentence: _isKo
+          ? '줄넘기로 몸이 깨어난 순간과 호흡 변화를 적어 본다.'
+          : 'Write the moment jump rope woke the body up and changed the breathing rhythm.',
+      sectionTitle: _isKo ? '줄넘기 메모' : 'Jump rope note',
+      sectionBody: _isKo
+          ? '횟수와 시간, 몸이 가벼워진 타이밍을 함께 남긴다.'
+          : 'Keep the count, time, and the point where the body started to feel lighter.',
       icon: Icons.sports_gymnastics_outlined,
-      recordKind: _DiaryRecordStickerKind.conditioning,
+      recordKind: _DiaryRecordStickerKind.jumpRope,
       recordRefId: dayToken,
     );
   }
@@ -2689,7 +2755,30 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     return 'Jump rope $totalJumpMinutes min';
   }
 
-  List<_DiaryStickerFocusItem> _conditioningFocusItems(_DiaryDayData day) {
+  String _jumpRopeSummary(_DiaryDayData day) {
+    final base = _conditioningJumpRopeSummary(day);
+    final note = _jumpRopeNote(day);
+    if (note.isEmpty || base.isEmpty) {
+      return base;
+    }
+    return '$base · $note';
+  }
+
+  String _liftingSummary(_DiaryDayData day) {
+    final totalLifting = _totalLiftingCount(day);
+    if (_isKo) {
+      return '리프팅 $totalLifting회';
+    }
+    return 'Lifting $totalLifting reps';
+  }
+
+  String _jumpRopeNote(_DiaryDayData day) {
+    return day.entries
+        .map((entry) => entry.jumpRopeNote.trim())
+        .firstWhere((note) => note.isNotEmpty, orElse: () => '');
+  }
+
+  List<_DiaryStickerFocusItem> _liftingFocusItems(_DiaryDayData day) {
     final items = <_DiaryStickerFocusItem>[];
     for (final entry in _liftingBreakdown(day)) {
       items.add(
@@ -4673,6 +4762,8 @@ enum _DiaryRecordStickerKind {
   weather,
   meal,
   conditioning,
+  jumpRope,
+  lifting,
   injury,
   quiz,
 }

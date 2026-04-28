@@ -119,6 +119,49 @@ class WeatherSharedSnapshot {
       pm25 != null ||
       aqi != null ||
       dailyForecasts.isNotEmpty;
+
+  WeatherSharedSnapshot copyWith({
+    String? location,
+    String? localeTag,
+    DateTime? fetchedAt,
+    String? summary,
+    int? weatherCode,
+    double? temperature,
+    double? apparentTemperature,
+    double? humidity,
+    double? precipitation,
+    double? windSpeed,
+    double? temperatureMax,
+    double? temperatureMin,
+    double? temperatureDeltaFromYesterday,
+    double? pm10,
+    double? pm25,
+    int? aqi,
+    AirQualityScale? airQualityScale,
+    List<WeatherSharedDailyForecast>? dailyForecasts,
+  }) {
+    return WeatherSharedSnapshot(
+      location: location ?? this.location,
+      localeTag: localeTag ?? this.localeTag,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      summary: summary ?? this.summary,
+      weatherCode: weatherCode ?? this.weatherCode,
+      temperature: temperature ?? this.temperature,
+      apparentTemperature: apparentTemperature ?? this.apparentTemperature,
+      humidity: humidity ?? this.humidity,
+      precipitation: precipitation ?? this.precipitation,
+      windSpeed: windSpeed ?? this.windSpeed,
+      temperatureMax: temperatureMax ?? this.temperatureMax,
+      temperatureMin: temperatureMin ?? this.temperatureMin,
+      temperatureDeltaFromYesterday:
+          temperatureDeltaFromYesterday ?? this.temperatureDeltaFromYesterday,
+      pm10: pm10 ?? this.pm10,
+      pm25: pm25 ?? this.pm25,
+      aqi: aqi ?? this.aqi,
+      airQualityScale: airQualityScale ?? this.airQualityScale,
+      dailyForecasts: dailyForecasts ?? this.dailyForecasts,
+    );
+  }
 }
 
 class WeatherSharedResource {
@@ -156,6 +199,48 @@ class WeatherSharedResource {
     http.Client? client,
     DateTime? now,
   }) async {
+    return _fetchSnapshot(
+      latitude: latitude,
+      longitude: longitude,
+      location: location,
+      l10n: l10n,
+      locale: locale,
+      client: client,
+      now: now,
+      cacheSnapshot: true,
+    );
+  }
+
+  static Future<WeatherSharedSnapshot> fetchForCoordinates({
+    required double latitude,
+    required double longitude,
+    required AppLocalizations l10n,
+    required Locale locale,
+    http.Client? client,
+    DateTime? now,
+  }) async {
+    return _fetchSnapshot(
+      latitude: latitude,
+      longitude: longitude,
+      location: '',
+      l10n: l10n,
+      locale: locale,
+      client: client,
+      now: now,
+      cacheSnapshot: false,
+    );
+  }
+
+  static Future<WeatherSharedSnapshot> _fetchSnapshot({
+    required double latitude,
+    required double longitude,
+    required String location,
+    required AppLocalizations l10n,
+    required Locale locale,
+    required bool cacheSnapshot,
+    http.Client? client,
+    DateTime? now,
+  }) async {
     final localClient = client ?? http.Client();
     final ownsClient = client == null;
     final referenceTime = now ?? DateTime.now();
@@ -187,7 +272,7 @@ class WeatherSharedResource {
         airQualitySnapshot: responses[1] as AirQualitySnapshot,
         yesterdayTemperature: responses[2] as double?,
       );
-      if (snapshot.hasData) {
+      if (cacheSnapshot && snapshot.hasData) {
         _cachedSnapshot = snapshot;
       }
       return snapshot;
@@ -212,8 +297,8 @@ class WeatherSharedResource {
     final temperature = weatherSnapshot.temperature;
     final temperatureDeltaFromYesterday =
         temperature == null || yesterdayTemperature == null
-            ? null
-            : temperature - yesterdayTemperature;
+        ? null
+        : temperature - yesterdayTemperature;
     final forecasts = weatherSnapshot.dailyForecasts
         .map(
           (forecast) => WeatherSharedDailyForecast(
@@ -299,13 +384,13 @@ class WeatherSharedResource {
     final dateLabel = DateFormat('yyyy-MM-dd').format(yesterday);
     final uri =
         Uri.https('archive-api.open-meteo.com', '/v1/archive', <String, String>{
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'start_date': dateLabel,
-      'end_date': dateLabel,
-      'hourly': 'temperature_2m',
-      'timezone': 'auto',
-    });
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
+          'start_date': dateLabel,
+          'end_date': dateLabel,
+          'hourly': 'temperature_2m',
+          'timezone': 'auto',
+        });
     final response = await client.get(uri);
     if (response.statusCode != 200) return null;
 
@@ -327,9 +412,11 @@ class WeatherSharedResource {
     var bestIndex = -1;
     var bestDiffSeconds = 1 << 30;
 
-    for (var index = 0;
-        index < times.length && index < temperatures.length;
-        index++) {
+    for (
+      var index = 0;
+      index < times.length && index < temperatures.length;
+      index++
+    ) {
       final rawTime = times[index]?.toString();
       if (rawTime == null || rawTime.trim().isEmpty) continue;
       final parsedTime = DateTime.tryParse(rawTime);
@@ -368,11 +455,11 @@ class WeatherSharedResource {
 
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-      'latitude': latitude.toString(),
-      'longitude': longitude.toString(),
-      'current': 'pm10,pm2_5,us_aqi',
-      'timezone': 'auto',
-    });
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
+          'current': 'pm10,pm2_5,us_aqi',
+          'timezone': 'auto',
+        });
     final airResponse = await client.get(airQualityUri);
     if (airResponse.statusCode != 200) {
       return const AirQualitySnapshot();
