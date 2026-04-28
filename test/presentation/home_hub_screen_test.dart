@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/family_access_service.dart';
 import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
 import 'package:football_note/application/settings_service.dart';
@@ -14,6 +15,7 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/models/training_method_layout.dart';
+import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:football_note/presentation/screens/home_hub_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
 
@@ -169,6 +171,113 @@ void main() {
       expect(widget.data!.length, lessThanOrEqualTo(3));
     }
   });
+
+  testWidgets('parent mode continue actions stay read-only from home', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    await optionRepository.setValue(
+      FamilyAccessService.currentRoleLocalKey,
+      FamilyRole.parent.name,
+    );
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final trainingService = TrainingService(_MemoryTrainingRepository());
+    final mealLogService = MealLogService(optionRepository);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final board = TrainingBoard(
+      id: 'board-parent',
+      title: '보호자 확인용 스케치',
+      layoutJson: const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(
+            name: '보호자 확인용 스케치',
+            methodText: '라인 간격 확인',
+            items: <TrainingMethodItem>[],
+          ),
+        ],
+      ).encode(),
+      createdAt: now.subtract(const Duration(minutes: 30)),
+      updatedAt: now,
+    );
+    await optionRepository.setValue(
+      'training_boards_v1',
+      jsonEncode([board.toMap()]),
+    );
+
+    await tester.pumpWidget(
+      _buildApp(
+        HomeHubScreen(
+          trainingService: trainingService,
+          mealLogService: mealLogService,
+          localeService: localeService,
+          optionRepository: optionRepository,
+          settingsService: settingsService,
+          onCreate: () {},
+          onQuickPlan: () {},
+          onQuickMatch: () {},
+          onQuickQuiz: () {},
+          onQuickMeal: () {},
+          onQuickBoard: () {},
+          onOpenPlans: () {},
+          onOpenLogs: () {},
+          onOpenDiary: () {},
+          onOpenWeeklyStats: () {},
+          onEdit: (_) {
+            fail('parent mode should not route through editable onEdit');
+          },
+          onEditTrainingBoard: (_) {
+            fail(
+              'parent mode should not route through editable training board flow',
+            );
+          },
+          onCreateTrainingBoard: ({DateTime? initialDate}) async {
+            fail('parent mode should not create a board from continue');
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await trainingService.add(
+      TrainingEntry(
+        date: today,
+        createdAt: now,
+        durationMinutes: 55,
+        intensity: 4,
+        type: '패스',
+        mood: 4,
+        injury: false,
+        notes: '오늘 기록',
+        location: '메인 구장',
+        program: '빌드업',
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.ensureVisible(find.text('이어서 쓰기'));
+    await tester.tap(find.text('이어서 쓰기'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.byType(EntryFormScreen), findsOneWidget);
+    expect(find.widgetWithText(TextButton, '저장'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.arrow_back).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    await tester.ensureVisible(find.text('바로 수정'));
+    await tester.tap(find.text('바로 수정'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.byType(TrainingMethodBoardScreen), findsOneWidget);
+    expect(find.text('공유 역할에서는 훈련 스케치를 수정할 수 없어요.'), findsOneWidget);
+  });
 }
 
 Widget _buildApp(Widget home) {
@@ -192,18 +301,18 @@ class _MemoryOptionRepository implements OptionRepository {
   List<String> getOptions(String key, List<String> defaults) {
     final value = _values[key];
     if (value is List<String>) {
-      return value;
+      return List<String>.of(value);
     }
-    return defaults;
+    return List<String>.of(defaults);
   }
 
   @override
   List<int> getIntOptions(String key, List<int> defaults) {
     final value = _values[key];
     if (value is List<int>) {
-      return value;
+      return List<int>.of(value);
     }
-    return defaults;
+    return List<int>.of(defaults);
   }
 
   @override

@@ -110,8 +110,7 @@ class DriveBackupService implements BackupRepository {
   static const playerDriveMismatchErrorCode = recordDriveMismatchErrorCode;
   static const parentModeDriveMismatchErrorCode = 'parent_mode_drive_mismatch';
   static const invalidBackupPayloadErrorCode = 'invalid_backup_payload';
-  static const unsupportedBackupVersionErrorCode =
-      'unsupported_backup_version';
+  static const unsupportedBackupVersionErrorCode = 'unsupported_backup_version';
   static const _recentDriveConnectionTtl = Duration(seconds: 10);
   static const Set<String> _excludedOptionKeys = {
     _lastBackupKey,
@@ -153,7 +152,7 @@ class DriveBackupService implements BackupRepository {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
       await _syncConnectedDriveAccountCache();
-      await _syncSharedChildDriveMetadataIfNeeded();
+      await _prepareConnectedDriveDataForCurrentRole(driveApi: driveApi);
       await _backupWithApi(driveApi);
     } catch (e, st) {
       if (!_isAuthError(e)) rethrow;
@@ -164,7 +163,7 @@ class DriveBackupService implements BackupRepository {
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
       await _syncConnectedDriveAccountCache();
-      await _syncSharedChildDriveMetadataIfNeeded();
+      await _prepareConnectedDriveDataForCurrentRole(driveApi: retriedApi);
       await _backupWithApi(retriedApi);
     }
   }
@@ -181,7 +180,7 @@ class DriveBackupService implements BackupRepository {
       try {
         final driveApi = await _driveApi(requireInteractive: false);
         await _syncConnectedDriveAccountCache();
-        await _syncSharedChildDriveMetadataIfNeeded();
+        await _prepareConnectedDriveDataForCurrentRole(driveApi: driveApi);
         await _backupWithApi(driveApi);
         return true;
       } catch (e, st) {
@@ -203,10 +202,10 @@ class DriveBackupService implements BackupRepository {
       if (account == null) {
         return false;
       }
-      await _syncConnectedDriveAccountCache();
-      await _syncSharedChildDriveMetadataIfNeeded();
       final authHeaders = await account.authHeaders;
       final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
+      await _syncConnectedDriveAccountCache();
+      await _prepareConnectedDriveDataForCurrentRole(driveApi: driveApi);
       await _backupWithApi(driveApi);
       return true;
     } catch (e, st) {
@@ -368,6 +367,7 @@ class DriveBackupService implements BackupRepository {
     try {
       final driveApi = await _driveApi(requireInteractive: kIsWeb);
       await _restoreLatestWithApi(driveApi);
+      await _rememberCurrentRoleDriveConnectionAfterRestore();
     } catch (e, st) {
       if (!_isAuthError(e)) rethrow;
       debugPrint(
@@ -377,6 +377,7 @@ class DriveBackupService implements BackupRepository {
       await _reauthenticateForDriveScope();
       final retriedApi = await _driveApi(requireInteractive: false);
       await _restoreLatestWithApi(retriedApi);
+      await _rememberCurrentRoleDriveConnectionAfterRestore();
     }
   }
 
@@ -415,6 +416,8 @@ class DriveBackupService implements BackupRepository {
     if (kIsWeb) {
       await _ensureWebAccessToken(requireInteractive: true);
       await _syncConnectedDriveAccountCache();
+      final driveApi = await _driveApi(requireInteractive: false);
+      await _prepareConnectedDriveDataForCurrentRole(driveApi: driveApi);
       return;
     }
     final account = await _ensureSignedIn(requireInteractive: true);
@@ -426,6 +429,9 @@ class DriveBackupService implements BackupRepository {
       ),
     );
     await _syncConnectedDriveAccountCache();
+    final authHeaders = await account.authHeaders;
+    final driveApi = drive.DriveApi(_GoogleAuthClient(authHeaders));
+    await _prepareConnectedDriveDataForCurrentRole(driveApi: driveApi);
   }
 
   Future<bool> isSignedIn() async {
@@ -802,6 +808,12 @@ class DriveBackupService implements BackupRepository {
 
   Future<Map<String, dynamic>?> _loadLatestRemoteBackupMap() async {
     final driveApi = await _driveApi(requireInteractive: false);
+    return _loadLatestRemoteBackupMapWithApi(driveApi);
+  }
+
+  Future<Map<String, dynamic>?> _loadLatestRemoteBackupMapWithApi(
+    drive.DriveApi driveApi,
+  ) async {
     final folderId = await _findFolderId(driveApi);
     if (folderId == null) {
       return null;
@@ -936,6 +948,33 @@ class DriveBackupService implements BackupRepository {
     if (info.label.trim().isNotEmpty) {
       await _optionBox.put(sharedChildDriveLabelKey, info.label.trim());
     }
+  }
+
+  Future<void> _prepareConnectedDriveDataForCurrentRole({
+    required drive.DriveApi driveApi,
+  }) async {
+    if (_familyService.loadState().currentRole != FamilyRole.child) {
+      return;
+    }
+    await _syncConnectedPlayerBackupIfNeeded(driveApi: driveApi);
+  }
+
+  Future<void> _syncConnectedPlayerBackupIfNeeded({
+    required drive.DriveApi driveApi,
+  }) async {
+    final current = _loadCachedDriveConnectionInfo();
+    if (current == null || current.email.trim().isEmpty) {
+      return;
+    }
+    final currentEmail = _normalizedEmail(current.email);
+    final savedEmail = _normalizedEmail(getSavedRecordDriveEmail());
+    if (savedEmail.isEmpty || savedEmail == currentEmail) {
+      await rememberRecordDriveConnection();
+      await _syncSharedChildDriveMetadataIfNeeded();
+      return;
+    }
+    final remoteBackup = await _loadLatestRemoteBackupMapWithApi(driveApi);
+    await _adoptConnectedPlayerBackup(remoteBackup: remoteBackup);
   }
 
   Future<String> _findOrCreateFolder(drive.DriveApi api) async {
@@ -1151,6 +1190,16 @@ class DriveBackupService implements BackupRepository {
     required Map<String, dynamic> remote,
   }) {
     return _buildUploadPayload(currentRole: FamilyRole.parent, remote: remote);
+  }
+
+  @visibleForTesting
+  Future<void> syncConnectedPlayerBackupForTesting({
+    required DriveConnectionInfo connectedAccount,
+    required Map<String, dynamic>? remoteBackup,
+  }) async {
+    _cacheRecentDriveConnection(connectedAccount);
+    await _storeConnectedDriveAccountCache(connectedAccount);
+    await _adoptConnectedPlayerBackup(remoteBackup: remoteBackup);
   }
 
   Future<void> _restoreFromMap(Map<String, dynamic> data) async {
@@ -1574,6 +1623,36 @@ class DriveBackupService implements BackupRepository {
       throw StateError(mismatchErrorCode);
     }
     await rememberConnection();
+  }
+
+  Future<void> _rememberCurrentRoleDriveConnectionAfterRestore() async {
+    await _syncConnectedDriveAccountCache();
+    await rememberCurrentRoleDriveConnection();
+    await _syncSharedChildDriveMetadataIfNeeded();
+  }
+
+  Future<void> _adoptConnectedPlayerBackup({
+    required Map<String, dynamic>? remoteBackup,
+  }) async {
+    final current = _loadCachedDriveConnectionInfo();
+    if (current == null || current.email.trim().isEmpty) {
+      return;
+    }
+    final currentEmail = _normalizedEmail(current.email);
+    final savedEmail = _normalizedEmail(getSavedRecordDriveEmail());
+    if (savedEmail.isEmpty || savedEmail == currentEmail) {
+      await rememberRecordDriveConnection();
+      await _syncSharedChildDriveMetadataIfNeeded();
+      return;
+    }
+    if (remoteBackup == null) {
+      throw StateError(recordDriveMismatchErrorCode);
+    }
+    await _saveLocalPreRestore();
+    _validateRestoreBinding(remoteBackup);
+    await _restoreFromMap(remoteBackup);
+    await rememberRecordDriveConnection();
+    await _syncSharedChildDriveMetadataIfNeeded();
   }
 
   bool hasLocalPreRestoreBackup() {

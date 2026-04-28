@@ -863,6 +863,153 @@ void main() {
       );
     },
   );
+
+  test(
+    'player account switch restores remote backup before adopting the new drive',
+    () async {
+      await optionBox.put(
+        DriveBackupService.recordDriveEmailLocalKey,
+        'old@example.com',
+      );
+      await optionBox.put(
+        DriveBackupService.recordDriveLabelLocalKey,
+        'Old Player · old@example.com',
+      );
+      await trainingBox.add(
+        TrainingEntry(
+          date: DateTime(2026, 4, 20),
+          createdAt: DateTime(2026, 4, 20, 7),
+          durationMinutes: 45,
+          intensity: 3,
+          type: 'passing',
+          mood: 3,
+          injury: false,
+          notes: 'old local player data',
+          location: 'old field',
+        ),
+      );
+
+      await service.syncConnectedPlayerBackupForTesting(
+        connectedAccount: const DriveConnectionInfo(
+          email: 'new@example.com',
+          displayName: 'New Player',
+          subjectId: 'new-subject',
+        ),
+        remoteBackup: <String, dynamic>{
+          'format': 'football_note_backup',
+          'version': 5,
+          'createdAt': '2026-04-20T09:00:00.000',
+          'entries': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'date': '2026-04-20T00:00:00.000',
+              'createdAt': '2026-04-20T08:00:00.000',
+              'durationMinutes': 70,
+              'intensity': 4,
+              'type': 'dribble',
+              'mood': 4,
+              'injury': false,
+              'notes': 'new remote player data',
+              'location': 'new field',
+              'program': 'Switch',
+              'drills': '',
+              'club': '',
+              'injuryPart': '',
+              'rehab': false,
+              'goal': '',
+              'feedback': '',
+              'imagePath': '',
+              'imagePaths': <String>[],
+              'status': 'normal',
+              'liftingByPart': <String, int>{},
+              'goalFocuses': <String>[],
+              'goodPoints': '',
+              'improvements': '',
+              'nextGoal': '',
+              'jumpRopeCount': 0,
+              'jumpRopeMinutes': 0,
+              'jumpRopeEnabled': false,
+              'jumpRopeNote': '',
+              'breakfastDone': false,
+              'breakfastRiceBowls': 0,
+              'lunchDone': false,
+              'lunchRiceBowls': 0,
+              'dinnerDone': false,
+              'dinnerRiceBowls': 0,
+            },
+          ],
+          'options': <String, dynamic>{'profile_name': 'New Player'},
+          'optionRecords': const <Map<String, dynamic>>[
+            <String, dynamic>{'key': 'profile_name', 'value': 'New Player'},
+          ],
+          'family': const <String, dynamic>{
+            'updatedByRole': 'child',
+            'familyLayerOnly': false,
+          },
+        },
+      );
+
+      expect(trainingBox.length, 1);
+      expect(trainingBox.values.first.notes, 'new remote player data');
+      expect(service.getSavedRecordDriveEmail(), 'new@example.com');
+      expect(
+        service.getSavedRecordDriveLabel(),
+        'New Player · new@example.com',
+      );
+      expect(
+        optionBox.get(DriveBackupService.sharedChildDriveEmailKey),
+        'new@example.com',
+      );
+      expect(service.hasLocalPreRestoreBackup(), isTrue);
+    },
+  );
+
+  test(
+    'player account switch is blocked when the new drive has no remote backup',
+    () async {
+      await optionBox.put(
+        DriveBackupService.recordDriveEmailLocalKey,
+        'old@example.com',
+      );
+      await optionBox.put(
+        DriveBackupService.recordDriveLabelLocalKey,
+        'Old Player · old@example.com',
+      );
+      await trainingBox.add(
+        TrainingEntry(
+          date: DateTime(2026, 4, 20),
+          createdAt: DateTime(2026, 4, 20, 7),
+          durationMinutes: 45,
+          intensity: 3,
+          type: 'passing',
+          mood: 3,
+          injury: false,
+          notes: 'old local player data',
+          location: 'old field',
+        ),
+      );
+
+      expect(
+        () => service.syncConnectedPlayerBackupForTesting(
+          connectedAccount: const DriveConnectionInfo(
+            email: 'new@example.com',
+            displayName: 'New Player',
+            subjectId: 'new-subject',
+          ),
+          remoteBackup: null,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            DriveBackupService.recordDriveMismatchErrorCode,
+          ),
+        ),
+      );
+      expect(trainingBox.length, 1);
+      expect(trainingBox.values.first.notes, 'old local player data');
+      expect(service.getSavedRecordDriveEmail(), 'old@example.com');
+    },
+  );
 }
 
 class _FakeBackupAssetFileStore implements BackupAssetFileStore {
