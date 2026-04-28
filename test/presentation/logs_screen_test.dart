@@ -162,6 +162,64 @@ void main() {
     expect(find.text('아직 기록이 없습니다.'), findsOneWidget);
   });
 
+  testWidgets('Logs screen marks filter button when filters are active', (
+    WidgetTester tester,
+  ) async {
+    await box.clear();
+    await optionBox.clear();
+    await service.add(
+      TrainingEntry(
+        date: DateTime(2024, 1, 4),
+        durationMinutes: 45,
+        intensity: 3,
+        type: '패스',
+        mood: 3,
+        injury: true,
+        notes: '필터 테스트',
+        location: '학교 운동장',
+      ),
+    );
+
+    await tester.pumpWidget(
+      DefaultAssetBundle(
+        bundle: TestAssetBundle(),
+        child: MaterialApp(
+          locale: const Locale('ko', 'KR'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+          home: LogsScreen(
+            trainingService: service,
+            localeService: localeService,
+            optionRepository: HiveOptionRepository(optionBox),
+            settingsService: settingsService,
+            onEdit: (_) {},
+            onCreate: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+
+    final activeIndicatorKey = ValueKey(
+      'home-option-active-${Icons.tune.codePoint}',
+    );
+    expect(find.byKey(activeIndicatorKey), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.tune));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('부상 기록만'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('적용'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(activeIndicatorKey), findsOneWidget);
+  });
+
   testWidgets('Logs screen shows quick guide only when there are no entries', (
     WidgetTester tester,
   ) async {

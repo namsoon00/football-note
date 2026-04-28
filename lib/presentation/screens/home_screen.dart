@@ -117,7 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onEdit: _openEdit,
         onCreate: () => _openCreate(initialDate: _calendarSelectedDay),
         onCreateMeal: () => _openMealLog(initialDate: _calendarSelectedDay),
-        quickCreateAction: _pendingCalendarQuickCreateAction ??
+        quickCreateAction:
+            _pendingCalendarQuickCreateAction ??
             widget.calendarQuickCreateAction,
         onQuickCreateHandled: _clearCalendarQuickCreateAction,
         onSelectedDayChanged: (day) {
@@ -312,6 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openCreate({
     DateTime? initialDate,
     bool initialOpenTrainingBoardEditor = false,
+    bool closeAfterInitialTrainingBoardEditor = false,
   }) async {
     await _pushPageSafely(
       AppPageRoute(
@@ -323,6 +325,8 @@ class _HomeScreenState extends State<HomeScreen> {
           driveBackupService: widget.driveBackupService,
           initialDate: initialDate,
           initialOpenTrainingBoardEditor: initialOpenTrainingBoardEditor,
+          closeAfterInitialTrainingBoardEditor:
+              closeAfterInitialTrainingBoardEditor,
         ),
       ),
     );
@@ -389,6 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openEdit(
     entry, {
     bool initialOpenTrainingBoardEditor = false,
+    bool closeAfterInitialTrainingBoardEditor = false,
   }) async {
     await _pushPageSafely(
       AppPageRoute(
@@ -400,19 +405,26 @@ class _HomeScreenState extends State<HomeScreen> {
           settingsService: widget.settingsService,
           driveBackupService: widget.driveBackupService,
           initialOpenTrainingBoardEditor: initialOpenTrainingBoardEditor,
+          closeAfterInitialTrainingBoardEditor:
+              closeAfterInitialTrainingBoardEditor,
         ),
       ),
     );
   }
 
   Future<void> _openEditTrainingBoard(TrainingEntry entry) async {
-    await _openEdit(entry, initialOpenTrainingBoardEditor: true);
+    await _openEdit(
+      entry,
+      initialOpenTrainingBoardEditor: true,
+      closeAfterInitialTrainingBoardEditor: true,
+    );
   }
 
   Future<void> _openCreateTrainingBoard({DateTime? initialDate}) async {
     await _openCreate(
       initialDate: initialDate,
       initialOpenTrainingBoardEditor: true,
+      closeAfterInitialTrainingBoardEditor: true,
     );
   }
 }

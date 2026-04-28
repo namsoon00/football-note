@@ -13,9 +13,11 @@ import 'package:football_note/domain/entities/training_entry.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/infrastructure/hive_option_repository.dart';
 import 'package:football_note/infrastructure/hive_training_repository.dart';
+import 'package:football_note/presentation/models/training_board_link_codec.dart';
 import 'package:football_note/presentation/models/training_method_layout.dart';
 import 'package:football_note/presentation/screens/entry_form_screen.dart';
 import 'package:football_note/presentation/screens/training_method_board_screen.dart';
+import 'package:football_note/presentation/widgets/app_page_route.dart';
 import 'package:hive/hive.dart';
 
 import '../helpers/test_asset_bundle.dart';
@@ -125,6 +127,90 @@ void main() {
     expect(find.text('오늘의 행운 정보를 확인해 보세요.'), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
+
+  testWidgets(
+    'initial training sketch flow returns to previous screen after back',
+    (WidgetTester tester) async {
+      final board = await TrainingBoardService(optionRepository).createBoard(
+        title: '오늘 스케치',
+        layoutJson: const TrainingMethodLayout(
+          pages: <TrainingMethodPage>[
+            TrainingMethodPage(name: '오늘 스케치', items: <TrainingMethodItem>[]),
+          ],
+        ).encode(),
+      );
+      await trainingService.add(
+        TrainingEntry(
+          date: DateTime(2026, 3, 15),
+          createdAt: DateTime(2026, 3, 15, 18),
+          durationMinutes: 50,
+          intensity: 3,
+          type: '패스',
+          mood: 3,
+          injury: false,
+          notes: '',
+          location: '학교 운동장',
+          drills: TrainingBoardLinkCodec.encodeBoardIds([board.id]),
+        ),
+      );
+      final storedEntry = (await trainingService.allEntries()).single;
+
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).push<void>(
+                        AppPageRoute(
+                          builder: (_) => EntryFormScreen(
+                            trainingService: trainingService,
+                            optionRepository: optionRepository,
+                            localeService: localeService,
+                            settingsService: settingsService,
+                            entry: storedEntry,
+                            initialOpenTrainingBoardEditor: true,
+                            closeAfterInitialTrainingBoardEditor: true,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('open-board-flow'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open-board-flow'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(TrainingMethodBoardScreen), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.arrow_back).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 800));
+
+      expect(find.text('open-board-flow'), findsOneWidget);
+      expect(find.byType(EntryFormScreen), findsNothing);
+      expect(find.byType(TrainingMethodBoardScreen), findsNothing);
+    },
+  );
 
   testWidgets('fortune dialog shows pool size and lucky info only', (
     WidgetTester tester,

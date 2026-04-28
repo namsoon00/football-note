@@ -277,34 +277,38 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
           accuracy: LocationAccuracy.high,
         ),
       );
-      final place = await _resolvePlaceName(
+      final placeFuture = _resolvePlaceName(
         latitude: position.latitude,
         longitude: position.longitude,
         isKo: isKo,
         koreaLabel: l10n.homeWeatherCountryKorea,
       );
+      final weatherFuture = _fetchWeatherSnapshot(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        location: '',
+        l10n: l10n,
+        locale: locale,
+      )
+          .then<WeatherSharedSnapshot?>((snapshot) => snapshot)
+          .catchError((_) => null);
+      final results = await Future.wait<Object?>([placeFuture, weatherFuture]);
+      final place = results[0] as String;
       if (!mounted) return;
       setState(() {
         _location = place;
       });
 
-      WeatherSharedSnapshot? snapshot;
-      try {
-        snapshot = await _fetchWeatherSnapshot(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          location: place,
-          l10n: l10n,
-          locale: locale,
-        );
-      } catch (_) {
-        snapshot = null;
-      }
-
       if (!mounted) return;
+      final snapshot = (results[1] as WeatherSharedSnapshot?)?.copyWith(
+        location: place,
+      );
+      if (snapshot != null && snapshot.hasData) {
+        WeatherSharedResource.primeSnapshot(snapshot);
+      }
       if (snapshot != null && snapshot.hasData) {
         setState(() {
-          _applySnapshot(snapshot!);
+          _applySnapshot(snapshot);
         });
         _maybeHandleInitialAction();
       }
@@ -342,13 +346,20 @@ class _WeatherDetailScreenState extends State<WeatherDetailScreen> {
     required AppLocalizations l10n,
     required Locale locale,
   }) =>
-      WeatherSharedResource.fetchForLocation(
-        latitude: latitude,
-        longitude: longitude,
-        location: location,
-        l10n: l10n,
-        locale: locale,
-      );
+      location.trim().isEmpty
+          ? WeatherSharedResource.fetchForCoordinates(
+              latitude: latitude,
+              longitude: longitude,
+              l10n: l10n,
+              locale: locale,
+            )
+          : WeatherSharedResource.fetchForLocation(
+              latitude: latitude,
+              longitude: longitude,
+              location: location,
+              l10n: l10n,
+              locale: locale,
+            );
 
   String _headerLocationLabel(AppLocalizations l10n) {
     if (_location.isNotEmpty) return _location;

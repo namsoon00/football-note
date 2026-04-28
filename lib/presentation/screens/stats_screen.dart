@@ -16,6 +16,7 @@ import '../../domain/entities/meal_entry.dart';
 import '../../domain/entities/training_entry.dart';
 import '../../domain/entities/player_profile.dart';
 import '../widgets/app_background.dart';
+import '../widgets/app_page_route.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import '../../application/locale_service.dart';
 import '../widgets/app_drawer.dart';
@@ -590,7 +591,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   void _openSettings(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => SettingsScreen(
           localeService: widget.localeService,
           settingsService: widget.settingsService,
@@ -603,7 +604,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Future<void> _openProfile(BuildContext context) async {
     await _pushPageSafely(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             ProfileScreen(optionRepository: widget.optionRepository),
       ),
@@ -612,7 +613,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Future<void> _openNews(BuildContext context) async {
     await _pushPageSafely(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NewsScreen(
           trainingService: widget.trainingService,
           localeService: widget.localeService,
@@ -630,7 +631,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Future<void> _openQuiz(BuildContext context) async {
     await _pushPageSafely(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) =>
             SkillQuizScreen(optionRepository: widget.optionRepository),
       ),
@@ -639,7 +640,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Future<void> _openNotifications(BuildContext context) async {
     await Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => NotificationCenterScreen(
           optionRepository: widget.optionRepository,
           settingsService: widget.settingsService,
@@ -656,7 +657,7 @@ class _StatsScreenState extends State<StatsScreen> {
     int? soccerYears,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute(
+      AppPageRoute(
         builder: (_) => AverageBenchmarkScreen(
           entries: entries,
           ageYears: ageYears,

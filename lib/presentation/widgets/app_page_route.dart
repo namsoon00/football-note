@@ -1,19 +1,33 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_motion.dart';
 
-class AppPageRoute<T> extends MaterialPageRoute<T> {
-  AppPageRoute({required super.builder});
+class AppPageRoute<T> extends CupertinoPageRoute<T> {
+  AppPageRoute({required super.builder, T? initialResult})
+      : currentResultValue = initialResult;
+
+  T? currentResultValue;
 
   bool _usesPlatformBackGesture(TargetPlatform platform) {
     return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
   }
 
   @override
-  Duration get transitionDuration => const Duration(milliseconds: 220);
+  T? get currentResult => currentResultValue ?? super.currentResult;
 
   @override
-  Duration get reverseTransitionDuration => const Duration(milliseconds: 180);
+  Duration get transitionDuration =>
+      _usesPlatformBackGesture(defaultTargetPlatform)
+          ? super.transitionDuration
+          : const Duration(milliseconds: 220);
+
+  @override
+  Duration get reverseTransitionDuration =>
+      _usesPlatformBackGesture(defaultTargetPlatform)
+          ? super.reverseTransitionDuration
+          : const Duration(milliseconds: 180);
 
   @override
   Widget buildTransitions(
