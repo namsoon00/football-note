@@ -1265,6 +1265,24 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
         : tint.withValues(alpha: 0.12);
   }
 
+  Color _recordStickerTint(_DiaryRecordStickerKind kind) {
+    return switch (kind) {
+      _DiaryRecordStickerKind.training => const Color(0xFF2F8F6A),
+      _DiaryRecordStickerKind.match => const Color(0xFF2E6ECF),
+      _DiaryRecordStickerKind.plan => const Color(0xFF97754A),
+      _DiaryRecordStickerKind.fortune => const Color(0xFF9B51E0),
+      _DiaryRecordStickerKind.board => const Color(0xFF2B8C7E),
+      _DiaryRecordStickerKind.news => const Color(0xFF5A6FD6),
+      _DiaryRecordStickerKind.weather => const Color(0xFF4E86C8),
+      _DiaryRecordStickerKind.meal => const Color(0xFFB45309),
+      _DiaryRecordStickerKind.conditioning => const Color(0xFF6A9E3F),
+      _DiaryRecordStickerKind.jumpRope => const Color(0xFFE66C3B),
+      _DiaryRecordStickerKind.lifting => const Color(0xFF1D6FA3),
+      _DiaryRecordStickerKind.injury => const Color(0xFFC45D3C),
+      _DiaryRecordStickerKind.quiz => const Color(0xFFC058D3),
+    };
+  }
+
   Color _composerIdleSurface() {
     return _isDark
         ? Colors.white.withValues(alpha: 0.06)
@@ -1890,7 +1908,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           ],
           // Match the icon used when recording training status
           icon: trainingStatusVisual(entry.status).icon,
-          tint: const Color(0xFF2F8F6A),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.training),
           focusItems: _trainingFocusItems(entry),
         );
       case _DiaryRecordStickerKind.match:
@@ -1922,7 +1940,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   : '${entry.playerGoals ?? 0}G ${entry.playerAssists ?? 0}A',
           ],
           icon: Icons.sports_soccer_outlined,
-          tint: const Color(0xFF2E6ECF),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.match),
         );
       case _DiaryRecordStickerKind.plan:
         final plan = day.plans.cast<_DiaryPlan?>().firstWhere(
@@ -1942,7 +1960,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             _isKo ? '${plan.durationMinutes}분' : '${plan.durationMinutes} min',
           ],
           icon: Icons.event_note_outlined,
-          tint: const Color(0xFF97754A),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.plan),
         );
       case _DiaryRecordStickerKind.fortune:
         final entry = day.trainingEntries.cast<TrainingEntry?>().firstWhere(
@@ -1962,7 +1980,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             _isKo ? '강도 ${entry.intensity}' : 'Intensity ${entry.intensity}',
           ],
           icon: Icons.auto_awesome_outlined,
-          tint: const Color(0xFF9B51E0),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.fortune),
           fortune: fortune,
         );
       case _DiaryRecordStickerKind.board:
@@ -1993,7 +2011,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 : 'Updated ${DateFormat('MMM d HH:mm', 'en').format(board.updatedAt)}',
           ],
           icon: Icons.dashboard_customize_outlined,
-          tint: const Color(0xFF4A7CCF),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.board),
           boardPage: layout.pages.isNotEmpty ? layout.pages.first : null,
         );
       case _DiaryRecordStickerKind.news:
@@ -2018,7 +2036,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
             _formatTime(item.openedAt),
           ],
           icon: Icons.article_outlined,
-          tint: const Color(0xFF7A4ED8),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.news),
           link: item.link,
         );
       case _DiaryRecordStickerKind.weather:
@@ -2033,7 +2051,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           summary: weather,
           metaLabels: [_formatDiaryDate(day.date)],
           icon: Icons.wb_cloudy_outlined,
-          tint: const Color(0xFF4E86C8),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.weather),
         );
       case _DiaryRecordStickerKind.meal:
         final mealEntry = day.mealEntry;
@@ -2054,7 +2072,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 : '${mealEntry.completedMeals} meals',
           ],
           icon: Icons.rice_bowl_outlined,
-          tint: const Color(0xFFB45309),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.meal),
           mealEntry: mealEntry,
         );
       case _DiaryRecordStickerKind.conditioning:
@@ -2080,7 +2098,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   : '${_totalJumpRopeCount(day)} reps',
           ],
           icon: Icons.sports_gymnastics_outlined,
-          tint: const Color(0xFF2F8F6A),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.conditioning),
           focusItems: _liftingFocusItems(day),
         );
       case _DiaryRecordStickerKind.jumpRope:
@@ -2102,7 +2120,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                   : '${_totalJumpRopeCount(day)} reps',
           ],
           icon: Icons.sports_gymnastics_outlined,
-          tint: const Color(0xFF2F8F6A),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.jumpRope),
         );
       case _DiaryRecordStickerKind.lifting:
         final dayToken = _dayStorageToken(day.date);
@@ -2118,7 +2136,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
                 : '${_totalLiftingCount(day)} reps',
           ],
           icon: Icons.sports_soccer_outlined,
-          tint: const Color(0xFF1D6FA3),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.lifting),
           focusItems: _liftingFocusItems(day),
         );
       case _DiaryRecordStickerKind.injury:
@@ -2130,7 +2148,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           title: _l10n.diaryStickerInjury,
           summary: _injurySummary(day),
           icon: Icons.healing_outlined,
-          tint: const Color(0xFFC45D3C),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.injury),
         );
       case _DiaryRecordStickerKind.quiz:
         final quiz = _quizHistoryForDay(day.date);
@@ -2142,7 +2160,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           summary: quiz.summary(_l10n),
           metaLabels: [_formatTime(quiz.finishedAt)],
           icon: Icons.quiz_outlined,
-          tint: const Color(0xFF5A6FD6),
+          tint: _recordStickerTint(_DiaryRecordStickerKind.quiz),
           quizSummary: quiz,
         );
     }

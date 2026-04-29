@@ -175,7 +175,8 @@ void main() {
     expect(find.textContaining('패스 감각 정리.'), findsOneWidget);
   });
 
-  testWidgets('coach lesson screen quiz sticker hides wrong answers and expands', (
+  testWidgets(
+      'coach lesson screen quiz sticker hides wrong answers and expands', (
     WidgetTester tester,
   ) async {
     final optionRepository = _FakeOptionRepository()
@@ -897,7 +898,8 @@ void main() {
   testWidgets(
     'new diary starts from previous record sticker order and saves selected order',
     (WidgetTester tester) async {
-      final today = DateTime.now();
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, 15);
       final yesterday = today.subtract(const Duration(days: 1));
       final todayToken = CoachLessonScreen.todayViewedDayToken(today);
       final yesterdayToken = CoachLessonScreen.todayViewedDayToken(yesterday);
@@ -910,7 +912,7 @@ void main() {
       final optionRepository = _FakeOptionRepository()
         ..setRawValue(
           'custom_diary_entries_v3',
-          '{"$yesterdayToken":{"title":"어제 다이어리","story":"순서 기준","sections":[],"moodId":"calm","recordStickers":[{"kind":"board","refId":"board-1"},{"kind":"meal","refId":"$yesterdayToken"},{"kind":"training","refId":"999"}],"stickers":[],"updatedAt":"${DateTime(yesterday.year, yesterday.month, yesterday.day, 21).toIso8601String()}"}}',
+          '{"$yesterdayToken":{"title":"어제 다이어리","story":"순서 기준","sections":[],"moodId":"calm","recordStickers":[{"kind":"meal","refId":"$yesterdayToken"},{"kind":"training","refId":"999"}],"stickers":[],"updatedAt":"${DateTime(yesterday.year, yesterday.month, yesterday.day, 21).toIso8601String()}"}}',
         )
         ..setRawValue(
           'training_boards_v1',
@@ -972,30 +974,22 @@ void main() {
 
       expect(find.text('기록 스티커 구성'), findsNothing);
 
-      final boardSeed = find.byKey(
-        const ValueKey('diary-todo-seed-board-board-1'),
-      );
       final mealSeed = find.byKey(ValueKey('diary-todo-seed-meal-$todayToken'));
       final trainingSeed = find.byKey(
         ValueKey('diary-todo-seed-training-$trainingCreatedAt'),
       );
-      expect(boardSeed, findsOneWidget);
       expect(mealSeed, findsOneWidget);
       expect(trainingSeed, findsOneWidget);
-      expect(
-        tester.getTopLeft(boardSeed).dy,
-        lessThan(tester.getTopLeft(mealSeed).dy),
-      );
       expect(
         tester.getTopLeft(mealSeed).dy,
         lessThan(tester.getTopLeft(trainingSeed).dy),
       );
 
       await tester.ensureVisible(
-        find.byKey(const ValueKey('diary-record-sticker-board-board-1')),
+        find.byKey(ValueKey('diary-record-sticker-meal-$todayToken')),
       );
       await tester.tap(
-        find.byKey(const ValueKey('diary-record-sticker-board-board-1')),
+        find.byKey(ValueKey('diary-record-sticker-meal-$todayToken')),
       );
       await tester.pump();
       await tester.ensureVisible(
@@ -1013,24 +1007,24 @@ void main() {
       final selectedTraining = find.byKey(
         ValueKey('diary-selected-record-sticker-training-$trainingCreatedAt'),
       );
-      final selectedBoard = find.byKey(
-        const ValueKey('diary-selected-record-sticker-board-board-1'),
+      final selectedMeal = find.byKey(
+        ValueKey('diary-selected-record-sticker-meal-$todayToken'),
       );
       expect(selectedTraining, findsOneWidget);
-      expect(selectedBoard, findsOneWidget);
+      expect(selectedMeal, findsOneWidget);
       expect(
         find.descendant(
-          of: selectedBoard,
-          matching: find.byIcon(Icons.dashboard_customize_outlined),
+          of: selectedMeal,
+          matching: find.byIcon(Icons.rice_bowl_outlined),
         ),
         findsOneWidget,
       );
       expect(
-        find.descendant(of: selectedBoard, matching: find.text('측면 2:1 패턴')),
+        find.descendant(of: selectedMeal, matching: find.text('측면 2:1 패턴')),
         findsNothing,
       );
       expect(
-        tester.getTopLeft(selectedBoard).dy,
+        tester.getTopLeft(selectedMeal).dy,
         lessThan(tester.getTopLeft(selectedTraining).dy),
       );
 
@@ -1057,7 +1051,7 @@ void main() {
       final recordStickers = (todayEntry['recordStickers'] as List<dynamic>)
           .cast<Map<String, dynamic>>();
       expect(recordStickers[0]['kind'], 'training');
-      expect(recordStickers[1]['kind'], 'board');
+      expect(recordStickers[1]['kind'], 'meal');
     },
   );
 
@@ -1121,7 +1115,8 @@ void main() {
     expect(raw, contains('자동 저장된 본문'));
   });
 
-  testWidgets('coach lesson screen keeps news sticker reorder in rendered order', (
+  testWidgets(
+      'coach lesson screen keeps news sticker reorder in rendered order', (
     WidgetTester tester,
   ) async {
     final day = DateTime(2026, 3, 15);

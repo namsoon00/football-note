@@ -61,6 +61,41 @@ void main() {
     expect(find.textContaining('마지막 클라우드 백업:'), findsOneWidget);
   });
 
+  testWidgets('role and sync section can collapse together', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = BackupService(
+      _FakeBackupRepository(lastBackupAt: DateTime(2026, 3, 22, 10)),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('역할 및 동기화'), findsOneWidget);
+    expect(find.text('Google Drive 연결'), findsOneWidget);
+
+    await tester.tap(find.text('역할 및 동기화'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Google Drive 연결'), findsNothing);
+    expect(find.text('데이터 동기화'), findsNothing);
+  });
+
   testWidgets(
     'parent mode keeps player Drive connection and player restore in parent/player sharing section',
     (WidgetTester tester) async {
@@ -118,10 +153,7 @@ void main() {
         find.widgetWithText(ElevatedButton, '선수 최신 데이터 가져오기'),
         findsOneWidget,
       );
-      expect(
-        find.widgetWithText(TextButton, '최근 가져오기 취소'),
-        findsOneWidget,
-      );
+      expect(find.widgetWithText(TextButton, '최근 가져오기 취소'), findsOneWidget);
       expect(find.text('최근 반영'), findsOneWidget);
       expect(find.text('최근 가져오기 확인'), findsOneWidget);
       expect(find.text('가족 공간 열기'), findsNothing);
@@ -646,24 +678,24 @@ class _FakeDriveBackupService extends BackupService {
     this.signInConnectionInfo,
     this.throwIsSignedInAfterSignInOnce = false,
     DateTime? lastBackupAt,
-  })  : _signedIn = signedIn,
-        signOutCalled = false,
-        refreshParentSharedDataIfNeededCalled = false,
-        throwNextIsSignedIn = false,
-        _connectionInfo = connectionInfo,
-        _sharedChildDriveLabel = sharedChildDriveLabel,
-        _sharedChildDriveEmail = sharedChildDriveEmail,
-        _savedRecordDriveLabel = savedRecordDriveLabel,
-        _savedRecordDriveEmail = savedRecordDriveEmail,
-        _savedParentDriveLabel = savedParentDriveLabel,
-        _savedParentDriveEmail = savedParentDriveEmail,
-        _lastFamilySyncPushAt = lastFamilySyncPushAt,
-        _lastFamilySyncPullAt = lastFamilySyncPullAt,
-        _localPreRestoreAt = localPreRestoreAt,
-        _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
-        _hasRemotePlayerBackup = hasRemotePlayerBackup,
-        _pendingParentSharedChanges = pendingParentSharedChanges,
-        super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
+  }) : _signedIn = signedIn,
+       signOutCalled = false,
+       refreshParentSharedDataIfNeededCalled = false,
+       throwNextIsSignedIn = false,
+       _connectionInfo = connectionInfo,
+       _sharedChildDriveLabel = sharedChildDriveLabel,
+       _sharedChildDriveEmail = sharedChildDriveEmail,
+       _savedRecordDriveLabel = savedRecordDriveLabel,
+       _savedRecordDriveEmail = savedRecordDriveEmail,
+       _savedParentDriveLabel = savedParentDriveLabel,
+       _savedParentDriveEmail = savedParentDriveEmail,
+       _lastFamilySyncPushAt = lastFamilySyncPushAt,
+       _lastFamilySyncPullAt = lastFamilySyncPullAt,
+       _localPreRestoreAt = localPreRestoreAt,
+       _remoteSharedChildConnectionInfo = remoteSharedChildConnectionInfo,
+       _hasRemotePlayerBackup = hasRemotePlayerBackup,
+       _pendingParentSharedChanges = pendingParentSharedChanges,
+       super(_FakeBackupRepository(lastBackupAt: lastBackupAt));
 
   bool get signedIn => _signedIn;
   DriveConnectionInfo? get connectionInfo => _connectionInfo;
@@ -705,8 +737,9 @@ class _FakeDriveBackupService extends BackupService {
       if (localEmail.isNotEmpty) {
         final suffix = ' · $localEmail';
         if (localLabel.endsWith(suffix)) {
-          displayName =
-              localLabel.substring(0, localLabel.length - suffix.length).trim();
+          displayName = localLabel
+              .substring(0, localLabel.length - suffix.length)
+              .trim();
         } else if (localLabel.toLowerCase() == localEmail.toLowerCase()) {
           displayName = '';
         }

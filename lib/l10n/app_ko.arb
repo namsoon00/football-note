@@ -1556,6 +1556,7 @@
   "familyRoleSelectionTitle": "역할 선택",
   "familyRoleSelectionDescription": "이 기기가 직접 기록하는 선수용인지, 보호자/코치가 확인하는 기기인지 먼저 고르세요.",
   "settingsUsageModeTitle": "사용 방식",
+  "settingsRoleAndSyncTitle": "역할 및 동기화",
   "settingsSupportModeLabel": "보호자/코치",
   "settingsSupportRoleTitle": "세부 역할",
   "settingsDriveConnectionTitle": "Google Drive 연결",

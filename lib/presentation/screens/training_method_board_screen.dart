@@ -61,7 +61,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
   List<Offset>? _activeRoutePoints;
   late final AnimationController _playController;
   List<_PlaybackTrack> _playbackTracks = const <_PlaybackTrack>[];
-  double _playbackMaxDistance = 0;
   _PathDrawMode _pathDrawMode = _PathDrawMode.player;
   String _lastSavedLayout = '';
   bool _shouldPromptInitialBoardName = false;
@@ -272,7 +271,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _activeRoutePoints = null;
     _routeReplaceMode = false;
     _playbackTracks = const <_PlaybackTrack>[];
-    _playbackMaxDistance = 0;
     _methodController.text = _currentPage.methodText;
     _lastSavedLayout = _serialize();
   }
@@ -786,11 +784,15 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         assignedItemIds: assignedItemIds,
       );
       if (item == null || !assignedItemIds.add(item.id)) continue;
+      final totalDistanceMeters = _pathDistanceMeters(route.points);
+      if (totalDistanceMeters <= 0.01) continue;
       tracks.add(
         _PlaybackTrack(
           item: item,
           route: route,
           startPosition: Offset(item.x, item.y),
+          totalDistanceMeters: totalDistanceMeters,
+          speedMetersPerSecond: _playbackSpeedMetersPerSecond(route.kind),
         ),
       );
     }
@@ -1191,7 +1193,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _activeRoutePoints = null;
       _routeReplaceMode = false;
       _playbackTracks = const <_PlaybackTrack>[];
-      _playbackMaxDistance = 0;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1712,10 +1713,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       return;
     }
     _stopRoutePlayback(restoreStart: false);
-    final maxDistance = _playbackTracksDistance(tracks);
+    final playbackDuration = _playbackDurationForTracks(tracks);
     setState(() {
       _playbackTracks = tracks;
-      _playbackMaxDistance = maxDistance;
       for (final track in _playbackTracks) {
         final firstPoint = track.route.points.first;
         track.item.x = firstPoint.dx.clamp(0.03, 0.97);
@@ -1725,10 +1725,7 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       _selectedRouteId = leadTrack.route.id;
       _pathDrawMode = leadTrack.route.kind;
     });
-    _playController.duration = Duration(
-      milliseconds: ((maxDistance * 2400).round()).clamp(700, 3600) ~/
-          _playSpeed.clamp(0.75, 1.5),
-    );
+    _playController.duration = playbackDuration;
     _playController
       ..stop()
       ..reset();
@@ -1737,13 +1734,19 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
 
   void _onPlayTick() {
     if (_playbackTracks.isEmpty) return;
+    final duration = _playController.duration;
+    if (duration == null || duration.inMicroseconds <= 0) return;
+    final elapsedSeconds = (duration.inMicroseconds * _playController.value) /
+        Duration.microsecondsPerSecond;
     setState(() {
-      final traveledDistance = _playbackMaxDistance * _playController.value;
       for (final track in _playbackTracks) {
         if (track.route.points.length < 2) continue;
-        final position = _samplePathPointAtDistance(
+        final position = _samplePathPointAtDistanceMeters(
           track.route.points,
-          traveledDistance,
+          math.min(
+            track.totalDistanceMeters,
+            elapsedSeconds * track.speedMetersPerSecond,
+          ),
         );
         track.item.x = position.dx.clamp(0.03, 0.97);
         track.item.y = position.dy.clamp(0.03, 0.97);
@@ -1762,7 +1765,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         track.item.y = track.startPosition.dy;
       }
       _playbackTracks = const <_PlaybackTrack>[];
-      _playbackMaxDistance = 0;
     });
     if (status == AnimationStatus.completed) {
       _playController.reset();
@@ -1780,7 +1782,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         }
       }
       _playbackTracks = const <_PlaybackTrack>[];
-      _playbackMaxDistance = 0;
     });
   }
 
@@ -1899,26 +1900,48 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     _memoCommitted = true;
   }
 
-  double _playbackTracksDistance(List<_PlaybackTrack> tracks) {
-    return tracks.fold<double>(
+  Duration _playbackDurationForTracks(List<_PlaybackTrack> tracks) {
+    if (tracks.isEmpty) {
+      return _minPlaybackDuration;
+    }
+    final slowestTrackMs = tracks.fold<int>(
       0,
-      (currentMax, track) =>
-          math.max(currentMax, _pathDistance(track.route.points)),
+      (currentMax, track) => math.max(
+        currentMax,
+        ((track.totalDistanceMeters / track.speedMetersPerSecond) * 1000)
+            .round(),
+      ),
     );
+    final adjustedMs = slowestTrackMs ~/ _playSpeed.clamp(0.75, 1.5).toDouble();
+    final clampedMs = adjustedMs.clamp(
+      _minPlaybackDuration.inMilliseconds,
+      _maxPlaybackDuration.inMilliseconds,
+    );
+    return Duration(milliseconds: clampedMs);
   }
 
-  Offset _samplePathPointAtDistance(List<Offset> points, double distance) {
+  double _playbackSpeedMetersPerSecond(_PathDrawMode kind) {
+    return switch (kind) {
+      _PathDrawMode.player => _playerPlaybackSpeedMetersPerSecond,
+      _PathDrawMode.ball => _ballPlaybackSpeedMetersPerSecond,
+    };
+  }
+
+  Offset _samplePathPointAtDistanceMeters(
+    List<Offset> points,
+    double distance,
+  ) {
     if (points.isEmpty) return const Offset(0.5, 0.5);
     if (points.length == 1) return points.first;
     final lengths = <double>[];
     var total = 0.0;
     for (var i = 0; i < points.length - 1; i++) {
-      final segment = (points[i + 1] - points[i]).distance;
+      final segment = _segmentDistanceMeters(points[i], points[i + 1]);
       lengths.add(segment);
       total += segment;
     }
     if (total <= 0.0001) return points.last;
-    final target = distance.clamp(0.0, total);
+    final target = distance.clamp(0.0, total).toDouble();
     var walked = 0.0;
     for (var i = 0; i < lengths.length; i++) {
       final len = lengths[i];
@@ -1931,13 +1954,21 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     return points.last;
   }
 
-  double _pathDistance(List<Offset> points) {
+  double _pathDistanceMeters(List<Offset> points) {
     if (points.length < 2) return 0;
     var total = 0.0;
     for (var i = 0; i < points.length - 1; i++) {
-      total += (points[i + 1] - points[i]).distance;
+      total += _segmentDistanceMeters(points[i], points[i + 1]);
     }
     return total;
+  }
+
+  double _segmentDistanceMeters(Offset start, Offset end) {
+    final dxMeters =
+        (end.dx - start.dx).abs() * _trainingBoardReferenceLengthMeters;
+    final dyMeters =
+        (end.dy - start.dy).abs() * _trainingBoardReferenceWidthMeters;
+    return math.sqrt((dxMeters * dxMeters) + (dyMeters * dyMeters));
   }
 
   @override
@@ -1976,84 +2007,13 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
         appBar: isLandscape
             ? null
             : AppBar(
-                leadingWidth: 152,
-                titleSpacing: 0,
                 title: _buildAppBarTitle(isKo),
-                leading: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => _handleBackPressed(isKo),
-                      icon: const Icon(Icons.arrow_back),
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).backButtonTooltip,
-                    ),
-                    if (!widget.readOnly)
-                      TextButton.icon(
-                        onPressed: () => _saveBoard(isKo),
-                        icon: const Icon(Icons.save_outlined),
-                        label: Text(_l10n.save),
-                      ),
-                  ],
+                leading: IconButton(
+                  onPressed: () => _handleBackPressed(isKo),
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                 ),
-                actions: [
-                  IconButton(
-                    key: const ValueKey('training-portrait-memo-toggle'),
-                    onPressed: () =>
-                        setState(() => _showPortraitMemo = !_showPortraitMemo),
-                    icon: Icon(
-                      _showPortraitMemo
-                          ? Icons.description_rounded
-                          : Icons.description_outlined,
-                    ),
-                    tooltip: _l10n.notes,
-                  ),
-                  IconButton(
-                    key: const ValueKey('training-portrait-inspector-toggle'),
-                    onPressed: () => setState(
-                      () => _showPortraitInspector = !_showPortraitInspector,
-                    ),
-                    icon: Icon(
-                      _showPortraitInspector
-                          ? Icons.tune_rounded
-                          : Icons.tune_outlined,
-                    ),
-                    tooltip: _l10n.trainingSketchControlsPanel,
-                  ),
-                  IconButton(
-                    onPressed: () => _playPlayerPath(isKo),
-                    icon: Icon(
-                      _playController.isAnimating
-                          ? Icons.stop_circle_outlined
-                          : Icons.play_circle_outline,
-                    ),
-                    tooltip: _l10n.trainingSketchPlayTooltip,
-                  ),
-                  PopupMenuButton<double>(
-                    tooltip: _l10n.trainingSketchPlaybackSpeedTooltip,
-                    icon: const Icon(Icons.speed_outlined),
-                    initialValue: _playSpeed,
-                    onSelected: (value) => setState(() => _playSpeed = value),
-                    itemBuilder: (_) => [
-                      const PopupMenuItem<double>(
-                        value: 0.75,
-                        child: Text('0.75x'),
-                      ),
-                      const PopupMenuItem<double>(
-                        value: 1.0,
-                        child: Text('1.0x'),
-                      ),
-                      const PopupMenuItem<double>(
-                        value: 1.25,
-                        child: Text('1.25x'),
-                      ),
-                      const PopupMenuItem<double>(
-                        value: 1.5,
-                        child: Text('1.5x'),
-                      ),
-                    ],
-                  ),
-                ],
+                actions: _buildTopBarActions(isKo, isLandscape: false),
               ),
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -2071,7 +2031,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
       child: Column(
         children: [
-          _buildPageHeader(isKo),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 180),
             child: !_showPortraitMemo
@@ -2167,56 +2126,9 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
             icon: const Icon(Icons.arrow_back),
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           ),
-          if (!widget.readOnly)
-            TextButton.icon(
-              onPressed: () => _saveBoard(isKo),
-              icon: const Icon(Icons.save_outlined),
-              label: Text(_l10n.save),
-            ),
           const SizedBox(width: 4),
           Expanded(child: _buildAppBarTitle(isKo)),
-          IconButton(
-            key: const ValueKey('training-landscape-memo-toggle'),
-            onPressed: () =>
-                setState(() => _showLandscapeMemo = !_showLandscapeMemo),
-            icon: Icon(
-              _showLandscapeMemo
-                  ? Icons.description_rounded
-                  : Icons.description_outlined,
-            ),
-            tooltip: _l10n.notes,
-          ),
-          IconButton(
-            key: const ValueKey('training-landscape-panel-toggle'),
-            onPressed: () => setState(
-              () => _showLandscapeControls = !_showLandscapeControls,
-            ),
-            icon: Icon(
-              _showLandscapeControls ? Icons.tune_rounded : Icons.tune_outlined,
-            ),
-            tooltip: _l10n.trainingSketchControlsPanel,
-          ),
-          IconButton(
-            onPressed: () => _playPlayerPath(isKo),
-            icon: Icon(
-              _playController.isAnimating
-                  ? Icons.stop_circle_outlined
-                  : Icons.play_circle_outline,
-            ),
-            tooltip: _l10n.trainingSketchPlayTooltip,
-          ),
-          PopupMenuButton<double>(
-            tooltip: _l10n.trainingSketchPlaybackSpeedTooltip,
-            icon: const Icon(Icons.speed_outlined),
-            initialValue: _playSpeed,
-            onSelected: (value) => setState(() => _playSpeed = value),
-            itemBuilder: (_) => [
-              const PopupMenuItem<double>(value: 0.75, child: Text('0.75x')),
-              const PopupMenuItem<double>(value: 1.0, child: Text('1.0x')),
-              const PopupMenuItem<double>(value: 1.25, child: Text('1.25x')),
-              const PopupMenuItem<double>(value: 1.5, child: Text('1.5x')),
-            ],
-          ),
+          ..._buildTopBarActions(isKo, isLandscape: true),
         ],
       ),
     );
@@ -2263,8 +2175,6 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
       ),
       child: ListView(
         children: [
-          _buildPageHeader(isKo),
-          const SizedBox(height: 12),
           _buildToolButtons(isKo),
           const SizedBox(height: 12),
           _buildSelectedTools(isKo),
@@ -2498,49 +2408,210 @@ class _TrainingMethodBoardScreenState extends State<TrainingMethodBoardScreen>
     );
   }
 
-  Widget _buildPageHeader(bool isKo) {
-    if (widget.readOnly) {
-      return const SizedBox.shrink();
-    }
-    final l10n = _l10n;
-    return Wrap(
-      spacing: 2,
-      runSpacing: 2,
-      alignment: WrapAlignment.end,
-      children: [
-        if (_isManagedMode)
-          IconButton(
-            onPressed: () => _promptForManagedBoardCreation(),
-            icon: const Icon(Icons.add_box_outlined),
-            tooltip: l10n.trainingSketchAddSketchTooltip,
-          ),
-        if (_isManagedMode)
-          IconButton(
-            onPressed: () => _copyCurrentManagedBoard(isKo),
-            icon: const Icon(Icons.copy_outlined),
-            tooltip: l10n.trainingSketchCopySketchTooltip,
-          ),
-        if (_isManagedMode)
-          IconButton(
-            onPressed: _currentBoardId == null
-                ? null
-                : () => _deleteCurrentManagedBoard(isKo),
-            icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.trainingSketchDeleteSketchTooltip,
-          ),
-        if (widget.presets.isNotEmpty)
-          IconButton(
-            onPressed: () => _showPresetPicker(isKo),
-            icon: const Icon(Icons.copy_all_outlined),
-            tooltip: l10n.trainingSketchImportSketchTooltip,
-          ),
-        IconButton(
-          onPressed: () => _renameCurrentPage(isKo),
-          icon: const Icon(Icons.edit_outlined),
-          tooltip: l10n.trainingSketchRenameSketchTooltip,
+  List<Widget> _buildTopBarActions(bool isKo, {required bool isLandscape}) {
+    return [
+      if (!widget.readOnly)
+        TextButton.icon(
+          onPressed: () => _saveBoard(isKo),
+          icon: const Icon(Icons.save_outlined),
+          label: Text(_l10n.save),
         ),
+      IconButton(
+        onPressed: () => _playPlayerPath(isKo),
+        icon: Icon(
+          _playController.isAnimating
+              ? Icons.stop_circle_outlined
+              : Icons.play_circle_outline,
+        ),
+        tooltip: _l10n.trainingSketchPlayTooltip,
+      ),
+      _buildTopBarMenuButton(isKo, isLandscape: isLandscape),
+    ];
+  }
+
+  Widget _buildTopBarMenuButton(bool isKo, {required bool isLandscape}) {
+    final notesExpanded = isLandscape ? _showLandscapeMemo : _showPortraitMemo;
+    final controlsExpanded =
+        isLandscape ? _showLandscapeControls : _showPortraitInspector;
+    final l10n = _l10n;
+    return PopupMenuButton<_TopBarMenuAction>(
+      key: ValueKey(
+        isLandscape
+            ? 'training-landscape-topbar-menu'
+            : 'training-portrait-topbar-menu',
+      ),
+      tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+      onSelected: (action) {
+        unawaited(
+          _handleTopBarMenuAction(action, isKo, isLandscape: isLandscape),
+        );
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem<_TopBarMenuAction>(
+          key: const ValueKey('training-topbar-menu-notes'),
+          value: _TopBarMenuAction.toggleNotes,
+          child: _buildTopBarMenuEntry(
+            icon: notesExpanded
+                ? Icons.description_rounded
+                : Icons.description_outlined,
+            label: l10n.notes,
+          ),
+        ),
+        if (!widget.readOnly)
+          PopupMenuItem<_TopBarMenuAction>(
+            key: const ValueKey('training-topbar-menu-controls'),
+            value: _TopBarMenuAction.toggleControls,
+            child: _buildTopBarMenuEntry(
+              icon: controlsExpanded ? Icons.tune_rounded : Icons.tune_outlined,
+              label: l10n.trainingSketchControlsPanel,
+            ),
+          ),
+        const PopupMenuDivider(),
+        ...[0.75, 1.0, 1.25, 1.5].map<PopupMenuEntry<_TopBarMenuAction>>((
+          speed,
+        ) {
+          final action = switch (speed) {
+            0.75 => _TopBarMenuAction.speed075,
+            1.0 => _TopBarMenuAction.speed100,
+            1.25 => _TopBarMenuAction.speed125,
+            _ => _TopBarMenuAction.speed150,
+          };
+          final selected = (_playSpeed - speed).abs() < 0.001;
+          return PopupMenuItem<_TopBarMenuAction>(
+            key: ValueKey(
+              'training-topbar-menu-speed-${speed.toStringAsFixed(2)}',
+            ),
+            value: action,
+            child: _buildTopBarMenuEntry(
+              icon: selected ? Icons.check : Icons.speed_outlined,
+              label:
+                  '${speed.toStringAsFixed(speed == 1.0 || speed == 1.5 ? 1 : 2)}x',
+            ),
+          );
+        }),
+        if (!widget.readOnly &&
+            (_isManagedMode || widget.presets.isNotEmpty)) ...[
+          const PopupMenuDivider(),
+          if (_isManagedMode)
+            PopupMenuItem<_TopBarMenuAction>(
+              value: _TopBarMenuAction.addSketch,
+              child: _buildTopBarMenuEntry(
+                icon: Icons.add_box_outlined,
+                label: l10n.trainingSketchAddSketchTooltip,
+              ),
+            ),
+          if (_isManagedMode)
+            PopupMenuItem<_TopBarMenuAction>(
+              value: _TopBarMenuAction.copySketch,
+              child: _buildTopBarMenuEntry(
+                icon: Icons.copy_outlined,
+                label: l10n.trainingSketchCopySketchTooltip,
+              ),
+            ),
+          if (_isManagedMode && _currentBoardId != null)
+            PopupMenuItem<_TopBarMenuAction>(
+              value: _TopBarMenuAction.deleteSketch,
+              child: _buildTopBarMenuEntry(
+                icon: Icons.delete_outline,
+                label: l10n.trainingSketchDeleteSketchTooltip,
+              ),
+            ),
+          if (widget.presets.isNotEmpty)
+            PopupMenuItem<_TopBarMenuAction>(
+              value: _TopBarMenuAction.importSketch,
+              child: _buildTopBarMenuEntry(
+                icon: Icons.copy_all_outlined,
+                label: l10n.trainingSketchImportSketchTooltip,
+              ),
+            ),
+          PopupMenuItem<_TopBarMenuAction>(
+            value: _TopBarMenuAction.renameSketch,
+            child: _buildTopBarMenuEntry(
+              icon: Icons.edit_outlined,
+              label: l10n.trainingSketchRenameSketchTooltip,
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  Widget _buildTopBarMenuEntry({
+    required IconData icon,
+    required String label,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 18),
+        const SizedBox(width: 10),
+        Expanded(child: Text(label)),
+      ],
+    );
+  }
+
+  Future<void> _handleTopBarMenuAction(
+    _TopBarMenuAction action,
+    bool isKo, {
+    required bool isLandscape,
+  }) async {
+    switch (action) {
+      case _TopBarMenuAction.toggleNotes:
+        setState(() {
+          if (isLandscape) {
+            _showLandscapeMemo = !_showLandscapeMemo;
+          } else {
+            _showPortraitMemo = !_showPortraitMemo;
+          }
+        });
+        break;
+      case _TopBarMenuAction.toggleControls:
+        if (widget.readOnly) return;
+        setState(() {
+          if (isLandscape) {
+            _showLandscapeControls = !_showLandscapeControls;
+          } else {
+            _showPortraitInspector = !_showPortraitInspector;
+          }
+        });
+        break;
+      case _TopBarMenuAction.speed075:
+        setState(() => _playSpeed = 0.75);
+        break;
+      case _TopBarMenuAction.speed100:
+        setState(() => _playSpeed = 1.0);
+        break;
+      case _TopBarMenuAction.speed125:
+        setState(() => _playSpeed = 1.25);
+        break;
+      case _TopBarMenuAction.speed150:
+        setState(() => _playSpeed = 1.5);
+        break;
+      case _TopBarMenuAction.addSketch:
+        if (_isManagedMode) {
+          await _promptForManagedBoardCreation();
+        }
+        break;
+      case _TopBarMenuAction.copySketch:
+        if (_isManagedMode) {
+          await _copyCurrentManagedBoard(isKo);
+        }
+        break;
+      case _TopBarMenuAction.deleteSketch:
+        if (_isManagedMode && _currentBoardId != null) {
+          await _deleteCurrentManagedBoard(isKo);
+        }
+        break;
+      case _TopBarMenuAction.importSketch:
+        if (widget.presets.isNotEmpty) {
+          await _showPresetPicker(isKo);
+        }
+        break;
+      case _TopBarMenuAction.renameSketch:
+        if (!widget.readOnly) {
+          await _renameCurrentPage(isKo);
+        }
+        break;
+    }
   }
 
   Widget _buildAppBarTitle(bool isKo) {
@@ -3121,15 +3192,33 @@ class _PlaybackTrack {
   final _BoardItem item;
   final _BoardRoute route;
   final Offset startPosition;
+  final double totalDistanceMeters;
+  final double speedMetersPerSecond;
 
   const _PlaybackTrack({
     required this.item,
     required this.route,
     required this.startPosition,
+    required this.totalDistanceMeters,
+    required this.speedMetersPerSecond,
   });
 }
 
 enum _PendingBoardAction { save, discard, cancel }
+
+enum _TopBarMenuAction {
+  toggleNotes,
+  toggleControls,
+  speed075,
+  speed100,
+  speed125,
+  speed150,
+  addSketch,
+  copySketch,
+  deleteSketch,
+  importSketch,
+  renameSketch,
+}
 
 enum _PathDrawMode { player, ball }
 
@@ -3179,6 +3268,15 @@ double _defaultRouteWidth(_PathDrawMode kind) {
     _PathDrawMode.ball => 3.0,
   };
 }
+
+// Use a compact drill-board reference area so playback reads like a coaching
+// sketch instead of full-pitch broadcast tracking.
+const double _trainingBoardReferenceLengthMeters = 60.0;
+const double _trainingBoardReferenceWidthMeters = 40.0;
+const double _playerPlaybackSpeedMetersPerSecond = 4.6;
+const double _ballPlaybackSpeedMetersPerSecond = 9.2;
+const Duration _minPlaybackDuration = Duration(milliseconds: 900);
+const Duration _maxPlaybackDuration = Duration(milliseconds: 6200);
 
 const List<Color> _playerItemColors = <Color>[
   Color(0xFF42A5F5),

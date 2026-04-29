@@ -6338,6 +6338,12 @@ abstract class AppLocalizations {
   /// **'Usage mode'**
   String get settingsUsageModeTitle;
 
+  /// No description provided for @settingsRoleAndSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Role & sync'**
+  String get settingsRoleAndSyncTitle;
+
   /// No description provided for @settingsSupportModeLabel.
   ///
   /// In en, this message translates to:
