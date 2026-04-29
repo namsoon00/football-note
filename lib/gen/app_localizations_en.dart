@@ -3647,6 +3647,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsUsageModeTitle => 'Usage mode';
 
   @override
+  String get settingsRoleAndSyncTitle => 'Role & sync';
+
+  @override
   String get settingsSupportModeLabel => 'Parent / coach';
 
   @override

@@ -3528,6 +3528,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settingsUsageModeTitle => '사용 방식';
 
   @override
+  String get settingsRoleAndSyncTitle => '역할 및 동기화';
+
+  @override
   String get settingsSupportModeLabel => '보호자/코치';
 
   @override

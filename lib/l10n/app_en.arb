@@ -1556,6 +1556,7 @@
   "familyRoleSelectionTitle": "Role selection",
   "familyRoleSelectionDescription": "Choose whether this device is used by the player directly or by a parent/coach for review first.",
   "settingsUsageModeTitle": "Usage mode",
+  "settingsRoleAndSyncTitle": "Role & sync",
   "settingsSupportModeLabel": "Parent / coach",
   "settingsSupportRoleTitle": "Support role",
   "settingsDriveConnectionTitle": "Google Drive connection",

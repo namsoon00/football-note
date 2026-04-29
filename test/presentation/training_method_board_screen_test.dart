@@ -57,10 +57,11 @@ void main() {
       find.byKey(const ValueKey('training-player-path-mode-button')),
     );
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('training-landscape-panel-toggle')),
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-controls',
     );
-    await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     final playerFinder = find.descendant(
@@ -475,10 +476,11 @@ void main() {
     );
     expect(controlRect.left, greaterThan(boardRect.right));
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-landscape-panel-toggle')),
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-controls',
     );
-    await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('training-landscape-control-panel')),
@@ -486,10 +488,11 @@ void main() {
     );
     expect(find.byKey(const ValueKey('training-board-canvas')), findsOneWidget);
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-landscape-memo-toggle')),
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-notes',
     );
-    await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('training-landscape-control-panel')),
@@ -533,20 +536,22 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-portrait-inspector-toggle')),
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: false,
+      itemKey: 'training-topbar-menu-controls',
     );
-    await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('training-portrait-inspector-panel')),
       findsNothing,
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-portrait-memo-toggle')),
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: false,
+      itemKey: 'training-topbar-menu-notes',
     );
-    await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('training-portrait-memo-panel')),
@@ -554,10 +559,11 @@ void main() {
     );
     expect(find.byType(TextField), findsOneWidget);
 
-    await tester.tap(
-      find.byKey(const ValueKey('training-portrait-inspector-toggle')),
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: false,
+      itemKey: 'training-topbar-menu-controls',
     );
-    await tester.pumpAndSettle();
 
     expect(
       find.byKey(const ValueKey('training-portrait-inspector-panel')),
@@ -600,10 +606,11 @@ void main() {
       find.byKey(const ValueKey('training-player-path-mode-button')),
     );
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('training-landscape-panel-toggle')),
+    await _tapTopBarMenuItem(
+      tester,
+      isLandscape: true,
+      itemKey: 'training-topbar-menu-controls',
     );
-    await tester.pumpAndSettle();
 
     final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
     final playerFinder = find.descendant(
@@ -769,85 +776,91 @@ void main() {
     },
   );
 
-  testWidgets('playback keeps player and ball movement speed consistent', (
-    WidgetTester tester,
-  ) async {
-    _setLandscapeSurface(tester);
+  testWidgets(
+    'playback moves the ball farther than the player over equal time',
+    (WidgetTester tester) async {
+      _setLandscapeSurface(tester);
 
-    final initialLayout = const TrainingMethodLayout(
-      pages: <TrainingMethodPage>[
-        TrainingMethodPage(
-          name: 'Board',
-          items: <TrainingMethodItem>[
-            TrainingMethodItem(id: 'player-1', type: 'player', x: 0.18, y: 0.3),
-            TrainingMethodItem(
-              id: 'ball-1',
-              type: 'ball',
-              x: 0.18,
-              y: 0.62,
-              colorValue: 0xFFE53935,
-            ),
-          ],
-          routes: <TrainingMethodRoute>[
-            TrainingMethodRoute(
-              id: 'route-player-1',
-              kind: TrainingMethodRouteKind.player,
-              linkedItemId: 'player-1',
-              points: <TrainingMethodPoint>[
-                TrainingMethodPoint(x: 0.18, y: 0.3),
-                TrainingMethodPoint(x: 0.38, y: 0.3),
-              ],
-            ),
-            TrainingMethodRoute(
-              id: 'route-ball-1',
-              kind: TrainingMethodRouteKind.ball,
-              linkedItemId: 'ball-1',
-              points: <TrainingMethodPoint>[
-                TrainingMethodPoint(x: 0.18, y: 0.62),
-                TrainingMethodPoint(x: 0.58, y: 0.62),
-              ],
-            ),
-          ],
+      final initialLayout = const TrainingMethodLayout(
+        pages: <TrainingMethodPage>[
+          TrainingMethodPage(
+            name: 'Board',
+            items: <TrainingMethodItem>[
+              TrainingMethodItem(
+                id: 'player-1',
+                type: 'player',
+                x: 0.18,
+                y: 0.3,
+              ),
+              TrainingMethodItem(
+                id: 'ball-1',
+                type: 'ball',
+                x: 0.18,
+                y: 0.62,
+                colorValue: 0xFFE53935,
+              ),
+            ],
+            routes: <TrainingMethodRoute>[
+              TrainingMethodRoute(
+                id: 'route-player-1',
+                kind: TrainingMethodRouteKind.player,
+                linkedItemId: 'player-1',
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.18, y: 0.3),
+                  TrainingMethodPoint(x: 0.38, y: 0.3),
+                ],
+              ),
+              TrainingMethodRoute(
+                id: 'route-ball-1',
+                kind: TrainingMethodRouteKind.ball,
+                linkedItemId: 'ball-1',
+                points: <TrainingMethodPoint>[
+                  TrainingMethodPoint(x: 0.18, y: 0.62),
+                  TrainingMethodPoint(x: 0.58, y: 0.62),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ).encode();
+
+      await tester.pumpWidget(
+        _buildApp(
+          TrainingMethodBoardScreen(
+            boardTitle: '패스 워밍업',
+            initialLayoutJson: initialLayout,
+          ),
         ),
-      ],
-    ).encode();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.pumpWidget(
-      _buildApp(
-        TrainingMethodBoardScreen(
-          boardTitle: '패스 워밍업',
-          initialLayoutJson: initialLayout,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
+      final playerFinder = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.person),
+      );
+      final ballFinder = find.descendant(
+        of: boardFinder,
+        matching: find.byIcon(Icons.sports_soccer),
+      );
 
-    final boardFinder = find.byKey(const ValueKey('training-board-canvas'));
-    final playerFinder = find.descendant(
-      of: boardFinder,
-      matching: find.byIcon(Icons.person),
-    );
-    final ballFinder = find.descendant(
-      of: boardFinder,
-      matching: find.byIcon(Icons.sports_soccer),
-    );
+      final playerBefore = tester.getCenter(playerFinder);
+      final ballBefore = tester.getCenter(ballFinder);
 
-    final playerBefore = tester.getCenter(playerFinder);
-    final ballBefore = tester.getCenter(ballFinder);
+      await tester.tap(find.byIcon(Icons.play_circle_outline).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.byIcon(Icons.play_circle_outline).first);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      final playerAfter = tester.getCenter(playerFinder);
+      final ballAfter = tester.getCenter(ballFinder);
+      final playerDelta = (playerAfter - playerBefore).distance;
+      final ballDelta = (ballAfter - ballBefore).distance;
 
-    final playerAfter = tester.getCenter(playerFinder);
-    final ballAfter = tester.getCenter(ballFinder);
-    final playerDelta = (playerAfter - playerBefore).distance;
-    final ballDelta = (ballAfter - ballBefore).distance;
-
-    expect(playerDelta, greaterThan(1));
-    expect(ballDelta, greaterThan(1));
-    expect((playerDelta - ballDelta).abs(), lessThan(10));
-  });
+      expect(playerDelta, greaterThan(1));
+      expect(ballDelta, greaterThan(1));
+      expect(ballDelta, greaterThan(playerDelta + 8));
+    },
+  );
 }
 
 Widget _buildApp(Widget home) {
@@ -891,6 +904,22 @@ Future<void> _drawRoute(
   );
   await tester.pump(const Duration(milliseconds: 16));
   detector.onPanEnd!(DragEndDetails());
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapTopBarMenuItem(
+  WidgetTester tester, {
+  required bool isLandscape,
+  required String itemKey,
+}) async {
+  final menuKey = ValueKey(
+    isLandscape
+        ? 'training-landscape-topbar-menu'
+        : 'training-portrait-topbar-menu',
+  );
+  await tester.tap(find.byKey(menuKey));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(ValueKey(itemKey)).last);
   await tester.pumpAndSettle();
 }
 
