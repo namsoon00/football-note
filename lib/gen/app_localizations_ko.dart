@@ -1057,6 +1057,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get diaryTitlePlaceholder => '제목을 입력해 주세요';
 
   @override
+  String get diaryStoryLabel => '본문';
+
+  @override
+  String get diaryStoryPlaceholder => '본문을 입력해 주세요';
+
+  @override
+  String get diarySaveEmptyMessage =>
+      '저장할 내용이 없어요. 제목, 본문, 스티커 중 하나 이상을 추가해 주세요.';
+
+  @override
   String get diaryCustomEmotionLabel => '감정 직접 만들기';
 
   @override
@@ -1265,7 +1275,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeWeatherAirGuideSensitive =>
-      '민감군은 장시간 야외 활동이나 고강도 훈련을 줄이는 편이 좋아요.';
+      '숨쉬기가 예민하면 오래 밖에 있거나 힘든 훈련은 줄여 주세요.';
 
   @override
   String get homeWeatherAirGuideUnhealthy =>
@@ -1322,7 +1332,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get homeWeatherStatusModerate => '보통';
 
   @override
-  String get homeWeatherStatusSensitive => '민감군 주의';
+  String get homeWeatherStatusSensitive => '숨쉬기 예민하면 주의';
 
   @override
   String get homeWeatherStatusUnhealthy => '나쁨';

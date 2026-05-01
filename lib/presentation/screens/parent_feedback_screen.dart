@@ -211,9 +211,7 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                     children: [
                       Text(
                         l10n.parentFeedbackSectionTitle,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 6),
@@ -243,6 +241,8 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                           maxLines: 14,
                           autofocus: true,
                           enabled: !_isSaving,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
                           decoration: InputDecoration(
                             labelText: l10n.parentFeedbackInputLabel,
                             hintText: l10n.parentFeedbackInputHint,
@@ -284,8 +284,9 @@ class _ParentFeedbackScreenState extends State<ParentFeedbackScreen> {
                       ),
                       const Spacer(),
                       FilledButton.icon(
-                        onPressed:
-                            (_isSaving || !_hasChanges) ? null : _saveFeedback,
+                        onPressed: (_isSaving || !_hasChanges)
+                            ? null
+                            : _saveFeedback,
                         icon: const Icon(Icons.save_outlined),
                         label: Text(l10n.parentFeedbackSave),
                       ),
