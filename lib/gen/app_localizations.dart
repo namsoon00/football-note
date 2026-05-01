@@ -2096,6 +2096,24 @@ abstract class AppLocalizations {
   /// **'Please enter a title'**
   String get diaryTitlePlaceholder;
 
+  /// No description provided for @diaryStoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get diaryStoryLabel;
+
+  /// No description provided for @diaryStoryPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the body text'**
+  String get diaryStoryPlaceholder;
+
+  /// No description provided for @diarySaveEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to save yet. Add a title, story, or sticker first.'**
+  String get diarySaveEmptyMessage;
+
   /// No description provided for @diaryCustomEmotionLabel.
   ///
   /// In en, this message translates to:
@@ -2501,7 +2519,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeatherAirGuideSensitive.
   ///
   /// In en, this message translates to:
-  /// **'Sensitive groups should reduce long outdoor sessions and hard efforts.'**
+  /// **'If breathing gets irritated easily, reduce long outdoor sessions and hard efforts.'**
   String get homeWeatherAirGuideSensitive;
 
   /// No description provided for @homeWeatherAirGuideUnhealthy.
@@ -2609,7 +2627,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeatherStatusSensitive.
   ///
   /// In en, this message translates to:
-  /// **'Unhealthy for sensitive groups'**
+  /// **'Take care if breathing is sensitive'**
   String get homeWeatherStatusSensitive;
 
   /// No description provided for @homeWeatherStatusUnhealthy.

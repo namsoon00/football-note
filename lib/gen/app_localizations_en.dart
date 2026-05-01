@@ -1081,6 +1081,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diaryTitlePlaceholder => 'Please enter a title';
 
   @override
+  String get diaryStoryLabel => 'Body';
+
+  @override
+  String get diaryStoryPlaceholder => 'Please enter the body text';
+
+  @override
+  String get diarySaveEmptyMessage =>
+      'Nothing to save yet. Add a title, story, or sticker first.';
+
+  @override
   String get diaryCustomEmotionLabel => 'Create your own emotion';
 
   @override
@@ -1304,7 +1314,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeWeatherAirGuideSensitive =>
-      'Sensitive groups should reduce long outdoor sessions and hard efforts.';
+      'If breathing gets irritated easily, reduce long outdoor sessions and hard efforts.';
 
   @override
   String get homeWeatherAirGuideUnhealthy =>
@@ -1362,7 +1372,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWeatherStatusModerate => 'Moderate';
 
   @override
-  String get homeWeatherStatusSensitive => 'Unhealthy for sensitive groups';
+  String get homeWeatherStatusSensitive =>
+      'Take care if breathing is sensitive';
 
   @override
   String get homeWeatherStatusUnhealthy => 'Unhealthy';
