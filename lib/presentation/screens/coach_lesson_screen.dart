@@ -1220,10 +1220,28 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
       case _DiaryRecordStickerKind.match:
       case _DiaryRecordStickerKind.plan:
       case _DiaryRecordStickerKind.conditioning:
-      case _DiaryRecordStickerKind.jumpRope:
-      case _DiaryRecordStickerKind.lifting:
       case _DiaryRecordStickerKind.injury:
         await _openCalendarEditor(day.date);
+        return;
+      case _DiaryRecordStickerKind.jumpRope:
+        await _openTrainingEntryEditor(
+          entry: _latestTrainingEntryForFocus(
+            day,
+            EntryFormInitialFocusTarget.jumpRope,
+          ),
+          initialDate: day.date,
+          initialFocusTarget: EntryFormInitialFocusTarget.jumpRope,
+        );
+        return;
+      case _DiaryRecordStickerKind.lifting:
+        await _openTrainingEntryEditor(
+          entry: _latestTrainingEntryForFocus(
+            day,
+            EntryFormInitialFocusTarget.lifting,
+          ),
+          initialDate: day.date,
+          initialFocusTarget: EntryFormInitialFocusTarget.lifting,
+        );
         return;
       case _DiaryRecordStickerKind.news:
       case _DiaryRecordStickerKind.weather:
@@ -1271,6 +1289,7 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
   Future<void> _openTrainingEntryEditor({
     TrainingEntry? entry,
     DateTime? initialDate,
+    EntryFormInitialFocusTarget? initialFocusTarget,
   }) async {
     final trainingService = widget.trainingService;
     final localeService = widget.localeService;
@@ -1290,9 +1309,39 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
           driveBackupService: widget.driveBackupService,
           entry: entry,
           initialDate: initialDate,
+          initialFocusTarget: initialFocusTarget,
         ),
       ),
     );
+  }
+
+  TrainingEntry? _latestTrainingEntryForFocus(
+    _DiaryDayData day,
+    EntryFormInitialFocusTarget target,
+  ) {
+    for (final entry in day.trainingEntries.reversed) {
+      if (_entryMatchesFocusTarget(entry, target)) {
+        return entry;
+      }
+    }
+    if (day.trainingEntries.isEmpty) {
+      return null;
+    }
+    return day.trainingEntries.last;
+  }
+
+  bool _entryMatchesFocusTarget(
+    TrainingEntry entry,
+    EntryFormInitialFocusTarget target,
+  ) {
+    return switch (target) {
+      EntryFormInitialFocusTarget.lifting => entry.liftingByPart.values.any(
+          (count) => count > 0,
+        ),
+      EntryFormInitialFocusTarget.jumpRope => entry.jumpRopeCount > 0 ||
+          entry.jumpRopeMinutes > 0 ||
+          entry.jumpRopeNote.trim().isNotEmpty,
+    };
   }
 
   Future<void> _openMealEditor(DateTime initialDate, {MealEntry? entry}) async {
@@ -1881,85 +1930,93 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     final firstDay = DateTime(2020, 1, 1);
     final lastDay = DateTime(2100, 12, 31);
     final markerMap = <DateTime, Set<_DiaryMarkerType>>{};
-    for (final day in entriesByDay.keys) {
+    for (final entry in _customDiaryEntries.entries) {
+      final day = DateTime.tryParse(entry.key);
+      if (day == null || !entry.value.hasContent) continue;
       markerMap
           .putIfAbsent(_normalizeDay(day), () => <_DiaryMarkerType>{})
-          .add(_DiaryMarkerType.training);
+          .add(_DiaryMarkerType.diary);
     }
 
     DateTime focusedDay = initialDate;
     DateTime? picked;
-    await showModalBottomSheet<void>(
+    await showDialog<void>(
       context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
+      builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                child: TableCalendar<_DiaryMarkerType>(
-                  locale: _isKo ? 'ko_KR' : 'en_US',
-                  firstDay: firstDay,
-                  lastDay: lastDay,
-                  focusedDay: focusedDay,
-                  calendarFormat: CalendarFormat.month,
-                  rowHeight: 42,
-                  daysOfWeekHeight: 18,
-                  availableGestures: AvailableGestures.horizontalSwipe,
-                  startingDayOfWeek: StartingDayOfWeek.sunday,
-                  headerStyle: const HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                    headerPadding: EdgeInsets.symmetric(vertical: 6),
-                    leftChevronPadding: EdgeInsets.zero,
-                    rightChevronPadding: EdgeInsets.zero,
-                  ),
-                  selectedDayPredicate: (day) =>
-                      picked != null && isSameDay(day, picked),
-                  onDaySelected: (selected, focused) {
-                    picked = _normalizeDay(selected);
-                    Navigator.of(sheetContext).pop();
-                  },
-                  onPageChanged: (focused) {
-                    setSheetState(() => focusedDay = focused);
-                  },
-                  eventLoader: (day) {
-                    return markerMap[_normalizeDay(day)]?.toList(
-                          growable: false,
-                        ) ??
-                        const <_DiaryMarkerType>[];
-                  },
-                  calendarBuilders: CalendarBuilders<_DiaryMarkerType>(
-                    markerBuilder: (context, day, markers) {
-                      if (markers.isEmpty) return const SizedBox.shrink();
-                      final markerList = markers
-                          .whereType<_DiaryMarkerType>()
-                          .toList(growable: false);
-                      if (markerList.isEmpty) return const SizedBox.shrink();
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: markerList
-                            .take(4)
-                            .map(
-                              (marker) => Container(
-                                key: ValueKey(
-                                  'diary-calendar-marker-${_dayStorageToken(day)}-${marker.name}',
-                                ),
-                                width: 6,
-                                height: 6,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 1.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: marker.color,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            )
-                            .toList(growable: false),
-                      );
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                  child: TableCalendar<_DiaryMarkerType>(
+                    locale: _isKo ? 'ko_KR' : 'en_US',
+                    firstDay: firstDay,
+                    lastDay: lastDay,
+                    focusedDay: focusedDay,
+                    calendarFormat: CalendarFormat.month,
+                    rowHeight: 36,
+                    daysOfWeekHeight: 16,
+                    availableGestures: AvailableGestures.horizontalSwipe,
+                    startingDayOfWeek: StartingDayOfWeek.sunday,
+                    headerStyle: const HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      headerPadding: EdgeInsets.symmetric(vertical: 4),
+                      leftChevronPadding: EdgeInsets.zero,
+                      rightChevronPadding: EdgeInsets.zero,
+                    ),
+                    selectedDayPredicate: (day) =>
+                        picked != null && isSameDay(day, picked),
+                    onDaySelected: (selected, focused) {
+                      picked = _normalizeDay(selected);
+                      Navigator.of(dialogContext).pop();
                     },
+                    onPageChanged: (focused) {
+                      setSheetState(() => focusedDay = focused);
+                    },
+                    eventLoader: (day) {
+                      return markerMap[_normalizeDay(day)]?.toList(
+                            growable: false,
+                          ) ??
+                          const <_DiaryMarkerType>[];
+                    },
+                    calendarBuilders: CalendarBuilders<_DiaryMarkerType>(
+                      markerBuilder: (context, day, markers) {
+                        if (markers.isEmpty) return const SizedBox.shrink();
+                        final markerList = markers
+                            .whereType<_DiaryMarkerType>()
+                            .toList(growable: false);
+                        if (markerList.isEmpty) return const SizedBox.shrink();
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: markerList
+                              .take(4)
+                              .map(
+                                (marker) => Container(
+                                  key: ValueKey(
+                                    'diary-calendar-marker-${_dayStorageToken(day)}-${marker.name}',
+                                  ),
+                                  width: 6,
+                                  height: 6,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: marker.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -4206,84 +4263,94 @@ class _CoachLessonScreenState extends State<CoachLessonScreen> {
     };
     DateTime focusedDay = selectedDay;
     DateTime? picked;
-    await showModalBottomSheet<void>(
+    await showDialog<void>(
       context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
+      builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                child: TableCalendar<_DiaryMarkerType>(
-                  locale: _isKo ? 'ko_KR' : 'en_US',
-                  firstDay: days.last.date,
-                  lastDay: days.first.date,
-                  focusedDay: focusedDay,
-                  calendarFormat: CalendarFormat.month,
-                  rowHeight: 42,
-                  daysOfWeekHeight: 18,
-                  availableGestures: AvailableGestures.horizontalSwipe,
-                  startingDayOfWeek: StartingDayOfWeek.sunday,
-                  headerStyle: const HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                    headerPadding: EdgeInsets.symmetric(vertical: 6),
-                    leftChevronPadding: EdgeInsets.zero,
-                    rightChevronPadding: EdgeInsets.zero,
-                  ),
-                  selectedDayPredicate: (day) =>
-                      isSameDay(day, selectedDay) ||
-                      (picked != null && isSameDay(day, picked)),
-                  enabledDayPredicate: (day) =>
-                      dayMap.containsKey(_normalizeDay(day)),
-                  onDaySelected: (selected, focused) {
-                    final normalized = _normalizeDay(selected);
-                    if (!dayMap.containsKey(normalized)) return;
-                    picked = normalized;
-                    Navigator.of(sheetContext).pop();
-                  },
-                  onPageChanged: (focused) {
-                    setSheetState(() => focusedDay = focused);
-                  },
-                  eventLoader: (day) {
-                    final diaryDay = dayMap[_normalizeDay(day)];
-                    if (diaryDay == null) return const <_DiaryMarkerType>[];
-                    final customDiary = _customDiaryForDay(diaryDay.date);
-                    return customDiary.hasContent
-                        ? const <_DiaryMarkerType>[_DiaryMarkerType.diary]
-                        : const <_DiaryMarkerType>[];
-                  },
-                  calendarBuilders: CalendarBuilders<_DiaryMarkerType>(
-                    markerBuilder: (context, day, markers) {
-                      if (markers.isEmpty) return const SizedBox.shrink();
-                      final markerList = markers
-                          .whereType<_DiaryMarkerType>()
-                          .toList(growable: false);
-                      if (markerList.isEmpty) return const SizedBox.shrink();
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: markerList
-                            .take(4)
-                            .map(
-                              (marker) => Container(
-                                key: ValueKey(
-                                  'diary-calendar-marker-${_dayStorageToken(day)}-${marker.name}',
-                                ),
-                                width: 6,
-                                height: 6,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 1.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: marker.color,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            )
-                            .toList(growable: false),
-                      );
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                  child: TableCalendar<_DiaryMarkerType>(
+                    locale: _isKo ? 'ko_KR' : 'en_US',
+                    firstDay: days.last.date,
+                    lastDay: days.first.date,
+                    focusedDay: focusedDay,
+                    calendarFormat: CalendarFormat.month,
+                    rowHeight: 36,
+                    daysOfWeekHeight: 16,
+                    availableGestures: AvailableGestures.horizontalSwipe,
+                    startingDayOfWeek: StartingDayOfWeek.sunday,
+                    headerStyle: const HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      headerPadding: EdgeInsets.symmetric(vertical: 4),
+                      leftChevronPadding: EdgeInsets.zero,
+                      rightChevronPadding: EdgeInsets.zero,
+                    ),
+                    selectedDayPredicate: (day) =>
+                        isSameDay(day, selectedDay) ||
+                        (picked != null && isSameDay(day, picked)),
+                    enabledDayPredicate: (day) =>
+                        dayMap.containsKey(_normalizeDay(day)),
+                    onDaySelected: (selected, focused) {
+                      final normalized = _normalizeDay(selected);
+                      if (!dayMap.containsKey(normalized)) return;
+                      picked = normalized;
+                      Navigator.of(dialogContext).pop();
                     },
+                    onPageChanged: (focused) {
+                      setSheetState(() => focusedDay = focused);
+                    },
+                    eventLoader: (day) {
+                      final diaryDay = dayMap[_normalizeDay(day)];
+                      if (diaryDay == null) {
+                        return const <_DiaryMarkerType>[];
+                      }
+                      final customDiary = _customDiaryForDay(diaryDay.date);
+                      return customDiary.hasContent
+                          ? const <_DiaryMarkerType>[_DiaryMarkerType.diary]
+                          : const <_DiaryMarkerType>[];
+                    },
+                    calendarBuilders: CalendarBuilders<_DiaryMarkerType>(
+                      markerBuilder: (context, day, markers) {
+                        if (markers.isEmpty) return const SizedBox.shrink();
+                        final markerList = markers
+                            .whereType<_DiaryMarkerType>()
+                            .toList(growable: false);
+                        if (markerList.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: markerList
+                              .take(4)
+                              .map(
+                                (marker) => Container(
+                                  key: ValueKey(
+                                    'diary-calendar-marker-${_dayStorageToken(day)}-${marker.name}',
+                                  ),
+                                  width: 6,
+                                  height: 6,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: marker.color,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              )
+                              .toList(growable: false),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

@@ -96,6 +96,47 @@ void main() {
     expect(find.text('데이터 동기화'), findsNothing);
   });
 
+  testWidgets('role and sync section stays compact without long helper copy', (
+    WidgetTester tester,
+  ) async {
+    final optionRepository = _MemoryOptionRepository();
+    final localeService = LocaleService(optionRepository)..load();
+    final settingsService = SettingsService(optionRepository)..load();
+    final backupService = BackupService(
+      _FakeBackupRepository(lastBackupAt: DateTime(2026, 3, 22, 10)),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SettingsScreen(
+          localeService: localeService,
+          settingsService: settingsService,
+          optionRepository: optionRepository,
+          driveBackupService: backupService,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(ChoiceChip, '선수'), findsOneWidget);
+    expect(
+      find.widgetWithText(ElevatedButton, 'Google Drive 백업'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('이 기기가 직접 기록하는 선수용인지, 보호자/코치가 확인하는 기기인지 먼저 고르세요.'),
+      findsNothing,
+    );
+    expect(
+      find.text('현재 기기 기록을 Google Drive 최신본으로 저장합니다. 새 기록을 보호할 때 먼저 사용하세요.'),
+      findsNothing,
+    );
+    expect(find.text('백업, 자동 백업, 복원을 한 곳에서 관리합니다.'), findsNothing);
+  });
+
   testWidgets(
     'parent mode keeps player Drive connection and player restore in parent/player sharing section',
     (WidgetTester tester) async {
