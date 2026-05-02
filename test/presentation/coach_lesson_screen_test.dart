@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:football_note/application/locale_service.dart';
 import 'package:football_note/application/meal_log_service.dart';
+import 'package:football_note/application/settings_service.dart';
 import 'package:football_note/application/training_service.dart';
 import 'package:football_note/domain/entities/meal_entry.dart';
 import 'package:football_note/domain/entities/training_entry.dart';
@@ -11,6 +13,7 @@ import 'package:football_note/domain/repositories/option_repository.dart';
 import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/coach_lesson_screen.dart';
+import 'package:football_note/presentation/screens/entry_form_screen.dart';
 
 import '../helpers/test_asset_bundle.dart';
 
@@ -339,6 +342,91 @@ void main() {
     expect(find.text('리프팅 · 인사이드'), findsOneWidget);
     expect(find.text('리프팅 · 아웃사이드'), findsOneWidget);
   });
+
+  testWidgets(
+    'coach lesson screen opens training entry at jump rope and lifting fields',
+    (WidgetTester tester) async {
+      final day = DateTime(2026, 3, 15);
+      final createdAt = DateTime(2026, 3, 15, 18, 0);
+      final dayToken = CoachLessonScreen.todayViewedDayToken(day);
+      final optionRepository = _FakeOptionRepository()
+        ..setRawValue(
+          'custom_diary_entries_v3',
+          '{"$dayToken":{"title":"포커스 이동","story":"확인","sections":[],"moodId":"calm","recordStickers":[{"kind":"jumpRope","refId":"$dayToken"},{"kind":"lifting","refId":"$dayToken"}],"stickers":[],"updatedAt":"2026-03-15T21:00:00.000"}}',
+        );
+      final localeService = LocaleService(optionRepository)..load();
+      final settingsService = SettingsService(optionRepository)..load();
+      final trainingService = TrainingService(
+        _FakeTrainingRepository(<TrainingEntry>[
+          TrainingEntry(
+            date: createdAt,
+            createdAt: createdAt,
+            durationMinutes: 40,
+            intensity: 3,
+            type: '기초',
+            mood: 3,
+            injury: false,
+            notes: '',
+            location: '운동장',
+            liftingByPart: const {'infront': 111},
+            jumpRopeCount: 222,
+            jumpRopeEnabled: true,
+          ),
+        ]),
+      );
+
+      await tester.pumpWidget(
+        DefaultAssetBundle(
+          bundle: TestAssetBundle(),
+          child: MaterialApp(
+            locale: const Locale('ko', 'KR'),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('ko', 'KR')],
+            home: CoachLessonScreen(
+              optionRepository: optionRepository,
+              trainingService: trainingService,
+              localeService: localeService,
+              settingsService: settingsService,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      EditableText focusedField() {
+        final focused = tester
+            .widgetList<EditableText>(find.byType(EditableText))
+            .where((widget) => widget.focusNode.hasFocus)
+            .toList(growable: false);
+        expect(focused, hasLength(1));
+        return focused.single;
+      }
+
+      await tester.tap(
+        find.byKey(ValueKey('diary-record-sticker-jumpRope:$dayToken')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EntryFormScreen), findsOneWidget);
+      expect(focusedField().controller.text, '222');
+
+      Navigator.of(tester.element(find.byType(EntryFormScreen))).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byKey(ValueKey('diary-record-sticker-lifting:$dayToken')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EntryFormScreen), findsOneWidget);
+      expect(focusedField().controller.text, '111');
+    },
+  );
 
   testWidgets('coach lesson screen shows empty guidance without records', (
     WidgetTester tester,
@@ -1218,10 +1306,12 @@ class _FakeOptionRepository implements OptionRepository {
   }
 
   @override
-  List<int> getIntOptions(String key, List<int> defaults) => defaults;
+  List<int> getIntOptions(String key, List<int> defaults) =>
+      List<int>.from(defaults);
 
   @override
-  List<String> getOptions(String key, List<String> defaults) => defaults;
+  List<String> getOptions(String key, List<String> defaults) =>
+      List<String>.from(defaults);
 
   @override
   T? getValue<T>(String key) => _values[key] as T?;
