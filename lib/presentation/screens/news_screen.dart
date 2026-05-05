@@ -116,16 +116,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _newsService =
-        widget.newsService ??
+    _newsService = widget.newsService ??
         NewsService(RssNewsRepository(widget.optionRepository));
     _profileService = PlayerProfileService(widget.optionRepository);
     _channels = _newsService.channels();
-    _positionHint = _profileService
-        .load()
-        .positionTestResult
-        .trim()
-        .toLowerCase();
+    _positionHint =
+        _profileService.load().positionTestResult.trim().toLowerCase();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _scrappedLinks = widget.optionRepository
         .getOptions(_scrappedLinksKey, const [])
@@ -204,7 +200,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                             l10n.tabNews,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -213,9 +211,20 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                           onPressed: _toggleSearch,
                           icon: Icon(_showSearch ? Icons.close : Icons.search),
                         ),
-                        TextButton.icon(
+                        OutlinedButton.icon(
                           key: _fifaHubActionKey,
                           onPressed: _openFifaRankingHub,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            side: BorderSide(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outlineVariant,
+                            ),
+                          ),
                           icon: const Icon(
                             Icons.leaderboard_outlined,
                             size: 18,
@@ -302,55 +311,68 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required AppLocalizations l10n,
     required bool isKo,
   }) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          OutlinedButton.icon(
-            key: _channelsActionKey,
-            onPressed: _openChannelPicker,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  key: _channelsActionKey,
+                  onPressed: _openChannelPicker,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                  ),
+                  icon: const Icon(Icons.rss_feed, size: 18),
+                  label: Text(l10n.newsChannelsAction),
+                ),
+                const SizedBox(width: 8),
+                _buildQuickToggleAction(
+                  buttonKey: _scrapToggleActionKey,
+                  label: _showScrappedOnly
+                      ? l10n.newsShowAllNewsAction
+                      : l10n.newsShowScrappedOnlyAction,
+                  icon: _showScrappedOnly
+                      ? Icons.bookmark
+                      : Icons.bookmark_border,
+                  selected: _showScrappedOnly,
+                  showLabel: false,
+                  tooltip: _showScrappedOnly
+                      ? l10n.newsShowAllNewsAction
+                      : l10n.newsShowScrappedOnlyAction,
+                  onPressed: () {
+                    setState(() {
+                      _showScrappedOnly = !_showScrappedOnly;
+                    });
+                  },
+                ),
+                if (isKo) ...[
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: _titleTranslateEnabled
+                        ? l10n.newsTitleTranslateEnabledTooltip
+                        : l10n.newsTitleTranslateDisabledTooltip,
+                    child: _buildQuickToggleAction(
+                      buttonKey: _translateToggleActionKey,
+                      label: l10n.newsTranslateAction,
+                      icon: Icons.translate_rounded,
+                      selected: _titleTranslateEnabled,
+                      showLabel: false,
+                      onPressed: _toggleTitleTranslate,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            icon: const Icon(Icons.rss_feed, size: 18),
-            label: Text(l10n.newsChannelsAction),
           ),
-          const SizedBox(width: 8),
-          _buildQuickToggleAction(
-            buttonKey: _scrapToggleActionKey,
-            label: _showScrappedOnly
-                ? l10n.newsShowAllNewsAction
-                : l10n.newsShowScrappedOnlyAction,
-            icon: _showScrappedOnly ? Icons.bookmark : Icons.bookmark_border,
-            selected: _showScrappedOnly,
-            showLabel: false,
-            tooltip: _showScrappedOnly
-                ? l10n.newsShowAllNewsAction
-                : l10n.newsShowScrappedOnlyAction,
-            onPressed: () {
-              setState(() {
-                _showScrappedOnly = !_showScrappedOnly;
-              });
-            },
-          ),
-          if (isKo) ...[
-            const SizedBox(width: 8),
-            Tooltip(
-              message: _titleTranslateEnabled
-                  ? l10n.newsTitleTranslateEnabledTooltip
-                  : l10n.newsTitleTranslateDisabledTooltip,
-              child: _buildQuickToggleAction(
-                buttonKey: _translateToggleActionKey,
-                label: l10n.newsTranslateAction,
-                icon: Icons.translate_rounded,
-                selected: _titleTranslateEnabled,
-                showLabel: false,
-                onPressed: _toggleTitleTranslate,
-              ),
-            ),
-          ],
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -372,9 +394,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       backgroundColor: selected
           ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerLow,
-      foregroundColor: selected
-          ? colorScheme.onPrimaryContainer
-          : colorScheme.onSurface,
+      foregroundColor:
+          selected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
       side: BorderSide(
         color: selected ? colorScheme.primary : colorScheme.outlineVariant,
       ),
@@ -536,17 +557,15 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         : List<NewsArticle>.unmodifiable(_articles);
     final regionBase = base.where(_matchesRegionFilter).toList(growable: false);
     if (query.isEmpty) return regionBase;
-    return regionBase
-        .where((article) {
-          final title = article.title.toLowerCase();
-          final sourceText = article.source.toLowerCase();
-          final translated =
-              _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
-          return title.contains(query) ||
-              sourceText.contains(query) ||
-              translated.contains(query);
-        })
-        .toList(growable: false);
+    return regionBase.where((article) {
+      final title = article.title.toLowerCase();
+      final sourceText = article.source.toLowerCase();
+      final translated =
+          _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
+      return title.contains(query) ||
+          sourceText.contains(query) ||
+          translated.contains(query);
+    }).toList(growable: false);
   }
 
   String _scrapKeyForArticle(NewsArticle article) {
@@ -693,9 +712,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required Set<String> temp,
     required StateSetter setSheetState,
   }) {
-    final domesticChannels = _channels
-        .where(_isDomesticNewsChannel)
-        .toList(growable: false);
+    final domesticChannels =
+        _channels.where(_isDomesticNewsChannel).toList(growable: false);
     final internationalChannels = _channels
         .where((channel) => !_isDomesticNewsChannel(channel))
         .toList(growable: false);
@@ -785,9 +803,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     }
     final foregroundCount = _foregroundChannelLoadCount();
     final primaryIds = channelIds.take(foregroundCount).toList(growable: false);
-    final secondaryIds = channelIds
-        .skip(foregroundCount)
-        .toList(growable: false);
+    final secondaryIds =
+        channelIds.skip(foregroundCount).toList(growable: false);
 
     final primarySucceeded = await _loadChannels(
       token: token,
@@ -870,20 +887,18 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }) async {
     if (channelIds.isEmpty) return false;
     var loadedAny = false;
-    final tasks = channelIds
-        .map((id) async {
-          try {
-            final chunk = await _newsService.latest(id);
-            if (!mounted || token != _loadToken || chunk.isEmpty) return;
-            loadedAny = true;
-            setState(() {
-              _mergeChunk(chunk);
-            });
-          } catch (_) {
-            // Keep loading remaining channels even if one feed fails.
-          }
-        })
-        .toList(growable: false);
+    final tasks = channelIds.map((id) async {
+      try {
+        final chunk = await _newsService.latest(id);
+        if (!mounted || token != _loadToken || chunk.isEmpty) return;
+        loadedAny = true;
+        setState(() {
+          _mergeChunk(chunk);
+        });
+      } catch (_) {
+        // Keep loading remaining channels even if one feed fails.
+      }
+    }).toList(growable: false);
     await Future.wait(tasks);
     return loadedAny;
   }
@@ -1139,9 +1154,8 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return <String, int>{};
       return decoded.map<String, int>((key, value) {
-        final count = value is num
-            ? value.toInt()
-            : int.tryParse('$value') ?? 0;
+        final count =
+            value is num ? value.toInt() : int.tryParse('$value') ?? 0;
         return MapEntry(key.toString(), count);
       });
     } catch (_) {
@@ -1324,19 +1338,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle)
-        .then((translated) {
-          if (!mounted) return;
-          final value = translated.trim();
-          if (value.isNotEmpty && value != originalTitle) {
-            setState(() {
-              _translatedTitlesByLink[key] = value;
-            });
-          }
-        })
-        .whenComplete(() {
-          _translatingLinks.remove(key);
+    _translateToKorean(originalTitle).then((translated) {
+      if (!mounted) return;
+      final value = translated.trim();
+      if (value.isNotEmpty && value != originalTitle) {
+        setState(() {
+          _translatedTitlesByLink[key] = value;
         });
+      }
+    }).whenComplete(() {
+      _translatingLinks.remove(key);
+    });
   }
 
   Future<void> _toggleTitleTranslate() async {

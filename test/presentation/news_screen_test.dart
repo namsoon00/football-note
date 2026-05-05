@@ -19,10 +19,11 @@ const _scrapToggleActionKey = ValueKey<String>(
 const _translateToggleActionKey = ValueKey<String>(
   'news_quick_action_translate_toggle',
 );
+const _channelsActionKey = ValueKey<String>('news_quick_action_channels');
 const _fifaHubActionKey = ValueKey<String>('news_quick_action_fifa_hub');
 
 void main() {
-  testWidgets('news quick actions keep scrap, translate, FIFA order', (
+  testWidgets('news actions align right and FIFA button has outline', (
     WidgetTester tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(1400, 900));
@@ -69,14 +70,26 @@ void main() {
     expect(find.text('스크랩한 소식만 보기'), findsNothing);
     expect(find.text('번역'), findsNothing);
 
+    final channelsX = tester.getTopLeft(find.byKey(_channelsActionKey)).dx;
     final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
-    final translateX = tester
-        .getTopLeft(find.byKey(_translateToggleActionKey))
-        .dx;
-    final fifaX = tester.getTopLeft(find.byKey(_fifaHubActionKey)).dx;
+    final translateX =
+        tester.getTopLeft(find.byKey(_translateToggleActionKey)).dx;
 
+    expect(channelsX, lessThan(scrapX));
     expect(scrapX, lessThan(translateX));
-    expect(translateX, lessThan(fifaX));
+
+    final translateRight =
+        tester.getTopRight(find.byKey(_translateToggleActionKey)).dx;
+    expect(1400 - translateRight, lessThan(24));
+    final fifaRight = tester.getTopRight(find.byKey(_fifaHubActionKey)).dx;
+    expect(1400 - fifaRight, lessThan(24));
+
+    final fifaButton = tester.widget<OutlinedButton>(
+      find.byKey(_fifaHubActionKey),
+    );
+    final fifaSide = fifaButton.style?.side?.resolve(<WidgetState>{});
+    expect(fifaSide, isNotNull);
+    expect(fifaSide!.style, BorderStyle.solid);
   });
 
   testWidgets(
@@ -159,8 +172,8 @@ class _FakeNewsRepository implements NewsRepository {
   _FakeNewsRepository({
     required List<NewsChannel> channels,
     required Map<String, List<NewsArticle>> articlesByChannelId,
-  }) : _channels = channels,
-       _articlesByChannelId = articlesByChannelId;
+  })  : _channels = channels,
+        _articlesByChannelId = articlesByChannelId;
 
   @override
   List<NewsChannel> channels() => _channels;
