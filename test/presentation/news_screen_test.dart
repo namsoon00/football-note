@@ -13,6 +13,14 @@ import 'package:football_note/domain/repositories/training_repository.dart';
 import 'package:football_note/gen/app_localizations.dart';
 import 'package:football_note/presentation/screens/news_screen.dart';
 
+const _scrapToggleActionKey = ValueKey<String>(
+  'news_quick_action_scrap_toggle',
+);
+const _translateToggleActionKey = ValueKey<String>(
+  'news_quick_action_translate_toggle',
+);
+const _fifaHubActionKey = ValueKey<String>('news_quick_action_fifa_hub');
+
 void main() {
   testWidgets('news quick actions keep scrap, translate, FIFA order', (
     WidgetTester tester,
@@ -58,9 +66,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final scrapX = tester.getTopLeft(find.text('스크랩한 소식만 보기')).dx;
-    final translateX = tester.getTopLeft(find.text('번역')).dx;
-    final fifaX = tester.getTopLeft(find.text('FIFA 랭킹')).dx;
+    expect(find.text('스크랩한 소식만 보기'), findsNothing);
+    expect(find.text('번역'), findsNothing);
+
+    final scrapX = tester.getTopLeft(find.byKey(_scrapToggleActionKey)).dx;
+    final translateX = tester
+        .getTopLeft(find.byKey(_translateToggleActionKey))
+        .dx;
+    final fifaX = tester.getTopLeft(find.byKey(_fifaHubActionKey)).dx;
 
     expect(scrapX, lessThan(translateX));
     expect(translateX, lessThan(fifaX));
