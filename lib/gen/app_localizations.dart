@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Title translation off'**
   String get newsTitleTranslateDisabledTooltip;
 
+  /// No description provided for @newsTranslateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get newsTranslateAction;
+
   /// No description provided for @newsSelectChannelsTitle.
   ///
   /// In en, this message translates to:
@@ -3013,6 +3019,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show hint'**
   String get quizShortAnswerHintAction;
+
+  /// No description provided for @quizRevealAnswerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal answer'**
+  String get quizRevealAnswerAction;
 
   /// No description provided for @quizShortAnswerHintUnavailable.
   ///

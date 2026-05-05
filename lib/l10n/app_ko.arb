@@ -13,6 +13,7 @@
   "newsShowScrappedOnlyAction": "스크랩한 소식만 보기",
   "newsTitleTranslateEnabledTooltip": "제목 번역 켜짐",
   "newsTitleTranslateDisabledTooltip": "제목 번역 꺼짐",
+  "newsTranslateAction": "번역",
   "newsSelectChannelsTitle": "뉴스 채널 선택",
   "newsSelectAll": "전체 선택",
   "newsClearAll": "전체 해제",
@@ -564,6 +565,7 @@
   "quizWrongAnswerSkipped": "답을 고르지 않음",
   "quizWrongAnswerEmpty": "입력 없음",
   "quizShortAnswerHintAction": "힌트 보기",
+  "quizRevealAnswerAction": "정답 보기",
   "quizShortAnswerHintUnavailable": "아직 준비된 힌트가 없어요.",
   "quizShortAnswerHintStartsWith": "첫 글자는 \"{first}\"이고 총 {length}글자예요.",
   "@quizShortAnswerHintStartsWith": {

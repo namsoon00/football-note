@@ -51,6 +51,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get newsTitleTranslateDisabledTooltip => '제목 번역 꺼짐';
 
   @override
+  String get newsTranslateAction => '번역';
+
+  @override
   String get newsSelectChannelsTitle => '뉴스 채널 선택';
 
   @override
@@ -1539,6 +1542,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get quizShortAnswerHintAction => '힌트 보기';
+
+  @override
+  String get quizRevealAnswerAction => '정답 보기';
 
   @override
   String get quizShortAnswerHintUnavailable => '아직 준비된 힌트가 없어요.';

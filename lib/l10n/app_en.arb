@@ -13,6 +13,7 @@
   "newsShowScrappedOnlyAction": "Show scrapped only",
   "newsTitleTranslateEnabledTooltip": "Title translation on",
   "newsTitleTranslateDisabledTooltip": "Title translation off",
+  "newsTranslateAction": "Translate",
   "newsSelectChannelsTitle": "Select news channels",
   "newsSelectAll": "Select all",
   "newsClearAll": "Clear all",
@@ -564,6 +565,7 @@
   "quizWrongAnswerSkipped": "No answer selected",
   "quizWrongAnswerEmpty": "No input",
   "quizShortAnswerHintAction": "Show hint",
+  "quizRevealAnswerAction": "Reveal answer",
   "quizShortAnswerHintUnavailable": "No hint is available yet.",
   "quizShortAnswerHintStartsWith": "It starts with \"{first}\" and has {length} letters.",
   "@quizShortAnswerHintStartsWith": {
