@@ -44,6 +44,8 @@ class WeatherSharedDailyForecast {
     this.temperatureMin,
     this.precipitationSum,
     this.windSpeedMax,
+    this.pm10,
+    this.pm25,
     this.uvIndexMax,
     this.morningForecast,
     this.eveningForecast,
@@ -57,10 +59,24 @@ class WeatherSharedDailyForecast {
   final double? temperatureMin;
   final double? precipitationSum;
   final double? windSpeedMax;
+  final double? pm10;
+  final double? pm25;
   final double? uvIndexMax;
   final WeatherSharedForecastMoment? morningForecast;
   final WeatherSharedForecastMoment? eveningForecast;
   final List<WeatherSharedHourlyPrecipitation> hourlyPrecipitations;
+}
+
+class WeatherSharedDailyAirQuality {
+  const WeatherSharedDailyAirQuality({
+    required this.date,
+    this.pm10,
+    this.pm25,
+  });
+
+  final DateTime date;
+  final double? pm10;
+  final double? pm25;
 }
 
 class WeatherSharedSnapshot {
@@ -256,6 +272,11 @@ class WeatherSharedResource {
           longitude: longitude,
           client: localClient,
         ),
+        _fetchDailyAirQualityForecasts(
+          latitude: latitude,
+          longitude: longitude,
+          client: localClient,
+        ),
         _fetchYesterdayTemperatureAtSameHour(
           latitude: latitude,
           longitude: longitude,
@@ -270,7 +291,9 @@ class WeatherSharedResource {
         l10n: l10n,
         weatherSnapshot: responses[0] as WeatherDetailsSnapshot,
         airQualitySnapshot: responses[1] as AirQualitySnapshot,
-        yesterdayTemperature: responses[2] as double?,
+        dailyAirQualityForecasts:
+            responses[2] as List<WeatherSharedDailyAirQuality>,
+        yesterdayTemperature: responses[3] as double?,
       );
       if (cacheSnapshot && snapshot.hasData) {
         _cachedSnapshot = snapshot;
@@ -290,6 +313,8 @@ class WeatherSharedResource {
     required AppLocalizations l10n,
     required WeatherDetailsSnapshot weatherSnapshot,
     required AirQualitySnapshot airQualitySnapshot,
+    List<WeatherSharedDailyAirQuality> dailyAirQualityForecasts =
+        const <WeatherSharedDailyAirQuality>[],
     double? yesterdayTemperature,
   }) {
     final localizer = _WeatherLocalizer(l10n: l10n);
@@ -297,51 +322,58 @@ class WeatherSharedResource {
     final temperature = weatherSnapshot.temperature;
     final temperatureDeltaFromYesterday =
         temperature == null || yesterdayTemperature == null
-        ? null
-        : temperature - yesterdayTemperature;
-    final forecasts = weatherSnapshot.dailyForecasts
-        .map(
-          (forecast) => WeatherSharedDailyForecast(
-            date: forecast.date,
-            weatherCode: forecast.weatherCode,
-            summary: _weatherLabelFromCode(
-              forecast.weatherCode,
-              localizer: localizer,
-            ),
-            temperatureMax: forecast.temperatureMax,
-            temperatureMin: forecast.temperatureMin,
-            precipitationSum: forecast.precipitationSum,
-            windSpeedMax: forecast.windSpeedMax,
-            uvIndexMax: forecast.uvIndexMax,
-            morningForecast: forecast.morningForecast == null
-                ? null
-                : WeatherSharedForecastMoment(
-                    time: forecast.morningForecast!.time,
-                    temperature: forecast.morningForecast!.temperature,
-                    weatherCode: forecast.morningForecast!.weatherCode,
-                    precipitation: forecast.morningForecast!.precipitation,
-                    windSpeed: forecast.morningForecast!.windSpeed,
-                  ),
-            eveningForecast: forecast.eveningForecast == null
-                ? null
-                : WeatherSharedForecastMoment(
-                    time: forecast.eveningForecast!.time,
-                    temperature: forecast.eveningForecast!.temperature,
-                    weatherCode: forecast.eveningForecast!.weatherCode,
-                    precipitation: forecast.eveningForecast!.precipitation,
-                    windSpeed: forecast.eveningForecast!.windSpeed,
-                  ),
-            hourlyPrecipitations: forecast.hourlyPrecipitations
-                .map(
-                  (entry) => WeatherSharedHourlyPrecipitation(
-                    time: entry.time,
-                    precipitation: entry.precipitation,
-                  ),
-                )
-                .toList(growable: false),
+            ? null
+            : temperature - yesterdayTemperature;
+    final airForecastsByDate = <DateTime, WeatherSharedDailyAirQuality>{
+      for (final forecast in dailyAirQualityForecasts)
+        _normalizeDate(forecast.date): forecast,
+    };
+    final forecasts = weatherSnapshot.dailyForecasts.map(
+      (forecast) {
+        final airForecast = airForecastsByDate[_normalizeDate(forecast.date)];
+        return WeatherSharedDailyForecast(
+          date: forecast.date,
+          weatherCode: forecast.weatherCode,
+          summary: _weatherLabelFromCode(
+            forecast.weatherCode,
+            localizer: localizer,
           ),
-        )
-        .toList(growable: false);
+          temperatureMax: forecast.temperatureMax,
+          temperatureMin: forecast.temperatureMin,
+          precipitationSum: forecast.precipitationSum,
+          windSpeedMax: forecast.windSpeedMax,
+          pm10: airForecast?.pm10,
+          pm25: airForecast?.pm25,
+          uvIndexMax: forecast.uvIndexMax,
+          morningForecast: forecast.morningForecast == null
+              ? null
+              : WeatherSharedForecastMoment(
+                  time: forecast.morningForecast!.time,
+                  temperature: forecast.morningForecast!.temperature,
+                  weatherCode: forecast.morningForecast!.weatherCode,
+                  precipitation: forecast.morningForecast!.precipitation,
+                  windSpeed: forecast.morningForecast!.windSpeed,
+                ),
+          eveningForecast: forecast.eveningForecast == null
+              ? null
+              : WeatherSharedForecastMoment(
+                  time: forecast.eveningForecast!.time,
+                  temperature: forecast.eveningForecast!.temperature,
+                  weatherCode: forecast.eveningForecast!.weatherCode,
+                  precipitation: forecast.eveningForecast!.precipitation,
+                  windSpeed: forecast.eveningForecast!.windSpeed,
+                ),
+          hourlyPrecipitations: forecast.hourlyPrecipitations
+              .map(
+                (entry) => WeatherSharedHourlyPrecipitation(
+                  time: entry.time,
+                  precipitation: entry.precipitation,
+                ),
+              )
+              .toList(growable: false),
+        );
+      },
+    ).toList(growable: false);
     final summary = _buildWeatherSummary(
       temperature: temperature,
       weatherCode: weatherCode,
@@ -370,6 +402,9 @@ class WeatherSharedResource {
     );
   }
 
+  static DateTime _normalizeDate(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
   static Future<double?> _fetchYesterdayTemperatureAtSameHour({
     required double latitude,
     required double longitude,
@@ -384,13 +419,13 @@ class WeatherSharedResource {
     final dateLabel = DateFormat('yyyy-MM-dd').format(yesterday);
     final uri =
         Uri.https('archive-api.open-meteo.com', '/v1/archive', <String, String>{
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'start_date': dateLabel,
-          'end_date': dateLabel,
-          'hourly': 'temperature_2m',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'start_date': dateLabel,
+      'end_date': dateLabel,
+      'hourly': 'temperature_2m',
+      'timezone': 'auto',
+    });
     final response = await client.get(uri);
     if (response.statusCode != 200) return null;
 
@@ -412,11 +447,9 @@ class WeatherSharedResource {
     var bestIndex = -1;
     var bestDiffSeconds = 1 << 30;
 
-    for (
-      var index = 0;
-      index < times.length && index < temperatures.length;
-      index++
-    ) {
+    for (var index = 0;
+        index < times.length && index < temperatures.length;
+        index++) {
       final rawTime = times[index]?.toString();
       if (rawTime == null || rawTime.trim().isEmpty) continue;
       final parsedTime = DateTime.tryParse(rawTime);
@@ -432,6 +465,83 @@ class WeatherSharedResource {
       return null;
     }
     final value = temperatures[bestIndex];
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '');
+  }
+
+  static Future<List<WeatherSharedDailyAirQuality>>
+      _fetchDailyAirQualityForecasts({
+    required double latitude,
+    required double longitude,
+    required http.Client client,
+  }) async {
+    final airQualityUri =
+        Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'hourly': 'pm10,pm2_5',
+      'forecast_days': '7',
+      'timezone': 'auto',
+    });
+    try {
+      final airResponse = await client.get(airQualityUri);
+      if (airResponse.statusCode != 200) {
+        return const <WeatherSharedDailyAirQuality>[];
+      }
+
+      final decoded = jsonDecode(airResponse.body);
+      if (decoded is! Map<String, dynamic>) {
+        return const <WeatherSharedDailyAirQuality>[];
+      }
+      final hourly = decoded['hourly'];
+      return hourly is Map<String, dynamic>
+          ? _buildDailyAirQualityForecasts(hourly)
+          : const <WeatherSharedDailyAirQuality>[];
+    } catch (_) {
+      return const <WeatherSharedDailyAirQuality>[];
+    }
+  }
+
+  static List<WeatherSharedDailyAirQuality> _buildDailyAirQualityForecasts(
+    Map<String, dynamic> hourly,
+  ) {
+    final times = hourly['time'];
+    final pm10Values = hourly['pm10'];
+    final pm25Values = hourly['pm2_5'];
+    if (times is! List) {
+      return const <WeatherSharedDailyAirQuality>[];
+    }
+
+    final accumulators = <DateTime, _DailyAirQualityAccumulator>{};
+    for (var index = 0; index < times.length; index++) {
+      final time = DateTime.tryParse(times[index]?.toString() ?? '');
+      if (time == null) continue;
+      final pm10 = _numberAt(pm10Values, index);
+      final pm25 = _numberAt(pm25Values, index);
+      if (pm10 == null && pm25 == null) continue;
+      final date = _normalizeDate(time);
+      accumulators
+          .putIfAbsent(date, _DailyAirQualityAccumulator.new)
+          .add(pm10: pm10, pm25: pm25);
+    }
+
+    final dates = accumulators.keys.toList()..sort();
+    return dates
+        .map(
+          (date) => WeatherSharedDailyAirQuality(
+            date: date,
+            pm10: accumulators[date]?.pm10Average,
+            pm25: accumulators[date]?.pm25Average,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  static double? _numberAt(Object? values, int index) {
+    if (values is! List || index < 0 || index >= values.length) {
+      return null;
+    }
+    final value = values[index];
     if (value is num) return value.toDouble();
     return double.tryParse(value?.toString() ?? '');
   }
@@ -455,11 +565,11 @@ class WeatherSharedResource {
 
     final airQualityUri =
         Uri.https('air-quality-api.open-meteo.com', '/v1/air-quality', {
-          'latitude': latitude.toString(),
-          'longitude': longitude.toString(),
-          'current': 'pm10,pm2_5,us_aqi',
-          'timezone': 'auto',
-        });
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'current': 'pm10,pm2_5,us_aqi',
+      'timezone': 'auto',
+    });
     final airResponse = await client.get(airQualityUri);
     if (airResponse.statusCode != 200) {
       return const AirQualitySnapshot();
@@ -540,6 +650,27 @@ class WeatherSharedResource {
         return localizer.defaultValue;
     }
   }
+}
+
+class _DailyAirQualityAccumulator {
+  double _pm10Total = 0;
+  var _pm10Count = 0;
+  double _pm25Total = 0;
+  var _pm25Count = 0;
+
+  void add({required double? pm10, required double? pm25}) {
+    if (pm10 != null) {
+      _pm10Total += pm10;
+      _pm10Count++;
+    }
+    if (pm25 != null) {
+      _pm25Total += pm25;
+      _pm25Count++;
+    }
+  }
+
+  double? get pm10Average => _pm10Count == 0 ? null : _pm10Total / _pm10Count;
+  double? get pm25Average => _pm25Count == 0 ? null : _pm25Total / _pm25Count;
 }
 
 abstract interface class _WeatherLabelLocalizer {

@@ -101,8 +101,12 @@ class DriveBackupService implements BackupRepository {
   static const parentDriveSubjectLocalKey = 'drive_parent_subject_local_v1';
   static const sharedChildDriveEmailKey = 'drive_child_email_v1';
   static const sharedChildDriveLabelKey = 'drive_child_label_v1';
-  static const _folderName = 'Football Note';
-  static const _fileName = 'football_note_backup.json';
+  static const backupFolderName = 'Football Note';
+  static const backupFileName = 'football_note_backup.json';
+  static String get backupDisplayPath =>
+      'Google Drive > $backupFolderName > $backupFileName';
+  static const _folderName = backupFolderName;
+  static const _fileName = backupFileName;
   static const _driveScope = 'https://www.googleapis.com/auth/drive.file';
   static const parentDriveMismatchErrorCode = 'parent_drive_mismatch';
   static const parentFamilyMismatchErrorCode = 'parent_family_mismatch';

@@ -323,7 +323,9 @@ void main() {
     },
   );
 
-  test('fetchRankingOverview does not wait for live match feeds', () async {
+  test('fetchRankingOverview only requests the ranking endpoint', () async {
+    var scheduleRequested = false;
+    var metadataRequested = false;
     var liveFeedRequested = false;
     final client = MockClient((request) async {
       if (request.url.host == 'api.fifa.com' &&
@@ -352,6 +354,7 @@ void main() {
 
       if (request.url.host == 'api.fifa.com' &&
           request.url.path.endsWith('/rankingschedules/all')) {
+        scheduleRequested = true;
         return http.Response(
           jsonEncode({
             'Results': [
@@ -366,6 +369,7 @@ void main() {
       }
 
       if (request.url.host == 'inside.fifa.com') {
+        metadataRequested = true;
         return http.Response(
           '"lastUpdateDate":"2026-04-03T00:00:00Z"',
           200,
@@ -389,6 +393,8 @@ void main() {
     expect(overview.leader?.teamName, 'Argentina');
     expect(overview.recentResults, isEmpty);
     expect(overview.upcomingFixtures, isEmpty);
+    expect(scheduleRequested, isFalse);
+    expect(metadataRequested, isFalse);
     expect(liveFeedRequested, isFalse);
   });
 

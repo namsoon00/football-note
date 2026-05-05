@@ -76,12 +76,12 @@ class FifaWorldOverviewService {
   Future<FifaWorldOverview> fetchRankingOverview({
     required FifaRankingGender gender,
   }) async {
-    final snapshot = await _fetchRankingSnapshot(gender);
+    final rankings = await _fetchRankings(gender);
     return FifaWorldOverview(
       gender: gender,
-      rankings: snapshot.rankings,
-      lastUpdatedAt: snapshot.lastUpdatedAt,
-      nextUpdatedAt: snapshot.nextUpdatedAt,
+      rankings: rankings,
+      lastUpdatedAt: rankings.firstOrNull?.publishedAt,
+      nextUpdatedAt: null,
       recentResults: const <FifaAMatchEntry>[],
       upcomingFixtures: const <FifaAMatchEntry>[],
     );

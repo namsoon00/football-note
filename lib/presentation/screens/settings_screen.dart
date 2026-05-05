@@ -878,6 +878,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         localRestoreAt: driveBackupService.getLocalPreRestoreTime(),
         formatBackupTime: _formatBackupTime,
       ),
+      _buildDriveBackupLocationCard(),
       SwitchListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(l10n.backupDailyEnabled),
@@ -931,6 +932,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     final driveBackupService = widget.driveBackupService!;
     final localRestoreAvailable = driveBackupService.hasLocalPreRestoreBackup();
     return [
+      _buildDriveBackupLocationCard(),
       _buildActionCard(
         title: l10n.settingsSupportRestoreDriveActionTitle,
         icon: Icons.cloud_download_outlined,
@@ -961,6 +963,59 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       _buildParentFamilySyncCard(l10n),
     ];
+  }
+
+  Widget _buildDriveBackupLocationCard() {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isKo = Localizations.localeOf(context).languageCode == 'ko';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outline.withValues(alpha: 0.12)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.folder_copy_outlined,
+            size: 20,
+            color: scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isKo ? 'Google Drive 저장 위치' : 'Google Drive location',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isKo
+                      ? '백업 파일은 아래 위치에 저장됩니다. 폴더가 없으면 자동으로 만듭니다.'
+                      : 'The backup file is stored here. The folder is created automatically if needed.',
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+                SelectableText(
+                  DriveBackupService.backupDisplayPath,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSubtleLocalRestoreCard({

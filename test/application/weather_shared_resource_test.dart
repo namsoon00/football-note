@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/application/korean_air_quality_service.dart';
 import 'package:football_note/application/weather_current_service.dart';
 import 'package:football_note/application/weather_shared_resource.dart';
 import 'package:football_note/gen/app_localizations.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +71,13 @@ void main() {
           aqi: 82,
           scale: AirQualityScale.khai,
         ),
+        dailyAirQualityForecasts: <WeatherSharedDailyAirQuality>[
+          WeatherSharedDailyAirQuality(
+            date: DateTime(2026, 4, 26),
+            pm10: 42,
+            pm25: 16,
+          ),
+        ],
         yesterdayTemperature: 18.0,
       );
 
@@ -77,11 +88,114 @@ void main() {
       expect(snapshot.airQualityScale, AirQualityScale.khai);
       expect(snapshot.dailyForecasts, hasLength(1));
       expect(snapshot.dailyForecasts.first.summary, l10n.weatherLabelRain);
+      expect(snapshot.dailyForecasts.first.pm10, 42);
+      expect(snapshot.dailyForecasts.first.pm25, 16);
       expect(snapshot.dailyForecasts.first.morningForecast?.weatherCode, 3);
       expect(
         snapshot.dailyForecasts.first.hourlyPrecipitations.single.precipitation,
         0.7,
       );
+    });
+
+    test('fetchForCoordinates attaches daily fine dust forecasts', () async {
+      const locale = Locale('ko', 'KR');
+      final l10n = await AppLocalizations.delegate.load(locale);
+      final client = MockClient((request) async {
+        final uri = request.url;
+        if (uri.host == 'api.open-meteo.com' && uri.path == '/v1/forecast') {
+          return http.Response(
+            jsonEncode(<String, Object?>{
+              'current': <String, Object?>{
+                'temperature_2m': 21.4,
+                'apparent_temperature': 20.2,
+                'relative_humidity_2m': 55,
+                'precipitation': 0,
+                'weather_code': 0,
+                'wind_speed_10m': 4.1,
+              },
+              'hourly': <String, Object?>{
+                'time': <String>[
+                  '2026-04-26T08:00',
+                  '2026-04-26T19:00',
+                  '2026-04-27T08:00',
+                ],
+                'temperature_2m': <double>[17, 20, 18],
+                'weather_code': <int>[0, 0, 61],
+                'precipitation': <double>[0, 0, 1.2],
+                'wind_speed_10m': <double>[3.1, 4.5, 6.2],
+              },
+              'daily': <String, Object?>{
+                'time': <String>['2026-04-26', '2026-04-27'],
+                'weather_code': <int>[0, 61],
+                'uv_index_max': <double>[5.2, 3.1],
+                'temperature_2m_max': <double>[24, 21],
+                'temperature_2m_min': <double>[15, 13],
+                'precipitation_sum': <double>[0, 2.4],
+                'wind_speed_10m_max': <double>[8, 11],
+              },
+            }),
+            200,
+          );
+        }
+        if (uri.host == 'air-quality-api.open-meteo.com' &&
+            uri.path == '/v1/air-quality') {
+          if (uri.queryParameters.containsKey('hourly')) {
+            return http.Response(
+              jsonEncode(<String, Object?>{
+                'hourly': <String, Object?>{
+                  'time': <String>[
+                    '2026-04-26T00:00',
+                    '2026-04-26T12:00',
+                    '2026-04-27T00:00',
+                  ],
+                  'pm10': <double>[30, 42, 24],
+                  'pm2_5': <double>[12, 18, 9],
+                },
+              }),
+              200,
+            );
+          }
+          return http.Response(
+            jsonEncode(<String, Object?>{
+              'current': <String, Object?>{
+                'pm10': 31,
+                'pm2_5': 14,
+                'us_aqi': 53,
+              },
+            }),
+            200,
+          );
+        }
+        if (uri.host == 'archive-api.open-meteo.com' &&
+            uri.path == '/v1/archive') {
+          return http.Response(
+            jsonEncode(<String, Object?>{
+              'hourly': <String, Object?>{
+                'time': <String>['2026-04-25T09:00'],
+                'temperature_2m': <double>[18],
+              },
+            }),
+            200,
+          );
+        }
+        fail('Unexpected request: $uri');
+      });
+
+      final snapshot = await WeatherSharedResource.fetchForCoordinates(
+        latitude: 51.5,
+        longitude: -0.12,
+        l10n: l10n,
+        locale: locale,
+        client: client,
+        now: DateTime(2026, 4, 26, 9),
+      );
+
+      expect(snapshot.dailyForecasts, hasLength(2));
+      expect(snapshot.dailyForecasts.first.pm10, closeTo(36, 0.001));
+      expect(snapshot.dailyForecasts.first.pm25, closeTo(15, 0.001));
+      expect(snapshot.dailyForecasts[1].pm10, 24);
+      expect(snapshot.pm10, 31);
+      expect(snapshot.pm25, 14);
     });
 
     test('cachedSnapshot honors locale and ttl', () async {
