@@ -12,6 +12,7 @@
 - Default workflow is branch-based merge to `main` (no PR by default): create work branch -> commit -> merge to `main` with a merge commit -> push `main`.
 - Before starting any implementation task, confirm the current branch is `main`. If it is not `main`, switch back to `main` first, or use a separate clean worktree based on `main`, and only then create a fresh work branch.
 - After merging work back into `main`, leave the local repository on `main`. Do not finish a task while leaving the primary working checkout on a feature branch.
+- Do not consider an implementation task complete until `git push origin main` succeeds after the merge commit. Never intentionally skip, defer, or leave the push for the user; if push is blocked by credentials, network, or remote rejection, report the exact blocker in the final response.
 - If a PR flow is requested, use: feature branch -> commit -> pull request -> merge to `main`.
 - If an issue number is provided or detected from commit message `#<number>`, close the issue after main push (and leave a merge comment).
 - In the final response, always include the commit hash applied on `main`.

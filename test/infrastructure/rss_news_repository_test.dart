@@ -2,19 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:football_note/infrastructure/rss_news_repository.dart';
 
 void main() {
-  test('includes Korean domestic football news channels', () {
+  test('includes curated Korean domestic football news channels', () {
     final channels = RssNewsRepository().channels();
     final ids = channels.map((channel) => channel.id).toSet();
 
     expect(
       ids,
       containsAll(<String>{
-        'sports_khan_domestic_soccer_ko',
-        'sports_khan_soccer_ko',
-        'sportschosun_soccer_ko',
-        'sportsdonga_soccer_ko',
-        'newsis_sports_domestic_soccer_ko',
-        'khan_sports_domestic_soccer_ko',
         'google_news_domestic_soccer_ko',
         'google_news_kleague_ko',
         'google_news_kleague1_ko',
@@ -26,6 +20,22 @@ void main() {
         'google_news_k3_k4_ko',
       }),
     );
+  });
+
+  test('excludes ad-heavy domestic outlet feeds', () {
+    final channels = RssNewsRepository().channels();
+    final ids = channels.map((channel) => channel.id).toSet();
+
+    for (final id in <String>{
+      'sports_khan_domestic_soccer_ko',
+      'sports_khan_soccer_ko',
+      'sportschosun_soccer_ko',
+      'sportsdonga_soccer_ko',
+      'newsis_sports_domestic_soccer_ko',
+      'khan_sports_domestic_soccer_ko',
+    }) {
+      expect(ids, isNot(contains(id)));
+    }
   });
 
   test('uses unique news channel ids', () {
