@@ -58,7 +58,156 @@ class RssNewsRepository implements NewsRepository {
     'partner content',
   ];
 
+  static const List<String> _domesticFootballKeywords = [
+    '국내축구',
+    '한국축구',
+    '프로축구',
+    'k리그',
+    'k league',
+    'kleague',
+    'k리그1',
+    'k리그2',
+    'k3리그',
+    'k4리그',
+    'k5리그',
+    'k6리그',
+    'k7리그',
+    'wk리그',
+    '코리아컵',
+    '축구대표팀',
+    '대표팀',
+    '대한축구협회',
+    '축구협회',
+    '홍명보호',
+    '울산 hd',
+    '전북 현대',
+    'fc서울',
+    '수원 삼성',
+    '수원fc',
+    '포항 스틸러스',
+    '대구fc',
+    '인천 유나이티드',
+    '광주fc',
+    '대전하나시티즌',
+    '강원fc',
+    '제주 유나이티드',
+    '김천 상무',
+    'fc안양',
+    '부천fc',
+    '성남fc',
+    '전남 드래곤즈',
+    '부산 아이파크',
+    '경남fc',
+    '충남아산',
+    '천안시티',
+    '충북청주',
+    '안산 그리너스',
+    '김포fc',
+    '화성fc',
+  ];
+
   static const List<_FeedConfig> _feeds = [
+    _FeedConfig(
+      id: 'sports_khan_domestic_soccer_ko',
+      name: '스포츠경향 · 국내축구',
+      url: 'https://sports.khan.co.kr/rss/soccer_korea-soccer',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'sports_khan_soccer_ko',
+      name: '스포츠경향 · 축구',
+      url: 'https://sports.khan.co.kr/rss/soccer',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'sportschosun_soccer_ko',
+      name: '스포츠조선 · 축구',
+      url: 'https://www.sportschosun.com/rss/index_sc.htm',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'sportsdonga_soccer_ko',
+      name: '스포츠동아 · 축구',
+      url: 'https://rss.donga.com/sportsdonga/soccer.xml',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'newsis_sports_domestic_soccer_ko',
+      name: '뉴시스 · 국내축구',
+      url: 'https://www.newsis.com/RSS/sports.xml',
+      requireImage: false,
+      keywords: _domesticFootballKeywords,
+    ),
+    _FeedConfig(
+      id: 'khan_sports_domestic_soccer_ko',
+      name: '경향신문 · 국내축구',
+      url: 'https://www.khan.co.kr/rss/rssdata/kh_sports.xml',
+      requireImage: false,
+      keywords: _domesticFootballKeywords,
+    ),
+    _FeedConfig(
+      id: 'google_news_domestic_soccer_ko',
+      name: 'Google 뉴스 · 국내축구',
+      url:
+          'https://news.google.com/rss/search?q=%EA%B5%AD%EB%82%B4%EC%B6%95%EA%B5%AC+OR+K%EB%A6%AC%EA%B7%B8+OR+%ED%95%9C%EA%B5%AD%EC%B6%95%EA%B5%AC&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_kleague_ko',
+      name: 'Google 뉴스 · K리그',
+      url:
+          'https://news.google.com/rss/search?q=K%EB%A6%AC%EA%B7%B8&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_kleague1_ko',
+      name: 'Google 뉴스 · K리그1',
+      url:
+          'https://news.google.com/rss/search?q=K%EB%A6%AC%EA%B7%B81&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_kleague2_ko',
+      name: 'Google 뉴스 · K리그2',
+      url:
+          'https://news.google.com/rss/search?q=K%EB%A6%AC%EA%B7%B82&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_korea_national_team_ko',
+      name: 'Google 뉴스 · 축구대표팀',
+      url:
+          'https://news.google.com/rss/search?q=%EC%B6%95%EA%B5%AC%EB%8C%80%ED%91%9C%ED%8C%80+OR+%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD+%EC%B6%95%EA%B5%AC%EB%8C%80%ED%91%9C%ED%8C%80&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_kfa_ko',
+      name: 'Google 뉴스 · 대한축구협회',
+      url:
+          'https://news.google.com/rss/search?q=%EB%8C%80%ED%95%9C%EC%B6%95%EA%B5%AC%ED%98%91%ED%9A%8C+OR+KFA+%EC%B6%95%EA%B5%AC&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_korea_cup_ko',
+      name: 'Google 뉴스 · 코리아컵',
+      url:
+          'https://news.google.com/rss/search?q=%EC%BD%94%EB%A6%AC%EC%95%84%EC%BB%B5+%EC%B6%95%EA%B5%AC&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_wkleague_ko',
+      name: 'Google 뉴스 · WK리그',
+      url:
+          'https://news.google.com/rss/search?q=WK%EB%A6%AC%EA%B7%B8+%EC%B6%95%EA%B5%AC&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
+    _FeedConfig(
+      id: 'google_news_k3_k4_ko',
+      name: 'Google 뉴스 · K3/K4리그',
+      url:
+          'https://news.google.com/rss/search?q=K3%EB%A6%AC%EA%B7%B8+OR+K4%EB%A6%AC%EA%B7%B8&hl=ko&gl=KR&ceid=KR:ko',
+      requireImage: false,
+    ),
     _FeedConfig(
       id: 'bbc_football_en',
       name: 'BBC Sport',
@@ -113,7 +262,9 @@ class RssNewsRepository implements NewsRepository {
     if (results.isEmpty) {
       throw StateError('Failed to fetch football news.');
     }
-    final filtered = results.where(_isUsableArticle).toList();
+    final filtered = results.where((article) {
+      return _isUsableArticle(feed: feed, article: article);
+    }).toList();
     filtered.sort((a, b) {
       final at = a.publishedAt;
       final bt = b.publishedAt;
@@ -125,9 +276,27 @@ class RssNewsRepository implements NewsRepository {
     return filtered;
   }
 
-  bool _isUsableArticle(NewsArticle article) {
-    if (!_hasUsableImage(article)) return false;
+  bool _isUsableArticle({
+    required _FeedConfig feed,
+    required NewsArticle article,
+  }) {
+    if (feed.keywords.isNotEmpty &&
+        !_matchesAnyKeyword(article, feed.keywords)) {
+      return false;
+    }
+    if (feed.requireImage && !_hasUsableImage(article)) return false;
     return !_isBlocked(article);
+  }
+
+  bool _matchesAnyKeyword(NewsArticle article, List<String> keywords) {
+    final haystack =
+        '${article.title} ${article.source} ${article.link}'.toLowerCase();
+    for (final keyword in keywords) {
+      if (haystack.contains(keyword.toLowerCase())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   bool _hasUsableImage(NewsArticle article) {
@@ -387,8 +556,16 @@ class _FeedConfig {
   final String id;
   final String name;
   final String url;
+  final bool requireImage;
+  final List<String> keywords;
 
-  const _FeedConfig({required this.id, required this.name, required this.url});
+  const _FeedConfig({
+    required this.id,
+    required this.name,
+    required this.url,
+    this.requireImage = true,
+    this.keywords = const [],
+  });
 }
 
 enum _FeedResponseType { xml, allOriginsGet, rss2Json }

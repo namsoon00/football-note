@@ -963,10 +963,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }
 
   bool _isRenderableArticle(NewsArticle article) {
-    final image = article.imageUrl.trim();
-    if (!(image.startsWith('http://') || image.startsWith('https://'))) {
-      return false;
-    }
     final host = Uri.tryParse(article.link.trim())?.host.toLowerCase() ?? '';
     if (host.isEmpty) return false;
     for (final blocked in _allBlockedHosts()) {
