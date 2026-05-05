@@ -2175,14 +2175,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get runningCoachLiveGuidanceTitle => 'Current guidance';
 
   @override
-  String get runningCoachSprintLiveCardTitle => 'Sprint live MVP';
+  String get runningCoachSprintLiveCardTitle => 'Live sprint coaching';
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      'Connect the side-view camera directly so trunk lean, knee drive, step rhythm, arm balance, and session FPS/skip/visibility logs can be checked together on-device.';
+      'Use the side-view camera to read trunk lean, knee drive, step rhythm, and arm balance, then get the one sprint cue to fix now.';
 
   @override
-  String get runningCoachSprintLiveAction => 'Start sprint MVP';
+  String get runningCoachSprintLiveAction => 'Start sprint coaching';
 
   @override
   String get runningCoachSprintLiveScreenTitle => 'Live sprint coaching';
@@ -2233,7 +2233,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionLogTitle => 'Session debug';
+  String get runningCoachSprintSessionLogTitle => 'Session summary';
 
   @override
   String get runningCoachSprintSessionCameraFpsLabel => 'Camera input FPS';
@@ -2801,7 +2801,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame =>
-      'Core joints are clipping near the edge, so overlay and feature values will drift.';
+      'Core joints are clipping near the edge, so the pose line and sprint metrics may drift.';
 
   @override
   String get runningCoachSprintTrackingDiagnosisLowConfidence =>
@@ -2910,7 +2910,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runningCoachSprintDiagnosisKeepPushing =>
-      'The main sprint features are inside the current MVP range, so the app is holding the current cue.';
+      'The main sprint metrics are inside the stable range, so the app is holding the current cue.';
 
   @override
   String get runningCoachSprintActionLeanForward =>

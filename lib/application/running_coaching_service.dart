@@ -3,23 +3,47 @@ import 'dart:math' as math;
 import '../domain/entities/running_video_analysis_result.dart';
 
 class RunningCoachingService {
-  const RunningCoachingService();
+  final RunningCoachingThresholds thresholds;
+  final RunningCoachingWeights weights;
+
+  const RunningCoachingService({
+    this.thresholds = const RunningCoachingThresholds(),
+    this.weights = const RunningCoachingWeights(),
+  });
 
   RunningCoachingReport buildReport(RunningVideoAnalysisResult result) {
     final insights = <RunningCoachingInsight>[
-      _buildPostureInsight(result.forwardLeanDegrees),
-      _buildBounceInsight(result.verticalBounceRatio),
-      _buildFootStrikeInsight(result.footStrikeDistanceRatio),
-      _buildKneeInsight(result.stanceKneeAngleDegrees),
-      _buildArmInsight(result.elbowAngleDegrees),
+      _buildPostureInsight(
+        result.forwardLeanDegrees,
+        _qualityForResult(result, RunningCoachMetric.posture),
+      ),
+      _buildBounceInsight(
+        result.verticalBounceRatio,
+        _qualityForResult(result, RunningCoachMetric.bounce),
+      ),
+      _buildFootStrikeInsight(
+        result.footStrikeDistanceRatio,
+        _qualityForResult(result, RunningCoachMetric.footStrike),
+      ),
+      _buildKneeInsight(
+        result.stanceKneeAngleDegrees,
+        _qualityForResult(result, RunningCoachMetric.kneeFlexion),
+      ),
+      _buildArmInsight(
+        result.elbowAngleDegrees,
+        _qualityForResult(result, RunningCoachMetric.armCarriage),
+      ),
     ];
 
-    final weightedTotal = _weightedInsight(insights[0], 0.24) +
-        _weightedInsight(insights[1], 0.16) +
-        _weightedInsight(insights[2], 0.24) +
-        _weightedInsight(insights[3], 0.20) +
-        _weightedInsight(insights[4], 0.16);
-    final coveragePenalty = result.validFrameCoverage < 0.6 ? 8 : 0;
+    final weightedTotal = _weightedInsight(insights[0], weights.postureWeight) +
+        _weightedInsight(insights[1], weights.bounceWeight) +
+        _weightedInsight(insights[2], weights.footStrikeWeight) +
+        _weightedInsight(insights[3], weights.kneeWeight) +
+        _weightedInsight(insights[4], weights.armWeight);
+    final coveragePenalty =
+        result.validFrameCoverage < thresholds.minimumReliableCoverage
+            ? thresholds.lowCoveragePenalty
+            : 0;
 
     return RunningCoachingReport(
       overallScore: math.max(0, weightedTotal.round() - coveragePenalty),
@@ -27,24 +51,34 @@ class RunningCoachingService {
     );
   }
 
-  RunningCoachingInsight _buildPostureInsight(double leanDegrees) {
-    final score = _clampScore(100 - ((leanDegrees - 10).abs() * 8).round());
-    if (leanDegrees < 6) {
+  RunningCoachingInsight _buildPostureInsight(
+    double leanDegrees,
+    RunningMetricQuality quality,
+  ) {
+    final score = _clampScore(
+      100 -
+          ((leanDegrees - thresholds.idealForwardLeanDegrees).abs() *
+                  thresholds.forwardLeanScorePenaltyPerDegree)
+              .round(),
+    );
+    if (leanDegrees < thresholds.minimumForwardLeanDegrees) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.posture,
         finding: RunningCoachFinding.postureTooUpright,
         status: _statusForScore(score),
         score: score,
         value: leanDegrees,
+        quality: quality,
       );
     }
-    if (leanDegrees > 16) {
+    if (leanDegrees > thresholds.maximumForwardLeanDegrees) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.posture,
         finding: RunningCoachFinding.postureTooLean,
         status: _statusForScore(score),
         score: score,
         value: leanDegrees,
+        quality: quality,
       );
     }
     return RunningCoachingInsight(
@@ -53,19 +87,29 @@ class RunningCoachingService {
       status: RunningCoachStatus.good,
       score: score,
       value: leanDegrees,
+      quality: quality,
     );
   }
 
-  RunningCoachingInsight _buildBounceInsight(double bounceRatio) {
+  RunningCoachingInsight _buildBounceInsight(
+    double bounceRatio,
+    RunningMetricQuality quality,
+  ) {
     final bouncePercent = bounceRatio * 100;
-    final score = _clampScore(100 - ((bouncePercent - 6.0).abs() * 11).round());
-    if (bouncePercent > 8.5) {
+    final score = _clampScore(
+      100 -
+          ((bouncePercent - thresholds.idealVerticalBouncePercent).abs() *
+                  thresholds.verticalBounceScorePenaltyPerPercent)
+              .round(),
+    );
+    if (bouncePercent > thresholds.maximumVerticalBouncePercent) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.bounce,
         finding: RunningCoachFinding.bounceTooHigh,
         status: _statusForScore(score),
         score: score,
         value: bouncePercent,
+        quality: quality,
       );
     }
     return RunningCoachingInsight(
@@ -74,22 +118,33 @@ class RunningCoachingService {
       status: RunningCoachStatus.good,
       score: score,
       value: bouncePercent,
+      quality: quality,
     );
   }
 
-  RunningCoachingInsight _buildFootStrikeInsight(double strikeRatio) {
+  RunningCoachingInsight _buildFootStrikeInsight(
+    double strikeRatio,
+    RunningMetricQuality quality,
+  ) {
     final score = _clampScore(
-      strikeRatio <= 0.16
-          ? 100 - ((strikeRatio - 0.08).abs() * 220).round()
-          : 100 - ((strikeRatio - 0.08).abs() * 320).round(),
+      strikeRatio <= thresholds.maximumFootStrikeRatio
+          ? 100 -
+              ((strikeRatio - thresholds.idealFootStrikeRatio).abs() *
+                      thresholds.footStrikeScorePenalty)
+                  .round()
+          : 100 -
+              ((strikeRatio - thresholds.idealFootStrikeRatio).abs() *
+                      thresholds.overstrideScorePenalty)
+                  .round(),
     );
-    if (strikeRatio > 0.16) {
+    if (strikeRatio > thresholds.maximumFootStrikeRatio) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.footStrike,
         finding: RunningCoachFinding.footStrikeOverstride,
         status: _statusForScore(score),
         score: score,
         value: strikeRatio,
+        quality: quality,
       );
     }
     return RunningCoachingInsight(
@@ -98,29 +153,38 @@ class RunningCoachingService {
       status: RunningCoachStatus.good,
       score: score,
       value: strikeRatio,
+      quality: quality,
     );
   }
 
-  RunningCoachingInsight _buildKneeInsight(double kneeAngleDegrees) {
+  RunningCoachingInsight _buildKneeInsight(
+    double kneeAngleDegrees,
+    RunningMetricQuality quality,
+  ) {
     final score = _clampScore(
-      100 - ((kneeAngleDegrees - 155).abs() * 2.2).round(),
+      100 -
+          ((kneeAngleDegrees - thresholds.idealStanceKneeAngleDegrees).abs() *
+                  thresholds.kneeScorePenaltyPerDegree)
+              .round(),
     );
-    if (kneeAngleDegrees > 170) {
+    if (kneeAngleDegrees > thresholds.maximumStanceKneeAngleDegrees) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.kneeFlexion,
         finding: RunningCoachFinding.kneeTooStraight,
         status: _statusForScore(score),
         score: score,
         value: kneeAngleDegrees,
+        quality: quality,
       );
     }
-    if (kneeAngleDegrees < 138) {
+    if (kneeAngleDegrees < thresholds.minimumStanceKneeAngleDegrees) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.kneeFlexion,
         finding: RunningCoachFinding.kneeTooCollapsed,
         status: _statusForScore(score),
         score: score,
         value: kneeAngleDegrees,
+        quality: quality,
       );
     }
     return RunningCoachingInsight(
@@ -129,29 +193,38 @@ class RunningCoachingService {
       status: RunningCoachStatus.good,
       score: score,
       value: kneeAngleDegrees,
+      quality: quality,
     );
   }
 
-  RunningCoachingInsight _buildArmInsight(double elbowAngleDegrees) {
+  RunningCoachingInsight _buildArmInsight(
+    double elbowAngleDegrees,
+    RunningMetricQuality quality,
+  ) {
     final score = _clampScore(
-      100 - ((elbowAngleDegrees - 90).abs() * 1.3).round(),
+      100 -
+          ((elbowAngleDegrees - thresholds.idealElbowAngleDegrees).abs() *
+                  thresholds.elbowScorePenaltyPerDegree)
+              .round(),
     );
-    if (elbowAngleDegrees > 120) {
+    if (elbowAngleDegrees > thresholds.maximumElbowAngleDegrees) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.armCarriage,
         finding: RunningCoachFinding.armTooOpen,
         status: _statusForScore(score),
         score: score,
         value: elbowAngleDegrees,
+        quality: quality,
       );
     }
-    if (elbowAngleDegrees < 60) {
+    if (elbowAngleDegrees < thresholds.minimumElbowAngleDegrees) {
       return RunningCoachingInsight(
         metric: RunningCoachMetric.armCarriage,
         finding: RunningCoachFinding.armTooTight,
         status: _statusForScore(score),
         score: score,
         value: elbowAngleDegrees,
+        quality: quality,
       );
     }
     return RunningCoachingInsight(
@@ -160,6 +233,7 @@ class RunningCoachingService {
       status: RunningCoachStatus.good,
       score: score,
       value: elbowAngleDegrees,
+      quality: quality,
     );
   }
 
@@ -173,5 +247,93 @@ class RunningCoachingService {
     return insight.score * weight;
   }
 
+  RunningMetricQuality _qualityForResult(
+    RunningVideoAnalysisResult result,
+    RunningCoachMetric metric,
+  ) {
+    final metricQuality = result.qualityFor(metric);
+    if (metricQuality != null) {
+      return metricQuality;
+    }
+    final confidence = result.analysisConfidence;
+    final reason =
+        result.validFrameCoverage < thresholds.minimumReliableCoverage
+            ? 'low_coverage'
+            : result.validFrames < thresholds.minimumReliableFrames
+                ? 'limited_samples'
+                : null;
+    return RunningMetricQuality(
+      confidence: confidence,
+      sampleCount: result.validFrames,
+      reason: reason,
+    );
+  }
+
   int _clampScore(int score) => score.clamp(0, 100);
+}
+
+class RunningCoachingThresholds {
+  final double idealForwardLeanDegrees;
+  final double minimumForwardLeanDegrees;
+  final double maximumForwardLeanDegrees;
+  final double forwardLeanScorePenaltyPerDegree;
+  final double idealVerticalBouncePercent;
+  final double maximumVerticalBouncePercent;
+  final double verticalBounceScorePenaltyPerPercent;
+  final double idealFootStrikeRatio;
+  final double maximumFootStrikeRatio;
+  final double footStrikeScorePenalty;
+  final double overstrideScorePenalty;
+  final double idealStanceKneeAngleDegrees;
+  final double minimumStanceKneeAngleDegrees;
+  final double maximumStanceKneeAngleDegrees;
+  final double kneeScorePenaltyPerDegree;
+  final double idealElbowAngleDegrees;
+  final double minimumElbowAngleDegrees;
+  final double maximumElbowAngleDegrees;
+  final double elbowScorePenaltyPerDegree;
+  final double minimumReliableCoverage;
+  final int minimumReliableFrames;
+  final int lowCoveragePenalty;
+
+  const RunningCoachingThresholds({
+    this.idealForwardLeanDegrees = 10,
+    this.minimumForwardLeanDegrees = 6,
+    this.maximumForwardLeanDegrees = 16,
+    this.forwardLeanScorePenaltyPerDegree = 8,
+    this.idealVerticalBouncePercent = 6,
+    this.maximumVerticalBouncePercent = 8.5,
+    this.verticalBounceScorePenaltyPerPercent = 11,
+    this.idealFootStrikeRatio = 0.08,
+    this.maximumFootStrikeRatio = 0.16,
+    this.footStrikeScorePenalty = 220,
+    this.overstrideScorePenalty = 320,
+    this.idealStanceKneeAngleDegrees = 155,
+    this.minimumStanceKneeAngleDegrees = 138,
+    this.maximumStanceKneeAngleDegrees = 170,
+    this.kneeScorePenaltyPerDegree = 2.2,
+    this.idealElbowAngleDegrees = 90,
+    this.minimumElbowAngleDegrees = 60,
+    this.maximumElbowAngleDegrees = 120,
+    this.elbowScorePenaltyPerDegree = 1.3,
+    this.minimumReliableCoverage = 0.6,
+    this.minimumReliableFrames = 7,
+    this.lowCoveragePenalty = 8,
+  });
+}
+
+class RunningCoachingWeights {
+  final double postureWeight;
+  final double bounceWeight;
+  final double footStrikeWeight;
+  final double kneeWeight;
+  final double armWeight;
+
+  const RunningCoachingWeights({
+    this.postureWeight = 0.24,
+    this.bounceWeight = 0.16,
+    this.footStrikeWeight = 0.24,
+    this.kneeWeight = 0.20,
+    this.armWeight = 0.16,
+  });
 }

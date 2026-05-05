@@ -38,6 +38,7 @@ class RunningVideoAnalysisResult {
   final double footStrikeDistanceRatio;
   final double stanceKneeAngleDegrees;
   final double elbowAngleDegrees;
+  final Map<RunningCoachMetric, RunningMetricQuality> metricQualities;
 
   const RunningVideoAnalysisResult({
     required this.videoDuration,
@@ -49,10 +50,25 @@ class RunningVideoAnalysisResult {
     required this.footStrikeDistanceRatio,
     required this.stanceKneeAngleDegrees,
     required this.elbowAngleDegrees,
+    this.metricQualities = const <RunningCoachMetric, RunningMetricQuality>{},
   });
 
   double get validFrameCoverage =>
       sampledFrames == 0 ? 0.0 : validFrames / sampledFrames;
+
+  double get analysisConfidence {
+    final coverage = validFrameCoverage.clamp(0.0, 1.0);
+    final validFrameFactor = (validFrames / 10).clamp(0.0, 1.0);
+    final sampledFrameFactor = (sampledFrames / 10).clamp(0.0, 1.0);
+    return ((coverage * 0.55) +
+            (validFrameFactor * 0.30) +
+            (sampledFrameFactor * 0.15))
+        .clamp(0.0, 1.0);
+  }
+
+  RunningMetricQuality? qualityFor(RunningCoachMetric metric) {
+    return metricQualities[metric];
+  }
 
   factory RunningVideoAnalysisResult.fromMap(Map<Object?, Object?> map) {
     final durationMs = (map['durationMs'] as num?)?.toInt() ?? 0;
@@ -80,12 +96,31 @@ class RunningVideoAnalysisResult {
   }
 }
 
+class RunningMetricQuality {
+  final double confidence;
+  final int sampleCount;
+  final String? reason;
+
+  const RunningMetricQuality({
+    required this.confidence,
+    required this.sampleCount,
+    this.reason,
+  });
+
+  static const high = RunningMetricQuality(confidence: 1, sampleCount: 0);
+
+  int get confidencePercent => (confidence.clamp(0.0, 1.0) * 100).round();
+
+  bool get isLowConfidence => confidence < 0.6;
+}
+
 class RunningCoachingInsight {
   final RunningCoachMetric metric;
   final RunningCoachFinding finding;
   final RunningCoachStatus status;
   final int score;
   final double value;
+  final RunningMetricQuality quality;
 
   const RunningCoachingInsight({
     required this.metric,
@@ -93,6 +128,7 @@ class RunningCoachingInsight {
     required this.status,
     required this.score,
     required this.value,
+    this.quality = RunningMetricQuality.high,
   });
 }
 
@@ -110,9 +146,11 @@ extension RunningCoachMetricBodyRegion on RunningCoachMetric {
   RunningCoachBodyRegion get bodyRegion {
     return switch (this) {
       RunningCoachMetric.posture ||
-      RunningCoachMetric.armCarriage => RunningCoachBodyRegion.upperBody,
+      RunningCoachMetric.armCarriage =>
+        RunningCoachBodyRegion.upperBody,
       RunningCoachMetric.footStrike ||
-      RunningCoachMetric.kneeFlexion => RunningCoachBodyRegion.lowerBody,
+      RunningCoachMetric.kneeFlexion =>
+        RunningCoachBodyRegion.lowerBody,
       RunningCoachMetric.bounce => RunningCoachBodyRegion.wholeBody,
     };
   }
@@ -136,6 +174,15 @@ extension RunningCoachingReportInsights on RunningCoachingReport {
         .where((insight) => insight.status == RunningCoachStatus.good)
         .toList(growable: false);
     return List<RunningCoachingInsight>.unmodifiable(strengths);
+  }
+
+  RunningCoachingInsight? get primaryFocus {
+    final focus = focusInsights;
+    if (focus.isNotEmpty) {
+      return focus.first;
+    }
+    final ranked = rankedInsights;
+    return ranked.isEmpty ? null : ranked.first;
   }
 
   Map<RunningCoachMetric, int> get focusPriorityByMetric {

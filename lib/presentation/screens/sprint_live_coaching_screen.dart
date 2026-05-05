@@ -65,7 +65,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
   _SprintPoseOverlayState? _poseOverlayState;
   bool _isInitializing = true;
   bool _isSpeechEnabled = true;
-  bool _isDebugModeEnabled = true;
+  bool _isDebugModeEnabled = false;
   bool _isDisposed = false;
   bool _isProcessingFrame = false;
   String? _configuredTtsLanguage;
@@ -264,10 +264,7 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                             body: bannerCue,
                             diagnosis: diagnosis,
                             actionTip: actionTip,
-                            hints: <String>[
-                              _trackingSummaryText(l10n),
-                              _speechSummaryText(l10n),
-                            ],
+                            hints: _bannerHints(l10n),
                           ),
                         ),
                       ),
@@ -279,44 +276,45 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
                         alignment: Alignment.bottomLeft,
                         child: _StatusDock(
                           items: [
-                            _InfoChipData(
-                              text: l10n
-                                  .runningCoachSprintTrackingConfidenceValue(
-                                (_coachingState
-                                            .stateEstimate.trackingConfidence *
-                                        100)
-                                    .round(),
-                              ),
-                            ),
-                            _InfoChipData(
-                              text: l10n.runningCoachSprintTrackedFrames(
-                                _coachingState.trackedFrames,
-                              ),
-                            ),
-                            _InfoChipData(
-                              text: l10n.runningCoachSprintDetectedSteps(
-                                _coachingState.features.detectedStepEvents,
-                              ),
-                            ),
                             _InfoChipData(text: _bodyVisibilityText(l10n)),
                             _InfoChipData(
                               text: _isSpeechEnabled
                                   ? l10n.runningCoachLiveVoiceOn
                                   : l10n.runningCoachLiveVoiceOff,
                             ),
+                            if (_isDebugModeEnabled) ...[
+                              _InfoChipData(
+                                text: l10n
+                                    .runningCoachSprintTrackingConfidenceValue(
+                                  (_coachingState.stateEstimate
+                                              .trackingConfidence *
+                                          100)
+                                      .round(),
+                                ),
+                              ),
+                              _InfoChipData(
+                                text: l10n.runningCoachSprintTrackedFrames(
+                                  _coachingState.trackedFrames,
+                                ),
+                              ),
+                              _InfoChipData(
+                                text: l10n.runningCoachSprintDetectedSteps(
+                                  _coachingState.features.detectedStepEvents,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: _SessionSummaryCard(
-                          width: sessionWidth,
-                          title: _isDebugModeEnabled
-                              ? l10n.runningCoachSprintDebugPanelTitle
-                              : l10n.runningCoachSprintSessionLogTitle,
-                          lines: _buildSessionSummaryLines(l10n),
+                      if (_isDebugModeEnabled)
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: _SessionSummaryCard(
+                            width: sessionWidth,
+                            title: l10n.runningCoachSprintDebugPanelTitle,
+                            lines: _buildSessionSummaryLines(l10n),
+                          ),
                         ),
-                      ),
                     ],
                   );
                 },
@@ -362,6 +360,21 @@ class _SprintLiveCoachingScreenState extends State<SprintLiveCoachingScreen>
       (_coachingState.stateEstimate.personHeightRatio * 100).round(),
       (_coachingState.stateEstimate.personAreaRatio * 100).round(),
     );
+  }
+
+  List<String> _bannerHints(AppLocalizations l10n) {
+    if (_isDebugModeEnabled) {
+      return <String>[
+        _trackingSummaryText(l10n),
+        _speechSummaryText(l10n),
+      ];
+    }
+    return <String>[
+      _bodyVisibilityStatusText(l10n),
+      _isSpeechEnabled
+          ? l10n.runningCoachLiveVoiceOn
+          : l10n.runningCoachLiveVoiceOff,
+    ];
   }
 
   String _speechSummaryText(AppLocalizations l10n) {

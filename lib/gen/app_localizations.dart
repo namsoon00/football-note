@@ -4007,19 +4007,19 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintLiveCardTitle.
   ///
   /// In en, this message translates to:
-  /// **'Sprint live MVP'**
+  /// **'Live sprint coaching'**
   String get runningCoachSprintLiveCardTitle;
 
   /// No description provided for @runningCoachSprintLiveCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Connect the side-view camera directly so trunk lean, knee drive, step rhythm, arm balance, and session FPS/skip/visibility logs can be checked together on-device.'**
+  /// **'Use the side-view camera to read trunk lean, knee drive, step rhythm, and arm balance, then get the one sprint cue to fix now.'**
   String get runningCoachSprintLiveCardBody;
 
   /// No description provided for @runningCoachSprintLiveAction.
   ///
   /// In en, this message translates to:
-  /// **'Start sprint MVP'**
+  /// **'Start sprint coaching'**
   String get runningCoachSprintLiveAction;
 
   /// No description provided for @runningCoachSprintLiveScreenTitle.
@@ -4097,7 +4097,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintSessionLogTitle.
   ///
   /// In en, this message translates to:
-  /// **'Session debug'**
+  /// **'Session summary'**
   String get runningCoachSprintSessionLogTitle;
 
   /// No description provided for @runningCoachSprintSessionCameraFpsLabel.
@@ -4990,7 +4990,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintTrackingDiagnosisBodyOutOfFrame.
   ///
   /// In en, this message translates to:
-  /// **'Core joints are clipping near the edge, so overlay and feature values will drift.'**
+  /// **'Core joints are clipping near the edge, so the pose line and sprint metrics may drift.'**
   String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame;
 
   /// No description provided for @runningCoachSprintTrackingDiagnosisLowConfidence.
@@ -5165,7 +5165,7 @@ abstract class AppLocalizations {
   /// No description provided for @runningCoachSprintDiagnosisKeepPushing.
   ///
   /// In en, this message translates to:
-  /// **'The main sprint features are inside the current MVP range, so the app is holding the current cue.'**
+  /// **'The main sprint metrics are inside the stable range, so the app is holding the current cue.'**
   String get runningCoachSprintDiagnosisKeepPushing;
 
   /// No description provided for @runningCoachSprintActionLeanForward.

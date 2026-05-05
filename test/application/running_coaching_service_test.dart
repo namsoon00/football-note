@@ -89,4 +89,54 @@ void main() {
       isTrue,
     );
   });
+
+  test('report exposes primary focus and metric confidence', () {
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 4),
+      sampledFrames: 14,
+      validFrames: 5,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 11,
+      verticalBounceRatio: 0.11,
+      footStrikeDistanceRatio: 0.12,
+      stanceKneeAngleDegrees: 156,
+      elbowAngleDegrees: 90,
+    );
+
+    final report = service.buildReport(result);
+    final primaryFocus = report.primaryFocus;
+
+    expect(primaryFocus, isNotNull);
+    expect(primaryFocus!.metric, RunningCoachMetric.bounce);
+    expect(primaryFocus.quality.isLowConfidence, isTrue);
+    expect(primaryFocus.quality.reason, 'low_coverage');
+    expect(
+      report.insights.every((insight) => insight.quality.sampleCount == 5),
+      isTrue,
+    );
+  });
+
+  test('custom thresholds can tune the coaching report', () {
+    const tunedService = RunningCoachingService(
+      thresholds: RunningCoachingThresholds(maximumFootStrikeRatio: 0.12),
+    );
+    const result = RunningVideoAnalysisResult(
+      videoDuration: Duration(seconds: 6),
+      sampledFrames: 14,
+      validFrames: 14,
+      direction: RunningDirection.leftToRight,
+      forwardLeanDegrees: 9.2,
+      verticalBounceRatio: 0.058,
+      footStrikeDistanceRatio: 0.13,
+      stanceKneeAngleDegrees: 154,
+      elbowAngleDegrees: 92,
+    );
+
+    final report = tunedService.buildReport(result);
+
+    expect(
+      report.insights[2].finding,
+      RunningCoachFinding.footStrikeOverstride,
+    );
+  });
 }

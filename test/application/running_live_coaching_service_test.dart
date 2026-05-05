@@ -134,6 +134,92 @@ void main() {
         RunningLivePrimaryCue.footStrikeOverstride,
       );
     });
+
+    test('waits briefly before switching between correction cues', () {
+      final service = RunningLiveCoachingService(
+        cueDwellTime: const Duration(milliseconds: 600),
+      );
+      late RunningLiveCoachingState lastState;
+      final start = DateTime(2026, 4, 11, 12);
+
+      for (var index = 0; index < 7; index++) {
+        final xOffset = 340.0 + (index * 26);
+        lastState = service.ingestObservation(
+          _observation(
+            nose: Offset(xOffset + 150, 182),
+            leftShoulder: Offset(xOffset + 138, 252),
+            rightShoulder: Offset(xOffset + 170, 252),
+            leftElbow: Offset(xOffset + 138, 320),
+            rightElbow: Offset(xOffset + 170, 320),
+            leftWrist: Offset(xOffset + 88, 320),
+            rightWrist: Offset(xOffset + 225, 320),
+            leftHip: Offset(xOffset + 120, 432),
+            rightHip: Offset(xOffset + 148, 432),
+            leftKnee: Offset(xOffset + 98, 600),
+            rightKnee: Offset(xOffset + 184, 552),
+            leftAnkle: Offset(xOffset + 86, 758),
+            rightAnkle: Offset(xOffset + 240, 708),
+            leftHeel: Offset(xOffset + 80, 772),
+            rightHeel: Offset(xOffset + 228, 722),
+          ),
+          timestamp: start.add(Duration(milliseconds: 320 * index)),
+        );
+      }
+
+      expect(
+        lastState.primaryCue,
+        RunningLivePrimaryCue.footStrikeOverstride,
+      );
+
+      final quickSwitch = service.ingestObservation(
+        _observation(
+          nose: const Offset(500, 182),
+          leftShoulder: const Offset(500, 252),
+          rightShoulder: const Offset(532, 252),
+          leftElbow: const Offset(500, 320),
+          rightElbow: const Offset(532, 320),
+          leftWrist: const Offset(454, 320),
+          rightWrist: const Offset(587, 320),
+          leftHip: const Offset(120, 432),
+          rightHip: const Offset(148, 432),
+          leftKnee: const Offset(98, 600),
+          rightKnee: const Offset(184, 552),
+          leftAnkle: const Offset(86, 758),
+          rightAnkle: const Offset(240, 708),
+          leftHeel: const Offset(80, 772),
+          rightHeel: const Offset(228, 722),
+        ),
+        timestamp: start.add(const Duration(milliseconds: 2250)),
+      );
+
+      expect(
+        quickSwitch.primaryCue,
+        RunningLivePrimaryCue.footStrikeOverstride,
+      );
+
+      final settledSwitch = service.ingestObservation(
+        _observation(
+          nose: const Offset(500, 182),
+          leftShoulder: const Offset(500, 252),
+          rightShoulder: const Offset(532, 252),
+          leftElbow: const Offset(500, 320),
+          rightElbow: const Offset(532, 320),
+          leftWrist: const Offset(454, 320),
+          rightWrist: const Offset(587, 320),
+          leftHip: const Offset(120, 432),
+          rightHip: const Offset(148, 432),
+          leftKnee: const Offset(98, 600),
+          rightKnee: const Offset(184, 552),
+          leftAnkle: const Offset(86, 758),
+          rightAnkle: const Offset(240, 708),
+          leftHeel: const Offset(80, 772),
+          rightHeel: const Offset(228, 722),
+        ),
+        timestamp: start.add(const Duration(milliseconds: 2900)),
+      );
+
+      expect(settledSwitch.primaryCue, RunningLivePrimaryCue.postureTooUpright);
+    });
   });
 }
 

@@ -2112,14 +2112,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get runningCoachLiveGuidanceTitle => '현재 안내';
 
   @override
-  String get runningCoachSprintLiveCardTitle => '스프린트 실시간 MVP';
+  String get runningCoachSprintLiveCardTitle => '스프린트 실시간 코칭';
 
   @override
   String get runningCoachSprintLiveCardBody =>
-      '측면 카메라를 바로 연결해 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 보고 세션 FPS, 스킵, 가시성 로그까지 함께 확인해요.';
+      '측면 카메라로 전경사, 무릎 드라이브, 스텝 리듬, 팔 균형을 읽고 질주 중 바로 고칠 포인트를 알려줘요.';
 
   @override
-  String get runningCoachSprintLiveAction => '스프린트 MVP 시작';
+  String get runningCoachSprintLiveAction => '스프린트 코칭 시작';
 
   @override
   String get runningCoachSprintLiveScreenTitle => '스프린트 실시간 코칭';
@@ -2167,7 +2167,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionLogTitle => '세션 디버그';
+  String get runningCoachSprintSessionLogTitle => '세션 요약';
 
   @override
   String get runningCoachSprintSessionCameraFpsLabel => '카메라 입력 FPS';
@@ -2723,7 +2723,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSprintTrackingDiagnosisBodyOutOfFrame =>
-      '핵심 관절이 화면 가장자리에서 잘려 overlay와 feature 값이 함께 흔들릴 수 있습니다.';
+      '핵심 관절이 화면 가장자리에서 잘려 자세선과 지표가 함께 흔들릴 수 있습니다.';
 
   @override
   String get runningCoachSprintTrackingDiagnosisLowConfidence =>
@@ -2829,7 +2829,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get runningCoachSprintDiagnosisKeepPushing =>
-      '핵심 스프린트 feature가 현재 MVP 범위 안에 있어 지금 형태를 유지하는 cue를 주고 있습니다.';
+      '핵심 스프린트 지표가 안정 범위 안에 있어 지금 형태를 유지하는 안내를 주고 있습니다.';
 
   @override
   String get runningCoachSprintActionLeanForward =>
@@ -2882,7 +2882,7 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get runningCoachSprintSessionFeatureConfidenceLabel => 'feature 신뢰도';
+  String get runningCoachSprintSessionFeatureConfidenceLabel => '지표 신뢰도';
 
   @override
   String runningCoachSprintSessionFeatureConfidenceValue(

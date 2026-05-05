@@ -242,7 +242,11 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      AppPageRoute(builder: (_) => const RunningCoachScreen()),
+                      AppPageRoute(
+                        builder: (_) => RunningCoachScreen(
+                          optionRepository: optionRepository,
+                        ),
+                      ),
                     );
                   },
                 ),
