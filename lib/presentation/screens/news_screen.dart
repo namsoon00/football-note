@@ -104,8 +104,11 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     _newsService = NewsService(RssNewsRepository(widget.optionRepository));
     _profileService = PlayerProfileService(widget.optionRepository);
     _channels = _newsService.channels();
-    _positionHint =
-        _profileService.load().positionTestResult.trim().toLowerCase();
+    _positionHint = _profileService
+        .load()
+        .positionTestResult
+        .trim()
+        .toLowerCase();
     _selectedChannelIds = _channels.map((channel) => channel.id).toSet();
     _scrappedLinks = widget.optionRepository
         .getOptions(_scrappedLinksKey, const [])
@@ -184,12 +187,42 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                             l10n.tabNews,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
+                        IconButton(
+                          tooltip: _showScrappedOnly
+                              ? l10n.newsShowAllNewsAction
+                              : l10n.newsShowScrappedOnlyAction,
+                          onPressed: () {
+                            setState(() {
+                              _showScrappedOnly = !_showScrappedOnly;
+                            });
+                          },
+                          icon: Icon(
+                            _showScrappedOnly
+                                ? Icons.bookmark
+                                : Icons.bookmark_border,
+                            color: _showScrappedOnly
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          ),
+                        ),
+                        if (isKo)
+                          IconButton(
+                            tooltip: _titleTranslateEnabled
+                                ? l10n.newsTitleTranslateEnabledTooltip
+                                : l10n.newsTitleTranslateDisabledTooltip,
+                            onPressed: _toggleTitleTranslate,
+                            icon: Icon(
+                              Icons.translate_rounded,
+                              color: _titleTranslateEnabled
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.onSurface
+                                        .withValues(alpha: 0.55),
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -249,61 +282,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: WatchCartCard(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.rss_feed, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _statusSummary(l10n, isKo),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: _showScrappedOnly
-                            ? (isKo ? '전체 소식 보기' : 'Show all news')
-                            : (isKo ? '스크랩한 소식만 보기' : 'Show scrapped only'),
-                        onPressed: () {
-                          setState(() {
-                            _showScrappedOnly = !_showScrappedOnly;
-                          });
-                        },
-                        icon: Icon(
-                          _showScrappedOnly
-                              ? Icons.bookmark
-                              : Icons.bookmark_border,
-                          color: _showScrappedOnly
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                        ),
-                      ),
-                      if (isKo)
-                        IconButton(
-                          tooltip:
-                              _titleTranslateEnabled ? '제목 번역 켜짐' : '제목 번역 꺼짐',
-                          onPressed: _toggleTitleTranslate,
-                          icon: Icon(
-                            Icons.translate_rounded,
-                            color: _titleTranslateEnabled
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withValues(alpha: 0.55),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => _loadProgressive(force: true),
@@ -463,44 +441,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     );
   }
 
-  String _channelSummary(bool isKo) {
-    final selectedChannels = _effectiveSelectedChannels();
-    final availableChannels = _channelsForRegion(_regionFilter);
-    if (selectedChannels.isEmpty) {
-      return isKo ? '선택된 채널 없음' : 'No channels selected';
-    }
-    if (selectedChannels.length == availableChannels.length) {
-      return isKo ? '모든 채널 선택됨' : 'All channels selected';
-    }
-    final selectedNames =
-        selectedChannels.map((channel) => channel.name).toList(growable: false);
-    final first = selectedNames.first;
-    final rest = selectedNames.length - 1;
-    if (rest <= 0) {
-      return first;
-    }
-    return isKo ? '$first 외 $rest개' : '$first +$rest';
-  }
-
-  String _statusSummary(AppLocalizations l10n, bool isKo) {
-    final channelText = _channelSummary(isKo);
-    final scrapCount = _scrappedItemsByLink.length;
-    final regionPrefix = _regionFilter == _NewsRegionFilter.all
-        ? ''
-        : '${_regionFilterLabel(l10n, _regionFilter)} · ';
-    if (_showScrappedOnly) {
-      return isKo
-          ? '$regionPrefix스크랩 $scrapCount개 보는 중 · $channelText'
-          : '${regionPrefix}Showing $scrapCount scrapped items · $channelText';
-    }
-    if (scrapCount == 0) {
-      return '$regionPrefix$channelText';
-    }
-    return isKo
-        ? '$regionPrefix$channelText · 스크랩 $scrapCount개'
-        : '$regionPrefix$channelText · $scrapCount scrapped';
-  }
-
   List<NewsArticle> _filteredArticles() {
     final query = _searchController.text.trim().toLowerCase();
     final scrappedBase = _showScrappedOnly
@@ -514,15 +454,17 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
         : List<NewsArticle>.unmodifiable(_articles);
     final regionBase = base.where(_matchesRegionFilter).toList(growable: false);
     if (query.isEmpty) return regionBase;
-    return regionBase.where((article) {
-      final title = article.title.toLowerCase();
-      final sourceText = article.source.toLowerCase();
-      final translated =
-          _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
-      return title.contains(query) ||
-          sourceText.contains(query) ||
-          translated.contains(query);
-    }).toList(growable: false);
+    return regionBase
+        .where((article) {
+          final title = article.title.toLowerCase();
+          final sourceText = article.source.toLowerCase();
+          final translated =
+              _translatedTitlesByLink[article.link.trim()]?.toLowerCase() ?? '';
+          return title.contains(query) ||
+              sourceText.contains(query) ||
+              translated.contains(query);
+        })
+        .toList(growable: false);
   }
 
   String _scrapKeyForArticle(NewsArticle article) {
@@ -669,12 +611,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
     required Set<String> temp,
     required StateSetter setSheetState,
   }) {
-    final domesticChannels =
-        _channels.where(_isDomesticNewsChannel).toList(growable: false);
-    final internationalChannels =
-        _channels.where((channel) => !_isDomesticNewsChannel(channel)).toList(
-              growable: false,
-            );
+    final domesticChannels = _channels
+        .where(_isDomesticNewsChannel)
+        .toList(growable: false);
+    final internationalChannels = _channels
+        .where((channel) => !_isDomesticNewsChannel(channel))
+        .toList(growable: false);
     return [
       if (domesticChannels.isNotEmpty) ...[
         _buildChannelGroupHeader(l10n.newsDomesticFeedsLabel),
@@ -759,10 +701,12 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       setState(() => _isLoading = false);
       return;
     }
-    final primaryIds =
-        channelIds.take(_primaryChannelLoadCount).toList(growable: false);
-    final secondaryIds =
-        channelIds.skip(_primaryChannelLoadCount).toList(growable: false);
+    final primaryIds = channelIds
+        .take(_primaryChannelLoadCount)
+        .toList(growable: false);
+    final secondaryIds = channelIds
+        .skip(_primaryChannelLoadCount)
+        .toList(growable: false);
 
     final primarySucceeded = await _loadChannels(
       token: token,
@@ -838,18 +782,20 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   }) async {
     if (channelIds.isEmpty) return false;
     var loadedAny = false;
-    final tasks = channelIds.map((id) async {
-      try {
-        final chunk = await _newsService.latest(id);
-        if (!mounted || token != _loadToken || chunk.isEmpty) return;
-        loadedAny = true;
-        setState(() {
-          _mergeChunk(chunk);
-        });
-      } catch (_) {
-        // Keep loading remaining channels even if one feed fails.
-      }
-    }).toList(growable: false);
+    final tasks = channelIds
+        .map((id) async {
+          try {
+            final chunk = await _newsService.latest(id);
+            if (!mounted || token != _loadToken || chunk.isEmpty) return;
+            loadedAny = true;
+            setState(() {
+              _mergeChunk(chunk);
+            });
+          } catch (_) {
+            // Keep loading remaining channels even if one feed fails.
+          }
+        })
+        .toList(growable: false);
     await Future.wait(tasks);
     return loadedAny;
   }
@@ -1034,20 +980,6 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
   Set<String> _effectiveSelectedChannelIds() =>
       _effectiveSelectedChannels().map((channel) => channel.id).toSet();
 
-  String _regionFilterLabel(
-    AppLocalizations l10n,
-    _NewsRegionFilter filter,
-  ) {
-    switch (filter) {
-      case _NewsRegionFilter.all:
-        return l10n.newsRegionAllLabel;
-      case _NewsRegionFilter.domestic:
-        return l10n.newsRegionDomesticLabel;
-      case _NewsRegionFilter.international:
-        return l10n.newsRegionInternationalLabel;
-    }
-  }
-
   bool _matchesRegionFilter(NewsArticle article) {
     switch (_regionFilter) {
       case _NewsRegionFilter.all:
@@ -1101,8 +1033,9 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       final decoded = jsonDecode(raw);
       if (decoded is! Map) return <String, int>{};
       return decoded.map<String, int>((key, value) {
-        final count =
-            value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+        final count = value is num
+            ? value.toInt()
+            : int.tryParse('$value') ?? 0;
         return MapEntry(key.toString(), count);
       });
     } catch (_) {
@@ -1285,17 +1218,19 @@ class _NewsScreenState extends State<NewsScreen> with WidgetsBindingObserver {
       return;
     }
     _translatingLinks.add(key);
-    _translateToKorean(originalTitle).then((translated) {
-      if (!mounted) return;
-      final value = translated.trim();
-      if (value.isNotEmpty && value != originalTitle) {
-        setState(() {
-          _translatedTitlesByLink[key] = value;
+    _translateToKorean(originalTitle)
+        .then((translated) {
+          if (!mounted) return;
+          final value = translated.trim();
+          if (value.isNotEmpty && value != originalTitle) {
+            setState(() {
+              _translatedTitlesByLink[key] = value;
+            });
+          }
+        })
+        .whenComplete(() {
+          _translatingLinks.remove(key);
         });
-      }
-    }).whenComplete(() {
-      _translatingLinks.remove(key);
-    });
   }
 
   Future<void> _toggleTitleTranslate() async {

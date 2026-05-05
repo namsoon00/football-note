@@ -39,6 +39,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsChannelsAction => 'Channels';
 
   @override
+  String get newsShowAllNewsAction => 'Show all news';
+
+  @override
+  String get newsShowScrappedOnlyAction => 'Show scrapped only';
+
+  @override
+  String get newsTitleTranslateEnabledTooltip => 'Title translation on';
+
+  @override
+  String get newsTitleTranslateDisabledTooltip => 'Title translation off';
+
+  @override
   String get newsSelectChannelsTitle => 'Select news channels';
 
   @override
